@@ -1,0 +1,110 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Movimientos</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'wms/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+<h5 class="m-4 text-center"><strong>LISTADO DE MOVIMIENTOS</strong></h5>
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
+<!--h6 class="m-4 text-end"><strong>Actulizado: </strong>{{actualizado|slice:':-7'}}</h6-->
+
+<!--form method="POST">
+    {% csrf_token %} 
+    <button type="submit" class="btn btn-primary mb-2">
+        <i class="bi bi-arrow-clockwise"></i> Actulizar Tabla
+    </button>
+</form-->
+
+<div class="col-12">
+    <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+</div>
+
+<div id="msg"></div>
+
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table" style="font-size: small;">
+                <thead>
+                    <tr>
+                        <th scope="col">Item</th>
+                        <th scope="col">Lote</th>
+                        <th scope="col">Tipo de movimiento</th>
+                        <th scope="col">Descripción del movimiento</th>
+                        <th scope="col">Referencia del movimiento</th>
+                        <th scope="col">Ubicación</th>
+                        <th scope="col">Unidades</th>
+                        <th scope="col">Realizado por</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in mov %}
+                    <tr>
+                        <td>{{i.item.product_id}} <br>
+                            {{i.item.nombre}}<br>
+                            {{i.item.marca2}}
+                        </td>
+
+                        <td>{{i.item.lote_id}}<br>
+                            {{i.item.fecha_caducidad|date:'Y-m-d'}}
+                        </td>
+
+                        <td>{{i.tipo}}</td>
+                        <td>{{i.descripcion}}</td>
+
+                        <td>
+                            {% if i.referencia %}
+                                {{i.referencia}}: {{i.n_referencia|slice:'-2'}}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+
+                        <td>{{i.ubicacion}}</td>
+
+                        <td class="text-end">{{i.unidades|floatformat:"0g"}}</td>
+
+                        <td>{{i.usuario.first_name}} {{i.usuario.last_name}}</td>
+                        
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<!--filtro buscar-->
+<script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+
+{% endblock %}

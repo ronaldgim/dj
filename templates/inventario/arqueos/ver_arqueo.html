@@ -1,0 +1,266 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Arqueo N°. {{arqueo_creado.arqueo_enum}}</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'inventario/topnavbar.html' %}
+{% endblock %}
+
+{% block body_2 %}
+
+<div id="print_area">
+
+<h5 class="m-4 text-center"><strong>ARQUEO {{arqueo_creado.arqueo_enum}}</strong></h5>
+
+<a class="btn btn-primary" href="{% url 'arqueos_list' %}">
+    <i class="bi bi-arrow-90deg-left"></i> Lista de arqueos
+</a>
+
+<button class="btn btn-primary" id="print">
+    <i class="bi bi-printer-fill"></i>
+</button>
+
+<div class="card mt-2 mb-2">
+    <div class="card-body pb-0">
+        <div class="pe-2 ps-2 mb-0">
+            <label class="fw-bold">Arqueo N°. </label> {{arqueo_creado.arqueo_enum}}<br>
+            <label class="fw-bold">Bodega: </label> {{arqueo_creado.bodega}}<br>
+            <label class="fw-bold">Fecha - Hora: </label> {{arqueo_creado.fecha_hora | date:"l de  F Y - H:i"}}<br>
+            <label class="fw-bold">Creado por: </label> {{arqueo_creado.arqueo.usuario.first_name}} {{arqueo_creado.arqueo.usuario.last_name}}<br>
+            <label class="fw-bold">Descripción: </label><br>
+
+            <p id="descripcion">
+                {{arqueo_creado.descripcion}}
+            </p>
+
+        </div>
+    </div>
+</div>
+
+<!--div class="col-4 mb-2">
+    <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+</div-->
+
+<div id="msg"></div>
+
+<div class="card mt-2 mb-2">
+    <div class="card-body">
+        <div class="ps-2 pe-2">
+            <label class="fw-bold">Realizado por: </label> {{arqueo_creado.usuario.first_name}} {{arqueo_creado.usuario.last_name}}<br>
+            <label class="fw-bold">Estado: </label> {{arqueo_creado.estado}}<br>
+            <label class="fw-bold">Finalizado: </label> 
+                {% if arqueo_creado.estado == 'FINALIZADO' %}
+                {{arqueo_creado.fecha_hora_actualizado | date:"l de  F Y - H:i"}}
+                {% endif %}
+            <br>
+        </div>
+    </div>
+</div>
+
+
+{% for q in qq %}
+<!-- Inventario TF -->
+<div class="card mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="ps-2 pe-2">
+            <table class="table mb-0 pb-0" style="font-size: small;">
+                <thead>
+                    <tr>
+                        <th class="align-middle" rowspan="2">Código</th>
+                        <th class="align-middle" rowspan="2">Nombre</th>
+                        <th class="align-middle" rowspan="2">Marca</th>
+                        <th class="align-middle" rowspan="2">Lote</th>
+                        <th class="align-middle" rowspan="2">Ubicación</th>
+                        <th class="align-middle" rowspan="2">Unds. MBA</th>
+                        <th class="text-center" colspan="4" style="background-color: #ddffdb;">Arqueo Físico</th>
+                        <th class="align-middle" rowspan="2" style="background-color: #fcffdb;">Diferencia</th> 
+                        <th class="align-middle" rowspan="2">Obs - TF</th>
+                        <th class="align-middle" rowspan="2">Obs - AD</th>
+                        <th class="align-middle" rowspan="2">
+                            <i class="bi bi-send"></i>
+                        </th>
+                    </tr>
+                    <tr>
+                        <th class="text-start" style="background-color: #ddffdb;">Unds. CM</th>
+                        <th class="text-start" style="background-color: #ddffdb;">No. CM</th>
+                        <th class="text-start" style="background-color: #ddffdb;">Unds. Sueltas</th>
+                        <th class="text-start" style="background-color: #ddffdb;">Total Unds</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+
+                    {% for i in q.prod_query %}
+                    
+                    <tr class="content">
+                        <td>{{i.product_id}}
+                            {% if i.agregado %}
+                                <span style="color: green;">*</span> 
+                            {% endif %}
+
+                        </td>
+                        <td>{{i.product_name}}</td>
+                        <td>{{i.group_code}}</td>
+                        <td>{{i.lote_id}}</td>
+                        <td>{{i.location}}</td>
+                        <td class="text-end">{{i.oh|floatformat:'0g'}}</td>
+
+                        <td class="text-end" style="background-color: #ddffdb;">{{i.unidades_caja|floatformat:'0g'}}</td>
+                        <td class="text-end" style="background-color: #ddffdb;">{{i.numero_cajas|floatformat:'0g'}}</td>
+                        <td class="text-end" style="background-color: #ddffdb;">{{i.unidades_sueltas|floatformat:'0g'}}</td>
+                        <td class="text-end" style="background-color: #ddffdb;">{{i.total_unidades|floatformat:'0g'}}</td>
+                        <td class="text-end" style="background-color: #fcffdb;">{{i.diferencia|floatformat:'0g'}}</td>
+                        <td class="text-end">{{i.observaciones}}</td>
+                        <td class="text-end">
+                            {% if i.observaciones2 %}
+                                {{i.observaciones2}}
+                            {% elif not i.observaciones2 %}
+                                <input type="text" id="obs2" value="{{i.observaciones2}}"> 
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button name="obs2" class="btn btn-success btn-sm {% if i.observaciones2 %} disabled {% endif %} " id="{{i.id}}">
+                                <i class="bi bi-send"></i>
+                            </button>
+                        </td>
+
+                    </tr>                    
+                    {% endfor %}
+                    <tr class="mb-0 pb-0">
+                        <td></td><td></td><td></td><td></td>
+                        <td class="fw-bold">Totales:</td>
+                        <td class="text-end">{{q.prod_total_mba|floatformat:'0g'}}</td>
+                        <td></td><td></td><td></td><td></td>
+                        <td class="text-end">{{q.prod_diferencia|floatformat:'0g'}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Reservas -->
+<div class="card mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="ps-2 pe-2">
+            {% if q.reservas %}
+            <h6 class="text-center mt-2 fw-bold">Reservas</h6>
+            <table class="table mb-0 pb-0" style="font-size: small;">
+                <thead>
+                    <tr>
+                        <th class="align-middle" rowspan="2">Documento</th>
+                        <th class="align-middle" rowspan="2">Cliente</th>
+                        <th class="align-middle" rowspan="2">Fecha Documento</th>
+                        <th class="align-middle" rowspan="2">Bodega</th>
+                        <th class="align-middle" rowspan="2">Confirmado</th>
+                        <th class="align-middle" rowspan="2">Lote</th>
+                        <th class="align-middle" rowspan="2">Cantidad</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+
+                    {% for i in q.reservas %}
+                    <tr>
+                        <td>{{i.CONTRATO_ID}}</td>
+                        <td>{{i.NOMBRE_CLIENTE}}</td>
+                        <td>{{i.FECHA_PEDIDO}}</td>
+                        <td>{{i.WARE_CODE}}</td>                        
+                        <td>
+                            {% if i.CONFIRMED == 1 %}
+                            <i style="color: green;" class="bi bi-check-circle-fill"></i>
+                            {% elif i.CONFIRMED == 0 %}
+                            <i style="color: red;" class="bi bi-x-circle-fill"></i>
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {% if i.LOTE_ID %}
+                            {{i.LOTE_ID}}
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+
+                        <td class="text-end">
+                            {% if i.LOTE_ID %}
+                            {{i.EGRESO_TEMP|floatformat:'0g'}}
+                            {% elif not i.LOTE_ID %}
+                            {{i.QUANTITY|floatformat:'0g'}}
+                            {% endif %}
+                        </td>
+                    </tr>                    
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="text-center mt-2">No hay reservas de este producto</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<hr>
+
+{% endfor %}
+
+</div>
+
+<script>
+    $("button[name='obs2']").click(function(){
+        var id = $(this).attr('id');
+        var obs2 = $(this).closest('tr').find("#obs2").val();
+
+
+        $.ajax({
+            type:"POST",
+            url : "{% url 'add_obs2_ajax' %}",
+            data : {
+                "csrfmiddlewaretoken"   :"{{csrf_token}}",
+                
+                "id"   :id,
+                "obs2" :obs2,
+
+            },
+
+            success: function() {
+                $('#msg').html('<div class="text-center alert alert-success" role="alert"> Observación añadida exitosamente !!! </div>')
+                    setTimeout(function(){
+                    window.location.reload();
+                }, 1000)
+            },
+
+            error: function() {
+                $('#msg').html('<div class="text-center alert alert-danger" role="alert"> Eror, intenta nuevamente !!! </div>')
+                   setTimeout(function(){
+                   window.location.reload();
+                }, 1000)
+            }
+        })
+
+
+    })
+</script>
+
+
+<script>
+    $("#print").click(function() {
+        // window.print(
+        //     {
+        //     addGlobalStyles:true,
+
+        // }
+        // )
+
+        w=window.open();
+        w.document.write($('#print_area').html());
+        w.print();
+        w.close();
+    })
+</script>
+
+
+
+{% endblock %}

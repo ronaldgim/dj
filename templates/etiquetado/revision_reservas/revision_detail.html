@@ -1,0 +1,92 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Etiquetado por pedido</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'etiquetado/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+<h5 class="m-4 text-center"><strong>{{proveedor}}</strong></h5>
+<h5 class="m-4 text-center"><strong>{{memo}}</strong></h5>
+<h5 class="m-4 text-start"><strong>PRODUCTOS EN IMPORTACIÓN CON RESERVAS</strong></h5>
+
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Código</th>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Unidades en importación</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in imp %}
+                    <tr>
+                        <tr>
+                            <td>{{i.PRODUCT_ID}}</td>
+                            <td>{{i.description}}</td>
+                            <td>{{i.QUANTITY|floatformat:"0g"}}</td>
+                        </tr>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<h5 class="m-4 text-start"><strong>PRODUCTOS EN RESERVA</strong></h5>
+
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Código</th>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Contrato</th>
+                        <th scope="col">Cliente</th>
+                        <th scope="col">Bodega</th>
+                        <th scope="col">Lote</th>
+                        <th scope="col">Fecha de expiración</th>
+                        <th scope="col">Unidades en reserva</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in res %}
+                    <tr>
+                        <td>{{i.PRODUCT_ID}}</td>
+                        <td>{{i.description}}</td>
+                        <td>{{i.CONTRATO_ID|slice:':-2'}}</td>
+                        <td>{{i.NOMBRE_CLIENTE}}</td>
+                        <td>{{i.WARE_CODE}}</td>
+                        <td>{{i.LOTE_ID}}</td>
+                        <td>{{i.FECHA_CADUCIDAD}}</td>
+                        <td>{{i.EGRESO_TEMP|floatformat:"0g"}}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<!--filtro buscar-->
+<script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+
+{% endblock %}

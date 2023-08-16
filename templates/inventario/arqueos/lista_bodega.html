@@ -1,0 +1,71 @@
+{% load static %}
+{% include 'base.html' %}
+{% block title %}
+<title>GIM Operaciones</title>
+{% endblock %}
+
+{% block navbar %}
+{% include 'inventario/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+
+<div class="container mt-4">
+
+    {% if messages %}
+        {% for message in messages %}
+        {% if message.tags == 'success'%}
+        <div class="alert text-center alert-success" role="alert">
+            {{message}}
+        </div>
+        {% elif message.tags == 'error'%}
+        <div class="alert text-center alert-danger" role="alert">
+            {{message}}
+        </div>
+        {%endif%}
+        {% endfor %}
+    {% endif %}
+
+    <h5 class="text-center p-0"><strong>LISTADO DE ARQUEOS</strong></h5>
+
+    <div class="row">
+
+        {% for i in arqueos %}
+        <div class="col-xl-4 col-md-6">
+            <div class="card border-primary mb-3">
+                <div class="card-body text-primary">
+                <h3 class="card-title text-center">
+                    <i class="bi bi-card-checklist"></i>
+                    {{i.arqueo_enum}} 
+                </h3>
+                <h5 class="text-center">
+                    {{i.descripcion}}
+                </h5>
+                <div class="text-center">
+                {% if i.estado == 'CREADO' %}
+                    <a class="btn btn-primary btn-sm disabled" target="_blank">{{i.estado}}</a>
+                    {% elif i.estado == 'EN PROCESO' %}
+                    <a class="btn btn-warning text-white btn-sm disabled"  target="_blank">{{i.estado}}</a> 
+                    {% elif i.estado == 'FINALIZADO' %}
+                    <a class="btn btn-success btn-sm disabled"  target="_blank">{{i.estado}}</a> 
+                    {% else %}
+                {% endif %}
+                </div>
+                <div class="text-center">
+                    {{i.usuario.first_name}} {{i.usuario.last_name}}
+                </div>
+                </div>
+                <div class="card-footer bg-transparent border-primary">
+                    <a class="btn btn-primary" href="{% url 'arqueo_bodega_tomafisica' i.arqueo i.ware_code %}">
+                        Ingresar <i class="bi bi-box-arrow-in-up-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {% endfor %}
+        {#% endfor %#}
+    </div>
+</div>
+
+{% endblock %}

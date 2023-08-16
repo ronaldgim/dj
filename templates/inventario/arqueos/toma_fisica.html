@@ -1,0 +1,389 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Arqueo N°. {{arqueo_creado.arqueo_enum}}</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'inventario/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+
+<!--link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#chosen-select').select2();
+    })
+</script-->
+
+
+<h5 class="mt-2 text-center"><strong>ARQUEO {{arqueo_creado.arqueo_enum}}</strong></h5>
+
+<!--a class="btn btn-primary" href="{% url 'arqueos_list' %}">
+    <i class="bi bi-arrow-90deg-left"></i> Lista de arqueos
+</a-->
+
+<div class="card mt-2 mb-2">
+    <div class="card-body pb-0">
+        <!--label class="fw-bold">Arqueo N°. </label> {{arqueo_creado.arqueo_enum}}<br-->
+        <label class="fw-bold">Bodega: </label> {{arqueo_creado.bodega}}<br>
+        <label class="fw-bold">Fecha - Hora: </label> {{arqueo_creado.fecha_hora | date:"de  F Y - H:i"}}<br>
+        <!-- label class="fw-bold">Creado por: </label> {{arqueo_creado.arqueo.usuario.first_name}} {{arqueo_creado.arqueo.usuario.last_name}}<br-->
+        <label class="fw-bold">Descripción: </label><br>
+        <p id="descripcion">
+            {{arqueo_creado.descripcion}}
+        </p>
+    </div>
+</div>
+
+<!--div class="col-4 mb-2">
+    <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+</div-->
+
+<div id="msg"></div>
+<div class="text-end mb-2">
+    <button name="estado" class="btn btn-warning" id="EN PROCESO">
+        EN PROCESO
+    </button>
+</div>
+
+<!--div class="card mt-2 mb-2">
+    <div class="card-body">
+        <label class="fw-bold">Cambiar estado:</label>
+        <select class="form-select" id="estado">
+            {% if arqueo_creado.estado == 'CREADO' %}
+            <option value="CREADO" selected>----------</option>
+            <option value="EN PROCESO">EN PROCESO</option>
+            <option value="FINALIZADO">FINALIZADO</option>
+            {% elif arqueo_creado.estado == 'EN PROCESO' %}
+            <option value="CREADO">----------</option>
+            <option value="EN PROCESO" selected>EN PROCESO</option>
+            <option value="FINALIZADO">FINALIZADO</option>
+            {% elif arqueo_creado.estado == 'FINALIZADO' %}
+            <option value="CREADO">----------</option>
+            <option value="EN PROCESO">EN PROCESO</option>
+            <option value="FINALIZADO" selected>FINALIZADO</option>
+            {% endif %}
+        </select>
+        <label class="mt-2">
+            {{arqueo_creado.usuario.first_name}} {{arqueo_creado.usuario.last_name}}
+        </label>
+        <button class="btn btn-primary btn-sm float-end mt-2" name="estado" id="{{arqueo_creado.id}}">
+            Guardar
+        </button>
+    </div>
+</div-->
+
+
+{% for i in arqueo_fisico %}
+<div class="card mb-2" {% if i.llenado %} style="background-color: #ddffdb;" {% endif %}>
+    <div class="card-body m-0 p-0">
+        <div class="container">           
+            
+            <div>
+                <h5 class="fw-bold text-center mt-2">Item
+                {% if i.agregado %}
+                <span style="color: green;">*</span> 
+                {% endif %}</h5>
+                {{i.product_id}} - {{i.product_name}} - {{i.group_code}}<br>
+                <label class="fw-bold">Lote: </label> {{i.lote_id}}<br>
+                <label class="fw-bold">Ubicación: </label> {{i.location}}<br> 
+            </div>
+
+            <div id="div">
+                <h5 class="fw-bold text-center">Toma física de inventario</h5>
+                <table>
+                    <tr>
+                        <th>Unidades por caja:</th>
+                        <td>
+                            <input id="unidades_caja" name="unidades_caja" type="number" class="form-control text-end" value="{{i.unidades_caja}}">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Numero de cajas:</th>
+                        <td>
+                            <input id="numero_cajas" type="number" class="form-control text-end" value="{{i.numero_cajas}}">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Unidades sueltas:</th>
+                        <td>
+                            <input id="unidades_sueltas" type="number" class="form-control text-end" value="{{i.unidades_sueltas}}">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Total de unidades:</th>
+                        <td class="text-end pe-2 me-2">
+                            {{i.total_unidades|floatformat:'0g'}}
+                        </td>
+                    </tr>
+                </table>
+                <label class="fw-bold">Observaciones:</label>
+                <textarea id="observaciones" rows="1" class="form-control">{{i.observaciones}}</textarea>
+    
+                <button name="toma_fisica" class="btn btn-sm btn-success float-end mt-2 mb-2" id="{{i.id}}">
+                    Guardar
+                </button>   
+            </div>
+        </div>
+    </div>
+</div>
+<hr>
+
+{% endfor %}
+
+<div class="card mb-2" {% if i.llenado %} style="background-color: #ddffdb;" {% endif %}>
+    <div class="card-body m-0 p-0">
+        <div class="container">           
+            
+            <div class="row">
+                <div class="col-10">
+                    <h5 class="fw-bold text-start mt-2">Añadir un item</h5> 
+                </div>
+                <div class="col-2">
+                    <button class="btn btn-primary btn-sm mt-2 mb-2" name="btn_form">
+                        <i class="bi bi-plus-circle-fill"></i>
+                    </button>
+                </div>
+            </div>
+            
+
+            <div id="form_add" style="display: none;">
+                <div id="div">
+                
+                    <input type="hidden" id="arqueo_id" value="{{arqueo_id}}">
+                    <input type="hidden" id="bodega" value="{{bodega}}">
+                
+                    <table>
+                        <tr>
+                            <th>Producto:</th>
+                            <td>
+                                <select class="form-select" id="chosen-select">
+                                    <option value="">----------</option>
+                                    {% for i in productos %}
+                                        <option value="{{i.product_id}}">{{i}}</option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Ubicación:</th>
+                            <td>
+                                <select class="form-select" id="ubicacion">
+                                    <option value="">----------</option>
+                                    {% for i in ubicacion %}
+                                        <option value="{{i}}">{{i}}</option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Lote:</th>
+                            <td>
+                                <input id="lote_id" name="lote_id" type="text" class="form-control text-end" value="{{i.lote_id}}">
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Fecha de elaboración:</th>
+                            <td>
+                                <input id="fecha_elab_lote" name="fecha_elab_lote" type="date" class="form-control text-end" value="{{i.fecha_elab_lote}}">
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Fecha de caducidad:</th>
+                            <td>
+                                <input id="fecha_cadu_lote" name="fecha_cadu_lote" type="date" class="form-control text-end" value="{{i.fecha_cadu_lote}}">
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Unidades por caja:</th>
+                            <td>
+                                <input id="unidades_caja" name="unidades_caja" type="number" class="form-control text-end" value="{{i.unidades_caja}}">
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Numero de cajas:</th>
+                            <td>
+                                <input id="numero_cajas" type="number" class="form-control text-end" value="{{i.numero_cajas}}">
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Unidades sueltas:</th>
+                            <td>
+                                <input id="unidades_sueltas" type="number" class="form-control text-end" value="{{i.unidades_sueltas}}">
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Total de unidades:</th>
+                            <td class="text-end pe-4 me-4">
+                                {{i.total_unidades|floatformat:'0g'}}
+                            </td>
+                        </tr>
+                    </table>
+                    <label class="fw-bold">Observaciones:</label>
+                    <textarea id="observaciones" rows="1" class="form-control">{{i.observaciones}}</textarea>
+        
+                    <button name="add_toma_fisica" class="btn btn-sm btn-primary float-end mt-2 mb-2">
+                        Añadir
+                    </button>   
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div id="msg"></div>
+<div class="text-end mb-2">
+    <button name="estado" class="btn btn-success" id="FINALIZADO">
+        FINALIZADO
+    </button><br>
+</div>
+
+<!-- Cambiar estado de arqueo -->
+<script>
+
+    $("button[name='estado']").click(function(){
+        
+        var arqueo_id ="{{arqueo_creado.id}}";
+        var estado = $(this).attr('id');
+        var usuario = "{{request.user.id}}";
+        
+        $.ajax({
+            type:"POST",
+            url : "{% url 'arqueo_cambiar_estado_ajax' %}",
+            data : {
+                "csrfmiddlewaretoken": "{{csrf_token}}",
+                "arqueo_id":arqueo_id,
+                "estado":estado,
+                "usuario":usuario
+            },
+
+            success: function() {
+                $('#msg').html('<div class="text-center alert alert-success" role="alert"> Cambio de estado exitoso !!! </div>')
+                //     setTimeout(function(){
+                //     window.location.reload();
+                // }, 1000)
+                
+                if (estado == 'FINALIZADO') {
+                    window.location.replace(`http://172.16.28.17:8000/inventario/arqueos/list/bodega/{{arqueo_creado.ware_code}}`)
+                }
+
+            },
+
+            error: function() {
+                $('#msg').html('<div class="text-center alert alert-danger" role="alert"> Eror al eliminar!!! </div>')
+                //     setTimeout(function(){
+                //     window.location.reload();
+                // }, 1000)
+            }
+        })
+    })
+
+</script>
+
+<!-- Toma fisica de inventario -->
+<script>
+    $("button[name='toma_fisica']").click(function() {
+        var id = $(this).attr('id');
+        var unidades_caja = $(this).closest("#div").find('#unidades_caja').val();
+        var numero_cajas = $(this).closest("#div").find('#numero_cajas').val();
+        var unidades_sueltas = $(this).closest("#div").find('#unidades_sueltas').val();
+        var observaciones = $(this).closest("#div").find('#observaciones').val();
+    
+
+        $.ajax({
+            type:"POST",
+            url : "{% url 'toma_fisica_inventario_ajax' %}",
+            data : {
+                "csrfmiddlewaretoken": "{{csrf_token}}",
+                "id":id,
+                "unidades_caja":unidades_caja,
+                "numero_cajas":numero_cajas,
+                "unidades_sueltas":unidades_sueltas,
+                "observaciones":observaciones
+            },
+
+            success: function() {
+                $('#msg').html('<div class="text-center alert alert-success" role="alert"> Toma física exitosa !!! </div>')
+                    setTimeout(function(){
+                    window.location.reload();
+                }, 1000)
+            },
+
+            error: function() {
+                $('#msg').html('<div class="text-center alert alert-danger" role="alert"> Eror al guardar valores, intenta nuevamente !!! </div>')
+                    setTimeout(function(){
+                    window.location.reload();
+                }, 1000)
+            }
+        })
+    })
+</script>
+
+<!-- Añadi producto -->
+<script>
+    $("button[name='add_toma_fisica']").click(function() {
+        var id_arqueo   = $(this).closest("#div").find("#arqueo_id").val();
+        var bodega      = $(this).closest("#div").find("#bodega").val();
+        var product     = $(this).closest("#div").find("#chosen-select").val();
+        var ubicacion   = $(this).closest("#div").find("#ubicacion").val();
+        var lote        = $(this).closest("#div").find("#lote_id").val();
+        var fecha_elab  = $(this).closest("#div").find("#fecha_elab_lote").val();
+        var fecha_cadu  = $(this).closest("#div").find("#fecha_cadu_lote").val();
+        
+        var unidades_caja = $(this).closest("#div").find('#unidades_caja').val();
+        var numero_cajas = $(this).closest("#div").find('#numero_cajas').val();
+        var unidades_sueltas = $(this).closest("#div").find('#unidades_sueltas').val();
+        var observaciones = $(this).closest("#div").find('#observaciones').val();
+    
+
+        $.ajax({
+            type:"POST",
+            url : "{% url 'add_registro_tomafisica_ajax' %}",
+            data : {
+                "csrfmiddlewaretoken"   :"{{csrf_token}}",
+                
+                "id_arqueo"             :id_arqueo,
+                "bodega"                :bodega,
+                "product_id"            :product,
+                "ubicacion"             :ubicacion,
+                "lote"                  :lote,
+                "fecha_elab"            :fecha_elab,
+                "fecha_cadu"            :fecha_cadu,
+
+                "unidades_caja"         :unidades_caja,
+                "numero_cajas"          :numero_cajas,
+                "unidades_sueltas"      :unidades_sueltas,
+                "observaciones"         :observaciones
+            },
+
+            success: function() {
+                $('#msg').html('<div class="text-center alert alert-success" role="alert"> Toma física exitosa !!! </div>')
+                    setTimeout(function(){
+                    window.location.reload();
+                }, 1000)
+            },
+
+            error: function() {
+                $('#msg').html('<div class="text-center alert alert-danger" role="alert"> Eror al guardar valores, intenta nuevamente !!! </div>')
+                   setTimeout(function(){
+                   window.location.reload();
+                }, 1000)
+            }
+        })
+    })
+</script>
+
+<!-- desplegar formulario para añadir item -->
+<script>
+    $(document).ready(function(){
+        $("button[name='btn_form']").click(function(){
+            $("#form_add").toggle()
+        })
+    })
+</script>
+
+{% endblock %}

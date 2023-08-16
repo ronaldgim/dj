@@ -1,0 +1,110 @@
+{% extends 'cartas/base.html' %}
+{% load static %}
+
+{% block title %}
+<title>Anular Carta {{carta.oficio}}</title>
+{% endblock%}
+
+{% block body %}
+
+    <h3 class="text-center m-3">
+        <strong>ANULAR CARTA {{carta.oficio}}</strong>
+    </h3>
+
+    {% if error %}
+        <div class="alert alert-danger" role="alert">
+            {{error}}
+        </div>
+    {% endif %}
+
+    <div class="row mb-2">
+        <form method="POST">
+            {% csrf_token %}
+            
+            <input type="hidden" name="usuario" value="{{request.user.id}}">
+            {{form.cartaprocesos.as_hidden}}
+
+            <div class="form-floating">
+                <textarea required name="comentario" class="form-control" placeholder="Leave a comment here" id="floatingTextarea2" style="height: 100px"></textarea>
+                <label for="floatingTextarea2">Observaciones:</label>
+            </div>
+        
+            <button class="btn btn-danger mt-2" type="submit" >
+                <i class="bi bi-file-earmark-excel-fill"></i> Anular
+            </button>
+
+            <a class="btn btn-secondary mt-2" href="{% url 'procesos_list' %}">
+                <i class="bi bi-arrow-left-square-fill"></i> Regresar a la lista
+            </a>
+        </form>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body"> 
+            <div style="font-size:13px">
+                <img class="img-fluid" src="{% static 'encabezado.png' %}">
+                <div class="container">
+                    <div class="ms-4 me-4">
+                        <p style="text-align:right; font-size:13px">
+                            <strong>Oficio No.:</strong>
+                            GIM-GF-CD-CG-{{carta.fecha_emision|date:'Y'}}-{% if carta.pk < 10 %}000{{carta.pk}}
+                            {% elif carta.pk < 100 %}00{{carta.pk}}
+                            {% elif carta.pk < 1000 %}0{{carta.pk}}
+                            {% else %}{{carta.pk}}
+                            {% endif %}
+                        </p>
+                
+                        <p>
+                            Quito, {{carta.fecha_emision}}
+                        </p>
+
+                        <p>
+                            Señores<br>
+                            <strong>{{carta.hospital}}</strong><br>
+                            Presente
+                        </p>
+
+                        <p>Me permito informar que <strong>GRIMPROMED CIA.LTDA.,</strong> es Representante para el Ecuador de la Casa:</p>
+
+                        {% for i in carta.marcas.all %}
+                        <p style="margin-left:15px"> 
+                            <!--img src="{% static 'check.png' %}" height="15px" width="35px"--> 
+                            <strong> - {{i.marca}}</strong> {{i.description}}
+                        </p>
+                        {% endfor %}
+
+                        <p style="text-align:justify; font-size:14px">
+                            Razón por la cual Autorizamos a la Firma Comercial <strong>{{carta.cliente}},</strong> con 
+                            R.U.C. No. <strong>{{carta.ruc}}</strong> a participar en el proceso No. <strong>{{carta.proceso}}</strong>
+                            con los productos de las marcas que representamos y distribuimos en el País.
+                        </p>
+                
+                        <p style="text-align:justify; font-size:14px">
+                            <strong>
+                            Esta Autorización No es Transferible a Terceros sin autorización escrita de Gimpromed Cía. Ltda.
+                            </strong>
+                        </p>              
+                
+                        <table>
+                            <tr>
+                                <td>
+                                    <p>
+                                        Atentamente,
+                                        <br><br><br><br><br>
+                                        Carlos A. Arcos H.<br>
+                                        Gerente Financiero
+                                    </p>
+                                </td>
+                                <td></td>
+                                <td style="text-align:right;">
+                                    <!--img src="{{carta_view.qr_code.url}}" width="150" height="150"-->
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <img class="img-fluid" src="{% static 'pie_de_pag.png' %}">
+            </div>
+        </div>
+    </div>
+{% endblock %}

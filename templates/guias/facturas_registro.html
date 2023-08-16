@@ -1,0 +1,80 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Etiquetado por pedido</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'etiquetado/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+<h5 class="m-4 text-center"><strong>REGISTRO DE {{fac.NOMBRE_CLIENTE}}</strong></h5>
+
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <div class="container mt-4 mb-4">
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="user" value="{{request.user.userperfil.id}}">
+                    <div class="row">
+                        <div class="col-6">
+                            <div>
+                                <label class="fw-bold mt-2">Cliente:</label>
+                                <input class="form-control" type="text" name="cliente" value="{{fac.NOMBRE_CLIENTE}}" required>
+                            </div>
+                            <div>
+                                <label class="fw-bold mt-2">Factura:</label>
+                                <input class="form-control" type="text" name="factura" value="{{fac.CODIGO_FACTURA|slice:'14:-6'}}" required>
+                                <input class="form-control" type="hidden" name="factura_c" value="{{fac.CODIGO_FACTURA}}">
+                            </div>
+                            <div>
+                                <label class="fw-bold mt-2">Ciudad:</label>
+                                <input class="form-control" type="text" name="ciudad" value="{{fac.CIUDAD_PRINCIPAL}}" required>
+                            </div>
+
+                            <div>
+                                <label class="fw-bold mt-2">Fecha factura:</label>
+                                <input class="form-control" type="text" name="fecha_factura" value="{{fac.FECHA_FACTURA}}" required>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div>
+                                <label class="fw-bold mt-2">Transporte:</label>
+                                <select class="form-select" name="transporte" required>
+                                    <option value="">--------</option>
+                                    <option value="TRAMACO">TRAMACO</option>
+                                    <option value="BARRAGAN">BARRAGAN</option>
+                                    <option value="GIMPROMED">GIMPROMED</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="fw-bold mt-2">Persona que confirma:</label>
+                                <input class="form-control" type="text" name="confirmado" required>
+                            </div>
+                            <div>
+                                <label class="fw-bold mt-2">Fecha de confirmación:</label>
+                                <input class="form-control" type="date" name="fecha_conf" required>
+                            </div>
+
+                            <div>
+                                <label class="fw-bold mt-2">Número de guia:</label>
+                                <input class="form-control" type="text" name="n_guia" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <label class="fw-bold mt-2">Observaciones:</label>
+                        <textarea class="form-control" name="observaciones" rows="3"></textarea>
+                    </div>
+                    <button class="btn btn-success mt-4" type="submit">
+                        <i class="bi bi-send"></i> Guardar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

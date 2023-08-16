@@ -1,0 +1,83 @@
+{% extends 'cartas/base.html' %}
+{% load static %}
+
+{% block title %}
+<title>Nueva carta</title>
+{% endblock%}
+
+{% block body %}
+
+    <h3 class="text-center m-3">
+        <strong>NUEVA CARTA GENERAL</strong>
+    </h3>
+
+    {% if error %}
+        <div class="alert alert-danger" role="alert">
+            {{error}}
+        </div>
+    {% endif %}
+
+    <label class="form-label">Buscar cliente</label>
+    <div class="row">
+        <form method="GET">
+            {% csrf_token %}
+
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <div class="input-group mb-2">
+                        <span class="input-group-text" for="buscar_cliente_id">Ruc:</span>
+                        
+                        <input class="form-control" id="buscar_cliente_id" name="buscar_cliente" type="text">
+                    
+                        <button class="btn btn-primary" type="submit" >
+                            <i class="bi bi-search"></i>
+                        </button>
+                        <a href="{% url 'general_new' %}" class="btn btn-secondary" type="submit" >
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </div>
+    <div class="row">
+        <form method="POST">
+            {% csrf_token %}
+
+            <input type="hidden" name="usuario" value="{{request.user.userperfil.id}}">
+            
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label class="form-label">Ruc:</label>
+                    <input class="form-control" name="ruc" type="text" value="{{ruc}}" required>
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label">Cliente:</label>
+                    <input class="form-control" name="cliente" type="text" value="{{nombre_cliente}}" required><br>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Valido hasta (mes):</label>
+                    <select class="form-select" name="valido_hasta_mes" id="" required>
+                        {% for i in form.valido_hasta_mes %}
+                        {{i}}
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Valido hasta (año):</label>
+                    <select class="form-select" name="valido_hasta_anio" id="" required>
+                        {% for i in form.valido_hasta_anio %}
+                            {{i}}
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        
+            <button class="btn btn-primary" type="submit" >
+                <i class="bi bi-send"></i> Guardar
+            </button>
+        </form>
+    </div>
+
+{% endblock %}

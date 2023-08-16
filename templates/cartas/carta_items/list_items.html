@@ -1,0 +1,97 @@
+{%extends 'cartas/base.html' %}
+
+{% block title %}
+<title>Listado de cartas para procesos</title>
+{% endblock%}
+
+{% block body %}
+
+<h3 class="text-center m-3">
+  <strong>LISTADO DE CARTAS POR ITEMS</strong>
+</h3>
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
+<a class="btn btn-primary mb-2" href="{% url 'items_new' %}">
+  <i class="bi bi-plus-circle"></i> Nueva Carta
+</a>
+
+<div class="col-4">
+  <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+</div>
+
+<div class="card mt-2 mb-2">
+  <div class="card-body mt-0 pt-0 mb-0 pb-0">
+    <table class="table" style="font-size: small;">
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Oficio</th>
+          <th scope="col">Ruc</th>
+          <th scope="col">Cliente</th>
+          <th scope="col">Fecha de emisión</th>
+          <th scope="col">Proceso</th>
+          <th scope="col">Hospital</th>
+          <th scope="col">Emitida por</th>
+          <th scope="col">PDF</th>
+          <th scope="col">Anular</th>
+        </tr>
+      </thead>
+      {% for i in object_list %}
+      <tbody id="pedidosbuscar">
+        <tr>
+          <th scope="row">{% if i.pk < 10 %}000{{i.pk}}{% elif i.pk < 100 %}00{{i.pk}}{% elif i.pk < 1000 %}0{{i.pk}}{% else %}{{i.pk}}{% endif %}</th>
+          <td>{{i.oficio}}</td>
+          <td>{{i.ruc}}</td>
+          <td>{{i.cliente}}</td>
+          <td>{{i.fecha_emision}}</td>
+          <td>{{i.proceso}}</td>
+          <td>{{i.hospital}}</td>
+
+          {% if i.usuario %}
+          <td>{{i.usuario.firma_carta}}</td>
+          {% else %}
+          <td>Carlos A. Arcos H.</td>
+          {% endif %}
+
+
+          <td class="text-left">
+            <a href="{% url 'items_detail' i.slug %}" target="_blank">
+              <i class="bi bi-file-text-fill"></i>
+            <a>
+          </td>
+          <td>
+            <a class="text-danger" href="{% url 'anular_cartaitem' i.slug %}" target="_blank">
+              <i class="bi bi-file-earmark-x-fill"></i>
+            <a>
+          </td>
+        </tr>
+      </tbody>
+      {% endfor %}
+  </table>
+  </div>
+</div>
+<script>
+  $(document).ready(function() {
+      $("#inputbuscar").on("keyup", function() {
+          var value = $(this).val().toLowerCase();
+          $("#pedidosbuscar tr").filter(function() {
+              $(this).toggle($(this).text()
+              .toLowerCase().indexOf(value) > -1)
+          });
+      });
+  });
+</script>
+{% endblock %}

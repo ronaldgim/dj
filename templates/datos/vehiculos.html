@@ -1,0 +1,35 @@
+<table class="table">
+    <thead>
+    <tr>
+        <th scope="col">Transportista</th>
+        <th scope="col">Placa</th>
+        <th scope="col">Ancho</th>
+        <th scope="col">Alto</th>
+        <th scope="col">Largo</th>
+        <th scope="col">Volumen m<sup>3</sup></th>
+        <th scope="col">- 20% m<sup>3</sup></th>
+    </tr>
+    </thead>
+    
+    <tbody>
+    {% for i in vehiculos %}
+    <tr>
+
+        <th scope="row">
+            {% if i.transportista == 'GIMPROMED' %}
+            <mark>{{i.transportista}}</mark>
+            {% else %}
+            {{i.transportista}}
+            {% endif %}
+        </th>
+
+        <th scope="row">{{i.placa}}</th>
+        <td class="text-start">{{i.ancho}}</td>
+        <td class="text-start">{{i.alto}}</td>
+        <td class="text-center">{{i.largo}}</td>
+        <td class="text-center">{{i.volumen}}</td>
+        <td class="text-center">{{i.volumen2}}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>

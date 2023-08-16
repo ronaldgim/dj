@@ -1,0 +1,255 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Importaciones Llegadas</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'regulatorio_legal/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+<h5 class="m-4 text-center"><strong>LISTADO DE IMPORTACIONES</strong></h5>
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
+<!--h6 class="m-4 text-end"><strong>Actulizado: </strong>{{actualizado|slice:':-7'}}</h6-->
+
+
+<div class="col-4">
+    <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+</div>
+
+
+<div class="col-4 mt-2 mb-2 btn-group">
+    <input id="lote_id" type="text" placeholder="Ingrese Lote" class="form-control">
+    <button name="buscar_lote" class="btn btn-primary">Buscar</button>
+</div>
+
+<br>
+
+<button class="btn btn-primary" name="actualizar">
+    <i class="bi bi-arrow-clockwise"></i> Actualizar
+</button>
+
+<h6 class="text-end"><strong>Actulizado: </strong>{{actulizacion}}</h6>
+
+<div id="msg"></div>
+
+<div class="card mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Proveedor</th>
+                        <th scope="col">Orden de compra</th>
+                        <th scope="col">Fecha de llegada</th>
+                        <th scope="col">Bodega</th>
+                        <th scope="col">Detalle de importación</th>
+                        <th scope="col">Documentos</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in imp %}
+                    <tr>
+                        <td>{{i.marca2}}</td>
+                        <td>{{i.DOC_ID_CORP}}</td>
+                        <td>{{i.ENTRADA_FECHA}}</td>
+                        <td>{{i.WARE_COD_CORP}}</td>
+
+                                     
+                        {% if i.marca2 == 'ARMADOS' %}
+                        <td>
+                            <a class="btn btn-secondary btn-sm" href="{% url 'armados_list_imp' %}">
+                                Armados
+                            </a>
+                        </td>
+                        {% else %}
+                        <td>
+                            <a {% if i.lote_id == 0 %} class="btn btn-success btn-sm" {% else %} class="btn btn-warning btn-sm" {% endif %}
+                            href="{% url 'importaciones_orden_list' i.DOC_ID_CORP %}">
+                                {% if i.lote_id == 0 %}
+                                    Añadir
+                                {% else %}
+                                    Actualizar
+                                {% endif %}
+                            </a>
+                        </td>
+                        {% endif %}
+
+                        <td>
+                            {% if i.lote_id != 0 %}
+                            <progress id="file" max="100" value="{{i.completado|floatformat:'0g'}}">  </progress>
+                            {{i.con_documento|floatformat:"0g"}} de {{i.documento|floatformat:"0g"}} 
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<!--filtro buscar-->
+<script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+
+
+<!-- Actualizar tabla-->
+<script>
+    $("button[name='actualizar']").click(function() {
+        
+        $.ajax({
+            type: "POST",
+            url : "{% url 'actualizar_imp_llegadas_odbc' %}",
+            data : {"csrfmiddlewaretoken": "{{csrf_token}}"},
+
+            success: function() {
+                
+                $('#msg').html('<div class="text-center alert alert-success" role="alert"> Tabla actualizada con exito !!! </div>');
+                // var sp = document.getElementById("spinner").style.display = "block";
+                setTimeout(function(){
+                    window.location.reload();
+                }, 2000)
+                
+            },
+
+            error: function() {
+                $('#msg').html(`<div class="text-center alert alert-danger" role="alert"> Error vuelva a intentar !!! </div>`)
+                //setTimeout(function(){
+                //    window.location.reload();
+                //}, 2000)
+            }
+
+        })
+
+    })
+</script>
+
+
+<!-- buscar importación por lote -->
+<script>
+    $("button[name='buscar_lote']").click(function() {
+        
+        var lote_id = $("#lote_id").val();
+
+        $.ajax({
+            type: "POST",
+            url : "{% url 'doc_importacion_por_lote_ajax' %}",
+            data : {
+                "csrfmiddlewaretoken": "{{csrf_token}}",
+                "lote_id":lote_id
+            },
+
+            success: function(response) {
+                var imp = response
+                $('#msg').html(`<div class="text-center mb-2 alert alert-success" role="alert">El lote ${lote_id} está en la importación(es): <strong>${imp}</strong> !!! </div>`);
+                // setTimeout(function(){
+                //     window.location.reload();
+                // }, 10000)
+                
+            },
+
+            error: function() {
+                $('#msg').html(`<div class="text-center mb-2 alert alert-danger" role="alert"> Error vuelva en la busqueda !!! </div>`)
+                setTimeout(function(){
+                   window.location.reload();
+                }, 2000)
+            }
+
+        })
+
+    })
+</script>
+
+
+
+<!-- Filtro de columna -->
+<!--script>
+    $('.filter').change(function(){
+        filter_function(); //calling filter function each select box value change
+    });
+      
+    $('table tbody tr').show(); //intially all rows will be shown
+      
+    function filter_function(){
+        $('table tbody tr').hide(); //hide all rows
+        
+        var tipoFlag = 'TODOS';
+        var tipoValue = $('#filter-tipo').val();
+        
+       //traversing each row one by one
+        $('table tr').each(function() {  
+          if(tipoValue == 'TODOS'){
+            tipoFlag = 1;
+          }
+          else if(tipoValue == $(this).find('td.tipo').data('tipo')){
+            tipoFlag = 1;
+          }
+          else{
+            tipoFlag = 0;
+          }
+
+         if(tipoFlag){
+            $(this).show();
+         }
+      
+      });
+    }
+</script-->
+<!-- Filtro estado de etiquetado -->
+<!--script>
+    $('.filter-est').change(function(){
+        filter_function_estado(); //calling filter function each select box value change
+    });
+      
+    $('table tbody tr').show(); //intially all rows will be shown
+      
+    function filter_function_estado(){
+        $('table tbody tr').hide(); //hide all rows
+        
+        var tipoFlag = 'ESTADO';
+        var tipoValue = $('#filter-estado').val();
+        
+       //traversing each row one by one
+        $('table tr').each(function() {  
+          if(tipoValue == 'ESTADO'){
+            tipoFlag = 1;
+          }
+          else if(tipoValue == $(this).find('td.estado').data('estado')){
+            tipoFlag = 1;
+          }
+          else{
+            tipoFlag = 0;
+          }
+
+         if(tipoFlag){
+            $(this).show();
+         }
+      
+      });
+    }
+</script-->
+{% endblock %}

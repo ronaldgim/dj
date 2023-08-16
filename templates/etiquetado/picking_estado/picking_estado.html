@@ -1,0 +1,268 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Picking</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'etiquetado/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+
+
+<style>
+    .switch-field {
+	display: flex;
+	/*margin-bottom: 36px;*/
+	overflow: hidden;
+}
+
+.switch-field input {
+	position: absolute !important;
+	clip: rect(0, 0, 0, 0);
+	height: 1px;
+	width: 1px;
+	border: 0;
+	overflow: hidden;
+}
+
+.switch-field label {
+	background-color: white;
+	color: rgba(0, 0, 0, 0.6);
+	font-size: 14px;
+	line-height: 1;
+	text-align: center;
+	padding: 8px 16px;
+	margin-right: -1px;
+	border: 1px solid rgba(0, 0, 0, 0.2);
+	box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px rgba(255, 255, 255, 0.1);
+	transition: all 0.1s ease-in-out;
+}
+
+.switch-field label:hover {
+	cursor: pointer;
+}
+
+.switch-field input:checked + label {
+	background-color: #b6fbd2 ;
+	box-shadow: none;
+}
+
+.switch-field label:first-of-type {
+	border-radius: 4px 0 0 4px;
+}
+
+.switch-field label:last-of-type {
+	border-radius: 0 4px 4px 0;
+}
+</style>
+
+
+<h5 class="m-4 text-center"><strong>LISTADO DE PICKING</strong></h5>
+<h6 class="text-start"><strong>Actulizado: </strong>{{actualizado}}</h6>
+
+<form method="post">
+    {% csrf_token %}
+    <button class="btn btn-primary btn-sm mt-2 mb-2" type="submit"> 
+        <i class="bi bi-arrow-clockwise"></i> Actualizar
+    </button>
+</form>
+
+<button class="btn btn-info btn-sm mb-2" id="mispedidos"> 
+    <i class="bi bi-person-lines-fill"></i> Mis pedidos
+</button>
+
+<button class="btn btn-info btn-sm mb-2" id="refresh"> 
+    <i class="bi bi-list-ccolumns-reverse"></i> Todos los pedidos
+</button>
+
+
+<div class="switch-field">
+    <input type="radio" id="radio-one" name="bod_select" value="BAN"/>
+    <label for="radio-one">Andagoya</label>
+    <input type="radio" id="radio-two" name="bod_select" value="BCT"/>
+    <label for="radio-two">Cerezos</label>
+</div>
+
+<div class="col-12 mt-2">
+    <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+</div>
+
+
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Cliente</th>
+                        <th scope="col">
+                            <select class="form-select filter-est" id="filter-estado">
+                                <option value="ESTADO">ESTADO</option>
+                                <option value="EN PAUSA">EN PAUSA</option>
+                                <option value="EN PROCESO">EN PROCESO</option>
+                                <option value="INCOMPLETO">INCOMPLETO</option>
+                                <option value="FINALIZADO">FINALIZADO</option>
+                            </select>
+                        </th>
+                        <!--th class="text-center" scope="col">Etiquetado</th-->
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in reservas %}
+                    <tr class="content">
+
+                        <td>
+                            {{i.NOMBRE_CLIENTE}}<br>
+                            <span style="color:blue"><strong>{{i.CONTRATO_ID|slice:':-2'}}</strong></span><br>
+                            {{i.WARE_CODE}}<br>
+                            {{i.CIUDAD_PRINCIPAL}}<br>
+                            {{i.FECHA_PEDIDO}}
+                        </td>
+                         
+                        <td class="estado text-center" data-estado="{{i.estado}}">
+                            <a 
+                                {% if i.estado == 'EN PAUSA' %} 
+                                    class="btn btn-danger btn-sm mt-2 mb-2"
+                                {% elif i.estado == 'EN PROCESO' %} 
+                                    class="btn btn-warning text-white btn-sm mt-2 mb-2"
+                                {% elif i.estado == 'INCOMPLETO' %} 
+                                    class="btn btn-danger btn-sm mt-2 mb-2"
+                                {% elif i.estado == 'FINALIZADO' %} 
+                                    class="btn btn-success btn-sm disabled mt-2 mb-2"
+                                {% else %} 
+                                    class="btn btn-primary btn-sm mt-2 mb-2"
+                                {% endif %} 
+                                
+                                href="{% url 'picking_estado_bodega' i.CONTRATO_ID i.id %}">
+                                    {{i.estado}}
+                            </a> 
+
+                            {% if i.estado != '-' %}
+                            <a class="btn btn-primary btn-sm mt-2 mb-2 disabled"                           
+                               href="{% url 'picking_estado_bodega' i.CONTRATO_ID i.id %}">
+                                    {{i.first_name}} {{i.last_name}} {% if i.estado == 'FINALIZADO' %}| {{i.fecha_actualizado|slice:'0:16'}} {% endif %}
+                            </a> 
+                            {% endif %}
+
+                            <!--
+                            {% if i.nombre != '-' %}
+                                {% if i.nombre|length == 15 %}
+                                    <a class="btn btn-info btn-sm disabled">{{i.nombre|slice:'0:5'}}</a>
+                                    <a class="btn btn-info btn-sm disabled">{{i.nombre|slice:'5:10'}}</a>
+                                    <a class="btn btn-info btn-sm disabled">{{i.nombre|slice:'10:15'}}</a>
+                                {% elif i.nombre|length == 10 %}
+                                    <a class="btn btn-info btn-sm disabled">{{i.nombre|slice:'0:5'}}</a>
+                                    <a class="btn btn-info btn-sm disabled">{{i.nombre|slice:'5:10'}}</a>
+                                {% elif i.nombre|length == 5 %}
+                                    <a class="btn btn-info btn-sm disabled">{{i.nombre}}</a>
+                                {% endif %}
+                            {% endif %}
+                            -->
+                        </td>                    
+                        <!--td class="text-center">
+                            <a class="btn btn-primary btn-sm" href="{% url 'pedidos' i.CONTRATO_ID %}" target="_blank">
+                                <i class="bi bi-stopwatch"></i>
+                            </a>
+                        </td-->
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Buscador
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+
+
+<script>
+    // Mis pedidos
+    $(document).ready(function() {
+        $("#mispedidos").on("click", function() {
+            var user = "{{request.user.last_name}}".toLowerCase();
+            // console.log(user)
+            $("#pedidosbuscar tr").filter(
+                function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(user)>-1)
+            }
+            );
+        });
+    });
+
+</script>
+
+<script>
+    // Refresh para ver todos los pedidos
+    $(document).ready(function() {
+        $("#refresh").on("click", function() {
+            setTimeout(function() {
+                location.reload();
+            },1)
+        })
+    })
+</script>
+
+<script>
+    // Switch bodega filter
+    $(document).ready(function() {
+        $("input[name='bod_select']").click(function() {
+            var bodega = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(
+                function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(bodega)>-1)
+            }
+            );
+        })
+    })
+</script>
+
+<script>
+    // Filtro por estado
+    $('.filter-est').change(function(){
+        filter_function_estado(); //calling filter function each select box value change
+    });
+      
+    $('table tbody tr').show(); //intially all rows will be shown
+      
+    function filter_function_estado(){
+        $('table tbody tr').hide(); //hide all rows
+        
+        var tipoFlag = 'ESTADO';
+        var tipoValue = $('#filter-estado').val();
+        
+       //traversing each row one by one
+        $('table tr').each(function() {  
+          if(tipoValue == 'ESTADO'){
+            tipoFlag = 1;
+          }
+          else if(tipoValue == $(this).find('td.estado').data('estado')){
+            tipoFlag = 1;
+          }
+          else{
+            tipoFlag = 0;
+          }
+
+         if(tipoFlag){
+            $(this).show();
+         }
+      
+      });
+    }
+</script>
+
+{% endblock %}

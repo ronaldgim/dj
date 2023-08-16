@@ -1,0 +1,213 @@
+{% load static %}
+{% include 'base.html' %}
+{% block title %}
+<title>GIM Operaciones</title>
+{% endblock %}
+
+{% block navbar %}
+<nav class="navbar navbar-light bg-light">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'inicio' %}">
+            <img src="{% static 'fondo.png' %}" alt="" width="45" height="32" class="d-inline-block align-text-top">
+            <strong>GIM - Operaciones</strong>
+        </a>
+        <a class="navbar-brand" href="{% url 'logout' %}">
+            {{request.user}} <i class="bi bi-box-arrow-right"></i>
+        </a>
+        <!--p>{{request.user}} <i class="bi bi-box-arrow-right"></i> </p-->
+    </div>
+</nav>
+{% endblock %}
+
+{% block body %}
+
+<div class="container mt-4">
+
+    {% if messages %}
+        {% for message in messages %}
+        {% if message.tags == 'success'%}
+        <div class="alert text-center alert-success" role="alert">
+            {{message}}
+        </div>
+        {% elif message.tags == 'error'%}
+        <div class="alert text-center alert-danger" role="alert">
+            {{message}}
+        </div>
+        {%endif%}
+        {% endfor %}
+    {% endif %}
+
+    <div class="row">
+
+        
+        <div class="col-xl-4 col-md-6">
+            <div class="card border-primary mb-3">
+                <div class="card-body text-primary">
+                <h1 class="card-title text-center">
+                    <i class="bi bi-file-text-fill"></i> 
+                    Cartas           
+                </h1>
+
+                </div>
+                <div class="card-footer bg-transparent border-primary">
+                    <a class="btn btn-primary" href="{% url 'general_list' %}">
+                        Ingresar <i class="bi bi-box-arrow-in-up-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6">
+            <div class="card border-primary mb-3">
+                <div class="card-body text-primary">
+                <h1 class="card-title text-center">
+                    <i class="bi bi-person-workspace"></i>
+                    Bodega
+                </h1>
+
+                </div>
+                <div class="card-footer bg-transparent border-primary">
+                    <a class="btn btn-primary" href="{% url 'pedidos_list' %}">
+                        Ingresar <i class="bi bi-box-arrow-in-up-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6">
+            <div class="card border-primary mb-3">
+                <div class="card-body text-primary">
+                <h1 class="card-title text-center">
+                    <i class="bi bi-gear-fill"></i> 
+                    Mantenimiento
+                </h1>
+
+                </div>
+                <div class="card-footer bg-transparent border-primary">
+                    <a class="btn btn-primary" href="{% url 'equipos_list' %}">
+                        Ingresar <i class="bi bi-box-arrow-in-up-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6">
+            <div class="card border-primary mb-3">
+                <div class="card-body text-primary">
+                <h1 class="card-title text-center">
+                    <i class="bi bi-folder-check"></i>
+                    BPA / DT
+                </h1>
+
+                </div>
+                <div class="card-footer bg-transparent border-primary">
+                    <!--a class="btn btn-primary" href="{% url 'importaciones_list' %}">
+                        Ingresar <i class="bi bi-box-arrow-in-up-right"></i>
+                    </a-->
+                    <a class="btn btn-primary" href="{% url 'reg_san_list' %}">
+                        Ingresar <i class="bi bi-box-arrow-in-up-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-xl-4 col-md-6">
+            <div class="card border-primary mb-3">
+                <div class="card-body text-primary">
+                <h1 class="card-title text-center">
+                    <i class="bi bi-list-check"></i>
+                    Inventario
+                </h1>
+                <!--p class="card-text">
+                    Lorem ipsum, dolor sit amet consectetur adipisicing elit. Nostrum nemo, omnis consequatur aliquid aut assumenda exercitationem obcaecati iusto quasi reprehenderit illo ducimus, eos ea voluptates nam? Nam libero architecto praesentium.
+                </p-->
+                </div>
+                <div class="card-footer bg-transparent border-primary">
+                    <a class="btn btn-primary" href="{% url 'inv_home' %}">
+                        Ingresar <i class="bi bi-box-arrow-in-up-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6">
+            <div class="card border-primary mb-3">
+                <div class="card-body text-primary">
+                <h1 class="card-title text-center">
+                    <i class="bi bi-cart3"></i>
+                    Compras públicas
+                </h1>
+                <!--p class="card-text">
+                    Lorem ipsum, dolor sit amet consectetur adipisicing elit. Nostrum nemo, omnis consequatur aliquid aut assumenda exercitationem obcaecati iusto quasi reprehenderit illo ducimus, eos ea voluptates nam? Nam libero architecto praesentium.
+                </p-->
+                </div>
+                <div class="card-footer bg-transparent border-primary">
+                    <a class="btn btn-primary" href="{% url 'precios_historicos' %}">
+                        Ingresar <i class="bi bi-box-arrow-in-up-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6">
+            <div class="card border-primary mb-3">
+                <div class="card-body text-primary">
+                <h1 class="card-title text-center">
+                    <i class="bi bi-file-earmark-medical-fill"></i>
+                    Regulatorio-Legal
+                </h1>
+                <!--p class="card-text">
+                    Lorem ipsum, dolor sit amet consectetur adipisicing elit. Nostrum nemo, omnis consequatur aliquid aut assumenda exercitationem obcaecati iusto quasi reprehenderit illo ducimus, eos ea voluptates nam? Nam libero architecto praesentium.
+                </p-->
+                </div>
+                <div class="card-footer bg-transparent border-primary">
+                    <a class="btn btn-primary" href="{% url 'importaciones_list' %}">
+                        Ingresar <i class="bi bi-box-arrow-in-up-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-xl-4 col-md-6">
+            <div class="card border-primary mb-3">
+                <div class="card-body text-primary">
+                <h1 class="card-title text-center">
+                    <i class="bi bi-wallet2"></i>
+                        Ventas
+                </h1>
+                <!--p class="card-text">
+                    Lorem ipsum, dolor sit amet consectetur adipisicing elit. Nostrum nemo, omnis consequatur aliquid aut assumenda exercitationem obcaecati iusto quasi reprehenderit illo ducimus, eos ea voluptates nam? Nam libero architecto praesentium.
+                </p-->
+                </div>
+                <div class="card-footer bg-transparent border-primary">
+                    <a class="btn btn-primary" href="{% url 'reporte_mba' %}">
+                        Ingresar <i class="bi bi-box-arrow-in-up-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!--div class="col-xl-4 col-md-6">
+            <div class="card border-primary mb-3">
+                <div class="card-body text-primary">
+                <h1 class="card-title">Bodega
+                    
+                </h1>
+                <p class="card-text">
+                    Lorem ipsum, dolor sit amet consectetur adipisicing elit. Nostrum nemo, omnis consequatur aliquid aut assumenda exercitationem obcaecati iusto quasi reprehenderit illo ducimus, eos ea voluptates nam? Nam libero architecto praesentium.
+                </p>
+                </div>
+                <div class="card-footer bg-transparent border-primary">
+                    <a class="btn btn-primary" href="{% url 'general_list' %}">
+                        Ingresar <i class="bi bi-box-arrow-in-up-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div-->
+        
+    </div>
+</div>
+
+{% endblock %}

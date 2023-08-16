@@ -1,0 +1,111 @@
+{% extends 'cartas/base.html' %}
+{% load static %}
+
+{% block title %}
+<title>Carta Anulada {{object.cartageneral.oficio}}</title>
+{% endblock%}
+
+{% block body %}
+
+    <h3 class="text-center m-3">
+        <strong>ANULAR CARTA {{object.cartageneral.oficio}}</strong>
+    </h3>
+
+    {% if error %}
+        <div class="alert alert-danger" role="alert">
+            {{error}}
+        </div>
+    {% endif %}
+
+    <a class="btn btn-secondary mt-2" href="{% url 'anular_general_list' %}">
+        <i class="bi bi-arrow-left-square-fill"></i> Regresar a la lista
+    </a>
+
+    <div class="row mb-2 mt-2">
+        <div class="form-floating">                
+            <div class="card mb-4">
+                <div class="card-body">
+                    <label>Observaciones:</label><br>
+                    {{object.comentario}}<br>
+                    <label>Anulada en: {{object.fecha}}</label><br>
+                    <label>Anulada por: {{object.usuario.firma_carta}}</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body"> 
+            <div style="font-size:13px">
+                <img class="img-fluid" src="{% static 'encabezado.png' %}">
+                <div class="container">
+                    <div class="ms-4 me-4">
+                        <p style="text-align:right; font-size:13px">
+                            <strong>Oficio No.:</strong>
+                            GIM-GF-CD-CG-{{object.cartageneral.fecha_emision|date:'Y'}}-{% if carta_view.pk < 10 %}000{{object.cartageneral.pk}}
+                            {% elif object.cartageneral.pk < 100 %}00{{object.cartageneral.pk}}
+                            {% elif object.cartageneral.pk < 1000 %}0{{object.cartageneral.pk}}
+                            {% else %}{{object.cartageneral.pk}}
+                            {% endif %}
+                        </p>
+                
+                        <h5 style="text-align:center;">
+                            <strong>A QUIEN INTERESE</strong>
+                        </h5>
+                
+                        {% include 'cartas/carta_general/parrafo.html' %}
+                
+                        <p style="text-align:justify;">
+                            Razón por la cual Autorizamos a la Firma Comercial <strong>{{object.cartageneral.cliente}},</strong> con 
+                            R.U.C. No. <strong>{{object.cartageneral.ruc}}</strong> a comercializar los Productos de las marcas que representamos y Distribuimos 
+                            en el País.
+                        </p>
+                
+                        <p>
+                            Este certificado tiene validez hasta {{object.cartageneral.valido_hasta_mes}} del {{object.cartageneral.valido_hasta_anio}}.
+                        </p>
+                
+                        <p>
+                            <strong>
+                            Esta Autorización No es Transferible a Terceros sin autorización escrita de Gimpromed Cía. Ltda.
+                            </strong>
+                        </p>
+                
+                        <p>
+                            Quito, {{object.cartageneral.fecha_emision}}
+                        </p>
+                
+                        <table>
+                            <tr>
+                                <td>
+                                    <!--p>
+                                        Atentamente,
+                                        <br><br><br><br><br>
+                                        Carlos A. Arcos H.<br>
+                                        Gerente Financiero
+                                    </p-->
+                                    <p>
+                                        Atentamente,
+                                        <br><br><br><br><br>
+                                        {% if object.cartageneral.usuario %}
+                                        {{object.cartageneral.usuario.firma_carta}}<br>
+                                        {{object.cartageneral.usuario.posicion_carta}}
+                                        {% else %}
+                                        Carlos A. Arcos H.<br>
+                                        Gerente Financiero
+                                        {% endif %}
+                                    </p>
+                                </td>
+                                <td></td>
+                                <td style="text-align:right;">
+                                    <!--img src="{{carta_view.qr_code.url}}" width="150" height="150"-->
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <img class="img-fluid" src="{% static 'pie_de_pag.png' %}">
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,102 @@
+{% extends 'cartas/base.html' %}
+{% load static %}
+
+{% block title %}
+<title>Anular Carta {{carta_view.oficio}}</title>
+{% endblock%}
+
+{% block body %}
+
+    <h3 class="text-center m-3">
+        <strong>ANULAR CARTA {{carta_view.oficio}}</strong>
+    </h3>
+
+    {% if error %}
+        <div class="alert alert-danger" role="alert">
+            {{error}}
+        </div>
+    {% endif %}
+
+    <div class="row mb-2">
+        <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="usuario" value="{{request.user.id}}">
+            {{form.cartageneral.as_hidden}}
+            <div class="form-floating">
+                <textarea required name="comentario" class="form-control" placeholder="Leave a comment here" id="floatingTextarea2" style="height: 100px"></textarea>
+                <label for="floatingTextarea2">Observaciones:</label>
+            </div>
+        
+            <button class="btn btn-danger mt-2" type="submit" >
+                <i class="bi bi-file-earmark-excel-fill"></i> Anular
+            </button>
+            <a class="btn btn-secondary mt-2" href="{% url 'general_list' %}">
+                <i class="bi bi-arrow-left-square-fill"></i> Regresar a la lista
+            </a>
+        </form>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body"> 
+            <div style="font-size:13px">
+                <img class="img-fluid" src="{% static 'encabezado.png' %}">
+                <div class="container">
+                    <div class="ms-4 me-4">
+                        <p style="text-align:right; font-size:13px">
+                            <strong>Oficio No.:</strong>
+                            GIM-GF-CD-CG-{{carta_view.fecha_emision|date:'Y'}}-{% if carta_view.pk < 10 %}000{{carta_view.pk}}
+                            {% elif carta_view.pk < 100 %}00{{carta_view.pk}}
+                            {% elif carta_view.pk < 1000 %}0{{carta_view.pk}}
+                            {% else %}{{carta_view.pk}}
+                            {% endif %}
+                        </p>
+                
+                        <h5 style="text-align:center;">
+                            <strong>A QUIEN INTERESE</strong>
+                        </h5>
+                
+                        {% include 'cartas/carta_general/parrafo.html' %}
+                
+                        <p style="text-align:justify;">
+                            Razón por la cual Autorizamos a la Firma Comercial <strong>{{carta_view.cliente}},</strong> con 
+                            R.U.C. No. <strong>{{carta_view.ruc}}</strong> a comercializar los Productos de las marcas que representamos y Distribuimos 
+                            en el País.
+                        </p>
+                
+                        <p>
+                            Este certificado tiene validez hasta {{carta_view.valido_hasta_mes}} del {{carta_view.valido_hasta_anio}}.
+                        </p>
+                
+                        <p>
+                            <strong>
+                            Esta Autorización No es Transferible a Terceros sin autorización escrita de Gimpromed Cía. Ltda.
+                            </strong>
+                        </p>
+                
+                        <p>
+                            Quito, {{carta_view.fecha_emision}}
+                        </p>
+                
+                        <table>
+                            <tr>
+                                <td>
+                                    <p>
+                                        Atentamente,
+                                        <br><br><br><br><br>
+                                        Carlos A. Arcos H.<br>
+                                        Gerente Financiero
+                                    </p>
+                                </td>
+                                <td></td>
+                                <td style="text-align:right;">
+                                    <!--img src="{{carta_view.qr_code.url}}" width="150" height="150"-->
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <img class="img-fluid" src="{% static 'pie_de_pag.png' %}">
+            </div>
+        </div>
+    </div>
+{% endblock %}

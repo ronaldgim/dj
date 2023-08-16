@@ -1,0 +1,86 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>StockBodega {{bodega}}-{{ubicacion}}</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'inventario/topnavbar.html' %} 
+{% endblock %}
+
+{% block body %}
+<h5 class="m-4 text-center"><strong>STOCK BODEGA {{bodega}} - {{ubicacion}}</strong></h5>
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
+<h6 class="text-start"><strong># Total de Items: </strong>{{n_inventario}}</h6>
+<h6 class="text-start"><strong># Items por contabilizar: </strong>{{n_inventario_nollenado}}</h6>
+<h6 class="text-start"><strong># Items contabilizados: </strong>{{n_inventario_llenado}}</h6>
+
+<a class="btn btn-primary" href="{% url 'inventario_agregar_form' bodega ubicacion %}">
+    <i class="bi bi-plus-circle"></i> Añadir
+</a>
+
+<div class="col-12 mt-2">
+    <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+</div>
+
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th scope="col">Invenario</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in inventario %}
+                    <tr {% if i.llenado == True %} style="background-color: #d2fad8;" {% else %}{% endif %}>
+                        <td>
+                            <strong>Código:</strong> {{i.product_id}}<br>
+                            <strong>Nombre:</strong> {{i.product_name}}<br>
+                            <strong>Marca: </strong> {{i.group_code}}<br>
+                            <strong>Unidad de Venta:</strong> {{i.um}}<br> 
+                            <label style="background-color: #f5fa8d;">
+                                <strong>Lote:</strong> {{i.lote_id}}
+                            </label> <br>
+                            <strong>Total Unidades Lote:</strong> {{i.total_unidades}}<br> 
+                        </td>
+                        <td>
+                            <a class="btn btn-primary btn-sm" href="{% url 'inventario_update_form' i.id bodega ubicacion %}"><i class="bi bi-boxes"></i></a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!--filtro buscar-->
+<script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+{% endblock %}

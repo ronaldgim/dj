@@ -1,0 +1,305 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Factura {{fac}}</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'regulatorio_legal/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+<div id="capture">
+<h5 class="m-4 text-center"><strong>FACTURA</strong></h5>
+
+<div class="row">
+    <div class="col-6">
+        <h6><strong>N. Factura: </strong> {{fac}}</h6>
+        <h6><strong>Cliente: </strong> {{cli}}</h6>
+        <h6><strong>Fecha de factura: </strong> {{ff}}</h6>
+    </div>
+</div>
+
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
+<div id="msg"></div>
+
+
+<div>
+    <div class="card mt-2 mb-2">
+        <div class="card-body m-0 p-0">
+            <div class="container table-responsive">
+                <table class="table" style="font-size: small;">
+                    <thead>
+                    <tr>
+                        <th scope="col">Código</th>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Marca</th>
+                        <th scope="col">Lote</th>
+                        <th scope="col">F.Caducidad</th>
+                        <!--th scope="col">Unidades</th-->
+                        <th scope="col">Documento</th>
+                        <td scope="col"><i class="bi bi-truck m-2"></i></td>
+                        <th scope="col">Añadir o actualizar documento</th>
+                    </tr>
+                    </thead>
+                    
+                    <tbody>
+                    {% for i in factura %}
+                    <tr>
+                        <th scope="row" id="prod_id">{{i.PRODUCT_ID}}</th>
+                        <td class="text-start">{{i.PRODUCT_NAME}}</td>
+                        <td class="text-start">{{i.PRODUCT_GROUP}}</td>
+                        <td class="text-start" id="lote_id">{{i.lote_sp}}</td>
+                        <td class="text-start" id="f_cad">{{i.FECHA_CADUCIDAD}}</td>
+                        <!--td class="text-end">{{i.QUANTITY|floatformat:"0g"}}</td-->
+                        <td class="text-start">{% if i.doc == 0 %}-{% else %} {{i.doc}} {% endif %}</td>
+                        
+                        <td class="text-start">
+                            {% if not i.id or i.id == 'None' %}
+                            <span id="camion">
+                                <i style="color: red;" class="bi bi-truck m-2"></i>
+                            </span>
+                            <span id="armado" style="display: none;">
+                                Armado
+                            </span>
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                        
+                        <td>
+                            <div class="input-group input-group-sm"> 
+                                
+                                {% if not i.id or i.id == 'None' %}
+                                    <input type="checkbox" id="check_armados" class="align-middle me-2">
+                                {% endif %}
+
+                                <input name="documento_{{i.id}}" id="id_documento" type="file" class="form-control"
+                                accept="application/pdf" required> <!--,application/vnd.ms-excel"-->
+
+                                {% if i.documento %}
+                                <button name="update" type="button" class="btn btn-warning" id="{{i.id}}">
+                                    Actualizar
+                                </button>
+                                <a class="btn btn-success" href="/media/{{i.documento}}" target="_blank">
+                                    <i class="bi bi-download"></i>
+                                </a>
+                                {% else %}
+
+
+                                <button name="update" type="button" class="btn btn-primary" id="{{i.id}}">
+                                    Añadir
+                                </button>
+
+                                <button name="add" type="button" class="btn btn-secondary" style="display: none;">
+                                    Añadir
+                                </button>
+
+                                {% endif %}
+                            </div>
+                        </td>
+
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-2">
+    <form method="POST">
+        {% csrf_token %}
+        
+        <h6><strong>Enviar documentos</strong></h6>
+
+        <div class="text-center" id="spinner">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div><br>
+            <span class="text-center text-primary">Enviando correos... </span>
+        </div>
+    
+        <div class="row g-3 align-items-center mb-2">
+            <div class="col-auto">
+              <label for="inputPassword6" class="col-form-label">Email:</label>
+            </div>
+            <div class="col-4">
+              <input type="email" name="correo_cliente" class="form-control" aria-describedby="passwordHelpInline" value="{{correo_cli}}">
+            </div>
+        </div>
+
+        <input type="hidden" name="n_factura" value="{{n_fac}}">
+        <input type="hidden" name="codigo_cliente" value="{{codigo_cliente}}">
+        <input type="hidden" name="nombre_cliente" value="{{cli}}">
+        <input type="hidden" name="detalle" value="{{detalle}}">
+        <input type="hidden" name="usuario" value="{{request.user.id}}">
+
+        <button type="submit" class="btn btn-success mb-4" name="correo" id="correo">
+            <i class="bi bi-envelope"></i> Enviar correo 
+        </button>
+    </form>
+</div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.0.0-rc.5/dist/html2canvas.min.js"></script>
+
+
+<!-- Ajax -->
+<!-- check armados -->
+<script>
+    $(document).ready(function(){  
+
+        $("#check_armados").on('change', function(){
+            
+            if($(this).is(':checked')) {
+                var box = 'on'
+            } else if($(this).not(':checked')){
+                var box = 'off'
+            };
+            
+            var btn_update = $(this).closest("tr").find("button[name='update']");
+            var btn_add = $(this).closest("tr").find("button[name='add']");
+            var camion = $(this).closest("tr").find("#camion");
+            var armado = $(this).closest("tr").find("#armado");
+
+            if(box === 'on') {
+                btn_add.show();
+                armado.show();
+
+                btn_update.hide();
+                camion.hide();
+
+            } else if(box === 'off') {
+                btn_add.hide();
+                armado.hide();
+
+                btn_update.show();
+                camion.show();
+            }
+        })
+    });
+
+</script>
+
+
+<!-- Actualizar el archivo del registro -->
+<script>
+    var sp = document.getElementById("spinner").style.display = "none";
+
+    $("button[name='update']").click(function() {
+
+        var id_button_add = $(this).attr('id');
+        var doc = $(this).closest('tr').find("input[id^='id_documento']")[0].files[0];
+
+        var data = new FormData();
+
+        data.append('id', id_button_add);
+        data.append("csrfmiddlewaretoken", "{{csrf_token}}");
+        data.append('documento', doc);
+        
+        $.ajax({
+            type: "POST",
+            url : "{% url 'update_document' %}",
+            processData: false,
+            contentType: false,
+            mimeType: "multipart/form-data",
+            data: data,
+            
+            success: function() {
+                
+                $('#msg').html('<div class="text-center alert alert-success" role="alert"> Documento subido con exito !!! </div>');
+                // var sp = document.getElementById("spinner").style.display = "block";
+                setTimeout(function(){
+                    window.location.reload();
+                }, 2000)
+                
+            },
+
+            error: function() {
+                $('#msg').html(`<div class="text-center alert alert-danger" role="alert"> Error al subir documento, Añadir Importación !!! </div>`)
+                //setTimeout(function(){
+                //    window.location.reload();
+                //}, 2000)
+            }
+        })
+    
+    })
+</script>
+
+<!-- Añadir registro -->
+<script>
+    var sp = document.getElementById("spinner").style.display = "none";
+
+    $("button[name='add']").click(function() {
+
+        // var id_button_add = $(this).attr('id');
+        var prod_id = $(this).closest('tr').find('#prod_id').html();
+        var lote_id = $(this).closest('tr').find('#lote_id').html();
+        var f_cad   = $(this).closest('tr').find('#f_cad').html();
+        var doc     = $(this).closest('tr').find("input[id^='id_documento']")[0].files[0];
+
+        var data = new FormData();
+
+        // data.append('id', id_button_add);
+        data.append("csrfmiddlewaretoken", "{{csrf_token}}");
+        data.append('product_id', prod_id);
+        data.append('lote_id', lote_id);
+        data.append('f_caducidad', f_cad);
+        data.append('documento', doc);
+        data.append('o_compra', 'ARMADO');
+        
+
+        $.ajax({
+            type: "POST",
+            url : "{% url 'new_document' %}",
+            processData: false,
+            contentType: false,
+            mimeType: "multipart/form-data",
+            data: data,
+            
+            success: function() {
+                $('#msg').html('<div class="text-center alert alert-success" role="alert"> Documento subido con exito !!! </div>');
+                // var sp = document.getElementById("spinner").style.display = "block";
+                setTimeout(function(){
+                    window.location.reload();
+                }, 2000)
+            },
+
+            error: function() {
+                $('#msg').html(`<div class="text-center alert alert-danger" role="alert"> Error al subir documento del producto: ${product_id} - lote: ${lote} </div>`)
+                //setTimeout(function(){
+                //    window.location.reload();
+                //}, 2000)
+            }
+        })
+    
+    })
+</script>
+
+<!-- Spiner -->
+<script>
+
+    var sp = document.getElementById("spinner").style.display = "none";   
+
+    $("#correo").on("click", function() {        
+        var sp = document.getElementById("spinner").style.display = "block";
+    })
+</script>
+{% endblock %}

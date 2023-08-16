@@ -1,0 +1,121 @@
+{% extends 'cartas/base.html' %}
+{% load static %}
+
+{% block title %}
+<title>Carta Anulada {{object.cartaprocesos.oficio}}</title>
+{% endblock%}
+
+{% block body %}
+
+    <h3 class="text-center m-3">
+        <strong>CARTA ANULADA {{object.cartaprocesos.oficio}}</strong>
+    </h3>
+
+    {% if error %}
+        <div class="alert alert-danger" role="alert">
+            {{error}}
+        </div>
+    {% endif %}
+
+    <a class="btn btn-secondary mt-2" href="{% url 'anular_procesos_list' %}">
+        <i class="bi bi-arrow-left-square-fill"></i> Regresar a la lista
+    </a>
+
+    <div class="row mb-2 mt-2">
+        <div class="form-floating">                
+            <div class="card mb-4">
+                <div class="card-body">
+                    <label>Observaciones:</label><br>
+                    {{object.comentario}}<br>
+                    <label>Anulada en: {{object.fecha}}</label><br>
+                    {% if object.usuario %}
+                    <label>Anulada por: {{object.usuario.firma_carta}}</label>
+                    {% else %}
+                    <label>Anulada por: Carlos A. Arcos H.</label>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body"> 
+            <div style="font-size:13px">
+                <img class="img-fluid" src="{% static 'encabezado.png' %}">
+                <div class="container">
+                    <div class="ms-4 me-4">
+                        <p style="text-align:right; font-size:13px">
+                            <strong>Oficio No.:</strong>
+                            GIM-GF-CD-CG-{{object.cartaprocesos.fecha_emision|date:'Y'}}-{% if object.cartaprocesos.pk < 10 %}000{{object.cartaprocesos.pk}}
+                            {% elif object.cartaprocesos.pk < 100 %}00{{object.cartaprocesos.pk}}
+                            {% elif object.cartaprocesos.pk < 1000 %}0{{object.cartaprocesos.pk}}
+                            {% else %}{{object.cartaprocesos.pk}}
+                            {% endif %}
+                        </p>
+                
+                        <p>
+                            Quito, {{object.cartaprocesos.fecha_emision}}
+                        </p>
+
+                        <p>
+                            Señores<br>
+                            <strong>{{object.cartaprocesos.hospital}}</strong><br>
+                            Presente
+                        </p>
+
+                        <p>Me permito informar que <strong>GRIMPROMED CIA.LTDA.,</strong> es Representante para el Ecuador de la Casa:</p>
+
+                        {% for i in object.cartaprocesos.marcas.all %}
+                        <p style="margin-left:15px"> 
+                            <!--img src="{% static 'check.png' %}" height="15px" width="35px"--> 
+                            <strong> - {{i.marca}}</strong> {{i.description}}
+                        </p>
+                        {% endfor %}
+
+                        <p style="text-align:justify; font-size:14px">
+                            Razón por la cual Autorizamos a la Firma Comercial <strong>{{object.cartaprocesos.cliente}},</strong> con 
+                            R.U.C. No. <strong>{{object.cartaprocesos.ruc}}</strong> a participar en el proceso No. <strong>{{object.cartaprocesos.proceso}}</strong>
+                            con los productos de las marcas que representamos y distribuimos en el País.
+                        </p>
+                
+                        <p style="text-align:justify; font-size:14px">
+                            <strong>
+                            Esta Autorización No es Transferible a Terceros sin autorización escrita de Gimpromed Cía. Ltda.
+                            </strong>
+                        </p>              
+                
+                        <table>
+                            <tr>
+                                <td>
+                                    <!--p>
+                                        Atentamente,
+                                        <br><br><br><br><br>
+                                        Carlos A. Arcos H.<br>
+                                        Gerente Financiero
+                                    </p-->
+
+                                    <p>
+                                        Atentamente,
+                                        <br><br><br><br><br>
+                                        {% if object.cartaprocesos.usuario %}
+                                        {{object.cartaprocesos.usuario.firma_carta}}<br>
+                                        {{object.cartaprocesos.usuario.posicion_carta}}
+                                        {% else %}
+                                        Carlos A. Arcos H.<br>
+                                        Gerente Financiero
+                                        {% endif %}
+                                    </p>
+                                </td>
+                                <td></td>
+                                <td style="text-align:right;">
+                                    <!--img src="{{carta_view.qr_code.url}}" width="150" height="150"-->
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <img class="img-fluid" src="{% static 'pie_de_pag.png' %}">
+            </div>
+        </div>
+    </div>
+{% endblock %}

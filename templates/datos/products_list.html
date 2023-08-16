@@ -1,0 +1,83 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Listado de productos</title>
+{% endblock%}
+
+{% block body %}
+
+<h3 class="text-center m-3">
+  <strong>LISTADO DE PRODUCTOS</strong>
+</h3>
+
+<form class="mb-2" method="POST">
+    {% csrf_token %}
+    <button class="btn btn-primary" type="submit" disabled>
+        <i class="bi bi-arrow-clockwise"></i> Actulizar
+    </button>
+</form>
+
+<div class="col-4 mb-2">
+  <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+</div>
+
+<div class="card mb-4">
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">Código</th>
+            <th scope="col">Descripción</th>
+            <!--th scope="col">Marca</th-->
+            <th scope="col">Marca</th>
+
+            <th scope="col">U.Empaque</th>
+            <!--th scope="col">CM.Largo(m)</th-->
+            <!--th scope="col">CM.Ancho(m)</th-->
+            <!--th scope="col">CM.Alto(m)</th-->
+            <th scope="col">CM.Volumen(m3)</th>
+            <th scope="col">CM.Peso(kg)</th>
+            <th scope="col">TE.1Per(s)</th>
+            <th scope="col">Detail</th>
+          </tr>
+        </thead>
+        {% for i in products %}
+        <tbody id="pedidosbuscar">
+          <tr>
+            <td>{{i.product_id}}</td>
+            <td>{{i.description}}</td>
+            <!--td>{{i.marca}}</td-->
+            <td>{{i.marca2}}</td>
+
+            <td>{{i.unidad_empaque}}</td>
+            <!--td>{{i.largo|floatformat:'4'}}</td-->
+            <!--td>{{i.ancho|floatformat:'4'}}</td-->
+            <!--td>{{i.alto|floatformat:'4'}}</td-->
+            <td>{{i.volumen|floatformat:'4'}}</td>
+            <td>{{i.peso|floatformat:'2'}}</td>
+            <td>{{i.t_etiq_1p|floatformat:'0'}}</td>
+            <td>
+              <a href="{% url 'product_id' i.id %}">dt</a>
+            </td>
+          </tr>
+        </tbody>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+</div>
+<script>
+  $(document).ready(function() {
+      $("#inputbuscar").on("keyup", function() {
+          var value = $(this).val().toLowerCase();
+          $("#pedidosbuscar tr").filter(function() {
+              $(this).toggle($(this).text()
+              .toLowerCase().indexOf(value) > -1)
+          });
+      });
+  });
+</script>
+
+
+{% endblock %}

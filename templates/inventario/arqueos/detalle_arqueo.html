@@ -1,0 +1,392 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Arqueo N°. {{arqueo_enum}}</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'inventario/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#chosen-select').select2();
+    })
+</script>
+
+
+<h5 class="m-4 text-center"><strong>NUEVO ARQUEO</strong></h5>
+
+<a class="btn btn-primary mb-2" href="{% url 'arqueos_list' %}">
+    <i class="bi bi-arrow-90deg-left"></i> Lista de arqueos
+</a>
+
+
+<div class="card mt-2 mb-2">
+    <div class="card-body pb-0">
+        <div class="container mb-0">
+            <label class="fw-bold">Arqueo N°. </label> {{arqueo_enum}}<br>
+            <label class="fw-bold">Fecha: </label> {{arqueo_f_h | date:"l de  F Y - H:i"}}<br>
+            <label class="fw-bold">Descripción: </label><br>
+
+            <p id="descripcion">
+                {{arqueo_d}}
+            </p>
+
+        </div>
+    </div>
+</div>
+
+<div class="col-4 mb-2">
+    <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+</div>
+
+<div id="msg"></div>
+
+{% regroup productos by ware_code as newlist %}
+{% for x in newlist %}
+<div class="mt-2">
+    <label class="fw-bold">Bodega:</label>
+    <label>
+        {% if x.grouper == 'BAN' %}
+        Andagoya
+        {% elif x.grouper == 'BCT' %}
+        Cerezos
+        {% elif x.grouper == 'CUA' %}
+        Cuarentena Andagoya
+        {% elif x.grouper == 'CUC' %}
+        Cuarentena Cerezos
+        {% else %}
+        Desconocida
+        {% endif %}
+    </label>
+</div>
+
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container">
+            
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Código</th>
+                        <th class="text-start">Nombre</th>
+                        <th class="text-start">Marca</th>
+                        <th class="text-start">Lote</th>
+                        <th class="text-start">F.Caducidad</th>
+                        <!--th class="text-start">Bodega</th-->
+                        <th class="text-start">Ubicación</th>
+                        <th class="text-start">Unds. MBA</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {#% for i in productos %#}
+                    {% for i in x.list %}
+                    <tr class="content">
+                        <td>{{i.product_id}}</td>
+                        <td>{{i.product_name}}</td>
+                        <td>{{i.group_code}}</td>
+                        <td>{{i.lote_id}}</td>
+                        <td>{{i.fecha_cadu_lote|date:'d-m-Y'}}</td>
+                        <!--td>{{i.ware_code}}</td-->
+                        <td>{{i.location}}</td>
+                        <td>
+                            <input id="n_mba" class="text-end form-control" type="number" value="{{i.oh}}">
+                        </td>
+
+                        <td class="text-center">
+                            <button class="btn btn-danger btn-sm" name="eliminar" id="{{i.id}}">
+                                <i class="bi bi-trash-fill"></i>
+                            </button>
+                            <button class="btn btn-success btn-sm" name="editar" id="{{i.id}}">
+                                <i class="bi bi-pen-fill"></i>
+                            </button>
+                        </td>
+                    </tr>                    
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<hr>
+
+<h6 class="text-center fw-bold">Añadir item 
+    <button class="btn btn-secondary btn-sm" name="add_item_btn"><i class="bi bi-plus-circle"></i></button>
+</h6>
+<div id="msg_item"></div>
+<div id="add_item" style="display: none;">    
+
+    <input type="hidden" id="arqueo" value="{{arqueo}}">
+    <div class="row">
+        <div class="col-4">
+            <label class="fw-bold">Producto:</label>
+            <select id="prod_id" class="form-select">
+                {% for i in prod %}
+                    <option value="{{i.product_id}}">{{i.product_id}} - {{i.description}} - {{i.marca2}}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-4">
+            <label class="fw-bold">Lote:</label>
+            <input id="lote_id" type="text" class="form-control">
+        </div>
+            
+        <div class="col-4">
+            <label class="fw-bold">F.Caducidad:</label>
+            <input id="f_cadu" type="date" class="form-control">
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-4">
+            <label class="fw-bold">Bodega:</label>
+            <select id="bode" class="form-select">
+                <option value="BAN">Andagoya</option>
+                <option value="BCT">Cerezos</option>
+                <option value="CUA">Cuarentena Andagoya</option>
+                <option value="CUC">Cuarentena Cerezos</option>
+            </select>
+        </div>
+        <div class="col-4">
+            <label class="fw-bold">Ubicación:</label>
+            <select id="ubic" class="form-select">
+                <option value="AN1">AN1</option>
+                <option value="AN4">AN4</option>
+                <option value="BN1">BN1</option>
+                <option value="BN2">BN2</option>
+                <option value="BN3">BN3</option>
+                <option value="BN4">BN4</option>
+
+                <option value="CN4">CN4</option>
+                <option value="CN5">CN5</option>
+                <option value="CN6">CN6</option>
+                <option value="CN7">CN7</option>
+
+                <option value="N/U">N/U</option>
+
+            </select>
+        </div>
+        <div class="col-4">
+            <label class="fw-bold">Unidades:</label>
+            <input id="unds" type="number" class="form-control">
+        </div>
+    </div>
+     
+    <button name="save_add_item" class="btn btn-primary mt-2">
+        Añadir item
+    </button>
+
+</div>
+
+<hr>
+
+<div class="mb-2">    
+    <button class="btn btn-success" name="crear_arqueos">
+        Crear Arqueos
+    </button>
+
+    <input id="bodegas" type="hidden" value="{{bod}}">
+    <input id="n_arqueo" type="hidden" value="{{arqueo_enum}}">
+    <input id="n_arqueo_id" type="hidden" value="{{arqueo_id}}">
+    <input id="usuario" type="hidden" value="{{request.user.id}}">
+</div>
+
+<script>
+    // Buscador
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+
+<!-- Eliminar registro -->
+<script>
+    $("button[name='eliminar']").click(function() {
+        var id_button_eliminar = $(this).attr('id');
+
+        $.ajax({
+            type:"POST",
+            url : "{% url 'eliminar_fila_arqueo' %}",
+            data : {
+                "csrfmiddlewaretoken": "{{csrf_token}}",
+                "id":id_button_eliminar
+            },
+
+            success: function(response) {
+                console.log(response);
+                if (response=='ok') {
+                    $('#msg').html('<div class="text-center alert alert-success" role="alert"> Eliminado correctamente !!! </div>')
+                    setTimeout(function(){
+                    window.location.reload();
+                    }, 1000)
+                } else {
+                    $('#msg').html('<div class="text-center alert alert-danger" role="alert"> Eror al eliminar!!! </div>')
+                    setTimeout(function(){
+                    window.location.reload();
+                    }, 1000)
+
+                }
+                
+            },
+
+            error: function(response) {
+                $('#msg').html('<div class="text-center alert alert-danger" role="alert"> Eror al eliminar!!! </div>')
+                    setTimeout(function(){
+                    window.location.reload();
+                    }, 1000)
+            }
+        })
+    })
+</script>
+
+
+<!-- Editar registro -->
+<script>
+    $("button[name='editar']").click(function() {
+        var id_button_editar = $(this).attr('id');
+        var n_mba = $(this).closest('tr').find("input[id='n_mba']").val();
+        
+        $.ajax({
+            type:"POST",
+            url : "{% url 'editar_fila_arqueo' %}",
+            data : {
+                "csrfmiddlewaretoken": "{{csrf_token}}",
+                "id":id_button_editar,
+                "n_mba":n_mba
+            },
+            
+            success: function(response) {
+                console.log(response);
+                if (response=='ok') {
+                    $('#msg').html('<div class="text-center alert alert-success" role="alert"> Editado correctamente !!! </div>')
+                    setTimeout(function(){
+                    window.location.reload();
+                    }, 1000)
+                } else {
+                    $('#msg').html('<div class="text-center alert alert-danger" role="alert"> Error al editar !!! </div>')
+                    setTimeout(function(){
+                    window.location.reload();
+                    }, 1000)
+
+                }
+                
+            },
+
+            error: function(response) {
+                $('#msg').html('<div class="text-center alert alert-danger" role="alert"> Error al editar !!! </div>')
+                    setTimeout(function(){
+                    window.location.reload();
+                    }, 1000)
+            }
+        })
+    })
+</script>
+
+
+<!-- Crear Arqueos -->
+<script>
+    $("button[name='crear_arqueos']").click(function() {
+        
+        var bodegas = $("#bodegas").val();
+        var arqueo_id = $("#n_arqueo").val();
+        var descripcion = $("#descripcion").html();
+        var usuario = $("#usuario").val();
+
+        $.ajax({
+            type:"POST",
+            url : "{% url 'arqueos_por_bodega' %}",
+            data : {
+                "csrfmiddlewaretoken": "{{csrf_token}}",
+                "bodegas":bodegas,
+                "arqueo_id":arqueo_id,
+                "descripcion":descripcion,
+                "usuario":usuario
+            },
+            
+            success: function(response) {
+                if (response=='ok') {
+
+                    window.location.replace("http://172.16.28.17:8000/inventario/arqueos/list")
+                } else {
+                    $('#msg').html('<div class="text-center alert alert-danger" role="alert"> Error al crear arqueos !!! </div>')
+                }
+            },
+
+            error: function(response) {
+                $('#msg').html('<div class="text-center alert alert-danger" role="alert"> Error al editar !!! </div>')
+                    setTimeout(function(){
+                    window.location.reload();
+                    }, 1000)
+            }
+        })
+    })
+</script>
+
+
+<!-- Add Item display form-->
+<script>
+    $(document).ready(function() {
+        $("button[name='add_item_btn']").click(function(){
+            $("#add_item").toggle();
+        })
+    })
+</script>
+
+<script>
+    $("button[name='save_add_item']").click(function(){
+
+        var arqueo  = $(this).closest("#add_item").find("#arqueo").val();
+        var prod_id = $(this).closest("#add_item").find("#prod_id").val();
+        var lote_id = $(this).closest("#add_item").find("#lote_id").val();
+        var f_cadu  = $(this).closest("#add_item").find("#f_cadu").val();
+        var bode    = $(this).closest("#add_item").find("#bode").val();
+        var ubic    = $(this).closest("#add_item").find("#ubic").val();
+        var unds    = $(this).closest("#add_item").find("#unds").val();
+
+        $.ajax({
+            type:"POST",
+            url :"{% url 'add_item_arqueo' %}",
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'arqueo':arqueo,
+                'prod_id':prod_id,
+                'lote_id':lote_id,
+                'f_cadu':f_cadu,
+                'bode':bode,
+                'ubic':ubic,
+                'unds':unds
+            },
+            success: function() {
+                
+                $('#msg_item').html(`<div class="text-center alert alert-success mt-3" role="alert"> Añadido exitosamente !!! </div>`)
+                setTimeout(function(){
+                    window.location.reload();
+                }, 1000)
+            },
+
+            error: function() {
+                
+                $('#msg_item').html('<div class="text-center alert alert-danger mt-2" role="alert"> Error intenta nuevamente !!! </div>')
+                setTimeout(function(){
+                    window.location.reload();
+                }, 1000)
+            }
+        })
+
+    })
+</script>
+
+{% endblock %}

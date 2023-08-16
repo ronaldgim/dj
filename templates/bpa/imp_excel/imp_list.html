@@ -1,0 +1,142 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Carta No Reg. Sanitarios</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'bpa/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+<h5 class="m-4 text-center"><strong>LISTADO DE CARTAS DE NO REGISTRO SANITARIOS (LEG-REG)</strong></h5>
+
+<!--button id="agrupada" class="btn btn-primary mb-2" >
+    <i class="bi bi-collection-fill"></i>    Ver tabla agrupada
+</button-->
+
+<a class="btn btn-primary mb-2" href="{% url 'imp_create' %}">
+    <i class="bi bi-plus-circle-fill"></i> Añadir Importación
+</a>
+
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
+<div id="table_full">
+    <div class="card mt-2 mb-2">
+        <div class="card-body m-0 p-0">
+            <div class="container table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Marca / Proveedor</th>
+                            <th scope="col">Número de importación</th>
+                            <th scope="col">Botones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pedidosbuscar">
+                        {% for i in imp %}
+                        <tr>
+                            <td><strong>{{i.marca}}</strong></td>
+                            <td>{{i.orden_importacion}}</td>
+
+                            <td class="text-center">
+                                <a class="btn btn-primary btn-sm" href="{% url 'imp_detail' i.id %}">
+                                    <i class="bi bi-pen-fill"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!--filtro buscar-->
+<!--script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+
+            $('#table_grouped').hide();
+            $('#table_full').show();
+
+            var value = $(this).val().toLowerCase();
+            
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+
+    });
+</script-->
+
+<!-- Filtro de select -->
+<!--script>
+$('#table_full').hide();
+
+$('.filter').change(function(){
+    filter_function();
+});
+
+
+function filter_function() {
+    $('#table_grouped').hide();
+    $('#table_full').show();
+    $('table tbody tr').hide();
+    
+    // obs
+    var obsFlag = 0;
+    var obsValue = $('#filter-obs').val();
+
+    // Estado
+    var estadoFlag = 0;
+    var estadoValue = $('#filter-estado').val();
+
+    $('table tr').each(function() {  
+  
+       
+        // Estado
+        if(estadoValue == 0){
+            estadoFlag = 1;
+        } 
+        else if(estadoValue == $(this).find('td.estado').data('estado')){
+            estadoFlag = 1;
+        }
+        else{
+            estadoFlag = 0;
+        }
+
+        
+        if(estadoFlag){ // && rangeFlag){
+        $(this).show();  //displaying row which satisfies all conditions
+        }
+
+    });
+
+}
+
+</script-->
+
+
+<!--script type="text/javascript">
+    document.getElementById("agrupada").onclick = function actualizar () {
+        location.reload(true);
+    };
+</script-->
+{% endblock %}

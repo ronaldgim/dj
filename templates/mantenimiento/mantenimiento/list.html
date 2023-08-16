@@ -1,0 +1,72 @@
+{%extends 'mantenimiento/base.html' %}
+
+{% block title %}
+<title>Listado de cartas generales</title>
+{% endblock%}
+
+{% block body %}
+
+<h3 class="text-center m-3">
+  <strong>LISTADO DE INSUMOS O REPUESTOS</strong>
+</h3>
+
+<a class="btn btn-primary mb-2" href="{% url 'mantenimientos_new' %}">
+  <i class="bi bi-plus-circle"></i> Mantenimiento
+</a>
+
+<!--div class="col-4 mb-2">
+  <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+</div-->
+
+<div class="card">
+  <div class="card-body">  
+    <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">Equipo</th>
+            <th scope="col">Tipo de mantenimiento</th>
+            <th scope="col">Suministro</th>
+            <!--th scope="col">Precio</th-->
+            <th scope="col">Fecha</th>
+          </tr>
+        </thead>
+        {% for i in object_list %}
+        <tbody id="pedidosbuscar">
+          <tr>
+            <th scope="row">{% if i.pk < 10 %}000{{i.pk}}{% elif i.pk < 100 %}00{{i.pk}}{% elif i.pk < 1000 %}0{{i.pk}}{% else %}{{i.pk}}{% endif %}</th>
+            <td>{{i.equipo}}</td>
+            <td>{{i.tipo}}</td>
+            <td>{{i.producto.nombre}}</td>
+            <!--td>{{i.precio}}</td-->
+            <td>{{i.fecha}}</td>
+            <!--td>{{i.mtt_por}}</td-->
+            <!--td>{{i.valido_hasta_mes}} {{i.valido_hasta_anio}}</td>
+            <td><a href="{% url 'general_detail' i.slug %}" target="_blank">
+                  <i class="bi bi-file-text-fill"></i>
+                <a>
+            </td>
+            <td>
+              <a class="text-danger" href="{% url 'anular_cartageneral' i.slug %}" target="_blank">
+                <i class="bi bi-file-earmark-x-fill"></i>
+              <a>
+            </td-->
+          </tr>
+        </tbody>
+        {% endfor %}
+    </table>
+  </div>
+</div>
+<script>
+  $(document).ready(function() {
+      $("#inputbuscar").on("keyup", function() {
+          var value = $(this).val().toLowerCase();
+          $("#pedidosbuscar tr").filter(function() {
+              $(this).toggle($(this).text()
+              .toLowerCase().indexOf(value) > -1)
+          });
+      });
+  });
+</script>
+
+{% endblock %}

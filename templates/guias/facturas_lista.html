@@ -1,0 +1,136 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Listo de registro de guias</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'etiquetado/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+<h5 class="m-4 text-center"><strong>LISTADO DE FACTURAS</strong></h5>
+
+<div class="col-4">
+    <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+</div>
+
+<div class="col-4 mt-2">
+    <label class="form-label fw-bold">Registrado por:</label>
+    <select class="form-select filter" id="filter-reg">
+        <option value="TODOS">----------</option>
+        {% for i in reg %}
+        <option value="{{i}}">{{i}}</option>
+        {% endfor %}
+    </select>
+</div>
+
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Cliente</th>
+                        <th scope="col">Factura</th>
+                        <th scope="col">Fecha</th>
+                        <th scope="col">Ciudad</th>
+                        <th scope="col">Transporte</th>
+                        <th scope="col">Registrado por</th>
+                        <th scope="col">Registrar</th>
+                    </tr>
+                </thead>
+                
+                <tbody id="pedidosbuscar">
+                    {% for i in ventas_fac %}    
+                    <tr>
+                        <td>{{i.NOMBRE_CLIENTE}}</td>
+                        <td>{{i.CODIGO_FACTURA|slice:'14:-6'}}</td>
+                        <td>{{i.FECHA}}</td>
+                        <td>{{i.CIUDAD_PRINCIPAL}}</td>
+                        <td>
+                            {% if i.transporte == 0 %}
+                                -
+                            {% else %}
+                                {{i.transporte}}
+                            {% endif %}
+                        </td>
+                        <!--td>
+                            {% if i.id == 0 %}
+                                -
+                            {% elif i.id != 0 %}
+                                {{i.first_name}} {{i.last_name}}
+                            {% endif %}
+                        </td-->
+                        <td class="reg" data-reg="{{i.user_reg}}">
+                            {% if i.user_reg == 'Sin Registrar' %}
+                            -
+                            {% else %}
+                            {{i.user_reg}}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if i.id == 0 %}
+                            <a  class="btn btn-primary btn-sm" href="{% url 'guias_registro' i.CODIGO_FACTURA %}">
+                                <i class="bi bi-truck"></i> Registrar
+                            </a>
+                            {% elif i.id != 0 %}
+                            <a class="btn btn-success btn-sm" href="{% url 'guias_editar' i.id %}">
+                                <i class="bi bi-truck"></i> Editar Registro
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<!--filtro buscar-->
+<script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+
+
+<script>
+    $('.filter').change(function(){
+        filter_function(); //calling filter function each select box value change
+    });
+      
+    $('table tbody tr').show(); //intially all rows will be shown
+      
+    function filter_function(){
+        $('table tbody tr').hide(); //hide all rows
+        
+        var tipoFlag = 'TODOS';
+        var tipoValue = $('#filter-reg').val()
+        
+       //traversing each row one by one
+        $('table tr').each(function() {  
+          if(tipoValue == 'TODOS'){
+            tipoFlag = 1;
+          }
+          else if(tipoValue == $(this).find('td.reg').data('reg')){
+            tipoFlag = 1;
+          }
+          else{
+            tipoFlag = 0;
+          }
+
+         if(tipoFlag){ 
+            $(this).show();
+         }
+      
+      });
+    }
+</script>
+{% endblock %}

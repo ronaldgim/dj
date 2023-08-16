@@ -1,0 +1,99 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Lista calculadora</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'etiquetado/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+<h5 class="m-4 text-center"><strong>LISTADO DE CALCULOS</strong></h5>
+
+<a class="btn btn-primary mb-2" href="{% url 'calculadora_new' %}">
+    <i class="bi bi-plus-circle"></i> Añadir calculo
+</a>
+
+<div class="col-4">
+    <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+</div>
+
+
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Nombre de registro</th>
+                        <th scope="col">Fecha</th>
+                        <!--th class="text-center" scope="col">Ver</th-->
+                        <th class="text-center" scope="col">Calculadora</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in object_list %}
+                    <tr class="content">
+                        <td>{{i.nombre}}</td>
+                        <td>{{i.fecha}}</td>                     
+                        <td class="text-center">
+                            <a class="btn btn-primary btn-sm" href="{% url 'calculadora_view' i.pk %}" target="_blank">
+                                <i class="bi bi-calculator-fill"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Buscador
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+
+<script>
+    $('.filter').change(function(){
+        filter_function(); //calling filter function each select box value change
+    });
+      
+    $('table tbody tr').show(); //intially all rows will be shown
+      
+    function filter_function(){
+        $('table tbody tr').hide(); //hide all rows
+        
+        var tipoFlag = 'TODOS';
+        var tipoValue = $('#filter-tipo').val();
+        
+       //traversing each row one by one
+        $('table tr').each(function() {  
+          if(tipoValue == 'TODOS'){
+            tipoFlag = 1;
+          }
+          else if(tipoValue == $(this).find('td.tipo').data('tipo')){
+            tipoFlag = 1;
+          }
+          else{
+            tipoFlag = 0;
+          }
+
+         if(tipoFlag){
+            $(this).show();
+         }
+      
+      });
+    }
+</script>
+
+{% endblock %}

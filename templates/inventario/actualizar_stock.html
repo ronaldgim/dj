@@ -1,0 +1,251 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Etiquetado por pedido</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'inventario/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+<h5 class="m-4 text-center"><strong>REPORTE DE INVENTARIO</strong></h5>
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
+
+<h6 class="text-start"><strong>Total de items: </strong>{{total}}</h6>
+<h6 class="text-start"><strong>Total de items procesados: </strong>{{procesados}}</h6>
+<h6 class="text-start"><strong>Total de items por procesar: </strong>{{por_procesar}}</h6>
+<!--h6 class="text-start"><strong>Total de items correctos: </strong>{{correctos}}</h6>
+<h6 class="text-start"><strong>Total de items con diferencia </strong>{{diferencia}}</h6-->
+
+
+<a class="btn btn-success mb-2" href="{% url 'reporte_completo_excel' %}">
+    <i class="bi bi-file-earmark-spreadsheet"></i> Reporte COMPLETO EXCEL
+</a>
+
+<!--a class="btn btn-success mb-2" href="{% url 'reporte_format_excel' %}">
+    <i class="bi bi-file-earmark-spreadsheet"></i> Reporte FORMAT EXCEL
+</a-->
+
+<!--form method="POST">
+    {% csrf_token %}
+    {% if request.user.is_superuser %}
+    <button type="submit" class="btn btn-danger mb-2">
+        <i class="bi bi-arrow-clockwise"></i> Actulizar Tabla Stock
+    </button>
+    {% endif %}
+</form-->
+<br>
+<button id="refresh" class="btn btn-primary mb-2">
+    <i class="bi bi-arrow-clockwise"></i> Actulizar Tabla
+</button>
+
+<div class="row">
+    <div class="col-3">
+        <label><strong>Bodega</strong></label>
+        <select class="form-select filter" id="filter-bod">
+                <option value="0">Todos</option>
+            {% for i in bodega %}
+                <option value="{{i}}">{{i}}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-3">
+        <label><strong>Ubicación</strong></label>
+        <select class="form-select filter" id="filter-loc">
+            <option value="0">Todos</option>
+            {% for i in location %}
+            <option value="{{i}}">{{i}}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-3">
+        <label><strong>Llenado:</strong></label>
+        <select class="form-select filter" id="filter-lle">
+            <option value="0">Todos</option>
+            <option value="True">Si</option>
+            <option value="False">No</option>
+        </select>
+    </div>
+    <div class="col-3">
+        <label><strong>Buscar:</strong></label>
+        <input id="inputbuscar" type="text" placeholder="Buscar..." class="form-control">
+    </div>
+    <!--div class="col-1">
+        <label><strong>Buscar:</strong></label>
+        <input id="inputbuscar" type="text" placeholder="Buscar..." class="form-control">
+    </div-->
+</div>
+
+
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table" id="inv_table">
+                <thead>
+                    <tr>
+                        <th scope="col">Código</th>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Marca</th>
+                        <th scope="col">Lote</th>
+                        <th scope="col">Caducidad</th>
+                        <th scope="col">Bodega</th>
+                        <th scope="col">Ubicación</th>
+                        
+                        <th scope="col">INV-Unds</th>
+                        <th scope="col">MBA-Unds</th>
+                        
+                        <th scope="col">Diferencia</th>
+                        <th scope="col">Llenado</th>
+                        <th scope="col">Agregado</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in stock %}
+                    <tr style="font-size: small;">
+                        <td>{{i.product_id}}</td>
+                        <td>{{i.product_name}}</td>
+                        <td>{{i.group_code}}</td>
+                        <td>{{i.lote_id}}</td>
+                        <!--td>{{i.fecha_cadu_lote|date:'d/m/Y'}}</td-->
+                        <td>{{i.fecha_cadu_lote}}</td>
+
+                        <td class="bod" data-bod="{{i.ware_code}}">{{i.ware_code}}</td>
+                        <td class="loc" data-loc="{{i.location}}">{{i.location}}</td>
+
+                        
+                        <td>{{i.total_unidades|floatformat:"0g"}}</td>
+                        <td>{{i.oh2|floatformat:"0g"}}</td>
+
+                        
+                        <!--td {% if i.diferencia != 0 %} style="background-color:#fadbd2 ;" {% endif %}>
+                            {{i.diferencia|floatformat:"0g"}}
+                        </td-->
+
+                        <td {% if i.diff2 != 0 %} style="background-color:#fadbd2 ;" {% endif %}>
+                            {{i.diff2|floatformat:"0g"}}
+                        </td>
+
+                        <td class="lle" data-lle="{{i.llenado}}">
+                            {% if i.llenado == True %}
+                            <i style = "color:green;" class="bi bi-check-square-fill"></i>
+                            {% elif i.llenado == False %}
+                            <i style = "color:red;" class="bi bi-x-square-fill"></i>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if i.agregado == True %}
+                            <i style = "color:green;" class="bi bi-check-square-fill"></i>
+                            {% elif i.agregado == False %}
+                            <i style = "color:red;" class="bi bi-x-square-fill"></i>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!--filtro buscar-->
+<script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+
+
+<!-- Filtro de columna -->
+<script>
+    $('.filter').change(function(){
+        filter_function(); //calling filter function each select box value change
+    });
+      
+    function filter_function(){
+
+        $('table tbody tr').hide();
+
+        // Bodega
+        var bodFlag = 0;
+        var bodValue = $('#filter-bod').val();
+
+        // Ubicación
+        var locFlag = 0;
+        var locValue = $('#filter-loc').val();
+
+        // Llenado
+        var lleFlag = 0;
+        var lleValue = $('#filter-lle').val();
+        
+        // $('table tr').each(function() {
+        $('table tr').each(function() {
+            
+            // Bodega
+            if(bodValue == 0){
+                bodFlag = 1;
+            }
+            else if(bodValue == $(this).find('td.bod').data('bod')){
+                bodFlag = 1;
+            }
+            else{
+                bodFlag = 0;
+            }
+
+            // Ubicación
+            if(locValue == 0){
+                locFlag = 1;
+            }
+            else if(locValue == $(this).find('td.loc').data('loc')){
+                locFlag = 1;
+            }
+            else{
+                locFlag = 0;
+            }
+
+            // Llenado
+            if(lleValue == 0){
+                lleFlag = 1;
+            }
+            else if(lleValue == $(this).find('td.lle').data('lle')){
+                lleFlag = 1;
+            }
+            else{
+                lleFlag = 0;
+            }
+
+            if(bodFlag && locFlag && lleFlag){
+                $(this).show();
+            }
+        });
+    }
+</script>
+
+<!-- filtro de texto -->
+<script type="text/javascript">
+    document.getElementById("refresh").onclick = function actualizar () {
+        location.reload(true);
+    };
+</script>
+
+{% endblock %}

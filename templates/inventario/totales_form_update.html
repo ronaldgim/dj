@@ -1,0 +1,111 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Inventario</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'inventario/topnavbar.html' %} 
+{% endblock %}
+
+{% block body %}
+<h5 class="m-4 text-center"><strong>TOMA FISICA DE INVENTARIO</strong></h5>
+<!--h6 class="m-4 text-end"><strong>Actulizado: </strong>{{time_reservas|slice:':-7'}}</h6-->
+
+<!--div class="col-12">
+    <input id="inputbuscar" type="text" placeholder="Buscar"  class="form-control">
+</div-->
+
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
+
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container">
+            <h3 class="text-center mt-2"> Conteo total de unidades </h3>
+            <strong>Código:</strong> {{instancia.product_id}}<br>
+            <strong>Nombre:</strong> {{instancia.description}}<br>
+            <strong>Marca:</strong> {{instancia.marca}}<br>
+            <!--strong>Unidad de Venta:</strong> {{instancia.um}}<br>
+            <label style="background-color: #f5fa8d;">
+                <strong>Lote:</strong> {{instancia.lote_id}}<br>
+            </label><br>
+            <strong>Fecha Elaboración:</strong> {{instancia.fecha_elab_lote|date:'Y-m-d'}}<br>
+            <strong>Fecha Caducidad:</strong> {{instancia.fecha_cadu_lote|date:'Y-m-d'}}<br-->
+            <!--strong>Bodega:</strong> {{instancia.ware_code}}<br>
+            <strong>Ubicación:</strong> {{instancia.location}}<br-->
+            <br>
+            <!--h3 class="text-center"> Ingresar conteo físico </h3-->
+            <div class="container mb-4">
+
+                <form method="POST">
+                    {% csrf_token %}
+
+                    {#{form.as_p}#}
+
+                    <input type="hidden" name="product_id_t" value="{{form.product_id_t.value}}">
+                    <input type="hidden" name="ware_code_t" value="{{form.ware_code_t.value}}">
+                    <input type="hidden" name="location_t" value="{{form.location_t.value}}">
+                    <input type="hidden" name="user" value="{{request.user.id}}">
+
+                    <label>Unidades por cartón:</label>
+                    <input class="form-control" type="number" id="uc" name="unidades_caja_t" placeholder="Unidades Sueltas" value="{{form.unidades_caja_t.value}}" required><br>
+                    <label>Número de cartones:</label>
+                    <input class="form-control" type="number" id="nc" name="numero_cajas_t" placeholder="Unidades Sueltas" value="{{form.numero_cajas_t.value}}" required><br>
+                    <label>Unidades sueltas:</label>
+                    <input class="form-control" type="number" id="us" name="unidades_sueltas_t" placeholder="Unidades Sueltas" value="{{form.unidades_sueltas_t.value}}" required><br>
+
+                    Total Unidades: <p id="total"></p>
+
+                    <button type="submit" class="btn btn-success mt-2">
+                        <i class="bi bi-box-seam"></i> Guardar
+                    </button>
+                    
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+<script>
+
+$("input").on("input", function(){
+    $("#total").text(totales());
+});
+
+$("#total").text(totales());
+
+function totales() {
+
+    var uc_input = document.getElementById("uc").value;
+    var nc_input = document.getElementById("nc").value;
+    var us_input = document.getElementById("us").value;
+    uc = Number(uc_input);
+    nc = Number(nc_input);
+    us = Number(us_input);
+    var total_unds = ((uc * nc) + us);
+    var total_unds_f = Intl.NumberFormat().format(total_unds);
+    document.getElementById("total").innerHTML = total_unds_f;
+    return total_unds_f;
+}
+
+</script>
+
+{% endblock %}

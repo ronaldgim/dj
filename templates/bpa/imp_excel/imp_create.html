@@ -1,0 +1,24 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Importaciones | Compras</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'bpa/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+<h4 class="m-4 text-center">Importar archivo excel de Compras o Importaciones</h4>
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    {{form.as_p}}
+    <button class="btn btn-primary" type="submit">
+        <i class="bi bi-file-earmark-arrow-up-fill"></i> Guardar
+    </button>
+
+</form>
+
+
+{% endblock %}

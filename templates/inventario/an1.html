@@ -1,0 +1,150 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Stock Bodega AN1</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'inventario/topnavbar.html' %} 
+{% endblock %}
+
+{% block body %}
+<h5 class="m-4 text-center"><strong>STOCK BODEGA AN1</strong></h5>
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
+<h6 class="text-start"><strong># Total de Items: </strong>{{n_an1}}</h6>
+<h6 class="text-start"><strong># Items por contabilizar: </strong>{{n_an1_nollenado}}</h6>
+<h6 class="text-start"><strong># Items contabilizados: </strong>{{n_an1_llenado}}</h6>
+
+<a class="btn btn-primary" href="{% url 'inventario_agregar_form' %}">
+    <i class="bi bi-plus-circle"></i> Añadir
+</a>
+
+<div class="col-12 mt-2">
+    <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+</div>
+
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th scope="col">Invenario</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in an1 %}
+                    <tr {% if i.llenado == True %} style="background-color: #d2fad8;" {% else %}{% endif %}>
+                        <td>
+                            <strong>Código:</strong> {{i.product_id}}<br>
+                            <strong>Nombre:</strong> {{i.product_name}}<br>
+                            <strong>Marca: </strong> {{i.group_code}}<br>
+                            <strong>U/Venta:</strong> {{i.um}}<br>
+                            <strong>Lote:</strong> {{i.lote_id}}<br>
+                        </td>
+                        <td>
+                            <a class="btn btn-primary btn-sm" href="{% url 'inventario_update_form' i.id %}"><i class="bi bi-boxes"></i></a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!--filtro buscar-->
+<script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+
+<!-- Filtro de columna -->
+<!--script>
+    $('.filter').change(function(){
+        filter_function(); //calling filter function each select box value change
+    });
+      
+    $('table tbody tr').show(); //intially all rows will be shown
+      
+    function filter_function(){
+        $('table tbody tr').hide(); //hide all rows
+        
+        var tipoFlag = 'TODOS';
+        var tipoValue = $('#filter-tipo').val();
+        
+       //traversing each row one by one
+        $('table tr').each(function() {  
+          if(tipoValue == 'TODOS'){
+            tipoFlag = 1;
+          }
+          else if(tipoValue == $(this).find('td.tipo').data('tipo')){
+            tipoFlag = 1;
+          }
+          else{
+            tipoFlag = 0;
+          }
+
+         if(tipoFlag){
+            $(this).show();
+         }
+      
+      });
+    }
+</script-->
+<!-- Filtro estado de etiquetado -->
+<!--script>
+    $('.filter-est').change(function(){
+        filter_function_estado(); //calling filter function each select box value change
+    });
+      
+    $('table tbody tr').show(); //intially all rows will be shown
+      
+    function filter_function_estado(){
+        $('table tbody tr').hide(); //hide all rows
+        
+        var tipoFlag = 'ESTADO';
+        var tipoValue = $('#filter-estado').val();
+        
+       //traversing each row one by one
+        $('table tr').each(function() {  
+          if(tipoValue == 'ESTADO'){
+            tipoFlag = 1;
+          }
+          else if(tipoValue == $(this).find('td.estado').data('estado')){
+            tipoFlag = 1;
+          }
+          else{
+            tipoFlag = 0;
+          }
+
+         if(tipoFlag){
+            $(this).show();
+         }
+      
+      });
+    }
+</script-->
+{% endblock %}

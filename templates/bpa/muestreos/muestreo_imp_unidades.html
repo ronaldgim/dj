@@ -1,0 +1,181 @@
+{% load static %}
+<title>Muestreo # {{proveedor}}
+</title>
+
+<style>
+    @page{
+        /*size: A4;*/
+        size: letter landscape;
+        margin-top:1cm;
+        margin-left:0.5cm;
+        margin-right:0.5cm;
+        margin-bottom:1cm;
+
+        /* HEADER Static frame */
+        /*@frame header_frame {           
+            -pdf-frame-content: header_content;
+            left: 0pt; width: 595pt; top: 0pt; height: 140pt;
+        }*/
+        /* FOOTER Static frame */
+        /*@frame footer_frame {
+            -pdf-frame-content: footer_content;
+            left:0pt; width:595pt; top:727pt; height:150pt;
+        }*/
+        /* BODY */
+        /*@frame body_frame {}*/
+            
+    }
+    #gim {
+        background-size:100%;
+        background-repeat:no-repeat;
+    }
+
+    .t_b {
+        padding-top: 4px;
+        padding-left: 4px;
+        padding-right: 4px;
+        padding-bottom: 0px;
+
+        font-size: large;
+    } 
+
+    .t_codigo {
+        width: 120px;
+        font-size: large;
+    }
+
+    .t_nombre {
+        width: 230px;
+        font-size: large;
+    }
+
+    .t_u_c {
+        width: 90px;
+        font-size: large;
+    }
+
+    .t_row {
+        padding-top: 4px;
+        padding-left: 4px;
+        padding-right: 4px;
+        padding-bottom: 0px;
+
+        font-size: large;
+    }
+
+    .t_row_cal {
+        padding-top: 4px;
+        padding-left: 4px;
+        padding-right: 4px;
+        padding-bottom: 0px;
+        text-align: right;
+
+        font-size: large;
+    }
+</style>
+
+<meta charset="UTF-8">
+
+<!--img id="header_content" src="{% static 'encabezado.png' %}"-->
+
+<div class="gim" style="text-align:justify; font-size:14px">
+
+    <div class="body_frame">
+
+        <table style="border:1px solid black;">
+            <tr>
+                <th  class="t_b" rowspan="2">
+                    <img src="{% static 'gim_muestreo.png' %}" alt="">
+                </th> 
+                <th class="t_b" rowspan="2">
+                    REGISTRO DE MUESTREO DE MERCADERIA
+                </th>
+                <th class="t_b">
+                    BOD-RG-010
+                </th>
+            </tr>
+            <tr>
+                <th class="t_b">
+                    Versión 02
+                </th>
+            </tr>
+        </table>
+
+        <br>
+
+        <label><strong>Proveedor:</strong> {{proveedor}}</label><br>
+        <label><strong>No.Importación/Transferencia:</strong> {{n_imp}}</label><br>
+        <label><strong>Nivel de inspección:</strong> General</label><br>
+        <label><strong>Unidades a Trabajar</strong> Unidades</label><br>
+
+        <br>
+
+        <table style="border:1px solid black;">
+            <tr>
+                <th class="t_codigo" rowspan="2">Código</th>
+                <th class="t_nombre" rowspan="2">Nombre</th>
+                <th class="t_b" rowspan="2">Cartones / Unidades</th>
+                <th class="t_b" rowspan="2">N.I. General</th>
+                <th class="t_b" colspan="4">CARTONES CON DEFECTOS</th>
+                <th class="t_b" colspan="5">UNIDADES CON DEFECTOS</th>
+            </tr>
+            <tr>
+                <th class="t_b">Tamaño de muestra (Cartones)</th>
+                <th class="t_b">Defecto Critico</th>
+                <th class="t_b">Defecto Mayor</th>
+                <th class="t_b">Defecto Menor</th>
+                <th class="t_b">N.I. General</th>
+                <th class="t_b">Abrir Cajas</th>
+                <th class="t_b">Defecto Critico</th>
+                <th class="t_b">Defecto Mayor</th>
+                <th class="t_b">Defecto Menor</th>
+            </tr>
+            {% for i in imp %}
+            
+            <tr>
+                <td class="t_row">{{i.PRODUCT_ID}}</td>
+                <td class="t_row">{{i.description}}</td>
+
+                <td class="t_row_cal">{{i.QUANTITY|floatformat:'0g'}}</td>
+                <td class="t_row_cal">{{i.Nivel}}</td>
+
+                <td class="t_row_cal">{{i.Muestra|floatformat:'0g'}}</td>
+
+                <td></td>
+                <td></td>
+                <td></td>
+
+                <td class="t_row_cal">{{i.Nivel_2}}</td>
+                <td class="t_row_cal">{{i.Muestra_2|floatformat:'0g'}}</td>
+                <td></td>
+                <td></td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <br>
+        
+        <label><strong>OBSERVACIONES:</strong></label>
+        <table style="border:1px solid black;">
+            <tr>
+                <td>
+                    <p>
+                        <br>
+                        <br>
+                        <br>
+                    </p>
+                </td>
+            </tr>
+        </table>
+        <br>
+        <label style="text-align:justify; font-size:14px">
+            <strong>_______________________</strong>
+        </label><br>
+        <label style="text-align:justify; font-size:14px">
+            <strong>Responsable de muestreo</strong>
+        </label>
+    </div>
+</div>
+
+<br>
+

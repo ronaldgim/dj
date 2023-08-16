@@ -1,0 +1,89 @@
+<!-- Top nav bar etiquetado -->
+<nav class="navbar navbar-expand-lg bg-light">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="{% url 'inicio' %}">Gimpromed Cía. Ltda.</a>
+
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+      <!--span class="navbar-toggler-icon"></span--><i class="bi bi-list"></i>
+    </button>
+  
+    <div class="collapse navbar-collapse" id="navbarNavDropdown">
+      <ul class="navbar-nav">
+        <!--li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="#">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">Features</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">Pricing</a>
+        </li-->
+        <!--li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Pedidos 
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+            <li><a class="dropdown-item" href="{% url 'pedidos_list' %}">Listado de pedidos</a></li>
+            <li><a class="dropdown-item" href="{% url 'facturas_list' %}">Listado de facturas</a></li>
+            <li><a class="dropdown-item" href="{% url 'picking' %}">Picking</a></li>
+            <li><a class="dropdown-item" href="{% url 'picking_historial' %}">Picking Historial</a></li>
+            <li><a class="dropdown-item" href="{% url 'calculadora_list' %}">Calculadora</a></li>
+          </ul>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Dashboards Bodega
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+              <li><a class="dropdown-item" href="{% url 'stock' %}">Etiquetado Completo</a></li>
+              <li><a class="dropdown-item" href="{% url 'stock_bodega' %}">Etiquetado Bodega</a></li>
+              <li><a class="dropdown-item" href="{% url 'picking_dashboard' 'BAN' %}">Pedidos Andagoya</a></li>
+              <li><a class="dropdown-item" href="{% url 'picking_dashboard' 'BCT' %}">Pedidos Cerezos</a></li>
+          </ul>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Bodega
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+              <li><a class="dropdown-item" href="{% url 'pedidos_estado_list' %}">Estado de Etiquetado</a></li>
+              <li><a class="dropdown-item" href="{% url 'picking_estado' %}">Estado de Picking</a></li> 
+              <li><a class="dropdown-item" href="{% url 'inventario_bodega' %}">Inventario</a></li> 
+          </ul>
+        </li-->
+        <li class="nav-item dropdown">
+          <a class="nav-link" id="navbarDropdownMenuLink" href="{% url 'importaciones_list' %}">
+            Lista de importaciones
+          </a>
+          <!--ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+              <li><a class="dropdown-item" href="{% url 'revision_reservas' %}">Revision Reservas</a></li>
+              <li><a class="dropdown-item" href="{% url 'picking_estado' %}">Estado de Picking</a></li> 
+              <li><a class="dropdown-item" href="{% url 'inventario_bodega' %}">Inventario</a></li> 
+          </ul-->
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link" id="navbarDropdownMenuLink" href="{% url 'r_l_facturas' %}">
+            Lista de facturas
+          </a>
+          <!--ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+              <li><a class="dropdown-item" href="{% url 'revision_reservas' %}">Revision Reservas</a></li>
+              <li><a class="dropdown-item" href="{% url 'picking_estado' %}">Estado de Picking</a></li> 
+              <li><a class="dropdown-item" href="{% url 'inventario_bodega' %}">Inventario</a></li> 
+          </ul-->
+        </li>
+        <!--li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Mantenimiento
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+              <li><a class="dropdown-item" href="{% url 'mantenimientos_list' %}">Lista de mantenimiento</a></li>
+          </ul>
+        </li-->
+      </ul>
+    </div>
+    <a class="navbar-brand" href="{% url 'logout' %}">
+      {{request.user}} <i class="bi bi-box-arrow-right"></i>
+    </a>
+  </div>
+</nav>

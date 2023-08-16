@@ -1,0 +1,260 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Etiquetado por pedido</title>
+{% endblock %}
+
+{% block navbar %}
+{% include 'compras_publicas/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+
+<style>
+  table {
+    -webkit-user-select: none; /* Safari */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none; /* Standard */
+  }
+  thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: #ffffff;
+  }
+  
+  .table-responsive {
+    height: 600px;
+    overflow-y: scroll;
+  }
+</style>
+
+<h5 class="m-4 text-center"><strong>INFIMAS</strong></h5>
+<h5>Resultados de <strong>{{busqueda}}</strong>: {{resultados}}</h5>
+<!--button id="my-button">Click me!</button-->
+{{data}}
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
+<form method="POST"> 
+    {% csrf_token %}
+    <div class="row">
+        <div class="form-group">
+            <div class="input-group">
+                <!--label class="pe-2"><strong>HOSPITALES:</strong></label-->
+                <!--div class="col-6 pe-2">
+                    <select class="form-select" id="filter-hos-select2" name="hospital"> 
+                        <option value="0">TODOS LOS HOSPITALES</option>
+                        {% for i in hospitales %}
+                        <option value="{{i}}">{{i}}</option>
+                        {% endfor %}
+                    </select>
+                </div-->
+                <div class="col-6 me-2">
+                    <input id="inputbuscar" type="text" placeholder="Buscar por objeto de compra... (Usar minúsculas)" class="form-control" name="busqueda">
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-primary" type="submit">
+                        Consultar
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!--div class="col-6 mt-2 mb-2">
+            <input id="inputbuscar" type="text" placeholder="Buscar..." class="form-control">
+        </div-->
+    </div>
+</form>
+
+
+<!--div class="col-6">
+    <label><strong>Buscar:</strong></label>
+    <input id="inputbuscar" type="text" placeholder="Buscar..." class="form-control">
+</div-->
+
+<!-- Infimas -->
+<!--h5 class="text-center"><strong>INFIMAS</strong></h5-->
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table" id="inv_table">
+                <thead>
+                    <tr>
+                        <th scope="col">Fecha</th>
+                        <th scope="col">Proveedor</th>
+                        <th scope="col">Objeto de compra</th>
+                        <th scope="col">Cliente</th>
+                        <th scope="col">Cantidad</th>
+                        <th scope="col">Costo</th>
+                        <th scope="col">Valor</th>
+                        <!--th scope="col">Precio Unitario</th-->
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in infimas %}
+                    <tr style="font-size: small;">
+                        <td>{{i.Fecha}}</td>
+                        <td>{{i.Proveedor}}</td>
+                        <td>{{i.Objeto_Compra}}</td>
+                        <td>{{i.Nombre}}</td>
+                        <td class="text-end">{{i.Cantidad|floatformat:"0g"}}</td>
+                        <td class="text-end">{{i.Costo|floatformat:2}}</td>
+                        <td class="text-end">{{i.Valor|floatformat:2}}</td>
+                        <!--td class="text-end"><strong>$ {{i.UNIT_PRICE|floatformat:2}}</strong></td-->
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<!-- AJAX -->
+<!--script>
+    document.querySelector('#my-button').addEventListener('click', function() {
+        //fetch('/ajax/my_view/')
+        fetch('/compras-publicas/ajax/my_view/')
+        //fetch('/compras-publicas/infimas')
+            .then(response => response.json())
+            .then(data => console.log(data))
+            .catch(error => console.error(error));
+    });
+</script-->
+<!--script>
+    document.querySelector('#my-button').addEventListener('click', function() {
+        $.ajax({
+            //url: '/compras-publicas/ajax/my_view/',
+            //url: '/compras-publicas/infimas',
+            url : "{% url 'my_ajax_view' %}",
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                // Do something with the data
+                $('#table_inf').html(data);
+                //console.log(data);
+                //console.log(typeof(data))
+                //window.data = {args:{{data|safe}}}
+            fetch("{% url 'my_ajax_view' %}")
+                .then(response => response.json())
+                .then(data => console.log(data))
+                .catch(error => console.error(error))
+            }
+        });
+    });
+</script-->
+
+
+<!--filtro buscar-->
+<!--script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script-->
+
+
+<!-- Filtro de columna -->
+<script>
+    $('.filter').change(function(){
+        filter_function(); //calling filter function each select box value change
+    });
+      
+    function filter_function(){
+
+        $('table tbody tr').hide();
+
+        // Bodega
+        var hosFlag = 0;
+        var hosValue = $('#filter-hos').val();
+
+        // Ubicación
+        //var locFlag = 0;
+        //var locValue = $('#filter-loc').val();
+
+        // Llenado
+        //var lleFlag = 0;
+        //var lleValue = $('#filter-lle').val();
+        
+        // $('table tr').each(function() {
+        $('table tr').each(function() {
+            
+            // Bodega
+            if(hosValue == 0){
+                hosFlag = 1;
+            }
+            else if(hosValue == $(this).find('td.hos').data('hos')){
+                hosFlag = 1;
+            }
+            else{
+                hosFlag = 0;
+            }
+
+            // Ubicación
+            //if(locValue == 0){
+            //    locFlag = 1;
+            //}
+            //else if(locValue == $(this).find('td.loc').data('loc')){
+            //    locFlag = 1;
+            //}
+            //else{
+            //    locFlag = 0;
+            //}
+
+            // Llenado
+            //if(lleValue == 0){
+            //    lleFlag = 1;
+            //}
+            //else if(lleValue == $(this).find('td.lle').data('lle')){
+            //    lleFlag = 1;
+            //}
+            //else{
+            //    lleFlag = 0;
+            //}
+
+            //if(bodFlag && locFlag && lleFlag){
+            //    $(this).show();
+            //}
+
+            if(hosFlag) // && locFlag && lleFlag){
+                $(this).show();
+            }
+        );
+    }
+</script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#filter-hos-select2').select2();
+    })
+</script>
+
+
+<!-- No abrir menu copy JS -->
+<script type="text/javascript">
+  document.querySelector('.table').addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+  });
+</script>
+
+{% endblock %}

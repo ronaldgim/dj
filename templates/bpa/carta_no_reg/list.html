@@ -1,0 +1,294 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Carta No Reg. Sanitarios</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'bpa/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+<h5 class="m-4 text-center"><strong>LISTADO DE CARTAS DE NO REGISTRO SANITARIOS (LEG-REG)</strong></h5>
+<h6 class="m-4 text-end"><strong>Fecha actual: </strong>{% now "jS F Y H:i" %}</h6>
+
+<div class="dropdown mt-2 mb-4">
+    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="bi bi-list-ul"></i> Resumen Cartas de no Reg. Sanitarios.
+    </button>
+
+    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+        <div class="card-body m-0 p-0">
+            <div class="container table-responsive">
+                <table class="table" id="table_resumen">
+                    <thead>
+                        <tr>
+                            <th scope="col">Resumen</th>
+                            <th scope="col"></th>
+                            <th scope="col">Cantidad</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                
+                        <tr>
+                            <td colspan="2"><strong>Total de Cartas de no registro sanitario</strong> </td>
+                            <td>{{r_san_list.count}}</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="4"><strong>Estado</strong></td>
+                            <td>Caducado</td>
+                            <td>{{n_caducado}}</td>
+                        </tr>
+                        <tr>
+                            <td>Proximo a caducar</td>
+                            <td>{{n_proximo}}</td>
+                        </tr>
+                        <tr>
+                            <td>Vigente</td>
+                            <td>{{n_vigente}}</td>
+                        </tr>
+                        <tr>
+                            <td>Sin especificar</td>
+                            <td>{{n_sin}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </ul>
+</div>
+
+
+<div class="row">
+    <div class="col-4">
+        <label><strong>Filtrar por Estado.</strong></label>
+        <select class="form-select filter" id="filter-estado">
+            <option value="0">Todos</option>
+            <option value="Caducado">Caducado</option>
+            <option value="Proximo a caducar">Proximo a caducar</option>
+            <option value="Vigente">Vigente</option>
+            <option value="Sin especificar">Sin especificar</option>
+        </select>
+        <br>
+    </div>
+    <div class="col-4">
+        <label><strong>Buscar por dato especifico.</strong></label>
+        <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+    </div>
+</div>
+
+<button id="agrupada" class="btn btn-primary mb-2" >
+    <i class="bi bi-collection-fill"></i>    Ver tabla agrupada
+</button>
+
+<a class="btn btn-primary mb-2" href="{% url 'carta_no_reg_new' %}">
+    <i class="bi bi-plus-circle-fill"></i> Añadir Carta No Registro Sanitario
+</a>
+
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
+{% for i in carta %}
+{{i.doc}}
+{% endfor %}
+<div id="table_grouped">
+{% regroup r_san_list by marca as marca_list %}
+{% for marca in marca_list %}
+<h5 class="m-2"><strong>{{marca.grouper}}</strong></h5>
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Documento</th>
+                        <th scope="col"># Solicitud</th>
+                        <th scope="col">Producto</th>
+                        <th scope="col">Fecha Expedición</th>
+                        <th scope="col">Fecha Expiración</th>
+                        <th scope="col">Estado</th>
+                        <th scope="col">Caduca en</th>
+                        <th scope="col" class="text-center">Ver|Editar</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in marca.list %}
+                    <tr>
+                        <td>{{i.documento}}</td>
+                        <td>{{i.n_solicitud}}</td>
+                        <td>{{i.producto}}</td>
+                        <td>{{i.fecha_expedicion}}</td>
+                        <td>{{i.fecha_expiracion}}</td>
+                        
+                        <td class="estado" data-estado="{{i.estado}}"
+                        {% if i.estado == 'Caducado' %}
+                        style="background-color: #F6B690;"
+                        {% elif i.estado == 'Proximo a caducar' %}
+                        style="background-color: #F6F490;"
+                        {% elif i.estado == 'Vigente' %}
+                        style="background-color: #BAF690;"
+                        
+                        {% endif %}
+                        >{{i.estado}}</td>
+
+                        <td>{{i.dias_caducar|floatformat:"g"}} dias</td>
+
+                        <td class="text-center">
+                            <a class="btn btn-primary btn-sm" href="{% url 'carta_no_reg_edit' i.id %}">
+                                <i class="bi bi-pen-fill"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endfor %}
+</div>
+
+<div id="table_full">
+    <div class="card mt-2 mb-2">
+        <div class="card-body m-0 p-0">
+            <div class="container table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Marca</th>
+                            <th scope="col">Documento</th>
+                            <th scope="col"># Solicitud</th>
+                            <th scope="col">Producto</th>
+                            <th scope="col">Fecha Expedición</th>
+                            <th scope="col">Fecha Expiración</th>
+                            <th scope="col">Estado</th>
+                            <th scope="col">Caduca en</th>
+                            <th scope="col">Editar</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pedidosbuscar">
+                        {% for i in r_san_list %}
+                        <tr>
+                            <td><strong>{{i.marca}}</strong></td>
+                            <td>{{i.documento}}</td>
+                            <td>{{i.n_solicitud}}</td>
+                            <td>{{i.producto}}</td>
+                            <td>{{i.fecha_expedicion}}</td>
+                            <td>{{i.fecha_expiracion}}</td>
+
+                            <td class="estado" data-estado="{{i.estado}}"
+                            {% if i.estado == 'Caducado' %}
+                            style="background-color: #F6B690;"
+                            {% elif i.estado == 'Proximo a caducar' %}
+                            style="background-color: #F6F490;"
+                            {% elif i.estado == 'Vigente' %}
+                            style="background-color: #BAF690;"
+                            {% endif %}
+                            >{{i.estado}}</td>
+
+                            <td>{{i.dias_caducar|floatformat:"g"}} dias</td>
+
+                            <td class="text-center">
+                                <a class="btn btn-primary btn-sm" href="{% url 'carta_no_reg_edit' i.id %}">
+                                    <i class="bi bi-pen-fill"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!--filtro buscar-->
+<script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+
+            $('#table_grouped').hide();
+            $('#table_full').show();
+
+            var value = $(this).val().toLowerCase();
+            
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+
+    });
+</script>
+
+<!-- Filtro de select -->
+<script>
+
+$('#table_full').hide();
+
+$('.filter').change(function(){
+    filter_function();
+});
+
+
+function filter_function() {
+    $('#table_grouped').hide();
+    $('#table_full').show();
+    $('table tbody tr').hide();
+    
+    // obs
+    var obsFlag = 0;
+    var obsValue = $('#filter-obs').val();
+
+    // Estado
+    var estadoFlag = 0;
+    var estadoValue = $('#filter-estado').val();
+
+    $('table tr').each(function() {  
+  
+       
+        // Estado
+        if(estadoValue == 0){
+            estadoFlag = 1;
+        } 
+        else if(estadoValue == $(this).find('td.estado').data('estado')){
+            estadoFlag = 1;
+        }
+        else{
+            estadoFlag = 0;
+        }
+
+        
+        if(estadoFlag){ // && rangeFlag){
+        $(this).show();  //displaying row which satisfies all conditions
+        }
+
+    });
+
+}
+
+</script>
+
+
+<script type="text/javascript">
+    document.getElementById("agrupada").onclick = function actualizar () {
+        location.reload(true);
+    };
+</script>
+
+
+
+{% endblock %}

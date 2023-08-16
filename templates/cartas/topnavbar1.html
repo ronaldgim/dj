@@ -1,0 +1,37 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary" style="background-color: #e3f2fd;">
+    <div class="container"> <!---fluid-->
+      <!--a class="navbar-brand" href="{#% url 'new' %#}">Nueva carta</a-->
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+          {#% if meta == '172.16.29.128' %#}
+          <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="{% url 'general_list' %}">Cartas Generales</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="{% url 'procesos_list' %}">Cartas Procesos</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="{% url 'items_list' %}">Cartas Items</a>
+          </li>
+          {#% endif %#}
+
+          {#% if meta == '127.0.0.1' %#}
+          <!--li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="{% url 'pedidos_list' %}">Pedidos</a>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="{% url 'products_list' %}">Productos</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="{% url 'marcas_list' %}">Marcas</a>
+          </li-->
+          {#% endif %#}
+        </ul>
+      </div>
+    </div>
+</nav>

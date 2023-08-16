@@ -1,0 +1,167 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Inventario</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'etiquetado/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+<h5 class="m-4 text-center"><strong>Inventario </strong></h5>
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+<h6 class="text-start"><strong>Actulizado:</strong>{{actulizado}}</h6>
+
+<form method="POST">
+    {% csrf_token %}
+    <button class="btn btn-primary btn-sm mt-2 mb-2" type="submit"> 
+        <i class="bi bi-arrow-clockwise"></i> Actulizar
+    </button>
+    <div class="input-group">
+        <select class="form-select mt-2 mb-2" name="bodega"> <!--class="filter" id="filter-bod" -->
+            <option value="todas">TODAS LAS BODEGAS</option>
+            {#% for i in bodegas %#}
+            <option value="BAN">BAN</option>
+            <option value="BCT">BCT</option>
+            <option value="CUA">CUA</option>
+            <option value="CUC">CUC</option>
+            {#% endfor %#}
+        </select>
+        <button class="btn btn-primary btn-sm mt-2 mb-2" type="submit"> 
+            <i class="bi bi-search"></i> Buscar
+        </button>
+    </div>
+</form>
+
+{% if bodega %}
+<a class="btn btn-danger btn-sm mb-2" href="{% url 'inventario_bodega' %}">
+    <i class="bi bi-trash"></i> Borrar filtro de bodega
+</a>
+{% endif %}
+
+<div class="col-12">
+    <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+</div>
+
+{% if bodega %}
+<h6 class="text-start mt-2"><strong>BODEGA: {{bodega}}</strong></h6>
+{% endif %}
+
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table">
+
+                <tbody id="pedidosbuscar">
+                    {% for i in stock %}
+                    <tr class="content">
+                        <td class="bod" data-bod="{{i.ware_code}}"> 
+                            <span><strong>Código: </strong>{{i.product_id}}</span><br>
+                            <span><strong>Nombre: </strong>{{i.product_name}}</span><br>
+                            <!--table>
+                                <tr>
+                                    <td><strong>Marca: </strong> {{i.group_code}}</td>
+                                    <td><strong>Lote: </strong> {{i.lote_id}}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Marca: </strong> {{i.group_code}}</td>
+                                    <td><strong>Lote: </strong> {{i.lote_id}}</td>
+                                </tr>
+                            </table-->
+                            <div>
+                                <span><strong>Marca: </strong>{{i.group_code}}</span>
+                                <span style="text-align: left;"><strong>Lote: </strong>{{i.lote_id}}</span>
+                            </div>
+                            <div>
+                                <span><strong>Unidades: </strong>{{i.oh2|floatformat:"0g"}}</span>
+                                <span style="text-align: right;"><strong>Ubicación: </strong>{{i.location}}</span>
+                            </div>
+                            <div>
+                                <span><strong>Bodega: </strong>{{i.ware_code}}</span>
+                            </div>
+                            <div>
+                                <span><strong>F.CADU: </strong>{{i.fecha_cadu_lote|date:'d-m-Y'}}</span>
+                                <span style="text-align: right;"><strong>F.ELAB: </strong>{{i.fecha_elab_lote|date:'d-m-Y'}}</span>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+
+            </table>
+        </div>
+    </div>
+</div>
+
+<!--script>
+    // Buscador
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script-->
+
+<script>
+    $('.filter').change(function(){
+        filter_function(); //calling filter function each select box value change
+        
+    });
+      
+    $('table tbody tr').show(); //intially all rows will be shown
+      
+    function filter_function(){
+        $('table tbody tr').hide(); //hide all rows
+        
+        var tipoFlag = 'TODAS';
+        var tipoValue = $('#filter-bod').val();
+        
+       //traversing each row one by one
+        $('table tr').each(function() {  
+          if(tipoValue == 'TODAS'){
+            tipoFlag = 1;
+          }
+          else if(tipoValue == $(this).find('td.bod').data('bod')){
+            tipoFlag = 1;
+          }
+          else{
+            tipoFlag = 0;
+          }
+
+         if(tipoFlag){
+            $(this).show();
+         }
+      
+      });
+    }
+
+
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+
+{% endblock %}

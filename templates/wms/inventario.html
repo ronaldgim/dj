@@ -1,0 +1,145 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Inventario</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'wms/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+<h5 class="m-4 text-center"><strong>INVENTARIO</strong></h5>
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
+<!--h6 class="m-4 text-end"><strong>Actulizado: </strong>{{actualizado|slice:':-7'}}</h6-->
+
+<!--form method="POST">
+    {% csrf_token %} 
+    <button type="submit" class="btn btn-primary mb-2">
+        <i class="bi bi-arrow-clockwise"></i> Actulizar Tabla
+    </button>
+</form-->
+
+<div class="col-12">
+    <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+</div>
+
+<div id="msg"></div>
+
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table" style="font-size: small;">
+                <thead>
+                    <tr>
+                        <th scope="col">Item</th>
+                        <!--th scope="col">Lote</th-->
+                        <!--th scope="col">Caducidad</th-->
+                        <th scope="col">Ubicación</th>
+                        <!--th scope="col">Unidades</th-->
+                        <!--th scope="col">Acciones</th-->
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in inv %}
+                    <tr>
+                        <td>
+                            <span class="fw-bold">Código:</span> <span id="prod">{{i.item__product_id}}</span><br>
+                            <span class="fw-bold">Nombre:</span> {{i.item__nombre}}<br>
+                            <span class="fw-bold">Marca:</span> {{i.item__marca2}}<br>
+                            <span class="fw-bold">Lote:</span> <span id="lote">{{i.item__lote_id}}</span> <br>
+                            <span class="fw-bold">Fecha:</span> {{i.item__fecha_caducidad|date:'Y-m-d'}}
+                        </td>
+                        <!--td>{{i.item__lote_id}}<br>
+                            {{i.item__fecha_caducidad|date:'Y-m-d'}}
+                        </td-->
+                        <!--td>{{i.item__fecha_caducidad|date:'Y-m-d'}}</td-->
+                        {#% if i.ubicacion__bodega %#}
+                        <td>
+                            <span class="fw-bold">Ubicación:</span> <span id="ubi">{{i.ubicacion__bodega}}.{{i.ubicacion__pasillo}}.{{i.ubicacion__modulo}}.{{i.ubicacion__nivel}}</span> <br>
+                            <span class="fw-bold">Unidades:</span> {{i.total_unidades|floatformat:"0g"}}<br>
+                            <span class="fw-bold">Acciones:</span> <div class="input-group"> <!-- href="{#% url 'wms_mov_int' i.id %#}"  lote='{{i.item__lote_id}}' bod='i.ubicacion__bodega' pas='i.ubicacion__pasillo' mod='i.ubicacion__modulo' niv='i.ubicacion__nivel' -->
+                                
+                                <!--a class="btn btn-primary btn-sm" 
+                                href="{#% url 'wms_mov_interno' prod=i.item__product_id lote=i.item__lote_id bod=i.ubicacion__bodega pas=i.ubicacion__pasillo mod=i.ubicacion__modulo niv=i.ubicacion__nivel %#}"
+                                >
+                                    <i class="bi bi-arrows-move"></i> Mov.Interno
+                                </a-->
+
+                                <button class="btn btn-primary btn-sm" name="mov-interno">
+                                    <i class="bi bi-arrows-move"></i> Mov.Interno
+                                </button>
+
+                            </div>
+                        </td>
+                        {#% endif %#}
+                        <!--td class="text-end">{{i.total_unidades|floatformat:"0g"}}</td-->
+                        <!--td>asd</td-->
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<!--filtro buscar-->
+<script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+
+<!-- Pasar datos por request para movimiento interno-->
+<script>
+
+$("button[name='mov-interno']").click(function(){
+    var product_id = $(this).closest("tr").find("#prod").html();
+    var lote_id = $(this).closest("tr").find("#lote").html();
+    var ubicacion  = $(this).closest("tr").find("#ubi").html();
+
+    $.ajax({
+        type:"GET",
+        url:"{% url 'wms_mov_interno' %}",
+        data:{
+            //'csrfmiddlewaretoken': '{{ csrf_token }}',
+            'product_id':product_id,
+            'lote_id':lote_id,
+            'ubicacion' :ubicacion
+        },
+        success: function(){
+            window.location.replace("http://172.16.28.17:8000/wms/inventario/mov-interno")
+        },
+        error:function(){
+            $('#msg').html('<div class="text-center alert alert-danger mt-3" role="alert"> Error !!! </div>')
+                setTimeout(function(){
+                window.location.reload();
+                }, 2000)
+        }
+    })
+})
+
+</script>
+
+{% endblock %}

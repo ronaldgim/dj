@@ -1,0 +1,134 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Etiquetado por pedido</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'regulatorio_legal/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+<h5 id="o_compra" class="mt-4 text-center"><strong>PRODUCTOS ARMADOS</strong></h5>
+<!--h5 class="mt-4 text-start"><strong>DETALLE DE IMPOTACIÓN</strong></h5-->
+
+<div id="msg"></div>
+
+<div class="col-4">
+    <input type="text" id="inputbuscar" class="form-control" placeholder="Filtrar">
+</div>
+
+
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table" style="font-size: small;">
+                <thead>
+                    <tr>
+                        <th scope="col">Código</th>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Marca</th>
+                        <th scope="col">Lote</th>
+                        <th scope="col">F.Caducidad</th>
+                        <th scope="col">Documento</th>
+                        <th scope="col">Añadir o actualizar documento</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in armados %}
+                    <tr>
+                        <td id="product_id">{{i.product_id}}</td>
+                        <td id="nombre">{{i.Nombre}}</td>
+                        <td id="marca">{{i.Marca}}</td>
+                        <td id="lote">{{i.lote_id}}</td>
+                        <td id="f_caducidad">{{i.f_caducidad}}</td>
+                        <td>{{i.doc}}</td>
+                        <td>
+                            <div class="input-group input-group-sm"> 
+                                <!-- input name="documento_{{i.id}}" id="id_documento_{{i.id}}" type="file" class="form-control"
+                                accept="application/pdf"--> <!--,application/vnd.ms-excel"-->
+
+                                <input name="documento_{{i.id}}" id="id_documento" type="file" class="form-control"
+                                accept="application/pdf"> <!--,application/vnd.ms-excel"-->
+
+                                {% if i.documento %}
+                                <button name="add" type="button" class="btn btn-warning" id="{{i.id}}">
+                                    Actualizar
+                                </button>
+                                <a class="btn btn-success" href="/media/{{i.documento}}" target="_blank">
+                                    <i class="bi bi-download"></i>
+                                </a>
+                                {% else %}
+                                <button name="add" type="button" class="btn btn-primary" id="{{i.id}}">
+                                    Añadir
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<!-- Ajax -->
+<!-- Guardar registro y archivo -->
+<script>
+    
+
+    $("button[name='add']").click(function() {
+        var id_button_add = $(this).attr('id');
+        var doc = $(this).closest('tr').find("input[id^='id_documento']")[0].files[0];
+        
+        var data = new FormData();
+        data.append("id", id_button_add);
+        data.append("csrfmiddlewaretoken", "{{csrf_token}}")
+        data.append("documento", doc)
+
+        //console.log(data);
+
+        $.ajax({
+            type: "POST",
+            url : "{% url 'update_document' %}",
+            processData: false,
+            contentType: false,
+            mimeType: "multipart/form-data",
+            data: data,
+            
+            success: function() {
+                $('#msg').html('<div class="text-center alert alert-success" role="alert"> Documento subido con exito !!! </div>')
+                setTimeout(function(){
+                    window.location.reload();
+                }, 2000)
+            },
+
+            error: function() {
+                $('#msg').html(`<div class="text-center alert alert-danger" role="alert"> Error al subir documento del producto: ${product_id} - lote: ${lote} </div>`)
+                //setTimeout(function(){
+                //    window.location.reload();
+                //}, 2000)
+            }
+        })
+    })
+
+
+</script>
+
+
+<!--filtro buscar-->
+<script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+
+{% endblock %}

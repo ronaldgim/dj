@@ -1,0 +1,149 @@
+
+<title>Picking</title>
+
+<style>
+    @page{
+        size: A4;
+        margin-top:1.5cm;
+        margin-left:1.5cm;
+        margin-right:1.5cm;
+        margin-bottom:1.5cm;
+
+        /* HEADER Static frame */
+        /*@frame header_frame {           
+            -pdf-frame-content: header_content;
+            left: 0pt; width: 595pt; top: 0pt; height: 140pt;
+        }*/
+        /* FOOTER Static frame */
+        /*@frame footer_frame {
+            -pdf-frame-content: footer_content;
+            left:0pt; width:595pt; top:727pt; height:150pt;
+        }*/
+        /* BODY */
+        /*@frame body_frame {}*/
+            
+    }
+    #gim {
+        background-size:100%;
+        background-repeat:no-repeat;
+    }
+    .t_b {
+        padding-top: 4px;
+        padding-left: 2px;
+        padding-right: 2px;
+        padding-bottom: 0px;
+    }
+</style>
+
+{% block body %}
+<h5 style="text-align:center; font-size:14px"><strong>HISTORIAL DE PICKING</strong></h5>
+
+<p><strong>Fecha/Hora - Reporte:</strong> {{time|slice:'0:16'}}</p>
+<p><strong>Total de Picking:</strong> {{picking_hist_len}}</p>
+
+<h5 style="text-align:left; font-size:14px"><strong>RESUMEN DE ESTADOS</strong></h5>
+
+
+<table style="width: 50%; border: 1px solid black;">
+    <thead>
+        <tr>
+            <th class="t_b" style="width: 130px;">Estado</th>
+            <th class="t_b" style="width: 100px;"># Picking</th>
+        </tr>
+    </thead>
+    <tbody id="pedidosbuscar">
+        <tr>
+            <td class="t_b">En Pausa</td>
+            <td class="t_b">{{r_pausa}}</td>
+        </tr>
+        <tr>
+            <td class="t_b">En Proceso</td>
+            <td class="t_b">{{r_proceso}}</td>
+        </tr>
+        <tr>
+            <td class="t_b">Incompleto</td>
+            <td class="t_b">{{r_incompleto}}</td>
+        </tr>
+        <tr>
+            <td class="t_b">Finalizado</td>
+            <td class="t_b">{{r_finalizado}}</td>
+        </tr>
+    </tbody>
+</table>
+
+<h5 style="text-align:left; font-size:14px"><strong>RESUMEN DE TIPO DE CLIENTE</strong></h5>
+
+
+<table style="width: 50%; border: 1px solid black;">
+    <thead>
+        <tr>
+            <th class="t_b" style="width: 130px;">Tipo de cliente</th>
+            <th class="t_b" style="width: 100px;"># Picking</th>
+        </tr>
+    </thead>
+    <tbody id="pedidosbuscar">
+        {% for i in r_tipocliente %}
+        <tr>
+            <td class="t_b">{{i.tipo_cliente}}</td>
+            <td class="t_b">{{i.n_pedido}}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+
+<h5 style="text-align:left; font-size:14px"><strong>RESUMEN DE USUARIOS</strong></h5>
+
+<table style="width: 50%; border: 1px solid black;">
+    <thead>
+        <tr>
+            <th class="t_b" style="width: 130px;">Usuario</th>
+            <th class="t_b" style="width: 100px;"># Picking</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for i in resumen %}
+        <tr>
+            <td class="t_b">{{i.first_name}} {{i.last_name}}</td>
+            <td class="t_b">{{i.n_pedido}}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+
+<h5 style="text-align:left; font-size:14px"><strong>LISTADO</strong></h5>
+
+
+<table style="width: 100%; border: 1px solid black;">
+    <thead>
+        <tr>
+            <th class="t_b" style="width: 200px;">Cliente</th>
+            <th class="t_b" style="width: 50;">Tipo</th>
+            <!--th class="t_b" style="width: ;">Ciudad</th-->
+            <th class="t_b" style="width: 75;">Fecha Pedido</th>
+            <th class="t_b" style="width: 55;">Pedido</th>
+            <th class="t_b" style="width: 80;">Estado</th>
+            <th class="t_b" style="width: 95;">Iniciado</th>
+            <th class="t_b" style="width: 95;">Finalizado</th>
+            <th class="t_b" style="width: 90;">Usuario</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for i in picking_hist %}
+        <tr>
+            <td class="t_b">{{i.cliente}}</td>
+            <td class="t_b">{{i.tipo_cliente}}</td>
+            <!--td>{{i.ciudad}}</td-->
+            <td class="t_b">{{i.fecha_pedido}}</td>
+            <td class="t_b">{{i.n_pedido|slice:'0:-2'}}</td>
+            <td class="t_b">{{i.estado}}</td>
+            <td class="t_b">{{i.fecha_creado|date:'Y-n-d G:i'}}</td>
+            <td class="t_b">{{i.fecha_actualizado|date:'Y-n-d G:i'}}</td>
+            <td class="t_b">{{i.user.user.first_name}} {{i.user.user.last_name}}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

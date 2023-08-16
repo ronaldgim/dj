@@ -1,0 +1,140 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Etiquetado Stock {{object.id}}</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'etiquetado/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+
+
+<h5 class="m-4 text-center"><strong>Orden {{object.id}} de Etiquetado de Stock</strong></h5>
+{{id_str}}
+<strong>Cliente:</strong> {{object.cliente}}<br>
+<strong>Fecha de orden:</strong> {{object.fecha_creado}}<br>
+
+
+<form method="POST">
+    {% csrf_token %}
+    <input type="hidden" name="n_pedido" value="{{id_str}}">
+    <div class="row">
+        <div class="col-6">
+            <label><strong>Estado:</strong></label><br>
+            <select class="form-select" name="estado" id="estado_id">
+                {% for i in form.estado %}
+                    {{i}}
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-6">
+            <label><strong>Equipo:</strong></label><br>
+            <select class="form-select" id="equipo_id" name="equipo" disabled multiple> <!-- disabled multiple-->
+                {% for i in form.equipo %}
+                    {{i}}
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary mt-2">
+        <i class="bi bi-tags-fill"></i> Etiquetado
+    </button>
+</form>
+
+{% if messages %}
+<div class="alert alert-danger mb-0 mt-2" role="alert">
+    {% for message in messages %}
+        {{ message }}
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="card mb-4 mt-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th scope="col">Item</th>
+                    <!--th scope="col">Nombre</th-->
+                    <!--th scope="col">Marca</th-->
+                    <!--th scope="col">Lote</th-->
+                    <th scope="col">Unidades</th>
+                    <th scope="col">Cartones</th>
+                    <!--th scope="col">T.Promedio1P(h)</th-->
+                    <!--th scope="col">T.Promedio2P(h)</th-->
+                    <!--th scope="col">T.Promedio3P(h)</th-->
+                    <!--th scope="col">Volumen m<sup>3</sup></th-->
+                    <!--th scope="col">Peso kg</th-->
+                </tr>
+                </thead>
+                <tbody>
+                {% for i in calculo %}
+                <tr>
+                    <td scope="row">
+                        <strong>{{i.product_id}}</strong><br>
+                        <strong>{{i.lote}}</strong><br>
+                        {{i.description}}<br>
+                        {{i.marca2}}<br>
+                    </td>
+                    <!--td class="text-start">{{i.description}}</td-->
+                    <!--td class="text-start">{{i.marca2}}</td-->
+                    <!--td class="text-start">{{i.lote}}</td-->
+                    <td class="text-end">{{i.cant|floatformat:"0g"}}</td>
+                    <td class="text-end">{{i.cart|floatformat:"2g"}}</td>
+                    <!--td class="text-end"{% if i.t_1p == 0 %} style="background-color:#ffffcf" {% endif %}>{{i.t_1p|floatformat:"2g"}}</td--!-->
+                    <!--td class="text-end"{% if i.t_2p == 0 %} style="background-color:#ffffcf" {% endif %}>{{i.t_2p|floatformat:"2g"}}</td--!-->
+                    <!--td class="text-end">{{i.t_3p|floatformat:"2g"}}</td-->
+                    <!--td class="text-end" {% if i.t_v == 0 %} style="background-color:#ffffcf" {% endif %}>{{i.t_v|floatformat:'2g'}}</td--> 
+                    <!--td class="text-end" {% if i.t_p == 0 %} style="background-color:#ffffcf" {% endif %}>{{i.t_p|floatformat:'2g'}}</td-->
+                </tr>
+                {% endfor %}
+                </tbody>
+                <tr>
+                    <th scope="row">{{i.PRODUCT_ID}}</th>
+                    <!--td class="text-start">{{i.PRODUCT_NAME}}</td-->
+                    <!--td class="text-start">{{i.marca}}</td-->
+                    <!--td class="text-start">{{i.lote}}</td-->
+                    <td class="text-end">{{unidades|floatformat:"0g"}}</td>
+                    <td class="text-end">{{cartones|floatformat:"2g"}}</td>
+                    <!--td class="text-end">{{t1p_t|floatformat:'2g'}}</td-->
+                    <!--td class="text-end">{{t2p_t|floatformat:'2g'}}</td-->
+                    <!--td class="text-end">{{t3p_t|floatformat:'2g'}}</td-->
+                    <!--td class="text-end">{{tv_t|floatformat:'2g'}}</td-->
+                    <!--td class="text-end">{{tp_t|floatformat:'2g'}}</td-->
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        $('#equipo_id').select2();
+    })
+</script>
+
+<script>
+    var estado = document.getElementById('estado_id');
+    var equipo = document.getElementById('equipo_id');
+
+    estado.onchange = function(){
+        let estado_change = this.options[this.selectedIndex].text;
+        //console.log(estado_change)
+        if(estado_change == 'EN PROCESO'){
+            equipo.disabled=false;
+            equipo.required=true;
+        }
+        else{
+            equipo.disabled=true;
+            equipo.value = "";
+        }
+    }
+</script>
+{% endblock %}

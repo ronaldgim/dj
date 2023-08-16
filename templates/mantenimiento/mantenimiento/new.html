@@ -1,0 +1,14 @@
+{%extends 'mantenimiento/base.html' %}
+
+{% block title %}
+<title>Listado de cartas generales</title>
+{% endblock%}
+
+{% block body %}
+
+<form method='POST'>
+    {% csrf_token %}
+    {{form.as_p}}
+    <input type="submit">
+</form>
+{% endblock %}

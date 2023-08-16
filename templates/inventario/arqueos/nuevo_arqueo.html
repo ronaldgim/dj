@@ -1,0 +1,157 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Nuevo Arqueo</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'inventario/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#chosen-select').select2();
+    })
+</script>
+
+
+<h5 class="m-4 text-center"><strong>NUEVO ARQUEO</strong></h5>
+
+<a class="btn btn-primary mb-2" href="{% url 'arqueos_list' %}">
+    <i class="bi bi-arrow-90deg-left"></i> Lista de arqueos
+</a>
+
+<!-- div class="col-4">
+    <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+</div-->
+
+
+<div class="card mt-2 mb-2">
+    <div class="card-body">
+        <div class="container">
+            <label class="fw-bold">Arqueo N°. </label> --- <br>
+            <label class="fw-bold">Fecha: </label> {% now "l, de  F Y" %}<br><!-- {% now "l de  F Y - H:i" %} -->
+            <label class="fw-bold">Descripción: </label><br>
+
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="usuario" value="{{request.user.id}}">
+                <textarea class="form-control" name="descripcion" id="" cols="10" rows="2" required></textarea>
+                <div class="col-12 mt-4">
+                    <label class="form-label fw-bold">Items:</label>
+                    <select class="form-select" data-placeholder="Busque los items por código" id="chosen-select" name="productos" multiple required>
+                        {% for i in arqueo_form.productos %}
+                            {{i}}
+                        {% endfor %}
+                    </select>
+                </div>
+            
+                <button class="btn btn-primary mt-2">
+                    <i class="bi bi-box"></i> Agregar Items
+                </button>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+
+<!--div class="card mt-2 mb-2">
+    <div class="card-body">
+        <div class="container">
+            <div class="input-group">
+                <label class="fw-bold" class="form-control mt-2">Buscar por código: </label>
+                <input type="text" class="form-control ms-2">                
+                <button class="btn btn-primary">
+                    <i class="bi bi-search"></i> Añadir
+                </button>
+            </div>
+            
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Código</th>
+                        <th class="text-start">Nombre</th>
+                        <th class="text-start">Marca</th>
+                        <th class="text-start">Lote</th>
+                        <th class="text-start">F.Caducidad</th>
+                        <th class="text-start">Bodega</th>
+                        <th class="text-start">Unds. MBA</th>
+                        <th class="text-center">Eliminar</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {#% for i in object_list %#}
+                    <tr class="content">
+                        <td>A3070</td>
+                        <td>Guante</td>
+                        <td>Annuy</td>
+                        <td>123456</td>
+                        <td>2027-05-01</td>
+                        <td>CN4</td>
+                        <td>1.001</td>
+                        <td class="text-center">
+                            <button class="btn btn-danger btn-sm">
+                                <i class="bi bi-trash-fill"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {#% endfor %#}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div-->
+
+
+<script>
+    // Buscador
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+
+<script>
+    $('.filter').change(function(){
+        filter_function(); //calling filter function each select box value change
+    });
+      
+    $('table tbody tr').show(); //intially all rows will be shown
+      
+    function filter_function(){
+        $('table tbody tr').hide(); //hide all rows
+        
+        var tipoFlag = 'TODOS';
+        var tipoValue = $('#filter-tipo').val();
+        
+       //traversing each row one by one
+        $('table tr').each(function() {  
+          if(tipoValue == 'TODOS'){
+            tipoFlag = 1;
+          }
+          else if(tipoValue == $(this).find('td.tipo').data('tipo')){
+            tipoFlag = 1;
+          }
+          else{
+            tipoFlag = 0;
+          }
+
+         if(tipoFlag){
+            $(this).show();
+         }
+      
+      });
+    }
+</script>
+
+{% endblock %}

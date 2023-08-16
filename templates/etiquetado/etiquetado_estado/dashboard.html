@@ -1,0 +1,260 @@
+{% extends 'base.html' %}
+{% block title %}
+<title>PEDIDOS PÚBLICOS</title>
+{% endblock%}
+
+{#% block navbar %#}
+{#% include 'etiquetado/topnavbar.html' %#}
+{#% endblock %#}
+
+{% block body %}
+<h5 class="m-4 text-center"><strong>ETIQUETADO PEDIDOS PUBLICOS</strong></h5>
+<!--h6 class="m-4 text-end"><strong>Actualizado a:</strong> {{actualizado}}</h6-->
+
+<div class="row">
+    <!--div class="col-4">
+        <div class="card text-white bg-danger">
+            <h5 class="card-header text-center fs-4">PEDIDOS MAS DE 3 DIAS</h5>
+            <div class="card-body">
+                <h5 class="card-title text-center fs-1">{{mas3}}</h5>
+            </div>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="card text-white bg-warning">
+            <h5 class="card-header text-center fs-4">PEDIDOS AYER</h5>
+            <div class="card-body">
+                <h5 class="card-title text-center fs-1">{{ayer}}</h5>
+            </div>
+        </div>
+    </div-->
+    <div class="col-4">
+        <div class="card text-white bg-primary">
+            <h5 class="card-header text-center fs-4">NÚMERO DE PEDIDOS</h5>
+            <div class="card-body">
+                <h5 class="card-title text-center fs-1">{{n_pedidos}}</h5>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-4">
+        <div class="card text-white bg-info">
+            <h5 class="card-header text-center fs-4">PENDIENTES POR ENTREGAR</h5>
+            <div class="card-body">
+                <h5 class="card-title text-center fs-1">{{por_facturar}}</h5>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div>
+    <div class="card mt-4 mb-4">
+        <div class="card-body m-0 p-0">
+            <div class="container table-responsive"> <!-- class="container table-responsive"-->
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th scope="col">N° Pedido</th>
+                        <th scope="col">Cliente</th>
+                        <!--th scope="col">Fecha pedido</th>
+                        <th scope="col">Hora pedido</th-->
+
+                        <th scope="col">Fecha entrega</th>
+                        <th scope="col">Hora entrega</th>
+
+                        <th scope="col">Días faltantes</th>
+
+                        <!--th scope="col">Inicio de etiquetado</th-->
+                        <th scope="col">Estado etiquetado</th>
+                        <th scope="col">Estado entrega</th>
+                        <th scope="col">Tiempo 1P</th>
+                        <th scope="col">Tiempo 2P</th>
+                        <th scope="col">Tiempo 3P</th>
+                    </tr>
+                    </thead>
+                    
+                    <tbody>
+                    {% for i in list_reservas %}
+
+                    <tr style="font-size: small;">
+
+                        <th scope="row">
+                            <a href="{% url 'pedidos' i.CONTRATO_ID %}" target="_blank">
+                                    {{i.CONTRATO_ID|slice:-2}}
+                            </a>
+
+                            {% if i.DISP == 'NOT' %}
+                            <i style = "color:red;" class="bi bi-file-earmark-x-fill"></i>
+                            {% endif %}
+
+                        </th>
+
+                        <td class="text-start">{{i.NOMBRE_CLIENTE}}</td>
+                        
+                        <!--td class="text-start">{{i.FECHA_PEDIDO}}</td>
+                        <td class="text-start">{{i.HORA_LLEGADA}}</td-->
+
+                            
+                        {% if i.fecha_hora %}
+
+                        <!--td class="text-start"
+                        {% if i.estado_entrega == 'CONFIRMADO' %} style="background-color: #AED6F1;"{% endif %}
+                        >{{i.fecha_hora|slice:'0:10'}}</td-->
+
+                        {% if i.dias_faltantes == '-' %}
+                        <td class="text-end">-</td>
+                        {% else %}
+                        <td class="text-start"
+                        {% if i.estado_entrega == 'CONFIRMADO' %} style="background-color: #AED6F1;"{% endif %}
+                        >{{i.dia|slice:'0:4'}} {{i.fecha_hora|slice:'8:10'}}. {{i.mes|slice:'0:3'}}</td>
+                        {% endif %}
+
+                        <td class="text-start"
+                        {% if i.estado_entrega == 'CONFIRMADO' %} style="background-color: #AED6F1;"{% endif %}
+                        >{{i.fecha_hora|slice:'11:16'}}</td>
+                        {% else %}
+                        <td class="text-start">-</td>
+                        <td class="text-start">-</td>
+                        {% endif %}
+                       
+                        {% if i.dias_faltantes == '-' %}
+                        <td class="text-end">-</td>
+                        {% else %}
+                        <td class="text-end">{{i.dias_faltantes|floatformat:0}} días</td>
+                        {% endif %}
+
+                        <!--td class="text-start">{{i.fecha_creado|slice:-7}}</td-->
+                        <!--td class="text-start">{{i.estado}}</td-->
+
+                        <td class="estado text-start" data-estado="{{i.estado}}">
+                            {% if i.estado == 'EN PAUSA' %}
+                            <a class="btn btn-danger btn-sm disabled">{{i.estado}}</a><!--target="_blank"-->
+                            {% elif i.estado == 'EN TRANSITO' %}
+                            <a class="btn btn-danger btn-sm disabled">{{i.estado}}</a><!--target="_blank"-->
+                            {% elif i.estado == 'EN PROCESO' %}
+                            <a class="btn btn-warning text-white btn-sm disabled">{{i.estado}}</a> <!-- target="_blank"-->
+                            {% elif i.estado == 'INCOMPLETO' %}
+                            <a class="btn btn-danger btn-sm disabled">{{i.estado}}</a><!--target="_blank"-->
+                            {% elif i.estado == 'FINALIZADO' %}
+                            <a class="btn btn-success btn-sm disabled">{{i.estado}}</a><!--target="_blank"-->
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                        {% comment %}
+                        <td class="estado text-start" data-estado="{{i.estado}}">
+                            {% if i.estado == 'EN PROCESO' %}
+                            <a class="btn btn-warning text-white btn-sm disabled">PENDIENTE</a> <!-- target="_blank"-->
+                            {% elif i.estado == 'FINALIZADO' %}
+                            <a class="btn btn-success btn-sm disabled">ENTREGADO</a><!--target="_blank"-->
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                        {% endcomment %}
+
+                        <td class="estado text-start">
+                            -
+                        </td>
+
+                        <td class="text-start">{{i.t_1p_str}}</td>
+                        <td class="text-start">{{i.t_2p_str}}</td>
+                        <td class="text-start">{{i.t_3p_str}}</td>
+                    </tr>
+                    {% endfor %}
+
+                    <tr class="bg-info text-dark"> <!--  style="background-color: #013483;" -->
+                        <td colspan="10" class="text-center text-light">PENDIETES POR ENTREGAR</td>
+                    </tr>
+
+                    {% for i in fin %}
+                    <tr style="font-size: small;">
+
+                        <th scope="row">
+                            <a href="{% url 'pedidos' i.CONTRATO_ID %}" target="_blank">
+                                    {{i.CONTRATO_ID|slice:-2}}
+                            </a>
+                        </th>
+
+                        <td class="text-start">{{i.NOMBRE_CLIENTE}}</td>
+                        
+                        <!--td class="text-start">{{i.FECHA_PEDIDO}}</td>
+                        <td class="text-start">{{i.HORA_LLEGADA}}</td-->
+
+                            
+                        {% if i.fecha_hora %}
+                        
+                        <!--td class="text-start"
+                        {% if i.estado_entrega == 'CONFIRMADO' %} style="background-color: #AED6F1;"{% endif %}
+                        >{{i.fecha_hora|slice:'0:10'}}</td-->
+
+                        <td class="text-start"
+                        {% if i.estado_entrega == 'CONFIRMADO' %} style="background-color: #AED6F1;"{% endif %}
+                        >{{i.dia|slice:'0:4'}} {{i.fecha_hora|slice:'8:10'}}. {{i.mes|slice:'0:3'}}</td>
+
+                        <td class="text-start"
+                        {% if i.estado_entrega == 'CONFIRMADO' %} style="background-color: #AED6F1;"{% endif %}
+                        >{{i.fecha_hora|slice:'11:16'}}</td>
+                        {% else %}
+                        <td class="text-start">-</td>
+                        <td class="text-start">-</td>
+                        {% endif %}
+                       
+                        {% comment %}
+                        {% if i.dias_faltantes == '-' %}
+                        <td class="text-end">-</td>
+                        {% else %}
+                        <td class="text-end">{{i.dias_faltantes|floatformat:0}} días</td>
+                        {% endif %}
+                        {% endcomment %}
+
+                        <td class="text-end">-</td>                       
+
+                        <td class="estado text-start" data-estado="{{i.estado}}">
+                            {% if i.estado == 'EN PAUSA' %}
+                            <a class="btn btn-danger btn-sm disabled">{{i.estado}}</a><!--target="_blank"-->
+                            {% elif i.estado == 'EN TRANSITO' %}
+                            <a class="btn btn-danger btn-sm disabled">{{i.estado}}</a><!--target="_blank"-->
+                            {% elif i.estado == 'EN PROCESO' %}
+                            <a class="btn btn-warning text-white btn-sm disabled">{{i.estado}}</a> <!-- target="_blank"-->
+                            {% elif i.estado == 'INCOMPLETO' %}
+                            <a class="btn btn-danger btn-sm disabled">{{i.estado}}</a><!--target="_blank"-->
+                            {% elif i.estado == 'FINALIZADO' %}
+                            <a class="btn btn-success btn-sm disabled">{{i.estado}}</a><!--target="_blank"-->
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+
+                        <td class="estado text-start" data-estado="{{i.estado}}">
+                            {% if i.est_entrega == 'PENDIENTE' %}
+                            <a class="btn btn-warning text-white btn-sm disabled">PENDIENTE</a>
+                            {% elif not i.est_entrega %}
+                            <a class="btn btn-warning text-white btn-sm disabled">PENDIENTE</a> <!-- target="_blank"-->
+                            {% elif i.est_entrega == 'ENTREGADO' %}
+                            <a class="btn btn-success btn-sm disabled">ENTREGADO</a><!--target="_blank"-->
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+
+                        <td class="text-start">{{i.t_1p_str}}</td>
+                        <td class="text-start">{{i.t_2p_str}}</td>
+                        <td class="text-start">{{i.t_3p_str}}</td>
+                        
+                        {% endfor %}
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function actualizar(){location.reload(true);}
+    //Función para actualizar cada 30 min = 1,800,000 milisegundos
+    setInterval("actualizar()",300000); // 5 min
+</script>
+
+{% endblock %}

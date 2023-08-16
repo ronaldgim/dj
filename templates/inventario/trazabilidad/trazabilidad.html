@@ -1,0 +1,254 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Trazabilidad</title>
+{% endblock%}
+
+{% load static %}
+<link rel="stylesheet" href="static/tabs.css">
+
+{% block navbar %}
+{% include 'inventario/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+<h5 class="m-4 text-center"><strong>Trazabilidad</strong></h5>
+
+<div class="mt-2 mb-2">
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="row g-3 align-items-center">
+            <div class="col-auto">
+            <label for="inputPassword6" class="col-form-label fw-bold">Código:</label>
+            </div>
+            <div class="col-auto">
+            <input type="text"  class="form-control" name="codigo" required>
+            </div>
+            
+            <div class="col-auto">
+                <label for="inputPassword6" class="col-form-label fw-bold">Lote:</label>
+            </div>
+            <div class="col-auto">
+                <input type="text" class="form-control" name="lote" required>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-primary" id="buscar">
+                    Buscar
+                </button>
+            </div>
+        </div>
+
+    </form>
+
+</div>
+
+<div class="card text-center mb-4">
+    <div class="card-header">
+      <ul class="nav nav-tabs card-header-tabs" id="bodegas_list">
+        {% for i in bodegas %}
+        <li class="nav-item">
+          <!--a class="nav-link active" aria-current="true" href="#" id="bod">{{i}}</a-->
+          <button name="bod" id="{{i}}" class="btn btn-secondary nav-link">{{i}}</button>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="card-body" style="background-color: #fcfcfc ;" id="contenido">
+      <h5 class="card-title fw-bold">Reporte Trazabilidad</h5>
+      <label class="card-title fw-bold">Código: </label> {{cod}} - <label class="card-title fw-bold">Lote: </label> {{lot}}
+      
+        {% if mensaje %} 
+        <p>{{mensaje}}</p>
+        {% endif %}
+
+        <div class="text-center" id="spinner">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div><br>
+            <span class="text-center text-primary">Buscando... </span>
+        </div>
+
+      {% for i in trazabilidad %}
+
+        <div id="tabla-{{i.bodega}}" name="rep"> <!-- style="display: none;" -->
+
+            <span class="fw-bold">Bodega:</span> {{i.bodega}} <br>
+            <div class="col-4">
+                <div class="card mt-2 mb-0 pb-2">
+                    <div class="card-body m-0 p-0">
+                        <div class="container">
+                            <table class="table mb-0 pb-0">
+                                <tbody style="font-size: small;">
+                                    <tr>
+                                        <th class="text-start">Ingreso Compras</th>
+                                        <td class="text-end">{{i.ingreso_compras|floatformat:'0g'}}</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="text-start">Transferencias (Ingreso)</th>
+                                        <td class="text-end">{{i.transferencia_ingreso|floatformat:'0g'}}</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="text-start">Egreso (FT & MA)</th>
+                                        <td class="text-end">{{i.egreso|floatformat:'0g'}}</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="text-start">Transferencias (Egreso)</th>
+                                        <td class="text-end">{{i.transferencia_egreso|floatformat:'0g'}}</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="text-start">Otros</th>
+                                        <td class="text-end">{{i.otros|floatformat:'0g'}}</td>
+                                    </tr>
+                                    <tr style="background-color: #D2FCD2;">
+                                        <th class="text-start">Cantidad Actual</th>
+                                        <td class="text-end fw-bold">{{i.cantidad_actual|floatformat:'0g'}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!--div class="col-4 mt-2">
+                <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+            </div-->
+
+            <div class="card mt-2 mb-2">
+                <div class="card-body m-0 p-0">
+                    <div class="container table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th scope="col" class="text-start">Dod Id Corp</th>
+                                    <th scope="col" class="text-start">Cliente</th>
+                                    <th scope="col" class="text-start">Fecha</th>
+                                    <th scope="col" class="text-start">Tipo de movimiento</th>
+                                    <!--th scope="col" class="text-start">
+                                        <select class="form-select filter" id="filter-tipo">
+                                            <option value="Todos">Tipo de movimientos</option>
+                                            {% for i in movimientos %}
+                                            <option value="{{i}}">{{i}}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </th-->
+                                    <th scope="col" class="text-end">Cantidad</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pedidosbuscar">
+                                {% for j in i.tabla %}
+                                <tr>
+                                    <td class="text-start">{{j.DOC_ID_CORP}}</td>
+                                    <td class="text-start">{{j.NOMBRE_CLIENTE}}</td>
+                                    <td class="text-start">{{j.FECHA|slice:'-8'}}</td>
+                                    <td class="text-start">{{j.TIPO_MOVIMIENTO}}</td>
+                                    <td class="text-end {% if j.TIPO_MOVIMIENTO == 'FT' %} text-danger {% endif %} " style="background-color: #D2FCD2;">
+                                        {{j.CANTIDAD|floatformat:'0g'}}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                <tr>
+                                    <th class="text-start">Cantidad Actual</th>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td class="text-end fw-bold" style="background-color: #D2FCD2;">{{i.cantidad_actual|floatformat:'0g'}}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Mostra y ocultar reporte por bodega -->
+<script>
+    $(document).ready(function(){
+        
+        var bod_list = [];
+
+        $("#bodegas_list li button").each(function(){
+            bod_list.push($(this).text());
+        });
+
+        function mostrarDiv(bod) {
+            $("#contenido > div").hide();
+            $("#tabla-" + bod).show();
+        }
+
+        if (bod_list.length > 0) {
+            mostrarDiv(bod_list[0]);
+        }
+
+        $("button[name='bod']").click(function() {
+            var bod_select = $(this).text();
+            mostrarDiv(bod_select);
+        })
+    })
+</script>
+
+<!-- Filtro de columna -->
+<script>
+    $('.filter').change(function(){
+        filter_function(); //calling filter function each select box value change
+    });
+      
+    $('table tbody tr').show(); //intially all rows will be shown
+      
+    function filter_function(){
+        $('table tbody tr').hide(); //hide all rows
+        
+        var tipoFlag = 'Todos';
+        var tipoValue = $('#filter-tipo').val();
+        
+       //traversing each row one by one
+        $('table tr').each(function() {  
+          if(tipoValue == 'Todos'){
+            tipoFlag = 1;
+          }
+          else if(tipoValue == $(this).find('td.tipo').data('tipo')){
+            tipoFlag = 1;
+          }
+          else{
+            tipoFlag = 0;
+          }
+
+         if(tipoFlag){ 
+            $(this).show();
+         }
+      
+      });
+    }
+</script>
+
+
+<!--filtro buscar-->
+<script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+
+<!-- Spiner -->
+<script>
+
+    var sp = document.getElementById("spinner").style.display = "none";   
+
+    $("#buscar").on("click", function() {
+        var sp = document.getElementById("spinner").style.display = "block";
+    })
+</script>
+
+{% endblock %}

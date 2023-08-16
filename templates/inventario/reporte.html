@@ -1,0 +1,179 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Etiquetado por pedido</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'inventario/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+<h5 class="m-4 text-center"><strong>REPORTE DE INVENTARIO AN1</strong></h5>
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
+<h6 class="text-start"><strong>Total de items: </strong>{{an1_total}}</h6>
+<h6 class="text-start"><strong>Total de items procesados: </strong>{{cont}}</h6>
+<h6 class="text-start"><strong>Total de items por procesar: </strong>{{no_cont}}</h6>
+<h6 class="text-start"><strong>Total de items correctos: </strong>{{an1_correctos}}</h6>
+<h6 class="text-start"><strong>Total de items con diferencia </strong>{{an1_diferencia}}</h6>
+
+
+<a class="btn btn-success mb-2" href="{% url 'reporte_excel' %}">
+    <i class="bi bi-file-earmark-spreadsheet"></i> Reporte EXCEL
+</a>
+
+
+<div class="col-4">
+    <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+</div>
+
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <!--th scope="col">Código</th>
+                        <th scope="col">Nombre</th-->
+                        <!--th scope="col">
+                            <select class="form-select filter" id="filter-tipo">
+                                <option value="TODOS">TODOS</option>
+                                <option value="STOCK">STOCK</option>
+                                <option value="CLINI">CLINI</option>
+                                <option value="CONSU">CONSU</option>
+                                <option value="DISTR">DISTR</option>
+                                <option value="HOSPI">HOSPI</option>
+                                <option value="HOSPU">HOSPU</option>
+                                <option value="INVER">INVER</option>
+                                <option value="VARDE">VARDE</option>
+                            </select>
+                        </th-->
+                        <th scope="col">Código</th>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Marca</th>
+                        <th scope="col">Lote</th>
+                        <th scope="col">MBA - Unidades</th>
+                        <th scope="col">INV - UNidades</th>
+                        <th scope="col">Diferencia</th>
+                        <!--th scope="col">
+                            <select class="form-select filter-est" id="filter-estado">
+                                <option value="ESTADO">ETIQUETADO</option>
+                                <option value="EN PAUSA">EN PAUSA</option>
+                                <option value="EN PROCESO">EN PROCESO</option>
+                                <option value="FINALIZADO">FINALIZADO</option>
+                            </select>
+                        </th-->
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in an1_reporte %}
+                    <tr>
+                        <td>{{i.product_id}}</td>
+                        <td>{{i.product_name}}</td>
+                        <td>{{i.group_code}}</td>
+                        <td>{{i.lote_id}}</td>
+                        <td>{{i.oh}}</td>
+                        <td>{{i.total_unidades}}</td>
+                        <td {% if i.diferencia != 0 %} style="background-color:  #fadbd2 ;" {% endif %}>
+                            {{i.diferencia}}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<!--filtro buscar-->
+<script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+<!-- Filtro de columna -->
+<script>
+    $('.filter').change(function(){
+        filter_function(); //calling filter function each select box value change
+    });
+      
+    $('table tbody tr').show(); //intially all rows will be shown
+      
+    function filter_function(){
+        $('table tbody tr').hide(); //hide all rows
+        
+        var tipoFlag = 'TODOS';
+        var tipoValue = $('#filter-tipo').val();
+        
+       //traversing each row one by one
+        $('table tr').each(function() {  
+          if(tipoValue == 'TODOS'){
+            tipoFlag = 1;
+          }
+          else if(tipoValue == $(this).find('td.tipo').data('tipo')){
+            tipoFlag = 1;
+          }
+          else{
+            tipoFlag = 0;
+          }
+
+         if(tipoFlag){
+            $(this).show();
+         }
+      
+      });
+    }
+</script>
+<!-- Filtro estado de etiquetado -->
+<script>
+    $('.filter-est').change(function(){
+        filter_function_estado(); //calling filter function each select box value change
+    });
+      
+    $('table tbody tr').show(); //intially all rows will be shown
+      
+    function filter_function_estado(){
+        $('table tbody tr').hide(); //hide all rows
+        
+        var tipoFlag = 'ESTADO';
+        var tipoValue = $('#filter-estado').val();
+        
+       //traversing each row one by one
+        $('table tr').each(function() {  
+          if(tipoValue == 'ESTADO'){
+            tipoFlag = 1;
+          }
+          else if(tipoValue == $(this).find('td.estado').data('estado')){
+            tipoFlag = 1;
+          }
+          else{
+            tipoFlag = 0;
+          }
+
+         if(tipoFlag){
+            $(this).show();
+         }
+      
+      });
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,125 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Importaciones Llegadas</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'wms/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+
+<h5 class="text-center mt-2"><strong>Ingreso a bodega</strong></h5>
+
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
+
+<!--div class="col-12 mb-2">
+    <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+</div-->
+
+<div id="msg"></div>
+
+
+
+<div class="card">
+    <div class="card-body ps-2 pe-2">
+        <h6 class="text-center"><strong>Item:</strong></h6>
+        <span style="font-size: small;"> <span class="fw-bold">Bodega: </span>{{item.bodega}}</span><br>
+        <span style="font-size: small;"> <span class="fw-bold">Item: </span>{{item.product_id}} - {{item.nombre}} - {{item.marca2}}</span><br>
+        <span style="font-size: small;"> <span class="fw-bold">Lote: </span>{{item.lote_id}}</span><br>
+        <span style="font-size: small;"> <span class="fw-bold">Caducidad: </span>{{item.fecha_caducidad|date:'Y-m-d'}}</span><br>
+        <span style="font-size: small;"> <span class="fw-bold">Unidades: </span>{{item.unidades_ingresadas|floatformat:"0g"}}</span>
+
+    </div>
+</div>
+
+{% if mov_list %}
+<div class="card mt-2">
+    <div class="card-body ps-2 pe-2">
+        <h6 class="text-center"><strong>Ubicaciones:</strong></h6>
+        
+        <table class="table mb-0 pb-0" style="font-size: small;">
+            <thead>
+                <th>Ubicación</th>
+                <th>Unidades</th>
+            </thead>
+            <tbody>
+                {% for i in mov_list %}
+                <tr>
+                    <td>{{i.ubicacion}}</td>
+                    <td class="text-end">{{i.unidades|floatformat:"0g"}}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tr>
+                <td class="fw-bold">Total:</td>
+                <td class="text-end">{{total_ubicaciones|floatformat:"0g"}}</td>
+            </tr>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<div class="card mt-2 mb-2" {% if item.unidades_ingresadas == total_ubicaciones %} style="display: none;" {% endif %}>
+    <div class="card-body ps-2 pe-2">
+
+        <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="item" value="{{item.id}}">
+            <input type="hidden" name="tipo" value="Ingreso">
+            <input type="hidden" name="descripcion" value="Ingreso Importación">
+            <input type="hidden" name="usuario" value="{{request.user.id}}">
+
+            <label class="fw-bold" style="font-size: small;">Selecciona ubicación:</label><br>
+            <select class="form-select form-select-sm" name="ubicacion" id="" required>
+                <option value="">---------</option>
+                {% for i in ubi_list %}
+                {{i|slice:'2:'}}
+                <option value="{{i.id}}">{{i}}</option>
+                {% endfor %}
+            </select>
+
+            <label class="fw-bold" style="font-size: small;">Unidades:</label>
+            <input type="number" class="form-control form-control-sm" name="unidades">
+
+            <button class="btn btn-primary btn-sm float-end mt-2" type="submit">
+                <i class="bi bi-send"></i> Guardar
+            </button>
+        </form>
+    </div>
+</div>
+
+<a class="btn btn-secondary btn-sm float-end mt-2" href="{% url 'wms_bodega_imp' item.o_compra %}">
+    <i class="bi bi-arrow-return-left"></i> Regresar
+</a>
+
+
+<!--filtro buscar-->
+<!--script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script-->
+
+{% endblock %}

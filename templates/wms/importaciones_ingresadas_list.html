@@ -1,0 +1,90 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Importaciones Ingresadas</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'wms/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+<h5 class="m-4 text-center"><strong>LISTADO DE IMPORTACIONES INGRESADAS</strong></h5>
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
+<!--h6 class="m-4 text-end"><strong>Actulizado: </strong>{{actualizado|slice:':-7'}}</h6-->
+
+<!--form method="POST">
+    {% csrf_token %} 
+    <button type="submit" class="btn btn-primary mb-2">
+        <i class="bi bi-arrow-clockwise"></i> Actulizar Tabla
+    </button>
+</form-->
+
+<div class="col-12">
+    <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+</div>
+
+<div id="msg"></div>
+
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table" style="font-size: small;">
+                <thead>
+                    <tr>
+                        <th scope="col">Proveedor</th>
+                        <th scope="col">Bodega</th>
+                        <th scope="col">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in imp %}
+                    <tr>
+                        <td>{{i.marca2}} <br>
+                            {{i.o_compra}} <br>
+                        </td>
+
+                        <td>{{i.bodega}}</td>
+
+                        <td>
+                            <a class="btn btn-primary btn-sm" href="{% url 'wms_bodega_imp' i.o_compra %}">
+                                <i class="bi bi-binoculars-fill"></i>  Ver
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<!--filtro buscar-->
+<script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+
+{% endblock %}

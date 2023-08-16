@@ -1,0 +1,69 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Reg. Sanitarios | Editar</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'bpa/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+<h5 class="m-4 text-center"><strong>CARTA DE NO REGISTRO SANITARIOS (LEG-REG)</strong></h5>
+
+<a class="btn btn-primary mb-4" href="{% url 'carta_no_reg_list' %}">
+    <i class="bi bi-arrow-return-left"></i> Regresar a la lista
+</a>
+
+{{form.error}}
+<form method="POST">
+    {% csrf_token %}
+    
+    <div class="row g-3">
+        <div class="col-md-4">
+            <label class="form-label">{{form.marca.label}}:</label>
+            <input type="text" class="form-control" name="marca" value="{{form.marca.value}}" {{disabled}}>
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label">{{form.documento.label}}:</label>
+            <select name="documento" class="form-select" {{disabled}}>
+                {% for i in form.documento %}
+                    {{i}}
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label">{{form.n_solicitud.label}}:</label>
+            <input type="text" class="form-control" name="n_solicitud" value="{{form.n_solicitud.value}}" {{disabled}}>    
+        </div>
+
+        <div class="col-md-12">
+            <label class="form-label">{{form.producto.label}}:</label>
+            <textarea name="producto" class="form-control" cols="30" rows="5" {{disabled}}>{{form.producto.value}}</textarea>    
+        </div>
+
+
+        <div class="col-md-3">
+            <label class="form-label">{{form.fecha_expedicion.label}}:</label>
+            <input type="date" class="form-control" name="fecha_expedicion" value="{{form.fecha_expedicion.value|date:'Y-m-d'}}" {{disabled}}>    
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label">{{form.fecha_expiracion.label}}:</label>
+            <input type="date" class="form-control" name="fecha_expiracion" value="{{form.fecha_expiracion.value|date:'Y-m-d'}}" {{disabled}}>    
+        </div>
+
+        <div class="col-md-12">
+            <label class="form-label">{{form.observacion.label}}:</label>
+            <textarea name="observacion" class="form-control" cols="30" rows="5" {{disabled}}>{{form.observacion.value}}</textarea>    
+        </div>
+
+    </div>
+    <button type="submit" class="btn btn-primary mb-2 mt-2" {{disabled}}>
+        <i class="bi bi-upload"></i> Actulizar Reg. Sanitario
+    </button>
+</form>
+
+{% endblock %}

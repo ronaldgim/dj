@@ -1,0 +1,362 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Etiquetado por pedido</title>
+{% endblock %}
+
+{% block navbar %}
+{% include 'compras_publicas/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+
+<style>
+  table {
+    -webkit-user-select: none; /* Safari */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none; /* Standard */
+  }
+  thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: #ffffff;
+  }
+  
+  .table-responsive {
+    height: 300px;
+    overflow-y: scroll;
+  }
+</style>
+
+<h5 class="m-4 text-center"><strong>PRECIOS HISTORICOS</strong></h5>
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
+<!--div class="row">
+    <div class="col-6">
+        <label><strong>HOSPITALES:</strong></label>
+        <select class="form-select filter" id="filter-hos">
+                <option value="0">Todos</option>
+            {% for i in hospitales %}
+                <option value="{{i}}">{{i}}</option>
+            {% endfor %}
+        </select>
+    </div><br>
+    <div class="col-3">
+        <label><strong>Ubicación</strong></label>
+        <select class="form-select filter" id="filter-loc">
+            <option value="0">Todos</option>
+            {% for i in location %}
+            <option value="{{i}}">{{i}}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-3">
+        <label><strong>Llenado:</strong></label>
+        <select class="form-select filter" id="filter-lle">
+            <option value="0">Todos</option>
+            <option value="True">Si</option>
+            <option value="False">No</option>
+        </select>
+    </div>
+    <div class="col-6">
+        <label><strong>Buscar:</strong></label>
+        <input id="inputbuscar" type="text" placeholder="Buscar..." class="form-control">
+    </div>
+    <div class="col-1">
+        <label><strong>Buscar:</strong></label>
+        <input id="inputbuscar" type="text" placeholder="Buscar..." class="form-control">
+    </div>
+</div-->
+
+<form method="POST"> 
+    {% csrf_token %}
+    <div class="row">
+        <div class="form-group">
+            <div class="input-group">
+                <!--div class="col-2"-->
+                    <label class="pe-2"><strong>HOSPITALES:</strong></label>
+                <!--/div-->
+                <div class="col-6 pe-2">
+                    <select class="form-select" id="filter-hos-select2" name="hospital"> <!-- filter id="filter-hos"-->
+                        <option value="0">TODOS LOS HOSPITALES</option>
+                        {% for i in hospitales %}
+                        <option value="{{i}}">{{i}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-primary btn-sm" type="submit">
+                        Consultar
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-6 mt-2 mb-2">
+            <input id="inputbuscar" type="text" placeholder="Buscar..." class="form-control">
+        </div>
+    </div>
+</form>
+
+<!--div class="col-6">
+    <label><strong>Buscar:</strong></label>
+    <input id="inputbuscar" type="text" placeholder="Buscar..." class="form-control">
+</div-->
+
+{% if precios_filtrado %}
+<h5 class="text-center"><strong>{{hospital}}</strong></h5>
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table" id="inv_table">
+                <thead>
+                    <tr>
+                        <th scope="col">Código</th>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Marca</th>
+                        <th scope="col">Cliente</th>
+                        <th scope="col">Fecha</th>
+                        <th scope="col">Cantidad</th>
+                        <th scope="col">Precio Unitario</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in precios_filtrado %}
+                    <tr style="font-size: small;">
+                        <td>{{i.PRODUCT_ID}}</td>
+                        <td>{{i.Nombre}}</td>
+                        <td>{{i.Marca}}</td>
+                        <td class="hos" data-hos="{{i.NOMBRE_CLIENTE}}">{{i.NOMBRE_CLIENTE}}</td>
+                        <td>{{i.FECHA}}</td>
+                        <td class="text-end">{{i.QUANTITY|floatformat:"0g"}}</td>
+                        <td class="text-end"><strong>$ {{i.UNIT_PRICE|floatformat:2}}</strong></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if precios_excluido %}
+<h5 class="text-center"><strong>VENTAS A HOSPITALES PÚBLICOS</strong></h5>
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table" id="inv_table">
+                <thead>
+                    <tr>
+                        <th scope="col">Código</th>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Marca</th>
+                        <th scope="col">Cliente</th>
+                        <th scope="col">Fecha</th>
+                        <th scope="col">Cantidad</th>
+                        <th scope="col">Precio Unitario</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in precios_excluido %}
+                    <tr style="font-size: small;">
+                        <td>{{i.PRODUCT_ID}}</td>
+                        <td>{{i.Nombre}}</td>
+                        <td>{{i.Marca}}</td>
+                        <td class="hos" data-hos="{{i.NOMBRE_CLIENTE}}">{{i.NOMBRE_CLIENTE}}</td>
+                        <td>{{i.FECHA}}</td>
+                        <td class="text-end">{{i.QUANTITY|floatformat:"0g"}}</td>
+                        <td class="text-end"><strong>$ {{i.UNIT_PRICE|floatformat:2}}</strong></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if precios %}
+<h5 class="text-center"><strong>VENTAS A HOSPITALES PÚBLICOS</strong></h5>
+    <div class="card mt-2 mb-2">
+        <div class="card-body m-0 p-0">
+            <div class="container table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Código</th> <!--scope="col"-->
+                            <th>Nombre</th>
+                            <th>Marca</th>
+                            <th>Cliente</th>
+                            <th>Fecha</th>
+                            <th>Cantidad</th>
+                            <th>Precio Unitario</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pedidosbuscar">
+                        {% for i in precios %}
+                        <tr style="font-size: small;">
+                            <td style="width: 10%;">{{i.PRODUCT_ID}}</td>
+                            <td>{{i.Nombre}}</td>
+                            <td>{{i.Marca}}</td>
+                            <td class="hos" data-hos="{{i.NOMBRE_CLIENTE}}">{{i.NOMBRE_CLIENTE}}</td>
+                            <td>{{i.FECHA}}</td>
+                            <td class="text-end">{{i.QUANTITY|floatformat:"0g"}}</td>
+                            <td class="text-end"><strong>$ {{i.UNIT_PRICE|floatformat:2}}</strong></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<!-- Infimas -->
+{#% if precios_excluido %#}
+<!--h5 class="text-center"><strong>INFIMAS</strong></h5>
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table" id="inv_table">
+                <thead>
+                    <tr>
+                        <th scope="col">Fecha</th>
+                        <th scope="col">Proveedor</th>
+                        <th scope="col">Objeto de compra</th>
+                        <th scope="col">Cantidad</th>
+                        <th scope="col">Costo</th>
+                        <th scope="col">Valor</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {#% for i in infimas %#}
+                    <tr style="font-size: small;">
+                        <td>{{i.Fecha}}</td>
+                        <td>{{i.Proveedor}}</td>
+                        <td>{{i.Objeto_Compra}}</td>
+                        <td class="text-end">{{i.Cantidad|floatformat:"0g"}}</td>
+                        <td class="text-end">{{i.Costo|floatformat:2}}</td>
+                        <td class="text-end">{{i.Valor|floatformat:2}}</td>
+                    </tr>
+                    {#% endfor %#}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div-->
+{#% endif %#}
+<!--filtro buscar-->
+<script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+
+
+<!-- Filtro de columna -->
+<script>
+    $('.filter').change(function(){
+        filter_function(); //calling filter function each select box value change
+    });
+      
+    function filter_function(){
+
+        $('table tbody tr').hide();
+
+        // Bodega
+        var hosFlag = 0;
+        var hosValue = $('#filter-hos').val();
+
+        // Ubicación
+        //var locFlag = 0;
+        //var locValue = $('#filter-loc').val();
+
+        // Llenado
+        //var lleFlag = 0;
+        //var lleValue = $('#filter-lle').val();
+        
+        // $('table tr').each(function() {
+        $('table tr').each(function() {
+            
+            // Bodega
+            if(hosValue == 0){
+                hosFlag = 1;
+            }
+            else if(hosValue == $(this).find('td.hos').data('hos')){
+                hosFlag = 1;
+            }
+            else{
+                hosFlag = 0;
+            }
+
+            // Ubicación
+            //if(locValue == 0){
+            //    locFlag = 1;
+            //}
+            //else if(locValue == $(this).find('td.loc').data('loc')){
+            //    locFlag = 1;
+            //}
+            //else{
+            //    locFlag = 0;
+            //}
+
+            // Llenado
+            //if(lleValue == 0){
+            //    lleFlag = 1;
+            //}
+            //else if(lleValue == $(this).find('td.lle').data('lle')){
+            //    lleFlag = 1;
+            //}
+            //else{
+            //    lleFlag = 0;
+            //}
+
+            //if(bodFlag && locFlag && lleFlag){
+            //    $(this).show();
+            //}
+
+            if(hosFlag) // && locFlag && lleFlag){
+                $(this).show();
+            }
+        );
+    }
+</script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#filter-hos-select2').select2();
+    })
+</script>
+
+
+<!-- No abrir menu copy JS -->
+<script type="text/javascript">
+  document.querySelector('.table').addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+  });
+</script>
+
+{% endblock %}

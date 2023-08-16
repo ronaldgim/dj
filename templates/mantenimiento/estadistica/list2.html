@@ -1,0 +1,78 @@
+{% extends 'mantenimiento/base.html' %}
+{% load tags %}
+{% block title %}
+<title>Listado de cartas generales</title>
+{% endblock%}
+
+{% block body %}
+
+<h3 class="text-center m-3">
+  <strong>LISTADO DE ESTADISTICAS {{equipo}}</strong>
+</h3>
+
+<a class="btn btn-primary mb-2" href="{% url 'estadisticas_new' %}">
+  <i class="bi bi-plus-circle"></i> Estadistica
+</a>
+
+<div class="col-4 mb-2">
+  <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+</div>
+
+<!--div class="card"-->
+  <!--div class="card-body"-->  
+    <table class="table table-bordered">
+        <thead>
+          <tr>
+            <!--th scope="col">#</th-->
+            <th class="text-center" scope="col">Fecha</th>
+            <th class="text-center" scope="col">P.Detectados</th>
+            <th class="text-center" scope="col">C.Mensajes</th>
+            <th class="text-center" scope="col">F.Señal</th>
+            <th class="text-center" scope="col">H.Máquina</th>
+            <!--th class="text-center" scope="col">H.Máquina</th-->
+            <th class="text-center" scope="col">H.Chorro</th>
+            <!--th class="text-center" scope="col">H.Chorro</th-->
+            <!--th class="text-center" scope="col">Observación</th-->
+
+            <th class="text-center" scope="col">P.Etiquetado</th>
+            <th class="text-center" scope="col">H.Encendido</th>
+            <th class="text-center" scope="col">H.Trabajo</th>
+            <th class="text-center" scope="col">Observación</th>
+          </tr>
+        </thead>
+        {% for i in object_list %}
+        <tbody id="pedidosbuscar">
+          <tr>
+            <td class="text-start">{{i.fecha}}</td>
+            <td class="text-end">{{i.p_detectados|floatformat:'0g'}}</td>
+            <td class="text-end">{{i.c_mens|floatformat:'0g'}}</td>
+            <td class="text-end">{{i.f_seniales|floatformat:'0g'}}</td>
+            <td class="text-end">{{i.h_maquina|hms2}}</td>
+            <!--td class="text-end">{{i.h_maquina}}</td-->
+            <td class="text-end">{{i.h_chorro|hms2}}</td>
+            <!--td class="text-end">{{i.h_chorro}}</td-->
+
+            <td class="text-end">{{i.productos_etiquetados|floatformat:'0g'}}</td>
+            <td class="text-end">{{i.horas_encendido|hms2}}</td>
+            <td class="text-end">{{i.horas_trabajo|hms2}}</td>
+            <td>{{i.observacion}}</td>
+            
+          </tr>
+        </tbody>
+        {% endfor %}
+    </table>
+  <!--/div-->
+<!--/div-->
+<script>
+  $(document).ready(function() {
+      $("#inputbuscar").on("keyup", function() {
+          var value = $(this).val().toLowerCase();
+          $("#pedidosbuscar tr").filter(function() {
+              $(this).toggle($(this).text()
+              .toLowerCase().indexOf(value) > -1)
+          });
+      });
+  });
+</script>
+
+{% endblock %}

@@ -1,0 +1,280 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Factura {{n_factura}}</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'etiquetado/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+<div id="capture">
+<h5 class="m-4 text-center"><strong>FACTURA</strong></h5>
+
+<div class="row">
+    <div class="col-6" id="print_area_cabecera">
+        <h6><strong>N. Pedido: </strong> {{n_factura}}</h6>
+        <h6><strong>Cliente: </strong> {{cliente}}</h6>
+        <h6><strong>Fecha de factura: </strong> {{fecha_factura}}</h6>
+    </div>
+    <div class="col-6">
+        <div class="dropdown">
+            <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-truck"></i> Lista de vehículos y sus dimensiones
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                <div class="card-body m-0 p-0">
+                    <div class="container table-responsive">
+                        {% include 'datos/vehiculos.html' %}
+                    </div>
+                </div>
+            </ul>
+        </div>
+        <div class="float-end">
+            <!--button type="button" class="btn btn-primary rounded-circle" onclick="takeshot()">
+                <i class="bi bi-camera-fill"></i>
+            </button-->
+            <button class="btn btn-primary" id="print">
+                <i class="bi bi-printer-fill"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<formsss method="POST">
+    {% csrf_token %}
+    <div class="card mt-2">
+        <div class="card-body m-2 p-2">
+            <div class="row">
+                <!--div col="12" class="mb-2"> 
+                    <strong>Tramaco:</strong>
+                    <input id="tramaco_input_id" name="tramaco_input" type="checkbox"> 
+                </div-->
+                <div class="col-3">
+                    <label class="mb-1"><strong>Producto:</strong></label>
+                    <select name="producto" id="producto" class="form-select" value="{{productovalue}}">
+                        <option>-----------</option>
+                        <option value="CARGA COURIER" selected>CARGA COURIER</option>
+                        <option value="CARGA LIVIANA">CARGA LIVIANA</option>
+                        <option value="DOCUMENTOS">DOCUMENTOS</option>
+                    </select>
+                </div>
+                <div class="col-3">
+                    <label class="mb-1"><strong>Trayecto:</strong></label>
+                    <select name="trayecto" id="trayecto" class="form-select" value="{{trayectovalue}}">
+                        <option>-----------</option>
+                        <option value="PRINCIPAL" selected>PRINCIPAL</option>
+                        <option value="SECUNDARIO">SECUNDARIO</option>
+                        <option value="T.ESPECIAL">T.ESPECIAL</option>
+                        <option value="URBANO">URBANO</option>
+                        <option value="RURAL">RURAL</option>
+                    </select>
+                </div>
+                <div class="col-3 mt-4 pt-1">
+                    <button name="calcular" id="tramaco_button_id" class="btn btn-success">
+                        <i class="bi bi-currency-dollar"></i> Calcular 
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+
+{% if costototal > 0 %}
+<div class="card mt-2">
+    <div class="card-body m-2 p-2 mb-2">
+        <div class="row">
+            <div class="col-2">
+                <label class="mb-1"><strong>Producto:</strong></label><br>
+                <label class="mt-1">{{producto}}</label>
+            </div>
+            <div class="col-2">
+                <label class="mb-1"><strong>Trayecto:</strong></label><br>
+                <label  class="mt-1">{{trayecto}}</label>
+            </div>
+            <div class="col-2">
+                <label class="mb-1"><strong>Costo:</strong></label><br>
+                <label class="mt-1">$ {{costototal}}</label>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div id="costo"></div>
+<div id="msg"></div>
+
+{% if messages %}
+<div class="alert alert-danger mb-0 mt-2" role="alert">
+    {% for message in messages %}
+        {{ message }}
+    {% endfor %}
+</div>
+{% endif %}
+
+<div id="print_area_table">
+    <div class="card mt-2 mb-2">
+        <div class="card-body m-0 p-0">
+            <div class="container table-responsive">
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th scope="col">Código</th>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Marca</th>
+                        <th scope="col">Unidades</th>
+                        <th scope="col">Cartones</th>
+                        <!--th scope="col">Tiempo Promedio (m)</th-->
+                        <th scope="col">T.P 1P(h:m:s)</th>
+                        <th scope="col">T.P 2P(h:m:s)</th>
+                        <th scope="col">T.P 3P(h:m:s)</th>
+                        <th scope="col">Volumen m<sup>3</sup></th>
+                        <th scope="col">Peso kg</th>
+                    </tr>
+                    </thead>
+                    
+                    <tbody>
+                    {% for i in factura %}
+                    <tr>
+                        <th scope="row">{{i.PRODUCT_ID}}</th>
+                        <td class="text-start">{{i.PRODUCT_NAME}}</td>
+                        <td class="text-start">{{i.marca}}</td>
+                        <td class="text-end">{{i.QUANTITY|floatformat:"0g"}}</td>
+                        <td class="text-end">{{i.Cartones|floatformat:"2g"}}</td>
+                        <!--td class="text-center">{{i.t_una_p_min|floatformat:"2g"}}</td-->
+                        <td class="text-end" {% if i.t_1p == 0 %} style="background-color:#ffffcf" {% endif %}>{{i.t_str_1p}}</td>
+                        <td class="text-end" {% if i.t_2p == 0 %} style="background-color:#ffffcf" {% endif %}>{{i.t_str_2p}}</td>
+                        <td class="text-end" {% if i.t_3p == 0 %} style="background-color:#ffffcf" {% endif %}>{{i.t_str_3p}}</td>
+                        <td class="text-end" {% if i.vol_total == 0 %} style="background-color:#ffffcf" {% endif %}>{{i.vol_total|floatformat:'2g'}}</td>
+                        <td class="text-end" {% if i.pes_total == 0 %} style="background-color:#ffffcf" {% endif %}>{{i.pes_total|floatformat:'2g'}}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                    <tr>
+                        <th scope="row">{#{i.PRODUCT_ID}#}</th>
+                        <td class="text-start">{#{i.PRODUCT_NAME}#}</td>
+                        <td class="text-start">{#{i.marca}#}</td>
+                        <td class="text-end">{{t_unidades|floatformat:"0g"}}</td>
+                        <td class="text-end">{{t_cartones|floatformat:"2g"}}</td>
+                        <!--td class="text-center">{{t_total_min|floatformat:2}}</td-->
+                        <td class="text-end">{{t_total_1p}}</td>
+                        <td class="text-end">{{t_total_2p}}</td>
+                        <td class="text-end">{{t_total_3p}}</td>
+                        <td class="text-end">{{t_total_vol|floatformat:'2g'}}</td>
+                        <td class="text-end">{{t_total_pes|floatformat:'2g'}}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<input id="peso_total" type="hidden" value="{{t_total_pes}}">
+<input id="p_cero" type="hidden" value="{{p_cero}}">
+
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.0.0-rc.5/dist/html2canvas.min.js"></script>
+
+
+<!-- Tramaco function ajax -->
+<script>
+    $("button[name='calcular']").click(function(){
+        var producto = $("#producto").val();
+        var trayecto = $("#trayecto").val();
+        var peso_total = $("#peso_total").val();
+        var p_cero = $("#p_cero").val();
+        
+        $.ajax({
+            type:"POST",
+            url:"{% url 'tramaco_function_ajax' %}",
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'producto':producto,
+                'trayecto':trayecto,
+                'peso_total':peso_total,
+                'p_cero':p_cero
+            },
+
+            success: function(response) {
+
+                $('#costo').html(`
+                <div class="card mt-2">
+                    <div class="card-body m-2 p-2 mb-2">
+                        <div class="row">
+                            <div class="col-2">
+                                <label class="mb-1"><strong>Producto:</strong></label><br>
+                                <label class="mt-1">${producto}</label>
+                            </div>
+                            <div class="col-2">
+                                <label class="mb-1"><strong>Trayecto:</strong></label><br>
+                                <label  class="mt-1">${trayecto}</label>
+                            </div>
+                            <div class="col-2">
+                                <label class="mb-1"><strong>Costo:</strong></label><br>
+                                <label class="mt-1">$ ${response}</label>
+                            </div>
+                        </div>
+                    </div>            
+                </div>
+                `);
+
+                if (p_cero=='True') {
+                    console.log('hay cero en los pesos')
+                    $('#msg').html(`
+                    <div class="text-center alert alert-danger mt-3" role="alert"> 
+                        Alerta!! Existen items sin peso, por favor complete la información
+                    </div>`)
+                } else if (response==0) {
+                    $('#msg').html(`
+                    <div class="text-center alert alert-danger mt-3" role="alert"> 
+                        El peso total es igual a 0 no se puede para realizar el calculo
+                    </div>`)
+                }
+
+            },
+
+            error: function() {
+                $('#msg').html('<div class="text-center alert alert-danger mt-2" role="alert"> Error intenta nuevamente !!! </div>')
+                setTimeout(function(){
+                    window.location.reload();
+                }, 4000)
+            }
+        })
+    })
+
+</script>
+
+<script>
+    $("#print").click(function() {
+        // window.print({
+        //     addGlobalStyles:false,
+        // })
+        
+        w=window.open();
+        w.document.write($('#print_area_cabecera').html());
+        //w.document.write($('#print_costo_entrega').html());
+        w.document.write($('#costo').html());
+        w.document.write($('#print_area_table').html());
+        w.print();
+        w.close();
+        
+    })
+</script>
+
+<!--script type="text/javascript">
+    function takeshot() {
+        html2canvas($('#capture')[0], {
+            width: 1300,
+            height: 1200
+          }).then(function(canvas) {
+            var a = document.createElement('a');
+            a.href = canvas.toDataURL("image/png");
+            a.download = 'Factrura {{n_factura}}.png';
+            a.click();
+          });
+    }
+</script-->
+
+{% endblock %}

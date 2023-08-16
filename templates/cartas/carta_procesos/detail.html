@@ -1,0 +1,124 @@
+
+{% load static %}
+<title>Oficio #
+    {% if object.pk < 10 %}000{{object.pk}}
+    {% elif object.pk < 100 %}00{{object.pk}}
+    {% elif object.pk < 1000 %}0{{object.pk}}
+    {% else %}{{object.pk}}
+    {% endif %}
+</title>
+
+<style>
+    @page{
+        size: A4;
+        margin-top:4cm;
+        margin-left:2cm;
+        margin-right:2cm;
+        margin-bottom:2cm;
+
+        /* HEADER Static frame */
+        @frame header_frame {           
+            -pdf-frame-content: header_content;
+            left: 0pt; width: 595pt; top: 0pt; height: 140pt;
+        }
+        /* FOOTER Static frame */
+        @frame footer_frame {
+            -pdf-frame-content: footer_content;
+            left:0pt; width:595pt; top:727pt; height:150pt;
+        }
+        /* BODY */
+        /*@frame body_frame {}*/
+            
+    }
+    #gim {
+        background-size:100%;
+        background-repeat:no-repeat;
+    }
+    .t_b {
+        padding-top: 4px;
+        padding-left: 4px;
+        padding-right: 4px;
+        padding-bottom: 0px;
+    }
+</style>
+
+<img id="header_content" src="{% static 'encabezado.png' %}">
+
+<div class="gim" style="text-align:justify; font-size:12px">
+
+    <div class="body_frame">
+
+        <p style="text-align:right; font-size:12px"><strong>Oficio No.:</strong>{{object.oficio}}</p><br>
+        <label>Quito, {{object.fecha_emision}}</label><br><br>
+        <label>Señores</label><br>
+        <label><strong>{{object.hospital}}</strong></label><br>
+        <label>Presente</label><br><br>
+        <label>De nuestras consideraciones:</label>
+        <br>
+
+        <p> Me permito informar que <strong>GIMPROMED CIA.LTDA.,</strong> es Representante para el Ecuador de la Casa: </p>
+
+        {% for i in object.marcas.all %}
+            <ul style="margin-left:15px; font-size:12px">
+                <strong> - {{i.marca}}</strong> {{i.description}}
+            </ul>
+        {% endfor %}
+
+        <p style="text-align:justify; font-size:12px">
+            Razón por la cual Autorizamos a la Firma Comercial <strong>{{object.cliente}},</strong> con 
+            R.U.C. No. <strong>{{object.ruc}}</strong> a participar en el proceso No. <strong>{{object.proceso}}</strong>
+            con los productos de las marcas que representamos y distribuimos en el País.
+        </p>
+
+        {% if object.autorizacion %}
+        <p style="text-align:justify; font-size:12px">
+            <strong>
+            {{object.autorizacion}}
+            </strong>
+        </p>
+        {% else %}
+        <p style="text-align:justify; font-size:12px">
+            <strong>
+            Esta Autorización No es Transferible a Terceros sin autorización escrita de Gimpromed Cía. Ltda.
+            </strong>
+        </p>
+        {% endif %}
+
+        <table style="font-size:12px">
+            <tr>
+                <td>
+                    <!--p>
+                        Atentamente,
+                        <br><br><br><br><br><br>
+                        Carlos A. Arcos H.<br>
+                        Gerente Financiero
+                    </p-->
+                    <p>
+                        Atentamente,
+                        <br><br><br><br><br>
+                        {% if object.usuario %}
+                        {{object.usuario.firma_carta}}<br>
+                        {{object.usuario.posicion_carta}}
+                        {% else %}
+                        Carlos A. Arcos H.<br>
+                        Gerente Financiero
+                        {% endif %}
+                    </p>
+                </td>
+                <td></td>
+                <td>
+                    <figure>
+                        <img src="{{object.qr_code.url}}" width="150" height="150" title="QR de verificación"><br>
+                        <!--figcaption>
+                            <p style="text-align:center;">QR DE VERIFICACIÓN</p>
+                        </figcaption-->
+                    </figure>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<br>
+
+<img  id="footer_content" src="{% static 'pie_de_pag.png' %}">

@@ -1,0 +1,240 @@
+{% extends 'base.html' %}
+{% block title %}
+<title>ARMADOS</title>
+{% endblock%}
+
+{#% block navbar %#}
+{#% include 'etiquetado/topnavbar.html' %#}
+{#% endblock %#}
+
+{% block body %}
+<h5 class="m-4 text-center"><strong>PRODUCTOS ARMADOS</strong></h5>
+
+<h6 class="m-4 text-end mb-2 me-0"><strong>Actualizado a:</strong> {{actualizado}}</h6>
+
+<div class="d-grid gap-2 d-md-flex justify-content-md-end">
+    <button id="actualizar" class="btn btn-primary btn-sm mb-2">
+        <i class="bi bi-arrow-clockwise"></i> Actualizar
+    </button>
+</div>
+
+
+<div class="row">
+    <div class="col-6">
+        <div class="card text-white bg-danger">
+            <h5 class="card-header text-center fs-4">URGENTE</h5>
+            <div class="card-body">
+            <h5 class="card-title text-center fs-1">{{urgente}}</h5>
+            <!--p class="card-text">With supporting text below as a natural lead-in to additional content.</p-->
+            </div>
+        </div>
+    </div>
+    <div class="col-6">
+        <div class="card text-white bg-warning">
+            <h5 class="card-header text-center fs-4">PRONTO</h5>
+            <div class="card-body">
+            <h5 class="card-title text-center fs-1">{{pronto}}</h5>
+            <!--p class="card-text">With supporting text below as a natural lead-in to additional content.</p-->
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="msg"></div>
+
+<div>
+    <div class="card mt-4 mb-4">
+        <div class="card-body m-0 p-0">
+            <div class="container table-responsive"> 
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th scope="col">Código</th>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Marca</th>
+                        <th scope="col">Mensual</th>
+                        <th scope="col">Reservado</th>
+                        <th scope="col">Disponible</th>
+                        <th scope="col">Disp-Res</th>
+                        <th scope="col">Armar</th>
+                        <th scope="col">Tiempo</th>
+                        <th scope="col">Meses</th>
+                    </tr>
+                    </thead>
+                    
+                    <tbody>
+                    {% for i in armados %}
+                    <tr style="font-size: small;">
+                        <th scope="row">
+                            <a name="prod" id="{{i.PRODUCT_ID}}" href="#">{{i.PRODUCT_ID}}</a>
+                        </th>
+                        <td class="text-start" id="nom">{{i.PRODUCT_NAME}}</td>
+                        <td class="text-start" id="mar">{{i.GROUP_CODE}}</td>
+                        <td class="text-end">{{i.mensual|floatformat:"0g"}}</td>
+                        <td class="text-end">{{i.RESERVAS|floatformat:"0g"}}</td>
+                        <td class="text-end">{{i.OH2|floatformat:"0g"}}</td>
+                        <td class="text-end" style="background-color: #D2FCD2;"> 
+                            {{i.disponible|floatformat:'0g'}}
+                        </td>
+
+                        <td class="text-end">
+                            {% if i.armar < 0 %}
+                                -
+                            {% else %}
+                                {{i.armar|floatformat:'0g'}}
+                            {% endif %}
+                        </td>
+
+                        <td class="text-end">{{i.tiempo}}</td>
+
+                        <td class="text-end" 
+                            {% if i.meses < 0.5 %} style="background-color:#F6B690"
+                            {% elif i.meses >= 0.5 and i.meses < 1 %} style="background-color:#F6F490"
+                            {% else %} style="background-color:#BAF690"
+                            {% endif %}>
+                            {{i.meses|floatformat:'2g'}}
+                        </td>
+
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="prod"></div>
+<div id="table"></div>
+
+
+<!-- Actualizar -->
+<script>
+    $("#actualizar").click(function(){
+        location.reload()
+    })
+</script>
+
+<!-- Tabla de ventas -->
+<script>
+
+    $("a[name='prod']").click(function() {
+        
+        var prod = $(this).attr('id')
+        var nom  = $(this).closest('tr').find('#nom').html();
+        var mar  = $(this).closest('tr').find('#mar').html();
+        
+        $.ajax({
+            type:"POST",
+            url:"{% url 'detalle_dashboard_armados' %}",
+            //data : datos_pedido,
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'prod':prod,
+            },
+
+            success: function(response) {
+
+                $("#table").html(`
+                <div class="card mb-4">
+                    <h6 class=" card-title fw-bold text-center mt-3 mb-0">${prod} - ${nom} - ${mar}</h6> 
+                    <div class="card-body">
+                        <div class="container table-responsive">
+                            ${response}
+                        </div>
+                    </div>            
+                </div>`);
+
+                //# Font-size small 
+                $("#table table").each(function() {
+                    $(this).css("font-size", "small")
+                });
+
+                //# Quitar header CLIENTE - reemplazar PERIODO por CLIENTE / PERIODO
+                $("#table table > thead > tr > th").each(function(){
+                    var row_cli = $(this)
+                    if (row_cli.text() === 'CLIENTE'){
+                        row_cli.parent("tr").remove()
+                    } else if (row_cli.text() === "PERIODO"){
+                        row_cli.text("CLIENTE / PERIODO")
+                        row_cli.parent("tr").addClass("text-center")
+                    }
+                });
+
+                //# Quitar primera fila del header
+                $("#table table > thead tr:first").remove();
+
+                //# Color de fila TOTAL e insertar al final de la table
+                $("#table table > tbody > tr > th").each(function() {
+                    var row_total = $(this)
+                    if (row_total.text() === 'TOTAL'){
+                        //# Color verde a fila total
+                        row_total.parent("tr").css("background-color", "#D2FCD2");
+                        row_total.addClass("fw-bold")
+                        //# Insertar fila al final de la tabla
+                        row_total.parent("tr").insertAfter("tbody tr:last")
+                    }
+                });
+
+                //# Quitar la fila GIM
+                $("#table table > tbody > tr > th").each(function() {
+                    var row_gim = $(this)
+                    if (row_gim.text() === 'GIM'){
+                        row_gim.parent("tr").remove()
+                    } 
+                });
+
+                //# Quitar negrita a nombre de clientes
+                $("#table table > tbody > tr > th").each(function() {
+                    var row_th = $(this).addClass("fw-light")
+                    console.log(row_th)
+                });
+
+                //# Texto a la derecha
+                $("#table table > tbody > tr > td").each(function() {
+                    var row = $(this).addClass("text-end");
+                });
+
+
+                //# Formato de miles a los <td>
+                function format(num) {
+                    var n_f = num.toLocaleString("en")
+                    var n_ff = n_f.replace(",",'.')
+                    var n_ff = n_ff.replace("NaN", "-")
+                    return n_ff
+                }
+
+                $("#table table > tbody > tr > td").each(function() {
+
+                    var num = Number($(this).text())
+                    var n_f = format(num)
+                    $(this).text(n_f)
+                    
+                });
+
+                //# Scroll automatico hasta la tabla de ventas
+                $("html, body").animate({scrollTop:$("#table").offset().top}, 500)
+
+            },
+
+            error: function() {
+                $('#msg').html(`<div class="text-center alert alert-danger mt-4" role="alert"> 
+                    No se han encontrado ventas en los ultimos 12 meses !!! 
+                </div>`)
+                setTimeout(function(){
+                   window.location.reload();
+                }, 3000)
+            }
+        })
+    })
+</script>
+
+
+
+<!--script type="text/javascript">
+    function actualizar(){location.reload(true);}
+    //Función para actualizar cada 30 min = 1,800,000 milisegundos
+    setInterval("actualizar()",60000);
+</script-->
+
+{% endblock %}

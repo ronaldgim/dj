@@ -1,0 +1,95 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Etiquetado por pedido</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'etiquetado/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+<h5 class="m-4 text-center"><strong>EDITAR REGISTRO {{fac.cliente}}</strong></h5>
+
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <div class="container mt-4 mb-4">
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="user" value="{{request.user.userperfil.id}}">
+                    <div class="row">
+                        <div class="col-6">
+                            <div>
+                                <label class="fw-bold mt-2">Cliente:</label>
+                                <input class="form-control" type="text" name="cliente" value="{{fac.cliente}}" required>
+                            </div>
+                            <div>
+                                <label class="fw-bold mt-2">Factura:</label>
+                                <input class="form-control" type="text" name="factura" value="{{fac.factura}}" required>
+                                <input class="form-control" type="hidden" name="factura_c" value="{{fac.factura_c}}">
+                            </div>
+                            <div>
+                                <label class="fw-bold mt-2">Ciudad:</label>
+                                <input class="form-control" type="text" name="ciudad" value="{{fac.ciudad}}" required>
+                            </div>
+
+                            <div>
+                                <label class="fw-bold mt-2">Fecha factura:</label>
+                                <input class="form-control" type="text" name="fecha_factura" value="{{fac.fecha_factura|date:'Y-m-d'}}" required>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div>
+                                <label class="fw-bold mt-2">Transporte:</label>
+                                <select class="form-select" name="transporte" required>
+                                    <!--option value="">--------</option-->
+                                    {% if fac.transporte == 'TRAMACO' %}
+                                    <option value="TRAMACO" selected>TRAMACO</option>
+                                    <option value="BARRAGAN">BARRAGAN</option>
+                                    <option value="GIMPROMED">GIMPROMED</option>
+                                    {% elif fac.transporte == 'BARRAGAN' %}
+                                    <option value="TRAMACO">TRAMACO</option>
+                                    <option value="BARRAGAN" selected>BARRAGAN</option>
+                                    <option value="GIMPROMED">GIMPROMED</option>
+                                    {% elif fac.trasnporte == 'GIMPROMED' %}
+                                    <option value="TRAMACO">TRAMACO</option>
+                                    <option value="BARRAGAN">BARRAGAN</option>
+                                    <option value="GIMPROMED" selected>GIMPROMED</option>
+                                    {% else %}
+                                    <option value="">--------</option>
+                                    <option value="TRAMACO">TRAMACO</option>
+                                    <option value="BARRAGAN">BARRAGAN</option>
+                                    <option value="GIMPROMED">GIMPROMED</option>
+                                    {% endif %}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="fw-bold mt-2">Persona que confirma:</label>
+                                <input class="form-control" type="text" name="confirmado" value="{{fac.confirmado}}" required>
+                            </div>
+                            <div>
+                                <label class="fw-bold mt-2">Fecha de confirmación:</label>
+                                <input class="form-control" type="date" name="fecha_conf" value="{{fac.fecha_conf|date:'Y-m-d'}}" required>
+                            </div>
+
+                            <div>
+                                <label class="fw-bold mt-2">Número de guia:</label>
+                                <input class="form-control" type="text" name="n_guia" value="{{fac.n_guia}}" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <label class="fw-bold mt-2">Observaciones:</label>
+                        <textarea class="form-control" name="observaciones" rows="3">{{fac.observaciones}}</textarea>
+                    </div>
+                    <button class="btn btn-success mt-4" type="submit">
+                        <i class="bi bi-send"></i> Guardar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

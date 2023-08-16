@@ -1,0 +1,234 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Reporte Ventas</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'etiquetado/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<!-- datatable -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.css" />  
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.js"></script>
+
+
+<div>
+
+<h5 class="m-4 text-center"><strong>REPORTE VENTAS</strong></h5>
+
+<!--h6 class="m-4 text-end"><strong>Actulizado: </strong>{{time_reservas}}</h6-->
+
+<div class="mb-4">
+    <form method="POST">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-6">
+                <label>Cliente:</label>
+                <select class="form-select" name="cliente" id="chosen-select" required>
+                    <option value="">---------</option>
+                    {% for i in clientes %}
+                    <option value="{{i.CODIGO_CLIENTE}}">{{i.NOMBRE_CLIENTE}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="col-3">
+                <label>Desde:</label>
+                <input class="form-control" type="date" name="desde" id="" value="{{desde|date:'Y-m-d'}}" required>
+            </div>
+
+            <div class="col-3">
+                <label">Hasta:</label>
+                <input class="form-control" type="date" name="hasta" id="" value="{{hasta|date:'Y-m-d'}}" required>
+            </div>
+        </div>
+        <button class="btn btn-primary mt-2" type="submit" id="nombre_cliente">
+            <i class="bi bi-search"></i> Consultar
+        </button>
+    </form>
+</div>
+
+{% if cliente %}
+<h5 class="text-center"><strong>{{cliente}}</strong></h5>
+<h6 class="text-center"><strong>Desde:</strong> {{desde|date:'d F Y'}} <strong>Hasta:</strong> {{hasta|date:'d F Y'}}</strong></h6>
+{% endif %}
+
+<div class="col-4">
+    <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+</div>
+
+
+<div class="text-center" id="spinner">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div><br>
+    <span class="text-center text-primary">Cargando... </span>
+</div>
+
+
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table" id="myTable">
+                <thead>
+                    <tr>
+                        <th scope="col">Código</th>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Marca</th>
+                        <th scope="col">Und</th>
+                        <th scope="col">Fecha</th>
+                        <th scope="col">Factura</th>
+                        <th scope="col">Cantidad</th>
+                        <th scope="col">P/Unitario</th>
+                        <th scope="col">Valor</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in ventas %}
+                    <tr>
+                        <td id="cod">{{i.PRODUCT_ID}}</td>
+                        <td>{{i.Nombre}}</td>
+                        <td>{{i.Marca}}</td>
+                        <td>{{i.Unidad}}</td>
+                        <td>{{i.FECHA}}</td>
+                        <td>{{i.CODIGO_FACTURA|slice:'6:19'}}
+                            <button id="{{i.CODIGO_FACTURA}}" name="n_factura" class="btn btn-outline-primary btn-sm" ><!--class="btn btn-sm btn-primary" -->
+                                <i class="bi bi-list-ol"></i>
+                            </button>
+                        </td>
+                        <td class="text-end">{{i.QUANTITY}}</td> <!-- |floatformat:'0g' -->
+                        <td class="text-end">$ {{i.UNIT_PRICE|floatformat:2}}</td> <!-- |floatformat:'2g' -->
+                        <td class="text-end">$ {{i.COST_TOTAL|floatformat:2}}</td> <!-- |floatformat:'2g' -->
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                    <tr>
+                        <td colspan="6" class="text-start fw-bold">Totales:</td>
+                        <td class="text-end">{{total_cantidad|floatformat:'0g'}}</td>
+                        <td class="text-end">$ {{total_unitario|floatformat:'2g'}}</td>
+                        <td class="text-end">$ {{total_ventas|floatformat:'2g'}}</td>
+                    </tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+</div>
+<!--filtro buscar-->
+<script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+
+
+<script>
+    $(document).ready(function() {
+        $('#chosen-select').select2();
+    })
+</script>
+
+<!-- Spiner -->
+<script>
+
+    var sp = document.getElementById("spinner").style.display = "none";   
+
+    $("#nombre_cliente").on("click", function() {
+        // console.log("loading")
+        var cl = document.getElementById("chosen-select").value;
+        
+         if (cl) {
+            //# console.log('loading');
+            var sp = document.getElementById("spinner").style.display = "block";
+        }
+    })
+</script>
+
+<script>
+
+    $("button[name='n_factura']").click(function() {
+        var fac = $(this).attr('id');
+        var cod = $(this).closest('tr').find("#cod").html();
+
+        var childRow = $ (this).closest("tr").next(".child-row");
+        var parentRow = $(this).closest("tr");
+
+
+        if (childRow.length) {
+            //# ELIMINA FIILA INSERTADA
+            childRow.remove();
+        } else {
+            var childRow = $(
+                "<tr class='child-row' style='background-color: #cdffd6'>" + 
+                    "<td colspan='5'></td>" + 
+                    "<td colspan='4'>Cargando...</td>" + 
+                "</tr>"
+                );
+            parentRow.after(childRow)
+
+            //# AJAX REQUEST
+            $.ajax({
+            url:"{% url 'lote_factura_ajax' %}",
+            type:"POST",
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'fac':fac,
+                'cod':cod,
+            },
+
+            success: function(response) {
+
+                //# console.log(response[0]);
+
+                var childRow2 = $(
+                "<tr class='child-row' style='background-color: #cdffd6'>" + 
+                    "<td colspan='5'></td>" + 
+                    `<td colspan='4'>Lote: ${response[0].lote} - Unidades: ${response[0].unidades}</td>` + 
+                "</tr>"
+                );
+                parentRow.after(childRow).next(childRow).replaceWith(childRow2)
+                // $(this).closest("tr").replaceWith(childRow); 
+            },
+
+            error: function() {
+                // childContent.html('No se encontro coincidencias !!!')
+                console.log('Error')
+                }
+            })
+        }
+    })
+
+</script>
+
+<!-- DataTable -->
+<script>
+    $(document).ready(function(){
+       $('#myTable').DataTable({
+        //#ordering:false,
+        "searching":false,
+        "show":false,
+        "paging":false,
+        "info":false,
+        columnDefs:[
+            {type:'signed-num',targets:0}
+        ]
+       })
+    })
+</script>
+
+
+{% endblock %}

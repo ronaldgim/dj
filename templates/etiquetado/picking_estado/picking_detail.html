@@ -1,0 +1,211 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Picking {{pedido|slice:':-2'}}</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'etiquetado/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.0.0-rc.5/dist/html2canvas.min.js"></script>
+
+<div id="capture">
+<h5 class="m-4 text-center"><strong>PICKING</strong></h5>
+
+<div class="row">
+    <div class="col-6">
+        <h6><strong>N. Pedido: </strong>{{pedido|slice:':-2'}}</h6>
+        <h6><strong>Cliente: </strong> {{cliente}} - {{tipo_cliente}}</h6>
+        <h6><strong>Fecha de pedido: </strong> {{fecha_pedido}}</h6>
+        <h6><strong>Inicio picking: </strong> {{creado|date:'Y-m-d H:m:s'}}</h6>
+        <!--h6><strong>Fin de picking: </strong> {#{finalizado|date:'Y-m-d H:m:s'}#}</h6-->
+        <h6><strong>Usuario: </strong>{{user.user.first_name}} {{user.user.last_name}}</h6>
+        <!--h6><strong>Tiempo: </strong> {{tiempo}}</h6-->
+    </div>
+    <div class="col-6">
+        <div class="dropdown">
+            <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-truck"></i> Lista de vehículos y sus dimensiones
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                <div class="card-body m-0 p-0">
+                    <div class="container table-responsive">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th scope="col">Placa</th>
+                                <th scope="col">Ancho</th>
+                                <th scope="col">Alto</th>
+                                <th scope="col">Largo</th>
+                                <th scope="col">Volumen m<sup>3</sup></th>
+                                <th scope="col">- 20% m<sup>3</sup></th>
+                            </tr>
+                            </thead>
+                            
+                            <tbody>
+                            {% for i in vehiculos %}
+                            <tr>
+                                <th scope="row">{{i.placa}}</th>
+                                <td class="text-start">{{i.ancho}}</td>
+                                <td class="text-start">{{i.alto}}</td>
+                                <td class="text-center">{{i.largo}}</td>
+                                <td class="text-center">{{i.volumen}}</td>
+                                <td class="text-center">{{i.volumen2}}</td>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </ul>
+        </div>
+        <div class="float-end">
+            <button type="button" class="btn btn-primary rounded-circle" onclick="takeshot()">
+                <i class="bi bi-camera-fill"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<form method="POST">
+    {% csrf_token %}
+    <div class="card mt-4">
+        <div class="card-body m-2 p-2">
+            <div class="row">
+                <div class="col-3">
+                    <label class="mb-1"><strong>Producto:</strong></label>
+                    <select name="producto" id="producto" class="form-select" value="{{productovalue}}">
+                        <option>-----------</option>
+                        <option value="CARGA COURIER" selected>CARGA COURIER</option>
+                        <option value="CARGA LIVIANA">CARGA LIVIANA</option>
+                        <option value="DOCUMENTOS">DOCUMENTOS</option>
+                    </select>
+                </div>
+                <div class="col-3">
+                    <label class="mb-1"><strong>Trayecto:</strong></label>
+                    <select name="trayecto" id="trayecto" class="form-select" value="{{trayectovalue}}">
+                        <option>-----------</option>
+                        <option value="PRINCIPAL" selected>PRINCIPAL</option>
+                        <option value="SECUNDARIO">SECUNDARIO</option>
+                        <option value="T.ESPECIAL">T.ESPECIAL</option>
+                        <option value="URBANO">URBANO</option>
+                        <option value="RURAL">RURAL</option>
+                    </select>
+                </div>
+                <div class="col-3 mt-4 pt-1">
+                    <button type="submit" class="btn btn-success" disabled>
+                        <i class="bi bi-currency-dollar"></i> Calcular 
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+{% if costototal > 0 %}
+<div class="card mt-2">
+    <div class="card-body m-2 p-2 mb-2">
+        <div class="row">
+            <div class="col-2">
+                <label class="mb-1"><strong>Producto:</strong></label><br>
+                <label class="mt-1">{{productovalue}}</label>
+            </div>
+            <div class="col-2">
+                <label class="mb-1"><strong>Trayecto:</strong></label><br>
+                <label  class="mt-1">{{trayectovalue}}</label>
+            </div>
+            <div class="col-2">
+                <label class="mb-1"><strong>Costo:</strong></label><br>
+                <label class="mt-1">$ {{costototal}}</label>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if messages %}
+<div class="alert alert-danger mb-0 mt-2" role="alert">
+    {% for message in messages %}
+        {{ message }}
+    {% endfor %}
+</div>
+{% endif %}
+
+<div>
+    <div class="card mb-4 mt-2">
+        <div class="card-body m-0 p-0">
+            <div class="container table-responsive">
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th scope="col">Código</th>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Marca</th>
+                        <th scope="col">Unidades</th>
+                        <th scope="col">Cartones</th>
+                        <!--th scope="col">Tiempo Promedio (m)</th-->
+                        <th scope="col">T.Promedio1P(h)</th>
+                        <th scope="col">T.Promedio2P(h)</th>
+                        <th scope="col">T.Promedio3P(h)</th>
+                        <th scope="col">Volumen m<sup>3</sup></th>
+                        <th scope="col">Peso kg</th>
+                    </tr>
+                    </thead>
+                    
+                    <tbody>
+                    {% for i in detalle %}
+                    <tr>
+                        <th scope="row">{{i.product_id}}</th>
+                        <td class="text-start">{{i.description}}</td>
+                        <td class="text-start">{{i.marca}}</td>
+                        <td class="text-end">{{i.QUANTITY|floatformat:"0g"}}</td>
+                        <td class="text-end">{{i.Cartones|floatformat:"2g"}}</td>
+                        <!--td class="text-center">{{i.t_una_p_min|floatformat:"2g"}}</td-->
+                        <td class="text-end" {% if i.T1 == 0 %} style="background-color:#ffffcf" {% endif %}>{{i.T1|floatformat:'4g'}}</td>
+                        <td class="text-end" {% if i.T2 == 0 %} style="background-color:#ffffcf" {% endif %}>{{i.T2|floatformat:'4g'}}</td>
+                        <td class="text-end" {% if i.T3 == 0 %} style="background-color:#ffffcf" {% endif %}>{{i.T3|floatformat:'4g'}}</td>
+                        <td class="text-end" {% if i.volumen_detalle == 0 %} style="background-color:#ffffcf" {% endif %}>{{i.volumen_detalle|floatformat:'4g'}}</td>
+                        <td class="text-end" {% if i.peso_detalle == 0 %} style="background-color:#ffffcf" {% endif %}>{{i.peso_detalle|floatformat:'4g'}}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                    <tr>
+                        <th scope="row">{#{i.PRODUCT_ID}#}</th>
+                        <td class="text-start">{#{i.PRODUCT_NAME}#}</td>
+                        <td class="text-start">{#{i.marca}#}</td>
+                        <td class="text-end">{{t_und|floatformat:"0g"}}</td>
+                        <td class="text-end">{{t_car|floatformat:"2g"}}</td>
+                        <!--td class="text-center">{{t_total_min|floatformat:2}}</td-->
+                        <td class="text-end">{{t_t1|floatformat:2}}</td>
+                        <td class="text-end">{{t_t2|floatformat:2}}</td>
+                        <td class="text-end">{{t_t3|floatformat:2}}</td>
+                        <td class="text-end">{{t_vol|floatformat:'2g'}}</td>
+                        <td class="text-end">{{t_peso|floatformat:'2g'}}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+</div>
+
+<script type="text/javascript">
+
+    function takeshot() {
+        html2canvas($('#capture')[0], {
+            width: 1300,
+            height: 1200
+          }).then(function(canvas) {
+            var a = document.createElement('a');
+            a.href = canvas.toDataURL("image/png");
+            a.download = 'Pedido {{pedido}}.png';
+            a.click();
+          });
+    }
+
+</script>
+{% endblock %}

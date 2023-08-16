@@ -1,0 +1,29 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Calaculadora</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'etiquetado/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+<h5 class="m-4 text-center"><strong>Calculadora</strong></h5>
+{#{form.as_p}#}
+
+<form method='POST'>
+    
+    {% csrf_token %}
+
+    <strong class="mb-2">Nombre de calculo:</strong> 
+
+    <input class="form-control mb-2" type="text" name="nombre">
+
+    <button type="submit" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Añadir items
+    </button>
+
+</form>
+
+{% endblock %}

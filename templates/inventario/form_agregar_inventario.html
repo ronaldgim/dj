@@ -1,0 +1,131 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Inventario</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'inventario/topnavbar.html' %} 
+{% endblock %}
+
+{% block body %}
+<h5 class="m-4 text-center"><strong>TOMA FISICA DE INVENTARIO</strong></h5>
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container mt-2">
+            
+            <h3 class="text-center"> Añadir item a Bodega {{bodega}} - Ubicación: {{ubicacion}}</h3>
+
+            <div class="container mb-4">
+
+                <form method="GET">
+                    {% csrf_token %}
+                    <label>Código de producto:</label><br>
+                    <input class="form-control" type="text" name="producto">
+                    
+                    <button type="submit" class="btn btn-primary mt-2">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
+                </form>
+
+            </div>
+
+
+            <h3 class="text-center"> Ingresar conteo físico </h3>
+            <div class="container mb-4">
+
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <input type="hidden" name="user" value="{{request.user.id}}">
+                    <input type="hidden" name="ware_code" value="{{bodega}}">
+                    <input type="hidden" name="location" value="{{ubicacion}}">
+
+                    <label>Codigo:</label>
+                    <input class="form-control" type="text" name="product_id" value="{{cod}}" required><br>
+                    <label>Nombre:</label>
+                    <input class="form-control" type="text" name="product_name" value="{{nom}}" required><br>
+                    <label>Marca:</label>
+                    <input class="form-control" type="text" name="group_code" value="{{mar}}" required><br>
+                    <label>Lote:</label>
+                    <input class="form-control" type="text" name="lote_id"><br>
+
+                    <label>Fecha elaboración:</label>
+                    <input class="form-control" type="date" name="fecha_elab_lote" id="" required><br>
+                    <label>Fecha caducidad:</label>
+                    <input class="form-control" type="date" name="fecha_cadu_lote" id="" required><br>
+
+                    <label>Unidades por cartón:</label>
+                    <input class="form-control" type="number" id="uc" name="unidades_caja" placeholder="Unidades Por Caja" value="{{form.unidades_caja.value}}" required><br>
+                    
+                    <label>Número de cartones:</label>
+                    <input class="form-control" type="number" id="nc" name="numero_cajas" placeholder="Número De Cartones" value="{{form.numero_cajas.value}}" required><br>
+                    
+                    <label>Unidades sueltas:</label>
+                    <input class="form-control" type="number" id="us" name="unidades_sueltas" placeholder="Unidades Sueltas" value="{{form.unidades_sueltas.value}}" required>
+                    
+                    Total Unidades: <label id="total"></label> <br> <br>
+
+                    <label>Observaciones:</label>
+                    <textarea class="form-control" name="observaciones" cols="30" rows="10" placeholder="Observaciones"></textarea>
+                    
+                    <!-- Control -->
+                    <input type="hidden" name="llenado" value="True">
+                    <input type="hidden" name="agregado" value="True">
+
+
+                    <!-- Input Hidden-->
+                    <input type="hidden" name="um" values="-">
+                    <input type="hidden" name="oh" value="0">
+                    <input type="hidden" name="oh2" value="0">
+                    <input type="hidden" name="commited"value="0">
+                    <input type="hidden" name="quantity"value="0">
+
+
+                    <button type="submit" class="btn btn-success mt-2">
+                        <i class="bi bi-box-seam"></i> Guardar
+                    </button>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $("input").on("input", function(){
+        $("#total").text(totales());
+    });
+    
+    $("#total").text(totales());
+    
+    function totales() {
+    
+        var uc_input = document.getElementById("uc").value;
+        var nc_input = document.getElementById("nc").value;
+        var us_input = document.getElementById("us").value;
+        uc = Number(uc_input);
+        nc = Number(nc_input);
+        us = Number(us_input);
+        var total_unds = ((uc * nc) + us);
+        var total_unds_f = Intl.NumberFormat().format(total_unds);
+        document.getElementById("total").innerHTML = total_unds_f;
+        return total_unds_f;
+    }
+    
+</script>
+{% endblock %}

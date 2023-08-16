@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% block title %}
+<title>Etiquetado Stock</title>
+{% endblock%}
+
+{#% block navbar %#}
+{#% include 'etiquetado/topnavbar.html' %#}
+{#% endblock %#}
+
+{% block body %}
+<h5 class="m-4 text-center"><strong>ETIQUETADO STOCK</strong></h5>
+<h6 class="m-4 text-end"><strong>Actualizado a:</strong> {{actualizado}}</h6>
+
+<div class="row">
+    <div class="col-6">
+        <div class="card text-white bg-danger">
+            <h5 class="card-header text-center fs-4">URGENTE</h5>
+            <div class="card-body">
+            <h5 class="card-title text-center fs-1">{{rojo}}</h5>
+            <!--p class="card-text">With supporting text below as a natural lead-in to additional content.</p-->
+            </div>
+        </div>
+    </div>
+    <div class="col-6">
+        <div class="card text-white bg-warning">
+            <h5 class="card-header text-center fs-4">PRONTO</h5>
+            <div class="card-body">
+            <h5 class="card-title text-center fs-1">{{amarillo}}</h5>
+            <!--p class="card-text">With supporting text below as a natural lead-in to additional content.</p-->
+            </div>
+        </div>
+    </div>
+</div>
+
+<div>
+    <div class="card mt-4 mb-4">
+        <div class="card-body m-0 p-0">
+            <div class="container table-responsive"> <!-- class="container table-responsive"-->
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th scope="col">Código</th>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Marca</th>
+                        <th scope="col">Cat</th>
+                        <!--th scope="col">Reservas</th-->
+                        <!--th scope="col">Transito</th-->
+                        <th scope="col">Disponible</th><!--Disponible - Reserva -->
+                        <!--th scope="col">Dip.Total</th-->
+                        <!--th scope="col">Mensual</th-->
+                        <th scope="col">Cuarentena</th>
+                        <!--th scope="col">3Semanas</th-->
+                        <!--th scope="col">StockMensual</th-->
+                        <th scope="col">Etiquetar</th>
+                        <th scope="col">Meses</th>
+                    </tr>
+                    </thead>
+                    
+                    <tbody>
+                    {% for i in etiquetado_stock_list %}
+                    <tr style="font-size: small;">
+                        <th scope="row">{{i.PRODUCT_ID}}</th>
+                        <td class="text-start">{{i.PRODUCT_NAME}}</td>
+                        <td class="text-start">{{i.GROUP_CODE}}</td>
+
+                        {% if i.Cat == '0' %}
+                        <td class="text-start">C</td>
+                        {% else %}
+                        <td class="text-start">{{i.Cat}}</td>
+                        {% endif %}
+
+                        <!--td class="text-end">{{i.Reservas|floatformat:"0g"}}</td-->
+                        <!--td class="text-end">{{i.Transito|floatformat:"0g"}}</td-->
+                        <td class="text-end" style="background-color:#D2FCD2">{{i.Disp_Total|floatformat:"0g"}}</td>
+                        <!--td class="text-end">{{i.Disp_Total|floatformat:'0g'}}</td-->
+                        <!--td class="text-end">{{i.Mensual|floatformat:'0g'}}</td-->
+                        <td class="text-end" style="background-color:#F7F5DF">{{i.Cuarentena|floatformat:'0g'}}</td>
+                        <!--td class="text-end">{{i.Tres_Semanas|floatformat:'0g'}}</td-->
+                        <!--td class="text-end">{{i.Stock_Mensual|floatformat:'0g'}}</td-->
+                        <td class="text-end">
+                            {% if i.O_Etiquetado < 0 %}
+                            -
+                            {% else %}
+                            <strong>{{i.O_Etiquetado|floatformat:'0g'}}</strong>
+                            {% endif %}
+                        </td>
+                        <td class="text-end" 
+                        {% if i.Meses < urgente %} style="background-color:#F6B690"
+                        {% elif i.Meses >= urgente and i.Meses < correcto %} style="background-color:#F6F490"
+                        {% else %} style="background-color:#BAF690"
+                        {% endif %}>
+                        {{i.Meses|floatformat:'2g'}}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function actualizar(){location.reload(true);}
+    //Función para actualizar cada 30 min = 1,800,000 milisegundos
+    setInterval("actualizar()",60000);
+</script>
+
+{% endblock %}

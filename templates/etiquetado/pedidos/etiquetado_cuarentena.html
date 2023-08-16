@@ -1,0 +1,275 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>{{codigo}}</title>
+{% endblock%}
+
+{#% block navbar %#}
+{#% include 'etiquetado/topnavbar.html' %#}
+{#% endblock %#}
+
+{% block body %}
+
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.0.0-rc.5/dist/html2canvas.min.js"></script>
+
+<!--div class="ps-4 pe-4 ms-4 me-4"-->
+
+
+<!--h5 class="m-4 text-center"><strong>PEDIDO</strong></h5-->
+
+<div class="row">
+    <h5 class="m-4 text-center"><strong>ETIQUETADO STOCK </strong></h5>
+    <div class="col-6" id="print_area_cabecera">
+        <h6><strong>Código: </strong>{{codigo}}</h6>
+        <h6><strong>Nombre: </strong>{{nombre}}</h6>
+        <h6><strong>Marca: </strong> {{marca}}</h6>
+    </div>
+</div>
+
+
+<div id="print_area_table">
+    <div class="card mb-4 mt-2">
+        <div class="card-body m-0 p-0">
+            <div class="table-responsive container"> 
+                <table class="table" style="font-size: small;"> <!--  style="font-size: small;" -->
+                    <thead>
+                    <tr>
+                        <th scope="col">Código</th>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Marca</th>
+                        <th scope="col">Lote</th>
+                        <th scope="col">F.Caducidad</th>
+                        <th scope="col">Unidades</th>
+                        <th scope="col">Cartones</th>
+                        <th scope="col">T.P. 1P (h:m:s)</th>
+                        <th scope="col">T.P. 2P (h:m:s)</th>
+                        <th scope="col">T.P. 3P (h:m:s)</th>
+                        <th scope="col">Volumen m<sup>3</sup></th>
+                        <th scope="col">Peso kg</th>
+                    </tr>
+                    </thead>
+                    
+                    <tbody>
+                    {% for i in stock %}
+                    <tr {% if i.i == 1 %} style="background-color:#BAF690 ;" {% endif %} >
+                        <th scope="row">{{i.PRODUCT_ID}}</th>
+                        <td class="text-start">{{i.PRODUCT_NAME}}</td>
+                        <td class="text-start">{{i.GROUP_CODE}}</td>
+                        <td class="text-start">{{i.LOTE_ID}}</td>
+                        <td class="text-start">{{i.FECHA_CADUCIDAD}}</td>
+
+                        <td class="text-end">{{i.QUANTITY|floatformat:"0g"}}</td>
+                        <td class="text-end">{{i.cartones|floatformat:"2g"}}</td>
+
+                        <td class="text-end" {% if i.t1 == 0 %} style="background-color:#ffffcf" {% endif %}>{{i.t_str_1p}}</td>
+                        <td class="text-end" {% if i.t2 == 0 %} style="background-color:#ffffcf" {% endif %}>{{i.t_str_2p}}</td>
+                        <td class="text-end" {% if i.t3 == 0 %} style="background-color:#ffffcf" {% endif %}>{{i.t_str_3p}}</td>
+
+                        <td class="text-end" {% if i.vol == 0 %} style="background-color:#ffffcf" {% endif %}>{{i.vol|floatformat:'4g'}}</td>
+                        <td class="text-end" {% if i.pes == 0 %} style="background-color:#ffffcf" {% endif %}>{{i.pes|floatformat:'4g'}}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                    <tr>
+                        <th scope="row">{#{i.PRODUCT_ID}#}</th>
+                        <td class="text-start">{#{i.PRODUCT_NAME}#}</td>
+                        <td class="text-start">{#{i.marca}#}</td>
+                        <td class="text-start">{#{i.marca}#}</td>
+                        <td class="text-start">{#{i.marca}#}</td>
+
+                        <td class="text-end">{{t_unidades|floatformat:"0g"}}</td>
+                        <td class="text-end">{{t_cartones|floatformat:"2g"}}</td>
+
+                        <td class="text-end">{{tt_str_1p}}</td>
+                        <td class="text-end">{{tt_str_2p}}</td>
+                        <td class="text-end">{{tt_str_3p}}</td>
+
+                        <td class="text-end">{{vol_total|floatformat:'2g'}}</td>
+                        <td class="text-end">{{pes_total|floatformat:'2g'}}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+</div>
+
+<input id="peso_total" type="hidden" value="{{t_total_pes}}">
+<input id="p_cero" type="hidden" value="{{p_cero}}">
+
+
+{% comment %}
+<script>
+    $("#fecha_entrega").on("click", function() {
+        //console.log('fecha entrega')
+        var fecha = $("#fecha_confirmacion").val();
+        var estado = $("#fecha_estado").val();
+        var pedido = $("#pedido").val();
+        
+        
+        $.ajax({
+            type:"POST",
+            url:"{% url 'pedidos_fecha_entrega_ajax' %}",
+            //data : datos_pedido,
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'fecha':fecha,
+                'estado':estado,
+                'pedido':pedido,
+            },
+            
+            success: function(response) {
+                //console.log(response.msg)
+                var mess = response.msg;
+                var mess_error = response.msg_error
+                //$('#msg').html('<div class="alert alert-success mt-3" role="alert"> Se guardo con exito la fecha de entrega </div>')
+                //$('#msg').html(`<div class="text-center alert alert-success mt-3" role="alert"> Fecha de entrega guardada con exito, fecha-hora: ${fecha} - estado: ${estado} </div>`)
+                $('#msg').html(`<div class="text-center alert alert-success mt-3" role="alert"> ${mess} </div>`)
+                $('#msg').html(mess_error)
+                setTimeout(function(){
+                    window.location.reload();
+                }, 4000)
+            },
+
+            error: function() {
+                //$('#msg').html(`<div class="text-center alert alert-danger mt-2" role="alert"> Error al subir documento del producto: ${product_id} - lote: ${lote} </div>`)
+                $('#msg').html('<div class="text-center alert alert-danger mt-2" role="alert"> Error intenta nuevamente !!! </div>')
+                setTimeout(function(){
+                    window.location.reload();
+                }, 4000)
+            }
+        })
+    })
+</script>
+
+<script>
+    $("#estado_entrega").click(function() {
+        
+        var pedido = $("#pedido").val();
+        var entrega_estado = $("#entrega_estado").val();
+        console.log(pedido);
+        console.log(entrega_estado);
+        
+        $.ajax({
+            type:"POST",
+            url:"{% url 'entrega_estado_ajax' %}",
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'entrega_estado':entrega_estado,
+                'pedido':pedido,
+            },
+            
+            success: function() {
+                //console.log(response.msg)
+                var mess = 'Se registro el estado de entrega correctamente !!!';
+                //var mess_error = response.msg_error
+                //$('#msg').html('<div class="alert alert-success mt-3" role="alert"> Se guardo con exito la fecha de entrega </div>')
+                //$('#msg').html(`<div class="text-center alert alert-success mt-3" role="alert"> Fecha de entrega guardada con exito, fecha-hora: ${fecha} - estado: ${estado} </div>`)
+                $('#msg').html(`<div class="text-center alert alert-success mt-3" role="alert"> ${mess} </div>`)
+                //$('#msg').html(mess_error)
+                setTimeout(function(){
+                    window.location.reload();
+                }, 4000)
+            },
+
+            error: function() {
+                //$('#msg').html(`<div class="text-center alert alert-danger mt-2" role="alert"> Error al subir documento del producto: ${product_id} - lote: ${lote} </div>`)
+                $('#msg').html('<div class="text-center alert alert-danger mt-2" role="alert"> Error intenta nuevamente !!! </div>')
+                setTimeout(function(){
+                    window.location.reload();
+                }, 4000)
+            }
+        })
+    })
+</script>
+
+
+<!-- Tramaco function ajax -->
+<script>
+    $("button[name='calcular']").click(function(){
+        var producto = $("#producto").val();
+        var trayecto = $("#trayecto").val();
+        var peso_total = $("#peso_total").val();
+        var p_cero = $("#p_cero").val();
+
+        $.ajax({
+            type:"POST",
+            url:"{% url 'tramaco_function_ajax' %}",
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'producto':producto,
+                'trayecto':trayecto,
+                'peso_total':peso_total,
+                'p_cero':p_cero
+            },
+
+            success: function(response) {
+
+                $('#costo').html(`
+                <div class="card mt-2">
+                    <div class="card-body m-2 p-2 mb-2">
+                        <div class="row">
+                            <div class="col-2">
+                                <label class="mb-1"><strong>Producto:</strong></label><br>
+                                <label class="mt-1">${producto}</label>
+                            </div>
+                            <div class="col-2">
+                                <label class="mb-1"><strong>Trayecto:</strong></label><br>
+                                <label  class="mt-1">${trayecto}</label>
+                            </div>
+                            <div class="col-2">
+                                <label class="mb-1"><strong>Costo:</strong></label><br>
+                                <label class="mt-1">$ ${response}</label>
+                            </div>
+                        </div>
+                    </div>            
+                </div>
+                `);
+
+                if (p_cero=='True') {
+                    console.log('hay cero en los pesos')
+                    $('#msg').html(`
+                    <div class="text-center alert alert-danger mt-3" role="alert"> 
+                        Alerta!! Existen items sin peso, por favor complete la información
+                    </div>`)
+                } else if (response==0) {
+                    $('#msg').html(`
+                    <div class="text-center alert alert-danger mt-3" role="alert"> 
+                        El peso total es igual a 0 no se puede para realizar el calculo
+                    </div>`)
+                }
+
+            },
+
+            error: function() {
+                $('#msg').html('<div class="text-center alert alert-danger mt-2" role="alert"> Error intenta nuevamente !!! </div>')
+                setTimeout(function(){
+                    window.location.reload();
+                }, 4000)
+            }
+        })
+    })
+
+</script>
+
+
+<script>
+    $("#print").click(function() {
+        // window.print({
+        //     addGlobalStyles:false,
+        // })
+        
+        w=window.open();
+        w.document.write($('#print_area_cabecera').html());
+        //w.document.write($('#print_costo_entrega').html());
+        w.document.write($('#costo').html());
+        w.document.write($('#print_area_table').html());
+        w.print();
+        w.close();
+        
+    })
+</script>
+{% endcomment %}
+
+{% endblock %}

@@ -1,0 +1,177 @@
+
+{% load static %}
+<title>Oficio #
+    {% if object.pk < 10 %}000{{object.pk}}
+    {% elif object.pk < 20 %}00{{object.pk}}
+    {% elif object.pk < 30 %}0{{object.pk}}
+    {% else %}{{object.pk}}
+    {% endif %}
+</title>
+
+<style>
+    @page{
+        size: A4;
+        margin-top:4cm;
+        margin-left:2.5cm;
+        margin-right:2.5cm;
+        margin-bottom:2.5cm;
+
+        /* HEADER Static frame */
+        @frame header_frame {           
+            -pdf-frame-content: header_content;
+            left: 0pt; width: 595pt; top: 0pt; height: 140pt;
+        }
+        /* FOOTER Static frame */
+        @frame footer_frame {
+            -pdf-frame-content: footer_content;
+            left:0pt; width:595pt; top:727pt; height:150pt;
+        }
+        /* BODY */
+        /*@frame body_frame {}*/
+            
+    }
+    #gim {
+        background-size:100%;
+        background-repeat:no-repeat;
+    }
+    .t_b {
+        padding-top: 4px;
+        padding-left: 4px;
+        padding-right: 4px;
+        padding-bottom: 0px;
+    }
+</style>
+
+<img id="header_content" src="{% static 'encabezado.png' %}">
+
+{#% if object.tipo_carta == 'Carta General' %#}
+<div id="gim" style="background-image: url('{% static "/fondo.png" %}')">
+    <div id="body_frame">
+        
+        <p style="text-align:right; font-size:12px"><strong>Oficio No.:</strong>{{object.oficio}}</p><br>
+
+        <h1 style="text-align:center; font-size:14px">A QUIEN INTERESE</h1>
+
+        {% include 'carta_general/parrafo.html' %}
+
+        <p style="font-size:11px">
+            Razón por la cual Autorizamos a la Firma Comercial <strong>{{object.cliente}}.,</strong> con 
+            R.U.C. No. <strong>{{object.ruc}}</strong> a comercializar los Productos que representamos y Distribuimos 
+            en el País.
+        </p>
+
+        <p style="font-size:11px">
+            Este certificado tiene validez hasta {{object.valido_hasta_mes}} del {{object.valido_hasta_anio}}.
+        </p>
+
+        <p style="font-size:11px">
+            <strong>
+            Esta Autorización No es Transferible a Terceros sin autorización escrita de Gimpromed Cía. Ltda.
+            </strong>
+        </p>
+
+        <p style="font-size:11px">
+            Quito, {{object.fecha_emision}}
+        </p>
+
+        <p style="font-size:11px">
+        Atentamente,
+        </p><br><br>
+
+        <p style="font-size:11px">
+        Carlos A. Arcos H.<br>
+        Gerente Financiero
+        </p>
+
+        <table>
+            <tr>
+                <td></td>
+                <td></td>
+                <td><img src="{{object.qr_code.url}}" width="200" height="200"></td>
+            </tr>
+        </table>
+    </div>
+</div>
+{#% elif object.tipo_carta == 'Carta Procesos' %#}
+<div class="gim">
+    <div class="body_frame">
+
+        <p style="text-align:right; font-size:12px"><strong>Oficio No.:</strong>{{object.oficio}}</p><br>
+
+        <label style="text-align:left; font-size:14px">Quito, {{object.fecha_emision}}</label><br><br>
+
+        <label style="text-align:left; font-size:14px">Señores</label><br>
+
+        <label style="text-align:left; font-size:14px"><strong>{{object.hospital}}</strong></label><br>
+
+        <label style="text-align:left; font-size:14px">Presente</label><br><br>
+
+        <label style="text-align:left; font-size:14px">De nuestras consideraciones:</label><br>
+
+
+        {% include 'carta_general/parrafo.html' %}
+
+        <table style="border:1px solid black;">
+            <tr>
+                <th class="t_b" style="width:170px;">Código</th>
+                <th class="t_b" style="width:270px;">Descripción</th>
+                <th class="t_b" style="width:170px;">Marca</th>
+            </tr>
+            {% for i in object.items.all %}
+            <tr>
+                <td class="t_b">{{i.product_id}}</td>
+                <td class="t_b">{{i.description}}</td>
+                <td class="t_b">{{i.marca}}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        <br>
+        <p style="font-size:11px">
+            Razón por la cual Autorizamos a la Firma Comercial <strong>{{object.cliente}}.,</strong> con 
+            R.U.C. No. <strong>{{object.ruc}}</strong> a participar en el proceso No. <strong>{{object.proceso}}</strong>
+            con los productos que representamos y distribuimos en el País.
+        </p>
+
+        <p style="font-size:11px">
+            <strong>
+            Esta Autorización No es Transferible a Terceros sin autorización escrita de Gimpromed Cía. Ltda.
+            </strong>
+        </p>
+
+        <!--p style="font-size:11px">
+        Atentamente,
+        </p><br><br-->
+
+        <!--p style="font-size:11px">
+        Carlos A. Arcos H.<br>
+        Gerente Financiero
+        </p-->
+
+        <table>
+            <tr>
+                <td>
+                    <p style="font-size:11px">
+                        Atentamente,
+                        <br><br><br><br><br><br>
+                        Carlos A. Arcos H.<br>
+                        Gerente Financiero
+                    </p>
+                </td>
+                <td></td>
+                <td>
+                    <figure>
+                        <img src="{{object.qr_code.url}}" width="200" height="200" title="QR de verificación"><br>
+                        <figcaption>
+                            QR DE VERIFICACIÓN
+                        </figcaption>
+                    </figure>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+{#% endif %#}
+
+<br>
+
+<img  id="footer_content" src="{% static 'pie_de_pag.png' %}">
