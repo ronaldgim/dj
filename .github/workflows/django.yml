@@ -30,4 +30,4 @@ jobs:
         python manage.py test
     - name: Pull Changes on Server
       run: |
-        C:/ruta/a/tu/pull_script.bat
+        C:\laragon\www\dj-gimpromed\pull_script.bat
