@@ -25,9 +25,9 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+    - name: Set GITHUB_REF
+      run: echo "GITHUB_REF=${GITHUB_REF}" >> $GITHUB_ENV
     - name: Run Tests
       run: |
         python manage.py test
-    - name: Pull Changes on Server
-      run: |
-        C:\laragon\www\dj-gimpromed\pull_script.bat
+    
