@@ -2,10 +2,13 @@
 from django.db import connections
 
 # Shortcuts
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 
 # Urls
 from django.urls import reverse_lazy
+
+# Messages
+from django.contrib import messages
 
 # Generic View
 from django.views.generic.list import ListView
@@ -53,25 +56,54 @@ import mysql.connector
 
 ### PERMISOS PERSONALIZADOS
 from users.models import UserPerfil
+from django.contrib.auth.models import User
 
 
-def permisos(userperfil_id, permiso):
+### PERMISO PERSONALIZADO
+from functools import wraps
 
-    ## Añadir si es super ususario 
-    ## or super usuario tiene tambien permiso
+# Chequear si el usuario tiene permiso
+def user_perm(user_id, permiso):
 
+    user = User.objects.get(id=user_id)
+    superuser = user.is_superuser
 
     permisos_list = list(
-        UserPerfil.objects.get(id=userperfil_id).permisos.values_list('permiso', flat=True)
+        UserPerfil.objects.get(user_id=user.id).permisos.values_list('permiso', flat=True)
     )
 
-    perm = permiso in permisos_list
+    my_perm = permiso in permisos_list
+
+    if superuser or my_perm:
+        perm = True
+
+    else:
+        perm = False
 
     return perm
 
 
+# Decorador de permiso de vista
+def permisos(permiso, redirect_url):
+    def decorador(view_func):
+        @wraps(view_func)
+        def _wrapped_view(request, *args, **kwargs):
+            user_has_perm = user_perm(request.user.id, permiso)
+            if user_has_perm:
+                return view_func(request, *args, **kwargs)
+            else:
+                messages.error(request, 'No tiene permiso de ingresar !!!')
+                return redirect(redirect_url)
+        return _wrapped_view
+    return decorador
+    
 
+def de_dataframe_a_template(dataframe):
 
+    json_records = dataframe.reset_index().to_json(orient='records') # reset_index().
+    dataframe = json.loads(json_records)
+
+    return dataframe
 
 
 
@@ -86,13 +118,6 @@ class MarcaImportExcelCreateView(CreateView):
     template_name = 'datos/marcas_import.html'
     success_url = reverse_lazy('marcas_list')
 
-
-def de_dataframe_a_template(dataframe):
-
-    json_records = dataframe.reset_index().to_json(orient='records') # reset_index().
-    dataframe = json.loads(json_records)
-
-    return dataframe
 
 
 def tabla_productos():
@@ -571,8 +596,11 @@ def stock_lote(request):
 
                 #Productos
                 cursorOdbc.execute(
+                    # "SELECT INVT_Ficha_Principal.PRODUCT_ID, INVT_Ficha_Principal.PRODUCT_NAME, "
+                    # "INVT_Ficha_Principal.UM, INVT_Ficha_Principal.GROUP_CODE, INVT_Ficha_Principal.UNIDADES_EMPAQUE, INVT_Ficha_Principal.`Custom Field 1`"
+                    # "FROM INVT_Ficha_Principal INVT_Ficha_Principal"
                     "SELECT INVT_Ficha_Principal.PRODUCT_ID, INVT_Ficha_Principal.PRODUCT_NAME, "
-                    "INVT_Ficha_Principal.UM, INVT_Ficha_Principal.GROUP_CODE, INVT_Ficha_Principal.UNIDADES_EMPAQUE, INVT_Ficha_Principal.`Custom Field 1`"
+                    "INVT_Ficha_Principal.UM, INVT_Ficha_Principal.GROUP_CODE, INVT_Ficha_Principal.UNIDADES_EMPAQUE, INVT_Ficha_Principal.`Custom Field 1`, INVT_Ficha_Principal.`Custom Field 4`, INVT_Ficha_Principal.INACTIVE "
                     "FROM INVT_Ficha_Principal INVT_Ficha_Principal"
                 )
                 productos = cursorOdbc.fetchall()
@@ -669,7 +697,8 @@ def stock_lote(request):
                 mydb.commit()
                 print("Sucessful Deleted productos")
 
-                sql_insert = """INSERT INTO productos (Codigo,Nombre,Unidad,Marca,Unidad_Empaque, Reg_San) VALUES (%s,%s,%s,%s,%s,%s)"""
+                # sql_insert = """INSERT INTO productos (Codigo,Nombre,Unidad,Marca,Unidad_Empaque, Reg_San) VALUES (%s,%s,%s,%s,%s,%s)"""
+                sql_insert = """INSERT INTO productos (Codigo,Nombre,Unidad,Marca,Unidad_Empaque,Reg_San,Unidad_Box,Inactivo) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
                 data_productos = [list(rows) for rows in productos]
                 mycursorMysql.executemany(sql_insert, data_productos)
                 print("Sucessful Updated Productos")
