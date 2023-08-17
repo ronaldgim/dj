@@ -32,6 +32,8 @@ from datetime import datetime, date, timedelta
 # Login required
 from django.contrib.auth.decorators import login_required, permission_required
 
+# Shorcuts
+from django.shortcuts import redirect
 
 # Datos
 from datos.views import (
@@ -1076,103 +1078,96 @@ def add_obs2_ajax(request):
     return HttpResponse('ok')
 
 
-# Trazabilidad
+        
+#@permisos('Trazabilidad', '/inventario/bodegas')
 def trazabilidad(request):
-    from django.shortcuts import redirect
-    perm = permisos(request.user.userperfil.id, 'Trazabilidad')
     
-    if perm:
+    try:
 
-        try:
+        if request.method == 'POST':
 
-            if request.method == 'POST':
+            cod = request.POST['codigo']
+            lot = request.POST['lote']
+            print(cod, lot)
+            tr = trazabilidad_odbc(cod, lot)[[
+                'DOC_ID_CORP',
+                'NOMBRE_CLIENTE',
+                'DATE_I',
+                'FECHA_FACTURA',
+                'INGRESO_EGRESO',
+                'EGRESO_TEMP',
+                'TIPO_MOVIMIENTO',
+                'WARE_COD_CORP'
+            ]]
+            print(tr)
+            tr['FECHA'] = tr.apply(lambda x: x['DATE_I'] if x['FECHA_FACTURA']==None else x['FECHA_FACTURA'] if x['DATE_I']==None else '', axis=1)
+            tr['CANTIDAD'] = tr.apply(lambda x: x['EGRESO_TEMP']*-1 if x['INGRESO_EGRESO']=='-' else x['EGRESO_TEMP'], axis=1)
 
-                cod = request.POST['codigo']
-                lot = request.POST['lote']
+            tr['FECHA'] = pd.to_datetime(tr['FECHA'])
+            tr = tr.sort_values(by='FECHA', ascending=True).fillna('-')
+            tr['FECHA'] = tr['FECHA'].astype(str)
 
-                tr = trazabilidad_odbc(cod, lot)[[
-                    'DOC_ID_CORP',
-                    'NOMBRE_CLIENTE',
-                    'DATE_I',
-                    'FECHA_FACTURA',
-                    'INGRESO_EGRESO',
-                    'EGRESO_TEMP',
-                    'TIPO_MOVIMIENTO',
-                    'WARE_COD_CORP'
-                ]]
+            bodegas = tr['WARE_COD_CORP'].unique()
 
-                tr['FECHA'] = tr.apply(lambda x: x['DATE_I'] if x['FECHA_FACTURA']==None else x['FECHA_FACTURA'] if x['DATE_I']==None else '', axis=1)
-                tr['CANTIDAD'] = tr.apply(lambda x: x['EGRESO_TEMP']*-1 if x['INGRESO_EGRESO']=='-' else x['EGRESO_TEMP'], axis=1)
-
-                tr['FECHA'] = pd.to_datetime(tr['FECHA'])
-                tr = tr.sort_values(by='FECHA', ascending=True).fillna('-')
-                tr['FECHA'] = tr['FECHA'].astype(str)
-
-                bodegas = tr['WARE_COD_CORP'].unique()
-
-                movimientos = tr['TIPO_MOVIMIENTO'].unique()
+            movimientos = tr['TIPO_MOVIMIENTO'].unique()
 
 
-                trz_list = []
+            trz_list = []
 
-                for i in bodegas:
-                    t = tr[tr['WARE_COD_CORP']==i]
+            for i in bodegas:
+                t = tr[tr['WARE_COD_CORP']==i]
 
-                    t_ingreso_compras = t[t['TIPO_MOVIMIENTO']=='RP']
-                    t_ingreso_compras = t_ingreso_compras['CANTIDAD'].sum()
+                t_ingreso_compras = t[t['TIPO_MOVIMIENTO']=='RP']
+                t_ingreso_compras = t_ingreso_compras['CANTIDAD'].sum()
 
-                    t_transf_ingreso = t[t['TIPO_MOVIMIENTO']=='TI']
-                    t_transf_ingreso = t_transf_ingreso['CANTIDAD'].sum()
+                t_transf_ingreso = t[t['TIPO_MOVIMIENTO']=='TI']
+                t_transf_ingreso = t_transf_ingreso['CANTIDAD'].sum()
 
-                    t_egreso          = t[(t['TIPO_MOVIMIENTO']=='FT') | (t['TIPO_MOVIMIENTO']=='MA')]
-                    t_egreso          = t_egreso['CANTIDAD'].sum()
+                t_egreso          = t[(t['TIPO_MOVIMIENTO']=='FT') | (t['TIPO_MOVIMIENTO']=='MA')]
+                t_egreso          = t_egreso['CANTIDAD'].sum()
 
-                    t_transf_egreso  = t[t['TIPO_MOVIMIENTO']=='TE']
-                    t_transf_egreso  = t_transf_egreso ['CANTIDAD'].sum()
+                t_transf_egreso  = t[t['TIPO_MOVIMIENTO']=='TE']
+                t_transf_egreso  = t_transf_egreso ['CANTIDAD'].sum()
 
-                    otros = t_ingreso_compras + t_transf_ingreso + t_transf_egreso + t_egreso
+                otros = t_ingreso_compras + t_transf_ingreso + t_transf_egreso + t_egreso
 
-                    cantidad_actual = t['CANTIDAD'].sum()
+                cantidad_actual = t['CANTIDAD'].sum()
 
-                    tabla = de_dataframe_a_template(t)
+                tabla = de_dataframe_a_template(t)
 
-                    trz = {}
-                    trz['bodega'] = i
-                    trz['ingreso_compras'] = t_ingreso_compras
-                    trz['transferencia_ingreso'] = t_transf_ingreso
-                    trz['egreso'] = t_egreso
-                    trz['transferencia_egreso'] = t_transf_egreso
-                    trz['otros'] = otros
-                    trz['cantidad_actual'] = cantidad_actual
-                    trz['tabla']  = tabla
+                trz = {}
+                trz['bodega'] = i
+                trz['ingreso_compras'] = t_ingreso_compras
+                trz['transferencia_ingreso'] = t_transf_ingreso
+                trz['egreso'] = t_egreso
+                trz['transferencia_egreso'] = t_transf_egreso
+                trz['otros'] = otros
+                trz['cantidad_actual'] = cantidad_actual
+                trz['tabla']  = tabla
 
-                    trz_list.append(trz)
-
-                context = {
-                'cod':cod,
-                'lot':lot,
-                'trazabilidad':trz_list,
-                'bodegas':bodegas,
-                'movimientos':movimientos
-                }
-                
-                return render(request, 'inventario/trazabilidad/trazabilidad.html', context)
+                trz_list.append(trz)
             
-        except:
             context = {
-                'cod':cod,
-                'lot':lot,
-                'mensaje':'No hay conisidencias entre código y lote'
-                }
+            'cod':cod,
+            'lot':lot,
+            'trazabilidad':trz_list,
+            'bodegas':bodegas,
+            'movimientos':movimientos
+            }
             
             return render(request, 'inventario/trazabilidad/trazabilidad.html', context)
-
-
-        context={}
-
-        return render(request, 'inventario/trazabilidad/trazabilidad.html', context)
-    
-    else:
-        messages.error(request, 'No tiene permiso de ingresar !!!')
-        return redirect('/inventario/bodegas')
         
+    except:
+        context = {
+            'cod':cod,
+            'lot':lot,
+            'mensaje':'No hay conisidencias entre código y lote'
+            }
+        
+        return render(request, 'inventario/trazabilidad/trazabilidad.html', context)
+
+
+    context={}
+
+    return render(request, 'inventario/trazabilidad/trazabilidad.html', context)
+    

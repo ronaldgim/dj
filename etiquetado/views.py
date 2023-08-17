@@ -2553,7 +2553,11 @@ def dashboard_armados(request):
     armados['mensual'] = (armados['ANUAL'] / 12).round(0)
     armados['dip-meno-res-2'] = (armados['OH2'] - armados['RESERVAS']).round(0)
     armados['meses']   = (armados['dip-meno-res-2'] / armados['mensual']).round(2)
-    armados['armar']   = (armados['mensual'] - armados['dip-meno-res-2'])
+    #armados['armar']   = (armados['mensual'] - armados['dip-meno-res-2'])
+    # Si dip-meno-res-2 mayor ponga 0 sino haga la resta
+    armados['armar']   = armados.apply(
+        lambda x: 0 if x['dip-meno-res-2'] > x['mensual'] else (x['mensual'] - x['dip-meno-res-2']), axis=1
+    )
 
     armados = armados.rename(columns={
         'producto__description':'PRODUCT_NAME',
@@ -2563,13 +2567,17 @@ def dashboard_armados(request):
         'Marca':'GROUP_CODE'
     })
     
-    armados['cartones'] = (armados['armar'] / armados['Unidad_Empaque']).round(0).replace(np.inf, 0).replace(-np.inf, 0)
+    armados['cartones'] = (armados['armar'] / armados['Unidad_Empaque']).round(2)#.replace(np.inf, 0).replace(-np.inf, 0).replace(-0,0)
     armados['tiempo_s'] = (armados['cartones'] * armados['t_armado']).round(0)
     armados = armados.fillna(0).replace(np.inf, 0)
-    armados['tiempo'] = armados.apply(
-        lambda x: 'F' if x['tiempo_s'] == 0 else str(timedelta(seconds=int(armados['tiempo_s']))), axis=1
+    armados['tiempo_s'] = armados['tiempo_s'].astype(int)
+    
+    armados['tiempo'] = [str(timedelta(seconds=int(i))) for i in armados['tiempo_s']]
+
+    armados['tiempo_str'] = armados.apply(
+        lambda x: 'F' if x['t_armado'] == 0 else x['tiempo'], axis=1
     )
-      
+
     urgente = armados[armados['meses']< 0.5]
     pronto  = armados[armados['meses']>=0.5]
     pronto  = pronto[pronto['meses']< 1]
