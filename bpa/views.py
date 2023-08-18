@@ -14,6 +14,10 @@ import numpy as np
 # Json
 import json
 
+# Correo
+from django.core.mail import send_mail
+from django.conf import settings
+
 # Productos
 from datos.models import Product
 from datos.models import TimeStamp
@@ -565,6 +569,7 @@ def reg_san_list(request):
     
     r_san_list = RegistroSanitario.objects.all().order_by('marca', 'fecha_expiracion')
     r_san_list_2 = RegistroSanitario.objects.all().order_by('fecha_expiracion')
+    
     n_docs = len([i for i in RegistroSanitario.objects.all() if i.obs_doc == 'Docs ok'])    
     n_enviar = len([i for i in RegistroSanitario.objects.all() if i.obs_doc == 'Enviar a notaria'])   
     n_caducado = len([i for i in RegistroSanitario.objects.all() if i.estado == 'Caducado'])
@@ -586,6 +591,48 @@ def reg_san_list(request):
 
     return render(request, 'bpa/registro_sanitario/list.html', context)
 
+
+# Envio de alertas de Caducidad de R.Sanitario por EMAIL.
+def r_san_alerta_correo(request):
+    
+    dias = 100
+    tabla_query = RegistroSanitario.objects.all().order_by('fecha_expiracion')
+    
+    rs_list = [i for i in tabla_query if i.dias_caducar < dias and i.dias_caducar > 0]
+    
+    lista_registro = []
+    for i in rs_list:
+        marca       = i.marca
+        registro    = i.registro
+        propietario = i.propietario
+        f_exp       = i.fecha_expiracion
+        dias_rest   = i.dias_caducar
+        
+        fila = f"""- {marca}, {registro}, {propietario}, {f_exp}, dias restantes para caducar: {dias_rest}\n"""
+        
+        lista_registro.append(fila)
+        
+    texto = '\n'.join(lista_registro)
+    
+    cabecera = """Estimada Pía.\n"""
+    cuerpo =   f"""Los siguientes doumentos estan proximos a caducar en menos de {dias} días\n"""
+    
+    texto_correo = cabecera + cuerpo + texto
+    
+    send_mail(
+        #subject=f'PEDIDO # {picking_estado.n_pedido[:-2]} - FACTURADO',
+        subject='Notificación Pedido FACTURADO',
+        message= texto_correo,
+        from_email=settings.EMAIL_HOST_USER,
+        recipient_list= ['egarces@gimpromed.com'],
+        fail_silently=True,
+    )
+                    
+    print(texto_correo)
+    return HttpResponse(texto_correo)
+        
+
+    
 
 # Nuevo Registro Sanitario
 @login_required(login_url='login')
@@ -745,7 +792,7 @@ def carta_no_reg_edit(request, id):
 
 
 
-### IMPORTAACIONES EXCEL
+### IMPORTACIONES EXCEL
 def importacion_list(request):
     imp = ImportacionesExcel.objects.all()
     context = {

@@ -1,4 +1,4 @@
-                # Models
+# Models
 from django.db import models
 
 # Datetime
@@ -44,6 +44,7 @@ class RegistroSanitario(models.Model):
     n_solicitud      = models.CharField(verbose_name='Número Solicitud', max_length=50, blank=True)
     n_emision        = models.CharField(verbose_name='Número de emisión', max_length=50, blank=True)
     observacion      = models.TextField(verbose_name='Observaciones', blank=True)
+    activo           = models.BooleanField(verbose_name='Activo', default=True)
     
     def __str__(self):
         return f'{self.id} - {self.marca} - {self.registro}'
@@ -78,7 +79,7 @@ class RegistroSanitario(models.Model):
     @property
     def dias_caducar(self):
         if self.fecha_expiracion is None:
-            dias = '-'
+            dias = 0
         else:
             dias = (self.fecha_expiracion - date.today()).days
             if dias < 0:

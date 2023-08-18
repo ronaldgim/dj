@@ -71,7 +71,15 @@
 
 
 <div class="row">
-    <div class="col-4">
+    <div class="col-3">
+        <label><strong>Filtrar por activo/inactivo.</strong></label>
+        <select class="form-select filter" id="filter-activo">
+            <option value="0">Todos</option>
+            <option value="Activo">Activo</option>
+            <option value="Inactivo">Inactivo</option>
+        </select>
+    </div>
+    <div class="col-3">
         <label><strong>Filtrar por Obs Docs.</strong></label>
         <select class="form-select filter" id="filter-obs">
             <option value="0">Todos</option>
@@ -79,7 +87,7 @@
             <option value="Enviar a notaria">Enviar a notaria</option>
         </select>
     </div>
-    <div class="col-4">
+    <div class="col-3">
         <label><strong>Filtrar por Estado.</strong></label>
         <select class="form-select filter" id="filter-estado">
             <option value="0">Todos</option>
@@ -90,7 +98,7 @@
         </select>
         <br>
     </div>
-    <div class="col-4">
+    <div class="col-3">
         <label><strong>Buscar por dato especifico.</strong></label>
         <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
     </div>
@@ -131,7 +139,7 @@
 <div class="card mt-2 mb-2">
     <div class="card-body m-0 p-0">
         <div class="container table-responsive">
-            <table class="table">
+            <table class="table" style="font-size:small">
                 <thead>
                     <tr>
                         <th scope="col">Reg.Sanitario</th>
@@ -143,6 +151,7 @@
                         <th scope="col">Estado</th>
                         <th scope="col">Caduca en</th>
                         <th scope="col">Obs. Docs.</th>
+                        <th scope="col">Activo.</th>
                         <th scope="col" class="text-center">Ver|Editar</th>
                     </tr>
                 </thead>
@@ -175,6 +184,14 @@
                             {{i.obs_doc}}
                         </td>
 
+                        <td class"activo" data-activo="{% if i.activo %}activo{% else %}inactivo{% endif %}">
+                            {% if i.activo %}
+                            <i class="bi bi-check-circle-fill" style="color:green"></i>
+                            {% esle %}
+                            <i class="bi bi-x-circle-fill" style="color:red"></i>
+                            {% endif %}
+                        </td>
+
                         <td class="text-center">
                             <a class="btn btn-primary btn-sm" href="{% url 'reg_san_edit' i.id %}">
                                 <i class="bi bi-pen-fill"></i>
@@ -194,7 +211,7 @@
     <div class="card mt-2 mb-2">
         <div class="card-body m-0 p-0">
             <div class="container table-responsive">
-                <table class="table">
+                <table class="table" style="font-size:small">
                     <thead>
                         <tr>
                             <th scope="col">Marca</th>
@@ -207,6 +224,7 @@
                             <th scope="col">Estado</th>
                             <th scope="col">Caduca en</th>
                             <th scope="col">Obs.Docs</th>
+                            <th scope="col">Activo</th>
                             <th scope="col">Editar</th>
                         </tr>
                     </thead>
@@ -238,6 +256,14 @@
                                 {% elif i.obs_doc == 'Docs ok' %} style="background-color: #BAF690;"
                                 {% endif %}>
                                 {{i.obs_doc}}
+                            </td>
+
+                            <td class"activo" data-activo="{% if i.activo %}activo{% else %}inactivo{% endif %}">
+                                {% if i.activo %}
+                                <i class="bi bi-check-circle-fill" style="color:green"></i>
+                                {% esle %}
+                                <i class="bi bi-x-circle-fill" style="color:red"></i>
+                                {% endif %}
                             </td>
 
                             <td class="text-center">
