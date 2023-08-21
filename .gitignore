@@ -1,3 +1,4 @@
 media/
 db.squlite3
 bpa/__pycache__/
+*.pyc
