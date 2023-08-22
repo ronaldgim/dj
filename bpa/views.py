@@ -596,9 +596,9 @@ def reg_san_list(request):
 def r_san_alerta_correo(request):
     
     dias = 100
-    tabla_query = RegistroSanitario.objects.all().order_by('fecha_expiracion')
+    tabla_query = RegistroSanitario.objects.filter(activo=True).order_by('-fecha_expiracion')
     
-    rs_list = [i for i in tabla_query if i.dias_caducar < dias and i.dias_caducar > 0]
+    rs_list = [i for i in tabla_query if i.dias_caducar < dias and i.dias_caducar > 0] # 
     
     lista_registro = []
     for i in rs_list:
@@ -608,28 +608,26 @@ def r_san_alerta_correo(request):
         f_exp       = i.fecha_expiracion
         dias_rest   = i.dias_caducar
         
-        fila = f"""- {marca}, {registro}, {propietario}, {f_exp}, dias restantes para caducar: {dias_rest}\n"""
+        fila = f"""- {marca}, {registro}, {propietario}, {f_exp}, dias restantes para caducar: {dias_rest}"""
         
         lista_registro.append(fila)
         
     texto = '\n'.join(lista_registro)
     
-    cabecera = """Estimada Pía.\n"""
-    cuerpo =   f"""Los siguientes doumentos estan proximos a caducar en menos de {dias} días\n"""
+    cabecera = """Estimada Pía.\n \n"""
+    cuerpo =   f"""Los siguientes doumentos estan proximos a caducar en menos de {dias} días \n \n"""
     
     texto_correo = cabecera + cuerpo + texto
     
     send_mail(
-        #subject=f'PEDIDO # {picking_estado.n_pedido[:-2]} - FACTURADO',
-        subject='Notificación Pedido FACTURADO',
+        subject='Registros Sanitarios Proximos a Caducar',
         message= texto_correo,
         from_email=settings.EMAIL_HOST_USER,
         recipient_list= ['egarces@gimpromed.com'],
         fail_silently=True,
     )
                     
-    print(texto_correo)
-    return HttpResponse(texto_correo)
+    return HttpResponse(None)
         
 
     
