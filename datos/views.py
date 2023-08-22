@@ -1690,3 +1690,19 @@ def trazabilidad_odbc(cod, lot):
     df_trazabilidad = pd.read_sql_query(query, cnxn)
     
     return df_trazabilidad
+
+
+### Consulta pedidos cuenca
+def pedidos_cuenca_odbc():
+
+    cnxn = pyodbc.connect('DSN=mba3;PWD=API')
+
+    query = (
+        "SELECT orders.id,seller_code,client_code,client_name,client_identification,orders.created_at,order_products.product_id,orders.status,order_products.product_name, "
+        "order_products.product_group_code,order_products.quantity,order_products.price FROM orders LEFT JOIN order_products "
+        "ON orders.id = order_products.order_id where seller_code='VEN03' AND orders.status='TCR';"
+    )
+    
+    df = pd.read_sql_query(query, cnxn)
+    
+    return df

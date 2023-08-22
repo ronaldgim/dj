@@ -19,4 +19,11 @@ urlpatterns = [
         view = views.lote_factura_ajax,
         name = 'lote_factura_ajax'
     ),
+    
+    # Pedidos Cuenca
+    path(
+        route='pedidos/cuenca',
+        view = views.pedidos_cuenca,
+        name = 'pedidos_cuenca'
+    ),
 ]

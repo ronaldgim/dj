@@ -1088,7 +1088,7 @@ def trazabilidad(request):
 
             cod = request.POST['codigo']
             lot = request.POST['lote']
-            print(cod, lot)
+            
             tr = trazabilidad_odbc(cod, lot)[[
                 'DOC_ID_CORP',
                 'NOMBRE_CLIENTE',
@@ -1099,7 +1099,7 @@ def trazabilidad(request):
                 'TIPO_MOVIMIENTO',
                 'WARE_COD_CORP'
             ]]
-            print(tr)
+            
             tr['FECHA'] = tr.apply(lambda x: x['DATE_I'] if x['FECHA_FACTURA']==None else x['FECHA_FACTURA'] if x['DATE_I']==None else '', axis=1)
             tr['CANTIDAD'] = tr.apply(lambda x: x['EGRESO_TEMP']*-1 if x['INGRESO_EGRESO']=='-' else x['EGRESO_TEMP'], axis=1)
 
