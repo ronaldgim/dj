@@ -6,7 +6,13 @@ import pandas as pd
 from datetime import date, datetime
 
 # Ventas facturas odbc
-from datos.views import ventas_odbc_facturas, de_dataframe_a_template, productos_odbc_and_django, clientes_warehouse, lotes_facturas_odbc
+from datos.views import (
+    ventas_odbc_facturas, 
+    de_dataframe_a_template, 
+    productos_odbc_and_django, 
+    clientes_warehouse, 
+    lotes_facturas_odbc,
+    pedidos_cuenca_odbc)
 
 
 # Http
@@ -15,6 +21,8 @@ from django.http import HttpResponse
 # JSON
 import json
 
+
+# Reporte de ventas
 def reporte_tipo_mba(request):
 
     desde = datetime.strptime('2023-01-01', '%Y-%m-%d')
@@ -88,6 +96,7 @@ def reporte_tipo_mba(request):
     return render(request, 'ventas/reporte_ventas.html', context)
 
 
+# lote y cantidad por factura en reporte ventas
 def lote_factura_ajax(request):
 
     fac = request.POST['fac']
@@ -96,6 +105,14 @@ def lote_factura_ajax(request):
     lote_factura = lotes_facturas_odbc(fac, cod) #;print(lote_factura[0]);print(type(lote_factura[0]))
 
     response = json.dumps(lote_factura)
-    # print(response, type(response))
 
     return HttpResponse(response, content_type='appliation/json')
+
+
+# Pedidos cuenca 
+def pedidos_cuenca(request):
+    
+    pedidos = pedidos_cuenca_odbc()
+    print(pedidos)
+    
+    return HttpResponse(pedidos)
