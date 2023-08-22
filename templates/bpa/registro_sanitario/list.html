@@ -151,7 +151,7 @@
                         <th scope="col">Estado</th>
                         <th scope="col">Caduca en</th>
                         <th scope="col">Obs. Docs.</th>
-                        <th scope="col">Activo.</th>
+                        <th scope="col">Activo</th>
                         <th scope="col" class="text-center">Ver|Editar</th>
                     </tr>
                 </thead>
@@ -183,8 +183,8 @@
                             {% endif %}>
                             {{i.obs_doc}}
                         </td>
-
-                        <td class"activo" data-activo="{% if i.activo %}activo{% endif %}">
+                        
+                        <td class="activo text-center" data-activo="{% if i.activo %}Activo{% else %}Inactivo{% endif %}">
                             {% if i.activo %}
                                 <i class="bi bi-check-circle-fill" style="color:green"></i>
                             {% else %}
@@ -257,8 +257,8 @@
                                 {% endif %}>
                                 {{i.obs_doc}}
                             </td>
-
-                            <td class"activo" data-activo="{% if i.activo %}activo{% endif %}">
+                            
+                            <td class="activo text-center" data-activo="{% if i.activo %}Activo{% else %}Inactivo{% endif %}">
                                 {% if i.activo %}
                                     <i class="bi bi-check-circle-fill" style="color:green"></i>
                                 {% else %}
@@ -283,14 +283,15 @@
 
 <!--filtro buscar-->
 <script>
+
     $(document).ready(function() {
         $("#inputbuscar").on("keyup", function() {
+            
+            var value = $(this).val().toLowerCase();
 
             $('#table_grouped').hide();
             $('#table_full').show();
 
-            var value = $(this).val().toLowerCase();
-            
             $("#pedidosbuscar tr").filter(function() {
                 $(this).toggle($(this).text()
                 .toLowerCase().indexOf(value) > -1)
@@ -326,7 +327,7 @@ function filter_function() {
     // Activo
     var activoFlag = 0;
     var activoValue = $('#filter-activo').val();
-
+    console.log(activoValue)
     $('table tr').each(function() {  
   
         // Obs
