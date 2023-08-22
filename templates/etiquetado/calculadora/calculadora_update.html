@@ -259,13 +259,8 @@
 
 <script>
     $("#print").click(function() {
-        // window.print({
-        //     addGlobalStyles:false,
-        // })
-        
         w=window.open();
         w.document.write($('#print_area_cabecera').html());
-        //w.document.write($('#print_costo_entrega').html());
         w.document.write($('#costo').html());
         w.document.write($('#print_area_table').html());
         w.print();
