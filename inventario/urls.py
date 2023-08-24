@@ -119,6 +119,13 @@ urlpatterns = [
             view = views.editar_fila_arqueo,
             name = 'editar_fila_arqueo'
         ),
+    
+    # anular arqueo creado
+    path(
+            route='arqueos/creado-anular',
+            view = views.anular_arqueo_creado,
+            name = 'anular_arqueo_creado'
+        ),
 
     # lista de arqueos
     path(
@@ -134,6 +141,12 @@ urlpatterns = [
             name = 'arqueos_list'
         ),
 
+    # Lista de arqueos pendientes por crear
+    path(
+            route='arqueos/pendientes/list',
+            view = views.arqueos_pendientes_list,
+            name = 'arqueos_pendientes_list'
+        ),
     
     path(
             route='arqueos/bodega/view/<int:arqueo>/<str:ware_code>',

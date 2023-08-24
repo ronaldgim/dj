@@ -611,7 +611,7 @@ def nuevo_arqueo(request):
 
     if request.method == 'POST':
         form = ArqueoForm(request.POST)
-        p = request.POST.getlist('productos') 
+        p = request.POST.getlist('productos')
         prod_list = [Product.objects.get(id=i).product_id for i in p]
 
         if form.is_valid():
@@ -675,7 +675,7 @@ def nuevo_arqueo(request):
     
     return render(request, 'inventario/arqueos/nuevo_arqueo.html', context)
 
-
+# Vista para ver y editar los productos antes de crear los arqueos
 def arqueo_view(request, id):
 
     arqueo = Arqueo.objects.get(id=id)
@@ -700,20 +700,21 @@ def arqueo_view(request, id):
         'arqueo_d':arqueo_d,
 
         'arqueo':id,
-        'prod':prod
+        'prod':prod,
+
     }
     
     return render(request, 'inventario/arqueos/detalle_arqueo.html', context)
 
 
-
+# Vista para ingrear y editar los arqueos ya creados 
 def arqueo_edit_view(request, id, ware_code):
 
-    arqueo = Arqueo.objects.get(id=id)
-    arqueo_d = arqueo.descripcion
+    arqueo    = Arqueo.objects.get(id=id)
+    arqueo_d  = arqueo.descripcion
     productos = ArqueoFisico.objects.filter(id_arqueo = id).filter(ware_code=ware_code).order_by('ware_code','location')
-    bodegas = pd.DataFrame(productos.order_by('ware_code').values('ware_code'))['ware_code']
-    bodegas = list(bodegas.unique())
+    bodegas   = pd.DataFrame(productos.order_by('ware_code').values('ware_code'))['ware_code']
+    bodegas   = list(bodegas.unique())
 
     prod_list = list(arqueo.productos.values_list('product_id', flat=True))
     prod = productos_odbc_and_django()
@@ -737,6 +738,7 @@ def arqueo_edit_view(request, id, ware_code):
     return render(request, 'inventario/arqueos/detalle_edit_arqueo.html', context)
 
 
+# Ajax para editar items
 def add_item_arqueo(request):
     
     prod = request.POST['prod_id']
@@ -767,6 +769,7 @@ def add_item_arqueo(request):
     return HttpResponse('ok')
 
 
+# eliminar producto en arqueo
 def eliminar_fila_arqueo(request):
     
     id_row = int(request.POST['id'])
@@ -796,7 +799,7 @@ def editar_fila_arqueo(request):
         return HttpResponse('error')
     
 
-
+# Crear arqueos
 def arqueos_por_bodega(request):
 
     bodegas = request.POST['bodegas']
@@ -861,7 +864,18 @@ def arqueos_por_bodega(request):
     return HttpResponse('ok')
 
 
+# Anular arqueo creado
+def anular_arqueo_creado(request):
+    
+    arqueo_enum = request.POST['arqueo']
+    
+    arq = ArqueosCreados.objects.get(arqueo_enum=arqueo_enum)
+    arq.estado = 'ANULADO'
+    arq.save()
+    print(arq.estado)
+    return HttpResponse('ok')
 
+# Lista de arqueos creados
 def arqueos_list(request):
 
     arqueos_creados = ArqueosCreados.objects.all().order_by('-arqueo','ware_code')
@@ -871,6 +885,27 @@ def arqueos_list(request):
     }
 
     return render(request, 'inventario/arqueos/lista.html', context)
+
+
+# Lista de arqueos por crear
+def arqueos_pendientes_list(request):
+    
+    arqueos_list_ids = Arqueo.objects.values_list('id', flat=True)
+    arqueos_list_ids = set(arqueos_list_ids)
+
+    arqueos_fisicos_list_ids = ArqueosCreados.objects.values_list('arqueo_id', flat=True)
+    arqueos_fisicos_list_ids = set(arqueos_fisicos_list_ids)
+    
+    arqueos_pendientes = arqueos_list_ids.difference(arqueos_fisicos_list_ids)
+    
+    arqueos = Arqueo.objects.filter(id__in=arqueos_pendientes)
+    
+    context = {
+        'arqueos':arqueos,
+        'pendientes':1
+    }
+    
+    return render(request, 'inventario/arqueos/pendientes_lista.html', context)
 
 
 def arqueo_bodega_view(request, arqueo, ware_code):
@@ -884,15 +919,17 @@ def arqueo_bodega_view(request, arqueo, ware_code):
     qq = []
 
     for i in prod:
-        prod_query = arqueo_fisico.filter(product_id=i)
-        prod_total_mba = prod_query.aggregate(total_mba=Sum('oh'))['total_mba']
-        prod_diferencia = prod_query.aggregate(diferencia=Sum('diferencia'))['diferencia']
+        prod_query        = arqueo_fisico.filter(product_id=i)
+        prod_total_mba    = prod_query.aggregate(total_mba=Sum('oh'))['total_mba']
+        prod_diferencia   = prod_query.aggregate(diferencia=Sum('diferencia'))['diferencia']
+        prod_total_fisico = prod_query.aggregate(total_fisico=Sum('total_unidades'))['total_fisico']
 
         q = {}
-        #q['product_id'] = i
+        q['product_id']       = i
         q['prod_query']       = prod_query
         q['prod_total_mba']   = prod_total_mba
         q['prod_diferencia']  = prod_diferencia
+        q['prod_total_fisico']= prod_total_fisico
         q['reservas']         = [r for r in reservas if r['PRODUCT_ID']==i if r['WARE_CODE']==ware_code] 
         
         qq.append(q)
@@ -972,13 +1009,13 @@ def toma_fisica_inventario_ajax(request):
     dif_unds = total_unds - und_mba 
 
     # Save method
-    arqueo.unidades_caja = unidades_caja_r
-    arqueo.numero_cajas = numero_cajas_r
+    arqueo.unidades_caja    = unidades_caja_r
+    arqueo.numero_cajas     = numero_cajas_r
     arqueo.unidades_sueltas = unidades_sueltas_r
-    arqueo.total_unidades = total_unds
-    arqueo.diferencia = dif_unds
-    arqueo.observaciones = observaciones_r
-    arqueo.llenado = True
+    arqueo.total_unidades   = total_unds
+    arqueo.diferencia       = dif_unds
+    arqueo.observaciones    = observaciones_r
+    arqueo.llenado          = True
 
     arqueo.save()
     

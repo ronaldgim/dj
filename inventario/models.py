@@ -208,7 +208,7 @@ class ArqueosCreados(models.Model):
     bodega      = models.CharField(verbose_name='Bodega', max_length=100, blank=True)
     descripcion = models.TextField(verbose_name='Descripción', max_length=50)
     
-    estado      = models.CharField(verbose_name='Bodega', max_length=100, blank=True)
+    estado      = models.CharField(verbose_name='Estado', max_length=100, blank=True)
 
     reservas    = models.TextField(verbose_name='Reservas', blank=True)
     reservas_sinlote    = models.TextField(verbose_name='Reservas sin lote', blank=True)
