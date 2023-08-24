@@ -61,11 +61,12 @@
 
 
 {% for q in qq %}
+<h6 class="fw-bold">Inventario: {{q.product_id}}</h6>
 <!-- Inventario TF -->
 <div class="card mb-2">
     <div class="card-body m-0 p-0">
         <div class="ps-2 pe-2">
-            <table class="table mb-0 pb-0" style="font-size: small;">
+            <table class="table table-bordered mt-2 mb-2" style="font-size: small;">
                 <thead>
                     <tr>
                         <th class="align-middle" rowspan="2">Código</th>
@@ -92,11 +93,11 @@
                 <tbody id="pedidosbuscar">
 
                     {% for i in q.prod_query %}
-                    
                     <tr class="content">
                         <td>{{i.product_id}}
                             {% if i.agregado %}
-                                <span style="color: green;">*</span> 
+                                <!--span style="color: green;">*</span--> 
+                                <i style="color:green" class="bi bi-node-plus-fill"></i>
                             {% endif %}
 
                         </td>
@@ -104,13 +105,13 @@
                         <td>{{i.group_code}}</td>
                         <td>{{i.lote_id}}</td>
                         <td>{{i.location}}</td>
-                        <td class="text-end">{{i.oh|floatformat:'0g'}}</td>
+                        <td class="text-end" style="text-align: right">{{i.oh|floatformat:'0g'}}</td>
 
-                        <td class="text-end" style="background-color: #ddffdb;">{{i.unidades_caja|floatformat:'0g'}}</td>
-                        <td class="text-end" style="background-color: #ddffdb;">{{i.numero_cajas|floatformat:'0g'}}</td>
-                        <td class="text-end" style="background-color: #ddffdb;">{{i.unidades_sueltas|floatformat:'0g'}}</td>
-                        <td class="text-end" style="background-color: #ddffdb;">{{i.total_unidades|floatformat:'0g'}}</td>
-                        <td class="text-end" style="background-color: #fcffdb;">{{i.diferencia|floatformat:'0g'}}</td>
+                        <td class="text-end" style="background-color: #ddffdb;text-align: right;">{{i.unidades_caja|floatformat:'0g'}}</td>
+                        <td class="text-end" style="background-color: #ddffdb;text-align: right;">{{i.numero_cajas|floatformat:'0g'}}</td>
+                        <td class="text-end" style="background-color: #ddffdb;text-align: right;">{{i.unidades_sueltas|floatformat:'0g'}}</td>
+                        <td class="text-end" style="background-color: #ddffdb;text-align: right;">{{i.total_unidades|floatformat:'0g'}}</td>
+                        <td class="text-end" style="background-color: #fcffdb;text-align: right;">{{i.diferencia|floatformat:'0g'}}</td>
                         <td class="text-end">{{i.observaciones}}</td>
                         <td class="text-end">
                             {% if i.observaciones2 %}
@@ -128,11 +129,12 @@
                     </tr>                    
                     {% endfor %}
                     <tr class="mb-0 pb-0">
-                        <td></td><td></td><td></td><td></td>
-                        <td class="fw-bold">Totales:</td>
-                        <td class="text-end">{{q.prod_total_mba|floatformat:'0g'}}</td>
-                        <td></td><td></td><td></td><td></td>
-                        <td class="text-end">{{q.prod_diferencia|floatformat:'0g'}}</td>
+                        <td colspan="5"></td>
+                        <td class="text-end fw-bold" style="text-align: right;"> {{q.prod_total_mba|floatformat:'0g'}}</td>
+                        <td colspan="3"></td>
+                        <td class="text-end fw-bold" style="background-color: #ddffdb;text-align: right;">{{q.prod_total_fisico|floatformat:'0g'}}</td>
+                        <td class="text-end fw-bold" style="background-color: #fcffdb;text-align: right;">{{q.prod_diferencia|floatformat:'0g'}}</td>
+                        <td colspan="3"></td>
                     </tr>
                 </tbody>
             </table>
@@ -144,9 +146,9 @@
 <div class="card mb-2">
     <div class="card-body m-0 p-0">
         <div class="ps-2 pe-2">
+            <h6 class="text-center mt-2 fw-bold">Reservas {{q.product_id}}</h6>
             {% if q.reservas %}
-            <h6 class="text-center mt-2 fw-bold">Reservas</h6>
-            <table class="table mb-0 pb-0" style="font-size: small;">
+            <table class="table table-bordered mt-2 mb-2" style="font-size: small;">
                 <thead>
                     <tr>
                         <th class="align-middle" rowspan="2">Documento</th>
@@ -161,7 +163,7 @@
                 <tbody id="pedidosbuscar">
 
                     {% for i in q.reservas %}
-                    <tr>
+                    <tr class="content">
                         <td>{{i.CONTRATO_ID}}</td>
                         <td>{{i.NOMBRE_CLIENTE}}</td>
                         <td>{{i.FECHA_PEDIDO}}</td>
@@ -184,7 +186,7 @@
                             {% endif %}
                         </td>
 
-                        <td class="text-end">
+                        <td class="text-end" style="text-align: right;">
                             {% if i.LOTE_ID %}
                             {{i.EGRESO_TEMP|floatformat:'0g'}}
                             {% elif not i.LOTE_ID %}
@@ -247,15 +249,12 @@
 
 <script>
     $("#print").click(function() {
-        // window.print(
-        //     {
-        //     addGlobalStyles:true,
 
-        // }
-        // )
-
-        w=window.open();
+        var w=window.open();
+        w.document.write('<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.3/font/bootstrap-icons.css">');
+        w.document.write('<style>table, th, td {border: 1px solid black;border-collapse: collapse;}</style>') 
         w.document.write($('#print_area').html());
+        w.document.write('<div style="padding-top:50px"><span style="display: inline-block; padding-right:225px">___________________________________<br>FIRMA DEPARATEMTO DE BODEGA</span><span style="display: inline-block;padding-left:225px">___________________________________<br>FIRMA ADMINISTRATIVO</span></div>')
         w.print();
         w.close();
     })

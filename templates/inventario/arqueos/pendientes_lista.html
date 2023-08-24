@@ -1,0 +1,152 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Listado de arqueos</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'inventario/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+<h5 class="m-4 text-center"><strong>LISTADO DE ARQUEOS PENDIENTES POR CREAR</strong></h5>
+
+<!--a class="btn btn-primary mb-2" href="{% url 'nuevo_arqueo' %}">
+    <i class="bi bi-plus-circle"></i> Nuevo Arqueo
+</a-->
+
+<div class="col-4">
+    <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+</div>
+
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table" style="font-size: small;">
+                <thead>
+                    <tr>
+                        <th scope="col">Arqueo</th>
+                        <th scope="col">Descripción</th>
+                        <th scope="col">Fecha</th>
+                        <th scope="col">Estado</th>
+                        <th scope="col">Realizado por</th>
+                        <th class="text-center" scope="col">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in arqueos %}
+                    <tr>
+                        <td>{{i.id}}</td>
+                        <td>{{i.descripcion}}</td>
+                        
+                        <td>{{i.fecha_hora|date:'d-m-Y - H:i'}}</td>
+                        <td>
+                            <a class="btn btn-warning btn-sm disabled" target="_blank">PEDIENTE POR CREAR</a>
+                        </td>
+                        
+                        <td>{{i.usuario.first_name}} {{i.usuario.last_name}}</td>
+
+                        <td class="estado text-center" data-estado="{{i.estado}}">
+                            <div class="btn-group">
+                                <a class="btn btn-primary btn-sm" href="{% url 'nuevo_view' i.id %}">
+                                    <i class="bi bi-search"></i>
+                                </a>                                  
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function actualizar(){location.reload(true);}
+    //Función para actualizar cada 30 min = 1,800,000 milisegundos
+    setInterval("actualizar()",300000); // 5 min
+</script>
+
+
+
+<!--filtro buscar-->
+<script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+
+<!-- Filtro de columna -->
+<script>
+    $('.filter').change(function(){
+        filter_function(); //calling filter function each select box value change
+    });
+      
+    $('table tbody tr').show(); //intially all rows will be shown
+      
+    function filter_function(){
+        $('table tbody tr').hide(); //hide all rows
+        
+        var tipoFlag = 'TODOS';
+        var tipoValue = $('#filter-tipo').val();
+        
+       //traversing each row one by one
+        $('table tr').each(function() {  
+          if(tipoValue == 'TODOS'){
+            tipoFlag = 1;
+          }
+          else if(tipoValue == $(this).find('td.tipo').data('tipo')){
+            tipoFlag = 1;
+          }
+          else{
+            tipoFlag = 0;
+          }
+
+         if(tipoFlag){ 
+            $(this).show();
+         }
+      
+      });
+    }
+</script>
+
+<!-- Filtro estado de etiquetado -->
+<script>
+    $('.filter-est').change(function(){
+        filter_function_estado(); //calling filter function each select box value change
+    });
+      
+    $('table tbody tr').show(); //intially all rows will be shown
+      
+    function filter_function_estado(){
+        $('table tbody tr').hide(); //hide all rows
+        
+        var tipoFlag = 'ESTADO';
+        var tipoValue = $('#filter-estado').val();
+        
+       //traversing each row one by one
+        $('table tr').each(function() {  
+          if(tipoValue == 'ESTADO'){
+            tipoFlag = 1;
+          }
+          else if(tipoValue == $(this).find('td.estado').data('estado')){
+            tipoFlag = 1;
+          }
+          else{
+            tipoFlag = 0;
+          }
+
+         if(tipoFlag){
+            $(this).show();
+         }
+      
+      });
+    }
+</script>
+{% endblock %}

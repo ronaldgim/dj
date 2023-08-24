@@ -21,10 +21,9 @@
 
 <h5 class="m-4 text-center"><strong>NUEVO ARQUEO</strong></h5>
 
-<a class="btn btn-primary mb-2" href="{% url 'arqueos_list' %}">
+<!--a class="btn btn-primary mb-2" href="{% url 'arqueos_list' %}">
     <i class="bi bi-arrow-90deg-left"></i> Lista de arqueos
-</a>
-
+</a-->
 
 <div class="card mt-2 mb-2">
     <div class="card-body pb-0">
@@ -269,7 +268,7 @@
             },
             
             success: function(response) {
-                console.log(response);
+                //console.log(response);
                 if (response=='ok') {
                     $('#msg').html('<div class="text-center alert alert-success" role="alert"> Editado correctamente !!! </div>')
                     setTimeout(function(){
