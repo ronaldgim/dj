@@ -872,14 +872,89 @@ def anular_arqueo_creado(request):
     arq = ArqueosCreados.objects.get(arqueo_enum=arqueo_enum)
     arq.estado = 'ANULADO'
     arq.save()
-    print(arq.estado)
+    
     return HttpResponse('ok')
+
 
 # Lista de arqueos creados
 def arqueos_list(request):
 
     arqueos_creados = ArqueosCreados.objects.all().order_by('-arqueo','ware_code')
     
+    if request.method=='POST':
+        d = request.POST['desde']
+        h = request.POST['hasta']        
+        desde = datetime.strptime(d, '%Y-%m-%d')
+        hasta = datetime.strptime(h, '%Y-%m-%d')
+        hasta = hasta + timedelta(hours=23) + timedelta(minutes=59)
+        
+        arqs = (ArqueosCreados.objects
+                .filter(estado='FINALIZADO')
+                .filter(fecha_hora_actualizado__range=[desde, hasta])
+            )
+        
+        arqs_ids = arqs.values_list('arqueo_id', flat=True)
+        
+        arqs_df = arqs.values(
+            'arqueo_id',
+            'arqueo_enum',
+            'fecha_hora_actualizado',
+            'usuario__first_name',
+            'usuario__last_name',
+            'descripcion',
+            'ware_code'
+        )
+        arqs_df = pd.DataFrame(arqs_df)
+        arqs_df = arqs_df.rename(columns={'arqueo_id':'id_arqueo'})
+        
+        arqs_fisico_df = pd.DataFrame(ArqueoFisico.objects.filter(id_arqueo__in=arqs_ids).values(
+            'id_arqueo',
+            'product_id',
+            'product_name',
+            'group_code',
+            'observaciones2',
+            'diferencia'
+        ))
+        
+        df = arqs_df.merge(arqs_fisico_df, on='id_arqueo', how='left')
+        df['fecha_hora_actualizado'] = pd.to_datetime(df['fecha_hora_actualizado']).dt.date
+        df['Responsable'] = df['usuario__first_name'] + ' ' + df['usuario__last_name']
+        df = df.rename(columns={
+            'fecha_hora_actualizado':'Fecha',
+            'arqueo_enum':'No. Arqueo',
+            'ware_code':'Bodega',
+            'product_id':'Referencia',
+            'product_name':'Descripción',
+            'group_code':'Marca',
+            'observaciones2':'Obs-AD',
+            'diferencia':'Diferencia'
+        })
+        
+        df = df[[
+            'Responsable',
+            'Fecha',
+            'No. Arqueo',
+            'Bodega',
+            'Referencia',
+            'Descripción',
+            'Marca',
+            'Obs-AD',
+            'Diferencia'
+        ]]
+        
+        df['Fecha'] = df['Fecha'].astype(str)
+        
+        hoy = str(datetime.today())
+        n = 'Reporte-Arqueos_'+hoy+'.xlsx'
+        nombre = 'attachment; filename=' + '"' + n + '"'
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            )
+        response['Content-Disposition'] = nombre
+        df.to_excel(response, index=False)
+        
+        return response
+        
     context = {
         'arqueos':arqueos_creados
     }
@@ -1145,9 +1220,7 @@ def trazabilidad(request):
             tr['FECHA'] = tr['FECHA'].astype(str)
 
             bodegas = tr['WARE_COD_CORP'].unique()
-
             movimientos = tr['TIPO_MOVIMIENTO'].unique()
-
 
             trz_list = []
 
