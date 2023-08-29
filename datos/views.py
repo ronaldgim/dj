@@ -68,19 +68,24 @@ def user_perm(user_id, permiso):
     user = User.objects.get(id=user_id)
     superuser = user.is_superuser
 
-    permisos_list = list(
-        UserPerfil.objects.get(user_id=user.id).permisos.values_list('permiso', flat=True)
-    )
-
-    my_perm = permiso in permisos_list
-
-    if superuser or my_perm:
-        perm = True
-
+    if superuser: 
+        perm = True 
+        return perm
+    
     else:
-        perm = False
+        permisos_list = list(
+            UserPerfil.objects.get(user_id=user.id).permisos.values_list('permiso', flat=True)
+        )
 
-    return perm
+        my_perm = permiso in permisos_list
+
+        if superuser or my_perm:
+            perm = True
+
+        else:
+            perm = False
+
+        return perm
 
 
 # Decorador de permiso de vista
