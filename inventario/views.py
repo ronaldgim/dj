@@ -1174,6 +1174,7 @@ def arqueo_cambiar_estado_ajax(request):
     return HttpResponse('ok')
 
 
+# Ajax add observación 2 en arqueos
 def add_obs2_ajax(request):
     
     # Variables de request Ajax
