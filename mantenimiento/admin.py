@@ -2,7 +2,7 @@
 from django.contrib import admin
 
 # Model
-from mantenimiento.models import Equipo, Estadistica
+from mantenimiento.models import Equipo, Estadistica, MantenimientoPreventivo
 
 # Register your models here.
 @admin.register(Equipo)
@@ -25,3 +25,16 @@ class EstadisticaAdmin(admin.ModelAdmin):
     )
 
     list_filter = ('equipo',)
+    
+@admin.register(MantenimientoPreventivo)
+class MttoPreventivoAdmin(admin.ModelAdmin):
+    list_display=(
+        'id',
+        'equipo',
+        'responsable',
+        'estado',
+        'programado',
+        'actividad',
+        'user',
+        'realizado'
+    )

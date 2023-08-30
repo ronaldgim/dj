@@ -2,7 +2,7 @@
 from django import forms 
 
 # Models
-from mantenimiento.models import Equipo, Suministro, Estadistica, Mantenimiento
+from mantenimiento.models import Equipo, Suministro, Estadistica, Mantenimiento, MantenimientoPreventivo
 
 # MyForms
 
@@ -40,3 +40,31 @@ class MantenimientoForm(forms.ModelForm):
         model = Mantenimiento
         fields = '__all__'
         exclude = ['slug']
+        
+        
+### MANTENIMIENTOS PREVENTIVOS        
+# Crear Mantenimiento 
+class MantenimientoPreventivoCrearForm(forms.ModelForm):
+    
+    class Meta:
+        model = MantenimientoPreventivo
+        fields = [
+            'equipo',
+            'responsable',
+            'estado',
+            'programado',
+            'actividad'
+        ]
+        
+# Realizar Mantenimiento 
+class MantenimientoPreventivoRealizarForm(forms.ModelForm):
+    
+    class Meta:
+        model = MantenimientoPreventivo
+        fields = [
+            'user',
+            'realizado',
+            'estado',
+            'observaciones',
+            'foto'
+        ]
