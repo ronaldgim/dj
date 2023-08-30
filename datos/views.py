@@ -79,7 +79,7 @@ def user_perm(user_id, permiso):
 
         my_perm = permiso in permisos_list
 
-        if superuser or my_perm:
+        if my_perm:
             perm = True
 
         else:
