@@ -76,5 +76,27 @@ urlpatterns = [
         route = 'est/<int:equipo>',
         view  = views.lista_estadisticas,
         name  = 'est'
+    ),
+    
+    ### MANTENIMIENTO PREVENTIVO
+    # Lista de mantenimientos
+    path(
+        route = 'preventivo/list',
+        view  = views.list_mpreventivos,
+        name  = 'preventivo_list'
+    ),
+    
+    # Lista de mantenimientos por realizar
+    path(
+        route = 'preventivo/por-realizar/list',
+        view  = views.list_mpreventivos_por_realizar,
+        name  = 'preventivo__por_realizar_list'
+    ),
+    
+    # Realizar mantenimiento
+    path(
+        route = 'preventivo/realizar/<int:id>',
+        view  = views.realizar_mpreventivo,
+        name  = 'realizar_mpreventivo'
     )
 ]

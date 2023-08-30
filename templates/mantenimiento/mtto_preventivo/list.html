@@ -1,0 +1,125 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Mttos Preventivos</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'mantenimiento/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+
+
+<h3 class="text-center m-3">
+  <strong>LISTADO DE MANTENIMIENTOS PREVENTIVOS</strong>
+</h3>
+
+<!--a class="btn btn-primary mb-2" href="{#% url 'mantenimientos_new' %#}">
+  <i class="bi bi-plus-circle"></i> Mantenimiento Preventivo
+</a-->
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
+<div class="col-4 mb-2">
+  <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+</div>
+
+<div class="card">
+  <div class="card-body">  
+    <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">Equipo</th>
+            <th scope="col">Actividad</th>
+            <th scope="col">Responsable</th>
+            <th scope="col">Estado</th>
+            <th scope="col">Programado para</th>
+            <th scope="col">Ver Mantenimiento</th>
+          </tr>
+        </thead>
+        {% for i in m_preventivos %}
+        <tbody id="pedidosbuscar">
+          <tr>
+            <td>{{i.equipo}}</td>
+            <td>{{i.actividad}}</td>
+            <td>{{i.responsable}}</td>
+            <td>
+                {% if i.estado == 'PENDIENTE' %}
+                <a class="btn btn-warning text-white btn-sm disabled"  target="_blank">{{i.estado}}</a> 
+                {% elif i.estado == 'REALIZADO' %}
+                <a class="btn btn-success btn-sm disabled"  target="_blank">{{i.estado}}</a>  
+                {% endif %}
+            </td>
+            <td>{{i.programado}}</td>
+
+            <td>
+                <button class="btn btn-primary btn-sm {% if i.estado == 'PENDIENTE' %} disabled {% endif %}" name="realizado">
+                    <i class="bi bi-search"></i>
+                </button>
+            </td>
+          </tr>
+
+          <tr id="mtto_realizado" style="display:none">
+            <td colspan="2"></td>
+            <td colspan="5"> 
+                <div class="card mb-3" style="max-width: 540px; max-height: 540px">
+                    <div class="row g-0">
+                      <div class="col-4">
+                        
+                        {% if i.foto %}
+                        <img src="{{i.foto.url}}" class="img-fluid rounded-start" alt="...">
+                        {% else %}
+                        <img src="..." class="img-fluid rounded-start" alt="...">
+                        {% endif %}
+                      </div>
+                      <div class="col-8" style="max-width: 540px; max-height: 340px">
+                        <div class="card-body">
+                          <h5 class="card-title fw-bold">{{i.actividad}}</h5>
+                          <p class="card-text"><span class="fw-bold">Observaciones:</span> <br> {{i.observaciones|default:'N/A'}}</p>
+                          <p class="card-text"><span class="fw-bold">Realizado por:</span> {{i.user.first_name}} {{i.user.last_name}}</p>
+                          <p class="card-text"><small class="text-muted">{{i.realizado}}</small></p>
+                        </div>
+                      </div>
+                    </div>
+                </div>
+            </td>
+          </tr>
+        </tbody>
+        {% endfor %}
+    </table>
+  </div>
+</div>
+
+
+<script>
+  $(document).ready(function() {
+      $("#inputbuscar").on("keyup", function() {
+          var value = $(this).val().toLowerCase();
+          $("#pedidosbuscar tr").filter(function() {
+              $(this).toggle($(this).text()
+              .toLowerCase().indexOf(value) > -1)
+          });
+      });
+  });
+</script>
+
+<script>
+    $(document).ready(function(){
+        $("button[name='realizado']").click(function(){
+            $(this).closest("tr").next("#mtto_realizado").toggle()
+        })
+    })
+</script>
+{% endblock %}
