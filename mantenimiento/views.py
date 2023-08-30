@@ -43,6 +43,9 @@ import json
 # Shorcuts
 from django.shortcuts import render, redirect
 
+# Datetime
+from datetime import datetime
+
 # importar datos de excel
 # def impor_data(request):
     
@@ -261,9 +264,8 @@ def list_mpreventivos(request):
 
 # Lista de mantenimientos
 def list_mpreventivos_por_realizar(request):
-    from datetime import datetime
     
-    month = datetime.now().month + 1
+    month = datetime.now().month 
     year  = datetime.now().year
     
     m_preventivos = (MantenimientoPreventivo.objects
