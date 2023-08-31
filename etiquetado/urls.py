@@ -254,4 +254,12 @@ urlpatterns = [
         view  = views.etiquetado_stock_detalle,
         name  = 'etiquetado_stock_detalle'
     ),
+    
+    ## INSTUCTIVO DE ETIQUETADO
+    # Lista Instructivo de etiquetado
+    path(
+        route = 'instructivo-etiquetado/list',
+        view  = views.list_instructo_etiquetado,
+        name  = 'list_instructo_etiquetado'
+    ),
 ]

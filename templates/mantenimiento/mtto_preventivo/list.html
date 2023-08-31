@@ -50,8 +50,9 @@
             <th scope="col">Ver Mantenimiento</th>
           </tr>
         </thead>
-        {% for i in m_preventivos %}
+        
         <tbody id="pedidosbuscar">
+          {% for i in m_preventivos %}
           <tr>
             <td>{{i.equipo}}</td>
             <td>{{i.actividad}}</td>
@@ -97,10 +98,11 @@
                 </div>
             </td>
           </tr>
+          {% endfor %}
         </tbody>
-        {% endfor %}
+        
     </table>
-  </div>
+    <div>
   </div>
 </div>
 
@@ -111,11 +113,39 @@
           var value = $(this).val().toLowerCase();
           $("#pedidosbuscar tr").filter(function() {
               $(this).toggle($(this).text()
-              .toLowerCase().indexOf(value) > -1)
+              .toLowerCase().indexOf(value) > -1);
+
+              //$("#mtto_realizado").css("display", "none")
+              //$("#mtto_realizado").hide()
+
+              $(".table").each(function(){
+                var fila = $(this);
+                if (fila.attr("id") === "mtto_realizado"){
+                  fila.hide()
+                }
+              })
           });
       });
   });
 </script>
+
+<!--script>
+  $(document).ready(function() {
+    $("#inputbuscar").on("keyup", function() {
+      var textoFiltro = $(this).val().toLowerCase(); // Obtener el texto del campo de entrada
+      $("#pedidosbuscar tr").each(function() {
+        var fila = $(this);
+        var contenidoFila = fila.text().toLowerCase();
+        if (fila.attr("id") === "mtto_realizado") {
+          fila.hide(); // Si es una fila con id="mtto_realizado", siempre la ocultamos
+        } else if (contenidoFila.indexOf(textoFiltro) !== -1) {
+          fila.show(); // Mostrar la fila si coincide con el filtro
+        } else {
+          fila.hide(); // Ocultar la fila si no coincide con el filtro
+      });
+    });
+  });
+</script-->
 
 <script>
     $(document).ready(function(){

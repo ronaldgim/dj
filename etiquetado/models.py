@@ -164,3 +164,17 @@ class ProductArmado(models.Model):
 
     def __str__(self):
         return f"{self.producto}, {self.activo}"
+    
+    
+class InstructivoEtiquetado(models.Model):
+    
+    equipo        = models.ForeignKey(Equipo, verbose_name='Equipo', on_delete=models.CASCADE)
+    producto      = models.ForeignKey(Product, verbose_name='Producto', on_delete=models.CASCADE)
+    foto          = models.ImageField(verbose_name='Foto', upload_to='instructivo-etiquetado', blank=True, null=True)
+    observaciones = models.CharField(verbose_name='observaciones', blank=True, max_length=150)
+    
+    creado  = models.DateTimeField(verbose_name='Creado', auto_now_add=True)
+    
+    def __str__(self):
+        return f'{self.equipo} - {self.producto}' 
+    
