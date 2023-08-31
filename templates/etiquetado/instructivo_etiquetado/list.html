@@ -1,0 +1,87 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Instructivo de Etiquetado</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'mantenimiento/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+
+
+<h6 class="text-center m-3 fw-bold">
+  Instructivos de Etiquetado
+</h6>
+
+<!--a class="btn btn-primary mb-2" href="{#% url 'mantenimientos_new' %#}">
+  <i class="bi bi-plus-circle"></i> Mantenimiento Preventivo
+</a-->
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
+<div class="col-4 mb-2">
+  <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+</div>
+
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">  
+        <div class="container table-responsive">
+            <table class="table" style="font-size:small">
+                <thead>
+                    <tr>
+                        <th scope="col">Código</th>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Marca</th>
+                        <th scope="col">Equipo</th>
+                        <th scope="col">Observaciones</th>
+                        <th scope="col">Ver</th>
+                    </tr>
+                </thead>
+                
+                <tbody id="pedidosbuscar">
+                    {% for i in inst %}
+                <tr>
+                    <td>{{i.producto.product_id}}</td>
+                    <td>{{i.producto.description}}</td>
+                    <td>{{i.producto.marca2}}</td>
+                    <td>{{i.observaciones|default:'-'}}</td>
+                    <td>{{i.equipo}}</td>
+                    <td>
+                        <a class="btn btn-primary btn-sm" target="_blank" href="{{ i.foto.url }}">
+                            <i class="bi bi-search"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<script>
+  $(document).ready(function() {
+      $("#inputbuscar").on("keyup", function() {
+          var value = $(this).val().toLowerCase();
+          $("#pedidosbuscar tr").filter(function() {
+              $(this).toggle($(this).text()
+              .toLowerCase().indexOf(value) > -1)
+          });
+      });
+  });
+</script>
+{% endblock %}

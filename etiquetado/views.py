@@ -20,7 +20,8 @@ from etiquetado.models import (
     EstadoPicking,
     RegistoGuia,
     FechaEntrega,
-    ProductArmado
+    ProductArmado,
+    InstructivoEtiquetado
     )
 
 from datos.models import StockConsulta
@@ -34,7 +35,8 @@ from etiquetado.forms import (
     PedidosEstadoEtiquetadoForm,
     EstadoPickingForm,
     RegistroGuiaForm,
-    FechaEntregaForm
+    FechaEntregaForm,
+    InstructivoEtiquetadoForm
 )
 
 # Json
@@ -3008,3 +3010,34 @@ def etiquetado_stock_detalle(request, product_id):
 
     return render(request, 'etiquetado/pedidos/etiquetado_cuarentena.html', context)
     
+
+### INSTRUCTIVO ETIQUETADO
+
+def list_instructo_etiquetado(request):
+    
+    inst = InstructivoEtiquetado.objects.all().order_by('producto__product_id')
+    
+    context = {
+        'inst':inst
+    }
+    
+    return render(request, 'etiquetado/instructivo_etiquetado/list.html', context)
+
+
+# def crear_instructivo_etiquetado(request):
+    
+#     form = InstructivoEtiquetadoForm()
+    
+#     if request.method == 'POST':
+#         form = InstructivoEtiquetadoForm(request.POST, request.FILES)
+#         if form.is_valid():
+#             form.save()
+#             messages.error(request, 'Instructivo creado con exito !!!')
+#             return redirect()
+        
+#         else:
+#             messages.error(request, 'Error al crear instructivo !!!')
+    
+#     context = {'form':form}
+    
+#     return render(request, '', )
