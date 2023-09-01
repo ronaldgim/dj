@@ -25,6 +25,31 @@
     </select>
 </div>
 
+<button class="btn btn-success mt-2" name="reporte-form">
+    <i class="bi bi-file-earmark-spreadsheet"></i> Reporte
+</button>
+
+<div class="card mt-2 mb-2" id="form" style="display:none">
+    <div class="card-body">
+    <form method="POST">
+        {% csrf_token %}
+        <div class="row mb-2">
+            <div class="col-3">
+                <label>Desde:</label>
+                <input type="date" class="form-control" name="desde">
+            </div>
+            <div class="col-3">
+                <label>Hasta:</label>
+                <input type="date" class="form-control" name="hasta">
+            </div>
+        </div>
+        <button class="btn btn-primary" name="crear-reporte">
+            <i class="bi bi-file-earmark-spreadsheet"></i> Crear Reporte
+        </button>
+    </form>
+    </div>
+</div>
+
 <div class="card mt-2 mb-2">
     <div class="card-body m-0 p-0">
         <div class="container table-responsive">
@@ -133,4 +158,14 @@
       });
     }
 </script>
+
+<!-- Desplegar formulario de fechas de reporte -->
+<script>
+    $(document).ready(function() {
+        $("button[name='reporte-form']").click(function(){
+            $("#form").toggle()
+        })
+    })
+</script>
+
 {% endblock %}
