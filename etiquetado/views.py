@@ -2880,6 +2880,67 @@ def control_guias_list(request):
     reg = list(ventas_fac['user_reg'].unique())
     
     ventas_fac = de_dataframe_a_template(ventas_fac)
+    
+    if request.method=='POST':
+        desde = request.POST['desde']
+        hasta = request.POST['hasta']
+               
+        rep = RegistoGuia.objects.filter(fecha_conf__range=[desde, hasta]).values(
+            'cliente',
+            'factura',
+            'factura_c',
+            'ciudad',
+            'fecha_factura',
+            'transporte',
+            'fecha_conf',
+            'n_guia',
+            'confirmado',
+            'user__user__first_name',
+            'user__user__last_name'
+        )
+        
+        rep_df = pd.DataFrame(rep)
+        
+        rep_df['Registrado por'] = rep_df['user__user__first_name'] + ' ' + rep_df['user__user__last_name']
+        rep_df = rep_df.rename(columns={
+            'cliente':'Cliente',            
+            'factura':'N°. Factura',
+            'factura_c':'N°. Factura GIM',
+            'fecha_factura':'Fecha Factura',
+            
+            'transporte':'Transporte',
+            'n_guia':'N°. Guia',
+            'ciudad':'Ciudad',
+            'fecha_conf':'Fecha Confirmado',
+            'confirmado':'Confirmado por',
+        })
+        
+        rep_df = rep_df[[
+            'Cliente',
+            'N°. Factura',
+            'N°. Factura GIM',
+            'Fecha Factura',
+            'Transporte',
+            'N°. Guia',
+            'Ciudad',
+            'Fecha Confirmado',
+            'Confirmado por',
+            'Registrado por'
+        ]]
+
+        rep_df['Fecha Factura'] = rep_df['Fecha Factura'].astype(str)
+        rep_df['Fecha Confirmado'] = rep_df['Fecha Confirmado'].astype(str)
+        
+        hoy = str(datetime.today())
+        n = 'Reporte-Guias_'+hoy+'.xlsx'
+        nombre = 'attachment; filename=' + '"' + n + '"'
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            )
+        response['Content-Disposition'] = nombre
+        rep_df.to_excel(response, index=False)
+        
+        return response
 
     context = {
         'ventas_fac':ventas_fac,
