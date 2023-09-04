@@ -917,10 +917,10 @@ def arqueos_list(request):
         ))
         
         df = arqs_df.merge(arqs_fisico_df, on='id_arqueo', how='left')
-        df['fecha_hora'] = pd.to_datetime(df['fecha_hora']).dt.date
+        df['fecha_hora_actualizado'] = pd.to_datetime(df['fecha_hora_actualizado']).dt.date
         df['Responsable'] = df['usuario__first_name'] + ' ' + df['usuario__last_name']
         df = df.rename(columns={
-            'fecha_hora':'Fecha',
+            'fecha_hora_actualizado':'Fecha',
             'arqueo_enum':'No. Arqueo',
             'ware_code':'Bodega',
             'product_id':'Referencia',
