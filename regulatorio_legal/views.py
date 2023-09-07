@@ -55,7 +55,6 @@ def importaciones_llegadas_list(request):
         # 'EGRESO_TEMP',
         # 'OH',
         'WARE_COD_CORP',
-               
         # 'product_id',
         # 'Nombre',
         'marca2'
@@ -294,7 +293,7 @@ def lista_facturas(request):
 def factura_detalle(request, n_factura):
     
     factura = factura_lote_odbc(n_factura)
-
+    print(factura)
     n_fac = factura['CODIGO_FACTURA'].iloc[0]
     fac = n_fac.split('-')[1]
     cliente = factura['CODIGO_CLIENTE'].iloc[0]

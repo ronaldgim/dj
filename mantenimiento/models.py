@@ -21,7 +21,7 @@ TIPO = [('Mantenimiento Preventivo', 'Mantenimiento Preventivo'),
 ESTADO = [('PENDIENTE', 'PENDIENTE'),
           ('REALIZADO', 'REALIZADO')]
 
-ACTIVIDAD = [('Limpieza de cabezal', 'Limpieza de cabezal'),
+ACTIVIDAD = [('Limpieza de Cabezal', 'Limpieza de Cabezal'),
              ('Limpieza de Filtro', 'Limpieza de Filtro')]
 
 
