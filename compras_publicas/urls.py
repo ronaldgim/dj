@@ -13,7 +13,7 @@ urlpatterns = [
     ),
 
     path(
-        route='infimas',
+        route='infimas', #?page=1
         view = views.infimas,
         name = 'infimas'
     ),
