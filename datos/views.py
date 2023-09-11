@@ -374,15 +374,38 @@ def frecuancia_ventas():
 
     open_ssh_tunnel()
     mysql_connect()
-    #df = run_query("SELECT * FROM gimpromed_api.alertas_reservas")
+    
     df = run_query("SELECT T.PRODUCT_ID, T.ANUAL, R.rpm, A.F_ACUMULADA FROM (SELECT PRODUCT_ID, SUM(QUANTITY) as ANUAL FROM consumo_anual GROUP BY PRODUCT_ID) AS T "
                     "LEFT JOIN alertas_reservas R ON T.PRODUCT_ID = R.PRODUCT_ID LEFT JOIN analisis_abc A on R.PRODUCT_ID = A.PRODUCT_ID;")
 
-    # print(df.describe)
     mysql_disconnect()
     close_ssh_tunnel()
 
     return df
+
+
+def pedidos_cuenca_odbc():
+
+    open_ssh_tunnel()
+    mysql_connect()
+
+    df = run_query(
+        # "SELECT orders.id,seller_code,client_code,client_name,client_identification,orders.created_at,order_products.product_id,orders.status,order_products.product_name,"
+        # "order_products.product_group_code,order_products.quantity,order_products.price FROM orders LEFT JOIN order_products "
+        # "ON orders.id = order_products.order_id where seller_code='VEN03' AND orders.status='TCR';"
+        
+        "SELECT orders.id,seller_code,client_code,client_name,client_identification,orders.created_at,order_products.product_id,orders.status,order_products.product_name,"
+        "order_products.product_group_code,order_products.quantity,order_products.price FROM orders LEFT JOIN order_products "
+        "ON orders.id = order_products.order_id where seller_code='VEN03' AND orders.status='TCR';"
+    )
+    print(df)
+    # df = pd.read_sql_query(query, cnxn)
+    
+    mysql_disconnect()
+    close_ssh_tunnel()
+    
+    return df
+
 
 
 def etiquetado_fun():
@@ -1700,17 +1723,30 @@ def trazabilidad_odbc(cod, lot):
     return df_trazabilidad
 
 
+
+
+
 ### Consulta pedidos cuenca
-def pedidos_cuenca_odbc():
+# def pedidos_cuenca_odbc():
 
-    cnxn = pyodbc.connect('DSN=mba3;PWD=API')
+#     # cnxn = pyodbc.connect('DSN=mba3;PWD=API')
 
-    query = (
-        "SELECT orders.id,seller_code,client_code,client_name,client_identification,orders.created_at,order_products.product_id,orders.status,order_products.product_name,"
-        "order_products.product_group_code,order_products.quantity,order_products.price FROM orders LEFT JOIN order_products "
-        "ON orders.id = order_products.order_id where seller_code='VEN03' AND orders.status='TCR';"
-    )
+#     open_ssh_tunnel()
+#     mysql_connect()
+
+#     df = run_query(
+#         # "SELECT orders.id,seller_code,client_code,client_name,client_identification,orders.created_at,order_products.product_id,orders.status,order_products.product_name,"
+#         # "order_products.product_group_code,order_products.quantity,order_products.price FROM orders LEFT JOIN order_products "
+#         # "ON orders.id = order_products.order_id where seller_code='VEN03' AND orders.status='TCR';"
+        
+#         "SELECT orders.id,seller_code,client_code,client_name,client_identification,orders.created_at,order_products.product_id,orders.status,order_products.product_name,"
+#         "order_products.product_group_code,order_products.quantity,order_products.price FROM orders LEFT JOIN order_products "
+#         "ON orders.id = order_products.order_id where seller_code='VEN03' AND orders.status='TCR';"
+#     )
+#     print(df)
+#     # df = pd.read_sql_query(query, cnxn)
     
-    df = pd.read_sql_query(query, cnxn)
+#     mysql_disconnect()
+#     close_ssh_tunnel()
     
-    return df
+#     return df

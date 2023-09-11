@@ -5,7 +5,7 @@ from regulatorio_legal.models import DocumentoLote, DocumentoEnviado
 
 # Register your models here.
 @admin.register(DocumentoLote)
-class RowItemAdmin(admin.ModelAdmin):
+class DocumentoLoteAdmin(admin.ModelAdmin):
     list_display = ('o_compra', 'product_id', 'lote_id', 'f_caducidad', 'documento')
     search_fields = ('o_compra', 'product_id', 'lote_id')
 

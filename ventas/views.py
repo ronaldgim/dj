@@ -12,7 +12,8 @@ from datos.views import (
     productos_odbc_and_django, 
     clientes_warehouse, 
     lotes_facturas_odbc,
-    pedidos_cuenca_odbc)
+    pedidos_cuenca_odbc,
+    )
 
 
 # Http
@@ -116,3 +117,9 @@ def pedidos_cuenca(request):
     print(pedidos)
     
     return HttpResponse(pedidos)
+
+
+# Procesos Guantes
+def procesos_guantes(request):
+    print('procesos_gunates')
+    

@@ -23,6 +23,9 @@ import json
 import pyodbc
 import mysql.connector
 
+# Paginado
+from django.core.paginator import Paginator
+
 
 # Funcios para pasar de dataframe a registros para el template
 def de_dataframe_a_template(dataframe):
@@ -191,7 +194,7 @@ def my_ajax_view(request):
     # data = data.to_json(orient='table')
     # data = json.loads(data)
     
-    print(data)
+    # print(data)
     return JsonResponse(data)
 
 
@@ -200,6 +203,15 @@ def infimas(request):
     
     infimas = tabla_infimas()[:100] # Tabla infimas    
     infimas = de_dataframe_a_template(infimas)
+    
+    inf = Paginator(infimas, 1)
+    
+    # print(inf.count)
+    # print(inf.num_pages)
+    
+    inf2 = inf.page(2)
+    print(inf2.object_list)
+    
 
     if request.method == 'POST':
         busqueda = request.POST['busqueda']
