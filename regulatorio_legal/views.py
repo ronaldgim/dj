@@ -293,7 +293,6 @@ def lista_facturas(request):
 def factura_detalle(request, n_factura):
     
     factura = factura_lote_odbc(n_factura)
-    print(factura)
     n_fac = factura['CODIGO_FACTURA'].iloc[0]
     fac = n_fac.split('-')[1]
     cliente = factura['CODIGO_CLIENTE'].iloc[0]
@@ -307,14 +306,14 @@ def factura_detalle(request, n_factura):
     # QUITAR PUNTOS DE LOS LOTES
     lotes_factura = factura['LOTE_ID']
     factura['lote_sp'] = quitar_puntos(lotes_factura)
-
+    
     # QUITAR PUNTOS DE LOS LOTES
     lotes_docs = docs['LOTE_ID'] 
     docs['lote_sp'] = quitar_puntos(lotes_docs)
-
+    
     # MERGE FACTURA Y DOCUMENTOS
     # factura = factura.merge(docs, on=['PRODUCT_ID','LOTE_ID'], how='left').fillna(0) 
-    factura = factura.merge(docs, on=['PRODUCT_ID','lote_sp'], how='left').fillna(0) #;print(factura)
+    factura = factura.merge(docs, on=['PRODUCT_ID','lote_sp'], how='left').fillna(0) ;print(factura)
     factura = factura.sort_values('PRODUCT_NAME')
     #factura = factura.drop_duplicates(subset=['PRODUCT_ID','LOTE_ID'])
     factura = factura.drop_duplicates(subset=['PRODUCT_ID','lote_sp'])
