@@ -313,7 +313,7 @@ def factura_detalle(request, n_factura):
     
     # MERGE FACTURA Y DOCUMENTOS
     # factura = factura.merge(docs, on=['PRODUCT_ID','LOTE_ID'], how='left').fillna(0) 
-    factura = factura.merge(docs, on=['PRODUCT_ID','lote_sp'], how='left').fillna(0) ;print(factura)
+    factura = factura.merge(docs, on=['PRODUCT_ID','lote_sp'], how='left').fillna(0) #;print(factura)
     factura = factura.sort_values('PRODUCT_NAME')
     #factura = factura.drop_duplicates(subset=['PRODUCT_ID','LOTE_ID'])
     factura = factura.drop_duplicates(subset=['PRODUCT_ID','lote_sp'])
@@ -366,7 +366,7 @@ GIMPROMED Cia. Ltda.\n
                         from_email=settings.EMAIL_HOST_USER,
                         to=['egarces@gimpromed.com','jgualotuna@gimpromed.com','ncaisapanta@gimpromed.com'],
                         # to=['egarces@gimpromed.com'],
-                        #to=[corr],
+                        # to=[corr],
                         headers={'Message-ID':'Documentos'}
                     )
 

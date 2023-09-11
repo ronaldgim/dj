@@ -26,4 +26,11 @@ urlpatterns = [
         view = views.pedidos_cuenca,
         name = 'pedidos_cuenca'
     ),
+    
+    # Procesos Guantes
+    path(
+        route='procesos-guantes',
+        view = views.procesos_guantes,
+        name = 'procesos_guantes'
+    ),
 ]
