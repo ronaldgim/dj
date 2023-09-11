@@ -1398,7 +1398,10 @@ def quitar_puntos(lista):
     lista_str_sp = []
     
     for i in lista:
+        x = str(i)
         x = i.replace('.','')
+        x = x.rstrip()
+        x = x.lstrip()
         lista_str_sp.append(x)
 
     return lista_str_sp
