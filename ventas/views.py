@@ -114,6 +114,7 @@ def lote_factura_ajax(request):
 def pedidos_cuenca(request):
     
     pedidos = pedidos_cuenca_odbc()
+    pedidos = de_dataframe_a_template(pedidos)
     print(pedidos)
     
     return HttpResponse(pedidos)
