@@ -1,4 +1,4 @@
-{%extends 'base.html' %}
+{% extends 'base.html' %}
 
 {% block title %}
 <title>Etiquetado por pedido</title>
@@ -54,7 +54,7 @@
 <form method="POST"> 
     {% csrf_token %}
     <div class="row">
-        <div class="form-group">
+        <div class="form-group col-6">
             <div class="input-group">
                 <input id="inputbuscar" type="text" placeholder="Buscar por objeto de compra... (Usar minúsculas)" class="form-control" name="busqueda">
                 <button class="btn btn-primary btn-sm" type="submit">Consultar</button>
@@ -72,6 +72,7 @@
     <input id="inputbuscar" type="text" placeholder="Buscar..." class="form-control">
 </div-->
 
+{% comment %}
 <div class="pagination mt-2">
     <span class="step-links">
         {% if infimas.has_previous %}
@@ -94,7 +95,7 @@
         {% endif %}
     </span>
 </div>
-
+{% endcomment %}
 
 <!-- Infimas -->
 <!--h5 class="text-center"><strong>INFIMAS</strong></h5-->
@@ -172,6 +173,27 @@
   document.querySelector('.table').addEventListener('contextmenu', function(e) {
     e.preventDefault();
   });
+</script>
+
+<!-- DataTable -->
+
+<!-- datatable -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.css" />  
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.js"></script>
+
+<script>
+    $(document).ready(function() {
+       $('#inv_table').DataTable({
+        //#ordering:false,
+        "searching":false,
+        "show":false,
+        "paging":false,
+        "info":false,
+        columnDefs:[
+            {type:'signed-num',targets:0}
+        ]
+       })
+    })
 </script>
 
 {% endblock %}

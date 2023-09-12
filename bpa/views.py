@@ -15,7 +15,7 @@ import numpy as np
 import json
 
 # Correo
-from django.core.mail import send_mail
+from django.core.mail import send_mail, EmailMultiAlternatives
 from django.conf import settings
 
 # Productos
@@ -31,6 +31,12 @@ from django_xhtml2pdf.utils import pdf_decorator, generate_pdf
 # Login
 from django.contrib.auth.decorators import login_required, permission_required
 
+# Templeate loader
+from django.template.loader import get_template, render_to_string
+from django.template import Context
+
+# Html
+from django.utils.html import strip_tags
 
 # MUESTREOS
 # Función Ronald - actualizar tabla transito importaciones
@@ -593,44 +599,81 @@ def reg_san_list(request):
 
 
 # Envio de alertas de Caducidad de R.Sanitario por EMAIL.
-def r_san_alerta_correo(request):
+def r_san_alerta_list_correo(request):
     
-    dias = 100
-    tabla_query = RegistroSanitario.objects.filter(activo=True).order_by('-fecha_expiracion')
+    tabla_query = RegistroSanitario.objects.filter(activo=True).order_by('fecha_expiracion')
+    rs_list = [i for i in tabla_query if i.estado == 'Próximo a caducar']
     
-    rs_list = [i for i in tabla_query if i.dias_caducar < dias and i.dias_caducar > 0] # 
+    context = {
+        'lista':rs_list
+    }
     
-    lista_registro = []
-    for i in rs_list:
-        marca       = i.marca
-        registro    = i.registro
-        propietario = i.propietario
-        f_exp       = i.fecha_expiracion
-        dias_rest   = i.dias_caducar
-        
-        fila = f"""- {marca}, {registro}, {propietario}, {f_exp}, dias restantes para caducar: {dias_rest}"""
-        
-        lista_registro.append(fila)
-        
-    texto = '\n'.join(lista_registro)
+    html_message  = render_to_string('emails/r_san_list.html', context)
+    plain_message = strip_tags(html_message)
     
-    cabecera = """Estimada Pía.\n \n"""
-    cuerpo =   f"""Los siguientes doumentos estan proximos a caducar en menos de {dias} días \n \n"""
-    
-    texto_correo = cabecera + cuerpo + texto
-    
-    send_mail(
-        subject='Registros Sanitarios Proximos a Caducar',
-        message= texto_correo,
-        from_email=settings.EMAIL_HOST_USER,
-        recipient_list= ['egarces@gimpromed.com'],
-        fail_silently=True,
+    email = EmailMultiAlternatives(
+        subject    = 'Alerta - Documentos próximos a caducar.',
+        from_email = settings.EMAIL_HOST_USER,
+        to         = ['egarces@gimpromed.com'],
+        body       = plain_message,
     )
+    
+    email.attach_alternative(html_message, 'text/html')
+    email.send()
                     
-    return HttpResponse(None)
+    return HttpResponse(status=200)
         
 
+# Enviar correos individuales por registro sanitario
+def r_san_alert(request):
     
+    tabla_query = RegistroSanitario.objects.filter(activo=True).order_by('fecha_expiracion')
+
+
+    for i in tabla_query:
+        if i.dias_caducar == 185: # 120:
+            # 1er Aviso
+            send_mail(
+                subject=f'1er Aviso Próximo a Caducar - {i.registro} - {i.marca} - ({i.dias_caducar} días)',
+                message=f'Estimada Pia, \n \n El registro {i.registro} de {i.marca} expira el {i.fecha_expiracion}. \n \n Att. Gim-Operaciones.',
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list= ['egarces@gimpromed.com'],
+                fail_silently=True,
+            )
+            
+        elif i.dias_caducar == 145: # 100:
+            # 2do Aviso
+            send_mail(
+                subject=f'2do Aviso Próximo a Caducar - {i.registro} - {i.marca} - ({i.dias_caducar} días)',
+                message=f'Estimada Pia, \n \n El registro {i.registro} de {i.marca} expira el {i.fecha_expiracion}. \n \n Att. Gim-Operaciones.',
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list= ['egarces@gimpromed.com'],
+                fail_silently=True,
+            )
+            
+        elif i.dias_caducar == 86: # 90:
+            # 3er Aviso
+            send_mail(
+                subject=f'3er Aviso Próximo a Caducar - {i.registro} - {i.marca} - ({i.dias_caducar} días)',
+                message=f'Estimada Pia, \n \n El registro {i.registro} de {i.marca} expira el {i.fecha_expiracion}. \n \n Att. Gim-Operaciones.',
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list= ['egarces@gimpromed.com'],
+                fail_silently=True,
+            )
+            
+        elif i.dias_caducar == 72: #40:
+            # 4to Aviso
+            send_mail(
+                subject=f'4to Aviso Próximo a Caducar - {i.registro} - {i.marca} - ({i.dias_caducar} días)',
+                message=f'Estimada Pia, \n \n El registro {i.registro} de {i.marca} expira el {i.fecha_expiracion}. \n \n Att. Gim-Operaciones.',
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list= ['egarces@gimpromed.com'], #[ronaldm@gimpromed.com]
+                fail_silently=True,
+            )
+            
+    return HttpResponse(status=200)
+            
+
 
 # Nuevo Registro Sanitario
 @login_required(login_url='login')
