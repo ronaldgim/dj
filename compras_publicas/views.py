@@ -4,7 +4,7 @@ from django.shortcuts import render
 from django.db import connections
 
 # Datetime
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Tabla clientes
 from etiquetado.views import clientes_table
@@ -74,6 +74,10 @@ def tabla_productos_mba_django():
 # Tabla infimas
 def tabla_infimas():
     
+    one_year = datetime.now().date()
+    days = 365
+    one_year_ago = one_year - timedelta(days=days) 
+    
     with connections['infimas_sql'].cursor() as cursor:
         cursor.execute(
             # """SELECT infimas.Fecha, entidad.Nombre, infimas.Proveedor,
@@ -81,13 +85,13 @@ def tabla_infimas():
             # FROM entidad, infimas
             # WHERE infimas.Codigo_Entidad = entidad.Codigo"""
             
-            """SELECT infimas.Fecha, entidad.Nombre, infimas.Proveedor,
+            f"""SELECT infimas.Fecha, entidad.Nombre, infimas.Proveedor,
             infimas.Objeto_Compra, infimas.Cantidad, infimas.Costo, infimas.Valor, 
             infimas.Tipo_Compra, entidad.Nombre
             
             FROM entidad, infimas
             WHERE infimas.Codigo_Entidad = entidad.Codigo
-            AND infimas.Fecha > '2022-12-31'
+            AND infimas.Fecha > '{one_year_ago}'
             AND infimas.Tipo_Compra = 'Otros Bienes'
             """
         )
