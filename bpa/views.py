@@ -629,7 +629,8 @@ def r_san_alert(request):
     
     tabla_query = RegistroSanitario.objects.filter(activo=True).order_by('fecha_expiracion')
 
-
+    ### PARA MEJORAR EFICIENCIA 
+    ### APLICAR BUSQUEDA BINARIA
     for i in tabla_query:
         if i.dias_caducar == 185: # 120:
             # 1er Aviso

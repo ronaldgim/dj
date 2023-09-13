@@ -1050,7 +1050,8 @@ def arqueo_bodega_tomafisica(request, arqueo, ware_code):
     elif bodega == 'BCT':
         ubicacion = ['CN4','CN5','CN6','CN7']
     else:
-        ubicacion == ['N/U']
+        ubicacion = ['N/U']
+        # ubicacion = ['NU']
 
     context = {
         'arqueo_creado':arqueo_creado,
