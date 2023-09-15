@@ -178,3 +178,14 @@ class InstructivoEtiquetado(models.Model):
     def __str__(self):
         return f'{self.equipo} - {self.producto}' 
     
+    
+class EtiquetadoAvance(models.Model):
+    
+    n_pedido   = models.CharField(verbose_name='N°. Pedido', blank=True, max_length= 10)
+    product_id = models.CharField(verbose_name='Product id', blank=True, max_length=50)
+    unidades   = models.IntegerField(verbose_name='Unidades', blank=True)
+    
+    def __str__(self):
+        return self.n_pedido, self.product_id
+    
+    

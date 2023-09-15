@@ -262,4 +262,11 @@ urlpatterns = [
         view  = views.list_instructo_etiquetado,
         name  = 'list_instructo_etiquetado'
     ),
+    
+    ## Avance etiquetado
+    path(
+        route = 'etiquetado/avance',
+        view  = views.etiquetado_avance,
+        name  = 'etiquetado_avance'
+    ),
 ]
