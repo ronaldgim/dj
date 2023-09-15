@@ -186,6 +186,4 @@ class EtiquetadoAvance(models.Model):
     unidades   = models.IntegerField(verbose_name='Unidades', blank=True)
     
     def __str__(self):
-        return self.n_pedido, self.product_id
-    
-    
+        return f'{self.n_pedido} - {self.product_id}'
