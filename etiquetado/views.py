@@ -21,7 +21,8 @@ from etiquetado.models import (
     RegistoGuia,
     FechaEntrega,
     ProductArmado,
-    InstructivoEtiquetado
+    InstructivoEtiquetado,
+    EtiquetadoAvance
     )
 
 from datos.models import StockConsulta
@@ -101,7 +102,9 @@ from datos.views import (
     # stock_total,
     stock_lote_odbc,
     ventas_armados_facturas_odbc,
-    productos_transito_odbc
+    productos_transito_odbc,
+    etiquetado_avance_pedido,
+    calculo_etiquetado_avance
     )
 
 
@@ -832,17 +835,50 @@ def pedidos_estado_list(request):
     return render(request, 'etiquetado/etiquetado_estado/lista_estado_pedidos.html', context)#reservas
 
 
+# Registrar avance de item en pedido
+def etiquetado_avance(request):
+    
+    n_pedido = request.POST['n_pedido']
+    product_id = request.POST['product_id']
+    unidades = request.POST['unidades'].replace('.','')
+    unidades = int(unidades)
+    
+    av = EtiquetadoAvance(
+        n_pedido   = n_pedido,
+        product_id = product_id,
+        unidades   = unidades
+    )
+    
+    av.save()
+    
+    return HttpResponse(None)
+
+
+# # Filtrar avance de etiquetado por pedido
+# def etiquetado_avance_pedido(n_pedido):
+#     avance = EtiquetadoAvance.objects.filter(n_pedido=n_pedido).values()
+#     avance = pd.DataFrame(avance)
+#     avance = avance.rename(columns={
+#         # 'n_pedido':'CONTRADO_ID',
+#         'product_id':'PRODUCT_ID'
+#         })
+#     return avance
+
+
 # Crear estado
 def estado_etiquetado(request, n_pedido, id):
-    print('asdf')
+
     if id == '-':
 
-        #vehiculo = Vehiculos.objects.filter(activo=True).order_by('transportista')
         form = PedidosEstadoEtiquetadoForm()
 
         # Dataframes
         pedido = pedido_por_cliente(n_pedido)
-        product = pd.DataFrame(list(Product.objects.all().values()))
+        avance = etiquetado_avance_pedido(n_pedido)
+        if not avance.empty:
+             pedido = pedido.merge(avance, on='PRODUCT_ID', how='left')
+        
+        product = pd.DataFrame((Product.objects.all().values()))
         product = product.rename(columns={'product_id':'PRODUCT_ID'})
 
         # Merge Dataframes
@@ -863,7 +899,7 @@ def estado_etiquetado(request, n_pedido, id):
         json_records = pedido.reset_index().to_json(orient='records')
         data = []
         data = json.loads(json_records)
-
+        
         # Totales de tabla
         cliente = pedido['NOMBRE_CLIENTE'].iloc[0]
         fecha_pedido = pedido['FECHA_PEDIDO'].iloc[0]
@@ -893,8 +929,6 @@ def estado_etiquetado(request, n_pedido, id):
             't_total_pes':t_total_pes,
             't_cartones':t_cartones,
             't_unidades':t_unidades,
-
-            #'vehiculos':vehiculo,
 
             # Form
             'form':form
@@ -912,10 +946,13 @@ def estado_etiquetado(request, n_pedido, id):
         id_estado = int(float(id))
         estado_registro = PedidosEstadoEtiquetado.objects.get(id=id_estado)
         form_update = PedidosEstadoEtiquetadoForm(instance=estado_registro)
-        vehiculo = Vehiculos.objects.all()
 
         # Dataframes
         pedido = pedido_por_cliente(n_pedido)
+        avance = etiquetado_avance_pedido(n_pedido)
+        if not avance.empty:
+             pedido = pedido.merge(avance, on='PRODUCT_ID', how='left')
+        
         product = pd.DataFrame(list(Product.objects.all().values()))
         product = product.rename(columns={'product_id':'PRODUCT_ID'})
 
@@ -967,8 +1004,6 @@ def estado_etiquetado(request, n_pedido, id):
             't_total_pes':t_total_pes,
             't_cartones':t_cartones,
             't_unidades':t_unidades,
-
-            'vehiculos':vehiculo,
 
             # Form
             'form':form_update
@@ -2296,7 +2331,13 @@ def publico_dashboard_fun():
     
     ### CONF TIEMPOS
     contratos = reservas['CONTRATO_ID'].unique()
-
+    
+    # Avance de etiquetado
+    avance_df = pd.DataFrame()
+    avance_df['CONTRATO_ID'] = contratos
+    avance_df['avance'] = [calculo_etiquetado_avance(i) for i in contratos]
+    
+    # Mostrar tiempos
     cont = []
     tiempos = []
 
@@ -2372,6 +2413,8 @@ def publico_dashboard_fun():
     list_reservas['dia'] = list_reservas['dia'].str.replace('Miã©rcoles','Miércoles')
     list_reservas['mes'] = list_reservas['fh'].dt.month_name(locale='es_EC.utf-8')
 
+    list_reservas = list_reservas.merge(avance_df, on='CONTRATO_ID', how='left')
+    
     return list_reservas
 
 
@@ -2432,7 +2475,6 @@ def dashboard_completo(request):
 
     # ETIQUETADO STOCK
     etiquetado = etiquetado_fun()
-    
     urgente = 0.75
     correcto = 2
     rojo = len(etiquetado[etiquetado['Meses']<urgente])
@@ -2447,7 +2489,7 @@ def dashboard_completo(request):
     publico = publico[publico['estado']!='FINALIZADO']
     contratos_publicos = list(publico['CONTRATO_ID'].unique())
     sto_publico = stock_faltante_contrato(contratos_publicos, 'BCT')
-
+    
     if not sto_publico.empty:
         publico = publico.merge(sto_publico, on='CONTRATO_ID', how='left')
     
@@ -2897,12 +2939,3 @@ def list_instructo_etiquetado(request):
 #     return render(request, '', )
 
 
-
-def etiquetado_avance(request):
-    
-    n_pedido = request.POST['n_pedido']
-    product_id = request.POST['product_id']
-    unidades = request.POST['unidades'].replace('.','')
-    unidades = int(unidades)
-    
-    return HttpResponse(None)

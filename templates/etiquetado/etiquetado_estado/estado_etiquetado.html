@@ -18,11 +18,13 @@
 
 <div class="row">
     <div class="col-6">
-        <h6><strong>N. Pedido: </strong><span id="n_pedido">{{pedido|slice:':-2'}}</span></h6>
+        <h6><strong>N. Pedido: </strong>{{pedido|slice:':-2'}}</h6>
         <h6><strong>Cliente: </strong> {{cliente}}</h6>
         <h6><strong>Fecha de pedido: </strong> {{fecha_pedido|date:'d-M-Y'}}</h6>
     </div>
 </div>
+
+<input type="hidden" id="n_pedido_val" value="{{pedido}}">
 
 <form method="POST">
     {% csrf_token %}
@@ -58,6 +60,8 @@
 </div>
 {% endif %}
 
+<div id="msg"></div>
+
 <div>
     <div class="card mt-2 mb-2">
         <div class="card-body m-0 p-0">
@@ -68,7 +72,7 @@
                         <th scope="col">Item</th>
                         <th scope="col">Unidades</th>
                         <th scope="col">Cartones</th>
-                        <th scope="col">Finalizado</th>
+                        <th scope="col">Avance</th>
                     </tr>
                     </thead>
                     
@@ -83,9 +87,15 @@
                         <td id="unidades" class="text-end">{{i.QUANTITY|floatformat:"0g"}}</td>
                         <td class="text-end">{{i.Cartones|floatformat:"2g"}}</td>
                         <td class="text-center">
+                            {% if not i.id_x %}
                             <button class="btn btn-sm btn-secondary" name="avance">
                                 <i class="bi bi-check-square-fill"></i>
                             </button>
+                            {% elif i.id_x %}
+                            <button class="btn btn-sm btn-success disabled" name="avance">
+                                <i class="bi bi-check-square-fill"></i>
+                            </button>
+                            {% endif %}
                         </td>
                     </tr>
                     {% endfor %}
@@ -111,7 +121,8 @@
     
 <script>
     $("button[name='avance']").click(function() {
-        var n_pedido = $("#n_pedido").html();
+        // var n_pedido = $("#n_pedido").html();
+        var n_pedido = $("#n_pedido_val").val();
         var product_id = $(this).closest("tr").find("#product_id").html();
         var unidades = $(this).closest("tr").find("#unidades").html();
 
@@ -122,10 +133,17 @@
             type:'POST',
             data:{
                 'csrfmiddlewaretoken': '{{ csrf_token }}',
-                'n_pedido':n_pedido,
-                'product_id':product_id,
-                'unidades':unidades
-            }
+                'n_pedido'           : n_pedido,
+                'product_id'         : product_id,
+                'unidades'           : unidades
+            },
+
+            success: function() {
+                $('#msg').html('<div class="text-center alert alert-success" role="alert"> Avance exitoso !!! </div>')
+                    setTimeout(function(){
+                    window.location.reload();
+                }, 1000)
+            },
         })
     })
 

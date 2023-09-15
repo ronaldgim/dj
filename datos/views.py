@@ -19,6 +19,7 @@ from django.views.generic import TemplateView
 # Models
 from datos.models import Marca, Product, MarcaImportExcel, Vehiculos
 from datos.models import TimeStamp
+from etiquetado.models import EtiquetadoAvance
 
 # Autentication
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -1750,3 +1751,36 @@ def trazabilidad_odbc(cod, lot):
 #     close_ssh_tunnel()
     
 #     return df
+
+
+# Filtrar avance de etiquetado por pedido
+def etiquetado_avance_pedido(n_pedido):
+    avance = EtiquetadoAvance.objects.filter(n_pedido=n_pedido).values()
+    avance = pd.DataFrame(avance)
+    avance = avance.rename(columns={
+        # 'n_pedido':'CONTRADO_ID',
+        'product_id':'PRODUCT_ID'
+        })
+    return avance
+
+
+def calculo_etiquetado_avance(n_pedido):
+    
+    avance = etiquetado_avance_pedido(n_pedido)
+    
+    if avance.empty:
+        return 0.0
+    
+    else:
+        pedido = pedido_por_cliente(n_pedido)['QUANTITY']
+        avance = avance['unidades']
+    
+        p_total = pedido.sum()
+        a_total = avance.sum()
+        
+        porcentaje_avance = (a_total/p_total) * 100
+        porcentaje_avance = round(porcentaje_avance, 1)
+        
+        return porcentaje_avance
+    
+    
