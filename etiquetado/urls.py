@@ -269,4 +269,10 @@ urlpatterns = [
         view  = views.etiquetado_avance,
         name  = 'etiquetado_avance'
     ),
+    
+        path(
+        route = 'etiquetado/avance/edit',
+        view  = views.etiquetado_avance_edit,
+        name  = 'etiquetado_avance_edit'
+    ),
 ]

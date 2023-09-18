@@ -6,7 +6,7 @@
 
 
 {% block navbar %}
-{#% include 'etiquetado/topnavbar.html' %#}
+{% include 'etiquetado/topnavbar.html' %}
 {% endblock %}
 
 
@@ -86,13 +86,31 @@
                         </td>
                         <td id="unidades" class="text-end">{{i.QUANTITY|floatformat:"0g"}}</td>
                         <td class="text-end">{{i.Cartones|floatformat:"2g"}}</td>
-                        <td class="text-center">
-                            {% if not i.id_x %}
+
+                        <!--td class="text-center">
+                            {% if not i.avance %}
                             <button class="btn btn-sm btn-secondary" name="avance">
                                 <i class="bi bi-check-square-fill"></i>
                             </button>
-                            {% elif i.id_x %}
+                            {% elif i.avance %}
                             <button class="btn btn-sm btn-success disabled" name="avance">
+                                <i class="bi bi-check-square-fill"></i>
+                            </button>
+                            {% endif %}
+                        </td-->
+                        <td class="text-center">
+                            <input type="hidden" value="{{i.unidades}}" id="av_und">
+                            <input type="hidden" value="{{i.avance}}" id="av_id">
+                            {% if not i.unidades %}
+                            <button type="button" class="btn btn-sm btn-secondary" name="avance" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                                <i class="bi bi-check-square-fill"></i>
+                            </button>
+                            {% elif i.unidades == i.QUANTITY %}
+                            <button type="button" class="btn btn-sm btn-success disabled" name="avance" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                                <i class="bi bi-check-square-fill"></i>
+                            </button>
+                            {% elif  i.unidades < i.QUANTITY %}
+                            <button type="button" class="text-white btn btn-sm btn-warning" name="avance" data-bs-toggle="modal" data-bs-target="#exampleModal">
                                 <i class="bi bi-check-square-fill"></i>
                             </button>
                             {% endif %}
@@ -112,6 +130,27 @@
     </div>
 </div>
 
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Avance de Etiquetado</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <span class="fw-bold">Código:</span> <span id="codigo"></span> <br>
+          <span class="fw-bold">Unidades:</span>
+          <input class="form-control" id="unidades_avance" type="number">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+          <button type="button" class="btn btn-primary" name="save">Guardar</button>
+        </div>
+      </div>
+    </div>
+</div>
+  
+
 <script>
     $(document).ready(function() {
         $('#equipo_id').select2();
@@ -121,6 +160,73 @@
     
 <script>
     $("button[name='avance']").click(function() {
+        
+        var n_pedido = $("#n_pedido_val").val();
+        var product_id = $(this).closest("tr").find("#product_id").html();
+        var unidades = $(this).closest("tr").find("#unidades").html();
+
+        var av_und = $(this).closest("tr").find("#av_und").val();
+        var av_id  = $(this).closest("tr").find("#av_id").val();
+
+        var cod = $("#codigo").html(product_id)
+
+        if (av_id) {
+            
+            // EDITAR AVANCE
+            var und = $("#unidades_avance").val(av_und).val();
+
+            $("button[name='save']").click(function() {
+                var und = $("#unidades_avance").val();
+                $.ajax({
+                    url : "{% url 'etiquetado_avance_edit' %}",
+                    type:'POST',
+                    data:{
+                        'csrfmiddlewaretoken': '{{ csrf_token }}',
+                        'id'                 : av_id,
+                        'unidades'           : und
+                    },
+
+                    success: function() {
+                       $('#msg').html('<div class="text-center alert alert-success" role="alert"> Avance exitoso !!! </div>')
+                            setTimeout(function(){
+                            window.location.reload();
+                        }, 1000)
+                    },
+                })
+            })
+
+        } else {
+            // CREAR REGISTRO
+            var und = $("#unidades_avance").val(unidades).val();
+            
+            $("button[name='save']").click(function() {
+                var und = $("#unidades_avance").val();
+                $.ajax({
+                    url : "{% url 'etiquetado_avance' %}",
+                    type:'POST',
+                    data:{
+                        'csrfmiddlewaretoken': '{{ csrf_token }}',
+                        'n_pedido'           : n_pedido,
+                        'product_id'         : product_id,
+                        'unidades'           : und
+                    },
+
+                    success: function() {
+                       $('#msg').html('<div class="text-center alert alert-success" role="alert"> Avance exitoso !!! </div>')
+                            setTimeout(function(){
+                            window.location.reload();
+                        }, 1000)
+                    },
+                })
+            })
+        }
+
+    })
+</script>
+
+
+<!--script>
+    $("button[name='avance']").click(function() {
         // var n_pedido = $("#n_pedido").html();
         var n_pedido = $("#n_pedido_val").val();
         var product_id = $(this).closest("tr").find("#product_id").html();
@@ -129,7 +235,7 @@
         console.log(n_pedido, product_id, unidades)
 
         $.ajax({
-            url : "{% url 'etiquetado_avance' %}",
+            url : "{#% url 'etiquetado_avance' %#}",
             type:'POST',
             data:{
                 'csrfmiddlewaretoken': '{{ csrf_token }}',
@@ -146,8 +252,8 @@
             },
         })
     })
+</script-->
 
-</script>
 
 <script>
     var estado = document.getElementById('estado_id');
