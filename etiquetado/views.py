@@ -2427,14 +2427,13 @@ def publico_dashboard_fun():
 def publico_dashboard(request):
 
     list_reservas = publico_dashboard_fun()
-
+    
     pub = list_reservas[list_reservas['estado']!='FINALIZADO']
     contratos = list(pub['CONTRATO_ID'].unique())
     sto = stock_faltante_contrato(contratos, 'BCT')
 
     if not sto.empty:
         pub = pub.merge(sto, on='CONTRATO_ID', how='left')
-
 
     fin = list_reservas[list_reservas['estado']=='FINALIZADO']
 
