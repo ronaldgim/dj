@@ -628,11 +628,10 @@ def r_san_alerta_list_correo(request):
 def r_san_alert(request):
     
     tabla_query = RegistroSanitario.objects.filter(activo=True).order_by('fecha_expiracion')
-
-    ### PARA MEJORAR EFICIENCIA 
-    ### APLICAR BUSQUEDA BINARIA
+    
+    ### PARA MEJORAR EFICIENCIA APLICAR BUSQUEDA BINARIA
     for i in tabla_query:
-        if i.dias_caducar == 185: # 120:
+        if i.dias_caducar == 179: # 120:
             # 1er Aviso
             send_mail(
                 subject=f'1er Aviso Próximo a Caducar - {i.registro} - {i.marca} - ({i.dias_caducar} días)',
@@ -642,7 +641,7 @@ def r_san_alert(request):
                 fail_silently=True,
             )
             
-        elif i.dias_caducar == 145: # 100:
+        elif i.dias_caducar == 139: # 100:
             # 2do Aviso
             send_mail(
                 subject=f'2do Aviso Próximo a Caducar - {i.registro} - {i.marca} - ({i.dias_caducar} días)',
@@ -652,7 +651,7 @@ def r_san_alert(request):
                 fail_silently=True,
             )
             
-        elif i.dias_caducar == 86: # 90:
+        elif i.dias_caducar == 80: # 90:
             # 3er Aviso
             send_mail(
                 subject=f'3er Aviso Próximo a Caducar - {i.registro} - {i.marca} - ({i.dias_caducar} días)',
@@ -662,13 +661,13 @@ def r_san_alert(request):
                 fail_silently=True,
             )
             
-        elif i.dias_caducar == 72: #40:
+        elif i.dias_caducar == 66: #40:
             # 4to Aviso
             send_mail(
                 subject=f'4to Aviso Próximo a Caducar - {i.registro} - {i.marca} - ({i.dias_caducar} días)',
                 message=f'Estimada Pia, \n \n El registro {i.registro} de {i.marca} expira el {i.fecha_expiracion}. \n \n Att. Gim-Operaciones.',
                 from_email=settings.EMAIL_HOST_USER,
-                recipient_list= ['egarces@gimpromed.com'], #[ronaldm@gimpromed.com]
+                recipient_list= ['egarces@gimpromed.com', 'ronaldm@gimpromed.com'], #[ronaldm@gimpromed.com]
                 fail_silently=True,
             )
             

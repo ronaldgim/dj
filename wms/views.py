@@ -327,49 +327,49 @@ def wms_movimiento_interno(request):
     ubicacion_saliente = Ubicacion.objects.get(id=mov.ubicacion.id) 
     ubicaciones        = Ubicacion.objects.exclude(id=ubicacion_saliente.id)
 
-    if request.method == 'POST':
+    # if request.method == 'POST':
 
-        # Control
-        und_post = int(request.POST['unidades'])
-        ubi_post = int(request.POST['ubicacion'])
-        user     = request.POST['usuario']
-        user     = User.objects.get(username=user)
-        und_egreso = und_post * (-1)
-        ubicacion_ingresante = Ubicacion.objects.get(id=ubi_post) 
+    #     # Control
+    #     und_post = int(request.POST['unidades'])
+    #     ubi_post = int(request.POST['ubicacion'])
+    #     user     = request.POST['usuario']
+    #     user     = User.objects.get(username=user)
+    #     und_egreso = und_post * (-1)
+    #     ubicacion_ingresante = Ubicacion.objects.get(id=ubi_post) 
 
-        if und_post > 0 and und_post <= und_existentes:
-            # Crear registro de Egreso
-            mov_egreso = Movimiento.objects.create(
-                item = item_id,
-                tipo = 'Egreso',
-                descripcion = 'Movimiento Interno',
-                ubicacion = ubicacion_saliente,
-                unidades = und_egreso,
-                usuario =  user
-            )
-            mov_egreso.save()
+    #     if und_post > 0 and und_post <= und_existentes:
+    #         # Crear registro de Egreso
+    #         mov_egreso = Movimiento.objects.create(
+    #             item = item_id,
+    #             tipo = 'Egreso',
+    #             descripcion = 'Movimiento Interno',
+    #             ubicacion = ubicacion_saliente,
+    #             unidades = und_egreso,
+    #             usuario =  user
+    #         )
+    #         mov_egreso.save()
 
-            # Crear registro de Inreso
-            mov_ingreso = Movimiento.objects.create(
-                item = item_id,
-                tipo = 'Ingreso',
-                descripcion = 'Movimiento Interno',
-                ubicacion = ubicacion_ingresante,
-                unidades = und_post ,
-                usuario =  user
-            )
-            mov_ingreso.save()
+    #         # Crear registro de Inreso
+    #         mov_ingreso = Movimiento.objects.create(
+    #             item = item_id,
+    #             tipo = 'Ingreso',
+    #             descripcion = 'Movimiento Interno',
+    #             ubicacion = ubicacion_ingresante,
+    #             unidades = und_post ,
+    #             usuario =  user
+    #         )
+    #         mov_ingreso.save()
             
-            messages.success(request, 'Movimiento realizado con exito !!!')
-            return redirect(f'/wms/inventario')
+    #         messages.success(request, 'Movimiento realizado con exito !!!')
+    #         return redirect(f'/wms/inventario')
         
-        elif und_post > und_existentes:
-            messages.error(request, 'No se puede retirar una cantidad mayor a la exitente !!!')
-            return redirect(f'/wms/inventario/mov-interno/{prod}/{lote}/{bod}/{pas}/{mod}/{niv}')
+    #     elif und_post > und_existentes:
+    #         messages.error(request, 'No se puede retirar una cantidad mayor a la exitente !!!')
+    #         return redirect(f'/wms/inventario/mov-interno/{prod}/{lote}/{bod}/{pas}/{mod}/{niv}')
 
-        else: 
-            messages.error(request, 'Error en el movimiento !!!')
-            return redirect(f'/wms/inventario/mov-interno/{prod}/{lote}/{bod}/{pas}/{mod}/{niv}')
+    #     else: 
+    #         messages.error(request, 'Error en el movimiento !!!')
+    #         return redirect(f'/wms/inventario/mov-interno/{prod}/{lote}/{bod}/{pas}/{mod}/{niv}')
 
     
     context = {

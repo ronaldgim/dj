@@ -247,7 +247,18 @@
                     <tbody>
                     {% for i in reservas %}
                     <tr>
-                        <th scope="row">{{i.PRODUCT_ID}}</th>
+                        <th scope="row">
+                            {{i.PRODUCT_ID}}
+                            {% if i.unidades %}
+                            <i class="bi bi-check-circle-fill" 
+                                {% if i.QUANTITY == i.unidades %}
+                                style="color:green"
+                                {% elif i.unidades < i.QUANTITY %}
+                                style="color:yellow"
+                                {% endif %}
+                            ></i>
+                            {% endif %}
+                        </th>
                         <td class="text-start">{{i.PRODUCT_NAME}}</td>
                         <td class="text-start">{{i.marca}}</td>
                         <td class="text-end">{{i.QUANTITY|floatformat:"0g"}}</td>

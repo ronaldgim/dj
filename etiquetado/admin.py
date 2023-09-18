@@ -13,7 +13,8 @@ from etiquetado.models import (
     RegistoGuia,
     FechaEntrega,
     ProductArmado,
-    InstructivoEtiquetado
+    InstructivoEtiquetado,
+    EtiquetadoAvance
 )
 
 # Register your models here.
@@ -60,3 +61,8 @@ class ProductArmadoAdmin(admin.ModelAdmin):
 @admin.register(InstructivoEtiquetado)
 class InstructivoEtiquetadoAdmin(admin.ModelAdmin):
     list_display = ('id', 'equipo', 'producto', 'creado')
+    
+    
+@admin.register(EtiquetadoAvance)
+class EtiquetadoAvanceAdmin(admin.ModelAdmin):
+    list_display = ('id', 'n_pedido', 'product_id', 'unidades')
