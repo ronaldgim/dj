@@ -21,7 +21,8 @@ from etiquetado.models import (
     RegistoGuia,
     FechaEntrega,
     ProductArmado,
-    InstructivoEtiquetado
+    InstructivoEtiquetado,
+    EtiquetadoAvance
     )
 
 from datos.models import StockConsulta
@@ -101,7 +102,9 @@ from datos.views import (
     # stock_total,
     stock_lote_odbc,
     ventas_armados_facturas_odbc,
-    productos_transito_odbc
+    productos_transito_odbc,
+    etiquetado_avance_pedido,
+    calculo_etiquetado_avance
     )
 
 
@@ -832,17 +835,50 @@ def pedidos_estado_list(request):
     return render(request, 'etiquetado/etiquetado_estado/lista_estado_pedidos.html', context)#reservas
 
 
+# Registrar avance de item en pedido
+def etiquetado_avance(request):
+    
+    n_pedido = request.POST['n_pedido']
+    product_id = request.POST['product_id']
+    unidades = request.POST['unidades'].replace('.','')
+    unidades = int(unidades)
+    
+    av = EtiquetadoAvance(
+        n_pedido   = n_pedido,
+        product_id = product_id,
+        unidades   = unidades
+    )
+    
+    av.save()
+    
+    return HttpResponse(None)
+
+
+# # Filtrar avance de etiquetado por pedido
+# def etiquetado_avance_pedido(n_pedido):
+#     avance = EtiquetadoAvance.objects.filter(n_pedido=n_pedido).values()
+#     avance = pd.DataFrame(avance)
+#     avance = avance.rename(columns={
+#         # 'n_pedido':'CONTRADO_ID',
+#         'product_id':'PRODUCT_ID'
+#         })
+#     return avance
+
+
 # Crear estado
 def estado_etiquetado(request, n_pedido, id):
 
     if id == '-':
 
-        #vehiculo = Vehiculos.objects.filter(activo=True).order_by('transportista')
         form = PedidosEstadoEtiquetadoForm()
 
         # Dataframes
         pedido = pedido_por_cliente(n_pedido)
-        product = pd.DataFrame(list(Product.objects.all().values()))
+        avance = etiquetado_avance_pedido(n_pedido)
+        if not avance.empty:
+             pedido = pedido.merge(avance, on='PRODUCT_ID', how='left')
+        
+        product = pd.DataFrame((Product.objects.all().values()))
         product = product.rename(columns={'product_id':'PRODUCT_ID'})
 
         # Merge Dataframes
@@ -863,7 +899,7 @@ def estado_etiquetado(request, n_pedido, id):
         json_records = pedido.reset_index().to_json(orient='records')
         data = []
         data = json.loads(json_records)
-
+        
         # Totales de tabla
         cliente = pedido['NOMBRE_CLIENTE'].iloc[0]
         fecha_pedido = pedido['FECHA_PEDIDO'].iloc[0]
@@ -893,8 +929,6 @@ def estado_etiquetado(request, n_pedido, id):
             't_total_pes':t_total_pes,
             't_cartones':t_cartones,
             't_unidades':t_unidades,
-
-            #'vehiculos':vehiculo,
 
             # Form
             'form':form
@@ -912,10 +946,13 @@ def estado_etiquetado(request, n_pedido, id):
         id_estado = int(float(id))
         estado_registro = PedidosEstadoEtiquetado.objects.get(id=id_estado)
         form_update = PedidosEstadoEtiquetadoForm(instance=estado_registro)
-        vehiculo = Vehiculos.objects.all()
 
         # Dataframes
         pedido = pedido_por_cliente(n_pedido)
+        avance = etiquetado_avance_pedido(n_pedido)
+        if not avance.empty:
+             pedido = pedido.merge(avance, on='PRODUCT_ID', how='left')
+        
         product = pd.DataFrame(list(Product.objects.all().values()))
         product = product.rename(columns={'product_id':'PRODUCT_ID'})
 
@@ -967,8 +1004,6 @@ def estado_etiquetado(request, n_pedido, id):
             't_total_pes':t_total_pes,
             't_cartones':t_cartones,
             't_unidades':t_unidades,
-
-            'vehiculos':vehiculo,
 
             # Form
             'form':form_update
@@ -1023,7 +1058,7 @@ def detail_stock_etiquetado(request, id):
 
 # Detalle y actualización vista Cerezos
 def detail_stock_etiquetado_bodega(request, id):
-
+    
     if PedidosEstadoEtiquetado.objects.filter(n_pedido=id).exists():
 
         id_str = str(id)
@@ -2296,7 +2331,13 @@ def publico_dashboard_fun():
     
     ### CONF TIEMPOS
     contratos = reservas['CONTRATO_ID'].unique()
-
+    
+    # Avance de etiquetado
+    avance_df = pd.DataFrame()
+    avance_df['CONTRATO_ID'] = contratos
+    avance_df['avance'] = [calculo_etiquetado_avance(i) for i in contratos]
+    
+    # Mostrar tiempos
     cont = []
     tiempos = []
 
@@ -2372,6 +2413,8 @@ def publico_dashboard_fun():
     list_reservas['dia'] = list_reservas['dia'].str.replace('Miã©rcoles','Miércoles')
     list_reservas['mes'] = list_reservas['fh'].dt.month_name(locale='es_EC.utf-8')
 
+    list_reservas = list_reservas.merge(avance_df, on='CONTRATO_ID', how='left')
+    
     return list_reservas
 
 
@@ -2432,7 +2475,6 @@ def dashboard_completo(request):
 
     # ETIQUETADO STOCK
     etiquetado = etiquetado_fun()
-    
     urgente = 0.75
     correcto = 2
     rojo = len(etiquetado[etiquetado['Meses']<urgente])
@@ -2447,7 +2489,7 @@ def dashboard_completo(request):
     publico = publico[publico['estado']!='FINALIZADO']
     contratos_publicos = list(publico['CONTRATO_ID'].unique())
     sto_publico = stock_faltante_contrato(contratos_publicos, 'BCT')
-
+    
     if not sto_publico.empty:
         publico = publico.merge(sto_publico, on='CONTRATO_ID', how='left')
     
@@ -2601,213 +2643,6 @@ def dashboard_armados(request):
 
 
 def reporte_revision_reservas(request):
-
-    # # Dataframes
-    # # Reservas con lote
-    # r_lote = reservas_lote()
-    # r_lote['CONFIRMED'] = r_lote['CONFIRMED'].astype(int)
-    
-    # # Clientes
-    # cli = clientes_table()[['CODIGO_CLIENTE', 'CLIENT_TYPE','NOMBRE_CLIENTE']]
-    
-    # # Reservas agrupadas - Reservas confirmadas excepto clientes DIST
-    # r_group = r_lote[r_lote['CONFIRMED']==1]
-    # r_group = r_group.merge(cli, on='CODIGO_CLIENTE', how='left')
-    # r_group = r_group[r_group['CLIENT_TYPE']!='DIST']
-    # r_group = r_group.pivot_table(index=['PRODUCT_ID', 'LOTE_ID', 'WARE_CODE'], values='EGRESO_TEMP', aggfunc='sum')
-    # r_group = r_group.reset_index()
-    # # r_lote_group = r_group
-
-    # # Reservas de hospitales publicos 
-    # r_sin_lote = pd.DataFrame(reservas_table())[['CONTRATO_ID','SEC_NAME_CLIENTE']]
-    # r_sin_lote = r_sin_lote[r_sin_lote['SEC_NAME_CLIENTE']=='PUBLICO']
-    # r_sin_lote['CONTRATO_ID'] = r_sin_lote['CONTRATO_ID'].astype(float)
-    # r_sin_lote['CONTRATO_ID'] = r_sin_lote['CONTRATO_ID'].astype(int)
-    
-    # # Unir reservas con lote, reservas sin lote y clientes
-    # r_lote = r_lote.merge(r_sin_lote, on='CONTRATO_ID', how='left')
-    # r_lote = r_lote.merge(cli, on='CODIGO_CLIENTE', how='left')
-    
-    # # Filtrar reservas
-    # # Solo reservas no confirmadas
-    # # r_lote['CONFIRMED'] = r_lote['CONFIRMED'].astype(int)
-    # r_lote = r_lote[(r_lote['CONFIRMED']==0)] 
-    
-    # # Solo reservas de hospitales publicos y gimpromed
-    # r_lote = r_lote[(r_lote['NOMBRE_CLIENTE']=='GIMPROMED CIA. LTDA.') | (r_lote['CLIENT_TYPE']=='HOSPU')]
-
-    # # Retirar reservas que son para etiquetar hospitales publicos
-    # r_lote = r_lote[r_lote['SEC_NAME_CLIENTE']!='PUBLICO']    
-    
-    # # Trasformar tipo de datos por columna 
-    # # r_lote['CONTRATO_ID'] = r_lote['CONTRATO_ID'].astype(int)
-    # # r_lote['CODIGO_CLIENTE'] = r_lote['CODIGO_CLIENTE'].astype(str)
-    # # r_lote['PRODUCT_ID'] = r_lote['PRODUCT_ID'].astype(str)
-    # # r_lote['WARE_CODE'] = r_lote['WARE_CODE'].astype(str)
-    # # r_lote['LOTE_ID'] = r_lote['LOTE_ID'].astype(str)
-    # r_lote['FECHA_CADUCIDAD'] = pd.to_datetime(r_lote['FECHA_CADUCIDAD'])
-    # # r_lote['EGRESO_TEMP'] = r_lote['EGRESO_TEMP'].astype(int)
-
-    # # Agrupación de cantidades de reservas por producto, lote y bodega
-    # r_lote_group = r_lote.pivot_table(index=['PRODUCT_ID', 'LOTE_ID', 'WARE_CODE'], values='EGRESO_TEMP', aggfunc='sum')
-    # r_lote_group = r_lote_group.reset_index()
-
-    # # Inventario    
-    # inv = pd.DataFrame(inventario_bodega_consulta())
-    # inv = inv[[1,2,3,4,5,6,7,8,9,10,11,12,13]]
-    # inv = inv.rename(columns={
-    #     1:'PRODUCT_ID',
-    #     2:'PRODUCT_NAME_inv',
-    #     3:'GROUP_CODE_inv',
-    #     4:'UM_inv',
-    #     5:'OH_inv',
-    #     6:'OH2_inv',
-    #     7:'COMMITED_inv',
-    #     8:'QUANTITY_inv',
-    #     9:'LOTE_ID',
-    #     10:'FECHA_ELABORACION_inv',
-    #     11:'FECHA_CADUCIDAD_inv',
-    #     #11:'FECHA_CADUCIDAD',
-    #     12:'WARE_CODE',
-    #     13:'LOCATION_inv'
-    # })
-            
-
-    # hoy = date.today()
-    # r_lote['hoy'] = hoy
-    # r_lote['hoy'] = pd.to_datetime(r_lote['hoy'])
-    # r_lote['dias_caducar'] = (r_lote['FECHA_CADUCIDAD'] - r_lote['hoy']).dt.days
-
-
-    # r_lote = r_lote.sort_values(by=['CONTRATO_ID', 'dias_caducar'])
-    # r_lote = r_lote[['CONTRATO_ID', 'NOMBRE_CLIENTE', 'PRODUCT_ID', 'LOTE_ID', 'WARE_CODE', 'FECHA_CADUCIDAD', 'EGRESO_TEMP']]
-    # #r_lote_sum = r_lote.groupby(['PRODUCT_ID', 'LOTE_ID', 'WARE_CODE', 'EGRESO_TEMP']).sum()
-    # r_lote_sum = r_lote.pivot_table(index=['PRODUCT_ID', 'LOTE_ID', 'WARE_CODE'], values='EGRESO_TEMP', aggfunc='sum')
-    # r_lote_sum = r_lote_sum.reset_index()
-
-    # # items con reserva
-    # items_reservas = list(r_lote['PRODUCT_ID'].unique())
-    # items_reservas.sort() #;print(items_reservas)
-
-    # # Filtrar inventario por items_reserva
-    # inv = inv[inv.PRODUCT_ID.isin(items_reservas)]
-    # inv['hoy'] = hoy
-    # inv['hoy'] = pd.to_datetime(inv['hoy'])
-    # inv['FECHA_CADUCIDAD_inv'] = pd.to_datetime(inv['FECHA_CADUCIDAD_inv'])
-    # inv['dias_caducar_inv'] = (inv['FECHA_CADUCIDAD_inv']-inv['hoy']).dt.days
-    # inv = inv.sort_values(by='dias_caducar_inv')
-    # inv = inv[['PRODUCT_ID', 'LOTE_ID', 'WARE_CODE','FECHA_CADUCIDAD_inv', 'OH2_inv']] #WARECODE
-    # inv = inv.rename(columns={'FECHA_CADUCIDAD_inv':'FECHA_CADUCIDAD'})
-
-    # inv = inv.groupby(['PRODUCT_ID', 'LOTE_ID', 'WARE_CODE', 'FECHA_CADUCIDAD']).sum() #WARECODE
-    # inv = inv.reset_index()
-
-    # inv_2 = inv.merge(r_lote_sum, on=['PRODUCT_ID','LOTE_ID', 'WARE_CODE'], how='left')
-    # inv_2 = inv_2[['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD', 'WARE_CODE', 'OH2_inv', 'EGRESO_TEMP']].fillna(0) #WARECODE
-    # inv_2['DISP'] = inv_2['OH2_inv'] - inv_2['EGRESO_TEMP']
-
-    # r_lote_list = list(r_lote['CONTRATO_ID'].unique())
-    # df_contrato_codigo = []
-
-    # for i in r_lote_list:
-    #     r_lot_df = r_lote[r_lote['CONTRATO_ID']==i]
-    #     r_lot_df = r_lot_df.sort_values(by=['PRODUCT_ID'])
-
-    #     # try
-
-    #     for i, row in r_lot_df.iterrows():
-    #         cod = row['PRODUCT_ID']
-    #         # inv_contrato_df = inv[inv['PRODUCT_ID']==cod]
-    #         inv_contrato_df = inv_2[inv_2['PRODUCT_ID']==cod]
-    #         # inv_contrato_df = inv_contrato_df[inv_contrato_df['DISP']!=0]
-
-    #         contrato_df = row.to_frame().T
-    #         contrato_df_und = contrato_df.iat[0,6]
-
-    #         # inv_contrato_df['UND_RES-CONTRATO'] = contrato_df_und
-    #         # inv_contrato_df['DISP-FINAL'] = inv_contrato_df['DISP'] - inv_contrato_df['UND_RES-CONTRATO']
-
-    #         inv_contrato_df = inv_contrato_df.sort_values(by=['FECHA_CADUCIDAD'])
-
-    #         if not inv_contrato_df.empty:
-
-    #             # compara fechas o lotes
-    #             contrato_df_fecha = contrato_df.iat[0, 5]
-    #             inv_df = inv_contrato_df.tail(1)
-    #             inv_df_fecha = inv_df.iat[0,2]
-
-    #             inv_df_final = inv_contrato_df[inv_contrato_df['FECHA_CADUCIDAD']>=inv_df_fecha]
-    #             # inv_df_final = inv_contrato_df#[inv_contrato_df['FECHA_CADUCIDAD']>=inv_df_fecha]
-    #             inv_df_final_2 = inv_df_final.groupby(['PRODUCT_ID', 'LOTE_ID', 'WARE_CODE', 'FECHA_CADUCIDAD']).sum().reset_index()
-
-
-    #             inv_df_final_cero = inv_df_final.tail(1)
-    #             inv_df_final_cero = inv_df_final_cero.iat[0,6] #;print(inv_df_final_cero) ;print(type(inv_df_final_cero))
-    #             inv_df_final_cero = int(inv_df_final_cero)
-
-    #             contrato_df_und = contrato_df.iat[0,6]
-    #             contrato_df_lote = contrato_df.iat[0,3]
-                
-    #             inv_df_final['res-und'] = contrato_df_und
-    #             inv_df_final['disp-final'] = inv_df_final['DISP'] - inv_df_final['res-und']
-
-    #             inv_df_final = inv_df_final[inv_df_final['LOTE_ID']!=contrato_df_lote]
-    #             inv_df_final = inv_df_final[inv_df_final['disp-final']>0]
-
-    #             # inv_df_final_2 = inv_df_final.groupby(['PRODUCT_ID', 'LOTE_ID', 'WARE_CODE', 'FECHA_CADUCIDAD']).sum().reset_index()
-    #             inv_df_final = inv_df_final.merge(inv_df_final_2, on=['PRODUCT_ID', 'LOTE_ID', 'WARE_CODE', 'FECHA_CADUCIDAD'], how='right')
-    #             inv_df_final = inv_df_final[['PRODUCT_ID', 'LOTE_ID', 'WARE_CODE', 'FECHA_CADUCIDAD', 'EGRESO_TEMP_y', 'OH2_inv_x']]
-    #             #inv_df_final = inv_df_final[['PRODUCT_ID', 'LOTE_ID', 'WARE_CODE', 'FECHA_CADUCIDAD', 'OH2_inv_y', 'OH2_inv_x']]
-    #             inv_df_final['UNDS DISPONIBLE'] = inv_df_final['OH2_inv_x'] - inv_df_final['EGRESO_TEMP_y'] 
-    #             #inv_df_final['UNDS DISPONIBLE'] = inv_df_final['OH2_inv_x'] - inv_df_final['OH2_inv_y'] 
-    #             inv_df_final = inv_df_final.drop_duplicates(subset=['LOTE_ID']).reset_index()
-
-    #             inv_df_final = inv_df_final[inv_df_final['FECHA_CADUCIDAD']>=contrato_df_fecha]
-    #             inv_df_final = inv_df_final[inv_df_final['WARE_CODE']!='CUC']
-    #             inv_df_final = inv_df_final[inv_df_final['WARE_CODE']!='CUA']
-    #             #print(inv_df_final)
-    #             #print(inv_df_final[inv_df_final['PRODUCT_ID']=='B0116'])
-                
-    #             if contrato_df_fecha != inv_df_fecha and inv_df_final_cero > 0 and not inv_df_final.empty: 
-    #                 cero_dip = inv_df_final.iat[0,7]
-
-    #                 if cero_dip > 0:
-
-    #                     und_res = contrato_df.iat[0,6]
-    #                     inv_df_final['CANTIDAD A RESERVAR'] = inv_df_final.apply(lambda row: inv_df_final['UNDS DISPONIBLE'] if row['UNDS DISPONIBLE'] <= und_res else und_res, axis=1)
-    #                     #inv_df_final['CANTIDAD A RESERVAR'] = und_res
-    #                     df_concat_1 = pd.concat([contrato_df, inv_df_final])
-    #                     df_contrato_codigo.append(df_concat_1)
-                        
-    # try:                        
-    #     rep = pd.concat(df_contrato_codigo)
-    #     rep = rep.set_index('PRODUCT_ID')
-    #     rep = rep.rename(columns={'EGRESO_TEMP':'UNDS RESERVADAS CONTRATO', 'OH2_inv_x':'UNDS INVENTARIO','EGRESO_TEMP_y':'UNDS RESERVADAS INVENTARIO','OH2_inv_x':'UNDS INVENTARIO'})
-    #     #rep = rep.rename(columns={'EGRESO_TEMP':'UNDS RESERVADAS CONTRATO', 'OH2_inv_x':'UNDS INVENTARIO','OH2_inv_y':'UNDS RESERVADAS INVENTARIO','OH2_inv_x':'UNDS INVENTARIO'})
-        
-    #     pro = productos_odbc_and_django()[['product_id','Nombre','marca2']]
-    #     pro = pro.rename(columns={'product_id':'PRODUCT_ID'})
-
-    #     rep = rep.merge(pro, on='PRODUCT_ID', how='left')
-
-    #     rep = rep[['PRODUCT_ID', 'Nombre','marca2',  'LOTE_ID','FECHA_CADUCIDAD','WARE_CODE','UNDS RESERVADAS CONTRATO', 'CONTRATO_ID','NOMBRE_CLIENTE','UNDS RESERVADAS INVENTARIO','UNDS INVENTARIO','UNDS DISPONIBLE','CANTIDAD A RESERVAR']]
-    #     rep = rep.set_index('PRODUCT_ID')
-    #     rep['FECHA_CADUCIDAD'] = rep['FECHA_CADUCIDAD'].astype(str)
-
-    #     # Excel
-    #     hoy = str(hoy)
-    #     n = 'Reporte_' + hoy + '.xlsx'
-    #     nombre = 'attachment; filename=' + '"' + n + '"'
-
-    #     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    #     response['Content-Disposition'] = nombre
-
-    #     rep.to_excel(response)
-        
-    #     return response
-    # except:
-    #     messages.success(request, 'Reservas actualizadas, no hay items que mover !!!')
-    #     return HttpResponseRedirect('/etiquetado/revision/imp/llegadas/list')
 
     from datos.views import revision_reservas_fun
 
@@ -3102,3 +2937,5 @@ def list_instructo_etiquetado(request):
 #     context = {'form':form}
     
 #     return render(request, '', )
+
+
