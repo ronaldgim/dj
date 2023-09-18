@@ -900,7 +900,7 @@ def estado_etiquetado(request, n_pedido, id):
         if not avance.empty:
             avance = avance.rename(columns={'id':'avance'})
             pedido = pedido.merge(avance, on='PRODUCT_ID', how='left')
-        print(pedido)
+        
         product = productos_odbc_and_django()[['product_id','marca','unidad_empaque']]
         product = product.rename(columns={'product_id':'PRODUCT_ID'})
 
@@ -951,7 +951,7 @@ def estado_etiquetado(request, n_pedido, id):
         if not avance.empty:
             avance = avance.rename(columns={'id':'avance'})
             pedido = pedido.merge(avance, on='PRODUCT_ID', how='left')
-        print(pedido)
+        
         product = productos_odbc_and_django()[['product_id','marca','unidad_empaque']] 
         product = product.rename(columns={'product_id':'PRODUCT_ID'})
 
