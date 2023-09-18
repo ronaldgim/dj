@@ -305,7 +305,7 @@ def etiquetado_pedidos(request, n_pedido):
 
     meta = request.META['REMOTE_ADDR']#REMOTE_ADDR
     vehiculo = Vehiculos.objects.filter(activo=True).order_by('transportista')
-    #    fecha_entrega = FechaEntrega.objects.get(pedido=n_pedido);print(fecha_entrega)
+    
     # Dataframes
     pedido = pedido_por_cliente(n_pedido)
     pedido = pedido[pedido['PRODUCT_ID']!='MANTEN']
@@ -365,7 +365,13 @@ def etiquetado_pedidos(request, n_pedido):
     pedido = pedido.sort_values(by=['PRODUCT_NAME']) 
     cli_ruc = clientes_table()[['NOMBRE_CLIENTE','IDENTIFICACION_FISCAL']]
     pedido = pedido.merge(cli_ruc,on='NOMBRE_CLIENTE', how='left') 
-
+    
+    # Avance
+    avance = etiquetado_avance_pedido(n_pedido) 
+    if not avance.empty:
+        avance = avance.rename(columns={'id':'avance'})[['PRODUCT_ID','unidades']]
+        pedido = pedido.merge(avance, on='PRODUCT_ID', how='left').fillna(0)
+    
     # Transformar Datos para presentar en template
     data = de_dataframe_a_template(pedido)
 
