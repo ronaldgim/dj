@@ -860,6 +860,22 @@ def etiquetado_avance(request):
     return HttpResponse(None)
 
 
+def etiquetado_avance_edit(request):
+    
+    id_request = request.POST['id']
+    id_request = int(id_request)
+    
+    unidades = request.POST['unidades'].replace('.','')
+    unidades = int(unidades)
+    
+    av = EtiquetadoAvance.objects.get(id=id_request)
+    av.unidades = unidades
+    
+    av.save()
+    
+    return HttpResponse(None)
+
+
 # # Filtrar avance de etiquetado por pedido
 # def etiquetado_avance_pedido(n_pedido):
 #     avance = EtiquetadoAvance.objects.filter(n_pedido=n_pedido).values()
@@ -873,7 +889,7 @@ def etiquetado_avance(request):
 
 # Crear estado
 def estado_etiquetado(request, n_pedido, id):
-
+    
     if id == '-':
 
         form = PedidosEstadoEtiquetadoForm()
@@ -882,57 +898,33 @@ def estado_etiquetado(request, n_pedido, id):
         pedido = pedido_por_cliente(n_pedido)
         avance = etiquetado_avance_pedido(n_pedido)
         if not avance.empty:
-             pedido = pedido.merge(avance, on='PRODUCT_ID', how='left')
+            avance = avance.rename(columns={'id':'avance'})
+            pedido = pedido.merge(avance, on='PRODUCT_ID', how='left')
         
-        product = pd.DataFrame((Product.objects.all().values()))
+        product = productos_odbc_and_django()[['product_id','marca','unidad_empaque']]
         product = product.rename(columns={'product_id':'PRODUCT_ID'})
 
         # Merge Dataframes
-        pedido = pedido.merge(product, on='PRODUCT_ID', how='left')
+        pedido = pedido.merge(product, on='PRODUCT_ID', how='left').sort_values(by='PRODUCT_ID')
 
         # Calculos
         pedido['Cartones'] = pedido['QUANTITY'] / pedido['unidad_empaque']
-        pedido['t_una_p_min'] = (pedido['Cartones'] * pedido['t_etiq_1p']) / 60
-
-        pedido['t_una_p_hor'] = pedido['t_una_p_min'] / 60
-        pedido['t_dos_p_hor'] = ((pedido['Cartones'] * pedido['t_etiq_2p']) / 60) / 60
-        pedido['t_tre_p_hor'] = ((pedido['Cartones'] * pedido['t_etiq_3p']) / 60) / 60
-
-        pedido['vol_total'] = pedido['Cartones'] * pedido['volumen']
-        pedido['pes_total'] = pedido['peso'] * pedido['Cartones']
-
-        # Transformar Datos para presentar en template
-        json_records = pedido.reset_index().to_json(orient='records')
-        data = []
-        data = json.loads(json_records)
         
         # Totales de tabla
         cliente = pedido['NOMBRE_CLIENTE'].iloc[0]
         fecha_pedido = pedido['FECHA_PEDIDO'].iloc[0]
-        t_total_min = pedido['t_una_p_min'].sum()
-
-        t_total_1p_hor = pedido['t_una_p_hor'].sum()
-        t_total_2p_hor = pedido['t_dos_p_hor'].sum()
-        t_total_3p_hor = pedido['t_tre_p_hor'].sum()
-
-        t_total_vol = pedido['vol_total'].sum()
-        t_total_pes = pedido['pes_total'].sum()
+        
         t_cartones = pedido['Cartones'].sum()
         t_unidades = pedido['QUANTITY'].sum()
 
+        pedido = de_dataframe_a_template(pedido)
+
         context = {
-            'reservas':data,
+            'reservas':pedido,
             'pedido':n_pedido,
             'cliente':cliente,
             'fecha_pedido':fecha_pedido,
-            't_total_min':t_total_min,
-
-            't_total_1p_hor':t_total_1p_hor,
-            't_total_2p_hor':t_total_2p_hor,
-            't_total_3p_hor':t_total_3p_hor,
-
-            't_total_vol':t_total_vol,
-            't_total_pes':t_total_pes,
+            
             't_cartones':t_cartones,
             't_unidades':t_unidades,
 
@@ -957,57 +949,33 @@ def estado_etiquetado(request, n_pedido, id):
         pedido = pedido_por_cliente(n_pedido)
         avance = etiquetado_avance_pedido(n_pedido)
         if not avance.empty:
-             pedido = pedido.merge(avance, on='PRODUCT_ID', how='left')
-        
-        product = pd.DataFrame(list(Product.objects.all().values()))
+            avance = avance.rename(columns={'id':'avance'})
+            pedido = pedido.merge(avance, on='PRODUCT_ID', how='left')
+            
+        product = productos_odbc_and_django()[['product_id','marca','unidad_empaque']] 
         product = product.rename(columns={'product_id':'PRODUCT_ID'})
 
         # Merge Dataframes
-        pedido = pedido.merge(product, on='PRODUCT_ID', how='left')
+        pedido = pedido.merge(product, on='PRODUCT_ID', how='left').sort_values(by='PRODUCT_ID')
 
         # Calculos
         pedido['Cartones'] = pedido['QUANTITY'] / pedido['unidad_empaque']
-        pedido['t_una_p_min'] = (pedido['Cartones'] * pedido['t_etiq_1p']) / 60
-
-        pedido['t_una_p_hor'] = pedido['t_una_p_min'] / 60
-        pedido['t_dos_p_hor'] = ((pedido['Cartones'] * pedido['t_etiq_2p']) / 60) / 60
-        pedido['t_tre_p_hor'] = ((pedido['Cartones'] * pedido['t_etiq_3p']) / 60) / 60
-
-        pedido['vol_total'] = pedido['Cartones'] * pedido['volumen']
-        pedido['pes_total'] = pedido['peso'] * pedido['Cartones']
-
-        # Transformar Datos para presentar en template
-        json_records = pedido.reset_index().to_json(orient='records')
-        data = []
-        data = json.loads(json_records)
-
+        
         # Totales de tabla
         cliente = pedido['NOMBRE_CLIENTE'].iloc[0]
         fecha_pedido = pedido['FECHA_PEDIDO'].iloc[0]
-        t_total_min = pedido['t_una_p_min'].sum()
-
-        t_total_1p_hor = pedido['t_una_p_hor'].sum()
-        t_total_2p_hor = pedido['t_dos_p_hor'].sum()
-        t_total_3p_hor = pedido['t_tre_p_hor'].sum()
-
-        t_total_vol = pedido['vol_total'].sum()
-        t_total_pes = pedido['pes_total'].sum()
+                
         t_cartones = pedido['Cartones'].sum()
         t_unidades = pedido['QUANTITY'].sum()
 
+        pedido = de_dataframe_a_template(pedido)
+
         context = {
-            'reservas':data,
+            'reservas':pedido,
             'pedido':n_pedido,
             'cliente':cliente,
             'fecha_pedido':fecha_pedido,
-            't_total_min':t_total_min,
-
-            't_total_1p_hor':t_total_1p_hor,
-            't_total_2p_hor':t_total_2p_hor,
-            't_total_3p_hor':t_total_3p_hor,
-
-            't_total_vol':t_total_vol,
-            't_total_pes':t_total_pes,
+                        
             't_cartones':t_cartones,
             't_unidades':t_unidades,
 
