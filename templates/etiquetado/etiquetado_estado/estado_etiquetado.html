@@ -99,20 +99,13 @@
                             {% endif %}
                         </td-->
                         <td class="text-center">
-                            <!--input type="number" value="{{i.unidades}}" id="av_und">
-                            <input type="number" value="{{i.avance}}" id="av_id"-->
+                            
                             {% if not i.unidades %}
-                            <input type="hidden" value="{{i.unidades}}" id="av_und">
-                            <input type="hidden" value="{{i.avance}}" id="av_id">
-
                             <button type="button" class="btn btn-sm btn-secondary" name="avance" data-bs-toggle="modal" data-bs-target="#exampleModal">
                                 <i class="bi bi-check-square-fill"></i>
                             </button>
                             {% elif i.unidades == i.QUANTITY %}
-                            <input type="hidden" value="{{i.unidades}}" id="av_und">
-                            <input type="hidden" value="{{i.avance}}" id="av_id">
-
-                            <button type="button" class="btn btn-sm btn-success disabled" name="avance" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                            <button type="button" class="btn btn-sm btn-success disabled">
                                 <i class="bi bi-check-square-fill"></i>
                             </button>
                             {% elif  i.unidades < i.QUANTITY %}
@@ -177,22 +170,23 @@
         var av_und = $(this).closest("tr").find("#av_und").val();
         var av_id  = $(this).closest("tr").find("#av_id").val();
 
-        var cod = $("#codigo").html(product_id)
+        var cod = $("#codigo").html(product_id);
 
         if (av_id) {
-            
             // EDITAR AVANCE
-            var und = $("#unidades_avance").val(av_und).val();
-
+            var av_und_str = av_und.replace(',', '.')
+            var av_und_int = Number(av_und_str)
+            var und = $("#unidades_avance").val(av_und_int)//.val();
+            
             $("button[name='save']").click(function() {
-                var und_input = $("#unidades_avance").val();
+                var unidades_post = und.val();console.log(unidades_post)
                 $.ajax({
                     url : "{% url 'etiquetado_avance_edit' %}",
                     type:'POST',
                     data:{
                         'csrfmiddlewaretoken': '{{ csrf_token }}',
                         'id'                 : av_id,
-                        'unidades'           : und_input
+                        'unidades'           : unidades_post
                     },
 
                     success: function() {
@@ -206,10 +200,12 @@
 
         } else {
             // CREAR REGISTRO
+            
             var und = $("#unidades_avance").val(unidades).val();
             
             $("button[name='save']").click(function() {
                 var und_input = $("#unidades_avance").val();
+                
                 $.ajax({
                     url : "{% url 'etiquetado_avance' %}",
                     type:'POST',

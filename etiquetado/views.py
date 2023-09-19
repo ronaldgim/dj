@@ -863,9 +863,10 @@ def etiquetado_avance(request):
 def etiquetado_avance_edit(request):
     
     id_request = request.POST['id']
+    id_request = id_request.split(',')[0]
     id_request = int(id_request)
     
-    unidades = request.POST['unidades'].replace('.','')
+    unidades = request.POST['unidades']   
     unidades = int(unidades)
     
     av = EtiquetadoAvance.objects.get(id=id_request)
@@ -874,17 +875,6 @@ def etiquetado_avance_edit(request):
     av.save()
     
     return HttpResponse(None)
-
-
-# # Filtrar avance de etiquetado por pedido
-# def etiquetado_avance_pedido(n_pedido):
-#     avance = EtiquetadoAvance.objects.filter(n_pedido=n_pedido).values()
-#     avance = pd.DataFrame(avance)
-#     avance = avance.rename(columns={
-#         # 'n_pedido':'CONTRADO_ID',
-#         'product_id':'PRODUCT_ID'
-#         })
-#     return avance
 
 
 # Crear estado
@@ -905,7 +895,7 @@ def estado_etiquetado(request, n_pedido, id):
         product = product.rename(columns={'product_id':'PRODUCT_ID'})
 
         # Merge Dataframes
-        pedido = pedido.merge(product, on='PRODUCT_ID', how='left').sort_values(by='PRODUCT_ID')
+        pedido = pedido.merge(product, on='PRODUCT_ID', how='left').sort_values(by='PRODUCT_ID').fillna('')
 
         # Calculos
         pedido['Cartones'] = pedido['QUANTITY'] / pedido['unidad_empaque']
@@ -956,7 +946,7 @@ def estado_etiquetado(request, n_pedido, id):
         product = product.rename(columns={'product_id':'PRODUCT_ID'})
 
         # Merge Dataframes
-        pedido = pedido.merge(product, on='PRODUCT_ID', how='left').sort_values(by='PRODUCT_ID')
+        pedido = pedido.merge(product, on='PRODUCT_ID', how='left').sort_values(by='PRODUCT_ID').fillna('')
 
         # Calculos
         pedido['Cartones'] = pedido['QUANTITY'] / pedido['unidad_empaque']
