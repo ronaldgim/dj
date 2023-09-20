@@ -20,6 +20,10 @@ from regulatorio_legal.models import DocumentoLote, DocumentoEnviado
 # Pandas
 import pandas as pd
 
+# models
+from users.models import User
+
+# Utilities
 from django.views.decorators.csrf import csrf_exempt
 from regulatorio_legal.forms import DocumentoLoteForm, NewDocumentoLoteForm, DocumentoEnviadoForm
 from django.shortcuts import redirect
@@ -270,7 +274,17 @@ def lista_facturas(request):
     facturas['codigo_factura'] = list(map(lambda x: x.split(('-'))[1], lista_codigos_factura))
     facturas = facturas.sort_values(by=['codigo_factura'], ascending=[False])
 
-    envios_documentos = pd.DataFrame(DocumentoEnviado.objects.all().values('n_factura','usuario__first_name','usuario__last_name'))
+    envios_documentos = pd.DataFrame(DocumentoEnviado.objects.all().values(
+        'n_factura',
+        'usuario__first_name',
+        'usuario__last_name',
+        'fecha_hora'
+        ))
+    
+    envios_documentos['fecha_hora'] = envios_documentos['fecha_hora'].astype(str)
+    envios_documentos['fecha_hora'] = envios_documentos['fecha_hora'].str.slice(0,-7)
+    
+    envios_documentos = envios_documentos.drop_duplicates(subset=['n_factura'], keep='last')
     
     if not envios_documentos.empty:
         envios_documentos['user'] = envios_documentos['usuario__first_name'] + ' ' + envios_documentos['usuario__last_name']
@@ -340,7 +354,10 @@ def factura_detalle(request, n_factura):
     factura = de_dataframe_a_template(factura)
 
     if request.method == 'POST':
-
+        
+        # Quien envia el correo
+        who_send = User.objects.get(id=request.POST['usuario']).email
+        
         if doc_len == prod_len:
             
             # Enviar correo
@@ -351,7 +368,8 @@ def factura_detalle(request, n_factura):
                 
                 archivos = [documentos[i:i+n_archivos] for i in range(0, doc_len, n_archivos)]
                 
-                correo_cliente = request.POST['correo_cliente']
+                correo_cliente = [request.POST['correo_cliente']]
+                correo_cliente.append(who_send)
 
                 if n_correos == 1:   
                     
@@ -364,9 +382,9 @@ GIMPROMED Cia. Ltda.\n
 ****Esta notificación ha sido enviada automáticamente - No responder****
                         """,
                         from_email=settings.EMAIL_HOST_USER,
-                        to=['egarces@gimpromed.com','jgualotuna@gimpromed.com','ncaisapanta@gimpromed.com'],
+                        # to=['egarces@gimpromed.com','jgualotuna@gimpromed.com','ncaisapanta@gimpromed.com'],
                         # to=['egarces@gimpromed.com'],
-                        # to=[corr],
+                        to = correo_cliente,
                         headers={'Message-ID':'Documentos'}
                     )
 
@@ -396,9 +414,9 @@ GIMPROMED Cia. Ltda.\n
 ****Esta notificación ha sido enviada automáticamente - No responder****
                             """,
                             from_email=settings.EMAIL_HOST_USER,
-                            to=['egarces@gimpromed.com','jgualotuna@gimpromed.com','ncaisapanta@gimpromed.com'],
+                            #to=['egarces@gimpromed.com','jgualotuna@gimpromed.com','ncaisapanta@gimpromed.com'],
                             #to=['egarces@gimpromed.com'],
-                            #to=[corr],
+                            to = correo_cliente,
                             headers={'Message-ID':'Documentos'}
                         )
 
