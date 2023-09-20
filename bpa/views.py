@@ -614,7 +614,7 @@ def r_san_alerta_list_correo(request):
     email = EmailMultiAlternatives(
         subject    = 'Alerta - Documentos próximos a caducar.',
         from_email = settings.EMAIL_HOST_USER,
-        to         = ['egarces@gimpromed.com'],
+        to         = ['ronaldm@gimpromed.com','pespinosa@gimpromed.com','ncaisapanta@gimpromed.com'],
         body       = plain_message,
     )
     
@@ -628,12 +628,17 @@ def r_san_alerta_list_correo(request):
 def r_san_alert(request):
     
     tabla_query = RegistroSanitario.objects.filter(activo=True).order_by('fecha_expiracion')
-    a1=120;a2=100;a3=90;a4=40
+    
+    # Avisos
+    a1=120
+    a2=100
+    a3=90
+    a4=40
+    
     ### PARA MEJORAR EFICIENCIA APLICAR BUSQUEDA BINARIA
     for i in tabla_query:
         if i.dias_caducar == a1:  
             # 1er Aviso
-            
             rs_list = [i for i in tabla_query if i.dias_caducar==a1]
             context = {'lista':rs_list}
             
@@ -643,7 +648,7 @@ def r_san_alert(request):
             email = EmailMultiAlternatives(
                 subject    = f'1er Aviso Próximo a Caducar - {i.registro} - {i.marca} - ({i.dias_caducar} días)',
                 from_email = settings.EMAIL_HOST_USER,
-                to         = ['egarces@gimpromed.com'],
+                to         = ['pespinosa@gimpromed.com', 'ncaisapanta@gimpromed.com'],
                 body       = plain_message,
             )
             
@@ -661,7 +666,7 @@ def r_san_alert(request):
             email = EmailMultiAlternatives(
                 subject    = f'2do Aviso Próximo a Caducar - {i.registro} - {i.marca} - ({i.dias_caducar} días)',
                 from_email = settings.EMAIL_HOST_USER,
-                to         = ['egarces@gimpromed.com'],
+                to         = ['pespinosa@gimpromed.com', 'ncaisapanta@gimpromed.com'],
                 body       = plain_message,
             )
             
@@ -679,7 +684,7 @@ def r_san_alert(request):
             email = EmailMultiAlternatives(
                 subject    = f'3er Aviso Próximo a Caducar - {i.registro} - {i.marca} - ({i.dias_caducar} días)',
                 from_email = settings.EMAIL_HOST_USER,
-                to         = ['egarces@gimpromed.com'],
+                to         = ['pespinosa@gimpromed.com', 'ncaisapanta@gimpromed.com'],
                 body       = plain_message,
             )
             
@@ -697,7 +702,7 @@ def r_san_alert(request):
             email = EmailMultiAlternatives(
                 subject    = f'4to Aviso Próximo a Caducar - {i.registro} - {i.marca} - ({i.dias_caducar} días)',
                 from_email = settings.EMAIL_HOST_USER,
-                to         = ['egarces@gimpromed.com'],
+                to         = ['ronaldm@gimpromed.com','pespinosa@gimpromed.com','ncaisapanta@gimpromed.com'],
                 body       = plain_message,
             )
             
