@@ -151,7 +151,7 @@
       </div>
     </div>
 </div>
-  
+
 
 <script>
     $(document).ready(function() {
@@ -176,10 +176,10 @@
             // EDITAR AVANCE
             var av_und_str = av_und.replace(',', '.')
             var av_und_int = Number(av_und_str)
-            var und = $("#unidades_avance").val(av_und_int)//.val();
+            var und = $("#unidades_avance").val(av_und_int)
             
             $("button[name='save']").click(function() {
-                var unidades_post = und.val();console.log(unidades_post)
+                var unidades_post = und.val()
                 $.ajax({
                     url : "{% url 'etiquetado_avance_edit' %}",
                     type:'POST',
@@ -190,7 +190,7 @@
                     },
 
                     success: function() {
-                       $('#msg').html('<div class="text-center alert alert-success" role="alert"> Avance exitoso !!! </div>')
+                        $('#msg').html('<div class="text-center alert alert-success" role="alert"> Avance exitoso !!! </div>')
                             setTimeout(function(){
                             window.location.reload();
                         }, 1000)
@@ -217,7 +217,7 @@
                     },
 
                     success: function() {
-                       $('#msg').html('<div class="text-center alert alert-success" role="alert"> Avance exitoso !!! </div>')
+                        $('#msg').html('<div class="text-center alert alert-success" role="alert"> Avance exitoso !!! </div>')
                             setTimeout(function(){
                             window.location.reload();
                         }, 1000)

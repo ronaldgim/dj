@@ -628,48 +628,81 @@ def r_san_alerta_list_correo(request):
 def r_san_alert(request):
     
     tabla_query = RegistroSanitario.objects.filter(activo=True).order_by('fecha_expiracion')
-    
+    a1=120;a2=100;a3=90;a4=40
     ### PARA MEJORAR EFICIENCIA APLICAR BUSQUEDA BINARIA
     for i in tabla_query:
-        if i.dias_caducar == 179: # 120:
+        if i.dias_caducar == a1:  
             # 1er Aviso
-            send_mail(
-                subject=f'1er Aviso Próximo a Caducar - {i.registro} - {i.marca} - ({i.dias_caducar} días)',
-                message=f'Estimada Pia, \n \n El registro {i.registro} de {i.marca} expira el {i.fecha_expiracion}. \n \n Att. Gim-Operaciones.',
-                from_email=settings.EMAIL_HOST_USER,
-                recipient_list= ['egarces@gimpromed.com'],
-                fail_silently=True,
+            
+            rs_list = [i for i in tabla_query if i.dias_caducar==a1]
+            context = {'lista':rs_list}
+            
+            html_message  = render_to_string('emails/r_san.html', context)
+            plain_message = strip_tags(html_message)
+            
+            email = EmailMultiAlternatives(
+                subject    = f'1er Aviso Próximo a Caducar - {i.registro} - {i.marca} - ({i.dias_caducar} días)',
+                from_email = settings.EMAIL_HOST_USER,
+                to         = ['egarces@gimpromed.com'],
+                body       = plain_message,
             )
             
-        elif i.dias_caducar == 139: # 100:
+            email.attach_alternative(html_message, 'text/html')
+            email.send()
+            
+        elif i.dias_caducar == a2:  
             # 2do Aviso
-            send_mail(
-                subject=f'2do Aviso Próximo a Caducar - {i.registro} - {i.marca} - ({i.dias_caducar} días)',
-                message=f'Estimada Pia, \n \n El registro {i.registro} de {i.marca} expira el {i.fecha_expiracion}. \n \n Att. Gim-Operaciones.',
-                from_email=settings.EMAIL_HOST_USER,
-                recipient_list= ['egarces@gimpromed.com'],
-                fail_silently=True,
+            rs_list = [i for i in tabla_query if i.dias_caducar==a2]
+            context = {'lista':rs_list}
+            
+            html_message  = render_to_string('emails/r_san.html', context)
+            plain_message = strip_tags(html_message)
+            
+            email = EmailMultiAlternatives(
+                subject    = f'2do Aviso Próximo a Caducar - {i.registro} - {i.marca} - ({i.dias_caducar} días)',
+                from_email = settings.EMAIL_HOST_USER,
+                to         = ['egarces@gimpromed.com'],
+                body       = plain_message,
             )
             
-        elif i.dias_caducar == 80: # 90:
+            email.attach_alternative(html_message, 'text/html')
+            email.send()
+            
+        elif i.dias_caducar == a3:  
             # 3er Aviso
-            send_mail(
-                subject=f'3er Aviso Próximo a Caducar - {i.registro} - {i.marca} - ({i.dias_caducar} días)',
-                message=f'Estimada Pia, \n \n El registro {i.registro} de {i.marca} expira el {i.fecha_expiracion}. \n \n Att. Gim-Operaciones.',
-                from_email=settings.EMAIL_HOST_USER,
-                recipient_list= ['egarces@gimpromed.com'],
-                fail_silently=True,
+            rs_list = [i for i in tabla_query if i.dias_caducar==a3]
+            context = {'lista':rs_list}
+            
+            html_message  = render_to_string('emails/r_san.html', context)
+            plain_message = strip_tags(html_message)
+            
+            email = EmailMultiAlternatives(
+                subject    = f'3er Aviso Próximo a Caducar - {i.registro} - {i.marca} - ({i.dias_caducar} días)',
+                from_email = settings.EMAIL_HOST_USER,
+                to         = ['egarces@gimpromed.com'],
+                body       = plain_message,
             )
             
-        elif i.dias_caducar == 66: #40:
+            email.attach_alternative(html_message, 'text/html')
+            email.send()
+            
+        elif i.dias_caducar == a4: 
             # 4to Aviso
-            send_mail(
-                subject=f'4to Aviso Próximo a Caducar - {i.registro} - {i.marca} - ({i.dias_caducar} días)',
-                message=f'Estimada Pia, \n \n El registro {i.registro} de {i.marca} expira el {i.fecha_expiracion}. \n \n Att. Gim-Operaciones.',
-                from_email=settings.EMAIL_HOST_USER,
-                recipient_list= ['egarces@gimpromed.com', 'ronaldm@gimpromed.com'], #[ronaldm@gimpromed.com]
-                fail_silently=True,
+            rs_list = [i for i in tabla_query if i.dias_caducar==a4]
+            context = {'lista':rs_list}
+            
+            html_message  = render_to_string('emails/r_san.html', context)
+            plain_message = strip_tags(html_message)
+            
+            email = EmailMultiAlternatives(
+                subject    = f'4to Aviso Próximo a Caducar - {i.registro} - {i.marca} - ({i.dias_caducar} días)',
+                from_email = settings.EMAIL_HOST_USER,
+                to         = ['egarces@gimpromed.com'],
+                body       = plain_message,
             )
+            
+            email.attach_alternative(html_message, 'text/html')
+            email.send()
             
     return HttpResponse(status=200)
             
