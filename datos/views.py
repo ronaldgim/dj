@@ -390,22 +390,34 @@ def pedidos_cuenca_odbc():
     open_ssh_tunnel()
     mysql_connect()
 
-    df = run_query(
-        # "SELECT orders.id,seller_code,client_code,client_name,client_identification,orders.created_at,order_products.product_id,orders.status,order_products.product_name,"
-        # "order_products.product_group_code,order_products.quantity,order_products.price FROM orders LEFT JOIN order_products "
-        # "ON orders.id = order_products.order_id where seller_code='VEN03' AND orders.status='TCR';"
-        
+    df = run_query(        
         "SELECT orders.id,seller_code,client_code,client_name,client_identification,orders.created_at,order_products.product_id,orders.status,order_products.product_name,"
         "order_products.product_group_code,order_products.quantity,order_products.price FROM orders LEFT JOIN order_products "
         "ON orders.id = order_products.order_id where seller_code='VEN03' AND orders.status='TCR';"
     )
-    print(df)
-    # df = pd.read_sql_query(query, cnxn)
-    
+        
     mysql_disconnect()
     close_ssh_tunnel()
     
     return df
+
+
+def ventas_desde_fecha(fecha):
+    ''' Colusta de ventas desde fecha especifica '''
+    
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute(
+            f"SELECT * FROM venta_facturas WHERE fecha > '{fecha}'"
+            )
+        columns = [col[0] for col in cursor.description]
+        ventas = [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+        
+        ventas = pd.DataFrame(ventas)
+    
+    return ventas
 
 
 

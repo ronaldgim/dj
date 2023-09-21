@@ -3,7 +3,7 @@ from django.shortcuts import render
 import pandas as pd
 
 # Date
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 # Ventas facturas odbc
 from datos.views import (
@@ -13,6 +13,7 @@ from datos.views import (
     clientes_warehouse, 
     lotes_facturas_odbc,
     pedidos_cuenca_odbc,
+    ventas_desde_fecha
     )
 
 
@@ -113,9 +114,24 @@ def lote_factura_ajax(request):
 # Pedidos cuenca 
 def pedidos_cuenca(request):
     
+    hoy = datetime.now().date()
+    seis_meses = hoy - timedelta(days=180)
+    tres_meses = hoy - timedelta(days=90)
+    clientes = clientes_warehouse()[['CODIGO_CLIENTE', 'NOMBRE_CLIENTE', 'IDENTIFICACION_FISCAL']]
+    print(clientes)
+    
     pedidos = pedidos_cuenca_odbc()
-    pedidos = de_dataframe_a_template(pedidos)
-    print(pedidos)
+    pedidos_product = pedidos['product_id'].unique()    
+    
+    ventas_seis_meses = ventas_desde_fecha(seis_meses)
+    ventas_tres_meses = ventas_desde_fecha(tres_meses)
+        
+    ventas_tres_meses = ventas_tres_meses[ventas_tres_meses.PRODUCT_ID.isin(pedidos_product)]
+    ventas_seis_meses = ventas_seis_meses[ventas_seis_meses.PRODUCT_ID.isin(pedidos_product)]
+    
+    # Alertas
+    
+    
     
     return HttpResponse(pedidos)
 
