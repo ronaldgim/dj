@@ -99,7 +99,7 @@
                             {% endif %}
                         </td-->
                         <td class="text-center">
-                            
+                            {% comment %}
                             {% if not i.unidades %}
                             <button type="button" class="btn btn-sm btn-secondary" name="avance" data-bs-toggle="modal" data-bs-target="#exampleModal">
                                 <i class="bi bi-check-square-fill"></i>
@@ -116,6 +116,32 @@
                                 <i class="bi bi-check-square-fill"></i>
                             </button>
                             {% endif %}
+                            {% endcomment %}
+
+                            <!-- Crear registro -->
+                            {% if not i.avance %}
+                            <button type="button" class="btn btn-sm btn-secondary" name="avance" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                                <i class="bi bi-check-square-fill"></i>
+                            </button>
+
+                            <!-- Editar registro -->
+                            {% elif i.avance %}
+                            
+                                {% if i.QUANTITY == i.unidades %}
+                                <button type="button" class="btn btn-sm btn-success disabled">
+                                    <i class="bi bi-check-square-fill"></i>
+                                </button>
+                                {% elif i.unidades < i.QUANTITY %}
+                                <input type="hidden" value="{{i.unidades}}" id="av_und">
+                                <input type="hidden" value="{{i.avance}}" id="av_id">
+
+                                <button type="button" class="text-white btn btn-sm btn-warning" name="avance_edit" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                                    <i class="bi bi-check-square-fill"></i>
+                                </button>
+                                {% endif %}
+
+                            {% endif %}
+
                         </td>
                     </tr>
                     {% endfor %}
@@ -161,6 +187,86 @@
 
     
 <script>
+    $("button[name='avance']").click(function() {
+        
+        var n_pedido = $("#n_pedido_val").val();
+        var product_id = $(this).closest("tr").find("#product_id").html();
+        var unidades = $(this).closest("tr").find("#unidades").html();
+
+        var av_und = $(this).closest("tr").find("#av_und").val();
+        var av_id  = $(this).closest("tr").find("#av_id").val();
+
+        var cod = $("#codigo").html(product_id);
+
+        // CREAR REGISTRO
+            
+        var und = $("#unidades_avance").val(unidades).val();
+        
+        $("button[name='save']").click(function() {
+            var und_input = $("#unidades_avance").val();
+            
+            $.ajax({
+                url : "{% url 'etiquetado_avance' %}",
+                type:'POST',
+                data:{
+                    'csrfmiddlewaretoken': '{{ csrf_token }}',
+                    'n_pedido'           : n_pedido,
+                    'product_id'         : product_id,
+                    'unidades'           : und_input
+                },
+
+                success: function() {
+                    $('#msg').html('<div class="text-center alert alert-success" role="alert"> Avance exitoso !!! </div>')
+                        setTimeout(function(){
+                        window.location.reload();
+                    }, 1000)
+                },
+            })
+        })
+    })
+</script>
+
+
+<script>
+    $("button[name='avance_edit']").click(function() {
+        
+        var n_pedido = $("#n_pedido_val").val();
+        var product_id = $(this).closest("tr").find("#product_id").html();
+        var unidades = $(this).closest("tr").find("#unidades").html();
+
+        var av_und = $(this).closest("tr").find("#av_und").val();
+        var av_id  = $(this).closest("tr").find("#av_id").val();
+
+        var cod = $("#codigo").html(product_id);
+        
+        // EDITAR AVANCE
+        var av_und_str = av_und.replace(',', '.')
+        var av_und_int = Number(av_und_str)
+        var und = $("#unidades_avance").val(av_und_int)
+        
+        $("button[name='save']").click(function() {
+            var unidades_post = und.val()
+            $.ajax({
+                url : "{% url 'etiquetado_avance_edit' %}",
+                type:'POST',
+                data:{
+                    'csrfmiddlewaretoken': '{{ csrf_token }}',
+                    'id'                 : av_id,
+                    'unidades'           : unidades_post
+                },
+
+                success: function() {
+                    $('#msg').html('<div class="text-center alert alert-success" role="alert"> Avance exitoso !!! </div>')
+                        setTimeout(function(){
+                        window.location.reload();
+                    }, 1000)
+                },
+            })
+        })
+    })
+</script>
+
+<!--script>
     $("button[name='avance']").click(function() {
         
         var n_pedido = $("#n_pedido_val").val();
@@ -227,8 +333,7 @@
         }
 
     })
-</script>
-
+</script-->
 
 <script>
     var estado = document.getElementById('estado_id');

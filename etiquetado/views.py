@@ -841,7 +841,7 @@ def pedidos_estado_list(request):
     return render(request, 'etiquetado/etiquetado_estado/lista_estado_pedidos.html', context)#reservas
 
 
-# Registrar avance de item en pedido
+# Crear registro de avance
 def etiquetado_avance(request):
     
     n_pedido = request.POST['n_pedido']
@@ -859,7 +859,7 @@ def etiquetado_avance(request):
     
     return HttpResponse(None)
 
-
+# Editar registro de avance
 def etiquetado_avance_edit(request):
     
     id_request = request.POST['id']
@@ -869,7 +869,7 @@ def etiquetado_avance_edit(request):
     unidades = request.POST['unidades']   
     unidades = int(unidades)
     
-    av = EtiquetadoAvance.objects.get(id=id_request)
+    av = EtiquetadoAvance.objects.get(id=id_request) 
     av.unidades = unidades
     
     av.save()

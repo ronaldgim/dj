@@ -118,19 +118,23 @@ def pedidos_cuenca(request):
     seis_meses = hoy - timedelta(days=180)
     tres_meses = hoy - timedelta(days=90)
     clientes = clientes_warehouse()[['CODIGO_CLIENTE', 'NOMBRE_CLIENTE', 'IDENTIFICACION_FISCAL']]
-    print(clientes)
     
     pedidos = pedidos_cuenca_odbc()
     pedidos_product = pedidos['product_id'].unique()    
     
     ventas_seis_meses = ventas_desde_fecha(seis_meses)
-    ventas_tres_meses = ventas_desde_fecha(tres_meses)
+    # ventas_tres_meses = ventas_desde_fecha(tres_meses)
         
-    ventas_tres_meses = ventas_tres_meses[ventas_tres_meses.PRODUCT_ID.isin(pedidos_product)]
-    ventas_seis_meses = ventas_seis_meses[ventas_seis_meses.PRODUCT_ID.isin(pedidos_product)]
+    # ventas_tres_meses = ventas_tres_meses[ventas_tres_meses.PRODUCT_ID.isin(pedidos_product)]
+    # ventas_seis_meses = ventas_seis_meses[ventas_seis_meses.PRODUCT_ID.isin(pedidos_product)]
+    # ventas_seis_meses = ventas_seis_meses.merge(clientes, on='CODIGO_CLIENTE', how='left')
+    # print(ventas_seis_meses.PRODUCT_ID.isin(pedidos_product))
     
     # Alertas
+    # print(pedidos)
+    # print(ventas_seis_meses)
     
+    # print(pedidos_product)
     
     
     return HttpResponse(pedidos)
