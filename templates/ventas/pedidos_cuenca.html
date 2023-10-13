@@ -47,7 +47,7 @@
                         <td id="cod">{{i.client_name}}</td>
                         <td>{{i.product_id}}</td>
                         <td>{{i.product_name}}</td>
-                        <td>{{i.produc_group_code}}</td>
+                        <td>{{i.product_group_code}}</td>
                         <td>{{i.quantity}}</td>
                         <td>{{i.price}}</td>
                     </tr>
@@ -72,11 +72,11 @@
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
-                    {% for i in ventas %}
+                    {% for i in no_vendidos %}
                     <tr>
-                        <td>{{i.PRODUCT_ID}}</td>
-                        <td>{{i.FECHA}}</td>
-                        <td>{{i.FECHA}}</td>
+                        <td>{{i.product_id}}</td>
+                        <td>{{i.Nombre}}</td>
+                        <td>{{i.Marca}}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
