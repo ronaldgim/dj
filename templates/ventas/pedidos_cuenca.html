@@ -58,60 +58,107 @@
     </div>
 </div>
 
-
-
-
-
-<div class="text-center" id="spinner">
-    <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading...</span>
-    </div><br>
-    <span class="text-center text-primary">Cargando... </span>
-</div>
-
+<h5 class="fw-bold mt-2">PRODUCTOS NO VENDIDOS EN LOS ULTIMOS 6 MESES<i style="color:red" class="bi bi-exclamation-triangle-fill"></i></h5>
 
 <div class="card mt-2 mb-2">
     <div class="card-body m-0 p-0">
         <div class="container table-responsive">
-            <table class="table" id="myTable">
+            <table class="table"> <!-- id="myTable" -->
                 <thead>
                     <tr>
                         <th scope="col">Código</th>
                         <th scope="col">Nombre</th>
                         <th scope="col">Marca</th>
-                        <th scope="col">Und</th>
-                        <th scope="col">Fecha</th>
-                        <th scope="col">Factura</th>
-                        <th scope="col">Cantidad</th>
-                        <th scope="col">P/Unitario</th>
-                        <th scope="col">Valor</th>
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
                     {% for i in ventas %}
                     <tr>
-                        <td id="cod">{{i.PRODUCT_ID}}</td>
-                        <td>{{i.Nombre}}</td>
-                        <td>{{i.Marca}}</td>
-                        <td>{{i.Unidad}}</td>
+                        <td>{{i.PRODUCT_ID}}</td>
                         <td>{{i.FECHA}}</td>
-                        <td>{{i.CODIGO_FACTURA|slice:'6:19'}}
-                            <button id="{{i.CODIGO_FACTURA}}" name="n_factura" class="btn btn-outline-primary btn-sm" ><!--class="btn btn-sm btn-primary" -->
-                                <i class="bi bi-list-ol"></i>
-                            </button>
-                        </td>
-                        <td class="text-end">{{i.QUANTITY}}</td> <!-- |floatformat:'0g' -->
-                        <td class="text-end">$ {{i.UNIT_PRICE|floatformat:2}}</td> <!-- |floatformat:'2g' -->
-                        <td class="text-end">$ {{i.COST_TOTAL|floatformat:2}}</td> <!-- |floatformat:'2g' -->
+                        <td>{{i.FECHA}}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<h5 class="fw-bold mt-2">VENTAS EN LOS ULTIMOS 6 MESES <i style="color:yellow" class="bi bi-exclamation-triangle-fill"></i></h5>
+
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table"> <!-- id="myTable" -->
+                <thead>
                     <tr>
-                        <td colspan="6" class="text-start fw-bold">Totales:</td>
-                        <td class="text-end">{{total_cantidad|floatformat:'0g'}}</td>
-                        <td class="text-end">$ {{total_unitario|floatformat:'2g'}}</td>
-                        <td class="text-end">$ {{total_ventas|floatformat:'2g'}}</td>
+                        <th scope="col">Fecha</th>
+                        <th scope="col">Cliente</th>
+                        <th scope="col">Ciudad</th>
+                        <th scope="col">Código</th>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Marca</th>
+                        <th scope="col">Unidades</th>
+                        <th scope="col">Precio Unitario</th>
+                        <th scope="col">Precio Total</th>
                     </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in ventas %}
+                    <tr>
+                        <td>{{i.FECHA}}</td>
+                        <td>{{i.FECHA}}</td>
+                        <td>{{i.CIUDAD_PRINCIPAL}}</td>
+                        <td>{{i.PRODUCT_ID}}</td>
+                        <td>{{i.FECHA}}</td>
+                        <td>{{i.FECHA}}</td>
+                        <td>{{i.QUANTITY}}</td>
+                        <td>{{i.UNIT_PRICE}}</td>
+                        <td>{{i.NET_LINE_TOTAL}}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<h5 class="fw-bold mt-2">VENTAS EN LOS ULTIMOS 3 MESES <i style="color:green" class="bi bi-exclamation-triangle-fill"></i></h5>
+
+
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table"> <!-- id="myTable" -->
+                <thead>
+                    <tr>
+                        <th scope="col">Fecha</th>
+                        <th scope="col">Cliente</th>
+                        <th scope="col">Ciudad</th>
+                        <th scope="col">Código</th>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Marca</th>
+                        <th scope="col">Unidades</th>
+                        <th scope="col">Precio Unitario</th>
+                        <th scope="col">Precio Total</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in ventas %}
+                    <tr>
+                        <td>{{i.FECHA}}</td>
+                        <td>{{i.FECHA}}</td>
+                        <td>{{i.CIUDAD_PRINCIPAL}}</td>
+                        <td>{{i.PRODUCT_ID}}</td>
+                        <td>{{i.FECHA}}</td>
+                        <td>{{i.FECHA}}</td>
+                        <td>{{i.QUANTITY}}</td>
+                        <td>{{i.UNIT_PRICE}}</td>
+                        <td>{{i.NET_LINE_TOTAL}}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
             </table>
         </div>
     </div>

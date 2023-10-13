@@ -126,8 +126,8 @@ def pedidos_cuenca(request):
     
     pedido = pedidos_cuenca_odbc()
     pedidos_product = pedido['product_id'].unique()
-
     # pedidos_product = ['B0116', '37060', '1600', 'LP16040']
+    
     pedidos_client  = clientes['CODIGO_CLIENTE'].unique()
         
     ventas = ventas_desde_fecha(seis_meses)
@@ -139,7 +139,7 @@ def pedidos_cuenca(request):
     
     # Ventas de hoy a 3 meses atras
     ventas_tres_meses = ventas[ventas['FECHA']>tres_meses]
-    #print(ventas_tres_meses)
+    # print(ventas_tres_meses)
     
     # Ventas desde 6 meses a tres meses
     # ventas_seis_meses = ventas[ventas['FECHA']<(tres_meses - timedelta(weeks=2))]
@@ -152,7 +152,7 @@ def pedidos_cuenca(request):
     # pedidos = de_dataframe_a_template(pedidos)
     
     context = {
-        # 'pedido':pedido,
+        'pedido':pedido,
         'ventas':ventas
     }
     
