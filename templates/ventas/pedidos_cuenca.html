@@ -124,9 +124,9 @@
                         <td>{{i.product_id}}</td>
                         <td>{{i.Nombre}}</td>
                         <td>{{i.Marca}}</td>
-                        <td>{{i.QUANTITY}}</td>
-                        <td>{{i.UNIT_PRICE}}</td>
-                        <td>{{i.NET_LINE_TOTAL}}</td>
+                        <td class="text-end">{{i.QUANTITY|floatformat:'0g'}}</td>
+                        <td class="text-end">{{i.UNIT_PRICE|floatformat:'2g'}}</td>
+                        <td class="text-end">{{i.NET_LINE_TOTAL|floatformat:'2g'}}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
