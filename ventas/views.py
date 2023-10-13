@@ -126,7 +126,7 @@ def pedidos_cuenca(request):
     
     pedidos = pedidos_cuenca_odbc()
     pedidos_product = pedidos['product_id'].unique()  
-   
+
     # pedidos_product = ['B0116', '37060', '1600', 'LP16040']
     pedidos_client  = clientes['CODIGO_CLIENTE'].unique()
         
