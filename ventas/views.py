@@ -124,9 +124,9 @@ def pedidos_cuenca(request):
     clientes = clientes_warehouse()[['CODIGO_CLIENTE', 'NOMBRE_CLIENTE', 'IDENTIFICACION_FISCAL', 'CIUDAD_PRINCIPAL']]
     clientes = clientes[clientes.CIUDAD_PRINCIPAL.isin(ciudades)]
     
-    pedidos = pedidos_cuenca_odbc()
-    pedidos_product = pedidos['product_id'].unique()  
-   
+    pedido = pedidos_cuenca_odbc()
+    pedidos_product = pedido['product_id'].unique()
+
     # pedidos_product = ['B0116', '37060', '1600', 'LP16040']
     pedidos_client  = clientes['CODIGO_CLIENTE'].unique()
         
@@ -151,7 +151,12 @@ def pedidos_cuenca(request):
     
     # pedidos = de_dataframe_a_template(pedidos)
     
-    return HttpResponse(ventas.to_html())
+    context = {
+        # 'pedido':pedido,
+        'ventas':ventas
+    }
+    
+    return render(request, 'ventas/pedidos_cuenca.html', context)
 
 
 # Procesos Guantes
