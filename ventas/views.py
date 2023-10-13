@@ -116,28 +116,42 @@ def pedidos_cuenca(request):
     
     hoy = datetime.now().date()
     seis_meses = hoy - timedelta(days=180)
-    tres_meses = hoy - timedelta(days=90)
-    clientes = clientes_warehouse()[['CODIGO_CLIENTE', 'NOMBRE_CLIENTE', 'IDENTIFICACION_FISCAL']]
+    seis_meses = datetime.combine(seis_meses, datetime.min.time())
+    tres_meses = hoy - timedelta(days=90) 
+    tres_meses = datetime.combine(tres_meses, datetime.min.time())
+    
+    ciudades = ['AZOGUES', 'CUENCA']
+    clientes = clientes_warehouse()[['CODIGO_CLIENTE', 'NOMBRE_CLIENTE', 'IDENTIFICACION_FISCAL', 'CIUDAD_PRINCIPAL']]
+    clientes = clientes[clientes.CIUDAD_PRINCIPAL.isin(ciudades)]
     
     pedidos = pedidos_cuenca_odbc()
-    pedidos_product = pedidos['product_id'].unique()    
-    
-    ventas_seis_meses = ventas_desde_fecha(seis_meses)
-    # ventas_tres_meses = ventas_desde_fecha(tres_meses)
+    pedidos_product = pedidos['product_id'].unique()  
+   
+    # pedidos_product = ['B0116', '37060', '1600', 'LP16040']
+    pedidos_client  = clientes['CODIGO_CLIENTE'].unique()
         
-    # ventas_tres_meses = ventas_tres_meses[ventas_tres_meses.PRODUCT_ID.isin(pedidos_product)]
-    # ventas_seis_meses = ventas_seis_meses[ventas_seis_meses.PRODUCT_ID.isin(pedidos_product)]
-    # ventas_seis_meses = ventas_seis_meses.merge(clientes, on='CODIGO_CLIENTE', how='left')
-    # print(ventas_seis_meses.PRODUCT_ID.isin(pedidos_product))
+    ventas = ventas_desde_fecha(seis_meses)
+    ventas = ventas[ventas.PRODUCT_ID.isin(pedidos_product)]
+    ventas = ventas[ventas.CODIGO_CLIENTE.isin(pedidos_client)]
+    ventas = ventas.sort_values(by='FECHA')
+    ventas['FECHA'] = pd.to_datetime(ventas['FECHA'])
+    ventas = ventas.merge(clientes, on='CODIGO_CLIENTE', how='left')
     
-    # Alertas
-    # print(pedidos)
-    # print(ventas_seis_meses)
+    # Ventas de hoy a 3 meses atras
+    ventas_tres_meses = ventas[ventas['FECHA']>tres_meses]
+    #print(ventas_tres_meses)
     
-    # print(pedidos_product)
+    # Ventas desde 6 meses a tres meses
+    # ventas_seis_meses = ventas[ventas['FECHA']<(tres_meses - timedelta(weeks=2))]
+    ventas_seis_meses = ventas[ventas['FECHA']<tres_meses]
     
     
-    return HttpResponse(pedidos)
+        
+    # UTILIZAR SET {} PARA SABER CUALES NO SE HAN VENDIDO EN 6 MESES
+    
+    # pedidos = de_dataframe_a_template(pedidos)
+    
+    return HttpResponse(ventas.to_html())
 
 
 # Procesos Guantes
