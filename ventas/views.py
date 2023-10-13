@@ -129,7 +129,7 @@ def pedidos_cuenca(request):
     # pedidos_product = ['B0116', '37060', '1600', 'LP16040']
     
     pedidos_client  = clientes['CODIGO_CLIENTE'].unique()
-        
+    
     ventas = ventas_desde_fecha(seis_meses)
     ventas = ventas[ventas.PRODUCT_ID.isin(pedidos_product)]
     ventas = ventas[ventas.CODIGO_CLIENTE.isin(pedidos_client)]
@@ -149,7 +149,8 @@ def pedidos_cuenca(request):
         
     # UTILIZAR SET {} PARA SABER CUALES NO SE HAN VENDIDO EN 6 MESES
     
-    # pedidos = de_dataframe_a_template(pedidos)
+    # DATOS TEMPLATES
+    pedido = de_dataframe_a_template(pedido)
     
     context = {
         'pedido':pedido,
