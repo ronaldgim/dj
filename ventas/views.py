@@ -126,7 +126,7 @@ def pedidos_cuenca(request):
     
     pedido = pedidos_cuenca_odbc()
     pedidos_product = pedido['product_id'].unique()
-    # pedidos_product = ['B0116', '37060', '1600', 'LP16040']
+    # pedidos_product = ['B205', 'SP4022', 'GC8002', 'H9110', 'H9111']
     
     pedidos_client  = clientes['CODIGO_CLIENTE'].unique()
     
@@ -137,6 +137,15 @@ def pedidos_cuenca(request):
     ventas['FECHA'] = pd.to_datetime(ventas['FECHA'])
     ventas = ventas.merge(clientes, on='CODIGO_CLIENTE', how='left')
     
+    # Productos no vendidos
+    prod_ventas = ventas['PRODUCT_ID'].unique()
+    prod_ventas = set(prod_ventas)
+    prod_pedido = set(pedidos_product)
+    prod_no_vendidos = prod_pedido.difference(prod_ventas)
+    prod_no_vendidos = list(prod_no_vendidos)
+    no_vendidos = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+    no_vendidos = no_vendidos[no_vendidos.product_id.isin(prod_no_vendidos)]
+    
     # Ventas de hoy a 3 meses atras
     ventas_tres_meses = ventas[ventas['FECHA']>tres_meses]
     # print(ventas_tres_meses)
@@ -146,13 +155,16 @@ def pedidos_cuenca(request):
     ventas_seis_meses = ventas[ventas['FECHA']<tres_meses]
     
     
-        
     # UTILIZAR SET {} PARA SABER CUALES NO SE HAN VENDIDO EN 6 MESES
     
     # DATOS TEMPLATES
+    # No vendidos
+    no_vendidos = de_dataframe_a_template(no_vendidos)
+    # Pedido
     pedido = de_dataframe_a_template(pedido)
     
     context = {
+        'no_vendidos':no_vendidos,
         'pedido':pedido,
         'ventas':ventas
     }
