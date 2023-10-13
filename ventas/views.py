@@ -120,6 +120,8 @@ def pedidos_cuenca(request):
     tres_meses = hoy - timedelta(days=90) 
     tres_meses = datetime.combine(tres_meses, datetime.min.time())
     
+    productos = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+    
     ciudades = ['AZOGUES', 'CUENCA']
     clientes = clientes_warehouse()[['CODIGO_CLIENTE', 'NOMBRE_CLIENTE', 'IDENTIFICACION_FISCAL', 'CIUDAD_PRINCIPAL']]
     clientes = clientes[clientes.CIUDAD_PRINCIPAL.isin(ciudades)]
@@ -136,19 +138,18 @@ def pedidos_cuenca(request):
     ventas = ventas.sort_values(by='FECHA')
     ventas['FECHA'] = pd.to_datetime(ventas['FECHA'])
     ventas = ventas.merge(clientes, on='CODIGO_CLIENTE', how='left')
-    
-    ventas['ALARMA'] = ventas.apply(
-        lambda x: 'tres_meses' if x['FECHA'] < tres_meses else 'seis_meses', axis=1
-    )
-    # print(ventas)
+    ventas['ALERTA'] = ventas.apply(lambda x: 'tres_meses' if x['FECHA'] < tres_meses else 'seis_meses', axis=1)
+    ventas['FECHA'] = ventas['FECHA'].astype(str)
+    ventas = ventas.rename(columns={'PRODUCT_ID':'product_id'})
+    ventas = ventas.merge(productos, on='product_id', how='left')
     
     # Productos no vendidos
-    prod_ventas = ventas['PRODUCT_ID'].unique()
+    prod_ventas = ventas['product_id'].unique()
     prod_ventas = set(prod_ventas)
     prod_pedido = set(pedidos_product)
     prod_no_vendidos = prod_pedido.difference(prod_ventas)
     prod_no_vendidos = list(prod_no_vendidos)
-    no_vendidos = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+    no_vendidos = productos # productos_odbc_and_django()[['product_id','Nombre','Marca']]
     no_vendidos = no_vendidos[no_vendidos.product_id.isin(prod_no_vendidos)]
     
     
