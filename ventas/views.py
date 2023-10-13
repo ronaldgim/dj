@@ -144,7 +144,7 @@ def pedidos_cuenca(request):
     # Ventas desde 6 meses a tres meses
     # ventas_seis_meses = ventas[ventas['FECHA']<(tres_meses - timedelta(weeks=2))]
     ventas_seis_meses = ventas[ventas['FECHA']<tres_meses]
-    print(ventas_seis_meses)
+    
     
         
     # UTILIZAR SET {} PARA SABER CUALES NO SE HAN VENDIDO EN 6 MESES
