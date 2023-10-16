@@ -1880,7 +1880,7 @@ def inventario_bodega(request):
     d = d.total_seconds()
     t_s = 60
 
-    stock = StockConsulta.objects.all()
+    stock = StockConsulta.objects.all().order_by('fecha_cadu_lote')
 
 
     if request.method == 'POST':
@@ -1888,7 +1888,7 @@ def inventario_bodega(request):
         # Filtrar
         if request.POST.get('bodega') != 'todas':
             bodega = str(request.POST.get('bodega'))
-            stock = StockConsulta.objects.filter(ware_code=bodega)
+            stock = StockConsulta.objects.filter(ware_code=bodega).order_by('fecha_cadu_lote')
             context = {
                 'stock':stock,
                 'bodega':request.POST.get('bodega')
