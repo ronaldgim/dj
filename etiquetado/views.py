@@ -104,7 +104,8 @@ from datos.views import (
     ventas_armados_facturas_odbc,
     productos_transito_odbc,
     etiquetado_avance_pedido,
-    calculo_etiquetado_avance
+    calculo_etiquetado_avance,
+    lotes_bodega
     )
 
 
@@ -1497,7 +1498,7 @@ def picking_estado_bodega(request, n_pedido, id):
         t_unidades = pedido['QUANTITY'].sum()
 
         # Trasformar datos para pasar al template
-        json_records = pedido.reset_index().to_json(orient='records')
+        json_records = pedido.sort_values(by='PRODUCT_ID').reset_index().to_json(orient='records')
         data = []
         data = json.loads(json_records)
 
@@ -1580,7 +1581,7 @@ def picking_estado_bodega(request, n_pedido, id):
         t_unidades = pedido['QUANTITY'].sum()
 
         # Trasformar datos para pasar al template
-        json_records = pedido.reset_index().to_json(orient='records')
+        json_records = pedido.sort_values(by='PRODUCT_ID').reset_index().to_json(orient='records')
         data = []
         data = json.loads(json_records)
 
@@ -1650,6 +1651,26 @@ def picking_estado_bodega(request, n_pedido, id):
                 messages.warning(request, 'Error !!! Actulize su lista de pedidos')
 
     return render(request, 'etiquetado/picking_estado/picking_estado_bodega.html', context)
+
+
+# AJAX - LOTES DE PRODUCTO POR BODEGA
+def ajax_lotes_bodega(request):
+    
+    product_id = request.POST['product_id']
+    bodega     = request.POST['bodega']
+    
+    lotes = lotes_bodega(bodega, product_id)
+    
+    lotes= lotes.to_html(
+        classes='table table-responsive table-bordered m-0 p-0', 
+        table_id= 'lotes',
+        float_format='{:.0f}'.format,
+        index=False,
+        justify='start'
+    )
+    
+    return HttpResponse(lotes)
+
 
 
 # Picking Historial
@@ -1891,6 +1912,7 @@ def inventario_bodega(request):
             stock = StockConsulta.objects.filter(ware_code=bodega).order_by('fecha_cadu_lote')
             context = {
                 'stock':stock,
+                'actulizado':act_last,
                 'bodega':request.POST.get('bodega')
                 }
             return render(request, 'etiquetado/inventario/stock.html', context)

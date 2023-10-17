@@ -114,6 +114,14 @@ urlpatterns = [
         view  = views.picking_estado_bodega,
         name  = 'picking_estado_bodega'
     ),
+    
+    path(
+        route = 'picking/ajax_lotes_bodega',
+        view  = views.ajax_lotes_bodega,
+        name  = 'ajax_lotes_bodega'
+    ),
+    
+    
 
     path(
         route = 'picking/historial',
