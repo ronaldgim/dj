@@ -1798,3 +1798,26 @@ def calculo_etiquetado_avance(n_pedido):
         return porcentaje_avance
     
     
+def lotes_bodega(bodega, product_id):
+    
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute(f"SELECT * FROM stock_lote WHERE WARE_CODE = '{bodega}' AND PRODUCT_ID = '{product_id}'")
+        columns = [col[0] for col in cursor.description]
+        stock_lote = [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+        
+        
+        stock_lote = pd.DataFrame(stock_lote)
+        if not stock_lote.empty:
+            stock_lote = stock_lote.sort_values(by='FECHA_CADUCIDAD')
+            stock_lote = stock_lote[['LOCATION','LOTE_ID','FECHA_CADUCIDAD','OH2']]
+            stock_lote = stock_lote.rename(columns={
+                'LOCATION':'Ubicación',
+                'LOTE_ID':'Lote',
+                'FECHA_CADUCIDAD':'Caducidad',
+                'OH2':'Unds'
+                })
+        
+    return stock_lote
