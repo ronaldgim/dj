@@ -18,9 +18,7 @@
     {{empty}}
 {% endif %}
 
-<!--div class="col-4">
-    <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
-</div-->
+
 <form method="POST">
     <div class="col-4">
         <div class="input-group">
@@ -38,7 +36,12 @@
     <span class="text-center text-primary">Buscando... </span>
 </div-->
 
+
 {% if pedido %}
+
+<div class="col-4 mt-4">
+    <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+</div>
 
 
 <br>
@@ -90,6 +93,19 @@
     </div>
 </div>
 {% endif %}
+
+
+<script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
 
 <!-- Spiner -->
 <!--script>
