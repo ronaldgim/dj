@@ -14,10 +14,6 @@
 
 <h5 class="m-4 text-center"><strong>PEDIDOS CUENCA</strong></h5>
 
-{% if empty %}
-    {{empty}}
-{% endif %}
-
 
 <form method="POST">
     <div class="col-4">
@@ -36,6 +32,10 @@
     <span class="text-center text-primary">Buscando... </span>
 </div-->
 
+
+{% if error %}
+    <h5 class="fw-bold m-4 text-center">{{error}} {{n_pedido}}</h5>
+{% endif %}
 
 {% if pedido %}
 
