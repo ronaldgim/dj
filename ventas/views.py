@@ -163,19 +163,27 @@ def pedidos_cuenca(request):
     
     if request.method == 'POST' :
         n_pedido = request.POST['n_pedido']
-        pedido = pedidos_cuenca_datos(n_pedido).fillna('-')
-        cli = pedido['NOMBRE_CLIENTE'][0]
-        ciu = pedido['CIUDAD_PRINCIPAL'][0]
-        ruc = pedido['IDENTIFICACION_FISCAL'][0]
-        pedido = de_dataframe_a_template(pedido)
-        context = {
-            'n_pedido':n_pedido,
-            'cli':cli,
-            'ciu':ciu,
-            'ruc':ruc,
-            'pedido':pedido
-            }
-        return render(request, 'ventas/pedidos_cuenca.html', context)
+        try:
+            pedido = pedidos_cuenca_datos(n_pedido).fillna('-')
+            cli = pedido['NOMBRE_CLIENTE'][0]
+            ciu = pedido['CIUDAD_PRINCIPAL'][0]
+            ruc = pedido['IDENTIFICACION_FISCAL'][0]
+            pedido = de_dataframe_a_template(pedido)
+            context = {
+                'n_pedido':n_pedido,
+                'cli':cli,
+                'ciu':ciu,
+                'ruc':ruc,
+                'pedido':pedido
+                }
+            return render(request, 'ventas/pedidos_cuenca.html', context)
+        
+        except:
+            context = {
+                'error':'No hay pedido con el número: ',
+                'n_pedido':n_pedido
+                }
+            return render(request, 'ventas/pedidos_cuenca.html', context)
             
     return render(request, 'ventas/pedidos_cuenca.html', context={})
 
