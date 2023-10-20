@@ -10,11 +10,6 @@
 
 {% block body %}
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
-
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
 <div>
 
 <h5 class="m-4 text-center"><strong>PEDIDOS CUENCA</strong></h5>
@@ -23,114 +18,73 @@
     {{empty}}
 {% endif %}
 
-<!--div class="col-4">
-    <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+
+<form method="POST">
+    <div class="col-4">
+        <div class="input-group">
+            {% csrf_token %}
+            <input name="n_pedido" type="text" placeholder="Número de pedido" class="form-control">
+            <button type="submit" name="pedido" class="btn btn-primary">Buscar</button>
+        </div>
+    </div>
+</form>
+
+<!--div class="text-center" id="spinner">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div><br>
+    <span class="text-center text-primary">Buscando... </span>
 </div-->
 
 
-<h5 class="fw-bold mt-2">PEDIDO</h5>
+{% if pedido %}
+
+<div class="col-4 mt-4">
+    <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+</div>
+
+
+<br>
+<label class="fw-bold">Pedido: </label>{{n_pedido}}<br>
+<label class="fw-bold">Cliente: </label>{{cli}}<br>
+<label class="fw-bold">Ruc: </label>{{ruc}}<br>
+<label class="fw-bold">Ciudad: </label>{{ciu}}<br>
+<br>
 
 <div class="card mt-2 mb-2">
     <div class="card-body m-0 p-0">
         <div class="container table-responsive">
             
-            <table class="table"> <!-- id="myTable" -->
+            <table class="table"> 
                 <thead>
                     <tr>
-                        <th scope="col">Cliente</th>
                         <th scope="col">Código</th>
                         <th scope="col">Nombre</th>
                         <th scope="col">Marca</th>
+                        <th scope="col">Fecha</th>
                         <th scope="col">Unidades</th>
                         <th scope="col">Precio</th>
+                        <th scope="col">Alerta</th>
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
                     {% for i in pedido %}
                     <tr>
-                        <td id="cod">{{i.client_name}}</td>
-                        <td>{{i.product_id}}</td>
-                        <td>{{i.product_name}}</td>
-                        <td>{{i.product_group_code}}</td>
-                        <td>{{i.quantity}}</td>
-                        <td>{{i.price}}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-<h5 class="fw-bold mt-2">PRODUCTOS NO VENDIDOS EN LOS ULTIMOS 6 MESES<i style="color:red" class="bi bi-exclamation-triangle-fill"></i></h5>
-
-<div class="card mt-2 mb-2">
-    <div class="card-body m-0 p-0">
-        <div class="container table-responsive">
-            <table class="table"> <!-- id="myTable" -->
-                <thead>
-                    <tr>
-                        <th scope="col">Alerta</th>
-                        <th scope="col">Código</th>
-                        <th scope="col">Nombre</th>
-                        <th scope="col">Marca</th>
-                    </tr>
-                </thead>
-                <tbody id="pedidosbuscar">
-                    {% for i in no_vendidos %}
-                    <tr>
-                        <td><i style="color:red" class="bi bi-exclamation-triangle-fill"></i></td>
                         <td>{{i.product_id}}</td>
                         <td>{{i.Nombre}}</td>
                         <td>{{i.Marca}}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-<!--h5 class="fw-bold mt-2">VENTAS EN LOS ULTIMOS 6 MESES <i style="color:yellow" class="bi bi-exclamation-triangle-fill"></i></h5-->
-<h5 class="fw-bold mt-2">VENTAS EN LOS ULTIMOS 6 MESES</h5>
-
-<div class="card mt-2 mb-2">
-    <div class="card-body m-0 p-0">
-        <div class="container table-responsive">
-            <table class="table"> <!-- id="myTable" -->
-                <thead>
-                    <tr>
-                        <th scope="col">Alerta</th>
-                        <th scope="col">Fecha</th>
-                        <th scope="col">Cliente</th>
-                        <th scope="col">Ciudad</th>
-                        <th scope="col">Código</th>
-                        <th scope="col">Nombre</th>
-                        <th scope="col">Marca</th>
-                        <th scope="col">Unidades</th>
-                        <th scope="col">Precio Unitario</th>
-                        <th scope="col">Precio Total</th>
-                    </tr>
-                </thead>
-                <tbody id="pedidosbuscar">
-                    {% for i in ventas %}
-                    <tr>
-                        <td>
-                            {% if i.ALERTA == 'tres_meses' %}
+                        <td>{{i.FECHA}}</td>
+                        <td class="text-end">{{i.QUANTITY|floatformat:'0g'}}</td>
+                        <td class="text-end">{{i.UNIT_PRICE|floatformat:'2g'}}</td>
+                        <td class="text-center">
+                            {% if i.ALERTA == 'no_vendido' %}
+                            <i style="color:red" class="bi bi-exclamation-triangle-fill"></i>
+                            {% elif i.ALERTA == 'tres_meses' %}
                             <i style="color:yellow" class="bi bi-exclamation-triangle-fill"></i>
                             {% elif i.ALERTA == 'seis_meses' %}
                             <i style="color:green" class="bi bi-exclamation-triangle-fill"></i>
                             {% endif %}
                         </td>
-                        <td>{{i.FECHA}}</td>
-                        <td>{{i.NOMBRE_CLIENTE}}</td>
-                        <td>{{i.CIUDAD_PRINCIPAL}}</td>
-                        <td>{{i.product_id}}</td>
-                        <td>{{i.Nombre}}</td>
-                        <td>{{i.Marca}}</td>
-                        <td class="text-end">{{i.QUANTITY|floatformat:'0g'}}</td>
-                        <td class="text-end">{{i.UNIT_PRICE|floatformat:'2g'}}</td>
-                        <td class="text-end">{{i.NET_LINE_TOTAL|floatformat:'2g'}}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -138,47 +92,9 @@
         </div>
     </div>
 </div>
+{% endif %}
 
-<!--h5 class="fw-bold mt-2">VENTAS EN LOS ULTIMOS 3 MESES <i style="color:green" class="bi bi-exclamation-triangle-fill"></i></h5>
-<div class="card mt-2 mb-2">
-    <div class="card-body m-0 p-0">
-        <div class="container table-responsive">
-            <table class="table"> 
-                <thead>
-                    <tr>
-                        <th scope="col">Fecha</th>
-                        <th scope="col">Cliente</th>
-                        <th scope="col">Ciudad</th>
-                        <th scope="col">Código</th>
-                        <th scope="col">Nombre</th>
-                        <th scope="col">Marca</th>
-                        <th scope="col">Unidades</th>
-                        <th scope="col">Precio Unitario</th>
-                        <th scope="col">Precio Total</th>
-                    </tr>
-                </thead>
-                <tbody id="pedidosbuscar">
-                    {% for i in ventas %}
-                    <tr>
-                        <td>{{i.FECHA}}</td>
-                        <td>{{i.FECHA}}</td>
-                        <td>{{i.CIUDAD_PRINCIPAL}}</td>
-                        <td>{{i.PRODUCT_ID}}</td>
-                        <td>{{i.FECHA}}</td>
-                        <td>{{i.FECHA}}</td>
-                        <td>{{i.QUANTITY}}</td>
-                        <td>{{i.UNIT_PRICE}}</td>
-                        <td>{{i.NET_LINE_TOTAL}}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div-->
 
-</div>
-<!--filtro buscar-->
 <script>
     $(document).ready(function() {
         $("#inputbuscar").on("keyup", function() {
@@ -191,104 +107,22 @@
     });
 </script>
 
-
-<script>
-    $(document).ready(function() {
-        $('#chosen-select').select2();
-    })
-</script>
-
 <!-- Spiner -->
-<script>
+<!--script>
 
-    var sp = document.getElementById("spinner").style.display = "none";   
+    var sp = document.getElementById("spinner").style.display = "none";
 
-    $("#nombre_cliente").on("click", function() {
-        // console.log("loading")
-        var cl = document.getElementById("chosen-select").value;
+    $("[button='pedido']").click(function() {
+        var sp = document.getElementById("spinner").style.display = "block";
+
+        // var cl = document.getElementById("chosen-select").value;
         
-         if (cl) {
+        // if (cl) {
             //# console.log('loading');
-            var sp = document.getElementById("spinner").style.display = "block";
-        }
+        //     var sp = document.getElementById("spinner").style.display = "block";
+        // }
     })
-</script>
-
-<script>
-
-    $("button[name='n_factura']").click(function() {
-        var fac = $(this).attr('id');
-        var cod = $(this).closest('tr').find("#cod").html();
-
-        var childRow = $ (this).closest("tr").next(".child-row");
-        var parentRow = $(this).closest("tr");
-
-
-        if (childRow.length) {
-            //# ELIMINA FIILA INSERTADA
-            childRow.remove();
-        } else {
-            var childRow = $(
-                "<tr class='child-row' style='background-color: #cdffd6'>" + 
-                    "<td colspan='5'></td>" + 
-                    "<td colspan='4'>Cargando...</td>" + 
-                "</tr>"
-                );
-            parentRow.after(childRow)
-
-            //# AJAX REQUEST
-            $.ajax({
-            url:"{% url 'lote_factura_ajax' %}",
-            type:"POST",
-            data:{
-                'csrfmiddlewaretoken': '{{ csrf_token }}',
-                'fac':fac,
-                'cod':cod,
-            },
-
-            success: function(response) {
-
-                //# console.log(response[0]);
-
-                var childRow2 = $(
-                "<tr class='child-row' style='background-color: #cdffd6'>" + 
-                    "<td colspan='5'></td>" + 
-                    `<td colspan='4'>Lote: ${response[0].lote} - Unidades: ${response[0].unidades}</td>` + 
-                "</tr>"
-                );
-                parentRow.after(childRow).next(childRow).replaceWith(childRow2)
-                // $(this).closest("tr").replaceWith(childRow); 
-            },
-
-            error: function() {
-                // childContent.html('No se encontro coincidencias !!!')
-                console.log('Error')
-                }
-            })
-        }
-    })
-
-</script>
-
-<!-- DataTable -->
-<!-- datatable -->
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.css" />  
-<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.js"></script>
-
-<script>
-    $(document).ready(function(){
-       $('#myTable').DataTable({
-        //#ordering:false,
-        "searching":false,
-        "show":false,
-        "paging":false,
-        "info":false,
-        columnDefs:[
-            {type:'signed-num',targets:0}
-        ]
-       })
-    })
-</script>
+</script-->
 
 
 {% endblock %}

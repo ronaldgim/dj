@@ -385,15 +385,22 @@ def frecuancia_ventas():
     return df
 
 
-def pedidos_cuenca_odbc():
+def pedidos_cuenca_odbc(n_pedido): #n_pedido
 
     open_ssh_tunnel()
     mysql_connect()
 
     df = run_query(        
+        # "SELECT orders.id,seller_code,client_code,client_name,client_identification,orders.created_at,order_products.product_id,orders.status,order_products.product_name,"
+        # "order_products.product_group_code,order_products.quantity,order_products.price FROM orders LEFT JOIN order_products "
+        # "ON orders.id = order_products.order_id where seller_code='VEN03' AND orders.status='TCR';"
+        
+        # PEDIDOS 5455 | 5495
+        
         "SELECT orders.id,seller_code,client_code,client_name,client_identification,orders.created_at,order_products.product_id,orders.status,order_products.product_name,"
         "order_products.product_group_code,order_products.quantity,order_products.price FROM orders LEFT JOIN order_products "
-        "ON orders.id = order_products.order_id where seller_code='VEN03' AND orders.status='TCR';"
+        # "ON orders.id = order_products.order_id where orders.id = '5495' AND orders.status='TCR';"
+        f"ON orders.id = order_products.order_id where orders.id='{n_pedido}' AND orders.status='TCR';" 
     )
         
     mysql_disconnect()

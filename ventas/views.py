@@ -111,9 +111,9 @@ def lote_factura_ajax(request):
     return HttpResponse(response, content_type='appliation/json')
 
 
-# Pedidos cuenca 
-def pedidos_cuenca(request):
-    
+def pedidos_cuenca_datos(n_pedido):
+
+    # n_pedido = request.POST['n_pedido'] 
     hoy = datetime.now().date()
     seis_meses = hoy - timedelta(days=180)
     seis_meses = datetime.combine(seis_meses, datetime.min.time())
@@ -121,59 +121,63 @@ def pedidos_cuenca(request):
     tres_meses = datetime.combine(tres_meses, datetime.min.time())
     
     productos = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+    pedido = pedidos_cuenca_odbc(n_pedido)
+    clientes = clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE','CIUDAD_PRINCIPAL', 'IDENTIFICACION_FISCAL']]
+    codigo_cliente = pedido['client_code'][0]
+    pedidos_product = pedido['product_id'].unique()
+
+    # Ventas
+    ventas = ventas_desde_fecha(seis_meses)
+    ventas = ventas[ventas.PRODUCT_ID.isin(pedidos_product)]
+    ventas = ventas[ventas['CODIGO_CLIENTE']==codigo_cliente]
+    ventas = ventas.sort_values(by='FECHA')
+    ventas['FECHA'] = pd.to_datetime(ventas['FECHA'])
+    ventas['ALERTA'] = ventas.apply(lambda x: 'tres_meses' if x['FECHA'] < tres_meses else 'seis_meses', axis=1)
+    ventas['FECHA'] = ventas['FECHA'].astype(str)
+    ventas = ventas.rename(columns={'PRODUCT_ID':'product_id'})
+    ventas = ventas.merge(productos, on='product_id', how='left')
+    ventas = ventas.merge(clientes, on='CODIGO_CLIENTE', how='left')
     
-    ciudades = ['AZOGUES', 'CUENCA']
-    clientes = clientes_warehouse()[['CODIGO_CLIENTE', 'NOMBRE_CLIENTE', 'IDENTIFICACION_FISCAL', 'CIUDAD_PRINCIPAL']]
-    clientes = clientes[clientes.CIUDAD_PRINCIPAL.isin(ciudades)]
+    # Productos no vendidos
+    prod_ventas = ventas['product_id'].unique()
+    prod_ventas = set(prod_ventas)
+    prod_pedido = set(pedidos_product)
+    prod_no_vendidos = prod_pedido.difference(prod_ventas)
+    prod_no_vendidos = list(prod_no_vendidos)
+    no_vendidos = productos
+    no_vendidos = no_vendidos[no_vendidos.product_id.isin(prod_no_vendidos)]
+    no_vendidos['UNIT_PRICE'] = 0
+    no_vendidos['QUANTITY']   = 0
+    no_vendidos['ALERTA']     = 'no_vendido'
+
+    tabla = pd.concat([no_vendidos, ventas])
     
-    pedido = pedidos_cuenca_odbc()
-    if not pedido.empty:
-        pedidos_product = pedido['product_id'].unique()
-        # pedidos_product = ['B205', 'SP4022', 'GC8002', 'H9110', 'H9111']
-        
-        pedidos_client  = clientes['CODIGO_CLIENTE'].unique()
-        
-        ventas = ventas_desde_fecha(seis_meses)
-        ventas = ventas[ventas.PRODUCT_ID.isin(pedidos_product)]
-        ventas = ventas[ventas.CODIGO_CLIENTE.isin(pedidos_client)]
-        ventas = ventas.sort_values(by='FECHA')
-        ventas['FECHA'] = pd.to_datetime(ventas['FECHA'])
-        ventas = ventas.merge(clientes, on='CODIGO_CLIENTE', how='left')
-        ventas['ALERTA'] = ventas.apply(lambda x: 'tres_meses' if x['FECHA'] < tres_meses else 'seis_meses', axis=1)
-        ventas['FECHA'] = ventas['FECHA'].astype(str)
-        ventas = ventas.rename(columns={'PRODUCT_ID':'product_id'})
-        ventas = ventas.merge(productos, on='product_id', how='left')
-        
-        # Productos no vendidos
-        prod_ventas = ventas['product_id'].unique()
-        prod_ventas = set(prod_ventas)
-        prod_pedido = set(pedidos_product)
-        prod_no_vendidos = prod_pedido.difference(prod_ventas)
-        prod_no_vendidos = list(prod_no_vendidos)
-        no_vendidos = productos # productos_odbc_and_django()[['product_id','Nombre','Marca']]
-        no_vendidos = no_vendidos[no_vendidos.product_id.isin(prod_no_vendidos)]
-        
-        
-        # DATOS TEMPLATES
-        # No vendidos
-        no_vendidos = de_dataframe_a_template(no_vendidos)
-        # Pedido
+    return tabla
+    
+    
+    #return render(request, 'ventas/pedidos_cuenca.html', context)
+
+
+# Pedidos cuenca 
+def pedidos_cuenca(request):
+    
+    if request.method == 'POST' :
+        n_pedido = request.POST['n_pedido']
+        pedido = pedidos_cuenca_datos(n_pedido).fillna('-')
+        cli = pedido['NOMBRE_CLIENTE'][0]
+        ciu = pedido['CIUDAD_PRINCIPAL'][0]
+        ruc = pedido['IDENTIFICACION_FISCAL'][0]
         pedido = de_dataframe_a_template(pedido)
-        # Ventas
-        ventas = de_dataframe_a_template(ventas)
-        
         context = {
-            'no_vendidos':no_vendidos,
-            'pedido':pedido,
-            'ventas':ventas
-        }
-    
-    else:
-        context = {
-            'empty':'No hay pedido !!!'
-        }
-    
-    return render(request, 'ventas/pedidos_cuenca.html', context)
+            'n_pedido':n_pedido,
+            'cli':cli,
+            'ciu':ciu,
+            'ruc':ruc,
+            'pedido':pedido
+            }
+        return render(request, 'ventas/pedidos_cuenca.html', context)
+            
+    return render(request, 'ventas/pedidos_cuenca.html', context={})
 
 
 # Procesos Guantes
