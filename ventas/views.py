@@ -131,12 +131,15 @@ def pedidos_cuenca_datos(n_pedido):
     ventas = ventas[ventas.PRODUCT_ID.isin(pedidos_product)]
     ventas = ventas[ventas['CODIGO_CLIENTE']==codigo_cliente]
     ventas = ventas.sort_values(by='FECHA')
-    ventas['FECHA'] = pd.to_datetime(ventas['FECHA'])
+    ventas['FECHA']  = pd.to_datetime(ventas['FECHA'])
     ventas['ALERTA'] = ventas.apply(lambda x: 'tres_meses' if x['FECHA'] < tres_meses else 'seis_meses', axis=1)
-    ventas['FECHA'] = ventas['FECHA'].astype(str)
+    ventas['FECHA']  = ventas['FECHA'].astype(str)
     ventas = ventas.rename(columns={'PRODUCT_ID':'product_id'})
     ventas = ventas.merge(productos, on='product_id', how='left')
     ventas = ventas.merge(clientes, on='CODIGO_CLIENTE', how='left')
+    ventas = ventas.merge(pedido, on='product_id', how='left')
+    ventas = ventas.drop_duplicates(subset=['product_id'], keep='last')
+    
     
     # Productos no vendidos
     prod_ventas = ventas['product_id'].unique()
@@ -146,16 +149,13 @@ def pedidos_cuenca_datos(n_pedido):
     prod_no_vendidos = list(prod_no_vendidos)
     no_vendidos = productos
     no_vendidos = no_vendidos[no_vendidos.product_id.isin(prod_no_vendidos)]
-    no_vendidos['UNIT_PRICE'] = 0
-    no_vendidos['QUANTITY']   = 0
+    no_vendidos = no_vendidos.merge(pedido, on='product_id', how='left')
     no_vendidos['ALERTA']     = 'no_vendido'
 
-    tabla = pd.concat([no_vendidos, ventas])
+    tabla = pd.concat([no_vendidos, ventas]).reset_index(drop=True)
     
     return tabla
-    
-    
-    #return render(request, 'ventas/pedidos_cuenca.html', context)
+
 
 
 # Pedidos cuenca 
@@ -164,11 +164,11 @@ def pedidos_cuenca(request):
     if request.method == 'POST' :
         n_pedido = request.POST['n_pedido']
         try:
-            pedido = pedidos_cuenca_datos(n_pedido).fillna('-')
-            cli = pedido['NOMBRE_CLIENTE'][0]
-            ciu = pedido['CIUDAD_PRINCIPAL'][0]
-            ruc = pedido['IDENTIFICACION_FISCAL'][0]
-            pedido = de_dataframe_a_template(pedido)
+            pedido = pedidos_cuenca_datos(n_pedido).fillna('-') 
+            cli = pedido['NOMBRE_CLIENTE'].iloc[-1]
+            ciu = pedido['CIUDAD_PRINCIPAL'].iloc[-1]
+            ruc = pedido['IDENTIFICACION_FISCAL'].iloc[-1]
+            pedido = de_dataframe_a_template(pedido) 
             context = {
                 'n_pedido':n_pedido,
                 'cli':cli,

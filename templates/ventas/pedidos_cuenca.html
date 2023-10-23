@@ -45,10 +45,10 @@
 
 
 <br>
-<label class="fw-bold">Pedido: </label>{{n_pedido}}<br>
-<label class="fw-bold">Cliente: </label>{{cli}}<br>
-<label class="fw-bold">Ruc: </label>{{ruc}}<br>
-<label class="fw-bold">Ciudad: </label>{{ciu}}<br>
+<label class="fw-bold">Pedido:   </label>{{n_pedido}}<br>
+<label class="fw-bold">Cliente:  </label>{{cli}}<br>
+<label class="fw-bold">Ruc:      </label>{{ruc}}<br>
+<label class="fw-bold">Ciudad:   </label>{{ciu}}<br>
 <br>
 
 <div class="card mt-2 mb-2">
@@ -61,10 +61,10 @@
                         <th scope="col">Código</th>
                         <th scope="col">Nombre</th>
                         <th scope="col">Marca</th>
-                        <th scope="col">Fecha</th>
                         <th scope="col">Unidades</th>
                         <th scope="col">Precio</th>
                         <th scope="col">Alerta</th>
+                        <th scope="col">Fecha</th>
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
@@ -73,9 +73,8 @@
                         <td>{{i.product_id}}</td>
                         <td>{{i.Nombre}}</td>
                         <td>{{i.Marca}}</td>
-                        <td>{{i.FECHA}}</td>
-                        <td class="text-end">{{i.QUANTITY|floatformat:'0g'}}</td>
-                        <td class="text-end">{{i.UNIT_PRICE|floatformat:'2g'}}</td>
+                        <td class="text-end">{{i.quantity|floatformat:'0g'}}</td>
+                        <td class="text-end">{{i.price|floatformat:'2g'}}</td>
                         <td class="text-center">
                             {% if i.ALERTA == 'no_vendido' %}
                             <i style="color:red" class="bi bi-exclamation-triangle-fill"></i>
@@ -85,6 +84,7 @@
                             <i style="color:green" class="bi bi-exclamation-triangle-fill"></i>
                             {% endif %}
                         </td>
+                        <td>{{i.FECHA}}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -106,23 +106,5 @@
         });
     });
 </script>
-
-<!-- Spiner -->
-<!--script>
-
-    var sp = document.getElementById("spinner").style.display = "none";
-
-    $("[button='pedido']").click(function() {
-        var sp = document.getElementById("spinner").style.display = "block";
-
-        // var cl = document.getElementById("chosen-select").value;
-        
-        // if (cl) {
-            //# console.log('loading');
-        //     var sp = document.getElementById("spinner").style.display = "block";
-        // }
-    })
-</script-->
-
 
 {% endblock %}
