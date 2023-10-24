@@ -4,9 +4,9 @@
 <title>{{codigo}}</title>
 {% endblock%}
 
-{#% block navbar %#}
-{#% include 'etiquetado/topnavbar.html' %#}
-{#% endblock %#}
+{% block navbar %}
+{% include 'etiquetado/topnavbar.html' %}
+{% endblock %}
 
 {% block body %}
 
@@ -23,6 +23,8 @@
         <h6><strong>Código: </strong>{{codigo}}</h6>
         <h6><strong>Nombre: </strong>{{nombre}}</h6>
         <h6><strong>Marca: </strong> {{marca}}</h6>
+        <h6><strong>C. Mensual: </strong>{{ventas.MENSUAL|floatformat:'0g'}} unds</h6>
+        <h6><strong>C. Anual: </strong>{{ventas.ANUAL|floatformat:'0g'}} unds</h6>
     </div>
 </div>
 
