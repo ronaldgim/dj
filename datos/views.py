@@ -399,7 +399,6 @@ def pedidos_cuenca_odbc(n_pedido): #n_pedido
         
         "SELECT orders.id,seller_code,client_code,client_name,client_identification,orders.created_at,order_products.product_id,orders.status,order_products.product_name,"
         "order_products.product_group_code,order_products.quantity,order_products.price FROM orders LEFT JOIN order_products "
-        # "ON orders.id = order_products.order_id where orders.id = '5495' AND orders.status='TCR';"
         f"ON orders.id = order_products.order_id where orders.id='{n_pedido}' AND orders.status='TCR';" 
     )
         
@@ -409,12 +408,12 @@ def pedidos_cuenca_odbc(n_pedido): #n_pedido
     return df
 
 
-def ventas_desde_fecha(fecha):
+def ventas_desde_fecha(fecha, codigo_cliente):
     ''' Colusta de ventas desde fecha especifica '''
     
     with connections['gimpromed_sql'].cursor() as cursor:
         cursor.execute(
-            f"SELECT * FROM venta_facturas WHERE fecha > '{fecha}'"
+            f"SELECT CODIGO_CLIENTE, FECHA, PRODUCT_ID FROM venta_facturas WHERE fecha > '{fecha}' AND codigo_cliente = '{codigo_cliente}'"
             )
         columns = [col[0] for col in cursor.description]
         ventas = [
