@@ -104,7 +104,7 @@ def lote_factura_ajax(request):
     fac = request.POST['fac']
     cod = request.POST['cod']
 
-    lote_factura = lotes_facturas_odbc(fac, cod) #;print(lote_factura[0]);print(type(lote_factura[0]))
+    lote_factura = lotes_facturas_odbc(fac, cod) 
 
     response = json.dumps(lote_factura)
 
@@ -113,48 +113,27 @@ def lote_factura_ajax(request):
 
 def pedidos_cuenca_datos(n_pedido):
 
-    # n_pedido = request.POST['n_pedido'] 
     hoy = datetime.now().date()
     seis_meses = hoy - timedelta(days=180)
     seis_meses = datetime.combine(seis_meses, datetime.min.time())
     tres_meses = hoy - timedelta(days=90) 
     tres_meses = datetime.combine(tres_meses, datetime.min.time())
     
-    productos = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     pedido = pedidos_cuenca_odbc(n_pedido)
-    clientes = clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE','CIUDAD_PRINCIPAL', 'IDENTIFICACION_FISCAL']]
     codigo_cliente = pedido['client_code'][0]
-    pedidos_product = pedido['product_id'].unique()
 
     # Ventas
-    ventas = ventas_desde_fecha(seis_meses)
-    ventas = ventas[ventas.PRODUCT_ID.isin(pedidos_product)]
-    ventas = ventas[ventas['CODIGO_CLIENTE']==codigo_cliente]
+    ventas = ventas_desde_fecha(seis_meses, codigo_cliente)
     ventas = ventas.sort_values(by='FECHA')
     ventas['FECHA']  = pd.to_datetime(ventas['FECHA'])
-    ventas['ALERTA'] = ventas.apply(lambda x: 'tres_meses' if x['FECHA'] < tres_meses else 'seis_meses', axis=1)
-    ventas['FECHA']  = ventas['FECHA'].astype(str)
+    ventas['ALERTA'] = ventas.apply(lambda x: 'tres_meses' if x['FECHA'] < tres_meses else 'seis_meses', axis=1) #;print(ventas)
+    ventas['FECHA'] = ventas['FECHA'].astype(str)
     ventas = ventas.rename(columns={'PRODUCT_ID':'product_id'})
-    ventas = ventas.merge(productos, on='product_id', how='left')
-    ventas = ventas.merge(clientes, on='CODIGO_CLIENTE', how='left')
-    ventas = ventas.merge(pedido, on='product_id', how='left')
     ventas = ventas.drop_duplicates(subset=['product_id'], keep='last')
     
+    pedido = pedido.merge(ventas, on='product_id', how='left').sort_values(by='FECHA', ascending=True, na_position='first')
     
-    # Productos no vendidos
-    prod_ventas = ventas['product_id'].unique()
-    prod_ventas = set(prod_ventas)
-    prod_pedido = set(pedidos_product)
-    prod_no_vendidos = prod_pedido.difference(prod_ventas)
-    prod_no_vendidos = list(prod_no_vendidos)
-    no_vendidos = productos
-    no_vendidos = no_vendidos[no_vendidos.product_id.isin(prod_no_vendidos)]
-    no_vendidos = no_vendidos.merge(pedido, on='product_id', how='left')
-    no_vendidos['ALERTA']     = 'no_vendido'
-
-    tabla = pd.concat([no_vendidos, ventas]).reset_index(drop=True)
-    
-    return tabla
+    return pedido
 
 
 
@@ -164,15 +143,15 @@ def pedidos_cuenca(request):
     if request.method == 'POST' :
         n_pedido = request.POST['n_pedido']
         try:
-            pedido = pedidos_cuenca_datos(n_pedido).fillna('-') 
-            cli = pedido['NOMBRE_CLIENTE'].iloc[-1]
-            ciu = pedido['CIUDAD_PRINCIPAL'].iloc[-1]
-            ruc = pedido['IDENTIFICACION_FISCAL'].iloc[-1]
+            pedido = pedidos_cuenca_datos(n_pedido)
+            
+            cli = pedido['client_name'][0] 
+            ruc = pedido['client_identification'][0] 
+            
             pedido = de_dataframe_a_template(pedido) 
             context = {
                 'n_pedido':n_pedido,
                 'cli':cli,
-                'ciu':ciu,
                 'ruc':ruc,
                 'pedido':pedido
                 }

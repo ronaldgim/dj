@@ -48,7 +48,6 @@
 <label class="fw-bold">Pedido:   </label>{{n_pedido}}<br>
 <label class="fw-bold">Cliente:  </label>{{cli}}<br>
 <label class="fw-bold">Ruc:      </label>{{ruc}}<br>
-<label class="fw-bold">Ciudad:   </label>{{ciu}}<br>
 <br>
 
 <div class="card mt-2 mb-2">
@@ -71,12 +70,12 @@
                     {% for i in pedido %}
                     <tr>
                         <td>{{i.product_id}}</td>
-                        <td>{{i.Nombre}}</td>
-                        <td>{{i.Marca}}</td>
+                        <td>{{i.product_name}}</td>
+                        <td>{{i.product_group_code}}</td>
                         <td class="text-end">{{i.quantity|floatformat:'0g'}}</td>
                         <td class="text-end">{{i.price|floatformat:'2g'}}</td>
                         <td class="text-center">
-                            {% if i.ALERTA == 'no_vendido' %}
+                            {% if i.ALERTA == None %}
                             <i style="color:red" class="bi bi-exclamation-triangle-fill"></i>
                             {% elif i.ALERTA == 'tres_meses' %}
                             <i style="color:yellow" class="bi bi-exclamation-triangle-fill"></i>
@@ -84,7 +83,12 @@
                             <i style="color:green" class="bi bi-exclamation-triangle-fill"></i>
                             {% endif %}
                         </td>
-                        <td>{{i.FECHA}}</td>
+                        <td>{% if not i.FECHA %}
+                            -
+                            {% else %}
+                            {{i.FECHA}}
+                            {% endif %}
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
