@@ -107,6 +107,7 @@
                             <a class="btn btn-info btn-sm disabled"> {{i.fecha_actualizado|slice:'0:16'}}</a>
                             {% endif %}
 
+                            <a class="btn btn-sm btn-secondary" href="{% url 'pedido_lote' i.CONTRATO_ID %}" target="_black"><i class="bi bi-ui-checks-grid"></i></a>
                         </td>
                     </tr>
                     {% endfor %}

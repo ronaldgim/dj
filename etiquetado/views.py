@@ -436,6 +436,47 @@ def etiquetado_pedidos(request, n_pedido):
     return render(request, 'etiquetado/pedidos/pedido.html', context)
 
 
+def pedido_lotes(request, n_pedido):
+    
+    pedido = reservas_lote()
+    pedido['CONTRATO_ID'] = pedido['CONTRATO_ID'].astype(str) + '.0'
+    pedido = pedido[pedido['CONTRATO_ID']==n_pedido]
+    
+    prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+    prod = prod.rename(columns={'product_id':'PRODUCT_ID'})
+    
+    cli = clientes_warehouse()[['CODIGO_CLIENTE','IDENTIFICACION_FISCAL','NOMBRE_CLIENTE']]
+    
+    if not pedido.empty:
+        pedido = pedido.merge(prod, on='PRODUCT_ID', how='left')
+        pedido = pedido.merge(cli, on='CODIGO_CLIENTE', how='left')
+        
+        bodega = pedido['WARE_CODE'][0]
+        cliente = pedido['NOMBRE_CLIENTE'][0]
+        ruc = pedido['IDENTIFICACION_FISCAL'][0]
+        fecha = pedido['FECHA_PEDIDO'][0]
+        total = pedido['EGRESO_TEMP'].sum()
+        
+        pedido = de_dataframe_a_template(pedido)
+    
+        context = {
+            'n_pedido':n_pedido,
+            'pedido':pedido,
+            'cliente':cliente,
+            'ruc':ruc,
+            'fecha':fecha,
+            'bodega':bodega,
+            'total':total,
+        }
+        
+    else:
+        context = {
+            'msg':'No hay lotes asignados !!!',
+            }
+    
+    return render(request, 'etiquetado/pedidos/pedido_lote.html', context)
+
+
 # ETIQUETADO
 # Etiquetado Stock
 def etiquetado_fun():
