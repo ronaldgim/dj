@@ -25,6 +25,12 @@ urlpatterns = [
         name = 'pedidos'
     ),
     
+    path(
+        route='pedidos/lote/<str:n_pedido>',
+        view = views.pedido_lotes,
+        name = 'pedido_lote'
+    ),
+    
     # Listado Etiquetao Stock
     path(
         route='stock',
