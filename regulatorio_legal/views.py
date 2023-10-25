@@ -363,7 +363,7 @@ def factura_detalle(request, n_factura):
             # Enviar correo
             try:
                 
-                n_archivos = 10
+                n_archivos = 5
                 n_correos = len(range(0, doc_len, n_archivos))
                 
                 archivos = [documentos[i:i+n_archivos] for i in range(0, doc_len, n_archivos)]
