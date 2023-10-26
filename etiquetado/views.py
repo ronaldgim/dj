@@ -1703,7 +1703,7 @@ def ajax_lotes_bodega(request):
     lotes = lotes_bodega(bodega, product_id)
     
     lotes= lotes.to_html(
-        classes='table table-responsive table-bordered m-0 p-0 bg-white text-dark', 
+        classes='table table-responsive table-bordered m-0 p-0', 
         table_id= 'lotes',
         float_format='{:.0f}'.format,
         index=False,
