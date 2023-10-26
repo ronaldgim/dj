@@ -976,10 +976,11 @@ def ventas_facturas_odbc():
     return ventas_facturas
 
 
-def ventas_odbc_facturas():
+def ventas_odbc_facturas(): # desde, hasta
     with connections['gimpromed_sql'].cursor() as cursor:
         cursor.execute(
             "SELECT * FROM venta_facturas" 
+            # f"SELECT * FROM venta_facturas WHERE FECHA >= '{desde}' AND FECHA <= '{hasta}'" 
         )
 
         columns = [col[0] for col in cursor.description]
@@ -1020,7 +1021,8 @@ def lotes_facturas_odbc(n_factura, product_id):
 
     cursorOdbc.execute(
 
-        f"""SELECT CLNT_Factura_Principal.CODIGO_FACTURA, INVT_Ficha_Principal.PRODUCT_ID, INVT_Producto_Movimientos.QUANTITY, INVT_Lotes_Trasabilidad.LOTE_ID, INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD
+        # f"""SELECT CLNT_Factura_Principal.CODIGO_FACTURA, INVT_Ficha_Principal.PRODUCT_ID, INVT_Producto_Movimientos.QUANTITY, INVT_Lotes_Trasabilidad.LOTE_ID, INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD
+        f"""SELECT CLNT_Factura_Principal.CODIGO_FACTURA, INVT_Ficha_Principal.PRODUCT_ID, INVT_Lotes_Trasabilidad.EGRESO_TEMP, INVT_Lotes_Trasabilidad.LOTE_ID, INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD
         FROM CLNT_Factura_Principal CLNT_Factura_Principal, INVT_Ficha_Principal INVT_Ficha_Principal, INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad, INVT_Producto_Movimientos INVT_Producto_Movimientos
         WHERE INVT_Ficha_Principal.PRODUCT_ID_CORP = INVT_Producto_Movimientos.PRODUCT_ID_CORP AND
         CLNT_Factura_Principal.CODIGO_FACTURA = INVT_Producto_Movimientos.DOC_ID_CORP2 AND
