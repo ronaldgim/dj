@@ -105,10 +105,19 @@ def lote_factura_ajax(request):
     cod = request.POST['cod']
 
     lote_factura = lotes_facturas_odbc(fac, cod) 
+    df = pd.DataFrame(lote_factura)[['lote','unidades']];print(df)
+    df = df.to_html(        
+        classes='table table-responsive table-bordered m-0 p-0', 
+        table_id= 'lotes',
+        float_format='{:.0f}'.format,
+        index=False,
+        justify='start');print(df)
 
-    response = json.dumps(lote_factura)
+    # response = json.dumps(lote_factura) ;print(response)
 
-    return HttpResponse(response, content_type='appliation/json')
+    # return HttpResponse(response, content_type='appliation/json')
+    
+    return HttpResponse(df)
 
 
 def pedidos_cuenca_datos(n_pedido):

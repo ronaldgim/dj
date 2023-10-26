@@ -187,21 +187,34 @@
 
             success: function(response) {
 
-                //# console.log(response[0]);
+                console.log(response);
+
+                // var childRow2 = $(
+                // "<tr class='child-row' style='background-color: #cdffd6'>" + 
+                //     "<td colspan='5'></td>" + 
+                //     `<td colspan='4'>Lote: ${response[0].lote} - Unidades: ${response[0].unidades}</td>` + 
+                // "</tr>"
+                // );
 
                 var childRow2 = $(
                 "<tr class='child-row' style='background-color: #cdffd6'>" + 
                     "<td colspan='5'></td>" + 
-                    `<td colspan='4'>Lote: ${response[0].lote} - Unidades: ${response[0].unidades}</td>` + 
+                    // `<td colspan='4'>Lote: ${response[0].lote} - Unidades: ${response[0].unidades}</td>` + 
+                    `<td colspan='4'>${response}</td>` + 
                 "</tr>"
                 );
                 parentRow.after(childRow).next(childRow).replaceWith(childRow2)
-                // $(this).closest("tr").replaceWith(childRow); 
+
             },
 
             error: function() {
-                // childContent.html('No se encontro coincidencias !!!')
-                console.log('Error')
+                var childRow3 = $(
+                "<tr class='child-row' style='background-color: #f9cdcd'>" + 
+                    "<td colspan='5'></td>" + 
+                    `<td colspan='4'>Error !!!</td>` + 
+                "</tr>"
+                );
+                parentRow.after(childRow).next(childRow).replaceWith(childRow3)
                 }
             })
         }
