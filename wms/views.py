@@ -69,7 +69,7 @@ def wms_importaciones_list(request):
     }
     
     return render(request, 'wms/importaciones_list.html', context)
-   
+
 
 def wms_detalle_imp(request, o_compra):
     """ Ver detalle de importaciones
@@ -129,7 +129,7 @@ def wms_bodega_imp(request, o_compra):
     """
 
     detalle = (InventarioIngresoBodega.objects.filter(o_compra=o_compra)
-       .prefetch_related('item').values(
+        .prefetch_related('item').values(
         'id',
         'product_id',
         'nombre',
@@ -392,7 +392,7 @@ def wms_listado_pedidos(request):
     pedidos = de_dataframe_a_template(pedidos)
 
     context = {
-      'reservas':pedidos
+        'reservas':pedidos
     }
 
     return render(request, 'wms/listado_pedidos.html', context)
