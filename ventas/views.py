@@ -32,16 +32,16 @@ def reporte_tipo_mba(request):
 
     h = str(date.today())
 
-    ventas = ventas_odbc_facturas()[:20]
-    ventas = ventas[(ventas['FECHA']>='2023-01-01') & (ventas['FECHA']<=h)]
-    prod = productos_odbc_and_django()[['product_id', 'Unidad', 'Nombre', 'Marca']]
-    prod = prod.rename(columns={'product_id':'PRODUCT_ID'})
-    cliente_list = clientes_warehouse()[['CODIGO_CLIENTE', 'NOMBRE_CLIENTE']]
+    # ventas = ventas_odbc_facturas()[:20]
+    # ventas = ventas[(ventas['FECHA']>='2023-01-01') & (ventas['FECHA']<=h)]
+    # prod = productos_odbc_and_django()[['product_id', 'Unidad', 'Nombre', 'Marca']]
+    # prod = prod.rename(columns={'product_id':'PRODUCT_ID'})
+    # cliente_list = clientes_warehouse()[['CODIGO_CLIENTE', 'NOMBRE_CLIENTE']]
 
-    ventas = ventas.merge(prod, on='PRODUCT_ID', how='left')
-    ventas = ventas.merge(cliente_list, on='CODIGO_CLIENTE', how='left')
+    # ventas = ventas.merge(prod, on='PRODUCT_ID', how='left')
+    # ventas = ventas.merge(cliente_list, on='CODIGO_CLIENTE', how='left')
 
-    ventas = de_dataframe_a_template(ventas)
+    # ventas = de_dataframe_a_template(ventas)
 
     clientes = clientes_warehouse()[['CODIGO_CLIENTE', 'NOMBRE_CLIENTE']]
     clientes = clientes.sort_values('NOMBRE_CLIENTE')
@@ -54,8 +54,15 @@ def reporte_tipo_mba(request):
         d=datetime.strptime(desde, '%Y-%m-%d')
         h=datetime.strptime(hasta, '%Y-%m-%d')
 
-        vent = ventas_odbc_facturas()
-        vent = vent[(vent['FECHA']>=desde) & (vent['FECHA']<=hasta) & (vent['CODIGO_CLIENTE']==cli)]
+        # vent = ventas_odbc_facturas()
+        # vent = vent[(vent['FECHA']>=desde) & (vent['FECHA']<=hasta) & (vent['CODIGO_CLIENTE']==cli)]
+        
+        vent = ventas_odbc_facturas(desde, hasta, cli)
+        
+        prod = productos_odbc_and_django()[['product_id', 'Unidad', 'Nombre', 'Marca']]
+        prod = prod.rename(columns={'product_id':'PRODUCT_ID'})
+        cliente_list = clientes_warehouse()[['CODIGO_CLIENTE', 'NOMBRE_CLIENTE']]
+        
         vent = vent.merge(prod, on='PRODUCT_ID', how='left')
         vent = vent.merge(cliente_list, on='CODIGO_CLIENTE', how='left')
         
@@ -88,7 +95,7 @@ def reporte_tipo_mba(request):
         return render(request, 'ventas/reporte_ventas.html', context)
 
     context = {
-        'ventas':ventas,
+        # 'ventas':ventas,
         'clientes':de_dataframe_a_template(clientes),
 
         'desde':desde,

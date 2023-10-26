@@ -976,11 +976,11 @@ def ventas_facturas_odbc():
     return ventas_facturas
 
 
-def ventas_odbc_facturas(): # desde, hasta
+def ventas_odbc_facturas(desde, hasta, cli): # desde, hasta
     with connections['gimpromed_sql'].cursor() as cursor:
         cursor.execute(
-            "SELECT * FROM venta_facturas" 
-            # f"SELECT * FROM venta_facturas WHERE FECHA >= '{desde}' AND FECHA <= '{hasta}'" 
+            # "SELECT * FROM venta_facturas" 
+            f"SELECT * FROM venta_facturas WHERE FECHA >= '{desde}' AND FECHA <= '{hasta}' AND CODIGO_CLIENTE = '{cli}'"
         )
 
         columns = [col[0] for col in cursor.description]
