@@ -84,7 +84,7 @@ class OrdenEtiquetadoStock(models.Model):
     tipo    = models.CharField(verbose_name='Tipo', max_length=100, default='STOCK')
     ciudad  = models.CharField(verbose_name='Ciudad', max_length=100, default='Cerezos')
     prod   = models.ManyToManyField(RowItem, verbose_name='Productos', blank=True)
-     
+    
     fecha_creado = models.DateField(auto_now_add=True)
     
     def __str__(self):
@@ -94,7 +94,7 @@ class OrdenEtiquetadoStock(models.Model):
 class EstadoPicking(models.Model):
     
     user     = models.ForeignKey(UserPerfil, verbose_name='User', on_delete=models.CASCADE)
-     
+    
     n_pedido = models.CharField(verbose_name='Pedido', max_length=50, unique=True)
 
     # estado   = models.CharField(verbose_name='Estado', max_length=50, choices=ESTADO_PICKING)
@@ -187,3 +187,14 @@ class EtiquetadoAvance(models.Model):
     
     def __str__(self):
         return f'{self.n_pedido} - {self.product_id}'
+    
+    
+class EstadoEtiquetadoStock(models.Model):
+    
+    product_id = models.CharField(verbose_name='Código', max_length=15, blank=True)
+    estado     = models.CharField(verbose_name='Estado', max_length=15, blank=True)
+    
+    creado     = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return self.product_id

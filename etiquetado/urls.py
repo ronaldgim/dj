@@ -284,9 +284,16 @@ urlpatterns = [
         name  = 'etiquetado_avance'
     ),
     
-        path(
+    path(
         route = 'etiquetado/avance/edit',
         view  = views.etiquetado_avance_edit,
         name  = 'etiquetado_avance_edit'
+    ),
+    
+    # set_estado_etiquetado_stock
+    path(
+        route = 'etiquetado/set-estado-etiquetado-stock',
+        view  = views.set_estado_etiquetado_stock,
+        name  = 'set_estado_etiquetado_stock'
     ),
 ]
