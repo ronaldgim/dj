@@ -22,7 +22,8 @@ from etiquetado.models import (
     FechaEntrega,
     ProductArmado,
     InstructivoEtiquetado,
-    EtiquetadoAvance
+    EtiquetadoAvance,
+    EstadoEtiquetadoStock
     )
 
 from datos.models import StockConsulta
@@ -519,12 +520,19 @@ def etiquetado_fun():
 
         ### Nuevo ordenamiento de lista
         etiquetado = etiquetado.sort_values(by='Meses', ascending=True)
+        
+        ### Astado etiquetado stock
+        est_stock = pd.DataFrame(EstadoEtiquetadoStock.objects.all().values())
+        if not est_stock.empty:
+            est_stock = est_stock.drop_duplicates(subset=['product_id'], keep='last')[['product_id','estado']]
+            est_stock = est_stock.rename(columns={'product_id':'PRODUCT_ID'})
+            etiquetado = etiquetado.merge(est_stock, on='PRODUCT_ID', how='left')
 
         ### PRODUCTOS EXCLUIDOS
         etiquetado = etiquetado[etiquetado['Cat']!='0']
         etiquetado = etiquetado[etiquetado['PRODUCT_ID']!='1113']
         etiquetado = etiquetado[etiquetado['PRODUCT_ID']!='1100']
-        # print(etiquetado)
+        
         
     return etiquetado
 
@@ -2745,7 +2753,7 @@ def control_guias_list(request):
     if request.method=='POST':
         desde = request.POST['desde']
         hasta = request.POST['hasta']
-               
+        
         rep = RegistoGuia.objects.filter(fecha_conf__range=[desde, hasta]).values(
             'cliente',
             'factura',
@@ -2949,6 +2957,20 @@ def list_instructo_etiquetado(request):
     
     return render(request, 'etiquetado/instructivo_etiquetado/list.html', context)
 
+
+def set_estado_etiquetado_stock(request):
+    
+    prod = request.POST['product_id']
+    est  = request.POST['estado']
+    
+    obj = EstadoEtiquetadoStock(
+        product_id = prod,
+        estado     = est
+    )
+    
+    obj.save()
+    
+    return HttpResponse('Cambio de estado exitoso !!!')
 
 # def crear_instructivo_etiquetado(request):
     

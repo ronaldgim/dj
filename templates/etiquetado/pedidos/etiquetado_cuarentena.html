@@ -20,7 +20,7 @@
 <div class="row">
     <h5 class="m-4 text-center"><strong>ETIQUETADO STOCK </strong></h5>
     <div class="col-6" id="print_area_cabecera">
-        <h6><strong>Código: </strong>{{codigo}}</h6>
+        <h6><strong>Código: </strong><span id='product_id'>{{codigo}}</span></h6>
         <h6><strong>Nombre: </strong>{{nombre}}</h6>
         <h6><strong>Marca: </strong> {{marca}}</h6>
         <h6><strong>C. Mensual: </strong>{{ventas.MENSUAL|floatformat:'0g'}} unds</h6>
@@ -28,6 +28,12 @@
     </div>
 </div>
 
+<hr/>
+<button name="estado" class="btn btn-sm btn-success">EN PROCESO</button> <!-- disabled -->
+<button name="estado" class="btn btn-sm btn-warning">EN PAUSA</button>
+<hr/>
+
+<div id="msg"></div>
 
 <div id="print_area_table">
     <div class="card mb-4 mt-2">
@@ -97,181 +103,39 @@
 
 </div>
 
-<input id="peso_total" type="hidden" value="{{t_total_pes}}">
-<input id="p_cero" type="hidden" value="{{p_cero}}">
-
-
-{% comment %}
 <script>
-    $("#fecha_entrega").on("click", function() {
-        //console.log('fecha entrega')
-        var fecha = $("#fecha_confirmacion").val();
-        var estado = $("#fecha_estado").val();
-        var pedido = $("#pedido").val();
-        
+    $("button[name='estado']").click(function() {
+        var estado = $(this).text()
+        var product_id = $("#product_id").text()
+
+        if (estado==='EN PROCESO') {
+            var est = 'alert-success'
+        } else if (estado==='EN PAUSA') {
+            var est = 'alert-warning'
+        }
         
         $.ajax({
             type:"POST",
-            url:"{% url 'pedidos_fecha_entrega_ajax' %}",
-            //data : datos_pedido,
+            url:"{% url 'set_estado_etiquetado_stock' %}",
             data:{
                 'csrfmiddlewaretoken': '{{ csrf_token }}',
-                'fecha':fecha,
-                'estado':estado,
-                'pedido':pedido,
+                'product_id':product_id,
+                'estado':estado
             },
-            
+        
             success: function(response) {
-                //console.log(response.msg)
-                var mess = response.msg;
-                var mess_error = response.msg_error
-                //$('#msg').html('<div class="alert alert-success mt-3" role="alert"> Se guardo con exito la fecha de entrega </div>')
-                //$('#msg').html(`<div class="text-center alert alert-success mt-3" role="alert"> Fecha de entrega guardada con exito, fecha-hora: ${fecha} - estado: ${estado} </div>`)
-                $('#msg').html(`<div class="text-center alert alert-success mt-3" role="alert"> ${mess} </div>`)
-                $('#msg').html(mess_error)
-                setTimeout(function(){
-                    window.location.reload();
-                }, 4000)
+                var msg = $("#msg").html(`<div class="alert ${est} text-center" role="alert">${response} - ${estado}</div>`)
+                setTimeout(function() {
+                    location.reload().delay(3000)
+                })
+
             },
 
-            error: function() {
-                //$('#msg').html(`<div class="text-center alert alert-danger mt-2" role="alert"> Error al subir documento del producto: ${product_id} - lote: ${lote} </div>`)
-                $('#msg').html('<div class="text-center alert alert-danger mt-2" role="alert"> Error intenta nuevamente !!! </div>')
-                setTimeout(function(){
-                    window.location.reload();
-                }, 4000)
+            error: function(response) {
+                var msg = $("#msg").html(`<div class="alert alert-danger text-center" role="alert">Error intenta nuevamente !!! </div>`)
             }
         })
     })
 </script>
-
-<script>
-    $("#estado_entrega").click(function() {
-        
-        var pedido = $("#pedido").val();
-        var entrega_estado = $("#entrega_estado").val();
-        console.log(pedido);
-        console.log(entrega_estado);
-        
-        $.ajax({
-            type:"POST",
-            url:"{% url 'entrega_estado_ajax' %}",
-            data:{
-                'csrfmiddlewaretoken': '{{ csrf_token }}',
-                'entrega_estado':entrega_estado,
-                'pedido':pedido,
-            },
-            
-            success: function() {
-                //console.log(response.msg)
-                var mess = 'Se registro el estado de entrega correctamente !!!';
-                //var mess_error = response.msg_error
-                //$('#msg').html('<div class="alert alert-success mt-3" role="alert"> Se guardo con exito la fecha de entrega </div>')
-                //$('#msg').html(`<div class="text-center alert alert-success mt-3" role="alert"> Fecha de entrega guardada con exito, fecha-hora: ${fecha} - estado: ${estado} </div>`)
-                $('#msg').html(`<div class="text-center alert alert-success mt-3" role="alert"> ${mess} </div>`)
-                //$('#msg').html(mess_error)
-                setTimeout(function(){
-                    window.location.reload();
-                }, 4000)
-            },
-
-            error: function() {
-                //$('#msg').html(`<div class="text-center alert alert-danger mt-2" role="alert"> Error al subir documento del producto: ${product_id} - lote: ${lote} </div>`)
-                $('#msg').html('<div class="text-center alert alert-danger mt-2" role="alert"> Error intenta nuevamente !!! </div>')
-                setTimeout(function(){
-                    window.location.reload();
-                }, 4000)
-            }
-        })
-    })
-</script>
-
-
-<!-- Tramaco function ajax -->
-<script>
-    $("button[name='calcular']").click(function(){
-        var producto = $("#producto").val();
-        var trayecto = $("#trayecto").val();
-        var peso_total = $("#peso_total").val();
-        var p_cero = $("#p_cero").val();
-
-        $.ajax({
-            type:"POST",
-            url:"{% url 'tramaco_function_ajax' %}",
-            data:{
-                'csrfmiddlewaretoken': '{{ csrf_token }}',
-                'producto':producto,
-                'trayecto':trayecto,
-                'peso_total':peso_total,
-                'p_cero':p_cero
-            },
-
-            success: function(response) {
-
-                $('#costo').html(`
-                <div class="card mt-2">
-                    <div class="card-body m-2 p-2 mb-2">
-                        <div class="row">
-                            <div class="col-2">
-                                <label class="mb-1"><strong>Producto:</strong></label><br>
-                                <label class="mt-1">${producto}</label>
-                            </div>
-                            <div class="col-2">
-                                <label class="mb-1"><strong>Trayecto:</strong></label><br>
-                                <label  class="mt-1">${trayecto}</label>
-                            </div>
-                            <div class="col-2">
-                                <label class="mb-1"><strong>Costo:</strong></label><br>
-                                <label class="mt-1">$ ${response}</label>
-                            </div>
-                        </div>
-                    </div>            
-                </div>
-                `);
-
-                if (p_cero=='True') {
-                    console.log('hay cero en los pesos')
-                    $('#msg').html(`
-                    <div class="text-center alert alert-danger mt-3" role="alert"> 
-                        Alerta!! Existen items sin peso, por favor complete la información
-                    </div>`)
-                } else if (response==0) {
-                    $('#msg').html(`
-                    <div class="text-center alert alert-danger mt-3" role="alert"> 
-                        El peso total es igual a 0 no se puede para realizar el calculo
-                    </div>`)
-                }
-
-            },
-
-            error: function() {
-                $('#msg').html('<div class="text-center alert alert-danger mt-2" role="alert"> Error intenta nuevamente !!! </div>')
-                setTimeout(function(){
-                    window.location.reload();
-                }, 4000)
-            }
-        })
-    })
-
-</script>
-
-
-<script>
-    $("#print").click(function() {
-        // window.print({
-        //     addGlobalStyles:false,
-        // })
-        
-        w=window.open();
-        w.document.write($('#print_area_cabecera').html());
-        //w.document.write($('#print_costo_entrega').html());
-        w.document.write($('#costo').html());
-        w.document.write($('#print_area_table').html());
-        w.print();
-        w.close();
-        
-    })
-</script>
-{% endcomment %}
 
 {% endblock %}
