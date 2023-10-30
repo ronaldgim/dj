@@ -195,8 +195,8 @@
                                     <span class="fs-6">
                                         {% if i.estado == 'EN PROCESO' %}
                                         <i class="bi bi-check-circle-fill" style="color:green"></i>
-                                        {% elif i.estado == 'EN PAUSA'%}
-                                        <i class="bi bi-check-circle-fill" style="color:orange"></i>
+                                        {#% elif i.estado == 'EN PAUSA'%#}
+                                        <!--i class="bi bi-check-circle-fill" style="color:orange"></i-->
                                         {% endif %}
                                         <a href="{% url 'etiquetado_stock_detalle' i.PRODUCT_ID %}" target="_blank">{{i.PRODUCT_ID}}</a> 
                                     </span>
