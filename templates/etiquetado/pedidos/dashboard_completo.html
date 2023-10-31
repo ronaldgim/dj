@@ -193,6 +193,9 @@
 
                                 <td>
                                     <span class="fs-6">
+                                        {% if i.estado == 'EN PROCESO' %}
+                                        <i class="bi bi-check-circle-fill" style="color:green"></i>
+                                        {% endif %}
                                         <a href="{% url 'etiquetado_stock_detalle' i.PRODUCT_ID %}" target="_blank">{{i.PRODUCT_ID}}</a> 
                                     </span>
                                     {% if i.n_personas %}
@@ -290,7 +293,7 @@
                                 </td>
 
 
-                                <td class="estado text-start">
+                                <td class="estado text-center">
                                     {% if i.estado == 'EN PAUSA' %}
                                     <a class="btn btn-danger btn-sm disabled lh-1">{{i.estado}}</a>
                                     {% elif i.estado == 'EN TRANSITO' %}
@@ -304,6 +307,14 @@
                                     {% else %}
                                     -
                                     {% endif %}
+                                    <br>
+
+                                    {% if i.estado != '-' %}
+                                    <span class="mt-2 ps-1 pe-1" style="background-color: #BAF690;">
+                                        {{i.avance}}%
+                                    </span>
+                                    {% endif %}
+
                                 </td>
                             </tbody>
                             {% endfor %}

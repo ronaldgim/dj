@@ -14,6 +14,10 @@ import numpy as np
 # Json
 import json
 
+# Correo
+from django.core.mail import send_mail, EmailMultiAlternatives
+from django.conf import settings
+
 # Productos
 from datos.models import Product
 from datos.models import TimeStamp
@@ -27,6 +31,12 @@ from django_xhtml2pdf.utils import pdf_decorator, generate_pdf
 # Login
 from django.contrib.auth.decorators import login_required, permission_required
 
+# Templeate loader
+from django.template.loader import get_template, render_to_string
+from django.template import Context
+
+# Html
+from django.utils.html import strip_tags
 
 # MUESTREOS
 # Función Ronald - actualizar tabla transito importaciones
@@ -565,6 +575,7 @@ def reg_san_list(request):
     
     r_san_list = RegistroSanitario.objects.all().order_by('marca', 'fecha_expiracion')
     r_san_list_2 = RegistroSanitario.objects.all().order_by('fecha_expiracion')
+    
     n_docs = len([i for i in RegistroSanitario.objects.all() if i.obs_doc == 'Docs ok'])    
     n_enviar = len([i for i in RegistroSanitario.objects.all() if i.obs_doc == 'Enviar a notaria'])   
     n_caducado = len([i for i in RegistroSanitario.objects.all() if i.estado == 'Caducado'])
@@ -585,6 +596,121 @@ def reg_san_list(request):
     }
 
     return render(request, 'bpa/registro_sanitario/list.html', context)
+
+
+# Envio de alertas de Caducidad de R.Sanitario por EMAIL.
+def r_san_alerta_list_correo(request):
+    
+    tabla_query = RegistroSanitario.objects.filter(activo=True).order_by('fecha_expiracion')
+    rs_list = [i for i in tabla_query if i.estado == 'Próximo a caducar']
+    
+    context = {
+        'lista':rs_list
+    }
+    
+    html_message  = render_to_string('emails/r_san_list.html', context)
+    plain_message = strip_tags(html_message)
+    
+    email = EmailMultiAlternatives(
+        subject    = 'Alerta - Documentos próximos a caducar.',
+        from_email = settings.EMAIL_HOST_USER,
+        to         = ['ronaldm@gimpromed.com','pespinosa@gimpromed.com','ncaisapanta@gimpromed.com'],
+        body       = plain_message,
+    )
+    
+    email.attach_alternative(html_message, 'text/html')
+    email.send()
+                    
+    return HttpResponse(status=200)
+        
+
+# Enviar correos individuales por registro sanitario
+def r_san_alert(request):
+    
+    tabla_query = RegistroSanitario.objects.filter(activo=True).order_by('fecha_expiracion')
+    
+    # Avisos
+    a1=120
+    a2=100
+    a3=90
+    a4=40
+    
+    ### PARA MEJORAR EFICIENCIA APLICAR BUSQUEDA BINARIA
+    for i in tabla_query:
+        if i.dias_caducar == a1:  
+            # 1er Aviso
+            rs_list = [i for i in tabla_query if i.dias_caducar==a1]
+            context = {'lista':rs_list}
+            
+            html_message  = render_to_string('emails/r_san.html', context)
+            plain_message = strip_tags(html_message)
+            
+            email = EmailMultiAlternatives(
+                subject    = f'1er Aviso Próximo a Caducar - {i.registro} - {i.marca} - ({i.dias_caducar} días)',
+                from_email = settings.EMAIL_HOST_USER,
+                to         = ['pespinosa@gimpromed.com', 'ncaisapanta@gimpromed.com'],
+                body       = plain_message,
+            )
+            
+            email.attach_alternative(html_message, 'text/html')
+            email.send()
+            
+        elif i.dias_caducar == a2:  
+            # 2do Aviso
+            rs_list = [i for i in tabla_query if i.dias_caducar==a2]
+            context = {'lista':rs_list}
+            
+            html_message  = render_to_string('emails/r_san.html', context)
+            plain_message = strip_tags(html_message)
+            
+            email = EmailMultiAlternatives(
+                subject    = f'2do Aviso Próximo a Caducar - {i.registro} - {i.marca} - ({i.dias_caducar} días)',
+                from_email = settings.EMAIL_HOST_USER,
+                to         = ['pespinosa@gimpromed.com', 'ncaisapanta@gimpromed.com'],
+                body       = plain_message,
+            )
+            
+            email.attach_alternative(html_message, 'text/html')
+            email.send()
+            
+        elif i.dias_caducar == a3:  
+            # 3er Aviso
+            rs_list = [i for i in tabla_query if i.dias_caducar==a3]
+            context = {'lista':rs_list}
+            
+            html_message  = render_to_string('emails/r_san.html', context)
+            plain_message = strip_tags(html_message)
+            
+            email = EmailMultiAlternatives(
+                subject    = f'3er Aviso Próximo a Caducar - {i.registro} - {i.marca} - ({i.dias_caducar} días)',
+                from_email = settings.EMAIL_HOST_USER,
+                to         = ['pespinosa@gimpromed.com', 'ncaisapanta@gimpromed.com'],
+                body       = plain_message,
+            )
+            
+            email.attach_alternative(html_message, 'text/html')
+            email.send()
+            
+        elif i.dias_caducar == a4: 
+            # 4to Aviso
+            rs_list = [i for i in tabla_query if i.dias_caducar==a4]
+            context = {'lista':rs_list}
+            
+            html_message  = render_to_string('emails/r_san.html', context)
+            plain_message = strip_tags(html_message)
+            
+            email = EmailMultiAlternatives(
+                subject    = f'4to Aviso Próximo a Caducar - {i.registro} - {i.marca} - ({i.dias_caducar} días)',
+                from_email = settings.EMAIL_HOST_USER,
+                to         = ['ronaldm@gimpromed.com','pespinosa@gimpromed.com','ncaisapanta@gimpromed.com'],
+                body       = plain_message,
+            )
+            
+            email.attach_alternative(html_message, 'text/html')
+            email.send()
+            
+    return HttpResponse(status=200)
+            
 
 
 # Nuevo Registro Sanitario
@@ -745,7 +871,7 @@ def carta_no_reg_edit(request, id):
 
 
 
-### IMPORTAACIONES EXCEL
+### IMPORTACIONES EXCEL
 def importacion_list(request):
     imp = ImportacionesExcel.objects.all()
     context = {

@@ -1,8 +1,12 @@
-{%extends 'mantenimiento/base.html' %}
+{%extends 'base.html' %}
 
 {% block title %}
 <title>Listado de cartas generales</title>
 {% endblock%}
+
+{% block navbar %}
+{% include 'mantenimiento/topnavbar.html' %}
+{% endblock %}
 
 {% block body %}
 
@@ -19,7 +23,8 @@
 </div-->
 
 <div class="card">
-  <div class="card-body">  
+  <div class="card-body"> 
+    <div class="table-responsive"> 
     <table class="table">
         <thead>
           <tr>
@@ -55,6 +60,7 @@
         </tbody>
         {% endfor %}
     </table>
+    </div>
   </div>
 </div>
 <script>

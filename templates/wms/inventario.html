@@ -129,7 +129,8 @@ $("button[name='mov-interno']").click(function(){
             'ubicacion' :ubicacion
         },
         success: function(){
-            window.location.replace("http://172.16.28.17:8000/wms/inventario/mov-interno")
+            // window.location.replace("http://172.16.28.17:8000/wms/inventario/mov-interno")
+            window.location.replace("http://127.0.0.1:8000/wms/inventario/mov-interno")
         },
         error:function(){
             $('#msg').html('<div class="text-center alert alert-danger mt-3" role="alert"> Error !!! </div>')

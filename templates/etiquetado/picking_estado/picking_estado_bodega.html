@@ -18,52 +18,11 @@
 <div class="row">
     <div class="col-6">
         <h6><strong>N. Pedido: </strong>{{pedido|slice:':-2'}}</h6>
+        <h6><strong>Bodega:</strong> <span id="bodega">{{bodega}}</span></h6>
         <h6><strong>Cliente: </strong> {{cliente}}</h6>
         <h6><strong>Fecha de pedido: </strong> {{fecha_pedido|date:'d-M-Y'}}</h6>
     </div>
-
-    <!--div class="col-6">
-
-        <div class="dropdown">
-            <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="bi bi-truck"></i> Lista de vehículos y sus dimensiones
-            </button>
-            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-                <div class="card-body m-0 p-0">
-                    <div class="container table-responsive">
-                        <table class="table">
-                            <thead>
-                            <tr>
-                                <th scope="col">Placa</th>
-                                <th scope="col">Ancho</th>
-                                <th scope="col">Alto</th>
-                                <th scope="col">Largo</th>
-                                <th scope="col">Volumen m<sup>3</sup></th>
-                                <th scope="col">- 20% m<sup>3</sup></th>
-                            </tr>
-                            </thead>
-                            
-                            <tbody>
-                            {% for i in vehiculos %}
-                            <tr>
-                                <th scope="row">{{i.placa}}</th>
-                                <td class="text-start">{{i.ancho}}</td>
-                                <td class="text-start">{{i.alto}}</td>
-                                <td class="text-center">{{i.largo}}</td>
-                                <td class="text-center">{{i.volumen}}</td>
-                                <td class="text-center">{{i.volumen2}}</td>
-                            </tr>
-                            {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </ul>
-        </div>
-
-    </div-->
 </div>
-
 
 <form method="POST">
     {% csrf_token %}
@@ -132,7 +91,12 @@
                     {% for i in reservas %}
                     <tr>
                         <td scope="row">
-                            <strong>{{i.PRODUCT_ID}}</strong><br>
+                            
+                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#exampleModal" name='lotes'>{{i.PRODUCT_ID}}</button>
+                            <!--button name='lotes'>{{i.PRODUCT_ID}}</button-->
+                            
+                            <br>
+                            
                             {{i.PRODUCT_NAME}}<br>
                             {{i.marca2}}<br>
                         </td>
@@ -168,6 +132,60 @@
     </div>
 </div>
 
+
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <!--button type="button" class="btn btn-primary">Save changes</button-->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $("button[name='lotes']").click(function() {
+        
+        var product_id = $(this).html();
+        var bodega = $("#bodega").html();
+        
+        $.ajax({
+            url : "{% url 'ajax_lotes_bodega' %}",
+            type: "POST",
+            data: {
+                'product_id':product_id,
+                'bodega':bodega,
+                'csrfmiddlewaretoken': '{{csrf_token}}',
+            },
+            
+            
+            success: function(response) {
+                
+                $(".modal-title").html(`Stock de bodega: ${bodega} <br> Código: ${product_id}`);
+                $(".modal-body").html(response);
+
+                if ($("#lotes tbody tr").length===0){
+                    $('.modal-body').append('No hay lotes registrados');
+                }
+            },
+
+            error: function() {
+                $(".modal-title").html('Error, Intenta nuevamente !!!');
+                $(".modal-body").html('...');
+            }
+        })
+
+    })
+</script>
+
 <script>
     $(document).ready(function() {
         $('#equipo_id').select2();
@@ -191,5 +209,4 @@
         }
     }
 </script>
-
 {% endblock %}

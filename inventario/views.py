@@ -32,6 +32,8 @@ from datetime import datetime, date, timedelta
 # Login required
 from django.contrib.auth.decorators import login_required, permission_required
 
+# Shorcuts
+from django.shortcuts import redirect
 
 # Datos
 from datos.views import (
@@ -609,7 +611,7 @@ def nuevo_arqueo(request):
 
     if request.method == 'POST':
         form = ArqueoForm(request.POST)
-        p = request.POST.getlist('productos') 
+        p = request.POST.getlist('productos')
         prod_list = [Product.objects.get(id=i).product_id for i in p]
 
         if form.is_valid():
@@ -673,7 +675,7 @@ def nuevo_arqueo(request):
     
     return render(request, 'inventario/arqueos/nuevo_arqueo.html', context)
 
-
+# Vista para ver y editar los productos antes de crear los arqueos
 def arqueo_view(request, id):
 
     arqueo = Arqueo.objects.get(id=id)
@@ -698,20 +700,21 @@ def arqueo_view(request, id):
         'arqueo_d':arqueo_d,
 
         'arqueo':id,
-        'prod':prod
+        'prod':prod,
+
     }
     
     return render(request, 'inventario/arqueos/detalle_arqueo.html', context)
 
 
-
+# Vista para ingrear y editar los arqueos ya creados 
 def arqueo_edit_view(request, id, ware_code):
 
-    arqueo = Arqueo.objects.get(id=id)
-    arqueo_d = arqueo.descripcion
+    arqueo    = Arqueo.objects.get(id=id)
+    arqueo_d  = arqueo.descripcion
     productos = ArqueoFisico.objects.filter(id_arqueo = id).filter(ware_code=ware_code).order_by('ware_code','location')
-    bodegas = pd.DataFrame(productos.order_by('ware_code').values('ware_code'))['ware_code']
-    bodegas = list(bodegas.unique())
+    bodegas   = pd.DataFrame(productos.order_by('ware_code').values('ware_code'))['ware_code']
+    bodegas   = list(bodegas.unique())
 
     prod_list = list(arqueo.productos.values_list('product_id', flat=True))
     prod = productos_odbc_and_django()
@@ -735,6 +738,7 @@ def arqueo_edit_view(request, id, ware_code):
     return render(request, 'inventario/arqueos/detalle_edit_arqueo.html', context)
 
 
+# Ajax para editar items
 def add_item_arqueo(request):
     
     prod = request.POST['prod_id']
@@ -765,6 +769,7 @@ def add_item_arqueo(request):
     return HttpResponse('ok')
 
 
+# eliminar producto en arqueo
 def eliminar_fila_arqueo(request):
     
     id_row = int(request.POST['id'])
@@ -794,7 +799,7 @@ def editar_fila_arqueo(request):
         return HttpResponse('error')
     
 
-
+# Crear arqueos
 def arqueos_por_bodega(request):
 
     bodegas = request.POST['bodegas']
@@ -859,16 +864,123 @@ def arqueos_por_bodega(request):
     return HttpResponse('ok')
 
 
+# Anular arqueo creado
+def anular_arqueo_creado(request):
+    
+    arqueo_enum = request.POST['arqueo']
+    
+    arq = ArqueosCreados.objects.get(arqueo_enum=arqueo_enum)
+    arq.estado = 'ANULADO'
+    arq.save()
+    
+    return HttpResponse('ok')
 
+
+# Lista de arqueos creados
 def arqueos_list(request):
 
     arqueos_creados = ArqueosCreados.objects.all().order_by('-arqueo','ware_code')
     
+    if request.method=='POST':
+        d = request.POST['desde']
+        h = request.POST['hasta']        
+        desde = datetime.strptime(d, '%Y-%m-%d')
+        hasta = datetime.strptime(h, '%Y-%m-%d')
+        hasta = hasta + timedelta(hours=23) + timedelta(minutes=59)
+        
+        arqs = (ArqueosCreados.objects
+                .filter(estado='FINALIZADO')
+                .filter(fecha_hora_actualizado__range=[desde, hasta])
+            )
+        
+        arqs_ids = arqs.values_list('arqueo_id', flat=True)
+        
+        arqs_df = arqs.values(
+            'arqueo_id',
+            'arqueo_enum',
+            'fecha_hora_actualizado',
+            'usuario__first_name',
+            'usuario__last_name',
+            'descripcion',
+            'ware_code'
+        )
+        arqs_df = pd.DataFrame(arqs_df)
+        arqs_df = arqs_df.rename(columns={'arqueo_id':'id_arqueo'})
+        
+        arqs_fisico_df = pd.DataFrame(ArqueoFisico.objects.filter(id_arqueo__in=arqs_ids).values(
+            'id_arqueo',
+            'product_id',
+            'product_name',
+            'group_code',
+            'observaciones2',
+            'diferencia'
+        ))
+        
+        df = arqs_df.merge(arqs_fisico_df, on='id_arqueo', how='left')
+        df['fecha_hora_actualizado'] = pd.to_datetime(df['fecha_hora_actualizado']).dt.date
+        df['Responsable'] = df['usuario__first_name'] + ' ' + df['usuario__last_name']
+        df = df.rename(columns={
+            'fecha_hora_actualizado':'Fecha',
+            'arqueo_enum':'No. Arqueo',
+            'ware_code':'Bodega',
+            'product_id':'Referencia',
+            'product_name':'Descripción',
+            'group_code':'Marca',
+            'observaciones2':'Obs-AD',
+            'diferencia':'Diferencia'
+        })
+        
+        df = df[[
+            'Responsable',
+            'Fecha',
+            'No. Arqueo',
+            'Bodega',
+            'Referencia',
+            'Descripción',
+            'Marca',
+            'Obs-AD',
+            'Diferencia'
+        ]]
+        
+        df['Fecha'] = df['Fecha'].astype(str)
+        
+        hoy = str(datetime.today())
+        n = 'Reporte-Arqueos_'+hoy+'.xlsx'
+        nombre = 'attachment; filename=' + '"' + n + '"'
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            )
+        response['Content-Disposition'] = nombre
+        df.to_excel(response, index=False)
+        
+        return response
+        
     context = {
         'arqueos':arqueos_creados
     }
 
     return render(request, 'inventario/arqueos/lista.html', context)
+
+
+# Lista de arqueos por crear
+def arqueos_pendientes_list(request):
+    
+    arqueos_list_ids = Arqueo.objects.values_list('id', flat=True)
+    arqueos_list_ids = set(arqueos_list_ids)
+
+    arqueos_fisicos_list_ids = ArqueosCreados.objects.values_list('arqueo_id', flat=True)
+    arqueos_fisicos_list_ids = set(arqueos_fisicos_list_ids)
+    
+    arqueos_pendientes = arqueos_list_ids.difference(arqueos_fisicos_list_ids)
+    
+    arqueos = Arqueo.objects.filter(id__in=arqueos_pendientes)
+    
+    context = {
+        'arqueos':arqueos,
+        'pendientes':1
+    }
+    
+    return render(request, 'inventario/arqueos/pendientes_lista.html', context)
 
 
 def arqueo_bodega_view(request, arqueo, ware_code):
@@ -882,15 +994,17 @@ def arqueo_bodega_view(request, arqueo, ware_code):
     qq = []
 
     for i in prod:
-        prod_query = arqueo_fisico.filter(product_id=i)
-        prod_total_mba = prod_query.aggregate(total_mba=Sum('oh'))['total_mba']
-        prod_diferencia = prod_query.aggregate(diferencia=Sum('diferencia'))['diferencia']
+        prod_query        = arqueo_fisico.filter(product_id=i)
+        prod_total_mba    = prod_query.aggregate(total_mba=Sum('oh'))['total_mba']
+        prod_diferencia   = prod_query.aggregate(diferencia=Sum('diferencia'))['diferencia']
+        prod_total_fisico = prod_query.aggregate(total_fisico=Sum('total_unidades'))['total_fisico']
 
         q = {}
-        #q['product_id'] = i
+        q['product_id']       = i
         q['prod_query']       = prod_query
         q['prod_total_mba']   = prod_total_mba
         q['prod_diferencia']  = prod_diferencia
+        q['prod_total_fisico']= prod_total_fisico
         q['reservas']         = [r for r in reservas if r['PRODUCT_ID']==i if r['WARE_CODE']==ware_code] 
         
         qq.append(q)
@@ -936,7 +1050,8 @@ def arqueo_bodega_tomafisica(request, arqueo, ware_code):
     elif bodega == 'BCT':
         ubicacion = ['CN4','CN5','CN6','CN7']
     else:
-        ubicacion == ['N/U']
+        ubicacion = ['N/U']
+        # ubicacion = ['NU']
 
     context = {
         'arqueo_creado':arqueo_creado,
@@ -970,13 +1085,13 @@ def toma_fisica_inventario_ajax(request):
     dif_unds = total_unds - und_mba 
 
     # Save method
-    arqueo.unidades_caja = unidades_caja_r
-    arqueo.numero_cajas = numero_cajas_r
+    arqueo.unidades_caja    = unidades_caja_r
+    arqueo.numero_cajas     = numero_cajas_r
     arqueo.unidades_sueltas = unidades_sueltas_r
-    arqueo.total_unidades = total_unds
-    arqueo.diferencia = dif_unds
-    arqueo.observaciones = observaciones_r
-    arqueo.llenado = True
+    arqueo.total_unidades   = total_unds
+    arqueo.diferencia       = dif_unds
+    arqueo.observaciones    = observaciones_r
+    arqueo.llenado          = True
 
     arqueo.save()
     
@@ -1060,6 +1175,7 @@ def arqueo_cambiar_estado_ajax(request):
     return HttpResponse('ok')
 
 
+# Ajax add observación 2 en arqueos
 def add_obs2_ajax(request):
     
     # Variables de request Ajax
@@ -1076,103 +1192,94 @@ def add_obs2_ajax(request):
     return HttpResponse('ok')
 
 
-# Trazabilidad
+        
+@permisos('Trazabilidad', '/inventario/bodegas')
 def trazabilidad(request):
-    from django.shortcuts import redirect
-    perm = permisos(request.user.userperfil.id, 'Trazabilidad')
     
-    if perm:
+    try:
 
-        try:
+        if request.method == 'POST':
 
-            if request.method == 'POST':
-
-                cod = request.POST['codigo']
-                lot = request.POST['lote']
-
-                tr = trazabilidad_odbc(cod, lot)[[
-                    'DOC_ID_CORP',
-                    'NOMBRE_CLIENTE',
-                    'DATE_I',
-                    'FECHA_FACTURA',
-                    'INGRESO_EGRESO',
-                    'EGRESO_TEMP',
-                    'TIPO_MOVIMIENTO',
-                    'WARE_COD_CORP'
-                ]]
-
-                tr['FECHA'] = tr.apply(lambda x: x['DATE_I'] if x['FECHA_FACTURA']==None else x['FECHA_FACTURA'] if x['DATE_I']==None else '', axis=1)
-                tr['CANTIDAD'] = tr.apply(lambda x: x['EGRESO_TEMP']*-1 if x['INGRESO_EGRESO']=='-' else x['EGRESO_TEMP'], axis=1)
-
-                tr['FECHA'] = pd.to_datetime(tr['FECHA'])
-                tr = tr.sort_values(by='FECHA', ascending=True).fillna('-')
-                tr['FECHA'] = tr['FECHA'].astype(str)
-
-                bodegas = tr['WARE_COD_CORP'].unique()
-
-                movimientos = tr['TIPO_MOVIMIENTO'].unique()
-
-
-                trz_list = []
-
-                for i in bodegas:
-                    t = tr[tr['WARE_COD_CORP']==i]
-
-                    t_ingreso_compras = t[t['TIPO_MOVIMIENTO']=='RP']
-                    t_ingreso_compras = t_ingreso_compras['CANTIDAD'].sum()
-
-                    t_transf_ingreso = t[t['TIPO_MOVIMIENTO']=='TI']
-                    t_transf_ingreso = t_transf_ingreso['CANTIDAD'].sum()
-
-                    t_egreso          = t[(t['TIPO_MOVIMIENTO']=='FT') | (t['TIPO_MOVIMIENTO']=='MA')]
-                    t_egreso          = t_egreso['CANTIDAD'].sum()
-
-                    t_transf_egreso  = t[t['TIPO_MOVIMIENTO']=='TE']
-                    t_transf_egreso  = t_transf_egreso ['CANTIDAD'].sum()
-
-                    otros = t_ingreso_compras + t_transf_ingreso + t_transf_egreso + t_egreso
-
-                    cantidad_actual = t['CANTIDAD'].sum()
-
-                    tabla = de_dataframe_a_template(t)
-
-                    trz = {}
-                    trz['bodega'] = i
-                    trz['ingreso_compras'] = t_ingreso_compras
-                    trz['transferencia_ingreso'] = t_transf_ingreso
-                    trz['egreso'] = t_egreso
-                    trz['transferencia_egreso'] = t_transf_egreso
-                    trz['otros'] = otros
-                    trz['cantidad_actual'] = cantidad_actual
-                    trz['tabla']  = tabla
-
-                    trz_list.append(trz)
-
-                context = {
-                'cod':cod,
-                'lot':lot,
-                'trazabilidad':trz_list,
-                'bodegas':bodegas,
-                'movimientos':movimientos
-                }
-                
-                return render(request, 'inventario/trazabilidad/trazabilidad.html', context)
+            cod = request.POST['codigo']
+            lot = request.POST['lote']
             
-        except:
+            tr = trazabilidad_odbc(cod, lot)[[
+                'DOC_ID_CORP',
+                'NOMBRE_CLIENTE',
+                'DATE_I',
+                'FECHA_FACTURA',
+                'INGRESO_EGRESO',
+                'EGRESO_TEMP',
+                'TIPO_MOVIMIENTO',
+                'WARE_COD_CORP'
+            ]]
+            
+            tr['FECHA'] = tr.apply(lambda x: x['DATE_I'] if x['FECHA_FACTURA']==None else x['FECHA_FACTURA'] if x['DATE_I']==None else '', axis=1)
+            tr['CANTIDAD'] = tr.apply(lambda x: x['EGRESO_TEMP']*-1 if x['INGRESO_EGRESO']=='-' else x['EGRESO_TEMP'], axis=1)
+
+            tr['FECHA'] = pd.to_datetime(tr['FECHA'])
+            tr = tr.sort_values(by='FECHA', ascending=True).fillna('-')
+            tr['FECHA'] = tr['FECHA'].astype(str)
+
+            bodegas = tr['WARE_COD_CORP'].unique()
+            movimientos = tr['TIPO_MOVIMIENTO'].unique()
+
+            trz_list = []
+
+            for i in bodegas:
+                t = tr[tr['WARE_COD_CORP']==i]
+
+                t_ingreso_compras = t[t['TIPO_MOVIMIENTO']=='RP']
+                t_ingreso_compras = t_ingreso_compras['CANTIDAD'].sum()
+
+                t_transf_ingreso = t[t['TIPO_MOVIMIENTO']=='TI']
+                t_transf_ingreso = t_transf_ingreso['CANTIDAD'].sum()
+
+                t_egreso          = t[(t['TIPO_MOVIMIENTO']=='FT') | (t['TIPO_MOVIMIENTO']=='MA')]
+                t_egreso          = t_egreso['CANTIDAD'].sum()
+
+                t_transf_egreso  = t[t['TIPO_MOVIMIENTO']=='TE']
+                t_transf_egreso  = t_transf_egreso ['CANTIDAD'].sum()
+
+                otros = t_ingreso_compras + t_transf_ingreso + t_transf_egreso + t_egreso
+
+                cantidad_actual = t['CANTIDAD'].sum()
+
+                tabla = de_dataframe_a_template(t)
+
+                trz = {}
+                trz['bodega'] = i
+                trz['ingreso_compras'] = t_ingreso_compras
+                trz['transferencia_ingreso'] = t_transf_ingreso
+                trz['egreso'] = t_egreso
+                trz['transferencia_egreso'] = t_transf_egreso
+                trz['otros'] = otros
+                trz['cantidad_actual'] = cantidad_actual
+                trz['tabla']  = tabla
+
+                trz_list.append(trz)
+            
             context = {
-                'cod':cod,
-                'lot':lot,
-                'mensaje':'No hay conisidencias entre código y lote'
-                }
+            'cod':cod,
+            'lot':lot,
+            'trazabilidad':trz_list,
+            'bodegas':bodegas,
+            'movimientos':movimientos
+            }
             
             return render(request, 'inventario/trazabilidad/trazabilidad.html', context)
-
-
-        context={}
-
-        return render(request, 'inventario/trazabilidad/trazabilidad.html', context)
-    
-    else:
-        messages.error(request, 'No tiene permiso de ingresar !!!')
-        return redirect('/inventario/bodegas')
         
+    except:
+        context = {
+            'cod':cod,
+            'lot':lot,
+            'mensaje':'No hay conisidencias entre código y lote'
+            }
+        
+        return render(request, 'inventario/trazabilidad/trazabilidad.html', context)
+
+
+    context={}
+
+    return render(request, 'inventario/trazabilidad/trazabilidad.html', context)
+    

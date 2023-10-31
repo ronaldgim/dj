@@ -86,15 +86,15 @@
                                 <span style="text-align: left;"><strong>Lote: </strong>{{i.lote_id}}</span>
                             </div>
                             <div>
-                                <span><strong>Unidades: </strong>{{i.oh2|floatformat:"0g"}}</span>
-                                <span style="text-align: right;"><strong>Ubicación: </strong>{{i.location}}</span>
+                                <strong>Unidades: </strong><span class="fs-5 fw-light">{{i.oh2|floatformat:"0g"}}</span> <!--span class="text-xl-start"></span-->
+                                <!--span style="text-align: right;"><strong>Ubicación: </strong>{{i.location}}</span-->
                             </div>
                             <div>
-                                <span><strong>Bodega: </strong>{{i.ware_code}}</span>
+                                <span><strong>Ubicación: </strong>{{i.ware_code}} - {{i.location}}</span>
                             </div>
                             <div>
-                                <span><strong>F.CADU: </strong>{{i.fecha_cadu_lote|date:'d-m-Y'}}</span>
-                                <span style="text-align: right;"><strong>F.ELAB: </strong>{{i.fecha_elab_lote|date:'d-m-Y'}}</span>
+                                <span style="text-align: right;"><strong>F.Elab: </strong>{{i.fecha_elab_lote|date:'d-m-Y'}}</span>
+                                <span><strong>F.Cadu: </strong>{{i.fecha_cadu_lote|date:'d-m-Y'}}</span>
                             </div>
                         </td>
                     </tr>

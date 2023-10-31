@@ -22,7 +22,7 @@
 <h5 class="m-4 text-center"><strong>Calculadora</strong></h5>
 
 <div class="row">
-    <div class="col-6">
+    <div class="col-6" id="print_area_cabecera">
         <h6><strong>Nombre del calculo: </strong>{{object.nombre}}</h6>
         <h6><strong>Fecha de calculo: </strong> {{object.fecha}}</h6>
     </div>
@@ -34,42 +34,17 @@
             <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
                 <div class="card-body m-0 p-0">
                     <div class="container table-responsive">
-                        
-                        {% include 'datos/vehiculos.html' %}
-                        
-                        <!-- table class="table">
-                            <thead>
-                            <tr>
-                                <th scope="col">Placa</th>
-                                <th scope="col">Ancho</th>
-                                <th scope="col">Alto</th>
-                                <th scope="col">Largo</th>
-                                <th scope="col">Volumen m<sup>3</sup></th>
-                                <th scope="col">- 20% m<sup>3</sup></th>
-                            </tr>
-                            </thead>
-                            
-                            <tbody>
-                            {% for i in vehiculos %}
-                            <tr>
-                                <th scope="row">{{i.placa}}</th>
-                                <td class="text-start">{{i.ancho}}</td>
-                                <td class="text-start">{{i.alto}}</td>
-                                <td class="text-center">{{i.largo}}</td>
-                                <td class="text-center">{{i.volumen}}</td>
-                                <td class="text-center">{{i.volumen2}}</td>
-                            </tr>
-                            {% endfor %}
-                            </tbody>
-                        </table-->
-                        
+                        {% include 'datos/vehiculos.html' %}                        
                     </div>
                 </div>
             </ul>
         </div>
         <div class="float-end">
-            <button type="button" class="btn btn-primary rounded-circle" onclick="takeshot()">
+            <!--button type="button" class="btn btn-primary rounded-circle" onclick="takeshot()">
                 <i class="bi bi-camera-fill"></i>
+            </button-->
+            <button class="btn btn-primary" id="print">
+                <i class="bi bi-printer-fill"></i>
             </button>
         </div>
     </div>
@@ -115,7 +90,7 @@
 </form>
 
 
-<div class="card mt-2">
+<div class="card mt-2" id="print_costo_entrega">
     <div class="card-body m-2 p-2">
         <div class="row">
             <div class="col-3">
@@ -159,7 +134,7 @@
 </div>
 {% endif %}
 
-<div class="card mb-4 mt-2">
+<div class="card mb-4 mt-2" id="print_area_table">
     <div class="card-body m-0 p-0">
         <div class="container table-responsive">
             <table class="table">
@@ -282,4 +257,15 @@
 
 </script>
 
+<script>
+    $("#print").click(function() {
+        w=window.open();
+        w.document.write($('#print_area_cabecera').html());
+        w.document.write($('#costo').html());
+        w.document.write($('#print_area_table').html());
+        w.print();
+        w.close();
+        
+    })
+</script>
 {% endblock %}

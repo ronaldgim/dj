@@ -15,14 +15,41 @@
     <i class="bi bi-plus-circle"></i> Nuevo Arqueo
 </a>
 
-<div class="col-4">
+<br>
+
+<button class="btn btn-success" name="reporte-form">
+    <i class="bi bi-file-earmark-spreadsheet"></i> Reporte
+</button>
+
+<div class="card mt-2 mb-2" id="form" style="display:none">
+    <div class="card-body">
+    <form method="POST">
+        {% csrf_token %}
+        <div class="row mb-2">
+            <div class="col-3">
+                <label>Desde:</label>
+                <input type="date" class="form-control" name="desde">
+            </div>
+            <div class="col-3">
+                <label>Hasta:</label>
+                <input type="date" class="form-control" name="hasta">
+            </div>
+        </div>
+        <button class="btn btn-primary" name="crear-reporte">
+            <i class="bi bi-file-earmark-spreadsheet"></i> Crear Reporte
+        </button>
+    </form>
+    </div>
+</div>
+
+<div class="col-4 mt-2">
     <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
 </div>
 
 <div class="card mt-2 mb-2">
     <div class="card-body m-0 p-0">
         <div class="container table-responsive">
-            <table class="table">
+            <table class="table" style="font-size: small;">
                 <thead>
                     <tr>
                         <th scope="col">Arqueo</th>
@@ -38,7 +65,7 @@
                 <tbody id="pedidosbuscar">
                     {% for i in arqueos %}
                     <tr>
-                        <td>{{i.arqueo_enum}}</td>
+                        <td id="arqueo">{{i.arqueo_enum}}</td>
                         <td>{{i.bodega}}</td>
                         <td>{{i.descripcion}}</td>
                         <td>{{i.arqueo.usuario.first_name}} {{i.arqueo.usuario.last_name}}</td>
@@ -51,7 +78,8 @@
                             <a class="btn btn-warning text-white btn-sm disabled"  target="_blank">{{i.estado}}</a> 
                             {% elif i.estado == 'FINALIZADO' %}
                             <a class="btn btn-success btn-sm disabled"  target="_blank">{{i.estado}}</a> 
-                            {% else %}
+                            {% elif i.estado == 'ANULADO' %}
+                            <a class="btn btn-danger btn-sm disabled"  target="_blank">{{i.estado}}</a> 
                             {% endif %}
                         </td>
                         
@@ -64,7 +92,7 @@
                                 </a>                      
 
                                 <a 
-                                {% if i.estado == 'FINALIZADO' %}
+                                {% if i.estado == 'FINALIZADO' or i.estado == 'ANULADO' %}
                                 class="btn btn-warning btn-sm disabled" 
                                 {% else %}
                                 class="btn btn-warning btn-sm" 
@@ -73,10 +101,10 @@
                                 href="{% url 'nuevo_edit_view' i.arqueo_id i.ware_code %}">
                                     <i class="bi bi-pen"></i>
                                 </a>                      
-
-                                <a class="btn btn-danger btn-sm disabled" href="{#% url 'pedidos' i.CONTRATO_ID %#}">
+        
+                                <button class="btn btn-danger btn-sm {% if i.estado == 'FINALIZADO' or i.estado == 'EN PROCESO' or i.estado == 'ANULADO' %} disabled {% endif %}" name="anular">
                                     <i class="bi bi-trash-fill"></i>
-                                </a>                      
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -108,71 +136,43 @@
     });
 </script>
 
-<!-- Filtro de columna -->
 <script>
-    $('.filter').change(function(){
-        filter_function(); //calling filter function each select box value change
-    });
-      
-    $('table tbody tr').show(); //intially all rows will be shown
-      
-    function filter_function(){
-        $('table tbody tr').hide(); //hide all rows
-        
-        var tipoFlag = 'TODOS';
-        var tipoValue = $('#filter-tipo').val();
-        
-       //traversing each row one by one
-        $('table tr').each(function() {  
-          if(tipoValue == 'TODOS'){
-            tipoFlag = 1;
-          }
-          else if(tipoValue == $(this).find('td.tipo').data('tipo')){
-            tipoFlag = 1;
-          }
-          else{
-            tipoFlag = 0;
-          }
+    $("button[name='anular']").click(function(){
+        var arqueo = $(this).closest("tr").find("#arqueo").html();
+        console.log(arqueo)
 
-         if(tipoFlag){ 
-            $(this).show();
-         }
-      
-      });
-    }
+        $.ajax({
+            type:"POST",
+            url:"{% url 'anular_arqueo_creado' %}",
+            data:{
+                "csrfmiddlewaretoken": "{{csrf_token}}",
+                "arqueo":arqueo,
+            },
+
+            success: function(){
+                setTimeout(function(){
+                    window.location.reload();
+                }, 1000)
+            },
+
+            error: function(){
+                $('#msg').html('<div class="text-center alert alert-danger" role="alert"> Error al anular !!! </div>')
+                    setTimeout(function(){
+                    window.location.reload();
+                }, 1000)
+            }
+
+        })
+    })
 </script>
 
-<!-- Filtro estado de etiquetado -->
+<!-- Desplegar formulario de fechas de reporte -->
 <script>
-    $('.filter-est').change(function(){
-        filter_function_estado(); //calling filter function each select box value change
-    });
-      
-    $('table tbody tr').show(); //intially all rows will be shown
-      
-    function filter_function_estado(){
-        $('table tbody tr').hide(); //hide all rows
-        
-        var tipoFlag = 'ESTADO';
-        var tipoValue = $('#filter-estado').val();
-        
-       //traversing each row one by one
-        $('table tr').each(function() {  
-          if(tipoValue == 'ESTADO'){
-            tipoFlag = 1;
-          }
-          else if(tipoValue == $(this).find('td.estado').data('estado')){
-            tipoFlag = 1;
-          }
-          else{
-            tipoFlag = 0;
-          }
-
-         if(tipoFlag){
-            $(this).show();
-         }
-      
-      });
-    }
+    $(document).ready(function() {
+        $("button[name='reporte-form']").click(function(){
+            $("#form").toggle()
+        })
+    })
 </script>
+
 {% endblock %}

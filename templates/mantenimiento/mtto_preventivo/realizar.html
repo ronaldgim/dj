@@ -1,0 +1,127 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Mttos Preventivos</title>
+{% endblock%}
+
+
+{% block navbar %}
+{% include 'mantenimiento/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+
+<h3 class="text-center m-3">
+  <strong>MANTENIMIENTO PREVENTIVO</strong>
+</h3>
+
+{% if inst.actividad == 'Limpieza de Cabezal' %} 
+<div class="dropdown mb-2">
+  <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+      <i class="bi bi-tools"></i> Instructivo de limpieza de cabezal
+  </button>
+  <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+      <div class="card-body m-0 p-0">
+          <div class="container table-responsive">
+              <div class="card" style="width: 20rem;">
+                  <!--img src="..." class="card-img-top" alt="..."-->
+                  <div class="card-body">
+                      <h5 class="card-title">Pasos para limpieza de cabezal</h5>
+                      <p class="card-text">
+                          1.- Tener apagado el chorro o que no esté en marcha.
+                      </p>
+                      <p class="card-text">
+                          2.- Retirar el cabezal del brazo donde se encuntra sujeto, presionar los seguros del cabezal y extraer la tapa.
+                      </p>
+                      <p class="card-text">
+                          3.- Preparar el líquido de limpieza (WASH), un recipiente seco y fanela.<br>
+                          <small>La franela es para secar el líquido que se derrame al usar el WASH</small>
+                      </p>
+                      <p class="card-text">
+                          4.- Tener sujeto el cabezal de forma inclinada horizontalmente sobre el recipiente seco para proceder a la limpieza.
+                      </p>
+                      <p class="card-text">
+                          5.- Esparcir el WASH sobre la parte interna del cabezal de manera uniforme y cudadosa teniendo en mayor énfasis en las placas de carga de tensión, electrodo de carga y orificio de salida de tinta.
+                      </p>
+                      <p class="card-text">
+                          6.- Una vez se encuntre libre de tinta dejar secar el cabezal descubierto a tempratura ambiente durante 3 minutos aproximadamente.
+                      </p>
+                      <p class="card-text">
+                          7.- Verificar que se encuntra libre de tinta, seco y libre de cualquier particula extraña de polvo o pelusa de lo contrario la máquina puede dar un error el iniciar su funcionamiento.
+                      </p>
+                      <p class="card-text">
+                          8.- Colocar el cabezal de nuevo en el brazo sujetador y presinar hasta escuchar un 'click' del seguro del cabezal.
+                      </p>
+                      <p class="card-text">
+                          9.- Ajustar el brazo a la posición necesaria y activar el chorro para comprobar que todo esta en correcto funcionamiento.
+                      </p>
+                  </div>
+              </div>
+          </div>
+      </div>
+  </ul>
+</div>
+{% elif inst.actividad == 'Limpieza de Filtro' %}
+<div class="dropdown">
+  <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+      <i class="bi bi-tools"></i> Instructivo de limpieza de filtros
+  </button>
+  <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+      <div class="card-body m-0 p-0">
+          <div class="container table-responsive">
+              <div class="card" style="width: 20rem;">
+                  <!--img src="..." class="card-img-top" alt="..."-->
+                  <div class="card-body">
+                      <h5 class="card-title">Pasos para limpieza de filtros</h5>
+                      <p class="card-text">
+                          1.- Apagar el Equipo
+                      </p>
+                      <p class="card-text">
+                          2.- Extraer el filtro de aire
+                      </p>
+                      <p class="card-text">
+                          3.- Usar el soplete de aire y limpiar el filtro fuera del área de acondicionamiento de productos.
+                      </p>
+                  </div>
+              </div>                
+          </div>
+      </div>
+  </ul>
+</div>
+{% endif %}
+
+<div class="card mt-2">
+    <div class="card-body mb-0 pb-0">
+        <ul>
+            <li class="fw-bold">Equipo:</li> {{inst.equipo}} <br>
+            <li class="fw-bold">Responsable:</li>{{inst.responsable}} <br>
+            <li class="fw-bold">Realizar el:</li>{{inst.programado|date:'l d - F'}} <br>
+            <li class="fw-bold">Actividad:</li>{{inst.actividad}} <br>
+        </ul>
+    </div>
+</div>
+
+
+<div class="card">
+  <div class="card-body">  
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="user" value="{{request.user.id}}">
+        <input type="hidden" name="realizado" value="{% now 'Y-m-d G:i:s' %}">
+        <input type="hidden" name="estado" value="REALIZADO">
+
+        <label class="fw-bold">Observaciones:</label><br>
+        <input name="observaciones" class="form-control"><br>
+
+        <label class="fw-bold">Foto:</label><br>
+        <input type="file" name="foto" accept="image/*;capture=camera" required>
+        {#{form.foto}#}<br>
+
+        <button type="submit" class="btn btn-sm btn-primary mt-4">
+            <i class="bi bi-send-fill"></i> Guardar
+        </button>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

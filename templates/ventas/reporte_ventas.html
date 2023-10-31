@@ -5,7 +5,7 @@
 {% endblock%}
 
 {% block navbar %}
-{% include 'etiquetado/topnavbar.html' %}
+{% include 'ventas/topnavbar.html' %}
 {% endblock %}
 
 {% block body %}
@@ -14,11 +14,6 @@
 
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
-<!-- datatable -->
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.css" />  
-<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.js"></script>
-
 
 <div>
 
@@ -192,21 +187,34 @@
 
             success: function(response) {
 
-                //# console.log(response[0]);
+                console.log(response);
+
+                // var childRow2 = $(
+                // "<tr class='child-row' style='background-color: #cdffd6'>" + 
+                //     "<td colspan='5'></td>" + 
+                //     `<td colspan='4'>Lote: ${response[0].lote} - Unidades: ${response[0].unidades}</td>` + 
+                // "</tr>"
+                // );
 
                 var childRow2 = $(
                 "<tr class='child-row' style='background-color: #cdffd6'>" + 
                     "<td colspan='5'></td>" + 
-                    `<td colspan='4'>Lote: ${response[0].lote} - Unidades: ${response[0].unidades}</td>` + 
+                    // `<td colspan='4'>Lote: ${response[0].lote} - Unidades: ${response[0].unidades}</td>` + 
+                    `<td colspan='4'>${response}</td>` + 
                 "</tr>"
                 );
                 parentRow.after(childRow).next(childRow).replaceWith(childRow2)
-                // $(this).closest("tr").replaceWith(childRow); 
+
             },
 
             error: function() {
-                // childContent.html('No se encontro coincidencias !!!')
-                console.log('Error')
+                var childRow3 = $(
+                "<tr class='child-row' style='background-color: #f9cdcd'>" + 
+                    "<td colspan='5'></td>" + 
+                    `<td colspan='4'>Error !!!</td>` + 
+                "</tr>"
+                );
+                parentRow.after(childRow).next(childRow).replaceWith(childRow3)
                 }
             })
         }
@@ -215,6 +223,10 @@
 </script>
 
 <!-- DataTable -->
+<!-- datatable -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.css" />  
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.js"></script>
+
 <script>
     $(document).ready(function(){
        $('#myTable').DataTable({

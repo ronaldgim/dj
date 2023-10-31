@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alerta Reg. Sanitarios</title>
+</head>
+<body>
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        };
+        td, th {
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+        td.n {
+            text-align: right;
+        }
+    </style>
+    
+    <h4>Estimada Pia,</h4>
+
+    <p>Los siguientes documentos están proximos a caducar en menos de <strong>180 días.</strong></p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Marca</th>
+                <th>Reg. Sanitario</th>
+                <th>Propietario</th>
+                <th>Fecha de expiración</th>
+                <th>Días restantes</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for i in lista %}
+            <tr>
+                <td>{{i.marca}}</td>
+                <td>{{i.registro}}</td>
+                <td>{{i.propietario}}</td>
+                <td class="n">{{i.fecha_expiracion|date:'Y-m-d'}}</td>
+                <td class="n">{{i.dias_caducar}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <p>**** Esta notificación ha sido enviada automáticamente - No responder ****</p>
+</body>
+</html>

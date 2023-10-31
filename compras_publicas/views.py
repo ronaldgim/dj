@@ -4,7 +4,7 @@ from django.shortcuts import render
 from django.db import connections
 
 # Datetime
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Tabla clientes
 from etiquetado.views import clientes_table
@@ -22,6 +22,9 @@ import json
 # Pyodbc
 import pyodbc
 import mysql.connector
+
+# Paginado
+from django.core.paginator import Paginator
 
 
 # Funcios para pasar de dataframe a registros para el template
@@ -71,12 +74,26 @@ def tabla_productos_mba_django():
 # Tabla infimas
 def tabla_infimas():
     
+    one_year = datetime.now().date()
+    days = 365
+    one_year_ago = one_year - timedelta(days=days) 
+    
     with connections['infimas_sql'].cursor() as cursor:
         cursor.execute(
-            """SELECT infimas.Fecha, entidad.Nombre, infimas.Proveedor,
-            infimas.Objeto_Compra, infimas.Cantidad, infimas.Costo, infimas.Valor, infimas.Tipo_Compra, entidad.Nombre
+            # """SELECT infimas.Fecha, entidad.Nombre, infimas.Proveedor,
+            # infimas.Objeto_Compra, infimas.Cantidad, infimas.Costo, infimas.Valor, infimas.Tipo_Compra, entidad.Nombre
+            # FROM entidad, infimas
+            # WHERE infimas.Codigo_Entidad = entidad.Codigo"""
+            
+            f"""SELECT infimas.Fecha, entidad.Nombre, infimas.Proveedor,
+            infimas.Objeto_Compra, infimas.Cantidad, infimas.Costo, infimas.Valor, 
+            infimas.Tipo_Compra, entidad.Nombre
+            
             FROM entidad, infimas
-            WHERE infimas.Codigo_Entidad = entidad.Codigo"""
+            WHERE infimas.Codigo_Entidad = entidad.Codigo
+            AND infimas.Fecha > '{one_year_ago}'
+            AND infimas.Tipo_Compra = 'Otros Bienes'
+            """
         )
         columns = [col[0] for col in cursor.description]
         infimas = [ # Lista de diccionarios
@@ -85,9 +102,9 @@ def tabla_infimas():
         ]
     infimas = pd.DataFrame(infimas)
     infimas['Fecha'] = infimas['Fecha'].astype(str)
-    infimas = infimas[infimas['Fecha']>'2021-01-01']
+    # infimas = infimas[infimas['Fecha']>'2023-01-01']
     infimas = infimas.sort_values(by=['Fecha'], ascending=[False])
-    infimas = infimas[infimas['Tipo_Compra']=='Otros Bienes']
+    # infimas = infimas[infimas['Tipo_Compra']=='Otros Bienes']
     infimas = infimas.reset_index()
 
     return infimas
@@ -191,15 +208,23 @@ def my_ajax_view(request):
     # data = data.to_json(orient='table')
     # data = json.loads(data)
     
-    print(data)
+    # print(data)
     return JsonResponse(data)
 
 
 # Infimas
 def infimas(request):
     
-    infimas = tabla_infimas()[:100] # Tabla infimas    
+    infimas = tabla_infimas() #[:10] # Tabla infimas    
     infimas = de_dataframe_a_template(infimas)
+    
+    paginator   = Paginator(infimas, 50)
+    page_number = request.GET.get('page')
+    
+    if page_number == None:
+        page_number = 1
+    
+    infimas = paginator.get_page(page_number)    
 
     if request.method == 'POST':
         busqueda = request.POST['busqueda']
@@ -209,6 +234,10 @@ def infimas(request):
         infimas_df = infimas_df[infimas_df['Objeto_Compra'].str.contains(busqueda)] #contains(busqueda)
         resultados = len(infimas_df)
         infimas_df = de_dataframe_a_template(infimas_df)
+        
+        # paginator = Paginator(infimas_df, 200)
+        # page_number = 1 #request.POST.get('page')
+        # infimas_df = paginator.get_page(page_number)
 
         context = {
             'infimas':infimas_df,

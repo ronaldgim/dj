@@ -69,6 +69,20 @@ urlpatterns = [
         view = views.reg_san_list,
         name = 'reg_san_list'
     ),
+    
+    # Envio de alertas de Caducidad de R.Sanitario por Lista.
+    path(
+        route= 'reg-san/alerta/list/correo',
+        view = views.r_san_alerta_list_correo,
+        name = 'r_san_alerta_list_correo'
+    ),
+
+    ## Envio de alertas de Caducidad de R.Sanitario por documento y dias.
+    path(
+        route= 'reg-san/alerta/correo',
+        view = views.r_san_alert,
+        name = 'r_san_alerta_correo'
+    ),
 
     # Nuevo
     path(

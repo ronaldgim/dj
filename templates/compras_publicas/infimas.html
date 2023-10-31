@@ -1,4 +1,4 @@
-{%extends 'base.html' %}
+{% extends 'base.html' %}
 
 {% block title %}
 <title>Etiquetado por pedido</title>
@@ -30,10 +30,13 @@
   }
 </style>
 
-<h5 class="m-4 text-center"><strong>INFIMAS</strong></h5>
-<h5>Resultados de <strong>{{busqueda}}</strong>: {{resultados}}</h5>
+
+<h5 class="m-4 text-center"><strong>INFIMAS 2023</strong></h5>
+
+
 <!--button id="my-button">Click me!</button-->
-{{data}}
+{#{data}#}
+
 {% if messages %}
 {% for message in messages %}
 {% if message.tags == 'success'%}
@@ -51,39 +54,48 @@
 <form method="POST"> 
     {% csrf_token %}
     <div class="row">
-        <div class="form-group">
+        <div class="form-group col-6">
             <div class="input-group">
-                <!--label class="pe-2"><strong>HOSPITALES:</strong></label-->
-                <!--div class="col-6 pe-2">
-                    <select class="form-select" id="filter-hos-select2" name="hospital"> 
-                        <option value="0">TODOS LOS HOSPITALES</option>
-                        {% for i in hospitales %}
-                        <option value="{{i}}">{{i}}</option>
-                        {% endfor %}
-                    </select>
-                </div-->
-                <div class="col-6 me-2">
-                    <input id="inputbuscar" type="text" placeholder="Buscar por objeto de compra... (Usar minúsculas)" class="form-control" name="busqueda">
-                </div>
-                <div class="col-auto">
-                    <button class="btn btn-primary" type="submit">
-                        Consultar
-                    </button>
-                </div>
+                <input id="inputbuscar" type="text" placeholder="Buscar por objeto de compra... (Usar minúsculas)" class="form-control" name="busqueda">
+                <button class="btn btn-primary btn-sm" type="submit">Consultar</button>
             </div>
         </div>
-        
-        <!--div class="col-6 mt-2 mb-2">
-            <input id="inputbuscar" type="text" placeholder="Buscar..." class="form-control">
-        </div-->
     </div>
 </form>
 
+{% if resultados %}
+<h5>Resultados de <strong>{{busqueda}}</strong>: {{resultados}}</h5>
+{% endif %}
 
 <!--div class="col-6">
     <label><strong>Buscar:</strong></label>
     <input id="inputbuscar" type="text" placeholder="Buscar..." class="form-control">
 </div-->
+
+{% comment %}
+<div class="pagination mt-2">
+    <span class="step-links">
+        {% if infimas.has_previous %}
+            <a class="btn btn-outline-secondary btn-sm" href="?page=1">
+                <span aria-hidden="true"> &laquo; Primera </span>
+            </a>
+            <a class="btn btn-outline-secondary btn-sm" href="?page={{ infimas.previous_page_number }}">Anterior</a>
+        {% endif %}
+
+        <!--span class="current btn btn-outline-primary btn-sm"-->
+        <span class="current btn btn-secondary btn-sm disabled">
+            Pagina {{ infimas.number }} de {{ infimas.paginator.num_pages }}
+        </span>
+
+        {% if infimas.has_next %}
+            <a class="btn btn-outline-secondary btn-sm" href="?page={{ infimas.next_page_number }}">Siguiente</a>
+            <a class="btn btn-outline-secondary btn-sm" href="?page={{ infimas.paginator.num_pages }}">
+                <span aria-hidden="true"> Última &raquo; </span>
+            </a>
+        {% endif %}
+    </span>
+</div>
+{% endcomment %}
 
 <!-- Infimas -->
 <!--h5 class="text-center"><strong>INFIMAS</strong></h5-->
@@ -123,123 +135,29 @@
 </div>
 
 
-<!-- AJAX -->
-<!--script>
-    document.querySelector('#my-button').addEventListener('click', function() {
-        //fetch('/ajax/my_view/')
-        fetch('/compras-publicas/ajax/my_view/')
-        //fetch('/compras-publicas/infimas')
-            .then(response => response.json())
-            .then(data => console.log(data))
-            .catch(error => console.error(error));
-    });
-</script-->
-<!--script>
-    document.querySelector('#my-button').addEventListener('click', function() {
-        $.ajax({
-            //url: '/compras-publicas/ajax/my_view/',
-            //url: '/compras-publicas/infimas',
-            url : "{% url 'my_ajax_view' %}",
-            type: 'GET',
-            dataType: 'json',
-            success: function (data) {
-                // Do something with the data
-                $('#table_inf').html(data);
-                //console.log(data);
-                //console.log(typeof(data))
-                //window.data = {args:{{data|safe}}}
-            fetch("{% url 'my_ajax_view' %}")
-                .then(response => response.json())
-                .then(data => console.log(data))
-                .catch(error => console.error(error))
-            }
-        });
-    });
-</script-->
+<div class="pagination mt-2 mb-2">
+    <span class="step-links">
+        {% if infimas.has_previous %}
+            <a class="btn btn-outline-secondary btn-sm" href="?page=1">
+                <span aria-hidden="true"> &laquo; Primera </span>
+            </a>
+            <a class="btn btn-outline-secondary btn-sm" href="?page={{ infimas.previous_page_number }}">Anterior</a>
+        {% endif %}
 
+        <!--span class="current btn btn-outline-primary btn-sm"-->
+        <span class="current btn btn-secondary btn-sm disabled">
+            Pagina {{ infimas.number }} de {{ infimas.paginator.num_pages }}
+        </span>
 
-<!--filtro buscar-->
-<!--script>
-    $(document).ready(function() {
-        $("#inputbuscar").on("keyup", function() {
-            var value = $(this).val().toLowerCase();
-            $("#pedidosbuscar tr").filter(function() {
-                $(this).toggle($(this).text()
-                .toLowerCase().indexOf(value) > -1)
-            });
-        });
-    });
-</script-->
+        {% if infimas.has_next %}
+            <a class="btn btn-outline-secondary btn-sm" href="?page={{ infimas.next_page_number }}">Siguiente</a>
+            <a class="btn btn-outline-secondary btn-sm" href="?page={{ infimas.paginator.num_pages }}">
+                <span aria-hidden="true"> Última &raquo; </span>
+            </a>
+        {% endif %}
+    </span>
+</div>
 
-
-<!-- Filtro de columna -->
-<script>
-    $('.filter').change(function(){
-        filter_function(); //calling filter function each select box value change
-    });
-      
-    function filter_function(){
-
-        $('table tbody tr').hide();
-
-        // Bodega
-        var hosFlag = 0;
-        var hosValue = $('#filter-hos').val();
-
-        // Ubicación
-        //var locFlag = 0;
-        //var locValue = $('#filter-loc').val();
-
-        // Llenado
-        //var lleFlag = 0;
-        //var lleValue = $('#filter-lle').val();
-        
-        // $('table tr').each(function() {
-        $('table tr').each(function() {
-            
-            // Bodega
-            if(hosValue == 0){
-                hosFlag = 1;
-            }
-            else if(hosValue == $(this).find('td.hos').data('hos')){
-                hosFlag = 1;
-            }
-            else{
-                hosFlag = 0;
-            }
-
-            // Ubicación
-            //if(locValue == 0){
-            //    locFlag = 1;
-            //}
-            //else if(locValue == $(this).find('td.loc').data('loc')){
-            //    locFlag = 1;
-            //}
-            //else{
-            //    locFlag = 0;
-            //}
-
-            // Llenado
-            //if(lleValue == 0){
-            //    lleFlag = 1;
-            //}
-            //else if(lleValue == $(this).find('td.lle').data('lle')){
-            //    lleFlag = 1;
-            //}
-            //else{
-            //    lleFlag = 0;
-            //}
-
-            //if(bodFlag && locFlag && lleFlag){
-            //    $(this).show();
-            //}
-
-            if(hosFlag) // && locFlag && lleFlag){
-                $(this).show();
-            }
-        );
-    }
-</script>
 
 
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
@@ -255,6 +173,27 @@
   document.querySelector('.table').addEventListener('contextmenu', function(e) {
     e.preventDefault();
   });
+</script>
+
+<!-- DataTable -->
+
+<!-- datatable -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.css" />  
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.js"></script>
+
+<script>
+    $(document).ready(function() {
+       $('#inv_table').DataTable({
+        //#ordering:false,
+        "searching":false,
+        "show":false,
+        "paging":false,
+        "info":false,
+        columnDefs:[
+            {type:'signed-num',targets:0}
+        ]
+       })
+    })
 </script>
 
 {% endblock %}

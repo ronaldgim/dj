@@ -203,7 +203,7 @@ EMAIL_USE_TLS = True
 
 # LAPTOP
 # user: admin
-# passoword: Gim2023anydesk/*
+# passoword: Gim2023anydesk
 
 # SUPERUSER
 # username: admin

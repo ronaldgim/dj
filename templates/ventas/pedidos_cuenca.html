@@ -1,0 +1,114 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Pedidos Cuenca</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'ventas/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+
+<div>
+
+<h5 class="m-4 text-center"><strong>PEDIDOS CUENCA</strong></h5>
+
+
+<form method="POST">
+    <div class="col-4">
+        <div class="input-group">
+            {% csrf_token %}
+            <input name="n_pedido" type="text" placeholder="Número de pedido" class="form-control">
+            <button type="submit" name="pedido" class="btn btn-primary">Buscar</button>
+        </div>
+    </div>
+</form>
+
+<!--div class="text-center" id="spinner">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div><br>
+    <span class="text-center text-primary">Buscando... </span>
+</div-->
+
+
+{% if error %}
+    <h5 class="fw-bold m-4 text-center">{{error}} {{n_pedido}}</h5>
+{% endif %}
+
+{% if pedido %}
+
+<div class="col-4 mt-4">
+    <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+</div>
+
+
+<br>
+<label class="fw-bold">Pedido:   </label>{{n_pedido}}<br>
+<label class="fw-bold">Cliente:  </label>{{cli}}<br>
+<label class="fw-bold">Ruc:      </label>{{ruc}}<br>
+<br>
+
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            
+            <table class="table"> 
+                <thead>
+                    <tr>
+                        <th scope="col">Código</th>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Marca</th>
+                        <th scope="col">Unidades</th>
+                        <th scope="col">Precio</th>
+                        <th scope="col">Alerta</th>
+                        <th scope="col">Fecha</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in pedido %}
+                    <tr>
+                        <td>{{i.product_id}}</td>
+                        <td>{{i.product_name}}</td>
+                        <td>{{i.product_group_code}}</td>
+                        <td class="text-end">{{i.quantity|floatformat:'0g'}}</td>
+                        <td class="text-end">{{i.price|floatformat:'2g'}}</td>
+                        <td class="text-center">
+                            {% if i.ALERTA == None %}
+                            <i style="color:red" class="bi bi-exclamation-triangle-fill"></i>
+                            {% elif i.ALERTA == 'tres_meses' %}
+                            <i style="color:orange" class="bi bi-exclamation-triangle-fill"></i>
+                            {% elif i.ALERTA == 'seis_meses' %}
+                            <i style="color:green" class="bi bi-exclamation-triangle-fill"></i>
+                            {% endif %}
+                        </td>
+                        <td>{% if not i.FECHA %}
+                            -
+                            {% else %}
+                            {{i.FECHA}}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+
+<script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+
+{% endblock %}

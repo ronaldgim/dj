@@ -23,7 +23,6 @@ REFERENCIA_MOVIMIENTOS = [
     ('Ajuste', 'Ajuste'),
 ]
 
-
 BODEGA = [
     ('CN4', 'CN4'),
     ('CN5', 'CN5'),
@@ -87,7 +86,7 @@ class Ubicacion(models.Model):
     def __str__(self):
         return f"{self.bodega}.{self.pasillo}.{self.modulo}.{self.nivel}"
         # return f"{self.pasillo}.{self.modulo}.{self.nivel}"
-        
+
 
 
 class Movimiento(models.Model):
@@ -100,8 +99,8 @@ class Movimiento(models.Model):
     ubicacion    = models.ForeignKey(Ubicacion, verbose_name='Ubicación', max_length=5, on_delete=models.CASCADE, related_name='ubicacion')
     unidades     = models.IntegerField(verbose_name='Unidades ingresadas')
 
-    usuario = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.CASCADE, blank=True, null=True)
-    fecha_hora = models.DateTimeField(verbose_name='Fecha Hora', auto_now_add=True)
+    usuario      = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.CASCADE, blank=True, null=True)
+    fecha_hora   = models.DateTimeField(verbose_name='Fecha Hora', auto_now_add=True)
 
     def __str__(self):
         return str(self.item)

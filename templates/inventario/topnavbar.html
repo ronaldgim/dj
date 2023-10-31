@@ -48,7 +48,8 @@
               Arqueos 
             </a>
             <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-              <li><a class="dropdown-item" href="{% url 'arqueos_list' %}">Listado de arqueos</a></li>
+              <li><a class="dropdown-item" href="{% url 'arqueos_list' %}">Listado de arqueos creados</a></li>
+              <li><a class="dropdown-item" href="{% url 'arqueos_pendientes_list' %}">Listado de arqueos pendientes</a></li>
               <li><a class="dropdown-item" href="{% url 'arqueos_list_bodega' 'BAN' %}">TF Andagoya</a></li>
               <li><a class="dropdown-item" href="{% url 'arqueos_list_bodega' 'BCT' %}">TF Cerezos</a></li>
               <li><a class="dropdown-item" href="{% url 'arqueos_list_bodega' 'CUA' %}">TF Cuarentena Andagoya</a></li>

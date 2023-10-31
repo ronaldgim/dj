@@ -2,7 +2,7 @@
 from django import forms 
 
 # Models
-from etiquetado.models import Calculadora, RowItem, PedidosEstadoEtiquetado, EstadoPicking, RegistoGuia, FechaEntrega
+from etiquetado.models import Calculadora, RowItem, PedidosEstadoEtiquetado, EstadoPicking, RegistoGuia, FechaEntrega, InstructivoEtiquetado
 
 # MyForms
 
@@ -49,3 +49,9 @@ class FechaEntregaForm(forms.ModelForm):
         model = FechaEntrega
         fields = '__all__'
         
+## Instructivo etiquetado
+class InstructivoEtiquetadoForm(forms.ModelForm):
+    
+    class Meta:
+        model = InstructivoEtiquetado
+        fields = '__all__'

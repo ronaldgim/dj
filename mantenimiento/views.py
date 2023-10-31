@@ -3,14 +3,20 @@ from django.db import connections
 import pandas as pd
 
 # Models
-from mantenimiento.models import Equipo, Suministro, Estadistica, Mantenimiento
+from mantenimiento.models import Equipo, Suministro, Estadistica, Mantenimiento, MantenimientoPreventivo
 
 # Generic Views
 from django.views.generic.edit import CreateView
 from django.views.generic.list import ListView
 
 # Forms
-from mantenimiento.forms import EquipoCreateForm, SuministroForm, EstadisticaForm, MantenimientoForm
+from mantenimiento.forms import (
+    EquipoCreateForm, 
+    SuministroForm, 
+    EstadisticaForm, 
+    MantenimientoForm,
+    MantenimientoPreventivoCrearForm,
+    MantenimientoPreventivoRealizarForm)
 
 # Urls
 from django.urls import reverse
@@ -36,6 +42,9 @@ import json
 
 # Shorcuts
 from django.shortcuts import render, redirect
+
+# Datetime
+from datetime import datetime
 
 # importar datos de excel
 # def impor_data(request):
@@ -174,6 +183,7 @@ def diferencia_columna(lista):
     
     return lista_dif
 
+
 def lista_estadisticas(request, equipo):
 
     eq = Equipo.objects.get(id=equipo)
@@ -236,3 +246,84 @@ class MantenimientoCreate(CreateView):
     form_class = MantenimientoForm
     success_url = 'list'
     template_name = 'mantenimiento/mantenimiento/new.html'
+    
+    
+    
+### MANTENIMIENTOS PREVENTIVOS
+# Lista de mantenimientos
+def list_mpreventivos(request):
+    
+    m_preventivos = MantenimientoPreventivo.objects.all().order_by('-programado')
+    
+    context = {
+        'm_preventivos':m_preventivos
+    }
+    
+    return render(request, 'mantenimiento/mtto_preventivo/list.html', context)
+
+
+# Lista de mantenimientos
+def list_mpreventivos_por_realizar(request):
+    
+    month = datetime.now().month 
+    year  = datetime.now().year
+    
+    m_preventivos = (MantenimientoPreventivo.objects
+                        .filter(estado='PENDIENTE')
+                        .filter(programado__month = month)
+                        .filter(programado__year  = year)
+                        .order_by('-programado')
+                    )
+    
+    context = {
+        'm_preventivos':m_preventivos
+    }
+    
+    return render(request, 'mantenimiento/mtto_preventivo/list_pendientes.html', context)
+
+
+# Crear mantenimiento preventivo
+# def nuevo_mpreventivo(request):
+    
+#     form = MantenimientoPreventivoCrearForm()
+    
+#     if request.method == 'POST':
+#         form = MantenimientoPreventivoCrearForm(request.POST)
+#         if form.is_valid():
+#             form.save()
+#             messages.success(request, 'Mantenimiento preventivo creado correctamente')
+#             return redirect('preventivo_list')
+        
+#         else:
+#             messages.error(request, 'Error al crear mantenimiento preventivo')
+            
+#     context = {
+#         'form':form
+#     }
+    
+#     return render(request, 'mantenimiento/estadistica/list2.html', context)
+
+
+# Realizar mantenimiento preventivo
+def realizar_mpreventivo(request, id):
+    
+    form = MantenimientoPreventivoRealizarForm()
+    inst = MantenimientoPreventivo.objects.get(id=id)
+    
+    if request.method == 'POST':
+        form = MantenimientoPreventivoRealizarForm(request.POST, request.FILES, instance=inst)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Mantenimiento preventivo realizado correctamente')
+            return redirect('preventivo_list')
+        
+        else:
+            messages.error(request, 'Error al realizar mantenimiento preventivo')
+            
+    context = {
+        'inst':inst,
+        'form':form
+    }
+    
+    return render(request, 'mantenimiento/mtto_preventivo/realizar.html', context)
+

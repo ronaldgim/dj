@@ -7,6 +7,9 @@ from django.template.defaultfilters import slugify
 # Uuid
 import uuid
  
+# Models
+from users.models import User
+ 
 # Choices
 BODEGA = [('Andagoya', 'Andagoya'),
           ('Cerezos', 'Cerezos')]
@@ -14,6 +17,13 @@ BODEGA = [('Andagoya', 'Andagoya'),
 
 TIPO = [('Mantenimiento Preventivo', 'Mantenimiento Preventivo'),
         ('Mantenimiento Correctivo', 'Mantenimiento Correctivo')]
+
+ESTADO = [('PENDIENTE', 'PENDIENTE'),
+          ('REALIZADO', 'REALIZADO')]
+
+ACTIVIDAD = [('Limpieza de Cabezal', 'Limpieza de Cabezal'),
+             ('Limpieza de Filtro', 'Limpieza de Filtro')]
+
 
 # MyModels
 class Equipo(models.Model):
@@ -119,3 +129,24 @@ class Mantenimiento(models.Model):
     def save(self, *args, **kwargs):
         self.slug = slugify(uuid.uuid4())
         return super().save(*args, **kwargs)
+    
+    
+class MantenimientoPreventivo(models.Model):
+    
+    # Crear
+    equipo       = models.ForeignKey(Equipo, on_delete=models.PROTECT, verbose_name='Equipo')
+    responsable  = models.CharField(verbose_name='Responsable', max_length=100, blank=True)
+    estado       = models.CharField(verbose_name='Estado', max_length=100, choices=ESTADO)
+    programado   = models.DateField(verbose_name='Programado para')
+    actividad    = models.CharField(verbose_name='Actividad', max_length=100, choices=ACTIVIDAD)
+    
+    # Realizar
+    user         = models.ForeignKey(User, verbose_name='Realizado por', blank=True, null=True, on_delete=models.PROTECT)
+    realizado    = models.DateTimeField(verbose_name='Realizado en', blank=True, null=True)
+    observaciones= models.CharField(verbose_name='Observaciones', max_length=200, blank=True)
+    foto         = models.ImageField(verbose_name='Foto', upload_to='mtto_preventivo/', blank=True, null=True)
+    
+    def __str__(self):
+        return f'{self.id} | Equipo: {self.equipo}, Responsable: {self.responsable}'
+    
+    

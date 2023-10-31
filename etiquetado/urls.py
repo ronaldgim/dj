@@ -25,6 +25,12 @@ urlpatterns = [
         name = 'pedidos'
     ),
     
+    path(
+        route='pedidos/lote/<str:n_pedido>',
+        view = views.pedido_lotes,
+        name = 'pedido_lote'
+    ),
+    
     # Listado Etiquetao Stock
     path(
         route='stock',
@@ -114,6 +120,14 @@ urlpatterns = [
         view  = views.picking_estado_bodega,
         name  = 'picking_estado_bodega'
     ),
+    
+    path(
+        route = 'picking/ajax_lotes_bodega',
+        view  = views.ajax_lotes_bodega,
+        name  = 'ajax_lotes_bodega'
+    ),
+    
+    
 
     path(
         route = 'picking/historial',
@@ -253,5 +267,33 @@ urlpatterns = [
         route = 'etiquetado-stock-detalle/<str:product_id>',
         view  = views.etiquetado_stock_detalle,
         name  = 'etiquetado_stock_detalle'
+    ),
+    
+    ## INSTUCTIVO DE ETIQUETADO
+    # Lista Instructivo de etiquetado
+    path(
+        route = 'instructivo-etiquetado/list',
+        view  = views.list_instructo_etiquetado,
+        name  = 'list_instructo_etiquetado'
+    ),
+    
+    ## Avance etiquetado
+    path(
+        route = 'etiquetado/avance',
+        view  = views.etiquetado_avance,
+        name  = 'etiquetado_avance'
+    ),
+    
+    path(
+        route = 'etiquetado/avance/edit',
+        view  = views.etiquetado_avance_edit,
+        name  = 'etiquetado_avance_edit'
+    ),
+    
+    # set_estado_etiquetado_stock
+    path(
+        route = 'etiquetado/set-estado-etiquetado-stock',
+        view  = views.set_estado_etiquetado_stock,
+        name  = 'set_estado_etiquetado_stock'
     ),
 ]
