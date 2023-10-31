@@ -93,7 +93,7 @@ class Ubicacion(models.Model):
         return f"{self.bodega}.{self.pasillo}.{self.modulo}.{self.nivel}"
         # return f"{self.pasillo}.{self.modulo}.{self.nivel}"
 
-
+        #--
 
 class Movimiento(models.Model):
 
