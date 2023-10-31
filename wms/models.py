@@ -28,6 +28,7 @@ BODEGA = [
     ('CN5', 'CN5'),
     ('CN6', 'CN6'),
     ('CN7', 'CN7'),
+    ('CUC', 'CUC'),
 ]
 
 PASILLO = [
@@ -60,15 +61,20 @@ NIVEL = [
 # Create your models here.
 class InventarioIngresoBodega(models.Model):
     
-    o_compra            = models.CharField(verbose_name='Orden de compra', max_length=50)
+    # o_compra            = models.CharField(verbose_name='Orden de compra', max_length=50)
     product_id          = models.CharField(verbose_name='Product id', max_length=50)
-    nombre              = models.CharField(verbose_name='Nombre', max_length=50, blank=True)
-    marca               = models.CharField(verbose_name='Marca', max_length=50, blank=True)
-    marca2              = models.CharField(verbose_name='Marca 2', max_length=50, blank=True)
+    # nombre              = models.CharField(verbose_name='Nombre', max_length=50, blank=True)
+    # marca               = models.CharField(verbose_name='Marca', max_length=50, blank=True)
+    # marca2              = models.CharField(verbose_name='Marca 2', max_length=50, blank=True)
     lote_id             = models.CharField(verbose_name='Lote id', max_length=50)
+    fecha_elaboracion   = models.DateField(verbose_name='Fecha de elaboración')
     fecha_caducidad     = models.DateField(verbose_name='Fecha de caducidad')
-    bodega              = models.CharField(verbose_name='Bodega', max_length=5)
+    
+    bodega              = models.CharField(verbose_name='Bodega', choices=BODEGA, max_length=5)
     unidades_ingresadas = models.IntegerField(verbose_name='Unidades ingresadas')
+    
+    referencia          = models.CharField(verbose_name='Referencia', max_length=50) # Choices
+    n_referencia        = models.CharField(verbose_name='N°. Referencia', max_length=50)
 
     def __str__(self):
         return f"código:{self.product_id} - unidades: {self.unidades_ingresadas}" 
