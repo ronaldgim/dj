@@ -40,7 +40,7 @@ from django.db.models import Q
 from users.models import User
 
 
-
+# Lista de importaciones
 def wms_importaciones_list(request):
     """ Lista de importaciones llegadas """
 
@@ -71,6 +71,7 @@ def wms_importaciones_list(request):
     return render(request, 'wms/importaciones_list.html', context)
 
 
+# Detalle de importación
 def wms_detalle_imp(request, o_compra):
     """ Ver detalle de importaciones
         Seleccionar bodega 
@@ -166,7 +167,7 @@ def wms_imp_ingresadas(request):
     
     return render(request, 'wms/importaciones_ingresadas_list.html', context)
 
-    
+
 
 def wms_movimientos_ingreso(request, id):
     """ Esta función asigna una ubiación a los items intresados por la importación

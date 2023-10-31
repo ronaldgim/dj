@@ -86,7 +86,7 @@ class Ubicacion(models.Model):
     def __str__(self):
         return f"{self.bodega}.{self.pasillo}.{self.modulo}.{self.nivel}"
         # return f"{self.pasillo}.{self.modulo}.{self.nivel}"
-        
+
 
 
 class Movimiento(models.Model):
