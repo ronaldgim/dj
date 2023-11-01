@@ -88,12 +88,14 @@ class Ubicacion(models.Model):
     modulo       = models.CharField(verbose_name='Modulo', choices=MODULO, max_length=10)
     nivel        = models.CharField(verbose_name='Nivel', choices=NIVEL, max_length=10)
     capacidad_m3 = models.FloatField(verbose_name='Capacidad m3')
+    distancia_puerta = models.FloatField(verbose_name='Capacidad m3', blank=True, null=True)
+    
 
     def __str__(self):
         return f"{self.bodega}.{self.pasillo}.{self.modulo}.{self.nivel}"
         # return f"{self.pasillo}.{self.modulo}.{self.nivel}"
 
-        #--
+
 
 class Movimiento(models.Model):
 
