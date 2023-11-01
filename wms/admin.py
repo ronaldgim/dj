@@ -29,8 +29,10 @@ class UbicacionAdmin(admin.ModelAdmin):
 # MOVIMIENTO
 @admin.register(Movimiento)
 class MovimientoAdmin(admin.ModelAdmin):
+    pass
+
+    # list_display = ('item', 'tipo', 'ubicacion', 'unidades')
     
-    list_display = ('item', 'tipo', 'ubicacion', 'unidades')
     # list_filter = ()
     # list_display_links = []
     # search_fields = []
