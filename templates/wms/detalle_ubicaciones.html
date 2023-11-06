@@ -40,11 +40,10 @@
     <div class="card-body ps-2 pe-2">
         <h6 class="text-center"><strong>Item:</strong></h6>
         <span style="font-size: small;"> <span class="fw-bold">Bodega: </span>{{item.bodega}}</span><br>
-        <span style="font-size: small;"> <span class="fw-bold">Item: </span>{{item.product_id}} - {{item.nombre}} - {{item.marca2}}</span><br>
+        <span style="font-size: small;"> <span class="fw-bold">Item: </span>{{item.product_id}}</span><br> <!-- - {{item.nombre}} - {{item.marca2}} -->
         <span style="font-size: small;"> <span class="fw-bold">Lote: </span>{{item.lote_id}}</span><br>
         <span style="font-size: small;"> <span class="fw-bold">Caducidad: </span>{{item.fecha_caducidad|date:'Y-m-d'}}</span><br>
         <span style="font-size: small;"> <span class="fw-bold">Unidades: </span>{{item.unidades_ingresadas|floatformat:"0g"}}</span>
-
     </div>
 </div>
 
@@ -82,11 +81,12 @@
             {% csrf_token %}
             <input type="hidden" name="item" value="{{item.id}}">
             <input type="hidden" name="tipo" value="Ingreso">
-            <input type="hidden" name="descripcion" value="Ingreso Importación">
+            <input type="hidden" name="referencia" value="Ingreso Importación">
+            <input type="hidden" name="n_referencia" value="{{item.n_referencia}}">
             <input type="hidden" name="usuario" value="{{request.user.id}}">
 
             <label class="fw-bold" style="font-size: small;">Selecciona ubicación:</label><br>
-            <select class="form-select form-select-sm" name="ubicacion" id="" required>
+            <select class="form-select form-select-sm" name="ubicacion" required>
                 <option value="">---------</option>
                 {% for i in ubi_list %}
                 {{i|slice:'2:'}}
@@ -104,7 +104,8 @@
     </div>
 </div>
 
-<a class="btn btn-secondary btn-sm float-end mt-2" href="{% url 'wms_bodega_imp' item.o_compra %}">
+<!--a class="btn btn-secondary btn-sm float-end mt-2" href="{#% url 'wms_bodega_imp' item.o_compra %#}"-->
+<a class="btn btn-secondary btn-sm float-end mt-2" href="{% url 'wms_bodega_imp' item.n_referencia %}">
     <i class="bi bi-arrow-return-left"></i> Regresar
 </a>
 

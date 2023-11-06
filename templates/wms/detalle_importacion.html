@@ -13,20 +13,6 @@
 <h5 class="m-4 text-center"><strong>{{marca}} - {{orden}}</strong></h5>
 
 
-{% if messages %}
-{% for message in messages %}
-{% if message.tags == 'success'%}
-<div class="alert text-center alert-success" role="alert">
-    {{message}}
-</div>
-{% elif message.tags == 'error'%}
-<div class="alert text-center alert-danger" role="alert">
-    {{message}}
-</div>
-{%endif%}
-{% endfor %}
-{% endif %}
-
 <!--h6 class="m-4 text-end"><strong>Actulizado: </strong>{{actualizado|slice:':-7'}}</h6-->
 
 <div class="col-12 mb-2">
@@ -34,7 +20,7 @@
 </div>
 
 <label><strong>Seleccione bodega:</strong></label>
-<form method="POST">
+<form method="POST" class="mb-3">
     {% csrf_token %} 
     <div class="input-group">
         <select class="form-select" name="bodega">
@@ -50,6 +36,24 @@
         </button>
     </div>
 </form>
+
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == 'success'%}
+        <div class="alert text-center alert-success" role="alert">
+            {{message}}
+        </div>
+        {% elif message.tags == 'error'%}
+        <div class="alert text-center alert-danger" role="alert">
+            {{message}}
+        </div>
+        {% elif message.tags == 'info'%}
+        <div class="alert text-center alert-warning" role="alert">
+            {{message}}
+        </div>
+        {%endif%}
+    {% endfor %}
+{% endif %}
 
 <div id="msg"></div>
 

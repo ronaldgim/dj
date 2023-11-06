@@ -54,14 +54,14 @@
                 <tbody id="pedidosbuscar">
                     {% for i in imp %}
                     <tr>
-                        <td>{{i.marca2}} <br>
-                            {{i.o_compra}} <br>
+                        <td>{{i.Marca}} <br>
+                            {{i.n_referencia}} <br>
                         </td>
 
                         <td>{{i.bodega}}</td>
 
                         <td>
-                            <a class="btn btn-primary btn-sm" href="{% url 'wms_bodega_imp' i.o_compra %}">
+                            <a class="btn btn-primary btn-sm" href="{% url 'wms_bodega_imp' i.n_referencia %}">
                                 <i class="bi bi-binoculars-fill"></i>  Ver
                             </a>
                         </td>

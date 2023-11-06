@@ -10,8 +10,8 @@
 
 {% block body %}
 
-<h5 class="mt-2 text-center"><strong>Bodega: {{obj.bodega}}</strong></h5>
-<h5 class="text-center"><strong>{{obj.marca2}} - {{obj.o_compra}}</strong></h5>
+<h5 class="mt-2 text-center"><strong>Bodega: {{bod}}</strong></h5>
+<h5 class="text-center"><strong>{{marca}} - {{ref}}</strong></h5>
 
 
 {% if messages %}
@@ -53,9 +53,12 @@
                     {% for i in imp %}
                     <tr>
                         <td>{{i.product_id}}<br>
-                            {{i.nombre}}<br>
+                            {{i.Nombre}}<br>
                         </td>
-                        <td>{{i.lote_id}}</td>
+                        <td>
+                            {{i.lote_id}} <br>
+                            {{i.fecha_caducidad}}
+                        </td>
 
                         <td class="text-end" {% if i.unidades_ingresadas == i.und_mov_ing %} 
                                 style="background-color: #BAF690;" 

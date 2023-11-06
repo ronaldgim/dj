@@ -11,14 +11,16 @@ TIPOS_MOVIMIENTOS = [
     ('Egreso', 'Egreso'),
 ]
 
-DESCRIPCION_MOVIMIENTOS = [
-    ('Ingreso Importación', 'Ingreso Importación'),
-    ('Movimiento Interno',  'Movimiento Interno'),
-    ('Egreso Picking',      'Egreso Picking'),
-    ('Ajuste Inventario',   'Ajuste Inventario'),
-]
+# DESCRIPCION_MOVIMIENTOS = [
+#     ('Ingreso Importación', 'Ingreso Importación'),
+#     ('Movimiento Interno',  'Movimiento Interno'),
+#     ('Egreso Picking',      'Egreso Picking'),
+#     ('Ajuste Inventario',   'Ajuste Inventario'),
+# ]
 
 REFERENCIA_MOVIMIENTOS = [
+    ('Ingreso Importación', 'Ingreso Importación'),
+    ('Movimiento Interno',  'Movimiento Interno'),
     ('Picking', 'Picking'),
     ('Ajuste', 'Ajuste'),
 ]
@@ -69,12 +71,13 @@ class InventarioIngresoBodega(models.Model):
     
     product_id          = models.CharField(verbose_name='Product id', max_length=50)
     lote_id             = models.CharField(verbose_name='Lote id', max_length=50)
-    fecha_elaboracion   = models.DateField(verbose_name='Fecha de elaboración')
+    # fecha_elaboracion   = models.DateField(verbose_name='Fecha de elaboración')
     fecha_caducidad     = models.DateField(verbose_name='Fecha de caducidad')
     bodega              = models.CharField(verbose_name='Bodega', choices=BODEGA, max_length=5)
     unidades_ingresadas = models.IntegerField(verbose_name='Unidades ingresadas')
     referencia          = models.CharField(verbose_name='Referencia', choices=REFERENCIA_INGRESOS, max_length=50) 
     n_referencia        = models.CharField(verbose_name='N°. Referencia', max_length=50, blank=True)
+    fecha_hora   = models.DateTimeField(verbose_name='Fecha Hora', auto_now_add=True)
 
     def __str__(self):
         return f"código:{self.product_id} - unidades: {self.unidades_ingresadas}" 
@@ -101,7 +104,7 @@ class Movimiento(models.Model):
 
     item         = models.ForeignKey(InventarioIngresoBodega, verbose_name='Item', on_delete=models.CASCADE, related_name='item')
     tipo         = models.CharField(verbose_name='Tipo de movimiento', choices=TIPOS_MOVIMIENTOS, max_length=10)
-    descripcion  = models.CharField(verbose_name='Descripción del movimiento', choices=DESCRIPCION_MOVIMIENTOS, max_length=20, blank=True)
+    descripcion  = models.CharField(verbose_name='Descripción del movimiento', max_length=20, blank=True)
     referencia   = models.CharField(verbose_name='Referencia del movimiento', choices=REFERENCIA_MOVIMIENTOS, max_length=20, blank=True)
     n_referencia = models.CharField(verbose_name='Numero de referencia',max_length=20, blank=True)
     ubicacion    = models.ForeignKey(Ubicacion, verbose_name='Ubicación', max_length=5, on_delete=models.CASCADE, related_name='ubicacion')
