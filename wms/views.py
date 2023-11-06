@@ -55,10 +55,9 @@ def wms_importaciones_list(request):
     imp_doc = pd.DataFrame(InventarioIngresoBodega.objects.all().values()).empty
 
     if not imp_doc:
-        imp_doc = pd.DataFrame(InventarioIngresoBodega.objects.all().values())[['o_compra', 'bodega']]
-        imp_doc = imp_doc.drop_duplicates(subset='o_compra')
-        imp_doc = imp_doc.rename(columns={'o_compra':'DOC_ID_CORP'})
-
+        imp_doc = pd.DataFrame(InventarioIngresoBodega.objects.all().values())[['n_referencia', 'bodega']]
+        imp_doc = imp_doc.drop_duplicates(subset='n_referencia')
+        imp_doc = imp_doc.rename(columns={'n_referencia':'DOC_ID_CORP'})
         imp = imp.merge(imp_doc, on='DOC_ID_CORP', how='left').fillna(0)
         imp = imp[imp['bodega']==0]
     
@@ -80,8 +79,7 @@ def wms_detalle_imp(request, o_compra):
         y aparece en la lista de importaciones ingresadas
     """
     
-    detalle = importaciones_llegadas_odbc()
-    detalle = detalle[detalle['DOC_ID_CORP']==o_compra]
+    detalle = importaciones_llegadas_ocompra_odbc(o_compra) 
     pro     = productos_odbc_and_django()[['product_id', 'Nombre', 'marca','marca2']]
     detalle = detalle.merge(pro, on='product_id', how='left')
 
@@ -92,26 +90,30 @@ def wms_detalle_imp(request, o_compra):
 
     if request.method == 'POST':
         bodega = request.POST['bodega']
-        d = importaciones_llegadas_ocompra_odbc(o_compra) #[['DOC_ID_CORP','product_id','OH','FECHA_CADUCIDAD', 'LOTE_ID']]
+        d = importaciones_llegadas_ocompra_odbc(o_compra) 
         d['bodega'] = bodega
-        d = d.merge(productos_odbc_and_django()[['product_id', 'Nombre', 'marca', 'marca2']])
         
-        d = d.rename(columns={
-            'DOC_ID_CORP':'o_compra',
-            'LOTE_ID':'lote_id',
-            'FECHA_CADUCIDAD':'fecha_caducidad',
-            'OH':'unidades_ingresadas',
-            'Nombre':'nombre'
-        })
-        d = d[['o_compra', 'product_id', 'nombre', 'marca', 'marca2', 'lote_id', 'fecha_caducidad', 'bodega', 'unidades_ingresadas']]
-        d = [tuple(i) for i in d.values] 
-
-        with connections['default'].cursor() as cursor:
-            cursor.executemany(
-                "INSERT INTO wms_inventarioingresobodega (o_compra, product_id, nombre, marca, marca2, lote_id, fecha_caducidad, bodega, unidades_ingresadas) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)", d
+        imp_ing = []
+        for i in de_dataframe_a_template(d):
+            imp = InventarioIngresoBodega(
+                product_id          = i['product_id'],
+                lote_id             = i['LOTE_ID'],
+                fecha_caducidad     = i['FECHA_CADUCIDAD'],
+                bodega              = i['bodega'],
+                unidades_ingresadas = i['OH'],
+                n_referencia        = i['DOC_ID_CORP'],
+                referencia          = 'Ingreso Importación'
             )
-                
-        return redirect(f'/wms/importacion/bodega/{o_compra}')            
+            
+            imp_ing.append(imp)
+        
+        imp_exist = InventarioIngresoBodega.objects.filter(n_referencia=o_compra).exists()
+        
+        if imp_exist:
+            messages.add_message(request, messages.INFO, f'La imprtación {o_compra} ya fue ingresada !!!')
+        else:    
+            InventarioIngresoBodega.objects.bulk_create(imp_ing)
+            return redirect(f'/wms/importacion/bodega/{o_compra}')
 
     context = {
         'imp':detalle,
@@ -128,28 +130,34 @@ def wms_bodega_imp(request, o_compra):
         Botón para ingresar y asignar ubicación dentro de la bodega previamente selecionada
         Si el color de la fila unidades es amarillo el ingreso esta incompleto
     """
-
-    detalle = (InventarioIngresoBodega.objects.filter(o_compra=o_compra)
+    
+    prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+    
+    query = (InventarioIngresoBodega.objects.filter(n_referencia=o_compra).filter(referencia='Ingreso Importación')
         .prefetch_related('item').values(
         'id',
         'product_id',
-        'nombre',
-        'marca2',
         'lote_id',
-        'unidades_ingresadas', #'item'
-        'o_compra',
+        'unidades_ingresadas',
+        'n_referencia',
         'bodega'
-        #'item__item__product_id', 'item__tipo', 'item__ubicacion', 
-        #'item__unidades'
-        #'unidades'
-        )).order_by('product_id').order_by('product_id', 'unidades_ingresadas').annotate(und_mov_ing=Sum('item__unidades'))#.aggregate(Sum('unidades')) #.distinct()
-
-    obj = detalle.first()
-
+    )).order_by('product_id').annotate(und_mov_ing=Sum('item__unidades')) 
+    
+    imp = pd.DataFrame(query.values())
+    imp['fecha_caducidad'] = imp['fecha_caducidad'].astype(str)
+    imp = imp.merge(prod, on='product_id', how='left')
+    imp = de_dataframe_a_template(imp)
+    
+    marca  = imp[0]['Marca']
+    ref    = imp[0]['n_referencia']
+    bodega = imp[0]['bodega']
     context = {
-        'imp':detalle,
-        'obj':obj,
+        'imp'  :imp,
+        'marca':marca,
+        'ref'  : ref,
+        'bod'  :bodega,
     }
+
 
     return render(request, 'wms/detalle_bodega.html', context)
 
@@ -157,8 +165,10 @@ def wms_bodega_imp(request, o_compra):
 def wms_imp_ingresadas(request):
     """ Lista de importaciones ingresadas """
 
+    prod = productos_odbc_and_django()[['product_id','Marca']] 
     imps = pd.DataFrame(InventarioIngresoBodega.objects.all().values())
-    imps = imps.drop_duplicates(subset='o_compra')
+    imps = imps.merge(prod, on='product_id', how='left')
+    imps = imps.drop_duplicates(subset='n_referencia')
     imps = de_dataframe_a_template(imps)
 
     context = {
@@ -177,9 +187,9 @@ def wms_movimientos_ingreso(request, id):
     item = InventarioIngresoBodega.objects.get(id=id)
     
     ubi_list = Ubicacion.objects.filter(bodega=item.bodega)
-    mov_list = Movimiento.objects.filter(item=item.id).filter(tipo='Ingreso').filter(descripcion='Ingreso Importación')
+    mov_list = Movimiento.objects.filter(item=item.id).filter(tipo='Ingreso').filter(n_referencia=item.n_referencia)#.filter(referencia='Ingreso Importación')
 
-    total_ubicaciones = mov_list.aggregate(Sum('unidades'))['unidades__sum'] 
+    total_ubicaciones = mov_list.aggregate(Sum('unidades'))['unidades__sum']
     if total_ubicaciones == None:
         total_ubicaciones = 0
     
@@ -199,7 +209,7 @@ def wms_movimientos_ingreso(request, id):
             if form.is_valid():
                 form.save()
                 # regresar a la lista de productos en importacion
-                return redirect(f'/wms/importacion/bodega/{item.o_compra}')
+                return redirect(f'/wms/importacion/bodega/{item.n_referencia}')
             
         elif und > ingresados_ubicaciones or und > ubicaciones_und:
             # No se puede ingresar un cantidad mayor a la existente
@@ -221,7 +231,7 @@ def wms_movimientos_ingreso(request, id):
             if form.is_valid():
                 form.save()
                 # retornar a la misma view
-                return redirect(f'/wms/importacion/bodega/{item.o_compra}')
+                return redirect(f'/wms/importacion/bodega/{item.n_referencia}')
 
 
     context = {
