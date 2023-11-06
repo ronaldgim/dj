@@ -195,9 +195,10 @@
                 'ubi':ubi
             },
 
-            success: function() {
+            {% comment %} success: function() {
                 window.location.replace(`http://172.16.28.17:8000/wms/picking/${n_picking}`)
-            },
+            }, {% endcomment %}
+
             error: function() {
                 $('#msg').html('<div class="text-center alert alert-danger" role="alert"> Error al hacer el picking !!! </div>')
                     setTimeout(function(){

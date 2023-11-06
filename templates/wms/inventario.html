@@ -59,10 +59,10 @@
                     <tr>
                         <td>
                             <span class="fw-bold">Código:</span> <span id="prod">{{i.item__product_id}}</span><br>
-                            <span class="fw-bold">Nombre:</span> {{i.item__nombre}}<br>
-                            <span class="fw-bold">Marca:</span> {{i.item__marca2}}<br>
+                            <span class="fw-bold">Nombre:</span> {{i.Nombre}}<br>
+                            <span class="fw-bold">Marca:</span> {{i.Marca}}<br>
                             <span class="fw-bold">Lote:</span> <span id="lote">{{i.item__lote_id}}</span> <br>
-                            <span class="fw-bold">Fecha:</span> {{i.item__fecha_caducidad|date:'Y-m-d'}}
+                            <span class="fw-bold">Fecha:</span> {{i.item__fecha_caducidad}}
                         </td>
                         <!--td>{{i.item__lote_id}}<br>
                             {{i.item__fecha_caducidad|date:'Y-m-d'}}
@@ -112,7 +112,7 @@
 </script>
 
 <!-- Pasar datos por request para movimiento interno-->
-<script>
+<!--script>
 
 $("button[name='mov-interno']").click(function(){
     var product_id = $(this).closest("tr").find("#prod").html();
@@ -141,6 +141,6 @@ $("button[name='mov-interno']").click(function(){
     })
 })
 
-</script>
+</script-->
 
 {% endblock %}

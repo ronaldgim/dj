@@ -126,7 +126,7 @@
                         </td>
 
                         {% comment %}
-                         
+                        
                         <td class="estado text-center" data-estado="{{i.estado}}">
                             <a 
                                 {% if i.estado == 'EN PAUSA' %} 
@@ -147,7 +147,7 @@
 
                             {% if i.estado != '-' %}
                             <a class="btn btn-primary btn-sm mt-2 mb-2 disabled"                           
-                               href="{#% url 'picking_estado_bodega' i.CONTRATO_ID i.id %#}">
+                                href="{#% url 'picking_estado_bodega' i.CONTRATO_ID i.id %#}">
                                     {{i.first_name}} {{i.last_name}} {% if i.estado == 'FINALIZADO' %}| {{i.fecha_actualizado|slice:'0:16'}} {% endif %}
                             </a> 
                             {% endif %}
