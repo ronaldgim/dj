@@ -96,12 +96,21 @@
                         {% endif %}
                         >
                             {#{i.CONTRATO_ID|slice:-2}#}
+
                             <a href="{% url 'pedidos' i.CONTRATO_ID %}" target="_blank">
                                 {{i.CONTRATO_ID|slice:-2}}
                             </a>
+
+                            <!-- STCOK COMPLETO -->
                             {% if i.DISP == 'NOT' %}
                                 <i style = "color:red;" class="bi bi-file-earmark-x-fill"></i>
                             {% endif %}
+
+                            <!-- PEDIDO CONFIRMADO -->
+                            {% if i.CONFIRMED %}
+                                <i class="bi bi-check2"></i>
+                            {% endif %}
+
                         </th>
 
                         <td class="text-start">{{i.NOMBRE_CLIENTE}}</td>
