@@ -141,9 +141,14 @@ def wms_bodega_imp(request, o_compra):
         'unidades_ingresadas',
         'n_referencia',
         'bodega'
-    )).order_by('product_id').annotate(und_mov_ing=Sum('item__unidades')) 
+    )).order_by('product_id')    #.annotate(und_mov_ing=Sum('item__unidades'))
     
-    imp = pd.DataFrame(query.values())
+    query = pd.DataFrame(query.values())
+    
+    mov = Movimiento.objects.filter(referencia='Ingreso Importación').filter(n_referencia=o_compra).values('item__product_id', 'item__lote_id', 'unidades')
+    mov = pd.DataFrame(mov).rename(columns={'item__product_id':'product_id', 'item__lote_id':'lote_id','unidades':'und_mov_ing'})
+    
+    imp = query.merge(mov, on=['product_id', 'lote_id'], how='left')
     imp['fecha_caducidad'] = imp['fecha_caducidad'].astype(str)
     imp = imp.merge(prod, on='product_id', how='left')
     imp = de_dataframe_a_template(imp)
@@ -476,7 +481,6 @@ def wms_egreso_picking(request, pedido):
         pedido = pedido.merge(m, on='PRODUCT_ID', how='left').fillna(0)
         pedido['unidades'] = pedido['unidades'].abs()
 
-    # print(pedido)
     ped = de_dataframe_a_template(pedido)
     for i in prod_list:
         for j in ped:
@@ -488,7 +492,7 @@ def wms_egreso_picking(request, pedido):
     
     # Ordenar el pedido por ubicación
     ped = sorted(ped, key=lambda x: len(x['ubi']), reverse=True)
-    # print(ped)
+
     context = {
         'pedido':ped,
 
@@ -498,7 +502,6 @@ def wms_egreso_picking(request, pedido):
         'hora':hora 
     }
 
-    # return JsonResponse(ped, safe=False)
     return render(request, 'wms/picking.html', context)
 
 
@@ -528,8 +531,8 @@ def wms_movimiento_egreso_picking(request):
     user = request.user.username
     user = User.objects.get(username=user)
 
-
-    egreso = Movimiento.objects.create(
+    #egreso = 
+    Movimiento.objects.create(
         item         = item_inventario,
         tipo         = 'Egreso',
         descripcion  = 'Egreso Picking',
@@ -540,9 +543,8 @@ def wms_movimiento_egreso_picking(request):
         usuario      = user
     )
 
-    egreso.save()
-
-    return HttpResponse()
+    return HttpResponse('ok')
+    
 
 
 def wms_eliminar_movimiento(request):
