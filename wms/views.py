@@ -262,12 +262,14 @@ def wms_inventario(request):
     """ Inventario 
         Suma de ingresos y egresos que dan el total de todo el inventario
     """
+    prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+    prod = prod.rename(columns={'product_id':'item__product_id'})
 
     inv = Movimiento.objects.all().values(
         # 'id',
         'item__product_id',
-        'item__nombre',
-        'item__marca2',
+        # 'item__nombre',
+        # 'item__marca2',
         'item__lote_id',
         'item__fecha_caducidad',
         
@@ -277,7 +279,7 @@ def wms_inventario(request):
         'ubicacion__nivel'
     ).annotate(total_unidades=Sum('unidades')).order_by(
         'item__product_id',
-        'item__marca2',
+        # 'item__marca2',
         'item__fecha_caducidad',
 
         'ubicacion__bodega',
@@ -286,10 +288,14 @@ def wms_inventario(request):
         'ubicacion__nivel'
         ).exclude(total_unidades__lte=0)
 
-    # print(pd.DataFrame(inv))
+    inv_df = pd.DataFrame(inv)
+    inv_df = inv_df.merge(prod, on='item__product_id', how='left')
+    inv_df['item__fecha_caducidad'] = inv_df['item__fecha_caducidad'].astype(str)
+    inv_df = de_dataframe_a_template(inv_df)
 
     context = {
-        'inv':inv
+        # 'inv':inv,
+        'inv':inv_df
     }
 
     return render(request, 'wms/inventario.html', context)
@@ -412,13 +418,16 @@ def wms_listado_pedidos(request):
 
 def wms_egreso_picking(request, pedido):
 
-    n_picking = pedido
-    m = Movimiento.objects.filter(referencia='Picking').filter(n_referencia=n_picking)
+    # n_picking = pedido
+    
+    m = Movimiento.objects.filter(referencia='Picking').filter(n_referencia=pedido)
     m = pd.DataFrame(m.values('id','item__product_id', 'item__lote_id', 'unidades'))
+    
     m = m.rename(columns={'item__product_id':'PRODUCT_ID'})
     
-    prod   = productos_odbc_and_django()[['product_id','marca2']]
+    prod   = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     prod   = prod.rename(columns={'product_id':'PRODUCT_ID'})
+    
     pedido = pedido_por_cliente(pedido).sort_values('PRODUCT_ID')
     pedido = pedido.merge(prod, on='PRODUCT_ID',how='left')
     
@@ -436,8 +445,8 @@ def wms_egreso_picking(request, pedido):
     inv = (Movimiento.objects.filter(item__product_id__in=prod_list).values(
         # 'id',
         'item__product_id',
-        'item__nombre',
-        'item__marca2',
+        # 'item__nombre',
+        # 'item__marca2',
         'item__lote_id',
         'item__fecha_caducidad',
         
@@ -533,7 +542,7 @@ def wms_movimiento_egreso_picking(request):
 
     egreso.save()
 
-    return HttpResponse('ok')
+    return HttpResponse()
 
 
 def wms_eliminar_movimiento(request):
