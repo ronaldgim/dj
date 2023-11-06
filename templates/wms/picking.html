@@ -63,7 +63,7 @@
                         <tr {% if i.id %} style="background-color: #e3fde6;" {% endif %} >
                             <td><span id="prod_id">{{i.PRODUCT_ID}}</span><br>
                                 <span id="prod_name">{{i.PRODUCT_NAME}}</span><br>
-                                <span id="prod_marca">{{i.marca2}}</span><br>
+                                <span id="prod_marca">{{i.Marca}}</span><br>
                             </td>
                             <!--td>{{i.lote_id}}</td-->
     
@@ -195,9 +195,11 @@
                 'ubi':ubi
             },
 
-            {% comment %} success: function() {
-                window.location.replace(`http://172.16.28.17:8000/wms/picking/${n_picking}`)
-            }, {% endcomment %}
+            success: function() {
+                setTimeout(function(){
+                    window.location.reload();
+                }, 1000)
+            },
 
             error: function() {
                 $('#msg').html('<div class="text-center alert alert-danger" role="alert"> Error al hacer el picking !!! </div>')
