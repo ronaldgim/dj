@@ -106,9 +106,15 @@
                                     <a class="fs-6" href="{% url 'pedidos' i.CONTRATO_ID %}" target="_blank">
                                         {{i.CONTRATO_ID|slice:-2}}
                                     </a> 
-                                    
+
+                                    <!-- STOCK COMPLETO -->
                                     {% if i.DISP == 'NOT' %}
-                                    <i style = "color:red;" class="bi bi-file-earmark-x-fill"></i>
+                                        <i style = "color:red;" class="bi bi-file-earmark-x-fill"></i>
+                                    {% endif %}
+
+                                    <!-- PEDIDO CONFIRMADO -->
+                                    {% if i.CONFIRMED %}
+                                        <i class="bi bi-check2"></i>
                                     {% endif %}
 
                                     <br> {{i.NOMBRE_CLIENTE}}
