@@ -70,7 +70,7 @@
                         <!--td>{{i.item__fecha_caducidad|date:'Y-m-d'}}</td-->
                         {#% if i.ubicacion__bodega %#}
                         <td>
-                            <span class="fw-bold">Ubicación:</span> <span id="ubi">{{i.ubicacion__bodega}}.{{i.ubicacion__pasillo}}.{{i.ubicacion__modulo}}.{{i.ubicacion__nivel}}</span> <br>
+                            <span class="fw-bold">Ubicación:</span> <span id="ubi">{{i.ubicacion}}{{i.ubicacion__bodega}}.{{i.ubicacion__pasillo}}.{{i.ubicacion__modulo}}.{{i.ubicacion__nivel}}</span> <br>
                             <span class="fw-bold">Unidades:</span> {{i.total_unidades|floatformat:"0g"}}<br>
                             <span class="fw-bold">Acciones:</span> <div class="input-group"> <!-- href="{#% url 'wms_mov_int' i.id %#}"  lote='{{i.item__lote_id}}' bod='i.ubicacion__bodega' pas='i.ubicacion__pasillo' mod='i.ubicacion__modulo' niv='i.ubicacion__nivel' -->
                                 

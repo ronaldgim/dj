@@ -79,9 +79,14 @@
 
         <form method="POST">
             {% csrf_token %}
-            <input type="hidden" name="item" value="{{item.id}}">
+            <!--input type="hidden" name="item" value="{{item.id}}"-->
+            <input type="hidden" name="product_id" value="{{item.product_id}}">
+            <input type="hidden" name="lote_id" value="{{item.lote_id}}">
+            <input type="hidden" name="fecha_caducidad" value="{{item.fecha_caducidad|date:'Y-m-d'}}">
+            <input type="hidden" name="descripcion" value="N/A">
+
             <input type="hidden" name="tipo" value="Ingreso">
-            <input type="hidden" name="referencia" value="Ingreso Importación">
+            <input type="hidden" name="referencia" value="{{item.referencia}}">
             <input type="hidden" name="n_referencia" value="{{item.n_referencia}}">
             <input type="hidden" name="usuario" value="{{request.user.id}}">
 
@@ -105,7 +110,7 @@
 </div>
 
 <!--a class="btn btn-secondary btn-sm float-end mt-2" href="{#% url 'wms_bodega_imp' item.o_compra %#}"-->
-<a class="btn btn-secondary btn-sm float-end mt-2" href="{% url 'wms_bodega_imp' item.n_referencia %}">
+<a class="btn btn-secondary btn-sm float-end mt-2" href="{#% url 'wms_bodega_imp' item.n_referencia %#}">
     <i class="bi bi-arrow-return-left"></i> Regresar
 </a>
 
