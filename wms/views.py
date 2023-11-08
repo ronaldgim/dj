@@ -265,7 +265,10 @@ def wms_inventario_inicial_bodega(request, bodega):
 
     
     ####   QUERY DE EXISTENCIAS   ####
-#### ACTUALIZACIÓN DE TABLA EXISTENCIAS ####
+
+
+### QUERY DE EXISTENCIAS EN TABLA MOVIEMIENTOS ###
+    #### ACTUALIZACIÓN DE TABLA EXISTENCIAS ####
 def wms_existencias_query():
     
     exitencias = Movimiento.objects.all().values(
@@ -334,7 +337,7 @@ def wms_movimientos_ingreso(request, id):
         Esta asiganación de ubicación se permite solo dentro de la bodega preselecionada
         Pasa el objecto solo para tomar sus valores 
     """
-    wms_existencias_query()
+    
     item = InventarioIngresoBodega.objects.get(id=id)
     
     if item.n_referencia == 'inv_in_1':
