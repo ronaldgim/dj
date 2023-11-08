@@ -5,6 +5,7 @@ from django.db import models
 from users.models import User
 
 
+
 # Selects
 TIPOS_MOVIMIENTOS = [
     ('Ingreso', 'Ingreso'),
@@ -110,4 +111,17 @@ class Movimiento(models.Model):
 
     def __str__(self):
         #return str(self.tipo, self.product_id)
+        return self.product_id
+
+
+class Existencias(models.Model):
+    
+    product_id      = models.CharField(verbose_name='Product id', max_length=50)
+    lote_id         = models.CharField(verbose_name='Lote id', max_length=50)
+    fecha_caducidad = models.DateField(verbose_name='Fecha de caducidad')
+    ubicacion       = models.ForeignKey(Ubicacion, verbose_name='Ubicación', max_length=5, on_delete=models.CASCADE, related_name='existencias_ubicacion')
+    unidades        = models.IntegerField(verbose_name='Unidades ingresadas')
+    fecha_hora      = models.DateTimeField(verbose_name='Fecha Hora', auto_now_add=True)
+    
+    def __str__(self):
         return self.product_id

@@ -46,6 +46,7 @@
             <table class="table" style="font-size: small;">
                 <thead>
                     <tr>
+                        <th scope="col">#</th>
                         <th scope="col">Item</th>
                         <th scope="col">Lote</th>
                         <th scope="col">Tipo de movimiento</th>
@@ -60,15 +61,16 @@
                 <tbody id="pedidosbuscar">
                     {% for i in mov %}
                     <tr>
-                        <td>{{i.item.product_id}} <br>
+                        <td>{{i.id}}</td>
+                        <td>{{i.product_id}} <br>
                             <!--
                             {{i.item.nombre}}<br>
                             {{i.item.marca2}}
                             -->
                         </td>
 
-                        <td>{{i.item.lote_id}}<br>
-                            {{i.item.fecha_caducidad|date:'Y-m-d'}}
+                        <td>{{i.lote_id}}<br>
+                            {{i.fecha_caducidad|date:'Y-m-d'}}
                         </td>
 
                         <td>{{i.tipo}}</td>
