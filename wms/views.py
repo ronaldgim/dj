@@ -40,7 +40,13 @@ from django.db.models import Q
 from users.models import User
 
 
-# Lista de importaciones
+"""
+    LISTAS DE INGRESOS 
+    - LISTA DE IMPORTACIONES
+    - LISTA DE BODEGA DE INVENTARIO INICIAL
+"""
+# Lista de importaciones por llegar
+# url: importaciones/list
 def wms_importaciones_list(request):
     """ Lista de importaciones llegadas """
 
@@ -71,6 +77,7 @@ def wms_importaciones_list(request):
 
 
 # Detalle de importación
+# url: importacion/<str:o_compra>
 def wms_detalle_imp(request, o_compra):
     """ Ver detalle de importaciones
         Seleccionar bodega 
@@ -124,7 +131,8 @@ def wms_detalle_imp(request, o_compra):
     return render(request, 'wms/detalle_importacion.html', context)
 
 
-
+# Lista de productos de importación
+# url: importacion/bodega/<str:o_compra>
 def wms_bodega_imp(request, o_compra):
     """ Detalle de la importación 
         Botón para ingresar y asignar ubicación dentro de la bodega previamente selecionada
@@ -133,24 +141,29 @@ def wms_bodega_imp(request, o_compra):
     
     prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     
-    query = (InventarioIngresoBodega.objects.filter(n_referencia=o_compra).filter(referencia='Ingreso Importación')
-        .prefetch_related('item').values(
-        'id',
-        'product_id',
-        'lote_id',
-        'unidades_ingresadas',
-        'n_referencia',
-        'bodega'
-    )).order_by('product_id')    #.annotate(und_mov_ing=Sum('item__unidades'))
+    imp = pd.DataFrame(
+    InventarioIngresoBodega.objects
+        .filter(referencia='Ingreso Importación')
+        .filter(n_referencia=o_compra).values()
+    )
+        
+    movs = pd.DataFrame(
+    Movimiento.objects
+        .filter(referencia='Ingreso Importación')
+        .filter(n_referencia=o_compra)
+        #.values('item__product_id', 'item__lote_id', 'unidades'))
+        .values('product_id', 'lote_id', 'unidades'))
     
-    query = pd.DataFrame(query.values())
     
-    mov = Movimiento.objects.filter(referencia='Ingreso Importación').filter(n_referencia=o_compra).values('item__product_id', 'item__lote_id', 'unidades')
-    mov = pd.DataFrame(mov).rename(columns={'item__product_id':'product_id', 'item__lote_id':'lote_id','unidades':'und_mov_ing'})
+    if not movs.empty:
+        movs = movs.pivot_table(index=['product_id','lote_id'], values=['unidades'], aggfunc='sum').reset_index()
+        imp = imp.merge(movs, on=['product_id','lote_id'], how='left').fillna(0)
     
-    imp = query.merge(mov, on=['product_id', 'lote_id'], how='left')
-    imp['fecha_caducidad'] = imp['fecha_caducidad'].astype(str)
+    
     imp = imp.merge(prod, on='product_id', how='left')
+    imp['fecha_caducidad'] = imp['fecha_caducidad'].astype(str)
+    
+    
     imp = de_dataframe_a_template(imp)
     
     marca  = imp[0]['Marca']
@@ -167,11 +180,251 @@ def wms_bodega_imp(request, o_compra):
     return render(request, 'wms/detalle_bodega.html', context)
 
 
+# Lista de bodega de inventari inicial
+# url: inventario/inicial/list_bodega
+def wms_inventario_inicial_list_bodega(request):
+    
+    prod = productos_odbc_and_django()[['product_id','Marca']]
+    inv = pd.DataFrame(InventarioIngresoBodega.objects.filter(referencia='Inventario Inicial').values())
+    inv = inv.merge(prod, on='product_id', how='left').sort_values(by='bodega')
+    inv = inv.drop_duplicates(subset=['bodega'])
+    inv = de_dataframe_a_template(inv)
+
+    context = {
+        'inv':inv
+    }
+    
+    return render(request, 'wms/inventario_inicial/list_bodegas.html', context)
+
+
+# Lista de productos de inventario inicial por bodega
+# url: inventario/inicial/<str:bodega>
+def wms_inventario_inicial_bodega(request, bodega):
+    
+
+    prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+    inv = pd.DataFrame(
+    InventarioIngresoBodega.objects
+        .filter(referencia='Inventario Inicial')
+        #.filter(n_referencia='inv_in_1') # PONER EN VARIABLE
+        .filter(bodega=bodega)
+        .values())
+    
+    inv = inv.merge(prod, on='product_id', how='left').sort_values(by='bodega')
+    inv['fecha_caducidad'] = inv['fecha_caducidad'].astype(str)
+    
+    movs = pd.DataFrame(
+    Movimiento.objects
+        .filter(referencia='Inventario Inicial')
+        #.filter(n_referencia='inv_in_1')
+        .filter(ubicacion__bodega=bodega)
+        .values('product_id','lote_id','unidades'))
+    
+    #ubi_list = (Movimiento.objects
+        #.filter(referencia='Inventario Inicial'))
+        #.filter(n_referencia='inv_in_1'))
+        #.filter(ubicacion__bodega=bodega))
+    #print(ubi_list.values())
+    
+    if not movs.empty:
+        movs = movs.pivot_table(index=['product_id','lote_id'], values=['unidades'], aggfunc='sum').reset_index()
+        inv = inv.merge(movs, on=['product_id','lote_id'], how='left').fillna(0)
+    
+    inv = de_dataframe_a_template(inv)
+    
+    context = {
+        
+        #'ubi_list':ubi_list,
+        'bod':bodega,
+        'inv':inv
+    }
+    
+    return render(request, 'wms/inventario_inicial/bodega.html', context)
+
+
+
+"""
+    FUNCIONES DE MOVIMIENTO
+    - INGRESOS
+"""
+
+# FUNCIÓN MOVIMIENTO
+# INGRESOS DE INVENTARIO INICIAL & IMPORTACIONES
+# url: wms/ingreso/<int:int>
+def wms_movimientos_ingreso(request, id):
+# def wms_movimientos_ingreso(request):
+    """ Esta función asigna una ubiación a los items intresados por la importación
+        Esta asiganación de ubicación se permite solo dentro de la bodega preselecionada
+        Pasa el objecto solo para tomar sus valores 
+    """
+
+    item = InventarioIngresoBodega.objects.get(id=id)
+    
+    if item.n_referencia == 'inv_in_1':
+        url_redirect = f'/wms/inventario/inicial/{item.bodega}'
+    else:
+        url_redirect = f'/wms/importacion/bodega/{item.n_referencia}' 
+    
+    
+    # Lista de ubicaciones por bodega para seleccionar
+    ubi_list = Ubicacion.objects.filter(bodega=item.bodega)
+    
+    # Movimientos ingresado 
+    mov_list = (Movimiento.objects
+        #.filter(item=item.id)
+        .filter(product_id=item.product_id)
+        .filter(lote_id=item.lote_id)
+        .filter(referencia=item.referencia)
+        .filter(n_referencia=item.n_referencia)
+        )
+    
+    
+    total_ubicaciones = mov_list.aggregate(Sum('unidades'))['unidades__sum']
+    if total_ubicaciones == None:
+        total_ubicaciones = 0
+    
+    total_ingresado = item.unidades_ingresadas
+    ingresados_ubicaciones = total_ingresado - total_ubicaciones
+
+
+    form = MovimientosForm()
+    if request.method == 'POST':
+        und = int(request.POST['unidades'])
+        ubicaciones_und = und + total_ubicaciones
+
+        form = MovimientosForm(request.POST)
+        #if form.is_valid():
+        if und == total_ingresado:
+            # guardar
+            #form = MovimientosForm(request.POST)
+            if form.is_valid():
+                form.save()
+                # regresar a la lista de productos en importacion
+                url_redirect
+                #return redirect(f'/wms/importacion/bodega/{item.n_referencia}')
+                #return redirect(f'/wms/importacion/bodega/{url_redirect}')
+                return redirect(url_redirect)
+            
+        elif und > ingresados_ubicaciones or und > ubicaciones_und:
+            # No se puede ingresar un cantidad mayor a la existente
+            messages.error(request, 'No se puede ingresar una cantidad mayor a la exitente !!!')
+            return redirect(f'/wms/ingreso/{item.id}')
+        
+
+        elif und < ingresados_ubicaciones :
+            # guardar
+            #form = MovimientosForm(request.POST)
+            if form.is_valid():
+                form.save()
+                # retornar a la misma view
+                return redirect(f'/wms/ingreso/{item.id}')
+
+        elif ubicaciones_und == total_ingresado :
+            # guardar
+            #form = MovimientosForm(request.POST)
+            if form.is_valid():
+                form.save()
+                # retornar a la misma view
+                #return redirect(f'/wms/importacion/bodega/{item.n_referencia}')
+                #return redirect(f'/wms/importacion/bodega/{url_redirect}')
+                return redirect(url_redirect)
+
+
+    context = {
+        'form'             :form,
+        'item'             :item,
+        'ubi_list'         :ubi_list,
+        'mov_list'         :mov_list,
+        'total_ubicaciones':total_ubicaciones
+    }
+
+    return render(request, 'wms/detalle_ubicaciones.html', context)
+
+
+
+
+
+
+
+# RECIBE EL TIPO (INGRESO-EGRESO) Y CREA EL REGISTRO
+def movimiento(tipo, mov_dic):
+    
+    if tipo == 'Ingreso':
+        und = int(mov_dic['unidades'][0])
+    elif tipo == 'Egreso':
+        und = int(mov_dic['unidades'][0]) * -1
+    #ubicación
+    mov = Movimiento(
+        tipo            = tipo,     
+        unidades        = und,                      
+        descripcion     = mov_dic['descripcion'][0],
+        n_referencia    = mov_dic['n_referencia'][0],
+        referencia      = mov_dic['referencia'][0],
+        usuario_id      = int(mov_dic['usuario'][0]),
+        ubicacion_id    = int(mov_dic['ubicacion'][0]),
+        fecha_caducidad = mov_dic['fecha_caducidad'][0],
+        lote_id         = mov_dic['lote_id'][0],
+        product_id      = mov_dic['product_id'][0],        
+    )
+    
+    mov.save()
+    if mov.id:
+        return HttpResponse(mov.id)
+
+
+def wms_ubicaciones_list_ingreso(request):
+    data = dict(request.POST)
+    
+    movs = (
+        Movimiento.objects
+        .filter(referencia=data['referencia'][0])
+        .filter(n_referencia=data['n_referencia'][0])
+        .filter(product_id=data['producto'][0])
+        .filter(lote_id=data['lote'][0])
+    ).values()
+    
+    movs = pd.DataFrame(movs).to_html()
+    
+    return HttpResponse(movs)
+
+
+def wms_ing(request):
+    print(request.POST, type(request.POST))
+    #data = dict(request.POST)
+    
+    # d = movimiento('Ingreso', data)
+    # d.status_code
+    
+    # return HttpResponse(d.status_code)
+    return 'OK'
+
+
+def wms_prueba_ing(request):
+    d = {
+        'product_id':'60152',
+        'lote_id':'A123',
+        'fecha_caducidad':'2030-12-31',
+        'descripcion':'',
+        'referencia':'Inventario Inicial',
+        'n_referencia':'inv_in_1',
+        'ubicacion':1,
+        'unidades':1000,
+        'usuario':1,       
+    }
+    
+    i = movimiento('Egreso', d)
+    print(i.status_code)
+    return i
+
+
+
+#
+# url: importaciones/ingresadas
 def wms_imp_ingresadas(request):
     """ Lista de importaciones ingresadas """
 
-    prod = productos_odbc_and_django()[['product_id','Marca']] 
-    imps = pd.DataFrame(InventarioIngresoBodega.objects.all().values())
+    prod = productos_odbc_and_django()[['product_id','Marca']]
+    imps = pd.DataFrame(InventarioIngresoBodega.objects.filter(referencia='Ingreso Importación').values())
     imps = imps.merge(prod, on='product_id', how='left')
     imps = imps.drop_duplicates(subset='n_referencia')
     imps = de_dataframe_a_template(imps)
@@ -184,73 +437,14 @@ def wms_imp_ingresadas(request):
 
 
 
-def wms_movimientos_ingreso(request, id):
-    """ Esta función asigna una ubiación a los items intresados por la importación
-        Esta asiganación de ubicación se permite solo dentro de la bodega preselecionada
-    """
-
-    item = InventarioIngresoBodega.objects.get(id=id)
-    
-    ubi_list = Ubicacion.objects.filter(bodega=item.bodega)
-    mov_list = Movimiento.objects.filter(item=item.id).filter(tipo='Ingreso').filter(n_referencia=item.n_referencia)#.filter(referencia='Ingreso Importación')
-
-    total_ubicaciones = mov_list.aggregate(Sum('unidades'))['unidades__sum']
-    if total_ubicaciones == None:
-        total_ubicaciones = 0
-    
-    total_ingresado = item.unidades_ingresadas
-    ingresados_ubicaciones = total_ingresado - total_ubicaciones
-
-
-    form = MovimientosForm()
-
-    if request.method == 'POST':
-        und = int(request.POST['unidades'])
-        ubicaciones_und = und + total_ubicaciones
-
-        if und == total_ingresado:
-            # guardar
-            form = MovimientosForm(request.POST)
-            if form.is_valid():
-                form.save()
-                # regresar a la lista de productos en importacion
-                return redirect(f'/wms/importacion/bodega/{item.n_referencia}')
-            
-        elif und > ingresados_ubicaciones or und > ubicaciones_und:
-            # No se puede ingresar un cantidad mayor a la existente
-            messages.error(request, 'No se puede ingresar una cantidad mayor a la exitente !!!')
-            return redirect(f'/wms/ingreso/{item.id}')
-        
-
-        elif und < ingresados_ubicaciones :
-            # guardar
-            form = MovimientosForm(request.POST)
-            if form.is_valid():
-                form.save()
-                # retornar a la misma view
-                return redirect(f'/wms/ingreso/{item.id}')
-
-        elif ubicaciones_und == total_ingresado :
-            # guardar
-            form = MovimientosForm(request.POST)
-            if form.is_valid():
-                form.save()
-                # retornar a la misma view
-                return redirect(f'/wms/importacion/bodega/{item.n_referencia}')
-
-
-    context = {
-        'form':form,
-        'item':item,
-        'ubi_list':ubi_list,
-        'mov_list':mov_list,
-        'total_ubicaciones':total_ubicaciones
-    }
-
-    return render(request, 'wms/detalle_ubicaciones.html', context)
 
 
 
+
+
+
+
+from datos.models import Product
 def wms_movimientos_list(request):
     """ Lista de movimientos """
 
@@ -277,7 +471,7 @@ def wms_inventario(request):
         # 'item__marca2',
         'item__lote_id',
         'item__fecha_caducidad',
-        
+        'ubicacion'        ,
         'ubicacion__bodega',
         'ubicacion__pasillo',
         'ubicacion__modulo',
@@ -286,14 +480,16 @@ def wms_inventario(request):
         'item__product_id',
         # 'item__marca2',
         'item__fecha_caducidad',
-
+        
         'ubicacion__bodega',
         'ubicacion__pasillo',
         'ubicacion__modulo',
         'ubicacion__nivel'
         ).exclude(total_unidades__lte=0)
 
-    inv_df = pd.DataFrame(inv)
+    
+
+    inv_df = pd.DataFrame(inv);print(inv_df)
     inv_df = inv_df.merge(prod, on='item__product_id', how='left')
     inv_df['item__fecha_caducidad'] = inv_df['item__fecha_caducidad'].astype(str)
     inv_df = de_dataframe_a_template(inv_df)
@@ -427,7 +623,6 @@ def wms_egreso_picking(request, pedido):
     
     m = Movimiento.objects.filter(referencia='Picking').filter(n_referencia=pedido)
     m = pd.DataFrame(m.values('id','item__product_id', 'item__lote_id', 'unidades'))
-    
     m = m.rename(columns={'item__product_id':'PRODUCT_ID'})
     
     prod   = productos_odbc_and_django()[['product_id','Nombre','Marca']]

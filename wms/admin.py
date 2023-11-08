@@ -8,7 +8,7 @@ from wms.models import InventarioIngresoBodega, Ubicacion, Movimiento
 @admin.register(InventarioIngresoBodega)
 class InventarioIngresoBodegaAdmin(admin.ModelAdmin):
     
-    list_display = ('product_id', 'lote_id', 'bodega', 'unidades_ingresadas')
+    list_display = ('product_id', 'lote_id', 'fecha_caducidad', 'n_referencia', 'referencia', 'bodega', 'unidades_ingresadas', 'fecha_hora')
     # list_filter = ()
     # list_display_links = []
     # search_fields = []

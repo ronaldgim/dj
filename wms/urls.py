@@ -6,6 +6,9 @@ from wms import views
 
 urlpatterns = [
     
+    # """LISTA DE INGRESOS
+    # """
+    
     # Lista de Imprtaciones
     path(
         route='importaciones/list',
@@ -26,6 +29,60 @@ urlpatterns = [
         view = views.wms_bodega_imp,
         name = 'wms_bodega_imp'
     ),
+    
+    # Lista de inventario inicial por bodega
+    path(
+        route='inventario/inicial/list/bodegas',
+        view = views.wms_inventario_inicial_list_bodega,
+        name = 'wms_inventario_inicial_list_bodega'
+    ),
+
+    # Lista de inventario inicial por bodega
+    path(
+        route='inventario/inicial/<str:bodega>',
+        view = views.wms_inventario_inicial_bodega,
+        name = 'wms_inventario_inicial_bodega'
+    ),
+    
+    # """FUNCIONES DE MOVIMIENTO
+    # """
+
+    # Movimientos - ingreso de productos y ubicaciones
+    # INVENTARIO INICIAL & IMPORTACIONES
+    path(
+        route='ingreso/<int:id>',
+        view = views.wms_movimientos_ingreso,
+        name = 'wms_ingreso'
+    ),
+
+
+
+
+    path(
+        route='ubicaciones/list/ingresos',
+        view = views.wms_ubicaciones_list_ingreso,
+        name = 'wms_ubicaciones_list_ingreso'
+    ),
+    
+    
+    path(
+        route='mov/ingreso',
+        view = views.wms_ing,
+        name = 'wms_ing'
+    ),
+    
+    
+    # Ingresos
+    path(
+        route='mov/ingreso',
+        view = views.wms_ing,
+        name = 'wms_ing'
+    ),
+
+
+
+
+
 
     # Lista de importaciones ingresadas
     path(
@@ -33,13 +90,19 @@ urlpatterns = [
         view = views.wms_imp_ingresadas,
         name = 'wms_imp_ingresadas'
     ),
+    
 
-    # Movimientos - ingreso de productos y ubicaciones
-    path(
-        route='ingreso/<int:id>',
-        view = views.wms_movimientos_ingreso,
-        name = 'wms_ingreso'
-    ),
+    
+
+    
+    # # PRUEBA INGRESOS
+    # path(
+    #     route='p/ing',
+    #     view = views.wms_prueba_ing,
+    #     name = 'prueba_ing'
+    # ),
+    
+
 
     # Lista de movimientos
     path(

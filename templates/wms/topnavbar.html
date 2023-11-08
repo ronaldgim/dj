@@ -35,6 +35,7 @@
               Inventario
             </a>
             <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+              <li><a class="dropdown-item" href="{% url 'wms_inventario_inicial_list_bodega' %}">Inventario Inicial</a></li>
                 <li><a class="dropdown-item" href="{% url 'wms_inventario' %}">Inventario</a></li>
                 <li><a class="dropdown-item" href="{% url 'wms_movimientos_list' %}">Movimientos</a></li>
             </ul>
