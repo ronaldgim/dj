@@ -58,11 +58,11 @@
                     {% for i in inv %}
                     <tr>
                         <td>
-                            <span class="fw-bold">Código:</span> <span id="prod">{{i.item__product_id}}</span><br>
+                            <span class="fw-bold">Código:</span> <span id="prod">{{i.product_id}}</span><br>
                             <span class="fw-bold">Nombre:</span> {{i.Nombre}}<br>
                             <span class="fw-bold">Marca:</span> {{i.Marca}}<br>
-                            <span class="fw-bold">Lote:</span> <span id="lote">{{i.item__lote_id}}</span> <br>
-                            <span class="fw-bold">Fecha:</span> {{i.item__fecha_caducidad}}
+                            <span class="fw-bold">Lote:</span> <span id="lote">{{i.lote_id}}</span> <br>
+                            <span class="fw-bold">Fecha:</span> {{i.fecha_caducidad}}
                         </td>
                         <!--td>{{i.item__lote_id}}<br>
                             {{i.item__fecha_caducidad|date:'Y-m-d'}}
@@ -80,9 +80,9 @@
                                     <i class="bi bi-arrows-move"></i> Mov.Interno
                                 </a-->
 
-                                <button class="btn btn-primary btn-sm" name="mov-interno">
+                                <!--button class="btn btn-primary btn-sm" name="mov-interno">
                                     <i class="bi bi-arrows-move"></i> Mov.Interno
-                                </button>
+                                </button-->
 
                             </div>
                         </td>

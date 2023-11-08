@@ -22,7 +22,7 @@ from django.db import connections
 
 # Models
 from django.db.models import Sum, Count
-from wms.models import InventarioIngresoBodega, Ubicacion, Movimiento
+from wms.models import InventarioIngresoBodega, Ubicacion, Movimiento, Existencias
 
 # Pandas
 import pandas as pd
@@ -38,6 +38,8 @@ from django.db.models import Q
 
 # Models
 from users.models import User
+
+
 
 
 """
@@ -74,6 +76,24 @@ def wms_importaciones_list(request):
     }
     
     return render(request, 'wms/importaciones_list.html', context)
+
+
+# Lista de importaciones ingresadas
+# url: importaciones/ingresadas
+def wms_imp_ingresadas(request):
+    """ Lista de importaciones ingresadas """
+
+    prod = productos_odbc_and_django()[['product_id','Marca']]
+    imps = pd.DataFrame(InventarioIngresoBodega.objects.filter(referencia='Ingreso Importación').values())
+    imps = imps.merge(prod, on='product_id', how='left')
+    imps = imps.drop_duplicates(subset='n_referencia')
+    imps = de_dataframe_a_template(imps)
+
+    context = {
+        'imp':imps
+    }
+    
+    return render(request, 'wms/importaciones_ingresadas_list.html', context)
 
 
 # Detalle de importación
@@ -243,6 +263,66 @@ def wms_inventario_inicial_bodega(request, bodega):
 
 
 
+    
+    ####   QUERY DE EXISTENCIAS   ####
+
+
+### QUERY DE EXISTENCIAS EN TABLA MOVIEMIENTOS ###
+    #### ACTUALIZACIÓN DE TABLA EXISTENCIAS ####
+def wms_existencias_query():
+    
+    exitencias = Movimiento.objects.all().values(
+        # 'id',
+        'product_id',
+        'lote_id',
+        'fecha_caducidad',
+        # 'item__product_id',
+        # 'item__nombre',
+        # 'item__marca2',
+        # 'item__lote_id',
+        # 'item__fecha_caducidad',
+        'ubicacion'        ,
+        'ubicacion__bodega',
+        'ubicacion__pasillo',
+        'ubicacion__modulo',
+        'ubicacion__nivel'
+    ).annotate(total_unidades=Sum('unidades')).order_by(
+        # 'item__product_id',
+        # 'item__marca2',
+        # 'item__fecha_caducidad',
+        'ubicacion__bodega',
+        'ubicacion__pasillo',
+        'ubicacion__modulo',
+        'ubicacion__nivel'
+    ).exclude(total_unidades__lte=0)
+    
+    
+    existencias_list = []
+    for i in exitencias:
+        prod = i['product_id']
+        lote = i['lote_id']
+        fcad = i['fecha_caducidad']
+        ubi  = i['ubicacion']
+        und  = i['total_unidades']
+        
+        ex = Existencias(
+            product_id      = prod,
+            lote_id         = lote,
+            fecha_caducidad = fcad,
+            ubicacion_id    = ubi,
+            unidades        = und
+        )
+        
+        existencias_list.append(ex)
+    
+    with connections['default'].cursor() as cursor:
+        cursor.execute("TRUNCATE wms_existencias")
+    Existencias.objects.bulk_create(existencias_list)
+
+    return exitencias
+
+
+
 """
     FUNCIONES DE MOVIMIENTO
     - INGRESOS
@@ -257,7 +337,7 @@ def wms_movimientos_ingreso(request, id):
         Esta asiganación de ubicación se permite solo dentro de la bodega preselecionada
         Pasa el objecto solo para tomar sus valores 
     """
-
+    
     item = InventarioIngresoBodega.objects.get(id=id)
     
     if item.n_referencia == 'inv_in_1':
@@ -299,6 +379,7 @@ def wms_movimientos_ingreso(request, id):
             #form = MovimientosForm(request.POST)
             if form.is_valid():
                 form.save()
+                wms_existencias_query()
                 # regresar a la lista de productos en importacion
                 url_redirect
                 #return redirect(f'/wms/importacion/bodega/{item.n_referencia}')
@@ -316,6 +397,7 @@ def wms_movimientos_ingreso(request, id):
             #form = MovimientosForm(request.POST)
             if form.is_valid():
                 form.save()
+                wms_existencias_query()
                 # retornar a la misma view
                 return redirect(f'/wms/ingreso/{item.id}')
 
@@ -324,6 +406,7 @@ def wms_movimientos_ingreso(request, id):
             #form = MovimientosForm(request.POST)
             if form.is_valid():
                 form.save()
+                wms_existencias_query()
                 # retornar a la misma view
                 #return redirect(f'/wms/importacion/bodega/{item.n_referencia}')
                 #return redirect(f'/wms/importacion/bodega/{url_redirect}')
@@ -418,22 +501,7 @@ def wms_prueba_ing(request):
 
 
 
-#
-# url: importaciones/ingresadas
-def wms_imp_ingresadas(request):
-    """ Lista de importaciones ingresadas """
 
-    prod = productos_odbc_and_django()[['product_id','Marca']]
-    imps = pd.DataFrame(InventarioIngresoBodega.objects.filter(referencia='Ingreso Importación').values())
-    imps = imps.merge(prod, on='product_id', how='left')
-    imps = imps.drop_duplicates(subset='n_referencia')
-    imps = de_dataframe_a_template(imps)
-
-    context = {
-        'imp':imps
-    }
-    
-    return render(request, 'wms/importaciones_ingresadas_list.html', context)
 
 
 
@@ -457,41 +525,74 @@ def wms_movimientos_list(request):
     return render(request, 'wms/movimientos_list.html', context)
 
 
+
+# def wms_existencias_query():
+    
+#     exitencias = Movimiento.objects.all().values(
+#         # 'id',
+#         'product_id',
+#         'lote_id',
+#         'fecha_caducidad',
+#         # 'item__product_id',
+#         # 'item__nombre',
+#         # 'item__marca2',
+#         # 'item__lote_id',
+#         # 'item__fecha_caducidad',
+#         'ubicacion'        ,
+#         'ubicacion__bodega',
+#         'ubicacion__pasillo',
+#         'ubicacion__modulo',
+#         'ubicacion__nivel'
+#     ).annotate(total_unidades=Sum('unidades')).order_by(
+#         # 'item__product_id',
+#         # 'item__marca2',
+#         # 'item__fecha_caducidad',
+#         'ubicacion__bodega',
+#         'ubicacion__pasillo',
+#         'ubicacion__modulo',
+#         'ubicacion__nivel'
+#     ).exclude(total_unidades__lte=0)
+    
+    
+#     existencias_list = []
+#     for i in exitencias:
+#         prod = i['product_id']
+#         lote = i['lote_id']
+#         fcad = i['fecha_caducidad']
+#         ubi  = i['ubicacion']
+#         und  = i['total_unidades']
+        
+#         ex = Existencias(
+#             product_id      = prod,
+#             lote_id         = lote,
+#             fecha_caducidad = fcad,
+#             ubicacion_id    = ubi,
+#             unidades        = und
+#         )
+        
+#         existencias_list.append(ex)
+    
+#     with connections['default'].cursor() as cursor:
+#         cursor.execute("TRUNCATE wms_existencias")
+#     Existencias.objects.bulk_create(existencias_list)
+
+#     return exitencias
+
+
+
 def wms_inventario(request):
     """ Inventario 
         Suma de ingresos y egresos que dan el total de todo el inventario
     """
     prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
-    prod = prod.rename(columns={'product_id':'item__product_id'})
-
-    inv = Movimiento.objects.all().values(
-        # 'id',
-        'item__product_id',
-        # 'item__nombre',
-        # 'item__marca2',
-        'item__lote_id',
-        'item__fecha_caducidad',
-        'ubicacion'        ,
-        'ubicacion__bodega',
-        'ubicacion__pasillo',
-        'ubicacion__modulo',
-        'ubicacion__nivel'
-    ).annotate(total_unidades=Sum('unidades')).order_by(
-        'item__product_id',
-        # 'item__marca2',
-        'item__fecha_caducidad',
-        
-        'ubicacion__bodega',
-        'ubicacion__pasillo',
-        'ubicacion__modulo',
-        'ubicacion__nivel'
-        ).exclude(total_unidades__lte=0)
-
     
+    inv = wms_existencias_query()
 
-    inv_df = pd.DataFrame(inv);print(inv_df)
-    inv_df = inv_df.merge(prod, on='item__product_id', how='left')
-    inv_df['item__fecha_caducidad'] = inv_df['item__fecha_caducidad'].astype(str)
+    inv_df = pd.DataFrame(inv)
+    inv_df = inv_df.merge(prod, on='product_id', how='left')
+    #inv_df = inv_df.merge(prod, on='item__product_id', how='left')
+    #inv_df['item__fecha_caducidad'] = inv_df['item__fecha_caducidad'].astype(str)
+    inv_df['fecha_caducidad'] = inv_df['fecha_caducidad'].astype(str)
     inv_df = de_dataframe_a_template(inv_df)
 
     context = {

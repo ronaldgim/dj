@@ -16,6 +16,13 @@ urlpatterns = [
         name = 'wms_importaciones_list'
     ),
 
+    # Lista de importaciones ingresadas
+    path(
+        route='importaciones/ingresadas',
+        view = views.wms_imp_ingresadas,
+        name = 'wms_imp_ingresadas'
+    ),
+
     # Detalle de importación y añadir bodega
     path(
         route='importacion/<str:o_compra>',
@@ -84,12 +91,7 @@ urlpatterns = [
 
 
 
-    # Lista de importaciones ingresadas
-    path(
-        route='importaciones/ingresadas',
-        view = views.wms_imp_ingresadas,
-        name = 'wms_imp_ingresadas'
-    ),
+
     
 
     
