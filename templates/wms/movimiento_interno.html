@@ -37,12 +37,12 @@
     <div class="card-body ps-2 pe-2">
         <h6 class="text-center"><strong>Item:</strong></h6>
         <!--span style="font-size: small;"> <span class="fw-bold">Bodega: </span>{{mov.item.product}}</span><br-->
-        <span style="font-size: small;"> <span class="fw-bold">Item: </span>{{mov.item.product_id}} - {{mov.item.nombre}} - {{mov.item.marca2}}</span><br>
-        <span style="font-size: small;"> <span class="fw-bold">Lote: </span>{{mov.item.lote_id}}</span><br>
-        <span style="font-size: small;"> <span class="fw-bold">Caducidad: </span>{{mov.item.fecha_caducidad|date:'Y-m-d'}}</span><br>
-        <!--span style="font-size: small;"> <span class="fw-bold">Unidades: </span>{{mov.unidades|floatformat:"0g"}}</span><br-->
-        <span style="font-size: small;"> <span class="fw-bold">Unidades: </span>{{und_existentes|floatformat:"0g"}}</span><br>
-        <span style="font-size: small;"> <span class="fw-bold">Ubicación: </span>{{mov.ubicacion}}</span>
+        <span style="font-size: small;"> <span class="fw-bold">Item: </span>{{item.product_id}} - {{item.Nombre}} - {{item.Marca}}</span><br>
+        <span style="font-size: small;"> <span class="fw-bold">Lote: </span>{{item.lote_id}}</span><br>
+        <span style="font-size: small;"> <span class="fw-bold">Caducidad: </span>{{item.fecha_caducidad|date:'Y-m-d'}}</span><br>
+        <span style="font-size: small;"> <span class="fw-bold">Unidades: </span>{{item.unidades|floatformat:"0g"}}</span><br>
+        <!--span style="font-size: small;"> <span class="fw-bold">Unidades: </span>{{und_existentes|floatformat:"0g"}}</span><br-->
+        <span style="font-size: small;"> <span class="fw-bold">Ubicación: </span>{{item.ubicacion}}</span>
     </div>
 </div>
 
