@@ -322,6 +322,33 @@ def wms_existencias_query():
     return exitencias
 
 
+# Inventario - Lista de productos Existencias
+# url: wms/inventario
+def wms_inventario(request):
+    """ Inventario 
+        Suma de ingresos y egresos que dan el total de todo el inventario
+    """
+    
+    wms_existencias_query()
+    prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+    
+    #inv = wms_existencias_query()
+    inv = pd.DataFrame(Existencias.objects.all().values(
+        'id',
+        'product_id', 'lote_id', 'fecha_caducidad', 'unidades', 'fecha_hora', 
+        'ubicacion', 'ubicacion__bodega', 'ubicacion__pasillo', 'ubicacion__modulo', 'ubicacion__nivel'
+    ))
+    inv = inv.merge(prod, on='product_id', how='left')
+    inv['fecha_caducidad'] = inv['fecha_caducidad'].astype(str)
+    inv = de_dataframe_a_template(inv)
+
+    context = {
+        'inv':inv,
+    }
+
+    return render(request, 'wms/inventario.html', context)
+
+
 
 """
     FUNCIONES DE MOVIMIENTO
@@ -580,121 +607,82 @@ def wms_movimientos_list(request):
 
 
 
-def wms_inventario(request):
-    """ Inventario 
-        Suma de ingresos y egresos que dan el total de todo el inventario
-    """
-    prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
-    
-    inv = wms_existencias_query()
-
-    inv_df = pd.DataFrame(inv)
-    inv_df = inv_df.merge(prod, on='product_id', how='left')
-    #inv_df = inv_df.merge(prod, on='item__product_id', how='left')
-    #inv_df['item__fecha_caducidad'] = inv_df['item__fecha_caducidad'].astype(str)
-    inv_df['fecha_caducidad'] = inv_df['fecha_caducidad'].astype(str)
-    inv_df = de_dataframe_a_template(inv_df)
-
-    context = {
-        # 'inv':inv,
-        'inv':inv_df
-    }
-
-    return render(request, 'wms/inventario.html', context)
-
 
 #def wms_movimiento_interno(request , prod, lote, bod, pas, mod, niv):
-def wms_movimiento_interno(request):
+#def wms_movimiento_interno(request):
+def wms_movimiento_interno(request, id):
     """ Filtra los movimientos por producto, lote, bodega, pasillo, modulo, nivel
         *** Los productos que tiene '/' en el codigo va a dar error ***
         *** cambiar esta vista por ajax para pasar los datos por 'request' ***
     """
-    req = dict(request.GET)
-    print(req, type(req))
-    # prod = request.GET.get('prod')
-    # lote = request.GET.get('lote')
-    # u    = request.GET['ubi']
-    # u   = u.split('.')
-
-    prod = req['product_id'][0]
-    lote = req['lote_id'][0]
-    u    = req['ubicacion'][0]
-    u    = u.split('.')
-    bod = u[0]
-    pas = u[1]
-    mod = u[2]
-    niv = u[3]
-
-
-    print(u, type(u))
-    print(prod, lote)#, bod, pas, mod, niv)
     
-    # mov = Movimiento.objects.get(id=id)
-    mov_q = (Movimiento.objects
-            .filter(Q(item__product_id=prod) & Q(item__lote_id=lote))
-            .filter(ubicacion__bodega=bod)
-            .filter(ubicacion__pasillo=pas)
-            .filter(ubicacion__modulo=mod)
-            .filter(ubicacion__nivel=niv)
-        ) #.order_by('id').last()
-    
-    # Objeto
-    mov = mov_q.order_by('id').last()
-    und_existentes = mov_q.aggregate(total_unidades=Sum('unidades'))['total_unidades'] 
+    item = Existencias.objects.get(id=id)
+    ubicaciones = Ubicacion.objects.exclude(id=item.ubicacion.id)
+    und_existentes = item.unidades    
 
-    item_id            = InventarioIngresoBodega.objects.get(id=mov.item.id) 
-    ubicacion_saliente = Ubicacion.objects.get(id=mov.ubicacion.id) 
-    ubicaciones        = Ubicacion.objects.exclude(id=ubicacion_saliente.id)
+    if request.method == 'POST':
 
-    # if request.method == 'POST':
+        # Control
+        und_post = int(request.POST['unidades'])
+        ubi_post = int(request.POST['ubicacion'])
+        #user     = int(request.POST['usuario'])
+        #user     = User.objects.get(username=user)
+        und_egreso = und_post * (-1)
+        #ubicacion_ingresante = Ubicacion.objects.get(id=ubi_post) 
 
-    #     # Control
-    #     und_post = int(request.POST['unidades'])
-    #     ubi_post = int(request.POST['ubicacion'])
-    #     user     = request.POST['usuario']
-    #     user     = User.objects.get(username=user)
-    #     und_egreso = und_post * (-1)
-    #     ubicacion_ingresante = Ubicacion.objects.get(id=ubi_post) 
+        if und_post > 0 and und_post <= und_existentes:
+            # Crear registro de Egreso
+            mov_egreso = Movimiento(
+                tipo            = 'Egreso',
+                unidades        = und_egreso,
+                ubicacion_id    = item.ubicacion.id,
+                descripcion     = 'N/A',
+                n_referencia    = '',
+                referencia      = 'Movimiento Interno',
+                #usuario_id      = user,
+                usuario_id      = request.user.id,
+                fecha_caducidad = item.fecha_caducidad,
+                lote_id         = item.lote_id,
+                product_id      = item.product_id
+            )
+            mov_egreso.save()
 
-    #     if und_post > 0 and und_post <= und_existentes:
-    #         # Crear registro de Egreso
-    #         mov_egreso = Movimiento.objects.create(
-    #             item = item_id,
-    #             tipo = 'Egreso',
-    #             descripcion = 'Movimiento Interno',
-    #             ubicacion = ubicacion_saliente,
-    #             unidades = und_egreso,
-    #             usuario =  user
-    #         )
-    #         mov_egreso.save()
-
-    #         # Crear registro de Inreso
-    #         mov_ingreso = Movimiento.objects.create(
-    #             item = item_id,
-    #             tipo = 'Ingreso',
-    #             descripcion = 'Movimiento Interno',
-    #             ubicacion = ubicacion_ingresante,
-    #             unidades = und_post ,
-    #             usuario =  user
-    #         )
-    #         mov_ingreso.save()
+            # Crear registro de Inreso
+            mov_ingreso = Movimiento(
+                tipo            = 'Ingreso',
+                unidades        = und_post,
+                ubicacion_id    = ubi_post,
+                descripcion     = 'N/A',
+                n_referencia    = '',
+                referencia      = 'Movimiento Interno',
+                #usuario_id      = user,
+                usuario_id      = request.user.id,
+                fecha_caducidad = item.fecha_caducidad,
+                lote_id         = item.lote_id,
+                product_id      = item.product_id
+            )
+            mov_ingreso.save()
             
-    #         messages.success(request, 'Movimiento realizado con exito !!!')
-    #         return redirect(f'/wms/inventario')
+            messages.success(request, 'Movimiento realizado con exito !!!')
+            return redirect(f'/wms/inventario')
         
-    #     elif und_post > und_existentes:
-    #         messages.error(request, 'No se puede retirar una cantidad mayor a la exitente !!!')
-    #         return redirect(f'/wms/inventario/mov-interno/{prod}/{lote}/{bod}/{pas}/{mod}/{niv}')
+        elif und_post > und_existentes:
+            messages.error(request, 'No se puede retirar una cantidad mayor a la exitente !!!')
+            return redirect(f'/wms/inventario/mov-interno/{id}')
+            #return redirect(f'/wms/inventario/mov-interno/{prod}/{lote}/{bod}/{pas}/{mod}/{niv}')
 
-    #     else: 
-    #         messages.error(request, 'Error en el movimiento !!!')
-    #         return redirect(f'/wms/inventario/mov-interno/{prod}/{lote}/{bod}/{pas}/{mod}/{niv}')
+        else: 
+            messages.error(request, 'Error en el movimiento !!!')
+            return redirect(f'/wms/inventario/mov-interno/{id}')
+            #return redirect(f'/wms/inventario/mov-interno/{prod}/{lote}/{bod}/{pas}/{mod}/{niv}')
 
     
     context = {
-        'mov':mov,
+        'item':item,
         'ubi':ubicaciones,
-        'und_existentes':und_existentes
+        # 'mov':mov,
+        
+        # 'und_existentes':und_existentes
     }
 
     return render(request, 'wms/movimiento_interno.html', context)

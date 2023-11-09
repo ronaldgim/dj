@@ -51,6 +51,14 @@ urlpatterns = [
         name = 'wms_inventario_inicial_bodega'
     ),
     
+    # Inventario
+    path(
+        route='inventario',
+        view = views.wms_inventario,
+        name = 'wms_inventario'
+    ),
+    
+    
     # """FUNCIONES DE MOVIMIENTO
     # """
 
@@ -61,6 +69,16 @@ urlpatterns = [
         view = views.wms_movimientos_ingreso,
         name = 'wms_ingreso'
     ),
+
+    # Movimiento Interno
+    path(
+        # route='inventario/mov-interno/<str:prod>/<str:lote>/<str:bod>/<str:pas>/<str:mod>/<str:niv>',
+        # route='inventario/mov-interno',
+        route='inventario/mov-interno/<int:id>',
+        view = views.wms_movimiento_interno,
+        name = 'wms_mov_interno'
+    ),
+
 
 
 
@@ -113,20 +131,9 @@ urlpatterns = [
         name = 'wms_movimientos_list'
     ),
 
-    # Inventario
-    path(
-        route='inventario',
-        view = views.wms_inventario,
-        name = 'wms_inventario'
-    ),
 
-    # Movimiento Interno
-    path(
-        # route='inventario/mov-interno/<str:prod>/<str:lote>/<str:bod>/<str:pas>/<str:mod>/<str:niv>',
-        route='inventario/mov-interno',
-        view = views.wms_movimiento_interno,
-        name = 'wms_mov_interno'
-    ),
+
+
 
     # Listado de pedidos
     path(
