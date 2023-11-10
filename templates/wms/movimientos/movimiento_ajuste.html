@@ -1,0 +1,108 @@
+{%extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+<title>Ajuste de inventario</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'wms/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+
+<h5 class="m-4 text-center"><strong>Ajuste de inventario</strong></h5>
+
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
+<!--h6 class="m-4 text-end"><strong>Actulizado: </strong>{{actualizado|slice:':-7'}}</h6-->
+<!--div class="col-12 mb-2">
+    <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+</div-->
+
+<!--div class="card mb-2">
+    <div class="card-body ps-2 pe-2">
+        <h6 class="text-center"><strong>Item:</strong></h6>
+        <span style="font-size: small;"> <span class="fw-bold">Item: </span>{{item.product_id}} - {{item.Nombre}} - {{item.Marca}}</span><br>
+        <span style="font-size: small;"> <span class="fw-bold">Lote: </span>{{item.lote_id}}</span><br>
+        <span style="font-size: small;"> <span class="fw-bold">Caducidad: </span>{{item.fecha_caducidad|date:'Y-m-d'}}</span><br>
+        <span style="font-size: small;"> <span class="fw-bold">Unidades: </span>{{item.unidades|floatformat:"0g"}}</span><br>
+        <span style="font-size: small;"> <span class="fw-bold">Ubicación: </span>{{item.ubicacion}}</span>
+    </div>
+</div-->
+
+
+<form method="POST">
+    {% csrf_token %} 
+
+    <label><strong>Producto:</strong></label>
+    <select class="form-select" name="product_id" id="chosen-select-product" required>
+        <option value="">-----------</option>
+        {% for i in productos %}
+        <option value="{{i.product_id}}">{{i.product_id}} - {{i.Nombre}} - {{i.Marca}}</option>
+        {% endfor %}
+    </select>
+
+    <label><strong>Lote:</strong></label>
+    <input type="text" name="lote_id" class="form-control">
+
+    <label><strong>Fecha de caducidad:</strong></label>
+    <input type="date" name="fecha_caducidad" class="form-control" required>
+
+    <hr>
+
+    <label><strong>Tipo de movimiento:</strong></label>
+    <select class="form-select" name="tipo" id="chosen-select" required>
+        <option value="">-----------</option>
+        <option value="Ingreso">Ingreso</option>
+        <option value="Egreso">Egreso</option>
+    </select>
+
+    <label><strong>Descripción del movimiento:</strong></label>
+    <input type="text" name="descripcion" class="form-control" maxlength="20" required>
+
+    <!--input type="hidden" name="referencia" class="form-control" value="Ajuste"-->
+
+    <label><strong>Referencia:</strong></label>
+    <input type="text" name="n_referencia" class="form-control" maxlength="20" required>
+
+    <label><strong>Ubicación:</strong></label>
+    <select class="form-select" name="ubicacion" id="chosen-select-location" required>
+        <option value="">-----------</option>
+        {% for i in ubi %}
+        <option value="{{i.id}}">{{i}}</option>
+        {% endfor %}
+    </select>
+
+    <label><strong>Unidades:</strong></label>
+    <input type="number" name="unidades" class="form-control" request>
+
+    <button type="submit">Send</button>
+
+</form>
+
+<script>
+    $(document).ready(function() {
+        $('#chosen-select-product').select2();
+    });
+
+    $(document).ready(function() {
+        $('#chosen-select-location').select2();
+    })
+</script>
+
+
+{% endblock %}

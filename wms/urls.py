@@ -72,12 +72,19 @@ urlpatterns = [
 
     # Movimiento Interno
     path(
-        # route='inventario/mov-interno/<str:prod>/<str:lote>/<str:bod>/<str:pas>/<str:mod>/<str:niv>',
-        # route='inventario/mov-interno',
         route='inventario/mov-interno/<int:id>',
         view = views.wms_movimiento_interno,
         name = 'wms_mov_interno'
     ),
+
+    # Movimiento Ajuste
+    path(
+        route='inventario/mov-ajuste',
+        view = views.wms_movimiento_ajuste,
+        name = 'wms_movimiento_ajuste'
+    ),
+
+
 
 
 
