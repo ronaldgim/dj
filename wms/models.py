@@ -16,8 +16,8 @@ REFERENCIA_MOVIMIENTOS = [
     ('Inventario Inicial', 'Inventario Inicial'),
     ('Ingreso Importación', 'Ingreso Importación'),
     ('Movimiento Interno',  'Movimiento Interno'),
-    ('Picking', 'Picking'),
     ('Ajuste', 'Ajuste'),
+    ('Picking', 'Picking'),
 ]
 
 REFERENCIA_INGRESOS = [
@@ -120,7 +120,7 @@ class Existencias(models.Model):
     lote_id         = models.CharField(verbose_name='Lote id', max_length=50)
     fecha_caducidad = models.DateField(verbose_name='Fecha de caducidad')
     ubicacion       = models.ForeignKey(Ubicacion, verbose_name='Ubicación', max_length=5, on_delete=models.CASCADE, related_name='existencias_ubicacion')
-    unidades        = models.IntegerField(verbose_name='Unidades ingresadas')
+    unidades        = models.PositiveIntegerField(verbose_name='Unidades ingresadas')
     fecha_hora      = models.DateTimeField(verbose_name='Fecha Hora', auto_now_add=True)
     
     def __str__(self):
