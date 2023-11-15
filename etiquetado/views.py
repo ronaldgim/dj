@@ -430,7 +430,8 @@ def etiquetado_pedidos(request, n_pedido):
         'fecha_entrega':fecha_entrega,
         'estado':estado,
 
-        'bodega':bod,
+        #'bodega':bod,
+        'bodega':bodega,
         'p_cero':p_cero
     }
 
@@ -1710,10 +1711,13 @@ def ajax_lotes_bodega(request):
     
     lotes = lotes_bodega(bodega, product_id)
     
+    if not lotes.empty:
+        lotes['Unds'] = lotes['Unds'].apply(lambda x:'{:,.0f}'.format(x))
+    
     lotes= lotes.to_html(
+        #float_format='{:,.0f}'.format,
         classes='table table-responsive table-bordered m-0 p-0', 
         table_id= 'lotes',
-        float_format='{:.0f}'.format,
         index=False,
         justify='start'
     )

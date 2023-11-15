@@ -97,12 +97,12 @@
                             
                             <br>
                             
-                            {{i.PRODUCT_NAME}}<br>
-                            {{i.marca2}}<br>
+                            <span id="nombre">{{i.PRODUCT_NAME}}</span><br>
+                            <span id="marca">{{i.marca2}}</span><br>
                         </td>
                         <!--td class="text-start">{{i.PRODUCT_NAME}}</td>
                         <td class="text-start">{{i.marca}}</td-->
-                        <td class="text-end">{{i.QUANTITY|floatformat:"0g"}}</td>
+                        <td id="p_unds" class="text-end">{{i.QUANTITY|floatformat:"0g"}}</td>
                         <td class="text-end">{{i.Cartones|floatformat:"2g"}}</td>
                         <!--td class="text-center">{{i.t_una_p_min|floatformat:"2g"}}</td-->
                         <!--td class="text-end" {% if i.t_una_p_hor == 0 %} style="background-color:#ffffcf" {% endif %}>{{i.t_una_p_hor|floatformat:'2g'}}</td>
@@ -155,8 +155,12 @@
     $("button[name='lotes']").click(function() {
         
         var product_id = $(this).html();
-        var bodega = $("#bodega").html();
-        
+        var bodega     = $("#bodega").html();
+
+        var nombre     = $(this).closest("tr").find("#nombre").html();
+        var marca      = $(this).closest("tr").find("#marca").html();
+        var p_unds     = $(this).closest("tr").find("#p_unds").html();
+
         $.ajax({
             url : "{% url 'ajax_lotes_bodega' %}",
             type: "POST",
@@ -166,11 +170,12 @@
                 'csrfmiddlewaretoken': '{{csrf_token}}',
             },
             
-            
             success: function(response) {
                 
-                $(".modal-title").html(`Stock de bodega: ${bodega} <br> Código: ${product_id}`);
-                $(".modal-body").html(response);
+                $(".modal-title").html(`Stock de bodega: ${bodega}`);
+                $(".modal-body").html(`
+                <span class="fw-bold">Item:</span> ${product_id} - ${nombre} - ${marca} <br> 
+                <span class="fw-bold">Unds:</span> ${p_unds} <br> ${response}`);
 
                 if ($("#lotes tbody tr").length===0){
                     $('.modal-body').append('No hay lotes registrados');

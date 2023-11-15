@@ -20,7 +20,7 @@
 <div class="row">
     <h5 class="m-4 text-center"><strong>PEDIDO</strong></h5>
     <div class="col-6" id="print_area_cabecera">
-        <h6><strong>Bodega: </strong>{{bodega}}</h6>
+        <h6><strong>Bodega: </strong><span id="bodega">{{bodega}}</span></h6>
         <h6><strong>N. Pedido: </strong>{{pedido|slice:':-2'}}</h6>
         <h6><strong>Cliente: </strong> {{cliente}}</h6>
         <h6><strong>Ruc: </strong> {{ruc}}</h6>
@@ -248,7 +248,8 @@
                     {% for i in reservas %}
                     <tr>
                         <th scope="row">
-                            {{i.PRODUCT_ID}}
+                            {#{i.PRODUCT_ID}#} 
+                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#exampleModal" name='lotes'>{{i.PRODUCT_ID}}</button>
                             {% if i.unidades %}
                             <i class="bi bi-check-circle-fill" 
                                 {% if i.QUANTITY == i.unidades %}
@@ -259,9 +260,9 @@
                             ></i>
                             {% endif %}
                         </th>
-                        <td class="text-start">{{i.PRODUCT_NAME}}</td>
-                        <td class="text-start">{{i.marca}}</td>
-                        <td class="text-end">{{i.QUANTITY|floatformat:"0g"}}</td>
+                        <td id="nombre" class="text-start">{{i.PRODUCT_NAME}}</td>
+                        <td id="marca" class="text-start">{{i.marca}}</td>
+                        <td id="p_unds" class="text-end">{{i.QUANTITY|floatformat:"0g"}}</td>
                         <td class="text-end">{{i.Cartones|floatformat:"2g"}}</td>
 
                         <td class="text-end"
@@ -312,6 +313,24 @@
 <input id="peso_total" type="hidden" value="{{t_total_pes}}">
 <input id="p_cero" type="hidden" value="{{p_cero}}">
 
+
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <!--button type="button" class="btn btn-primary">Save changes</button-->
+            </div>
+        </div>
+    </div>
+</div>
 
 <!--/div-->
 
@@ -478,6 +497,46 @@
         })
     })
 
+</script>
+
+<script>
+    $("button[name='lotes']").click(function() {
+        
+        var product_id = $(this).html();
+        var bodega     = $("#bodega").html();
+
+        var nombre     = $(this).closest("tr").find("#nombre").html();
+        var marca      = $(this).closest("tr").find("#marca").html();
+        var p_unds     = $(this).closest("tr").find("#p_unds").html();
+
+        $.ajax({
+            url : "{% url 'ajax_lotes_bodega' %}",
+            type: "POST",
+            data: {
+                'product_id':product_id,
+                'bodega':bodega,
+                'csrfmiddlewaretoken': '{{csrf_token}}',
+            },
+            
+            success: function(response) {
+                
+                $(".modal-title").html(`Stock de bodega: ${bodega}`);
+                $(".modal-body").html(`
+                <span class="fw-bold">Item:</span> ${product_id} - ${nombre} - ${marca} <br> 
+                <span class="fw-bold">Unds:</span> ${p_unds} <br> ${response}`);
+
+                if ($("#lotes tbody tr").length===0){
+                    $('.modal-body').append('No hay lotes registrados');
+                }
+            },
+
+            error: function() {
+                $(".modal-title").html('Error, Intenta nuevamente !!!');
+                $(".modal-body").html('...');
+            }
+        })
+
+    })
 </script>
 
 
