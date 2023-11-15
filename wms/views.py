@@ -525,7 +525,7 @@ def wms_movimiento_interno(request, id):
     return render(request, 'wms/movimiento_interno.html', context)
 
 
-
+# Comprobar si existe para realizar el egreso
 def comprobar_ajuste_egreso(codigo, lote, fecha_cadu, ubicacion, und_egreso):
     
     ext = (
@@ -537,7 +537,7 @@ def comprobar_ajuste_egreso(codigo, lote, fecha_cadu, ubicacion, und_egreso):
         )
     
     if ext.exists():
-        total = ext.last().unidades + und_egreso
+        total = ext.last().unidades - und_egreso
         
         if total >=0:
             return True
@@ -561,12 +561,11 @@ def wms_movimiento_ajuste(request):
     if request.method == 'POST':
         tipo = request.POST['tipo']
         
-        if tipo == 'Ingreso':
-            und = int(request.POST['unidades'])
+        if tipo == 'Ingreso':   
             
             mov = Movimiento(
                 tipo            = tipo,
-                unidades        = und,
+                unidades        = int(request.POST['unidades']),
                 ubicacion_id    = int(request.POST['ubicacion']),
                 descripcion     = request.POST['descripcion'],
                 n_referencia    = request.POST['n_referencia'],
@@ -583,11 +582,10 @@ def wms_movimiento_ajuste(request):
             return redirect('/wms/inventario')
                     
         elif tipo == 'Egreso':
-            und = int(request.POST['unidades']) *-1
 
             mov = Movimiento(
                 tipo            = tipo,
-                unidades        = und,
+                unidades        = int(request.POST['unidades'])*-1,
                 ubicacion_id    = int(request.POST['ubicacion']),
                 descripcion     = request.POST['descripcion'],
                 n_referencia    = request.POST['n_referencia'],
@@ -603,7 +601,7 @@ def wms_movimiento_ajuste(request):
                 lote       = request.POST['lote_id'],
                 ubicacion  = int(request.POST['ubicacion']),
                 fecha_cadu = request.POST['fecha_caducidad'],
-                und_egreso = und
+                und_egreso = int(request.POST['unidades'])
             )
             
             if comprobar == True:
