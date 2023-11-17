@@ -725,62 +725,6 @@ def wms_movimientos_list(request):
 
 
 
-# def wms_existencias_query():
-    
-#     exitencias = Movimiento.objects.all().values(
-#         # 'id',
-#         'product_id',
-#         'lote_id',
-#         'fecha_caducidad',
-#         # 'item__product_id',
-#         # 'item__nombre',
-#         # 'item__marca2',
-#         # 'item__lote_id',
-#         # 'item__fecha_caducidad',
-#         'ubicacion'        ,
-#         'ubicacion__bodega',
-#         'ubicacion__pasillo',
-#         'ubicacion__modulo',
-#         'ubicacion__nivel'
-#     ).annotate(total_unidades=Sum('unidades')).order_by(
-#         # 'item__product_id',
-#         # 'item__marca2',
-#         # 'item__fecha_caducidad',
-#         'ubicacion__bodega',
-#         'ubicacion__pasillo',
-#         'ubicacion__modulo',
-#         'ubicacion__nivel'
-#     ).exclude(total_unidades__lte=0)
-    
-    
-#     existencias_list = []
-#     for i in exitencias:
-#         prod = i['product_id']
-#         lote = i['lote_id']
-#         fcad = i['fecha_caducidad']
-#         ubi  = i['ubicacion']
-#         und  = i['total_unidades']
-        
-#         ex = Existencias(
-#             product_id      = prod,
-#             lote_id         = lote,
-#             fecha_caducidad = fcad,
-#             ubicacion_id    = ubi,
-#             unidades        = und
-#         )
-        
-#         existencias_list.append(ex)
-    
-#     with connections['default'].cursor() as cursor:
-#         cursor.execute("TRUNCATE wms_existencias")
-#     Existencias.objects.bulk_create(existencias_list)
-
-#     return exitencias
-
-
-
-
-
 
 
 
@@ -807,8 +751,8 @@ def wms_egreso_picking(request, pedido):
     # n_picking = pedido
     
     m = Movimiento.objects.filter(referencia='Picking').filter(n_referencia=pedido)
-    m = pd.DataFrame(m.values('id','item__product_id', 'item__lote_id', 'unidades'))
-    m = m.rename(columns={'item__product_id':'PRODUCT_ID'})
+    m = pd.DataFrame(m.values('id','product_id', 'lote_id', 'unidades'))
+    m = m.rename(columns={'product_id':'PRODUCT_ID'})
     
     prod   = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     prod   = prod.rename(columns={'product_id':'PRODUCT_ID'})
@@ -816,9 +760,9 @@ def wms_egreso_picking(request, pedido):
     pedido = pedido_por_cliente(pedido).sort_values('PRODUCT_ID')
     pedido = pedido.merge(prod, on='PRODUCT_ID',how='left')
     
-    r_lote = reservas_lote()
-    r_lote = r_lote.pivot_table(index=['PRODUCT_ID', 'LOTE_ID'], values=['EGRESO_TEMP'], aggfunc='sum').reset_index()
-    r_lote = r_lote.rename(columns={'PRODUCT_ID':'item__product_id', 'LOTE_ID':'item__lote_id','EGRESO_TEMP':'egreso_temp'}).fillna(0)
+    # r_lote = reservas_lote()
+    # r_lote = r_lote.pivot_table(index=['PRODUCT_ID', 'LOTE_ID'], values=['EGRESO_TEMP'], aggfunc='sum').reset_index()
+    # r_lote = r_lote.rename(columns={'PRODUCT_ID':'product_id', 'LOTE_ID':'lote_id','EGRESO_TEMP':'egreso_temp'}).fillna(0)
     
     n_ped = pedido['CONTRATO_ID'].iloc[0]
     cli = pedido['NOMBRE_CLIENTE'].iloc[0]
@@ -827,39 +771,51 @@ def wms_egreso_picking(request, pedido):
 
     prod_list = list(pedido['PRODUCT_ID'])
 
-    inv = (Movimiento.objects.filter(item__product_id__in=prod_list).values(
-        # 'id',
-        'item__product_id',
-        # 'item__nombre',
-        # 'item__marca2',
-        'item__lote_id',
-        'item__fecha_caducidad',
+    # inv = (Movimiento.objects.filter(item__product_id__in=prod_list).values(
+    #     # 'id',
+    #     'item__product_id',
+    #     # 'item__nombre',
+    #     # 'item__marca2',
+    #     'item__lote_id',
+    #     'item__fecha_caducidad',
         
-        'ubicacion__bodega',
-        'ubicacion__pasillo',
-        'ubicacion__modulo',
-        'ubicacion__nivel'
+    #     'ubicacion__bodega',
+    #     'ubicacion__pasillo',
+    #     'ubicacion__modulo',
+    #     'ubicacion__nivel'
+    # )
+    # .annotate(total_unidades=Sum('unidades'))
+    # .order_by(
+    #     'item__fecha_caducidad',
+
+    #     'ubicacion__bodega',
+    #     'ubicacion__pasillo',
+    #     'ubicacion__modulo',
+    #     'ubicacion__nivel'
+    # ).exclude(total_unidades__lte=0))
+
+    # inv = pd.DataFrame(inv)
+    # inv = inv.merge(r_lote, on=['item__product_id','item__lote_id'], how='left').fillna(0)
+    # inv['disponible'] = inv['total_unidades'] - inv['egreso_temp']  #;print(inv)
+    # inv['item__fecha_caducidad'] = inv['item__fecha_caducidad'].astype(str)
+    # inv = inv[inv['disponible']>0]
+    # inv = de_dataframe_a_template(inv)
+    
+    inv = Existencias.objects.all().values(
+        'product_id','lote_id','fecha_caducidad','unidades',
+        'ubicacion__bodega','ubicacion__pasillo','ubicacion__modulo','ubicacion__nivel',
+        'unidades'
     )
-    .annotate(total_unidades=Sum('unidades'))
-    .order_by(
-        'item__fecha_caducidad',
-
-        'ubicacion__bodega',
-        'ubicacion__pasillo',
-        'ubicacion__modulo',
-        'ubicacion__nivel'
-    ).exclude(total_unidades__lte=0))
-
     inv = pd.DataFrame(inv)
-    inv = inv.merge(r_lote, on=['item__product_id','item__lote_id'], how='left').fillna(0)
-    inv['disponible'] = inv['total_unidades'] - inv['egreso_temp']  #;print(inv)
-    inv['item__fecha_caducidad'] = inv['item__fecha_caducidad'].astype(str)
-    inv = inv[inv['disponible']>0]
+    #inv = inv.merge(r_lote, on=['product_id','lote_id'], how='left').fillna(0)
+    # inv['disponible'] = inv['total_unidades'] - inv['egreso_temp']  #;print(inv)
+    inv['fecha_caducidad'] = inv['fecha_caducidad'].astype(str)
+    # inv = inv[inv['disponible']>0]
     inv = de_dataframe_a_template(inv)
     
-    if not m.empty:
-        pedido = pedido.merge(m, on='PRODUCT_ID', how='left').fillna(0)
-        pedido['unidades'] = pedido['unidades'].abs()
+    # if not m.empty:
+    #     pedido = pedido.merge(m, on='PRODUCT_ID', how='left').fillna(0)
+    #     pedido['unidades'] = pedido['unidades'].abs()
 
     ped = de_dataframe_a_template(pedido)
     for i in prod_list:
@@ -867,12 +823,12 @@ def wms_egreso_picking(request, pedido):
             if j['PRODUCT_ID'] == i:
                 j['ubi'] = ubi_list = []
                 for k in inv:
-                    if k['item__product_id'] == i:
+                    if k['product_id'] == i:
                         ubi_list.append(k)
     
-    # Ordenar el pedido por ubicación
-    ped = sorted(ped, key=lambda x: len(x['ubi']), reverse=True)
-
+    ## Ordenar el pedido por ubicación
+    # ped = sorted(ped, key=lambda x: len(x['ubi']), reverse=True)
+    #print(ped)
     context = {
         'pedido':ped,
 
@@ -881,6 +837,7 @@ def wms_egreso_picking(request, pedido):
         'fecha': fecha ,
         'hora':hora 
     }
+    
 
     return render(request, 'wms/picking.html', context)
 
