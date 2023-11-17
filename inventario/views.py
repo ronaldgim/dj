@@ -1004,7 +1004,8 @@ def arqueo_bodega_view(request, arqueo, ware_code):
         q['prod_query']       = prod_query
         q['prod_total_mba']   = prod_total_mba
         #q['prod_diferencia']  = prod_diferencia
-        q['prod_diferencia']  = prod_total_mba - prod_total_fisico
+        #q['prod_diferencia']  = prod_total_mba - prod_total_fisico 
+        q['prod_diferencia']  = prod_total_fisico - prod_total_mba 
         q['prod_total_fisico']= prod_total_fisico
         q['reservas']         = [r for r in reservas if r['PRODUCT_ID']==i if r['WARE_CODE']==ware_code] 
         
