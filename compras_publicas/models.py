@@ -28,5 +28,14 @@ class EvaluacionProcesos(models.Model):
 
     def __str__(self):
         return self.codigo_proceso
+    
+
+class ProcesosSercop(models.Model):
+    
+    proceso     = models.CharField(verbose_name='Poroceso', unique=True, max_length=100)
+    fecha_hora  = models.DateTimeField(verbose_name='Fecha Hora', auto_now_add=True)
+    
+    def __str__(self):
+        return self.proceso
 
     
