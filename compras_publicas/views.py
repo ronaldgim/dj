@@ -26,6 +26,18 @@ import mysql.connector
 # Paginado
 from django.core.paginator import Paginator
 
+# Model
+from compras_publicas.models import ProcesosSercop
+
+# Forms
+from compras_publicas.forms import ProcesosSercopForm
+
+# Messages
+from django.contrib import messages
+
+# Django shortcuts
+from django.shortcuts import render, redirect
+
 
 # Funcios para pasar de dataframe a registros para el template
 def de_dataframe_a_template(dataframe):
@@ -253,3 +265,28 @@ def infimas(request):
 
     return render(request, 'compras_publicas/infimas.html', context)
 
+
+
+def procesos_sercop(request):
+    
+    procesos = ProcesosSercop.objects.all().order_by('-fecha_hora')
+    form = ProcesosSercopForm()
+    
+    if request.method == 'POST':
+        form = ProcesosSercopForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'El proceso se agrego correctamente !!!')
+            return redirect('/compras-publicas/procesos-sercop')
+            
+        else:
+            messages.error(request, form.errors)
+            return redirect('/compras-publicas/procesos-sercop')
+    
+    context = {
+        'procesos':procesos,
+        'form':form
+    }
+    
+    return render(request, 'compras_publicas/procesos_sercop.html', context)
+    
