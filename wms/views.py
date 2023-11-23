@@ -6,7 +6,13 @@ from datos.views import (
     productos_odbc_and_django, 
     de_dataframe_a_template, 
     importaciones_llegadas_ocompra_odbc,
-    reservas_lote)
+    reservas_lote,
+    
+    # DATOS
+    wms_datos_doc_liberaciones,
+    wms_datos_liberacion_cuc,
+    wms_datos_liberacion_bct,
+    )
 
 # Pedidos por clientes
 from etiquetado.views import pedido_por_cliente, reservas_table
@@ -288,7 +294,8 @@ def wms_existencias_query():
         'ubicacion__bodega',
         'ubicacion__pasillo',
         'ubicacion__modulo',
-        'ubicacion__nivel'
+        'ubicacion__nivel',
+        'cuarentena'
     ).annotate(total_unidades=Sum('unidades')).order_by(
         # 'item__product_id',
         # 'item__marca2',
@@ -296,7 +303,7 @@ def wms_existencias_query():
         'ubicacion__bodega',
         'ubicacion__pasillo',
         'ubicacion__modulo',
-        'ubicacion__nivel'
+        'ubicacion__nivel',
     ).exclude(total_unidades = 0) #.exclude(total_unidades__lte=0)
     
     existencias_list = []
@@ -306,13 +313,15 @@ def wms_existencias_query():
         fcad = i['fecha_caducidad']
         ubi  = i['ubicacion']
         und  = i['total_unidades']
+        cuc  = i['cuarentena']
         
         ex = Existencias(
             product_id      = prod,
             lote_id         = lote,
             fecha_caducidad = fcad,
             ubicacion_id    = ubi,
-            unidades        = und
+            unidades        = und,
+            cuarentena      = cuc
         )
         
         existencias_list.append(ex)   
@@ -339,7 +348,7 @@ def wms_inventario(request):
     inv = pd.DataFrame(Existencias.objects.all().values(
         'id',
         'product_id', 'lote_id', 'fecha_caducidad', 'unidades', 'fecha_hora', 
-        'ubicacion', 'ubicacion__bodega', 'ubicacion__pasillo', 'ubicacion__modulo', 'ubicacion__nivel'
+        'ubicacion', 'ubicacion__bodega', 'ubicacion__pasillo', 'ubicacion__modulo', 'ubicacion__nivel', 'cuarentena'
     ))
     inv = inv.merge(prod, on='product_id', how='left')
     inv['fecha_caducidad'] = inv['fecha_caducidad'].astype(str)
@@ -415,6 +424,8 @@ def wms_movimientos_ingreso(request, id):
                 #return redirect(f'/wms/importacion/bodega/{item.n_referencia}')
                 #return redirect(f'/wms/importacion/bodega/{url_redirect}')
                 return redirect(url_redirect)
+            else:
+                messages.error(request, form.errors)
             
         elif und > ingresados_ubicaciones or und > ubicaciones_und:
             # No se puede ingresar un cantidad mayor a la existente
@@ -430,6 +441,8 @@ def wms_movimientos_ingreso(request, id):
                 wms_existencias_query()
                 # retornar a la misma view
                 return redirect(f'/wms/ingreso/{item.id}')
+            else:
+                messages.error(request, form.errors)
 
         elif ubicaciones_und == total_ingresado :
             # guardar
@@ -441,7 +454,8 @@ def wms_movimientos_ingreso(request, id):
                 #return redirect(f'/wms/importacion/bodega/{item.n_referencia}')
                 #return redirect(f'/wms/importacion/bodega/{url_redirect}')
                 return redirect(url_redirect)
-
+            else:
+                messages.error(request, form.errors)
 
     context = {
         'form'             :form,
@@ -451,7 +465,7 @@ def wms_movimientos_ingreso(request, id):
         'total_ubicaciones':total_ubicaciones
     }
 
-    return render(request, 'wms/detalle_ubicaciones.html', context)
+    return render(request, 'wms/movimientos/ingreso_ubicacion_importacion.html', context)
 
 
 # Movimiento interno
@@ -485,7 +499,8 @@ def wms_movimiento_interno(request, id):
                 usuario_id      = request.user.id,
                 fecha_caducidad = item.fecha_caducidad,
                 lote_id         = item.lote_id,
-                product_id      = item.product_id
+                product_id      = item.product_id,
+                cuarentena      = item.cuarentena
             )
             mov_egreso.save()
 
@@ -500,7 +515,8 @@ def wms_movimiento_interno(request, id):
                 usuario_id      = request.user.id,
                 fecha_caducidad = item.fecha_caducidad,
                 lote_id         = item.lote_id,
-                product_id      = item.product_id
+                product_id      = item.product_id,
+                cuarentena      = item.cuarentena
             )
             mov_ingreso.save()
             
@@ -523,6 +539,39 @@ def wms_movimiento_interno(request, id):
     }
 
     return render(request, 'wms/movimiento_interno.html', context)
+
+
+# Listado de liberaciones
+# url: wms/liberaciones
+def wms_lista_liberaciones(request):
+    
+    lista_liberaciones = wms_datos_doc_liberaciones()
+    #inv_cuc = Movimiento.objects.filter(cuarentena=True)
+    #print(lista_liberaciones)
+    context = {
+        'liberaciones':de_dataframe_a_template(lista_liberaciones),
+        #'inv_cuc':inv_cuc
+    }
+    
+    return render(request, 'wms/movimientos/liberaciones_list.html', context)
+    
+
+
+
+def wms_liberacion(request):
+    
+    doc = request.POST['doc']
+    liberacion_query = wms_datos_liberacion_cuc(doc)
+    
+    print(liberacion_query)
+
+    return HttpResponse(liberacion_query)
+
+
+
+
+
+
 
 
 # Comprobar si existe para realizar el egreso
@@ -804,7 +853,8 @@ def wms_egreso_picking(request, pedido):
     inv = Existencias.objects.all().values(
         'product_id','lote_id','fecha_caducidad','unidades',
         'ubicacion__bodega','ubicacion__pasillo','ubicacion__modulo','ubicacion__nivel',
-        'unidades'
+        'unidades',
+        'cuarentena'
     )
     inv = pd.DataFrame(inv)
     #inv = inv.merge(r_lote, on=['product_id','lote_id'], how='left').fillna(0)
@@ -840,6 +890,7 @@ def wms_egreso_picking(request, pedido):
     
 
     return render(request, 'wms/picking.html', context)
+
 
 
 def wms_movimiento_egreso_picking(request):

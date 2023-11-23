@@ -115,7 +115,9 @@
                                                 <span class="fw-bold">Exp:</span> {{i.fecha_caducidad}}
                                             </td>
                                             <!--td id="fecha">{{i.item__fecha_caducidad|date:'Y-m-d'}}</td-->
-                                            <td><span id="ubi">{{i.ubicacion__bodega}}.{{i.ubicacion__pasillo}}.{{i.ubicacion__modulo}}.{{i.ubicacion__nivel}}</span><br>
+                                            <td class="{% if i.cuarentena %}text-danger{% endif %}">{% if i.cuarentena %}CUC-{% endif %}
+                                                <span id="ubi">{{i.ubicacion__bodega}}.{{i.ubicacion__pasillo}}.{{i.ubicacion__modulo}}.{{i.ubicacion__nivel}}
+                                            </span><br>
                                                 <!--<span class="fw-bold">Disp:</span> {{i.disponible|floatformat:"0g"}}-->
                                                 <span class="fw-bold">Disp:</span> {{i.unidades|floatformat:"0g"}}
                                             </td>
@@ -124,7 +126,7 @@
                                             <td id="dis" class="text-end">{{i.disponible|floatformat:"0g"}}</td-->
 
                                             <td>
-                                                <input id="picking_cantidad" type="number" class="form-control">
+                                                <input id="picking_cantidad" type="number" class="form-control" {% if i.cuarentena %} disabled {% endif %}>
                                             </td>
                                             
                                             <td>
@@ -136,7 +138,7 @@
                                                     <i class="bi bi-cart"></i>
                                                 </button-->
 
-                                                <button name="pick" type="button" class="btn btn-warning btn-sm">
+                                                <button name="pick" type="button" class="btn btn-warning btn-sm {% if i.cuarentena %} disabled {% endif %}">
                                                     <i class="bi bi-cart"></i>
                                                 </button>
 

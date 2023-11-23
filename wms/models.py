@@ -16,6 +16,7 @@ REFERENCIA_MOVIMIENTOS = [
     ('Inventario Inicial', 'Inventario Inicial'),
     ('Ingreso Importación', 'Ingreso Importación'),
     ('Movimiento Interno',  'Movimiento Interno'),
+    ('Liberación', 'Liberación'),
     ('Ajuste', 'Ajuste'),
     ('Picking', 'Picking'),
 ]
@@ -23,6 +24,7 @@ REFERENCIA_MOVIMIENTOS = [
 REFERENCIA_INGRESOS = [
     ('Inventario Inicial', 'Inventario Inicial'),
     ('Ingreso Importación', 'Ingreso Importación'),
+    ('Liberación', 'Liberación'),
     ('Ajuste', 'Ajuste'),
 ]
 
@@ -99,15 +101,16 @@ class Movimiento(models.Model):
     product_id      = models.CharField(verbose_name='Product id', max_length=50)
     lote_id         = models.CharField(verbose_name='Lote id', max_length=50)
     fecha_caducidad = models.DateField(verbose_name='Fecha de caducidad')
-    tipo         = models.CharField(verbose_name='Tipo de movimiento', choices=TIPOS_MOVIMIENTOS, max_length=10)
-    descripcion  = models.CharField(verbose_name='Descripción del movimiento', max_length=20, blank=True)
-    referencia   = models.CharField(verbose_name='Referencia del movimiento', choices=REFERENCIA_MOVIMIENTOS, max_length=20, blank=True)
-    n_referencia = models.CharField(verbose_name='Numero de referencia',max_length=20, blank=True)
-    ubicacion    = models.ForeignKey(Ubicacion, verbose_name='Ubicación', max_length=5, on_delete=models.CASCADE, related_name='ubicacion')
-    unidades     = models.IntegerField(verbose_name='Unidades ingresadas')
+    tipo            = models.CharField(verbose_name='Tipo de movimiento', choices=TIPOS_MOVIMIENTOS, max_length=10)
+    descripcion     = models.CharField(verbose_name='Descripción del movimiento', max_length=20, blank=True)
+    referencia      = models.CharField(verbose_name='Referencia del movimiento', choices=REFERENCIA_MOVIMIENTOS, max_length=20, blank=True)
+    n_referencia    = models.CharField(verbose_name='Numero de referencia',max_length=20, blank=True)
+    ubicacion       = models.ForeignKey(Ubicacion, verbose_name='Ubicación', max_length=5, on_delete=models.CASCADE, related_name='ubicacion')
+    unidades        = models.IntegerField(verbose_name='Unidades ingresadas')
+    cuarentena      = models.BooleanField(verbose_name='Cuarentena', default=True)
 
-    usuario      = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.CASCADE, blank=True, null=True)
-    fecha_hora   = models.DateTimeField(verbose_name='Fecha Hora', auto_now_add=True)
+    usuario         = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.CASCADE, blank=True, null=True)
+    fecha_hora      = models.DateTimeField(verbose_name='Fecha Hora', auto_now_add=True)
 
     def __str__(self):
         #return str(self.tipo, self.product_id)
@@ -121,7 +124,20 @@ class Existencias(models.Model):
     fecha_caducidad = models.DateField(verbose_name='Fecha de caducidad')
     ubicacion       = models.ForeignKey(Ubicacion, verbose_name='Ubicación', max_length=5, on_delete=models.CASCADE, related_name='existencias_ubicacion')
     unidades        = models.PositiveIntegerField(verbose_name='Unidades ingresadas')
+    cuarentena      = models.BooleanField(verbose_name='Cuarentena', default=True)
     fecha_hora      = models.DateTimeField(verbose_name='Fecha Hora', auto_now_add=True)
     
     def __str__(self):
         return self.product_id
+    
+    
+# class Liberacion(models.Model):
+    
+#     documento  = models.CharField(verbose_name='Documento', max_length=100, unique=True)
+#     memo       = models.TextField(verbose_name='Memo', blank=True)
+#     usuario    = models.ForeignKey(User, verbose_name='User', blank=True, on_delete=models.CASCADE)
+#     fecha_hora = models.DateTimeField(verbose_name='Fecha Hora', auto_now_add=True)
+    
+#     def __str__(self):
+#         return self.documento
+    
