@@ -55,7 +55,7 @@
                         <th scope="col">Ubicación</th>
                         <th scope="col">Unidades</th>
                         <th scope="col">Realizado por</th>
-                        <th scope="col">fecha-Hora</th>
+                        <th scope="col">Fecha-Hora</th>
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
@@ -84,7 +84,7 @@
                             {% endif %}
                         </td>
 
-                        <td>{{i.ubicacion}}</td>
+                        <td>{% if i.cuarentena %}CUC-{% endif %}{{i.ubicacion}}</td>
 
                         <td class="text-end">{{i.unidades|floatformat:"0g"}}</td>
 

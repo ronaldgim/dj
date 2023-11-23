@@ -1843,3 +1843,63 @@ def lotes_bodega(bodega, product_id):
                 })
         
     return stock_lote
+
+
+### WMS ###
+# DATOS MBA - WMS
+# LISTA DE DOC DE LIBERACIONES
+def wms_datos_doc_liberaciones():
+
+    cnxn = pyodbc.connect('DSN=mba3;PWD=API')
+
+    query = (
+        "SELECT INVT_Ajustes_Principal.DOC_ID_CORP, INVT_Ajustes_Principal.`CROSS REF`, INVT_Ajustes_Principal.`CONF IMPORT`, INVT_Ajustes_Principal.WAR_CODE_DEST, INVT_Ajustes_Principal.WARE_CODE, INVT_Ajustes_Principal.TransferenciaDirecta, INVT_Ajustes_Principal.`ENTERED DATE`, INVT_Ajustes_Principal.MEMO "
+        "FROM INVT_Ajustes_Principal INVT_Ajustes_Principal "
+        "WHERE (INVT_Ajustes_Principal.`CONF IMPORT`=true) AND (INVT_Ajustes_Principal.WARE_CODE='cuc') AND (INVT_Ajustes_Principal.TransferenciaDirecta=true)"
+    )
+    
+    df = pd.read_sql_query(query, cnxn)
+    df = df.rename(columns={'ENTERED DATE':'ENTERED_DATE','CROSS REF':'CROSS_REF'})
+    df['ENTERED_DATE'] = df['ENTERED_DATE'].astype(str)
+    df['CROSS_REF'] = df['CROSS_REF'].astype(str)
+    df = df.sort_values(by='ENTERED_DATE', ascending=False)
+    # CAMBIAR PRODUCT_ID
+    
+    return df
+
+
+def wms_datos_liberacion_cuc(doc):
+
+    cnxn = pyodbc.connect('DSN=mba3;PWD=API')
+
+    query = (
+        "SELECT INVT_Lotes_Ubicacion.DOC_ID_CORP, INVT_Lotes_Ubicacion.PRODUCT_ID_CORP, INVT_Lotes_Ubicacion.LOTE_ID, INVT_Lotes_Ubicacion.EGRESO_TEMP, INVT_Lotes_Ubicacion.COMMITED, INVT_Lotes_Ubicacion.WARE_CODE_CORP, INVT_Lotes_Ubicacion.UBICACION, INVT_Producto_Lotes.Fecha_elaboracion_lote, INVT_Producto_Lotes.FECHA_CADUCIDAD "
+        "FROM INVT_Lotes_Ubicacion INVT_Lotes_Ubicacion, INVT_Producto_Lotes INVT_Producto_Lotes "
+        "WHERE INVT_Lotes_Ubicacion.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND INVT_Producto_Lotes.LOTE_ID = INVT_Lotes_Ubicacion.LOTE_ID "
+        #"AND ((INVT_Lotes_Ubicacion.DOC_ID_CORP='A-0000059940-gimpr') AND (INVT_Producto_Lotes.ENTRADA_TIPO='OC'))"
+        f"AND ((INVT_Lotes_Ubicacion.DOC_ID_CORP='{doc}') AND (INVT_Producto_Lotes.ENTRADA_TIPO='OC'))"
+    )
+    
+    df = pd.read_sql_query(query, cnxn)
+    
+    # CAMBIAR PRODUCT_ID
+    
+    return df
+
+
+def wms_datos_liberacion_bct():
+
+    cnxn = pyodbc.connect('DSN=mba3;PWD=API')
+
+    query = (
+        "SELECT INVT_Producto_Lotes_Bodegas.Doc_id_Corp, INVT_Producto_Lotes_Bodegas.PRODUCT_ID_CORP, INVT_Producto_Lotes_Bodegas.LOTE_ID, INVT_Producto_Lotes_Bodegas.WARE_CODE, INVT_Producto_Lotes_Bodegas.LOCATION "
+        "FROM INVT_Producto_Lotes_Bodegas INVT_Producto_Lotes_Bodegas "
+        #"WHERE (INVT_Producto_Lotes_Bodegas.Doc_id_Corp='A-0000045310-GIMPR')"
+        "WHERE (INVT_Producto_Lotes_Bodegas.Doc_id_Corp='A-0000059940-GIMPR')"
+    )
+    
+    df = pd.read_sql_query(query, cnxn)
+    
+    # CAMBIAR PRODUCT_ID
+    
+    return df
