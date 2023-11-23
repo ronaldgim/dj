@@ -52,18 +52,34 @@
 <div class="card mt-2 mb-2">
     <div class="card-body m-0 p-0">
         <div class="container table-responsive">
-            <table class="table" id="inv_table">
+            <table class="table" style="font-size: small;">
                 <thead>
                     <tr>
                         <th scope="col">Proceso</th>
-                        <th scope="col">Añadido el</th>
+                        <th scope="col">Entidad</th>
+                        <th scope="col">Objeto</th>
+                        <th scope="col">Publicación</th>
+                        <th scope="col">Link</th>
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
                     {% for i in procesos %}
                     <tr>
                         <td>{{i.proceso}}</td>
-                        <td>{{i.fecha_hora}}</td>
+                        <td>{{i.Entidad|default:"-"}}</td>
+                        <td>{{i.Objeto|default:"-"}}</td>
+                        <td>{{i.Fecha_Publicacion|default:"-"}}</td>
+                        <td>
+                            <a 
+                            {% if not i.Html %}
+                            class="btn btn-sm btn-primary disabled"
+                            {% else %}
+                            class="btn btn-sm btn-primary"
+                            {% endif %}
+                            
+                            href="{{i.Html}}" 
+                            target="_blank"><i class="bi bi-link"></i></a>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>

@@ -266,10 +266,32 @@ def infimas(request):
     return render(request, 'compras_publicas/infimas.html', context)
 
 
+def procesos_sercop_sql():
+    with connections['procesos_sercop'].cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT * FROM procesos_sercop.procesos
+            """
+        )
+        
+        columns  = [col[0] for col in cursor.description]
+        procesos = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        
+        procesos = pd.DataFrame(procesos)
+        
+        return procesos
+
+
 
 def procesos_sercop(request):
     
-    procesos = ProcesosSercop.objects.all().order_by('-fecha_hora')
+    procesos = pd.DataFrame(ProcesosSercop.objects.all().order_by('-fecha_hora').values())
+    procesos_sql = procesos_sercop_sql()
+    procesos_sql = procesos_sql.rename(columns={'Codigo':'proceso'})
+    
+    procesos = procesos.merge(procesos_sql, on='proceso', how='left')
+    procesos = de_dataframe_a_template(procesos)
+    
     form = ProcesosSercopForm()
     
     if request.method == 'POST':
@@ -289,4 +311,3 @@ def procesos_sercop(request):
     }
     
     return render(request, 'compras_publicas/procesos_sercop.html', context)
-    
