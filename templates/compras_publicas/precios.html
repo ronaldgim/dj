@@ -30,7 +30,7 @@
   }
 </style>
 
-<h5 class="m-4 text-center"><strong>PRECIOS HISTORICOS</strong></h5>
+<h5 class="m-4 text-center"><strong>PRECIOS HISTORICOS <span class="text-sm">(desde 2021)</span></strong></h5>
 
 {% if messages %}
 {% for message in messages %}
@@ -46,42 +46,6 @@
 {% endfor %}
 {% endif %}
 
-<!--div class="row">
-    <div class="col-6">
-        <label><strong>HOSPITALES:</strong></label>
-        <select class="form-select filter" id="filter-hos">
-                <option value="0">Todos</option>
-            {% for i in hospitales %}
-                <option value="{{i}}">{{i}}</option>
-            {% endfor %}
-        </select>
-    </div><br>
-    <div class="col-3">
-        <label><strong>Ubicación</strong></label>
-        <select class="form-select filter" id="filter-loc">
-            <option value="0">Todos</option>
-            {% for i in location %}
-            <option value="{{i}}">{{i}}</option>
-            {% endfor %}
-        </select>
-    </div>
-    <div class="col-3">
-        <label><strong>Llenado:</strong></label>
-        <select class="form-select filter" id="filter-lle">
-            <option value="0">Todos</option>
-            <option value="True">Si</option>
-            <option value="False">No</option>
-        </select>
-    </div>
-    <div class="col-6">
-        <label><strong>Buscar:</strong></label>
-        <input id="inputbuscar" type="text" placeholder="Buscar..." class="form-control">
-    </div>
-    <div class="col-1">
-        <label><strong>Buscar:</strong></label>
-        <input id="inputbuscar" type="text" placeholder="Buscar..." class="form-control">
-    </div>
-</div-->
 
 <form method="POST"> 
     {% csrf_token %}
@@ -92,10 +56,10 @@
                     <label class="pe-2"><strong>HOSPITALES:</strong></label>
                 <!--/div-->
                 <div class="col-6 pe-2">
-                    <select class="form-select" id="filter-hos-select2" name="hospital"> <!-- filter id="filter-hos"-->
+                    <select class="form-select" id="filter-hos-select2" name="hospital" required> <!-- filter id="filter-hos"-->
                         <option value="0">TODOS LOS HOSPITALES</option>
                         {% for i in hospitales %}
-                        <option value="{{i}}">{{i}}</option>
+                        <option value="{{i.CODIGO_CLIENTE}}">{{i.NOMBRE_CLIENTE}}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -119,7 +83,7 @@
 </div-->
 
 {% if precios_filtrado %}
-<h5 class="text-center"><strong>{{hospital}}</strong></h5>
+<h5 class="text-center"><strong>{{h}}</strong></h5>
 <div class="card mt-2 mb-2">
     <div class="card-body m-0 p-0">
         <div class="container table-responsive">
@@ -129,7 +93,7 @@
                         <th scope="col">Código</th>
                         <th scope="col">Nombre</th>
                         <th scope="col">Marca</th>
-                        <th scope="col">Cliente</th>
+                        <!--th scope="col">Cliente</th-->
                         <th scope="col">Fecha</th>
                         <th scope="col">Cantidad</th>
                         <th scope="col">Precio Unitario</th>
@@ -137,11 +101,15 @@
                 </thead>
                 <tbody id="pedidosbuscar">
                     {% for i in precios_filtrado %}
-                    <tr style="font-size: small;">
-                        <td>{{i.PRODUCT_ID}}</td>
+                    <tr> <!--style="font-size: small;"-->
+                        <td>
+                            <button class="btn btn-sm btn-primary" name="producto">
+                                <span id="product_id">{{i.PRODUCT_ID}}</span>
+                            </button>
+                        </td>
                         <td>{{i.Nombre}}</td>
                         <td>{{i.Marca}}</td>
-                        <td class="hos" data-hos="{{i.NOMBRE_CLIENTE}}">{{i.NOMBRE_CLIENTE}}</td>
+                        <!--td class="hos" data-hos="{{i.NOMBRE_CLIENTE}}">{{i.NOMBRE_CLIENTE}}</td-->
                         <td>{{i.FECHA}}</td>
                         <td class="text-end">{{i.QUANTITY|floatformat:"0g"}}</td>
                         <td class="text-end"><strong>$ {{i.UNIT_PRICE|floatformat:2}}</strong></td>
@@ -154,113 +122,62 @@
 </div>
 {% endif %}
 
-{% if precios_excluido %}
-<h5 class="text-center"><strong>VENTAS A HOSPITALES PÚBLICOS</strong></h5>
-<div class="card mt-2 mb-2">
-    <div class="card-body m-0 p-0">
-        <div class="container table-responsive">
-            <table class="table" id="inv_table">
-                <thead>
-                    <tr>
-                        <th scope="col">Código</th>
-                        <th scope="col">Nombre</th>
-                        <th scope="col">Marca</th>
-                        <th scope="col">Cliente</th>
-                        <th scope="col">Fecha</th>
-                        <th scope="col">Cantidad</th>
-                        <th scope="col">Precio Unitario</th>
-                    </tr>
-                </thead>
-                <tbody id="pedidosbuscar">
-                    {% for i in precios_excluido %}
-                    <tr style="font-size: small;">
-                        <td>{{i.PRODUCT_ID}}</td>
-                        <td>{{i.Nombre}}</td>
-                        <td>{{i.Marca}}</td>
-                        <td class="hos" data-hos="{{i.NOMBRE_CLIENTE}}">{{i.NOMBRE_CLIENTE}}</td>
-                        <td>{{i.FECHA}}</td>
-                        <td class="text-end">{{i.QUANTITY|floatformat:"0g"}}</td>
-                        <td class="text-end"><strong>$ {{i.UNIT_PRICE|floatformat:2}}</strong></td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-{% endif %}
 
-{% if precios %}
-<h5 class="text-center"><strong>VENTAS A HOSPITALES PÚBLICOS</strong></h5>
-    <div class="card mt-2 mb-2">
-        <div class="card-body m-0 p-0">
-            <div class="container table-responsive">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Código</th> <!--scope="col"-->
-                            <th>Nombre</th>
-                            <th>Marca</th>
-                            <th>Cliente</th>
-                            <th>Fecha</th>
-                            <th>Cantidad</th>
-                            <th>Precio Unitario</th>
-                        </tr>
-                    </thead>
-                    <tbody id="pedidosbuscar">
-                        {% for i in precios %}
-                        <tr style="font-size: small;">
-                            <td style="width: 10%;">{{i.PRODUCT_ID}}</td>
-                            <td>{{i.Nombre}}</td>
-                            <td>{{i.Marca}}</td>
-                            <td class="hos" data-hos="{{i.NOMBRE_CLIENTE}}">{{i.NOMBRE_CLIENTE}}</td>
-                            <td>{{i.FECHA}}</td>
-                            <td class="text-end">{{i.QUANTITY|floatformat:"0g"}}</td>
-                            <td class="text-end"><strong>$ {{i.UNIT_PRICE|floatformat:2}}</strong></td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-{% endif %}
 
-<!-- Infimas -->
-{#% if precios_excluido %#}
-<!--h5 class="text-center"><strong>INFIMAS</strong></h5>
-<div class="card mt-2 mb-2">
-    <div class="card-body m-0 p-0">
-        <div class="container table-responsive">
-            <table class="table" id="inv_table">
-                <thead>
-                    <tr>
-                        <th scope="col">Fecha</th>
-                        <th scope="col">Proveedor</th>
-                        <th scope="col">Objeto de compra</th>
-                        <th scope="col">Cantidad</th>
-                        <th scope="col">Costo</th>
-                        <th scope="col">Valor</th>
-                    </tr>
-                </thead>
-                <tbody id="pedidosbuscar">
-                    {#% for i in infimas %#}
-                    <tr style="font-size: small;">
-                        <td>{{i.Fecha}}</td>
-                        <td>{{i.Proveedor}}</td>
-                        <td>{{i.Objeto_Compra}}</td>
-                        <td class="text-end">{{i.Cantidad|floatformat:"0g"}}</td>
-                        <td class="text-end">{{i.Costo|floatformat:2}}</td>
-                        <td class="text-end">{{i.Valor|floatformat:2}}</td>
-                    </tr>
-                    {#% endfor %#}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div-->
-{#% endif %#}
-<!--filtro buscar-->
+<!--h5 class="text-center"><strong>VENTAS</strong></h5-->
+<div id="ventas"></div>
+
+
+<script>
+    $("button[name='producto']").click(function(){
+        var producto = $(this).closest("tr").find("#product_id").html();
+        
+        $.ajax({
+            type:"POST",
+            url:"{% url 'facturas_por_product_ajax' %}",
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'producto':producto,
+            },
+
+            success: function(response) {
+                
+                $('#ventas').html(
+                    `<h5 class="text-center"><strong>VENTAS ${producto}</strong></h5>
+                    <div class="card mt-2 mb-2">
+                        <div class="card-body m-0 p-0">
+                            <div class="container table-responsive">
+                                ${response}
+                            </div>
+                        </div>
+                    </div>`
+                );
+
+                $("#v_table").removeClass('dataframe');
+                $("#v_table").addClass('table');
+                $("#v_table tbody").attr('id', 'pedidosbuscar');
+
+                $(document).ready(function(){
+                    $("#v_table tr").each(function(){
+                        var row = $(this);
+                        row.find("td:eq(5)").addClass("text-end");
+                        row.find("td:eq(6)").addClass("text-end");
+                    })
+                })
+                
+            },
+
+            error: function() {
+                $('#ventas').html('<div class="text-center alert alert-danger mt-2" role="alert"> Error intenta nuevamente !!! </div>')
+                setTimeout(function(){
+                    window.location.reload();
+                }, 4000)
+            } 
+        })
+    })
+
+</script>
+
 <script>
     $(document).ready(function() {
         $("#inputbuscar").on("keyup", function() {
@@ -353,10 +270,10 @@
 
 
 <!-- No abrir menu copy JS -->
-<script type="text/javascript">
+<!---script type="text/javascript">
   document.querySelector('.table').addEventListener('contextmenu', function(e) {
     e.preventDefault();
   });
-</script>
+</script-->
 
 {% endblock %}

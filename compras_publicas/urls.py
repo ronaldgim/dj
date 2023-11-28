@@ -11,6 +11,12 @@ urlpatterns = [
         view = views.precios_historicos,
         name = 'precios_historicos'
     ),
+    
+    path(
+        route='facturas_por_product_ajax',
+        view = views.facturas_por_product_ajax,
+        name = 'facturas_por_product_ajax'
+    ),
 
     path(
         route='infimas', #?page=1
