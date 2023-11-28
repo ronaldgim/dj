@@ -6,9 +6,6 @@ from django.db import connections
 # Datetime
 from datetime import datetime, timedelta
 
-# Tabla clientes
-from etiquetado.views import clientes_table
-
 # Tabla productos DJANGO
 from datos.models import Product
 
@@ -38,69 +35,59 @@ from django.contrib import messages
 # Django shortcuts
 from django.shortcuts import render, redirect
 
+# Clientes
+from datos.views import clientes_warehouse, productos_odbc_and_django
+
+# http response
+from django.http import HttpResponse
 
 # Funcios para pasar de dataframe a registros para el template
 def de_dataframe_a_template(dataframe):
 
     json_records = dataframe.reset_index().to_json(orient='records') # reset_index().
     dataframe = json.loads(json_records)
-    
+
     return dataframe
 
 
 # Create your views here.
 # tabla de facturas
-def tabla_facturas():
+def tabla_facturas(cliente):
     ''' Colusta de clientes por ruc a la base de datos '''
     with connections['gimpromed_sql'].cursor() as cursor:
-        #cursor.execute("SELECT * FROM reservas WHERE CONTRATO_ID = %s", [n_pedido])
-        #cursor.execute("SELECT * FROM clientes WHERE CLIENT_TYPE = %s", ['HOSPU'])
-        cursor.execute("SELECT * FROM venta_facturas")
+        #cursor.execute("SELECT * FROM venta_facturas")
+        cursor.execute(
+            f"SELECT * FROM warehouse.venta_facturas WHERE CODIGO_CLIENTE = '{cliente}' AND FECHA > '2021-01-01'"
+        )
+
         columns = [col[0] for col in cursor.description]
         facturas = [
             dict(zip(columns, row))
             for row in cursor.fetchall()
         ]
-        
+
         facturas = pd.DataFrame(facturas)
-    return facturas 
-
-
-# Tabla producto
-def tabla_productos_mba_django():
-    with connections['gimpromed_sql'].cursor() as cursor:
-        cursor.execute("SELECT * FROM productos")
-        columns = [col[0] for col in cursor.description]
-        products = [ # Lista de diccionarios
-            dict(zip(columns, row))
-            for row in cursor.fetchall()
-        ]
-    products_mba = pd.DataFrame(products)
-    products_mba = products_mba.rename(columns={'Codigo':'product_id'})
-    products_django = pd.DataFrame(Product.objects.all().values())
-    products = products_mba.merge(products_django, on='product_id', how='left')
-
-    return products
+    return facturas
 
 
 # Tabla infimas
 def tabla_infimas():
-    
+
     one_year = datetime.now().date()
     days = 365
-    one_year_ago = one_year - timedelta(days=days) 
-    
+    one_year_ago = one_year - timedelta(days=days)
+
     with connections['infimas_sql'].cursor() as cursor:
         cursor.execute(
             # """SELECT infimas.Fecha, entidad.Nombre, infimas.Proveedor,
             # infimas.Objeto_Compra, infimas.Cantidad, infimas.Costo, infimas.Valor, infimas.Tipo_Compra, entidad.Nombre
             # FROM entidad, infimas
             # WHERE infimas.Codigo_Entidad = entidad.Codigo"""
-            
+
             f"""SELECT infimas.Fecha, entidad.Nombre, infimas.Proveedor,
-            infimas.Objeto_Compra, infimas.Cantidad, infimas.Costo, infimas.Valor, 
+            infimas.Objeto_Compra, infimas.Cantidad, infimas.Costo, infimas.Valor,
             infimas.Tipo_Compra, entidad.Nombre
-            
+
             FROM entidad, infimas
             WHERE infimas.Codigo_Entidad = entidad.Codigo
             AND infimas.Fecha > '{one_year_ago}'
@@ -122,90 +109,119 @@ def tabla_infimas():
     return infimas
 
 
+
+def clientes_hospitales_publicos():
+
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute(
+        "SELECT CODIGO_CLIENTE, NOMBRE_CLIENTE, CLIENT_TYPE FROM warehouse.clientes WHERE CLIENT_TYPE = 'HOSPU'"
+    )
+
+        columns = [col[0] for col in cursor.description]
+        hpublicos = [ # Lista de diccionarios
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+
+    return hpublicos
+
+
+def facturas_por_product(producto):
+
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute(
+        f"SELECT * FROM warehouse.venta_facturas WHERE PRODUCT_ID = '{producto}' AND FECHA > '2021-01-01'"
+    )
+
+        columns = [col[0] for col in cursor.description]
+        producto = [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+        
+        producto = pd.DataFrame(producto)
+        prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+        prod = prod.rename(columns={'product_id':'PRODUCT_ID'})
+        cli  = clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE']]
+        
+        producto = producto.merge(prod, on='PRODUCT_ID', how='left')
+        producto = producto.merge(cli, on='CODIGO_CLIENTE', how='left')
+        
+        producto = producto.rename(columns={
+            'PRODUCT_ID':'Código',
+            'FECHA':'Fecha',
+            'QUANTITY':'Cantidad',
+            'UNIT_PRICE':'Precio Unitario',
+            'NOMBRE_CLIENTE':'Cliente'
+        })
+        
+        producto = producto[['Código','Nombre','Marca','Cliente','Fecha','Cantidad','Precio Unitario']]
+
+    return producto
+
+
+def facturas_por_product_ajax(request):
+    
+    product_id = request.POST['producto']
+    ventas = facturas_por_product(product_id)
+    ventas['Precio Unitario'] = ventas['Precio Unitario'].astype(float)
+    ventas['Cantidad'] = ventas['Cantidad'].apply(lambda x:'{:,.0f}'.format(x))
+    ventas['Precio Unitario'] = ventas['Precio Unitario'].apply(lambda x:'$ {:,.2f}'.format(x))
+    ventas = ventas.sort_values(by='Fecha', ascending=False)
+    
+    ventas = ventas.to_html(
+        #classes='table', 
+        table_id='v_table',
+        index=False,
+        justify='start',
+        border=0
+    )
+    
+    return HttpResponse(ventas)
+
+    
+
+
 # precios historicos
 def precios_historicos(request):
 
-    # DATOS
-    facturas = tabla_facturas() # Tabla facturas
-    clientes = clientes_table() # Tabla clientes
-    productos = tabla_productos_mba_django() # Tabla productos
-    # infimas = tabla_infimas() # Tabla infimas
-    # infimas = de_dataframe_a_template(infimas)
+    hospitales = clientes_hospitales_publicos()
     
-    # FILTRADO DESDE AÑO 2021
-    facturas = facturas[(facturas['FECHA']>'2021-01-01')]
-
-    # FILTRAR COLUMNAS FACTURAS
-    facturas = facturas[[
-        'CODIGO_CLIENTE', 
-        'FECHA', 
-        'PRODUCT_ID',
-        'QUANTITY', 
-        'UNIT_PRICE']]
-
-    # FILTRAR COLUMNAS PRODUCTOS
-    productos = productos[[
-        'product_id', 
-        'Nombre', 
-        'Marca',
-        'Reg_San'
-    ]]
-    productos = productos.rename(columns={'product_id':'PRODUCT_ID'})
-
-    # FILTRAR COLUMNAS DE CLIENTES
-    clientes = clientes[[
-        'CODIGO_CLIENTE',
-        'NOMBRE_CLIENTE',
-        'CLIENT_TYPE'
-    ]]
-
-    # PRECIOS HISTORICOS
-    precios = facturas.merge(clientes, on='CODIGO_CLIENTE', how='left')
-
-    # FILTRAR POR HOSPITALES PUBLICOS
-    precios = precios[precios['CLIENT_TYPE']=='HOSPU']
-
-    # AÑADIR NOMBRE Y MARCA DE PRODUCTOS
-    precios = precios.merge(productos, on='PRODUCT_ID', how='left')
-    precios = precios.sort_values(by=['FECHA'], ascending=[False])
-
-    # FILTROS
-    hospitales = precios['NOMBRE_CLIENTE'].unique()
-
-    precios_template = de_dataframe_a_template(precios)
-
-    # resumen_hospital = resumen_hospital.groupby('PRODUCT_ID').agg({'UNIT_PRICE':['min', 'max', 'mean','count']})
+    context = {
+        'hospitales':hospitales,
+    }
+    
     if request.method == 'POST':
-        precios_filter = precios
-        precios_exclude = precios
-        
-        hospital = request.POST['hospital']
-        h = str(hospital)
-        # TABLE FILTRADA
-        precios_filtrado = precios_filter[precios_filter['NOMBRE_CLIENTE']==h]
-        precios_filtrado = precios_filtrado.sort_values(by=['FECHA'], ascending=[False])
-        precios_filtrado = de_dataframe_a_template(precios_filtrado)
+        try:        
+            hospitales = clientes_hospitales_publicos()
+            prod = productos_odbc_and_django()
+            prod = prod.rename(columns={'product_id':'PRODUCT_ID'})
+            
+            hospital = request.POST['hospital']
+            
+            facturas = tabla_facturas(hospital)
+            clientes = clientes_warehouse()[['CODIGO_CLIENTE', 'NOMBRE_CLIENTE']]
+            
+            precios_filtrado = facturas.merge(clientes, on='CODIGO_CLIENTE', how='left')
+            precios_filtrado = precios_filtrado.merge(prod, on='PRODUCT_ID', how='left')
+            precios_filtrado = precios_filtrado.sort_values(by=['FECHA'], ascending=[False])
+            
+            h = precios_filtrado['NOMBRE_CLIENTE'].iloc[0]
+            
+            precios_filtrado = de_dataframe_a_template(precios_filtrado)        
 
-        precios_excluido = precios_exclude[precios_exclude['NOMBRE_CLIENTE']!=h]
-        precios_excluido = de_dataframe_a_template(precios_excluido)
-
-        context = {
-            'precios_filtrado':precios_filtrado,
-            'precios_excluido': precios_excluido,
-            'hospitales':hospitales,
-            'hospital':hospital,
-            #'infimas':infimas
-            }
-
+            context = {
+                'h':h,
+                'precios_filtrado':precios_filtrado,
+                'hospitales':hospitales,
+                }
+        except:
+            messages.error(request, 'Error, intente nuevamente !!!')
+            
         return render(request, 'compras_publicas/precios.html', context)
 
-    context = {
-        'precios':precios_template,
-        'hospitales':hospitales,
-        #'infimas':infimas
-    }
-
     return render(request, 'compras_publicas/precios.html', context)
+
 
 
 from django.http import JsonResponse
@@ -219,24 +235,24 @@ def my_ajax_view(request):
     # data = tabla_infimas()
     # data = data.to_json(orient='table')
     # data = json.loads(data)
-    
+
     # print(data)
     return JsonResponse(data)
 
 
 # Infimas
 def infimas(request):
-    
-    infimas = tabla_infimas() #[:10] # Tabla infimas    
+
+    infimas = tabla_infimas() #[:10] # Tabla infimas
     infimas = de_dataframe_a_template(infimas)
-    
+
     paginator   = Paginator(infimas, 50)
     page_number = request.GET.get('page')
-    
+
     if page_number == None:
         page_number = 1
-    
-    infimas = paginator.get_page(page_number)    
+
+    infimas = paginator.get_page(page_number)
 
     if request.method == 'POST':
         busqueda = request.POST['busqueda']
@@ -246,7 +262,7 @@ def infimas(request):
         infimas_df = infimas_df[infimas_df['Objeto_Compra'].str.contains(busqueda)] #contains(busqueda)
         resultados = len(infimas_df)
         infimas_df = de_dataframe_a_template(infimas_df)
-        
+
         # paginator = Paginator(infimas_df, 200)
         # page_number = 1 #request.POST.get('page')
         # infimas_df = paginator.get_page(page_number)
@@ -256,7 +272,7 @@ def infimas(request):
             'busqueda':busqueda,
             'resultados':resultados,
             }
-        
+
         return render(request, 'compras_publicas/infimas.html', context)
 
     context = {
@@ -273,41 +289,41 @@ def procesos_sercop_sql():
             SELECT * FROM procesos_sercop.procesos
             """
         )
-        
+
         columns  = [col[0] for col in cursor.description]
         procesos = [dict(zip(columns, row)) for row in cursor.fetchall()]
-        
+
         procesos = pd.DataFrame(procesos)
-        
+
         return procesos
 
 
 
 def procesos_sercop(request):
-    
+
     procesos = pd.DataFrame(ProcesosSercop.objects.all().order_by('-fecha_hora').values())
     procesos_sql = procesos_sercop_sql()
     procesos_sql = procesos_sql.rename(columns={'Codigo':'proceso'})
-    
+
     procesos = procesos.merge(procesos_sql, on='proceso', how='left')
     procesos = de_dataframe_a_template(procesos)
-    
+
     form = ProcesosSercopForm()
-    
+
     if request.method == 'POST':
         form = ProcesosSercopForm(request.POST)
         if form.is_valid():
             form.save()
             messages.success(request, 'El proceso se agrego correctamente !!!')
             return redirect('/compras-publicas/procesos-sercop')
-            
+
         else:
             messages.error(request, form.errors)
             return redirect('/compras-publicas/procesos-sercop')
-    
+
     context = {
         'procesos':procesos,
         'form':form
     }
-    
+
     return render(request, 'compras_publicas/procesos_sercop.html', context)
