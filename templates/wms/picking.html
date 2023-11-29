@@ -18,9 +18,10 @@
 
 <h6 class="mt-2 text-center"><strong>{{cli}}</strong></h6>
 
-<span class="fw-bold" style="font-size: small;">Pedido: </span> <span style="font-size: small;">{{n_ped|slice:'-2'}}</span> <br>
-<span class="fw-bold" style="font-size: small;">Fecha-Hora: </span> <span style="font-size: small;"> {{fecha|date:'Y-m-d'}} - {{hora}}</span> 
-
+<div class="mt-2 mb-2">   
+    <span class="fw-bold" style="font-size: small;">Pedido: </span> <span style="font-size: small;">{{n_ped|slice:'-2'}}</span> <br>
+    <span class="fw-bold" style="font-size: small;">Fecha-Hora: </span> <span style="font-size: small;"> {{fecha|date:'Y-m-d'}} - {{hora}}</span> 
+</div>
 
 
 {% if messages %}
@@ -45,7 +46,7 @@
 
 <div id="msg"></div>
 
-<div class="card mt-2 mb-2">
+<div class="card mb-2">
     <div class="card-body m-0 p-0">
         <div class="container table-responsive">
             <table class="table" style="font-size: small;" id="mitabla">
@@ -110,13 +111,14 @@
                                         
                                         <tr style="background-color: #e6e6e6;">
                                             <input type="hidden" value="{{n_ped}}" id="n_picking">
-                                            <input type="hidden" value="{{i.item__product_id}}" id="prod_id">
+                                            <input type="hidden" value="{{i.product_id}}" id="prod_id">
+                                            <input type="hidden" value="{{i.ubicacion_id}}" id="ubi">
                                             <td><span id="lote">{{i.lote_id}}</span><br>
-                                                <span class="fw-bold">Exp:</span> {{i.fecha_caducidad}}
+                                                <span class="fw-bold">Exp:</span> <span id="caducidad">{{i.fecha_caducidad}}</span>
                                             </td>
                                             <!--td id="fecha">{{i.item__fecha_caducidad|date:'Y-m-d'}}</td-->
                                             <td class="{% if i.cuarentena %}text-danger{% endif %}">{% if i.cuarentena %}CUC-{% endif %}
-                                                <span id="ubi">{{i.ubicacion__bodega}}.{{i.ubicacion__pasillo}}.{{i.ubicacion__modulo}}.{{i.ubicacion__nivel}}
+                                                <span>{{i.ubicacion__bodega}}.{{i.ubicacion__pasillo}}.{{i.ubicacion__modulo}}.{{i.ubicacion__nivel}}
                                             </span><br>
                                                 <!--<span class="fw-bold">Disp:</span> {{i.disponible|floatformat:"0g"}}-->
                                                 <span class="fw-bold">Disp:</span> {{i.unidades|floatformat:"0g"}}
@@ -126,7 +128,10 @@
                                             <td id="dis" class="text-end">{{i.disponible|floatformat:"0g"}}</td-->
 
                                             <td>
+                                                {% if i.tipo == 'Egreso' %}
+                                                {% else %}
                                                 <input id="picking_cantidad" type="number" class="form-control" {% if i.cuarentena %} disabled {% endif %}>
+                                                {% endif %}
                                             </td>
                                             
                                             <td>
@@ -162,7 +167,6 @@
                 </tbody>
             </table>
         </div>
-          
     </div>
 </div>
 
@@ -180,11 +184,10 @@
     $("button[name='pick']").click(function(){
         var prod_id          = $(this).closest("tr").find("#prod_id").val()
         var lote             = $(this).closest("tr").find("#lote").html()
+        var caducidad        = $(this).closest("tr").find("#caducidad").html()
         var picking_cantidad = $(this).closest("tr").find("#picking_cantidad").val()
         var n_picking        = $(this).closest("tr").find("#n_picking").val()
-        var ubi              = $(this).closest("tr").find("#ubi").html()
-
-        //console.log(lote, picking_cantidad, n_picking, prod_id, ubi)
+        var ubi              = $(this).closest("tr").find("#ubi").val()
 
         $.ajax({
             type:"POST",
@@ -193,6 +196,7 @@
                 'csrfmiddlewaretoken': '{{ csrf_token }}',
                 'prod_id':prod_id,
                 'lote_id':lote,
+                'caducidad':caducidad,
                 'unds'   :picking_cantidad,
                 'n_picking':n_picking,
                 'ubi':ubi

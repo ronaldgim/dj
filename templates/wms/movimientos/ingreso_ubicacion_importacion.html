@@ -90,8 +90,6 @@
             <input type="hidden" name="n_referencia" value="{{item.n_referencia}}">
             <input type="hidden" name="usuario" value="{{request.user.id}}">
 
-            <input type="hidden" name="cuarentena" value="True">
-
             <label class="fw-bold" style="font-size: small;">Selecciona ubicación:</label><br>
             <select class="form-select form-select-sm" name="ubicacion" required>
                 <option value="">---------</option>
@@ -103,6 +101,14 @@
 
             <label class="fw-bold" style="font-size: small;">Unidades:</label>
             <input type="number" class="form-control form-control-sm" name="unidades">
+
+            {% if item.n_referencia == 'inv_in_1' %}
+            <!--input type="hidden" name="cuarentena" value="True"-->
+            <label class="fw-bold" style="font-size: small;">Cuarentena:</label>
+            <input type="checkbox" name="cuarentena" value="True">
+            {% else %}
+            <input type="hidden" name="cuarentena" value="True">
+            {% endif %}
 
             <button class="btn btn-primary btn-sm float-end mt-2" type="submit">
                 <i class="bi bi-send"></i> Guardar
