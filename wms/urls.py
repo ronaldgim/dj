@@ -168,7 +168,7 @@ urlpatterns = [
 
     # Egreso Picking
     path(
-        route='picking/<str:pedido>', 
+        route='picking/<str:n_pedido>', 
         view = views.wms_egreso_picking,
         name = 'wms_egreso_picking'
     ),
