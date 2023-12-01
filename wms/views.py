@@ -816,12 +816,12 @@ def wms_listado_pedidos(request):
 
 
 
-def wms_egreso_picking(request, pedido):
+def wms_egreso_picking(request, n_pedido):
     
     prod   = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     prod   = prod.rename(columns={'product_id':'PRODUCT_ID'})
     
-    pedido = pedido_por_cliente(pedido).sort_values('PRODUCT_ID')
+    pedido = pedido_por_cliente(n_pedido).sort_values('PRODUCT_ID')
     pedido = pedido.merge(prod, on='PRODUCT_ID',how='left')
     
     prod_list = list(pedido['PRODUCT_ID'].unique())
@@ -831,7 +831,7 @@ def wms_egreso_picking(request, pedido):
     fecha = pedido['FECHA_PEDIDO'].iloc[0]
     hora  = pedido['HORA_LLEGADA'].iloc[0]
 
-    movimientos = Movimiento.objects.filter(referencia='Picking').filter(n_referencia=pedido)
+    movimientos = Movimiento.objects.filter(referencia='Picking').filter(n_referencia=n_pedido)
     
     if movimientos.exists():
         mov = pd.DataFrame(movimientos.values(
@@ -844,7 +844,7 @@ def wms_egreso_picking(request, pedido):
         
         mov_group = mov[['product_id','unidades']].groupby(by='product_id').sum()
         mov_group_total = de_dataframe_a_template(mov_group)[0]
-    
+        
         mov = de_dataframe_a_template(mov)
         
     else:
