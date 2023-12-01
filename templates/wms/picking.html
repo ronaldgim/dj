@@ -53,116 +53,150 @@
                 <thead>
                     <tr>
                         <th scope="col">Item</th>
-                        <!--th scope="col">Lote</th-->
                         <th scope="col">Unidades</th>
+                        <th scope="col">Picking unds</th>
                         <th scope="col">Ubicación(es)</th>
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
                     {% for i in pedido %}
-                        <!--tr {% if i.unidades == i.QUANTITY %} style="background-color: #e3fde6;" {% endif %}-->
-                        <tr {% if i.id %} style="background-color: #e3fde6;" {% endif %} >
+                        <tr>
                             <td><span id="prod_id">{{i.PRODUCT_ID}}</span><br>
                                 <span id="prod_name">{{i.PRODUCT_NAME}}</span><br>
                                 <span id="prod_marca">{{i.Marca}}</span><br>
-                            </td>
-                            <!--td>{{i.lote_id}}</td-->
-    
+                            </td>    
                             <td>
                                 <span id="prod_und">{{i.QUANTITY|floatformat:"0g"}}</span> <br>
-                                {% if i.id %}
-                                <span class="fw-bold">Lote: </span>{{i.item__lote_id}} <br>
-                                <span class="fw-bold">Unds: </span>{{i.unidades|floatformat:"0g"}}
-                                {% endif %}
-                            </td>                                    
+                            </td>
+
+                            <td class="text-end" 
+                                {% if i.QUANTITY == i.unds_picks %} 
+                                    style="background-color: #e3fde6;" 
+                                {% elif not i.unds_picks or i.unds_picks < i.QUANTITY %}
+                                    style="background-color: #F6F490;"
+                                {% elif i.QUANTITY < i.unds_picks %}
+                                    style="background-color: #F6B690;" 
+                                {% endif %}>
+                                {{i.unds_picks|default:0}}
+                            </td>
 
                             <td class="text-end">
                                 <button class="btn btn-primary btn-sm" id="{{i.PRODUCT_ID}}" name="boton_ubicaciones"> <!--id="{{i.PRODUCT_ID}}" name="boton_ubicaciones"-->
                                     <i class="bi bi-geo-fill"></i>
                                 </button>
-                                {% if i.id %}
-                                <button class="btn btn-danger btn-sm" id="{{i.id}}" name="eliminar_picking"> <!--id="{{i.PRODUCT_ID}}" name="boton_ubicaciones"-->
-                                    <i class="bi bi-geo-fill"></i>
-                                </button>
-                                {% endif %}
                             </td>
                         </tr>
-                        
+
+                        {# FILA OCULTA DE INVENTARIO Y PICKING #}
                         <tr id="detalle_ubicaciones" style="display: none;">
-                            <td colspan="3">
-                                <table class="table m-0 p-0" style="font-size: smaller;">
+                            <td colspan="4">
+                                <h6 class="fw-bold" style="font-size: small;">Inventario</h6>
+                                <table class="table m-0 p-0" style="font-size: small;">
                                     <thead>
-                                        <tr>
+                                        <tr {% if not i.tipo %} style="background-color: #e6e6e6;" {% else %} style="background-color: #e3fde6;" {% endif %}>
                                             <th scope="col">Lote</th>
-                                            <!--th scope="col">F.Caducidad</th-->
                                             <th scope="col">Ubicación</th>
-                                            <!--th scope="col">Unidades</th>
-                                            <th scope="col">Reservado</th>
-                                            <th scope="col">Disponible</th-->
                                             <th scope="col">Unds-Picking</th>
                                             <th scope="col">Acciones</th>
                                         </tr>
                                     </thead>
+
                                     <tbody>
-                                        
-                                    {% if i.ubi %}
-                                    
-                                    {% for i in i.ubi %}
-                                        
-                                        <tr style="background-color: #e6e6e6;">
-                                            <input type="hidden" value="{{n_ped}}" id="n_picking">
-                                            <input type="hidden" value="{{i.product_id}}" id="prod_id">
-                                            <input type="hidden" value="{{i.ubicacion_id}}" id="ubi">
-                                            <td><span id="lote">{{i.lote_id}}</span><br>
-                                                <span class="fw-bold">Exp:</span> <span id="caducidad">{{i.fecha_caducidad}}</span>
-                                            </td>
-                                            <!--td id="fecha">{{i.item__fecha_caducidad|date:'Y-m-d'}}</td-->
-                                            <td class="{% if i.cuarentena %}text-danger{% endif %}">{% if i.cuarentena %}CUC-{% endif %}
-                                                <span>{{i.ubicacion__bodega}}.{{i.ubicacion__pasillo}}.{{i.ubicacion__modulo}}.{{i.ubicacion__nivel}}
-                                            </span><br>
-                                                <!--<span class="fw-bold">Disp:</span> {{i.disponible|floatformat:"0g"}}-->
-                                                <span class="fw-bold">Disp:</span> {{i.unidades|floatformat:"0g"}}
-                                            </td>
-                                            <!--td id="und" class="text-end">{{i.total_unidades|floatformat:"0g"}}</td>
-                                            <td id="egr" class="text-end">{{i.egreso_temp|floatformat:"0g"}}</td>
-                                            <td id="dis" class="text-end">{{i.disponible|floatformat:"0g"}}</td-->
+                                        {# TABLA DE INVENTARIO #}
+                                        {% if i.ubi %}
+                                        {% for i in i.ubi %}
+                                            {% if not i.tipo %}
+                                            {{i.unds_picks}}
+                                            <tr {% if not i.tipo %} style="background-color: #e6e6e6;" {% else %} style="background-color: #e3fde6;" {% endif %}>
+                                                <input type="hidden" value="{{n_ped}}" id="n_picking">
+                                                <input type="hidden" value="{{i.product_id}}" id="prod_id">
+                                                <input type="hidden" value="{{i.ubicacion_id}}" id="ubi">
 
-                                            <td>
-                                                {% if i.tipo == 'Egreso' %}
-                                                {% else %}
-                                                <input id="picking_cantidad" type="number" class="form-control" {% if i.cuarentena %} disabled {% endif %}>
-                                                {% endif %}
+                                                <td>
+                                                    <span id="lote">{{i.lote_id}}</span><br>
+                                                    <!--span class="fw-bold">Exp:</span--> <span id="caducidad">{{i.fecha_caducidad}}</span>
+                                                </td>
+                                                
+                                                <td class="{% if i.cuarentena %}text-danger{% endif %}">{% if i.cuarentena %}CUC-{% endif %}
+                                                    <span>{{i.ubicacion__bodega}}.{{i.ubicacion__pasillo}}.{{i.ubicacion__modulo}}.{{i.ubicacion__nivel}}</span><br>
+                                                    <span class="fw-bold">Disp:</span> {{i.unidades|floatformat:"0g"}}
+                                                </td>
+
+                                                <td>
+                                                    {% if i.tipo == 'Egreso' %}
+                                                    {% else %}
+                                                    <input id="picking_cantidad" type="number" class="form-control" {% if i.cuarentena %} disabled {% endif %}>
+                                                    {% endif %}
+                                                </td>
+                                                
+                                                <td class="text-center">
+                                                    <button name="pick" type="button" class="btn btn-success btn-sm {% if i.cuarentena %} disabled {% endif %}">
+                                                        <!--i class="bi bi-cart"></i-->
+                                                        <i class="bi bi-arrow-bar-right"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            {% endif %}
+                                        {% endfor %}
+                                
+                                        {# TABLA DE ELEMENTOS PICKEADOS #}
+                                        {% if i.pik %}
+                                        <tr>
+                                            <td colspan="4">
+                                                <h6 class="fw-bold" style="font-size: small;">Picking</h6>
+                                                <table class="table m-0 p-0" style="font-size: smaller; background-color: #edfdff;">
+                                                    <thead>
+                                                        <tr>
+                                                            <th scope="col">Lote</th>
+                                                            <th scope="col">F.Caducidad</th>
+                                                            <th scope="col">Ubicacion</th>
+                                                            <th scope="col">Unds-Picking</th>
+                                                            <th scope="col">Acciones</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {% for j in i.pik %}
+                                                        <tr>
+                                                            <input type="hidden" value="{{n_ped}}" id="reg_n_picking">
+                                                            <input type="hidden" value="{{j.product_id}}" id="reg_prod_id">
+                                                            <input type="hidden" value="{{j.ubicacion_id}}" id="reg_ubi">
+                                                            
+                                                            <td id="reg_lote">{{j.lote_id}}</td>
+                                                            <td id="reg_caducidad">{{j.fecha_caducidad}}</td>
+                                                            <td>{{j.ubicacion__bodega}}.{{j.ubicacion__pasillo}}.{{j.ubicacion__pasillo}}.{{j.ubicacion__modulo}}.{{j.ubicacion__nivel}}</td>
+                                                            <td id="reg_unidades" class="text-end">{{j.unidades|floatformat:"0g"}}</td>
+                                                            <td class="text-center">
+                                                                <!--button class="btn btn-sm btn-danger" name="reg_pick">
+                                                                    <i class="bi bi-arrow-bar-left"></i>
+                                                                </button-->
+                                                                <button class="btn btn-sm btn-danger disabled" name="eliminar_picking" id="{{j.id}}">
+                                                                    <i class="bi bi-arrow-bar-left"></i>
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                        {% endfor %}
+                                                        <tr>
+                                                            <td colspan="2"></td>
+                                                            <td class="text-end fw-bold">Total:</td>
+                                                            <td class="text-end">{{i.unds_picks}}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
                                             </td>
-                                            
-                                            <td>
-                                                <!--button class="btn btn-sm btn-warning" name="shop" id="shop" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
-                                                    <i class="bi bi-cart-check"></i>
-                                                </button-->
-
-                                                <!--button id="{{i.item__lote_id}}" name="seleccionar" type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#picking_modal">
-                                                    <i class="bi bi-cart"></i>
-                                                </button-->
-
-                                                <button name="pick" type="button" class="btn btn-warning btn-sm {% if i.cuarentena %} disabled {% endif %}">
-                                                    <i class="bi bi-cart"></i>
-                                                </button>
-
-                                            </td>
-                                        </tr>
-                                        
-                                    {% endfor %}
+                                        <tr>
+                                        {% endif %}
 
                                     {% else %}
                                         <tr style="background-color:  #fde6e3 ;">
                                             <td colspan="7" class="text-center"> No hay existencias en inventario !!! </td> 
                                         </tr>
                                     {% endif %}
-                                        
+                                    
                                     </tbody>
                                 </table>
                             </td>
                         </tr>
-                        
                     {% endfor %}
                 </tbody>
             </table>
@@ -182,12 +216,12 @@
 <!-- Picking -->
 <script>
     $("button[name='pick']").click(function(){
-        var prod_id          = $(this).closest("tr").find("#prod_id").val()
-        var lote             = $(this).closest("tr").find("#lote").html()
-        var caducidad        = $(this).closest("tr").find("#caducidad").html()
-        var picking_cantidad = $(this).closest("tr").find("#picking_cantidad").val()
-        var n_picking        = $(this).closest("tr").find("#n_picking").val()
-        var ubi              = $(this).closest("tr").find("#ubi").val()
+        var prod_id          = $(this).closest("tr").find("#prod_id").val();
+        var lote             = $(this).closest("tr").find("#lote").html();
+        var caducidad        = $(this).closest("tr").find("#caducidad").html();
+        var picking_cantidad = $(this).closest("tr").find("#picking_cantidad").val();
+        var n_picking        = $(this).closest("tr").find("#n_picking").val();
+        var ubi              = $(this).closest("tr").find("#ubi").val();
 
         $.ajax({
             type:"POST",
@@ -218,6 +252,50 @@
     })
 </script>
 
+
+<!-- Regresar Picking -->
+<!--script>
+    $("button[name='reg_pick']").click(function(){
+        var reg_prod_id          = $(this).closest("tr").find("#reg_prod_id").val();
+        var reg_lote             = $(this).closest("tr").find("#reg_lote").html();
+        var reg_caducidad        = $(this).closest("tr").find("#reg_caducidad").html();
+        var reg_unidades         = $(this).closest("tr").find("#reg_unidades").html();
+        var reg_n_picking        = $(this).closest("tr").find("#reg_n_picking").val();
+        var reg_ubi              = $(this).closest("tr").find("#reg_ubi").val();
+
+        {% comment %}
+        $.ajax({
+            type:"POST",
+            //url:"{#% url 'wms_movimiento_egreso_picking' %#}",
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'prod_id':prod_id,
+                'lote_id':lote,
+                'caducidad':caducidad,
+                'unds'   :picking_cantidad,
+                'n_picking':n_picking,
+                'ubi':ubi
+            },
+
+            success: function() {
+                setTimeout(function(){
+                    window.location.reload();
+                }, 1000)
+            },
+
+            error: function() {
+                $('#msg').html('<div class="text-center alert alert-danger" role="alert"> Error al hacer el picking !!! </div>')
+                    setTimeout(function(){
+                    window.location.reload();
+                    }, 2000)
+            }
+        })
+        {% endcomment %}
+    })
+</script-->
+
+
+
 <!-- Eliminar Picking -->
 <script>
     $("button[name='eliminar_picking']").click(function(){
@@ -232,8 +310,10 @@
             },
 
             success: function() {
-                //window.location.replace(`http://172.16.28.17:8000/wms/picking/${n_picking}`)
-                window.location.reload()
+                $('#msg').html('<div class="text-center alert alert-success" role="alert">Movimiento eliminado !!! </div>')
+                    setTimeout(function(){
+                    window.location.reload();
+                    }, 2000)
             },
             error: function() {
                 $('#msg').html('<div class="text-center alert alert-danger" role="alert"> Error al hacer el picking !!! </div>')

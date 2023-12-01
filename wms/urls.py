@@ -186,4 +186,11 @@ urlpatterns = [
         view = views.wms_eliminar_movimiento,
         name = 'wms_eliminar_movimiento'
     ),
+    
+    # Picking realizados
+    path(
+        route='picking/realizado/list', 
+        view = views.wms_productos_en_despacho_list,
+        name = 'wms_productos_en_despacho_list'
+    ),
 ]

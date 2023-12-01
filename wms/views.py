@@ -500,7 +500,8 @@ def wms_movimiento_interno(request, id):
                 fecha_caducidad = item.fecha_caducidad,
                 lote_id         = item.lote_id,
                 product_id      = item.product_id,
-                cuarentena      = item.cuarentena
+                cuarentena      = item.cuarentena,
+                despacho        = item.despacho
             )
             mov_egreso.save()
 
@@ -516,7 +517,8 @@ def wms_movimiento_interno(request, id):
                 fecha_caducidad = item.fecha_caducidad,
                 lote_id         = item.lote_id,
                 product_id      = item.product_id,
-                cuarentena      = item.cuarentena
+                cuarentena      = item.cuarentena,
+                despacho        = item.despacho
             )
             mov_ingreso.save()
             
@@ -541,6 +543,13 @@ def wms_movimiento_interno(request, id):
     return render(request, 'wms/movimiento_interno.html', context)
 
 
+
+
+
+
+
+
+
 # Listado de liberaciones
 # url: wms/liberaciones
 def wms_lista_liberaciones(request):
@@ -555,6 +564,11 @@ def wms_lista_liberaciones(request):
     
     return render(request, 'wms/movimientos/liberaciones_list.html', context)
     
+
+
+
+
+
 
 
 
@@ -803,12 +817,6 @@ def wms_listado_pedidos(request):
 
 
 def wms_egreso_picking(request, pedido):
-
-    # n_picking = pedido
-    
-    mov = Movimiento.objects.filter(referencia='Picking').filter(n_referencia=pedido)
-    mov = pd.DataFrame(mov.values())
-    mov = de_dataframe_a_template(mov)
     
     prod   = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     prod   = prod.rename(columns={'product_id':'PRODUCT_ID'})
@@ -816,68 +824,92 @@ def wms_egreso_picking(request, pedido):
     pedido = pedido_por_cliente(pedido).sort_values('PRODUCT_ID')
     pedido = pedido.merge(prod, on='PRODUCT_ID',how='left')
     
-    n_ped = pedido['CONTRATO_ID'].iloc[0]
-    cli = pedido['NOMBRE_CLIENTE'].iloc[0]
-    fecha = pedido['FECHA_PEDIDO'].iloc[0]
-    hora = pedido['HORA_LLEGADA'].iloc[0]
-
-    prod_list = list(pedido['PRODUCT_ID'])
+    prod_list = list(pedido['PRODUCT_ID'].unique())
     
-    inv = Existencias.objects.all().values(
+    n_ped = pedido['CONTRATO_ID'].iloc[0]
+    cli   = pedido['NOMBRE_CLIENTE'].iloc[0]
+    fecha = pedido['FECHA_PEDIDO'].iloc[0]
+    hora  = pedido['HORA_LLEGADA'].iloc[0]
+
+    movimientos = Movimiento.objects.filter(referencia='Picking').filter(n_referencia=pedido)
+    
+    if movimientos.exists():
+        mov = pd.DataFrame(movimientos.values(
+            'id','product_id','lote_id','fecha_caducidad','tipo','unidades',
+            'ubicacion_id','ubicacion__bodega','ubicacion__pasillo','ubicacion__modulo','ubicacion__nivel'
+        ))
+
+        mov['fecha_caducidad'] = mov['fecha_caducidad'].astype(str)
+        mov['unidades'] = pd.Series.abs(mov['unidades'])
+        
+        mov_group = mov[['product_id','unidades']].groupby(by='product_id').sum()
+        mov_group_total = de_dataframe_a_template(mov_group)[0]
+    
+        mov = de_dataframe_a_template(mov)
+        
+    else:
+        mov = {}
+        mov_group_total = {'product_id':''}
+
+    inv = Existencias.objects.filter(product_id__in=prod_list).values(
         'product_id','lote_id','fecha_caducidad','unidades',
         'ubicacion_id','ubicacion__bodega','ubicacion__pasillo','ubicacion__modulo','ubicacion__nivel',
         'unidades',
         'cuarentena'
     )
-    inv = pd.DataFrame(inv)
-    inv['fecha_caducidad'] = inv['fecha_caducidad'].astype(str)
     
-    inv = de_dataframe_a_template(inv)
+    if inv.exists():
+        inv = pd.DataFrame(inv)
+        inv['fecha_caducidad'] = inv['fecha_caducidad'].astype(str)
+        inv = de_dataframe_a_template(inv)
+    else:
+        inv = {}
     
     ped = de_dataframe_a_template(pedido)
+    
     for i in prod_list:
         for j in ped:
             if j['PRODUCT_ID'] == i:
                 j['ubi'] = ubi_list = []
-                #j['pic'] = pic_list = []
+                j['pik'] = pik_list = []
+                if mov_group_total['product_id'] == i:
+                    j['unds_picks'] = mov_group_total['unidades']
                 for k in inv:
                     if k['product_id'] == i:
                         ubi_list.append(k)
-                        
                 for m in mov:
                     if m['product_id'] == i:
-                        ubi_list.append(m)
+                        pik_list.append(m)
     
     context = {
         'pedido':ped,
-
         'n_ped':n_ped,
         'cli':cli,
         'fecha': fecha ,
         'hora':hora 
     }
     
-
     return render(request, 'wms/picking.html', context)
 
 
 
 def wms_movimiento_egreso_picking(request):
-
+    
     # Egreso
-    if not request.POST['unds']:
+    unds_egreso = request.POST['unds']
+    if not unds_egreso:
         messages.error(request, 'Error, ingrese una cantidad !!!')
+        unds_egreso = 0
     else:
-        unds_egreso = int(request.POST['unds'])
+        unds_egreso = int(unds_egreso)
         
-    #unds_egreso = int(request.POST['unds'])
-    n_picking   = request.POST['n_picking']
+    n_picking = request.POST['n_picking']
     
     # Item busqueda Existencias
-    prod_id     = request.POST['prod_id']
-    lote_id     = request.POST['lote_id']
-    caducidad   = request.POST['caducidad']
-    ubi         = int(request.POST['ubi'])
+    prod_id   = request.POST['prod_id']
+    lote_id   = request.POST['lote_id']
+    caducidad = request.POST['caducidad']
+    ubi       = int(request.POST['ubi'])
     
     existencia = (Existencias.objects
         .filter(product_id=prod_id,)
@@ -885,13 +917,33 @@ def wms_movimiento_egreso_picking(request):
         .filter(fecha_caducidad=caducidad)
         .filter(ubicacion_id=ubi)
         )
+    
+    movimientos = Movimiento.objects.filter(product_id=prod_id).filter(referencia='Picking').filter(n_referencia=n_picking)
+    
+    if movimientos.exists():
+        mov = pd.DataFrame(movimientos.values('product_id','unidades'))
+        mov['unidades'] = pd.Series.abs(mov['unidades'])
+        mov = mov[['product_id','unidades']].groupby(by='product_id').sum()
+        mov = de_dataframe_a_template(mov)[0]
+        total_mov = mov['unidades'] + int(unds_egreso)
+    else:
+        total_mov = int(unds_egreso)
+    
+    pedido = pedido_por_cliente(n_picking)
+    pedido = pedido[pedido['PRODUCT_ID']==prod_id][['PRODUCT_ID','QUANTITY']]#.reset_index()
+    pedido = pedido.groupby(by='PRODUCT_ID').sum().to_dict('records')[0]
+    total_pedido = pedido['QUANTITY']   
 
     if not existencia.exists():
         messages.error(request, 'Error, revise las existencias o refresque la pagina !!!')
     elif existencia.exists():
         if unds_egreso > existencia.last().unidades:
             messages.error(request, 'No puede retirar más unidades de las existentes !!!')
-        else:
+        elif unds_egreso == 0 or unds_egreso < 0:
+            messages.error(request, 'La cantidad debe ser mayor 0 !!!')
+        elif total_mov > total_pedido:
+            messages.error(request, 'No puede retirar más unidades de las solicitadas en el Picking !!!')
+        elif total_mov <= total_pedido:
             
             picking = Movimiento(
                 product_id      = prod_id,
@@ -912,18 +964,34 @@ def wms_movimiento_egreso_picking(request):
             
             wms_existencias_query()
             messages.success(request, f'Producto {prod_id}, lote {lote_id} seleccionado correctamente !!!')
-
             return HttpResponse('ok')
+        
+        return HttpResponse('fail')
+    return HttpResponse('fail')
 
+
+
+#def wms_movimiento_reverso_picking()
 
 
 def wms_eliminar_movimiento(request):
 
     mov_id = request.POST['mov']
-    mov_id = mov_id[:-2]
     mov_id = int(mov_id)
-
     mov = Movimiento.objects.get(id=mov_id)
     mov.delete()
+    
+    wms_existencias_query()
 
     return HttpResponse('ok')
+
+
+def wms_productos_en_despacho_list(request):
+    
+    mov = Movimiento.objects.filter(referencia='Picking')
+    
+    context = {
+        'mov':mov
+    }
+    
+    return render(request, 'wms/productos_en_despacho_list.html', context)
