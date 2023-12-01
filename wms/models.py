@@ -108,6 +108,7 @@ class Movimiento(models.Model):
     ubicacion       = models.ForeignKey(Ubicacion, verbose_name='Ubicación', max_length=5, on_delete=models.CASCADE, related_name='ubicacion')
     unidades        = models.IntegerField(verbose_name='Unidades ingresadas')
     cuarentena      = models.BooleanField(verbose_name='Cuarentena', default=True)
+    despacho        = models.BooleanField(verbose_name='Despacho', default=False)
 
     usuario         = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.CASCADE, blank=True, null=True)
     fecha_hora      = models.DateTimeField(verbose_name='Fecha Hora', auto_now_add=True)
@@ -124,7 +125,7 @@ class Existencias(models.Model):
     fecha_caducidad = models.DateField(verbose_name='Fecha de caducidad')
     ubicacion       = models.ForeignKey(Ubicacion, verbose_name='Ubicación', max_length=5, on_delete=models.CASCADE, related_name='existencias_ubicacion')
     unidades        = models.PositiveIntegerField(verbose_name='Unidades ingresadas')
-    cuarentena      = models.BooleanField(verbose_name='Cuarentena', default=True)
+    cuarentena      = models.BooleanField(verbose_name='Cuarentena', default=False)
     fecha_hora      = models.DateTimeField(verbose_name='Fecha Hora', auto_now_add=True)
     
     def __str__(self):
@@ -135,6 +136,13 @@ class Existencias(models.Model):
     
 #     documento  = models.CharField(verbose_name='Documento', max_length=100, unique=True)
 #     memo       = models.TextField(verbose_name='Memo', blank=True)
+#     fecha_mba  = models.DateField(verbose_name='Fecha MBA', blank=True)
+    
+#     product_id = models.CharField(verbose_name='Product id', max_length=50)
+#     lote_id    = models.CharField(verbose_name='Lote id', max_length=50)
+#     fecha_caducidad = models.DateField(verbose_name='Fecha de caducidad')
+#     unidades        = models.PositiveIntegerField(verbose_name='Unidades ingresadas')
+    
 #     usuario    = models.ForeignKey(User, verbose_name='User', blank=True, on_delete=models.CASCADE)
 #     fecha_hora = models.DateTimeField(verbose_name='Fecha Hora', auto_now_add=True)
     
