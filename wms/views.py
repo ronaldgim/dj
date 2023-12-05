@@ -6,7 +6,8 @@ from datos.views import (
     productos_odbc_and_django, 
     de_dataframe_a_template, 
     importaciones_llegadas_ocompra_odbc,
-    reservas_lote,
+    wms_reservas_lotes_datos,
+    wms_reservas_lote_consulta,
     
     # DATOS
     wms_datos_doc_liberaciones,
@@ -817,7 +818,7 @@ def wms_listado_pedidos(request):
 
 
 def wms_egreso_picking(request, n_pedido):
-    
+        
     prod   = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     prod   = prod.rename(columns={'product_id':'PRODUCT_ID'})
     
@@ -859,9 +860,13 @@ def wms_egreso_picking(request, n_pedido):
     )
     
     if inv.exists():
-        inv = pd.DataFrame(inv)
+        inv = pd.DataFrame(inv).sort_values(by='fecha_caducidad')
         inv['fecha_caducidad'] = inv['fecha_caducidad'].astype(str)
-        inv = de_dataframe_a_template(inv)
+        
+        r_lote = wms_reservas_lotes_datos()
+        if not r_lote.empty:
+            inv = inv.merge(r_lote, on=['product_id','lote_id'], how='left')        
+            inv = de_dataframe_a_template(inv)
     else:
         inv = {}
     
@@ -984,6 +989,18 @@ def wms_eliminar_movimiento(request):
     wms_existencias_query()
 
     return HttpResponse('ok')
+
+
+def wms_reservas_lote_consulta_ajax(request):
+    
+    
+    prod = request.POST['prod_id']
+    lote = request.POST['lote_id']
+    
+    r_lote = wms_reservas_lote_consulta(prod, lote)
+    
+    return HttpResponse(r_lote)
+
 
 
 def wms_productos_en_despacho_list(request):

@@ -1903,3 +1903,66 @@ def wms_datos_liberacion_bct():
     # CAMBIAR PRODUCT_ID
     
     return df
+
+
+
+def wms_reservas_lotes_datos():
+    r_lote = reservas_lote()[['CONTRATO_ID','CODIGO_CLIENTE','PRODUCT_ID','LOTE_ID','EGRESO_TEMP']]
+    r_lote = r_lote.rename(columns={
+        'PRODUCT_ID':'product_id',
+        'LOTE_ID':'lote_id'}
+    ).drop_duplicates(subset=['product_id','lote_id'])   
+    
+    # cli = clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE']]
+    # r_lote = r_lote.merge(cli, on='CODIGO_CLIENTE', how='left').drop_duplicates(subset=['product_id','lote_id'])
+    
+    return r_lote
+
+
+def wms_reservas_lote_consulta(product_id, lote_id):
+    with connections['gimpromed_sql'].cursor() as cursor:
+        
+        cursor.execute(f"SELECT * FROM reservas_lote WHERE PRODUCT_ID = '{product_id}' AND LOTE_ID = '{lote_id}' ")
+        
+        columns = [col[0] for col in cursor.description]
+        r_lote = [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+        r_lote = pd.DataFrame(r_lote)
+        
+    cli = clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE']]
+    
+    if not r_lote.empty:
+        r_lote = r_lote.merge(cli, on='CODIGO_CLIENTE', how='left')
+            
+        # r_lote = r_lote[['CONTRATO_ID','NOMBRE_CLIENTE','FECHA_PEDIDO','PRODUCT_ID','LOTE_ID','EGRESO_TEMP']]
+        # r_lote = r_lote[['CONTRATO_ID','NOMBRE_CLIENTE','FECHA_PEDIDO','LOTE_ID','EGRESO_TEMP']]
+        r_lote = r_lote[['CONTRATO_ID','NOMBRE_CLIENTE','FECHA_PEDIDO','EGRESO_TEMP']]
+        r_lote = r_lote.rename(columns={
+            'CONTRATO_ID':'Contrato',
+            'NOMBRE_CLIENTE':'Cliente',
+            'FECHA_PEDIDO':'F.Pedido',
+            'PRODUCT_ID':'Item',
+            #'LOTE_ID':'Lote',
+            'EGRESO_TEMP':'Cantidad'
+        })
+        
+        r_lote['F.Pedido']  = pd.to_datetime(r_lote['F.Pedido'])
+        r_lote              = r_lote.sort_values(by='F.Pedido') 
+        r_lote['F.Pedido']  = r_lote['F.Pedido'].astype(str)
+        r_lote['Contrato']  = r_lote['Contrato'].astype(str)
+        r_lote.loc['Total'] = r_lote.sum(numeric_only=True)
+        #r_lote['Cantidad']  = r_lote['Cantidad'].apply(lambda x:'{:,.0f}'.format(x))
+        
+        r_lote = r_lote.fillna('').replace(np.nan,'Total')
+            
+        r_lote = r_lote.to_html(
+            float_format='{:,.0f}'.format,
+            classes='table table-responsive table-bordered m-0 p-0',
+            table_id= 'reservas',
+            index=False,
+            justify='start'
+        )
+        
+    return r_lote 

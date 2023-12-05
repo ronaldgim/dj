@@ -187,6 +187,14 @@ urlpatterns = [
         name = 'wms_eliminar_movimiento'
     ),
     
+    #wms_reservas_lote_consulta_ajax
+    # 
+    path(
+        route='reservas/consulta', 
+        view = views.wms_reservas_lote_consulta_ajax,
+        name = 'wms_reservas_lote_consulta_ajax'
+    ),
+    
     # Picking realizados
     path(
         route='picking/realizado/list', 
