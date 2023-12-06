@@ -201,4 +201,11 @@ urlpatterns = [
         view = views.wms_productos_en_despacho_list,
         name = 'wms_productos_en_despacho_list'
     ),
+    
+    # wms_cruce_picking_factura
+    path(
+        route='cruce/picking/facturas', 
+        view = views.wms_cruce_picking_factura,
+        name = 'wms_cruce_picking_factura'
+    ),
 ]

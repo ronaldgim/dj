@@ -399,7 +399,8 @@ def pedidos_cuenca_odbc(n_pedido): #n_pedido
         
         "SELECT orders.id,seller_code,client_code,client_name,client_identification,orders.created_at,order_products.product_id,orders.status,order_products.product_name,"
         "order_products.product_group_code,order_products.quantity,order_products.price FROM orders LEFT JOIN order_products "
-        f"ON orders.id = order_products.order_id where orders.id='{n_pedido}' AND orders.status='TCR';" 
+        #f"ON orders.id = order_products.order_id where orders.id='{n_pedido}' AND orders.status='TCR';" 
+        f"ON orders.id = order_products.order_id where orders.id='{n_pedido}'" 
     )
         
     mysql_disconnect()
@@ -1919,6 +1920,7 @@ def wms_reservas_lotes_datos():
     return r_lote
 
 
+
 def wms_reservas_lote_consulta(product_id, lote_id):
     with connections['gimpromed_sql'].cursor() as cursor:
         
@@ -1966,3 +1968,24 @@ def wms_reservas_lote_consulta(product_id, lote_id):
         )
         
     return r_lote 
+
+
+def wms_detalle_factura(n_factura):
+
+    cnxn = pyodbc.connect('DSN=mba3;PWD=API')
+
+    query = (
+
+        f"""SELECT CLNT_Factura_Principal.CODIGO_FACTURA, CLNT_Factura_Principal.CODIGO_CLIENTE, CLNT_Factura_Principal.FECHA_FACTURA, INVT_Ficha_Principal.PRODUCT_ID,
+        INVT_Ficha_Principal.PRODUCT_NAME, INVT_Ficha_Principal.GROUP_CODE, INVT_Lotes_Trasabilidad.EGRESO_TEMP, INVT_Lotes_Trasabilidad.LOTE_ID, INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD,
+        INVT_Ficha_Principal.`Custom Field 1`
+        FROM CLNT_Factura_Principal CLNT_Factura_Principal, INVT_Ficha_Principal INVT_Ficha_Principal, INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad
+        WHERE INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP = INVT_Ficha_Principal.PRODUCT_ID_CORP AND CLNT_Factura_Principal.CODIGO_FACTURA = INVT_Lotes_Trasabilidad.DOC_ID_CORP AND
+        ((CLNT_Factura_Principal.CODIGO_FACTURA='{n_factura}') AND (CLNT_Factura_Principal.ANULADA=FALSE))
+        """
+    )
+    
+    df = pd.read_sql_query(query, cnxn)
+    
+    return df
+    
