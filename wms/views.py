@@ -13,6 +13,8 @@ from datos.views import (
     wms_datos_doc_liberaciones,
     wms_datos_liberacion_cuc,
     wms_datos_liberacion_bct,
+    wms_detalle_factura,
+    clientes_warehouse
     )
 
 # Pedidos por clientes
@@ -1012,3 +1014,38 @@ def wms_productos_en_despacho_list(request):
     }
     
     return render(request, 'wms/productos_en_despacho_list.html', context)
+
+
+
+def wms_armar_codigo_factura(n_factura):
+    
+    # FACSI-1001000077438-GIMPR
+    # 000077438 -> 9
+    
+    len_codigo  = 9
+    len_input   = len(n_factura)
+    len_ceros   = len_codigo - len_input
+    input_ceros = '0' * len_ceros
+    
+    n_f = 'FACSI-1001' + input_ceros + n_factura + '-GIMPR'
+    
+    factura = wms_detalle_factura(n_f)
+    cli = clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE']]
+    factura = factura.merge(cli, on='CODIGO_CLIENTE', how='left')
+    
+    return factura
+
+
+def wms_cruce_picking_factura(request):
+    
+    if request.method=="POST":
+        n_factura = request.POST['n_factura']
+        factura = wms_armar_codigo_factura(n_factura)        
+        factura = de_dataframe_a_template(factura)
+        context={
+            'factura':factura,
+            'datos_cabecera':factura[0]
+        }
+        return render(request, 'wms/cruce_picking_factura.html', context)
+    context = {}
+    return render(request, 'wms/cruce_picking_factura.html', context)

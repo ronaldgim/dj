@@ -1,0 +1,88 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Cruce Picking-Factura</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'wms/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+
+<style>
+    .btn.btn-warning.btn-sm.active {
+    background-color: blue;
+}
+</style>
+
+<h6 class="mt-2 text-center"><strong>CRUCE PICKING-FACTURA</strong></h6>
+
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
+<div id="msg"></div>
+
+<form method="POST">
+    {% csrf_token %}
+    <div class="input-group mb-3">
+        <input type="text" class="form-control" placeholder="Ingrese en número de factura" name="n_factura" required>
+        <button class="btn btn-primary" type="submit">Cruzar</button>
+    </div>
+</form>
+
+{% if factura %}
+<h6 class="fw-bold text-center">{{datos_cabecera.NOMBRE_CLIENTE}}</h6>
+<label class="fw-bold">Factura: </label> {{datos_cabecera.CODIGO_FACTURA}}<br>
+<label class="fw-bold">Fecha: </label> {{datos_cabecera.FECHA_FACTURA}}
+
+
+<div class="card mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table" style="font-size: small;" id="mitabla">
+                <thead>
+                    <tr>
+                        <th scope="col">Item</th>
+                        <th scope="col">Lote</th>
+                        <th scope="col">Cantidad</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in factura %}
+                        <tr>
+                            <td>
+                                <span id="prod_id">{{i.PRODUCT_ID}}</span><br>
+                                <span id="prod_name">{{i.PRODUCT_NAME}}</span><br>
+                                <span id="prod_marca">{{i.GROUP_CODE}}</span><br>
+                            </td>    
+
+                            <td>
+                                <span id="prod_id">{{i.LOTE_ID}}</span><br>
+                                <span id="prod_name">{{i.FECHA_CADUCIDAD}}</span><br>
+                            </td> 
+
+                            <td class="text-end">
+                                <span id="prod_und">{{i.EGRESO_TEMP|floatformat:"0g"}}</span> <br>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
