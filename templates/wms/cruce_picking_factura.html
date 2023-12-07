@@ -67,8 +67,8 @@
                     <tr>
                         <th scope="col">Item</th>
                         <th scope="col">Lote-Fecha</th>
-                        <th scope="col">Factura</th>
                         <th scope="col">Picking</th>
+                        <th scope="col">Factura</th>
                         <th scope="col">Pick-Fact</th>
                     </tr>
                 </thead>
@@ -82,16 +82,16 @@
                             </td>    
 
                             <td>
-                                <span id="prod_id">{{i.LOTE_ID}} - {{i.lote_id}}</span><br>
+                                <span id="prod_id">{{i.lote_id}}</span><br>
                                 <span id="prod_name">{{i.FECHA_CADUCIDAD}}</span><br>
                             </td> 
 
                             <td class="text-end">
-                                <span id="prod_und">{{i.EGRESO_TEMP|floatformat:"0g"}}</span> <br>
+                                <span id="prod_und">{{i.unidades|floatformat:"0g"}}</span> <br>
                             </td>
 
                             <td class="text-end">
-                                <span id="prod_und">{{i.unidades|floatformat:"0g"}}</span> <br>
+                                <span id="prod_und">{{i.EGRESO_TEMP|floatformat:"0g"}}</span> <br>
                             </td>
 
                             <td class="text-end" {% if i.diferencia == 0 %} style="background-color: #BAF690;" {% else %} style="background-color: #F6F490;" {% endif %} >

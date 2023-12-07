@@ -1984,7 +1984,8 @@ def wms_detalle_factura(n_factura):
     df['NUMERO_PEDIDO_SISTEMA'] = df['NUMERO_PEDIDO_SISTEMA'].astype(str) + '.0'
     df = df.rename(columns={
             'PRODUCT_ID':'product_id',
-            #'LOTE_ID':'lote_id'
+            'LOTE_ID':'lote_id'
         })
+    
     return df
     
