@@ -1230,7 +1230,7 @@ def factura_lote_odbc(n_factura):
 
     lote_factura = [list(rows) for rows in lote_factura]
     lote_factura = pd.DataFrame(lote_factura)
-
+    
     lote_factura = lote_factura.rename(columns={
         0:'CODIGO_FACTURA',
         1:'CODIGO_CLIENTE',
@@ -1380,6 +1380,20 @@ def tramaco_function(pesototal, producto, trayecto):
     return costototal
 
 
+def tramaco_function_ajax(request):
+
+    producto = request.POST['producto']
+    trayecto = request.POST['trayecto']
+    
+    peso_total = request.POST['peso_total']
+    peso_total = peso_total.replace(',', '.')
+    peso_total = float(peso_total)    
+
+    costo = tramaco_function(peso_total, producto, trayecto)
+
+    return HttpResponse(costo)
+
+
 # Alerta de stock faltante por contrato
 def stock_faltante_contrato(contratos, bodega):
     cont = []
@@ -1515,21 +1529,6 @@ def reservas_lote_product_id(product_id_list):
     reservas = de_dataframe_a_template(reservas)
 
     return reservas
-
-
-def tramaco_function_ajax(request):
-
-    producto = request.POST['producto']
-    trayecto = request.POST['trayecto']
-    
-    peso_total = request.POST['peso_total']
-    peso_total = peso_total.replace(',', '.')
-    peso_total = float(peso_total)    
-
-    costo = tramaco_function(peso_total, producto, trayecto)
-
-    return HttpResponse(costo)
-
 
 
 def reservas_sinlote(): 
@@ -1906,7 +1905,6 @@ def wms_datos_liberacion_bct():
     return df
 
 
-
 def wms_reservas_lotes_datos():
     r_lote = reservas_lote()[['CONTRATO_ID','CODIGO_CLIENTE','PRODUCT_ID','LOTE_ID','EGRESO_TEMP']]
     r_lote = r_lote.rename(columns={
@@ -1918,7 +1916,6 @@ def wms_reservas_lotes_datos():
     # r_lote = r_lote.merge(cli, on='CODIGO_CLIENTE', how='left').drop_duplicates(subset=['product_id','lote_id'])
     
     return r_lote
-
 
 
 def wms_reservas_lote_consulta(product_id, lote_id):
@@ -1973,19 +1970,21 @@ def wms_reservas_lote_consulta(product_id, lote_id):
 def wms_detalle_factura(n_factura):
 
     cnxn = pyodbc.connect('DSN=mba3;PWD=API')
-
-    query = (
-
-        f"""SELECT CLNT_Factura_Principal.CODIGO_FACTURA, CLNT_Factura_Principal.CODIGO_CLIENTE, CLNT_Factura_Principal.FECHA_FACTURA, INVT_Ficha_Principal.PRODUCT_ID,
-        INVT_Ficha_Principal.PRODUCT_NAME, INVT_Ficha_Principal.GROUP_CODE, INVT_Lotes_Trasabilidad.EGRESO_TEMP, INVT_Lotes_Trasabilidad.LOTE_ID, INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD,
-        INVT_Ficha_Principal.`Custom Field 1`
-        FROM CLNT_Factura_Principal CLNT_Factura_Principal, INVT_Ficha_Principal INVT_Ficha_Principal, INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad
-        WHERE INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP = INVT_Ficha_Principal.PRODUCT_ID_CORP AND CLNT_Factura_Principal.CODIGO_FACTURA = INVT_Lotes_Trasabilidad.DOC_ID_CORP AND
-        ((CLNT_Factura_Principal.CODIGO_FACTURA='{n_factura}') AND (CLNT_Factura_Principal.ANULADA=FALSE))
-        """
-    )
+    
+    query = ("SELECT CLNT_Factura_Principal.CODIGO_FACTURA, CLNT_Factura_Principal.CODIGO_CLIENTE, CLNT_Factura_Principal.FECHA_FACTURA, INVT_Ficha_Principal.PRODUCT_ID, INVT_Ficha_Principal.PRODUCT_NAME, INVT_Ficha_Principal.GROUP_CODE, INVT_Lotes_Trasabilidad.EGRESO_TEMP, INVT_Lotes_Trasabilidad.LOTE_ID, INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD, INVT_Ficha_Principal.`Custom Field 1`, CLNT_Factura_Principal.NUMERO_PEDIDO_SISTEMA "
+    "FROM CLNT_Factura_Principal CLNT_Factura_Principal, INVT_Ficha_Principal INVT_Ficha_Principal, INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad "
+    # "WHERE INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP = INVT_Ficha_Principal.PRODUCT_ID_CORP AND CLNT_Factura_Principal.CODIGO_FACTURA = INVT_Lotes_Trasabilidad.DOC_ID_CORP AND ((CLNT_Factura_Principal.CODIGO_FACTURA='FCSRI-1001000080547-GIMPR') AND (CLNT_Factura_Principal.ANULADA=FALSE))")
+    f"WHERE INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP = INVT_Ficha_Principal.PRODUCT_ID_CORP AND CLNT_Factura_Principal.CODIGO_FACTURA = INVT_Lotes_Trasabilidad.DOC_ID_CORP AND ((CLNT_Factura_Principal.CODIGO_FACTURA='{n_factura}') AND (CLNT_Factura_Principal.ANULADA=FALSE))")
     
     df = pd.read_sql_query(query, cnxn)
-    
+    cli = clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE','IDENTIFICACION_FISCAL']]
+    df = df.merge(cli, on='CODIGO_CLIENTE', how='left')
+    df['FECHA_FACTURA']   = df['FECHA_FACTURA'].astype(str)
+    df['FECHA_CADUCIDAD'] = df['FECHA_CADUCIDAD'].astype(str)
+    df['NUMERO_PEDIDO_SISTEMA'] = df['NUMERO_PEDIDO_SISTEMA'].astype(str) + '.0'
+    df = df.rename(columns={
+            'PRODUCT_ID':'product_id',
+            #'LOTE_ID':'lote_id'
+        })
     return df
     

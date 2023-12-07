@@ -1027,13 +1027,29 @@ def wms_armar_codigo_factura(n_factura):
     len_ceros   = len_codigo - len_input
     input_ceros = '0' * len_ceros
     
-    n_f = 'FACSI-1001' + input_ceros + n_factura + '-GIMPR'
+    n_f = 'FCSRI-1001' + input_ceros + n_factura + '-GIMPR'
     
     factura = wms_detalle_factura(n_f)
-    cli = clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE']]
-    factura = factura.merge(cli, on='CODIGO_CLIENTE', how='left')
-    
-    return factura
+    if not factura.empty:
+
+        fn_pedido = de_dataframe_a_template(factura)[0]['NUMERO_PEDIDO_SISTEMA']
+
+        picking = pd.DataFrame(Movimiento.objects.filter(n_referencia = fn_pedido).values())
+        picking = picking.groupby(by=['product_id','lote_id']).sum()
+        
+        factura = factura.merge(picking, on=['product_id'], how='left').fillna(0)
+        factura['unidades'] = factura['unidades'].abs()
+        factura['diferencia'] = factura['unidades'] - factura['EGRESO_TEMP']
+        
+        factura = {
+            'factura':de_dataframe_a_template(factura),
+            'cabecera':de_dataframe_a_template(factura)[0]
+        }
+        
+        return factura
+
+    else:
+        return {'msg':'Factura no encontrada !!!'}
 
 
 def wms_cruce_picking_factura(request):
@@ -1041,10 +1057,9 @@ def wms_cruce_picking_factura(request):
     if request.method=="POST":
         n_factura = request.POST['n_factura']
         factura = wms_armar_codigo_factura(n_factura)        
-        factura = de_dataframe_a_template(factura)
+        
         context={
             'factura':factura,
-            'datos_cabecera':factura[0]
         }
         return render(request, 'wms/cruce_picking_factura.html', context)
     context = {}
