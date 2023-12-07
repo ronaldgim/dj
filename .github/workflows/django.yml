@@ -30,5 +30,5 @@ jobs:
         python manage.py test
     - name: Execute Pull and Install Script
       run: |
-        curl -X GET https://a932-186-3-59-10.ngrok-free.app/pull
+        curl -X GET https://c75d-186-3-59-10.ngrok-free.app/pull
     
