@@ -1035,9 +1035,9 @@ def wms_armar_codigo_factura(n_factura):
         fn_pedido = de_dataframe_a_template(factura)[0]['NUMERO_PEDIDO_SISTEMA']
 
         picking = pd.DataFrame(Movimiento.objects.filter(n_referencia = fn_pedido).values())
-        picking = picking.groupby(by=['product_id','lote_id']).sum()
+        picking = picking.groupby(by=['product_id','lote_id']).sum().reset_index()
         
-        factura = factura.merge(picking, on=['product_id'], how='left').fillna(0)
+        factura = factura.merge(picking, on=['product_id','lote_id'], how='left').fillna(0)
         factura['unidades'] = factura['unidades'].abs()
         factura['diferencia'] = factura['unidades'] - factura['EGRESO_TEMP']
         
