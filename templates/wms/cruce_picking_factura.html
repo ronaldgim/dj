@@ -35,6 +35,7 @@
 
 <div id="msg"></div>
 
+
 <form method="POST">
     {% csrf_token %}
     <div class="input-group mb-3">
@@ -43,10 +44,19 @@
     </div>
 </form>
 
+{% if factura.msg %}
+    <div class="alert text-center alert-danger" role="alert">
+        {{factura.msg}}
+    </div>
+{% endif %}
+
+
 {% if factura %}
-<h6 class="fw-bold text-center">{{datos_cabecera.NOMBRE_CLIENTE}}</h6>
-<label class="fw-bold">Factura: </label> {{datos_cabecera.CODIGO_FACTURA}}<br>
-<label class="fw-bold">Fecha: </label> {{datos_cabecera.FECHA_FACTURA}}
+<h6 class="fw-bold text-center">{{factura.cabecera.NOMBRE_CLIENTE}}</h6>
+<label class="fw-bold">RUC: </label> {{factura.cabecera.IDENTIFICACION_FISCAL}}<br>
+<label class="fw-bold">Factura: </label> {{factura.cabecera.CODIGO_FACTURA}}<br>
+<label class="fw-bold">Picking: </label> {{factura.cabecera.NUMERO_PEDIDO_SISTEMA}}<br>
+<label class="fw-bold">Fecha: </label> {{factura.cabecera.FECHA_FACTURA}}
 
 
 <div class="card mb-2">
@@ -56,26 +66,36 @@
                 <thead>
                     <tr>
                         <th scope="col">Item</th>
-                        <th scope="col">Lote</th>
-                        <th scope="col">Cantidad</th>
+                        <th scope="col">Lote-Fecha</th>
+                        <th scope="col">Factura</th>
+                        <th scope="col">Picking</th>
+                        <th scope="col">Pick-Fact</th>
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
-                    {% for i in factura %}
+                    {% for i in factura.factura %}
                         <tr>
                             <td>
-                                <span id="prod_id">{{i.PRODUCT_ID}}</span><br>
+                                <span id="prod_id">{{i.product_id}}</span><br>
                                 <span id="prod_name">{{i.PRODUCT_NAME}}</span><br>
                                 <span id="prod_marca">{{i.GROUP_CODE}}</span><br>
                             </td>    
 
                             <td>
-                                <span id="prod_id">{{i.LOTE_ID}}</span><br>
+                                <span id="prod_id">{{i.LOTE_ID}} - {{i.lote_id}}</span><br>
                                 <span id="prod_name">{{i.FECHA_CADUCIDAD}}</span><br>
                             </td> 
 
                             <td class="text-end">
                                 <span id="prod_und">{{i.EGRESO_TEMP|floatformat:"0g"}}</span> <br>
+                            </td>
+
+                            <td class="text-end">
+                                <span id="prod_und">{{i.unidades|floatformat:"0g"}}</span> <br>
+                            </td>
+
+                            <td class="text-end" {% if i.diferencia == 0 %} style="background-color: #BAF690;" {% else %} style="background-color: #F6F490;" {% endif %} >
+                                <span id="prod_und">{{i.diferencia|floatformat:"0g"}}</span> <br>
                             </td>
                         </tr>
                     {% endfor %}
