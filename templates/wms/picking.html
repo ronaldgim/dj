@@ -38,9 +38,8 @@
 {% endfor %}
 {% endif %}
 
-<!--h6 class="m-4 text-end"><strong>Actulizado: </strong>{{actualizado|slice:':-7'}}</h6-->
 
-<!-- div class="col-12 mb-2">
+<!--div class="col-12 mb-2">
     <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
 </div-->
 
@@ -397,4 +396,17 @@
         })
     })
 </script>
+
+<!--filtro buscar-->
+<!--script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script-->
 {% endblock %}
