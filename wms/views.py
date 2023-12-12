@@ -845,14 +845,15 @@ def wms_egreso_picking(request, n_pedido):
         mov['fecha_caducidad'] = mov['fecha_caducidad'].astype(str)
         mov['unidades'] = pd.Series.abs(mov['unidades'])
         
-        mov_group = mov[['product_id','unidades']].groupby(by='product_id').sum()
-        mov_group_total = de_dataframe_a_template(mov_group)[0]
+        unds_pickeadas = mov[['product_id','unidades']].groupby(by='product_id').sum().reset_index()
+        unds_pickeadas = unds_pickeadas.rename(columns={'product_id':'PRODUCT_ID'})
+        pedido = pedido.merge(unds_pickeadas, on='PRODUCT_ID', how='left')
         
         mov = de_dataframe_a_template(mov)
         
     else:
         mov = {}
-        mov_group_total = {'product_id':''}
+
 
     inv = Existencias.objects.filter(product_id__in=prod_list).values(
         'product_id','lote_id','fecha_caducidad','unidades',
@@ -867,7 +868,7 @@ def wms_egreso_picking(request, n_pedido):
         
         r_lote = wms_reservas_lotes_datos()
         if not r_lote.empty:
-            inv = inv.merge(r_lote, on=['product_id','lote_id'], how='left')        
+            inv = inv.merge(r_lote, on=['product_id','lote_id'], how='left')
             inv = de_dataframe_a_template(inv)
     else:
         inv = {}
@@ -879,8 +880,8 @@ def wms_egreso_picking(request, n_pedido):
             if j['PRODUCT_ID'] == i:
                 j['ubi'] = ubi_list = []
                 j['pik'] = pik_list = []
-                if mov_group_total['product_id'] == i:
-                    j['unds_picks'] = mov_group_total['unidades']
+                # if mov_group_total['product_id'] == i:
+                #     j['unds_picks'] = mov_group_total['unidades']
                 for k in inv:
                     if k['product_id'] == i:
                         ubi_list.append(k)
