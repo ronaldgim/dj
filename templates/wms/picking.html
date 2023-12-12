@@ -64,14 +64,14 @@
                             </td>
 
                             <td class="text-end" 
-                                {% if i.QUANTITY == i.unds_picks %} 
+                                {% if i.QUANTITY == i.unidades %} 
                                     style="background-color: #e3fde6;" 
-                                {% elif not i.unds_picks or i.unds_picks < i.QUANTITY %}
+                                {% elif not i.unidades or i.unidades < i.QUANTITY %}
                                     style="background-color: #F6F490;"
-                                {% elif i.QUANTITY < i.unds_picks %}
+                                {% elif i.QUANTITY < i.unidades %}
                                     style="background-color: #F6B690;" 
                                 {% endif %}>
-                                {{i.unds_picks|default:0}}
+                                {{i.unidades|default:0}}
                             </td>
 
                             <td class="text-end">
@@ -91,7 +91,7 @@
                                             <th scope="col">Lote</th>
                                             <th scope="col">Ubicación</th>
 
-                                            <th scope="col">Reservas</th>
+                                            <!--th scope="col">Reservas</th-->
 
                                             <th scope="col">Unds-Picking</th>
                                             <th scope="col">Acciones</th>
@@ -110,23 +110,18 @@
                                                 <input type="hidden" value="{{i.ubicacion_id}}" id="ubi">
 
                                                 <td>
-                                                    <span id="lote">{{i.lote_id}}</span><br>
-                                                    <!--span class="fw-bold">Exp:</span--> <span id="caducidad">{{i.fecha_caducidad}}</span>
+                                                    <input type="hidden" value="{{i.lote_id}}" id="lote_id">
+                                                    {% if i.EGRESO_TEMP %}
+                                                    <button class="btn btn-warning btn-sm text-sm" id="{{i.lote_id}}" name="reservas" data-bs-toggle="modal" data-bs-target="#exampleModal">{{i.lote_id}}</button><br>
+                                                    {% else %}
+                                                    <span>{{i.lote_id}}</span><br>
+                                                    {% endif %}
+                                                    <span id="caducidad">{{i.fecha_caducidad}}</span>
                                                 </td>
                                                 
                                                 <td class="{% if i.cuarentena %}text-danger{% endif %}">{% if i.cuarentena %}CUC-{% endif %}
                                                     <span>{{i.ubicacion__bodega}}.{{i.ubicacion__pasillo}}.{{i.ubicacion__modulo}}.{{i.ubicacion__nivel}}</span><br>
                                                     <span class="fw-bold">Disp:</span> {{i.unidades|floatformat:"0g"}}
-                                                </td>
-
-                                                <td>
-                                                    {% if i.EGRESO_TEMP %}
-                                                        <button class="btn btn-sm btn-warning" name="reservas" data-bs-toggle="modal" data-bs-target="#exampleModal">
-                                                            <i class="bi bi-search"></i>
-                                                        </button>
-                                                    {% else %}
-                                                        <button class="btn btn-sm btn-secondary" disabled><i class="bi bi-search"></i></button>
-                                                    {% endif %}
                                                 </td>
 
                                                 <td>
@@ -232,10 +227,17 @@
 
 
 <!-- Desplegar ubicaciones -->
+<!--style>
+    .seleccionada {
+        background-color: lightblue; /* Puedes cambiar el color aquí */
+    }
+</style-->
 <script>
     $(document).ready(function(){
         $("button[name='boton_ubicaciones']").click(function(){
-            $(this).closest("tr").next("#detalle_ubicaciones").toggle()
+            var fila = $(this).closest("tr")
+            fila.next("#detalle_ubicaciones").toggle();
+            fila.toggleClass("table-info")
         })
     })
 </script>
@@ -244,12 +246,12 @@
 <script>
     $("button[name='pick']").click(function(){
         var prod_id          = $(this).closest("tr").find("#prod_id").val();
-        var lote             = $(this).closest("tr").find("#lote").html();
+        var lote             = $(this).closest("tr").find("#lote_id").val();
         var caducidad        = $(this).closest("tr").find("#caducidad").html();
         var picking_cantidad = $(this).closest("tr").find("#picking_cantidad").val();
         var n_picking        = $(this).closest("tr").find("#n_picking").val();
         var ubi              = $(this).closest("tr").find("#ubi").val();
-
+        
         $.ajax({
             type:"POST",
             url:"{% url 'wms_movimiento_egreso_picking' %}",
@@ -355,8 +357,9 @@
 <script>
     $("button[name='reservas']").click(function(){
         var prod_id          = $(this).closest("tr").find("#prod_id").val();
-        var lote             = $(this).closest("tr").find("#lote").html();
-
+        //var lote             = $(this).closest("tr").find("#lote").html();
+        var lote             = $(this).attr('id')
+        console.log(lote)
         $.ajax({
             type:"POST",
             url:"{% url 'wms_reservas_lote_consulta_ajax' %}",
