@@ -1944,7 +1944,7 @@ def wms_reservas_lote_consulta(product_id, lote_id):
             'FECHA_PEDIDO':'F.Pedido',
             'PRODUCT_ID':'Item',
             #'LOTE_ID':'Lote',
-            'EGRESO_TEMP':'Cantidad'
+            'EGRESO_TEMP':'Unds'
         })
         
         r_lote['F.Pedido']  = pd.to_datetime(r_lote['F.Pedido'])
@@ -1952,14 +1952,14 @@ def wms_reservas_lote_consulta(product_id, lote_id):
         r_lote['F.Pedido']  = r_lote['F.Pedido'].astype(str)
         r_lote['Contrato']  = r_lote['Contrato'].astype(str)
         r_lote.loc['Total'] = r_lote.sum(numeric_only=True)
-        #r_lote['Cantidad']  = r_lote['Cantidad'].apply(lambda x:'{:,.0f}'.format(x))
+        r_lote['Unds']      = r_lote['Unds'].apply(lambda x:'{:,.0f}'.format(x))
         
         r_lote = r_lote.fillna('').replace(np.nan,'Total')
-            
+        
         r_lote = r_lote.to_html(
             float_format='{:,.0f}'.format,
             classes='table table-responsive table-bordered m-0 p-0',
-            table_id= 'reservas',
+            table_id= 'reservas_table',
             index=False,
             justify='start'
         )
