@@ -19,7 +19,7 @@
 
 <div class="mt-2 mb-2">   
     <span class="fw-bold" style="font-size: small;">Pedido: </span> <span style="font-size: small;">{{n_ped|slice:'-2'}}</span> <br>
-    <span class="fw-bold" style="font-size: small;">Fecha-Hora: </span> <span style="font-size: small;"> {{fecha|date:'Y-m-d'}} - {{hora}}</span> 
+    <span class="fw-bold" style="font-size: small;">Fecha-Hora: </span> <span style="font-size: small;"> {{fecha|date:'Y-m-d'}} {{hora}}</span> 
 </div>
 
 
@@ -71,7 +71,7 @@
                                 {% elif i.QUANTITY < i.unidades %}
                                     style="background-color: #F6B690;" 
                                 {% endif %}>
-                                {{i.unidades|default:0}}
+                                {{i.unidades|default:0|floatformat:'0g'}}
                             </td>
 
                             <td class="text-end">
@@ -177,12 +177,12 @@
                                                             </td>
                                                         </tr>
                                                         {% endfor %}
-                                                        <tr>
+                                                        <!--tr>
                                                             <td colspan="2"></td>
                                                             <td class="text-end fw-bold">Total:</td>
                                                             <td class="text-end">{{i.unds_picks}}</td>
                                                             <td></td>
-                                                        </tr>
+                                                        </tr-->
                                                     </tbody>
                                                 </table>
                                             </td>
@@ -265,10 +265,13 @@
                 'ubi':ubi
             },
 
-            success: function() {
+            success: function(response) {
                 setTimeout(function(){
                     window.location.reload();
-                }, 1000)
+                }, 1000);
+                if(response.msg) {
+                    alert(response.msg)
+                }
             },
 
             error: function() {
@@ -338,16 +341,20 @@
             },
 
             success: function() {
-                $('#msg').html('<div class="text-center alert alert-success" role="alert">Movimiento eliminado !!! </div>')
-                    setTimeout(function(){
+                setTimeout(function(){
                     window.location.reload();
-                    }, 2000)
+                    }, 2000);
+                if(response.msg){
+                    alert(response.msg)
+                }
             },
             error: function() {
-                $('#msg').html('<div class="text-center alert alert-danger" role="alert"> Error al hacer el picking !!! </div>')
-                    setTimeout(function(){
+                setTimeout(function(){
                     window.location.reload();
-                    }, 2000)
+                    }, 2000);
+                if(response.msg) {
+                    alert('Error al eliminar picking !!!')
+                }
             }
         })
     })
@@ -359,7 +366,7 @@
         var prod_id          = $(this).closest("tr").find("#prod_id").val();
         //var lote             = $(this).closest("tr").find("#lote").html();
         var lote             = $(this).attr('id')
-        console.log(lote)
+        
         $.ajax({
             type:"POST",
             url:"{% url 'wms_reservas_lote_consulta_ajax' %}",

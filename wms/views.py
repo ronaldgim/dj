@@ -906,8 +906,9 @@ def wms_movimiento_egreso_picking(request):
     # Egreso
     unds_egreso = request.POST['unds']
     if not unds_egreso:
-        messages.error(request, 'Error, ingrese una cantidad !!!')
+        #messages.error(request, 'Error, ingrese una cantidad !!!')
         unds_egreso = 0
+        return JsonResponse({'msg':'❌ Error, ingrese una cantidad !!!'})
     else:
         unds_egreso = int(unds_egreso)
         
@@ -943,14 +944,18 @@ def wms_movimiento_egreso_picking(request):
     total_pedido = pedido['QUANTITY']   
 
     if not existencia.exists():
-        messages.error(request, 'Error, revise las existencias o refresque la pagina !!!')
+        #messages.error(request, 'Error, revise las existencias o refresque la pagina !!!')
+        return JsonResponse({'msg':'❌ Error, revise las existencias o refresque la pagina !!!'})
     elif existencia.exists():
         if unds_egreso > existencia.last().unidades:
-            messages.error(request, 'No puede retirar más unidades de las existentes !!!')
+            #messages.error(request, 'No puede retirar más unidades de las existentes !!!')
+            return JsonResponse({'msg':'❌ No puede retirar más unidades de las existentes !!!'})
         elif unds_egreso == 0 or unds_egreso < 0:
-            messages.error(request, 'La cantidad debe ser mayor 0 !!!')
+            #messages.error(request, 'La cantidad debe ser mayor 0 !!!')
+            return JsonResponse({'msg':'❌ La cantidad debe ser mayor 0 !!!'})
         elif total_mov > total_pedido:
-            messages.error(request, 'No puede retirar más unidades de las solicitadas en el Picking !!!')
+            #messages.error(request, 'No puede retirar más unidades de las solicitadas en el Picking !!!')
+            return JsonResponse({'msg':'❌ No puede retirar más unidades de las solicitadas en el Picking !!!'})
         elif total_mov <= total_pedido:
             
             picking = Movimiento(
@@ -971,11 +976,15 @@ def wms_movimiento_egreso_picking(request):
             picking.save()
             
             wms_existencias_query()
-            messages.success(request, f'Producto {prod_id}, lote {lote_id} seleccionado correctamente !!!')
-            return HttpResponse('ok')
-        
-        return HttpResponse('fail')
-    return HttpResponse('fail')
+            #messages.success(request, f'Producto {prod_id}, lote {lote_id} seleccionado correctamente !!!')
+            #return HttpResponse('ok')
+            return JsonResponse({'msg':f'✔ Producto {prod_id}, lote {lote_id} seleccionado correctamente !!!'})
+            
+        #return HttpResponse('fail')
+        return JsonResponse({'msg':'❌ Error !!!'})
+    
+    #return HttpResponse('fail')
+    return JsonResponse({'msg':'❌Error !!!'})
 
 
 
@@ -991,7 +1000,7 @@ def wms_eliminar_movimiento(request):
     
     wms_existencias_query()
 
-    return HttpResponse('ok')
+    return JsonResponse({'msg':'Egreso eliminado ✔!!!'})
 
 
 def wms_reservas_lote_consulta_ajax(request):
