@@ -43,7 +43,7 @@
 <div class="card mb-2">
     <div class="card-body m-0 p-0">
         <div class="container table-responsive">
-            <table class="table" style="font-size: small;" id="mitabla">
+            <table class="table" style="font-size: smaller;" id="mitabla">
                 <thead>
                     <tr>
                         <th scope="col">Item</th>
@@ -75,7 +75,7 @@
                             </td>
 
                             <td class="text-end">
-                                <button class="btn btn-primary btn-sm" id="{{i.PRODUCT_ID}}" name="boton_ubicaciones"> <!--id="{{i.PRODUCT_ID}}" name="boton_ubicaciones"-->
+                                <button class="btn btn-primary btn-sm" id="{{i.PRODUCT_ID}}" name="boton_ubicaciones"> 
                                     <i class="bi bi-geo-fill"></i>
                                 </button>
                             </td>
@@ -85,14 +85,11 @@
                         <tr id="detalle_ubicaciones" style="display: none;">
                             <td colspan="4">
                                 <h6 class="fw-bold" style="font-size: small;">Inventario</h6>
-                                <table class="table m-0 p-0" style="font-size: small;">
+                                <table class="table m-0 p-0" style="font-size: smaller;">
                                     <thead>
                                         <tr {% if not i.tipo %} style="background-color: #e6e6e6;" {% else %} style="background-color: #e3fde6;" {% endif %}>
                                             <th scope="col">Lote</th>
                                             <th scope="col">Ubicación</th>
-
-                                            <!--th scope="col">Reservas</th-->
-
                                             <th scope="col">Unds-Picking</th>
                                             <th scope="col">Acciones</th>
                                         </tr>
@@ -112,7 +109,7 @@
                                                 <td>
                                                     <input type="hidden" value="{{i.lote_id}}" id="lote_id">
                                                     {% if i.EGRESO_TEMP %}
-                                                    <button class="btn btn-warning btn-sm text-sm" id="{{i.lote_id}}" name="reservas" data-bs-toggle="modal" data-bs-target="#exampleModal">{{i.lote_id}}</button><br>
+                                                    <button class="text-sm m-0 p-0" style="background-color:yellow" id="{{i.lote_id}}" name="reservas" data-bs-toggle="modal" data-bs-target="#exampleModal">{{i.lote_id}}</button><br>
                                                     {% else %}
                                                     <span>{{i.lote_id}}</span><br>
                                                     {% endif %}
