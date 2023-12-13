@@ -452,7 +452,6 @@ def inventario_agregar(request, bodega, ubicacion):
 @login_required(login_url='login')
 def reporte_completo_excel(request):
     
-
     # Conf Usuario
     users    = pd.DataFrame(User.objects.all().values())
     users = users.rename(columns={'id':'user_id'})
@@ -472,7 +471,9 @@ def reporte_completo_excel(request):
     reporte_completo_excel['diferencia_ok'] = reporte_completo_excel['total_unidades'] - reporte_completo_excel['oh2']
 
     reporte_completo_excel = reporte_completo_excel[[
-        'product_name', 'group_code', 'um', 'oh', 'oh2', 'commited', 'lote_id', 'fecha_elab_lote','fecha_cadu_lote', 'ware_code', 'location', 'unidades_caja', 'numero_cajas', 'unidades_sueltas', 'total_unidades',
+        'product_name', 'group_code', 'um', 'oh', 'oh2', 'commited', 
+        'quantity', 
+        'lote_id', 'fecha_elab_lote','fecha_cadu_lote', 'ware_code', 'location', 'unidades_caja', 'numero_cajas', 'unidades_sueltas', 'total_unidades',
         'diferencia_ok', 'observaciones', 'llenado', 'agregado', 'usuario'
     ]]
 
@@ -600,6 +601,11 @@ def volumen_bodegas(request):
     }
         
     return render(request, 'inventario/volumen.html', context)
+
+
+
+
+
 
 
 
@@ -809,7 +815,7 @@ def arqueos_por_bodega(request):
     
     prod = ArqueoFisico.objects.filter(id_arqueo=arqueo_id).values_list('product_id', flat=True).distinct()
     prod_list = list(prod)
-   
+
     reservas_list = {}
     reservas_list['reservas'] = reservas_lote_product_id(prod_list)
     reservas_mba = json.dumps(reservas_list)
