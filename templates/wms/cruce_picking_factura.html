@@ -70,6 +70,7 @@
                         <th scope="col">Picking</th>
                         <th scope="col">Factura</th>
                         <th scope="col">Pick-Fact</th>
+                        <th scope="col">Check</th>
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
@@ -96,6 +97,17 @@
 
                             <td class="text-end" {% if i.diferencia == 0 %} style="background-color: #BAF690;" {% else %} style="background-color: #F6F490;" {% endif %} >
                                 <span id="prod_und">{{i.diferencia|floatformat:"0g"}}</span> <br>
+                            </td>
+
+                            <td class="text-center">
+                                <button 
+                                    {% if i.despacho and i.diferencia == 0 %} 
+                                        class="btn btn-sm btn-primary" 
+                                    {% elif not i.despacho %} 
+                                        class="btn btn-sm btn-primary disabled" 
+                                    {% endif %}>
+                                        <i class="bi bi-truck"></i>
+                                </button>
                             </td>
                         </tr>
                     {% endfor %}
