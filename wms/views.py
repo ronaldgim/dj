@@ -978,7 +978,7 @@ def wms_movimiento_egreso_picking(request):
             wms_existencias_query()
             #messages.success(request, f'Producto {prod_id}, lote {lote_id} seleccionado correctamente !!!')
             #return HttpResponse('ok')
-            return JsonResponse({'msg':f'✔ Producto {prod_id}, lote {lote_id} seleccionado correctamente !!!'})
+            return JsonResponse({'msg':f'✅ Producto {prod_id}, lote {lote_id} seleccionado correctamente !!!'})
             
         #return HttpResponse('fail')
         return JsonResponse({'msg':'❌ Error !!!'})
@@ -1074,3 +1074,29 @@ def wms_cruce_picking_factura(request):
         return render(request, 'wms/cruce_picking_factura.html', context)
     context = {}
     return render(request, 'wms/cruce_picking_factura.html', context)
+
+
+
+def wms_cruce_check_despacho(request):
+    
+    n_pick  = request.POST['n_picking']
+    prod_id = request.POST['prod_id']
+    lote_id = request.POST['lote_id']
+    
+    items = (Movimiento.objects
+        .filter(n_referencia=n_pick)
+        .filter(product_id=prod_id)
+        .filter(lote_id=lote_id)
+        )
+    
+    if items.exists():
+        #items.update(despacho=True)
+        
+        return JsonResponse({
+            'msg':'✅!!!',
+            })
+        
+    else:
+        return JsonResponse({
+            'msg':'❌!!!',
+            })    
