@@ -208,4 +208,11 @@ urlpatterns = [
         view = views.wms_cruce_picking_factura,
         name = 'wms_cruce_picking_factura'
     ),
+    
+    # wms_cruce_check_despacho
+    path(
+        route='cruce/check/despacho',
+        view = views.wms_cruce_check_despacho,
+        name = 'wms_cruce_check_despacho'
+    ),
 ]

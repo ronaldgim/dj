@@ -12,8 +12,29 @@
 
 <style>
     .btn.btn-warning.btn-sm.active {
-    background-color: blue;
-}
+    background-color: blue;}
+
+    .mensaje-temporal {
+        display: none;
+        position: absolute;
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+    }
+
+    #msg_ss {
+        display: none;
+        position: fixed; /* Cambiado a fixed para que sea relativo a la ventana */
+        bottom: 10px; /* Distancia desde la parte inferior */
+        right: 10px; /* Distancia desde la derecha */
+        /*background-color: #4CAF50;*/
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+        width:auto;
+        z-index: 3;
+        }
 </style>
 
 <h6 class="mt-2 text-center"><strong>CRUCE PICKING-FACTURA</strong></h6>
@@ -34,6 +55,7 @@
 {% endif %}
 
 <div id="msg"></div>
+<div id="msg_ss"></div>
 
 
 <form method="POST">
@@ -51,13 +73,16 @@
 {% endif %}
 
 
+<div class="mensaje-temporal" id="miMensajeTemporal"></div>
+
 {% if factura %}
 <h6 class="fw-bold text-center">{{factura.cabecera.NOMBRE_CLIENTE}}</h6>
 <label class="fw-bold">RUC: </label> {{factura.cabecera.IDENTIFICACION_FISCAL}}<br>
 <label class="fw-bold">Factura: </label> {{factura.cabecera.CODIGO_FACTURA}}<br>
-<label class="fw-bold">Picking: </label> {{factura.cabecera.NUMERO_PEDIDO_SISTEMA}}<br>
+<label class="fw-bold">Picking: </label> {{factura.cabecera.NUMERO_PEDIDO_SISTEMA|slice:"-2"}}<br>
 <label class="fw-bold">Fecha: </label> {{factura.cabecera.FECHA_FACTURA}}
 
+<input id="n_picking" type="hidden" value="{{factura.cabecera.NUMERO_PEDIDO_SISTEMA}}">
 
 <div class="card mb-2">
     <div class="card-body m-0 p-0">
@@ -78,13 +103,13 @@
                         <tr>
                             <td>
                                 <span id="prod_id">{{i.product_id}}</span><br>
-                                <span id="prod_name">{{i.PRODUCT_NAME}}</span><br>
-                                <span id="prod_marca">{{i.GROUP_CODE}}</span><br>
+                                <span>{{i.PRODUCT_NAME}}</span><br>
+                                <span>{{i.GROUP_CODE}}</span><br>
                             </td>    
 
                             <td>
-                                <span id="prod_id">{{i.lote_id}}</span><br>
-                                <span id="prod_name">{{i.FECHA_CADUCIDAD}}</span><br>
+                                <span id="lote_id">{{i.lote_id}}</span><br>
+                                <span id=>{{i.FECHA_CADUCIDAD}}</span><br>
                             </td> 
 
                             <td class="text-end">
@@ -100,14 +125,17 @@
                             </td>
 
                             <td class="text-center">
-                                <button 
+                                <button name="cruce"
                                     {% if i.despacho and i.diferencia == 0 %} 
                                         class="btn btn-sm btn-primary" 
                                     {% elif not i.despacho %} 
                                         class="btn btn-sm btn-primary disabled" 
+                                    {% elif i.despacho %}
+                                        class="btn btn-sm btn-success disabled" 
                                     {% endif %}>
                                         <i class="bi bi-truck"></i>
                                 </button>
+                                <!--button name="cruce">Chek</button-->
                             </td>
                         </tr>
                     {% endfor %}
@@ -117,4 +145,83 @@
     </div>
 </div>
 {% endif %}
+
+<script>
+    // Función para mostrar un mensaje temporal
+    function mostrarMensajeTemporal(mensaje, boton) {
+        var mensajeTemporal = $("button[name='cruce']");
+        var botonOffset = boton.offset();
+
+        // Colocar el mensaje al lado del botón
+        mensajeTemporal.css({
+            top: botonOffset.top + boton.outerHeight(),
+            left: botonOffset.left
+        });
+
+        // Establecer el contenido del mensaje
+        mensajeTemporal.text(mensaje);
+
+        // Mostrar el mensaje
+        mensajeTemporal.fadeIn();
+
+        // Ocultar el mensaje después de 3 segundos
+        setTimeout(function() {
+            mensajeTemporal.fadeOut();
+        }, 3000)}
+</script>    
+
+<script>
+
+    $("button[name='cruce']").click(function(){
+        var prod_id = $(this).closest("tr").find("#prod_id").html();
+        var lote_id = $(this).closest("tr").find("#lote_id").html();
+        var n_pick  = $("#n_picking").val();
+        
+        $.ajax({
+            type:"POST",
+            url:"{% url 'wms_cruce_check_despacho' %}",
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'n_picking':n_pick,
+                'prod_id':prod_id,
+                'lote_id':lote_id,
+            },
+
+            success: function(response) {
+                //var div_msg = $("#msg_ss");
+                //div_msg.fadeIn().html(
+                //    '<div class="text-center alert alert-success" role="alert"> Despachado !!! </div>'
+                //).fadeOut(4000)
+                
+
+                {% comment %}
+                $('#msg').html('<div class="text-center alert alert-success" role="alert"> Despachado !!! </div>')
+                {% endcomment %}
+
+                setTimeout(function(){
+                    window.location.reload();
+                }, 1000);
+                if(response.msg) {
+                    //alert(response.msg)
+                    var div_msg = $("#msg_ss");
+                    div_msg.fadeIn().html(
+                        '<div class="text-center alert alert-success" role="alert"> Despachado !!! </div>'
+                    ).fadeOut(4000)
+                }
+            },
+
+            error: function() {
+                
+                {% comment %}
+                $('#msg').html('<div class="text-center alert alert-danger" role="alert"> Error hacer el check !!! </div>')
+                setTimeout(function(){
+                    window.location.reload();
+                    }, 2000)
+                {% endcomment %}
+            }
+            
+        })
+    })
+</script>
+
 {% endblock %}
