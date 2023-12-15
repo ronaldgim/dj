@@ -1090,13 +1090,13 @@ def wms_cruce_check_despacho(request):
         )
     
     if items.exists():
-        #items.update(despacho=True)
+        items.update(despacho=True)
         
         return JsonResponse({
-            'msg':'✅!!!',
+            'msg':'OK',
             })
         
     else:
         return JsonResponse({
-            'msg':'❌!!!',
+            'msg':'FAIL!!!',
             })    
