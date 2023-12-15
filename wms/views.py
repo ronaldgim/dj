@@ -1098,5 +1098,5 @@ def wms_cruce_check_despacho(request):
         
     else:
         return JsonResponse({
-            'msg':'FAIL!!!',
+            'msg':'FAIL',
             })    
