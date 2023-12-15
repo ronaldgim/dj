@@ -174,8 +174,9 @@
 <script>
 
     $("button[name='cruce']").click(function(){
-        var prod_id = $(this).closest("tr").find("#prod_id").html();
-        var lote_id = $(this).closest("tr").find("#lote_id").html();
+        var btn     = $(this)
+        var prod_id = btn.closest("tr").find("#prod_id").html();
+        var lote_id = btn.closest("tr").find("#lote_id").html();
         var n_pick  = $("#n_picking").val();
         
         $.ajax({
@@ -189,36 +190,25 @@
             },
 
             success: function(response) {
-                //var div_msg = $("#msg_ss");
-                //div_msg.fadeIn().html(
-                //    '<div class="text-center alert alert-success" role="alert"> Despachado !!! </div>'
-                //).fadeOut(4000)
-                
-
-                {% comment %}
-                $('#msg').html('<div class="text-center alert alert-success" role="alert"> Despachado !!! </div>')
-                {% endcomment %}
-
-                setTimeout(function(){
-                    window.location.reload();
-                }, 1000);
-                if(response.msg) {
-                    //alert(response.msg)
-                    var div_msg = $("#msg_ss");
-                    div_msg.fadeIn().html(
-                        '<div class="text-center alert alert-success" role="alert"> Despachado !!! </div>'
-                    ).fadeOut(4000)
+                console.log(response.msg);
+                if(response.msg === 'OK') {
+                    var div_msg = $("#msg_ss")
+                    div_msg.fadeIn().html('<div class="text-center alert alert-success" role="alert"> Despachado !!! </div>');
+                    div_msg.fadeOut(4000);
+                    btn.removeClass();
+                    btn.addClass("btn btn-sm btn-success disabled")
+                } else if(response.msg === 'FAIL') {
+                    var div_msg = $("#msg_ss")
+                    div_msg.fadeIn().html('<div class="text-center alert alert-danger" role="alert"> Error intente nuevamente !!! </div>');
+                    div_msg.fadeOut(4000);
+                    //btn.removeClass();
+                    //btn.addClass("btn btn-sm btn-success disabled")
                 }
             },
 
             error: function() {
                 
-                {% comment %}
-                $('#msg').html('<div class="text-center alert alert-danger" role="alert"> Error hacer el check !!! </div>')
-                setTimeout(function(){
-                    window.location.reload();
-                    }, 2000)
-                {% endcomment %}
+                $('#msg').fadeIn().html('<div class="text-center alert alert-danger" role="alert"> Error hacer el check !!! </div>').fadeOut(4000)
             }
             
         })
