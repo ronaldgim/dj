@@ -73,6 +73,7 @@ class InventarioIngresoBodega(models.Model):
     unidades_ingresadas = models.IntegerField(verbose_name='Unidades ingresadas')
     referencia          = models.CharField(verbose_name='Referencia', choices=REFERENCIA_INGRESOS, max_length=50) 
     n_referencia        = models.CharField(verbose_name='N°. Referencia', max_length=50, blank=True)
+    id_ref              = models.IntegerField(verbose_name='Id referencia', blank=True, default=0)
     fecha_hora          = models.DateTimeField(verbose_name='Fecha Hora', auto_now_add=True)
 
     def __str__(self):
