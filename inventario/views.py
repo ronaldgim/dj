@@ -638,7 +638,6 @@ def inventario_inicial_wms(request):
 
 
 
-
 #### ARQUEOS
 # Nuevo Arqueo
 def nuevo_arqueo(request):

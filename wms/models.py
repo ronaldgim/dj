@@ -113,7 +113,6 @@ class Movimiento(models.Model):
     fecha_hora      = models.DateTimeField(verbose_name='Fecha Hora', auto_now_add=True)
 
     def __str__(self):
-        #return str(self.tipo, self.product_id)
         return self.product_id
 
 
