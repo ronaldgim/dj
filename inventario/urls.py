@@ -78,6 +78,16 @@ urlpatterns = [
     ),
 
 
+
+
+    path(
+        route='inventario/inventario_inicial_wms',
+        view = views.inventario_inicial_wms,
+        name = 'inventario_inicial_wms'
+    ),
+
+
+
     ### ARQUEOS
     path(
             route='arqueos/new',

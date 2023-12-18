@@ -25,6 +25,8 @@
 {% endfor %}
 {% endif %}
 
+<div id="msg"></div>
+
 <h6 class="text-start"><strong># Total de Items: </strong>{{n_inventario}}</h6>
 <h6 class="text-start"><strong># Items por contabilizar: </strong>{{n_inventario_nollenado}}</h6>
 <h6 class="text-start"><strong># Items contabilizados: </strong>{{n_inventario_llenado}}</h6>
@@ -49,7 +51,7 @@
                 </thead>
                 <tbody id="pedidosbuscar">
                     {% for i in inventario %}
-                    <tr {% if i.llenado == True %} style="background-color: #d2fad8;" {% else %}{% endif %}>
+                    <tr {% if i.llenado %} style="background-color: #d2fad8;" {% else %}{% endif %}>
                         <td>
                             <strong>Código:</strong> {{i.product_id}}<br>
                             <strong>Nombre:</strong> {{i.product_name}}<br>
@@ -62,6 +64,13 @@
                         </td>
                         <td>
                             <a class="btn btn-primary btn-sm" href="{% url 'inventario_update_form' i.id bodega ubicacion %}"><i class="bi bi-boxes"></i></a>
+                            
+                            {% if i.ware_code == 'BCT' or i.ware_code == 'CUC' %}
+                                {% if i.llenado %}
+                                    <button id="{{i.id}}" class="btn btn-success btn-sm {% if i.n_referencia %} disabled {% endif %}" name="wms_inv">WMS</button>
+                                {% endif %}
+                            {% endif %}
+
                         </td>
                     </tr>
                     {% endfor %}
@@ -82,5 +91,30 @@
             });
         });
     });
+</script>
+
+<script>
+    $("button[name='wms_inv']").click(function() {
+        var id_inv = $(this).attr("id");
+        
+        $.ajax({
+            type:"POST",
+            url :"{% url 'inventario_inicial_wms' %}",
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'id_inv':id_inv
+            },
+
+            success: function(response){
+                window.location.href = `/wms/ingreso/${response.id}`
+            },
+
+        error: function(){
+            $('#msg').html('<div class="text-center alert alert-danger" role="alert"> Error al hacer el picking !!! </div>')
+        }
+        
+        })
+    })
+
 </script>
 {% endblock %}

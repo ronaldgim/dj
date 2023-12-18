@@ -24,7 +24,7 @@ from .forms import InventarioForm, InventarioAgregarForm, InventarioTotalesForm,
 from django.contrib import messages
 
 # Django http
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 
 # Datetime
 from datetime import datetime, date, timedelta
@@ -42,6 +42,13 @@ from datos.views import (
     reservas_lote_product_id, 
     productos_odbc_and_django,
     trazabilidad_odbc)
+
+
+# WMS
+from wms.models import InventarioIngresoBodega, Movimiento
+
+
+
 
 # Create your views here.
 # VOLUMEN BODEGAS
@@ -243,14 +250,17 @@ def inventario_home(request):
 # Bodega
 @login_required(login_url='login')
 def inventario_por_bodega(request, bodega, ubicacion): 
-
+    
     inventario = pd.DataFrame(Inventario.objects.all().order_by('group_code', 'product_id'). values())
     inventario['location'] = inventario['location'].replace('N/U', 'NU')
-    
     inventario = inventario.loc[(inventario['ware_code'] == bodega) & (inventario['location'] == ubicacion)]
-
-    json_records = inventario.reset_index().to_json(orient='records')
-    inventario = json.loads(json_records)
+    
+    inv_ingreso = pd.DataFrame(InventarioIngresoBodega.objects.filter(n_referencia='inv_in_1').values('id_ref', 'n_referencia'))
+    if not inv_ingreso.empty:
+        inv_ingreso = inv_ingreso.rename(columns={'id_ref':'id'})
+        inventario = inventario.merge(inv_ingreso, on='id', how='left')
+    
+    inventario = de_dataframe_a_template(inventario)
 
     n_inventario =len(inventario)
     n_inventario_llenado = len(Inventario.objects.filter(ware_code=bodega).filter(location=ubicacion).filter(llenado=True))
@@ -280,7 +290,7 @@ def inventario_update(request, id, bodega, ubicacion):
         'numero_cajas_t':0,
         'unidades_sueltas_t':0
     })
-
+    
     productos_total = InventarioTotale.objects.filter(product_id_t=instancia.product_id).filter(ware_code_t=bodega).filter(location_t=ubicacion)
     total_unds = []
     for i in productos_total:
@@ -399,7 +409,6 @@ def inventario_agregar(request, bodega, ubicacion):
         'unidades_sueltas':0
     })
     prod = Product.objects.all()
-
 
     context = {
         'form':form,
@@ -603,6 +612,27 @@ def volumen_bodegas(request):
     return render(request, 'inventario/volumen.html', context)
 
 
+# WMS ADD INVENTARIO INICIAL
+def inventario_inicial_wms(request):
+    
+    id_inv = int(request.POST['id_inv'])
+    
+    inv = Inventario.objects.get(id=id_inv)
+
+    ingreso = InventarioIngresoBodega(
+        product_id          = inv.product_id,
+        lote_id             = inv.lote_id,
+        fecha_caducidad     = inv.fecha_cadu_lote,
+        bodega              = inv.location,
+        unidades_ingresadas = inv.total_unidades,
+        n_referencia        = 'inv_in_1',
+        referencia          = 'Inventario Inicial',
+        id_ref              = id_inv
+    )
+    
+    ingreso.save()
+    
+    return JsonResponse({'id':ingreso.id})
 
 
 
