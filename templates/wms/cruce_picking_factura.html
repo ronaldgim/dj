@@ -125,13 +125,15 @@
                                 <span id="prod_und">{{i.diferencia|floatformat:"0g"}}</span> <br>
                             </td>
 
-                            <td class="text-center">
+                            <td class="text-center">{{i.despacho}}
                                 <button name="cruce"
                                     {% if i.despacho and i.diferencia == 0 %} 
                                         class="btn btn-sm btn-primary" 
                                     {% elif not i.despacho %} 
                                         class="btn btn-sm btn-primary disabled" 
                                     {% elif i.despacho %}
+                                        class="btn btn-sm btn-success disabled" 
+                                    {% elif i.EGRESO_TEMP == i.unidades %}
                                         class="btn btn-sm btn-success disabled" 
                                     {% endif %}>
                                         <i class="bi bi-truck"></i>
