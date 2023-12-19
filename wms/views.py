@@ -1043,8 +1043,8 @@ def wms_armar_codigo_factura(n_factura):
     if not factura.empty:
 
         fn_pedido = de_dataframe_a_template(factura)[0]['NUMERO_PEDIDO_SISTEMA']
-
-        picking = pd.DataFrame(Movimiento.objects.filter(n_referencia = fn_pedido).values())
+        
+        picking = pd.DataFrame(Movimiento.objects.filter(n_referencia = fn_pedido).values());print(picking)
         picking = picking.groupby(by=['product_id','lote_id']).sum().reset_index()
         
         factura = factura.merge(picking, on=['product_id','lote_id'], how='left').fillna(0)
