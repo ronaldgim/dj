@@ -93,8 +93,8 @@
                     <tr>
                         <th scope="col">Item</th>
                         <th scope="col">Lote-Fecha</th>
-                        <th scope="col">Picking</th>
-                        <th scope="col">Factura</th>
+                        <th scope="col">Picking-Factura</th>
+                        <!--th scope="col">Factura</th-->
                         <th scope="col">Pick-Fact</th>
                         <th scope="col">Check</th>
                     </tr>
@@ -114,26 +114,23 @@
                             </td> 
 
                             <td class="text-end">
-                                <span id="prod_und">{{i.unidades|floatformat:"0g"}}</span> <br>
+                                <span id="prod_und">P: {{i.unidades|floatformat:"0g"}}</span> <br>
+                                <span id="prod_und">F: {{i.EGRESO_TEMP|floatformat:"0g"}}</span>
                             </td>
 
-                            <td class="text-end">
+                            <!--td class="text-end">
                                 <span id="prod_und">{{i.EGRESO_TEMP|floatformat:"0g"}}</span> <br>
-                            </td>
+                            </td-->
 
                             <td class="text-end" {% if i.diferencia == 0 %} style="background-color: #BAF690;" {% else %} style="background-color: #F6F490;" {% endif %} >
                                 <span id="prod_und">{{i.diferencia|floatformat:"0g"}}</span> <br>
                             </td>
 
-                            <td class="text-center">{{i.despacho}}
+                            <td class="text-center">
                                 <button name="cruce"
                                     {% if i.despacho and i.diferencia == 0 %} 
                                         class="btn btn-sm btn-primary" 
-                                    {% elif not i.despacho %} 
-                                        class="btn btn-sm btn-primary disabled" 
-                                    {% elif i.despacho %}
-                                        class="btn btn-sm btn-success disabled" 
-                                    {% elif i.EGRESO_TEMP == i.unidades %}
+                                    {% elif i.EGRESO_TEMP == i.unidades and not i.despacho %}
                                         class="btn btn-sm btn-success disabled" 
                                     {% endif %}>
                                         <i class="bi bi-truck"></i>
