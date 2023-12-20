@@ -80,7 +80,7 @@
 <h6 class="fw-bold text-center">{{factura.cabecera.NOMBRE_CLIENTE}}</h6>
 <label class="fw-bold">RUC: </label> {{factura.cabecera.IDENTIFICACION_FISCAL}}<br>
 <label class="fw-bold">Factura: </label> {{factura.cabecera.CODIGO_FACTURA}}<br>
-<label class="fw-bold">Picking: </label> {{factura.cabecera.NUMERO_PEDIDO_SISTEMA|slice:"-2"}}<br>
+<mark><label class="fw-bold">Picking:</label> {{factura.cabecera.NUMERO_PEDIDO_SISTEMA|slice:"-2"}}</mark> <br>
 <label class="fw-bold">Fecha: </label> {{factura.cabecera.FECHA_FACTURA}}
 
 <input id="n_picking" type="hidden" value="{{factura.cabecera.NUMERO_PEDIDO_SISTEMA}}">
