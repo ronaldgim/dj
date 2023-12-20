@@ -85,6 +85,14 @@
 
 <input id="n_picking" type="hidden" value="{{factura.cabecera.NUMERO_PEDIDO_SISTEMA}}">
 
+
+{% if not factura.factura %}
+<div class="alert text-center alert-danger mt-3" role="alert">
+    Confirme el número de factura o que el número de picking sea el correcto !!!
+</div>
+{% endif %}
+
+
 <div class="card mb-2">
     <div class="card-body m-0 p-0">
         <div class="container table-responsive">
