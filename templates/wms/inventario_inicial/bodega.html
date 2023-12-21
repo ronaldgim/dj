@@ -82,12 +82,6 @@
                             <a class="btn btn-primary btn-sm" href="{% url 'wms_ingreso' i.id %}">
                                 <i class="bi bi-pin-map"></i>
                             </a>
-                            
-                            <!--a class="btn btn-primary btn-sm" href="{% url 'wms_ing' %}">
-                                <i class="bi bi-pin-map"></i>
-                            </a-->
-
-                            <!--button name="data"data-bs-toggle="modal" data-bs-target="#exampleModal">data</button-->
                         </td>
 
                     </tr>
@@ -142,110 +136,5 @@
     </div>
 </div>
 </div>
-
-<script>
-    $("button[name='data']").click(function(){
-
-        var product_id  = $(this).closest("tr").find("#product_id").html();
-        var lote_id     = $(this).closest("tr").find("#lote_id").html();
-        var fecha_cad   = $(this).closest("tr").find("#fecha_caducidad").html();
-        var unds        = $(this).closest("tr").find("#unds_ing").val();
-        var ref         = $(this).closest("tr").find("#referencia").val();
-        var n_ref       = $(this).closest("tr").find("#n_referencia").val();
-        var desc        = $(this).closest("tr").find("#descripcion").val();
-        var user        = $(this).closest("tr").find("#user").val();
-        var und_ing_ubi = $(this).closest("tr").find("#und_ing_ubi").html();
-        
-        $("#cod").text(product_id);
-        $("#lot").text(lote_id);
-        $("#f_cad").text(fecha_cad);
-        $("#t_und").text(unds);
-        $("#und_ing_ubi_exit").text(und_ing_ubi);
-    
-        // Lista de ubicaciones y cantidades al ingreso 
-        //$.ajax({
-        //    url: "{#% url 'wms_ubicaciones_list_ingreso' %#}",
-        //    type: "POST",
-        //    data: {
-        //        'csrfmiddlewaretoken': '{{ csrf_token }}',
-        //        'producto': product_id,
-        //        'lote': lote_id,
-        //        'referencia': ref,
-        //        'n_referencia': n_ref
-        //    },
-        //    success: function(response) {
-        //        console.log(response)
-        //    },
-        //})
-
-        $("#ubi").val('');
-        $("#unidades").val('');
-
-        $("button[name='save']").click(function() {
-            var ubi = $("#ubi").val();
-            var u_ing = $("#unidades").val();
-
-            //var data_form = new FormData();
-            //data_form.append('csrfmiddlewaretoken', '{{ csrf_token }}')
-            //data_form.append('unidades', u_ing);
-            //data_form.append('ubicacion', ubi);
-            //data_form.append('descripcion', desc);
-            //data_form.append('referencia', ref);
-            //data_form.append('n_referencia', n_ref);
-            //data_form.append('usuario', user);
-            //data_form.append('fecha_caducidad', fecha_cad);
-            //data_form.append('lote_id', lote_id);
-            //data_form.append('product_id', product_id);
-
-            $.ajax({
-                url: "{% url 'wms_ing' %}",
-                //processData: false,
-                contentType: false,
-                //mimeType: "multipart/form-data",
-                type: "POST",
-                //data: data_form,
-                data:{
-                'csrfmiddlewaretoken': '{{csrf_token}}',
-                'unidades': u_ing,
-                'ubicacion': ubi,
-                'descripcion': desc,
-                'referencia': ref,
-                'n_referencia': n_ref,
-                'usuario': user,
-                'fecha_caducidad': fecha_cad,
-                'lote_id': lote_id,
-                'product_id': product_id,
-                },
-
-                success: function() {
-                    $('#msg').html('<div class="text-center alert alert-success" role="alert"> Ingreso exitoso !!! </div>');
-                    // var sp = document.getElementById("spinner").style.display = "block";
-                    setTimeout(function(){
-                        window.location.reload();
-                    }, 1000)
-                },
-            })
-
-        })
-
-
-
-    })
-</script>
-
-
-
-<!--filtro buscar-->
-<!--script>
-    $(document).ready(function() {
-        $("#inputbuscar").on("keyup", function() {
-            var value = $(this).val().toLowerCase();
-            $("#pedidosbuscar tr").filter(function() {
-                $(this).toggle($(this).text()
-                .toLowerCase().indexOf(value) > -1)
-            });
-        });
-    });
-</script-->
 
 {% endblock %}
