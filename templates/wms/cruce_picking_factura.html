@@ -136,9 +136,9 @@
 
                             <td class="text-center">
                                 <button name="cruce"
-                                    {% if i.despacho and i.diferencia == 0 %} 
+                                    {% if i.estado_picking == "En Despacho" and i.diferencia == 0 %} 
                                         class="btn btn-sm btn-primary" 
-                                    {% elif i.EGRESO_TEMP == i.unidades and not i.despacho %}
+                                    {% elif i.estado_picking == 'Despachado' %}
                                         class="btn btn-sm btn-success disabled" 
                                     {% endif %}>
                                         <i class="bi bi-truck"></i>
