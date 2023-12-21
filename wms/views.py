@@ -58,9 +58,10 @@ from django.db.utils import IntegrityError
     - LISTA DE IMPORTACIONES
     - LISTA DE BODEGA DE INVENTARIO INICIAL
 """
+
 # Lista de importaciones por llegar
 # url: importaciones/list
-def wms_importaciones_list(request):
+def wms_importaciones_list(request): #OK
     """ Lista de importaciones llegadas """
 
     imp = importaciones_llegadas_odbc()[['DOC_ID_CORP', 'ENTRADA_FECHA', 'WARE_COD_CORP', 'product_id']]
@@ -89,16 +90,19 @@ def wms_importaciones_list(request):
     return render(request, 'wms/importaciones_list.html', context)
 
 
+
 # Lista de importaciones ingresadas
 # url: importaciones/ingresadas
-def wms_imp_ingresadas(request):
+def wms_imp_ingresadas(request): #OK
     """ Lista de importaciones ingresadas """
-
+    
     prod = productos_odbc_and_django()[['product_id','Marca']]
     imps = pd.DataFrame(InventarioIngresoBodega.objects.filter(referencia='Ingreso Importación').values())
-    imps = imps.merge(prod, on='product_id', how='left')
-    imps = imps.drop_duplicates(subset='n_referencia')
-    imps = de_dataframe_a_template(imps)
+
+    if not imps.empty:
+        imps = imps.merge(prod, on='product_id', how='left')
+        imps = imps.drop_duplicates(subset='n_referencia')
+        imps = de_dataframe_a_template(imps)
 
     context = {
         'imp':imps
@@ -109,7 +113,7 @@ def wms_imp_ingresadas(request):
 
 # Detalle de importación
 # url: importacion/<str:o_compra>
-def wms_detalle_imp(request, o_compra):
+def wms_detalle_imp(request, o_compra): #OK
     """ Ver detalle de importaciones
         Seleccionar bodega 
         Guardar datos en la tabla "inventario_ingreso_bodega"
@@ -164,7 +168,7 @@ def wms_detalle_imp(request, o_compra):
 
 # Lista de productos de importación
 # url: importacion/bodega/<str:o_compra>
-def wms_bodega_imp(request, o_compra):
+def wms_bodega_imp(request, o_compra): #OK
     """ Detalle de la importación 
         Botón para ingresar y asignar ubicación dentro de la bodega previamente selecionada
         Si el color de la fila unidades es amarillo el ingreso esta incompleto
@@ -213,7 +217,7 @@ def wms_bodega_imp(request, o_compra):
 
 # Lista de bodega de inventari inicial
 # url: inventario/inicial/list_bodega
-def wms_inventario_inicial_list_bodega(request):
+def wms_inventario_inicial_list_bodega(request): #OK
     
     prod = productos_odbc_and_django()[['product_id','Marca']]
     inv = pd.DataFrame(InventarioIngresoBodega.objects.filter(referencia='Inventario Inicial').values())
@@ -230,9 +234,8 @@ def wms_inventario_inicial_list_bodega(request):
 
 # Lista de productos de inventario inicial por bodega
 # url: inventario/inicial/<str:bodega>
-def wms_inventario_inicial_bodega(request, bodega):
+def wms_inventario_inicial_bodega(request, bodega): #OK
     
-
     prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     inv = pd.DataFrame(
     InventarioIngresoBodega.objects
@@ -264,7 +267,6 @@ def wms_inventario_inicial_bodega(request, bodega):
     inv = de_dataframe_a_template(inv)
     
     context = {
-        
         #'ubi_list':ubi_list,
         'bod':bodega,
         'inv':inv
@@ -278,10 +280,13 @@ def wms_inventario_inicial_bodega(request, bodega):
     ####   QUERY DE EXISTENCIAS   ####
 
 
+
+
+
 ### QUERY DE EXISTENCIAS EN TABLA MOVIEMIENTOS ###
     #### ACTUALIZACIÓN DE TABLA EXISTENCIAS ####
 @transaction.atomic
-def wms_existencias_query():
+def wms_existencias_query(): #OK
     
     exitencias = Movimiento.objects.all().values(
         # 'id',
@@ -298,7 +303,7 @@ def wms_existencias_query():
         'ubicacion__pasillo',
         'ubicacion__modulo',
         'ubicacion__nivel',
-        'cuarentena'
+        'estado'
     ).annotate(total_unidades=Sum('unidades')).order_by(
         # 'item__product_id',
         # 'item__marca2',
@@ -316,7 +321,7 @@ def wms_existencias_query():
         fcad = i['fecha_caducidad']
         ubi  = i['ubicacion']
         und  = i['total_unidades']
-        cuc  = i['cuarentena']
+        est  = i['estado']
         
         ex = Existencias(
             product_id      = prod,
@@ -324,7 +329,7 @@ def wms_existencias_query():
             fecha_caducidad = fcad,
             ubicacion_id    = ubi,
             unidades        = und,
-            cuarentena      = cuc
+            estado          = est
         )
         
         existencias_list.append(ex)   
@@ -339,7 +344,7 @@ def wms_existencias_query():
 
 # Inventario - Lista de productos Existencias
 # url: wms/inventario
-def wms_inventario(request):
+def wms_inventario(request): #OK
     """ Inventario 
         Suma de ingresos y egresos que dan el total de todo el inventario
     """
@@ -351,7 +356,8 @@ def wms_inventario(request):
     inv = pd.DataFrame(Existencias.objects.all().values(
         'id',
         'product_id', 'lote_id', 'fecha_caducidad', 'unidades', 'fecha_hora', 
-        'ubicacion', 'ubicacion__bodega', 'ubicacion__pasillo', 'ubicacion__modulo', 'ubicacion__nivel', 'cuarentena'
+        'ubicacion', 'ubicacion__bodega', 'ubicacion__pasillo', 'ubicacion__modulo', 'ubicacion__nivel', 
+        'estado'
     ))
     inv = inv.merge(prod, on='product_id', how='left')
     inv['fecha_caducidad'] = inv['fecha_caducidad'].astype(str)
@@ -373,8 +379,7 @@ def wms_inventario(request):
 # FUNCIÓN MOVIMIENTO
 # INGRESOS DE INVENTARIO INICIAL & IMPORTACIONES
 # url: wms/ingreso/<int:int>
-def wms_movimientos_ingreso(request, id):
-# def wms_movimientos_ingreso(request):
+def wms_movimientos_ingreso(request, id): #OK
     """ Esta función asigna una ubiación a los items intresados por la importación
         Esta asiganación de ubicación se permite solo dentro de la bodega preselecionada
         Pasa el objecto solo para tomar sus valores 
@@ -473,7 +478,7 @@ def wms_movimientos_ingreso(request, id):
 
 # Movimiento interno
 # url: inventario/mov-interno-<int:id>
-def wms_movimiento_interno(request, id):
+def wms_movimiento_interno(request, id): #OK
     """ Filtra los movimientos por producto, lote, bodega, pasillo, modulo, nivel
         *** Los productos que tiene '/' en el codigo va a dar error ***
         *** cambiar esta vista por ajax para pasar los datos por 'request' ***
@@ -503,8 +508,7 @@ def wms_movimiento_interno(request, id):
                 fecha_caducidad = item.fecha_caducidad,
                 lote_id         = item.lote_id,
                 product_id      = item.product_id,
-                cuarentena      = item.cuarentena,
-                despacho        = item.despacho
+                estado          = item.estado
             )
             mov_egreso.save()
 
@@ -520,8 +524,7 @@ def wms_movimiento_interno(request, id):
                 fecha_caducidad = item.fecha_caducidad,
                 lote_id         = item.lote_id,
                 product_id      = item.product_id,
-                cuarentena      = item.cuarentena,
-                despacho        = item.despacho
+                estado          = item.estado
             )
             mov_ingreso.save()
             
