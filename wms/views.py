@@ -551,7 +551,7 @@ def wms_movimiento_interno(request, id): #OK
 
 
 # Comprobar si existe para realizar el egreso
-def comprobar_ajuste_egreso(codigo, lote, fecha_cadu, ubicacion, und_egreso):
+def comprobar_ajuste_egreso(codigo, lote, fecha_cadu, ubicacion, und_egreso): #OK
     
     ext = (
     Existencias.objects
@@ -577,7 +577,7 @@ def comprobar_ajuste_egreso(codigo, lote, fecha_cadu, ubicacion, und_egreso):
 # movimiento de ingreso o egreso
 # url: inventario/mov-ajuste
 @transaction.atomic
-def wms_movimiento_ajuste(request):
+def wms_movimiento_ajuste(request): #OK
     
     prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     prod = de_dataframe_a_template(prod)
@@ -650,100 +650,13 @@ def wms_movimiento_ajuste(request):
 
 
 
-
-
-
-
-
-# RECIBE EL TIPO (INGRESO-EGRESO) Y CREA EL REGISTRO
-def movimiento(tipo, mov_dic):
-    
-    if tipo == 'Ingreso':
-        und = int(mov_dic['unidades'][0])
-    elif tipo == 'Egreso':
-        und = int(mov_dic['unidades'][0]) * -1
-    #ubicación
-    mov = Movimiento(
-        tipo            = tipo,     
-        unidades        = und,                      
-        descripcion     = mov_dic['descripcion'][0],
-        n_referencia    = mov_dic['n_referencia'][0],
-        referencia      = mov_dic['referencia'][0],
-        usuario_id      = int(mov_dic['usuario'][0]),
-        ubicacion_id    = int(mov_dic['ubicacion'][0]),
-        fecha_caducidad = mov_dic['fecha_caducidad'][0],
-        lote_id         = mov_dic['lote_id'][0],
-        product_id      = mov_dic['product_id'][0],        
-    )
-    
-    mov.save()
-    if mov.id:
-        return HttpResponse(mov.id)
-
-
-def wms_ubicaciones_list_ingreso(request):
-    data = dict(request.POST)
-    
-    movs = (
-        Movimiento.objects
-        .filter(referencia=data['referencia'][0])
-        .filter(n_referencia=data['n_referencia'][0])
-        .filter(product_id=data['producto'][0])
-        .filter(lote_id=data['lote'][0])
-    ).values()
-    
-    movs = pd.DataFrame(movs).to_html()
-    
-    return HttpResponse(movs)
-
-
-def wms_ing(request):
-    print(request.POST, type(request.POST))
-    #data = dict(request.POST)
-    
-    # d = movimiento('Ingreso', data)
-    # d.status_code
-    
-    # return HttpResponse(d.status_code)
-    return 'OK'
-
-
-def wms_prueba_ing(request):
-    d = {
-        'product_id':'60152',
-        'lote_id':'A123',
-        'fecha_caducidad':'2030-12-31',
-        'descripcion':'',
-        'referencia':'Inventario Inicial',
-        'n_referencia':'inv_in_1',
-        'ubicacion':1,
-        'unidades':1000,
-        'usuario':1,       
-    }
-    
-    i = movimiento('Egreso', d)
-    print(i.status_code)
-    return i
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-from datos.models import Product
-def wms_movimientos_list(request):
+# lista de movimientos
+# url: 'movimientos/list'
+def wms_movimientos_list(request): #OK
     """ Lista de movimientos """
 
     mov = Movimiento.objects.all().order_by('-fecha_hora')
-
+    
     context = {
         'mov':mov
     }
@@ -752,14 +665,14 @@ def wms_movimientos_list(request):
 
 
 
-
-
-
-
+### PICKDING
+# Lista de pedidos
+# url: picking/list
 def wms_listado_pedidos(request):
     """ Listado de pedidos (picking) """
 
     pedidos = pd.DataFrame(reservas_table())
+    pedidos = pedidos[pedidos['WARE_CODE']=='BCT']
     pedidos['FECHA_PEDIDO'] = pedidos['FECHA_PEDIDO'].astype(str)
     pedidos = pedidos.drop_duplicates(subset='CONTRATO_ID')
 

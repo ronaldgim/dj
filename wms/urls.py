@@ -80,68 +80,20 @@ urlpatterns = [
     # Movimiento Ajuste
     path(
         route='inventario/mov-ajuste',
-        view = views.wms_movimiento_ajuste,
+        view = views.wms_movimiento_ajuste, #OK
         name = 'wms_movimiento_ajuste'
     ),
-
-
-
-
-
-
-
-    path(
-        route='ubicaciones/list/ingresos',
-        view = views.wms_ubicaciones_list_ingreso,
-        name = 'wms_ubicaciones_list_ingreso'
-    ),
-    
-    
-    path(
-        route='mov/ingreso',
-        view = views.wms_ing,
-        name = 'wms_ing'
-    ),
-    
-    
-    # Ingresos
-    path(
-        route='mov/ingreso',
-        view = views.wms_ing,
-        name = 'wms_ing'
-    ),
-
-
-
-
-
-
-
-    
-
-    
-
-    
-    # # PRUEBA INGRESOS
-    # path(
-    #     route='p/ing',
-    #     view = views.wms_prueba_ing,
-    #     name = 'prueba_ing'
-    # ),
-    
 
 
     # Lista de movimientos
     path(
         route='movimientos/list',
-        view = views.wms_movimientos_list,
+        view = views.wms_movimientos_list, #OK
         name = 'wms_movimientos_list'
     ),
 
 
-
-
-
+    ### PICKING
     # Listado de pedidos
     path(
         route='picking/list',  #<str:peedido', 
