@@ -1,7 +1,8 @@
 {%extends 'base.html' %}
 
 {% block title %}
-<title>Importaciones Llegadas</title>
+<title>Ingresos</title>
+
 {% endblock%}
 
 {% block navbar %}
@@ -91,23 +92,25 @@
             <input type="hidden" name="usuario" value="{{request.user.id}}">
 
             <label class="fw-bold" style="font-size: small;">Selecciona ubicación:</label><br>
-            <select class="form-select form-select-sm" name="ubicacion" required>
+            <select class="form-select form-select-sm" name="ubicacion" id="select2" required>
                 <option value="">---------</option>
                 {% for i in ubi_list %}
-                {{i|slice:'2:'}}
-                <option value="{{i.id}}">{{i}}</option>
+                    <option value="{{i.id}}">{{i}}</option>
                 {% endfor %}
             </select>
 
             <label class="fw-bold" style="font-size: small;">Unidades:</label>
             <input type="number" class="form-control form-control-sm" name="unidades">
 
-            {% if item.n_referencia == 'inv_in_1' %}
+            {% if item.referencia == 'Inventario Inicial' %}
             <!--input type="hidden" name="cuarentena" value="True"-->
-            <label class="fw-bold" style="font-size: small;">Cuarentena:</label>
-            <input type="checkbox" name="cuarentena" value="True">
+            <label class="fw-bold" style="font-size: small;">Estado:</label>
+            <select class="form-select form-select-sm" name="estado" required>
+                <option value="Disponible" selected>Disponible</option>
+                <option value="Cuarentena">Cuarentena</option>
+            </select>
             {% else %}
-            <input type="hidden" name="cuarentena" value="True">
+            <input type="hidden" name="estado" value="Cuarentena">
             {% endif %}
 
             <button class="btn btn-primary btn-sm float-end mt-2" type="submit">
@@ -122,18 +125,10 @@
     <i class="bi bi-arrow-return-left"></i> Regresar
 </a>
 
-
-<!--filtro buscar-->
-<!--script>
+<script>
     $(document).ready(function() {
-        $("#inputbuscar").on("keyup", function() {
-            var value = $(this).val().toLowerCase();
-            $("#pedidosbuscar tr").filter(function() {
-                $(this).toggle($(this).text()
-                .toLowerCase().indexOf(value) > -1)
-            });
-        });
-    });
-</script-->
+        $("#select2").select2();
+    })
+</script>
 
 {% endblock %}

@@ -28,12 +28,19 @@ REFERENCIA_INGRESOS = [
     ('Ajuste', 'Ajuste'),
 ]
 
+ESTADO = [
+    ('Cuarentena', 'Cuarentena'),
+    ('Disponible', 'Disponible'),
+    ('En Despacho', 'En Despacho'),
+    ('Despachado', 'Despachado'),
+]
+
 BODEGA = [
     ('CN4', 'CN4'),
     ('CN5', 'CN5'),
     ('CN6', 'CN6'),
     ('CN7', 'CN7'),
-    ('CUC', 'CUC'),
+    # ('CUC', 'CUC'),
 ]
 
 PASILLO = [
@@ -73,7 +80,7 @@ class InventarioIngresoBodega(models.Model):
     unidades_ingresadas = models.IntegerField(verbose_name='Unidades ingresadas')
     referencia          = models.CharField(verbose_name='Referencia', choices=REFERENCIA_INGRESOS, max_length=50) 
     n_referencia        = models.CharField(verbose_name='N°. Referencia', max_length=50, blank=True)
-    id_ref              = models.IntegerField(verbose_name='Id referencia', blank=True, default=0)
+    id_ref              = models.IntegerField(verbose_name='Id referencia', blank=True, null=True)
     fecha_hora          = models.DateTimeField(verbose_name='Fecha Hora', auto_now_add=True)
 
     def __str__(self):
@@ -83,11 +90,11 @@ class InventarioIngresoBodega(models.Model):
 
 class Ubicacion(models.Model):
 
-    bodega       = models.CharField(verbose_name='Bodega', choices=BODEGA, max_length=10)
-    pasillo      = models.CharField(verbose_name='Pasillo', choices=PASILLO, max_length=10)
-    modulo       = models.CharField(verbose_name='Modulo', choices=MODULO, max_length=10)
-    nivel        = models.CharField(verbose_name='Nivel', choices=NIVEL, max_length=10)
-    capacidad_m3 = models.FloatField(verbose_name='Capacidad m3')
+    bodega           = models.CharField(verbose_name='Bodega', choices=BODEGA, max_length=10)
+    pasillo          = models.CharField(verbose_name='Pasillo', choices=PASILLO, max_length=10)
+    modulo           = models.CharField(verbose_name='Modulo', choices=MODULO, max_length=10)
+    nivel            = models.CharField(verbose_name='Nivel', choices=NIVEL, max_length=10)
+    capacidad_m3     = models.FloatField(verbose_name='Capacidad m3')
     distancia_puerta = models.FloatField(verbose_name='Capacidad m3', blank=True, null=True)
     
 
@@ -106,9 +113,7 @@ class Movimiento(models.Model):
     n_referencia    = models.CharField(verbose_name='Numero de referencia',max_length=20, blank=True)
     ubicacion       = models.ForeignKey(Ubicacion, verbose_name='Ubicación', max_length=5, on_delete=models.CASCADE, related_name='ubicacion')
     unidades        = models.IntegerField(verbose_name='Unidades ingresadas')
-    cuarentena      = models.BooleanField(verbose_name='Cuarentena', default=True)
-    despacho        = models.BooleanField(verbose_name='Despacho', default=False)
-
+    estado          = models.CharField(verbose_name='Estado', choices=ESTADO, max_length=20, blank=True)
     usuario         = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.CASCADE, blank=True, null=True)
     fecha_hora      = models.DateTimeField(verbose_name='Fecha Hora', auto_now_add=True)
 
@@ -123,7 +128,7 @@ class Existencias(models.Model):
     fecha_caducidad = models.DateField(verbose_name='Fecha de caducidad')
     ubicacion       = models.ForeignKey(Ubicacion, verbose_name='Ubicación', max_length=5, on_delete=models.CASCADE, related_name='existencias_ubicacion')
     unidades        = models.PositiveIntegerField(verbose_name='Unidades ingresadas')
-    cuarentena      = models.BooleanField(verbose_name='Cuarentena', default=False)
+    estado          = models.CharField(verbose_name='Estado', choices=ESTADO, max_length=20, blank=True)
     fecha_hora      = models.DateTimeField(verbose_name='Fecha Hora', auto_now_add=True)
     
     def __str__(self):

@@ -12,68 +12,67 @@ urlpatterns = [
     # Lista de Imprtaciones
     path(
         route='importaciones/list',
-        view = views.wms_importaciones_list,
+        view = views.wms_importaciones_list, #OK
         name = 'wms_importaciones_list'
     ),
 
     # Lista de importaciones ingresadas
     path(
         route='importaciones/ingresadas',
-        view = views.wms_imp_ingresadas,
+        view = views.wms_imp_ingresadas, #OK
         name = 'wms_imp_ingresadas'
     ),
 
     # Detalle de importación y añadir bodega
     path(
         route='importacion/<str:o_compra>',
-        view = views.wms_detalle_imp,
+        view = views.wms_detalle_imp, #OK
         name = 'wms_detalle_imp'
     ),
 
     # Ver detalle ya en tabla local y pedir ubicaciones
     path(
         route='importacion/bodega/<str:o_compra>',
-        view = views.wms_bodega_imp,
+        view = views.wms_bodega_imp, #OK
         name = 'wms_bodega_imp'
     ),
     
     # Lista de inventario inicial por bodega
     path(
         route='inventario/inicial/list/bodegas',
-        view = views.wms_inventario_inicial_list_bodega,
+        view = views.wms_inventario_inicial_list_bodega, #OK
         name = 'wms_inventario_inicial_list_bodega'
     ),
 
     # Lista de inventario inicial por bodega
     path(
         route='inventario/inicial/<str:bodega>',
-        view = views.wms_inventario_inicial_bodega,
+        view = views.wms_inventario_inicial_bodega, #OK
         name = 'wms_inventario_inicial_bodega'
     ),
     
     # Inventario
     path(
         route='inventario',
-        view = views.wms_inventario,
+        view = views.wms_inventario, #OK
         name = 'wms_inventario'
     ),
     
     
-    # """FUNCIONES DE MOVIMIENTO
-    # """
+    # FUNCIONES DE MOVIMIENTO
 
     # Movimientos - ingreso de productos y ubicaciones
     # INVENTARIO INICIAL & IMPORTACIONES
     path(
         route='ingreso/<int:id>',
-        view = views.wms_movimientos_ingreso,
+        view = views.wms_movimientos_ingreso, #OK
         name = 'wms_ingreso'
     ),
 
     # Movimiento Interno
     path(
         route='mov-interno/<int:id>',
-        view = views.wms_movimiento_interno,
+        view = views.wms_movimiento_interno, #OK
         name = 'wms_mov_interno'
     ),
 
