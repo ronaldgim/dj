@@ -116,7 +116,7 @@
                                                     <span id="caducidad">{{i.fecha_caducidad}}</span>
                                                 </td>
                                                 
-                                                <td class="{% if i.cuarentena %}text-danger{% endif %}">{% if i.cuarentena %}CUC-{% endif %}
+                                                <td class="{% if i.estado == 'Cuarentena' %}text-danger{% endif %}">{% if i.estado == 'Cuarentena' %}CUC-{% endif %}
                                                     <span>{{i.ubicacion__bodega}}.{{i.ubicacion__pasillo}}.{{i.ubicacion__modulo}}.{{i.ubicacion__nivel}}</span><br>
                                                     <span class="fw-bold">Disp:</span> {{i.unidades|floatformat:"0g"}}
                                                 </td>
@@ -124,12 +124,12 @@
                                                 <td>
                                                     {% if i.tipo == 'Egreso' %}
                                                     {% else %}
-                                                    <input id="picking_cantidad" type="number" class="form-control" {% if i.cuarentena %} disabled {% endif %}>
+                                                    <input id="picking_cantidad" type="number" class="form-control" {% if i.estado == 'Cuarentena' %} disabled {% endif %}>
                                                     {% endif %}
                                                 </td>
                                                 
                                                 <td class="text-center">
-                                                    <button name="pick" type="button" class="btn btn-success btn-sm {% if i.cuarentena %} disabled {% endif %}">
+                                                    <button name="pick" type="button" class="btn btn-success btn-sm {% if i.estado == 'Cuarentena' %} disabled {% endif %}">
                                                         <!--i class="bi bi-cart"></i-->
                                                         <i class="bi bi-arrow-bar-right"></i>
                                                     </button>
