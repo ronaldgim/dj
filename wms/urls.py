@@ -96,44 +96,43 @@ urlpatterns = [
     ### PICKING
     # Listado de pedidos
     path(
-        route='picking/list',  #<str:peedido', 
-        view = views.wms_listado_pedidos,
+        route='picking/list',  
+        view = views.wms_listado_pedidos, #OK
         name = 'wms_listado_pedidos'
     ),
 
     # Egreso Picking
     path(
         route='picking/<str:n_pedido>', 
-        view = views.wms_egreso_picking,
+        view = views.wms_egreso_picking, #OK
         name = 'wms_egreso_picking'
     ),
 
     # Movimiento Egreso Picking
     path(
         route='movimiento/egreso/picking', 
-        view = views.wms_movimiento_egreso_picking,
+        view = views.wms_movimiento_egreso_picking, #OK
         name = 'wms_movimiento_egreso_picking'
     ),
 
     # Eliminar Movimiento
     path(
         route='movimiento/eliminar', 
-        view = views.wms_eliminar_movimiento,
+        view = views.wms_eliminar_movimiento, #OK
         name = 'wms_eliminar_movimiento'
     ),
     
     #wms_reservas_lote_consulta_ajax
-    # 
     path(
         route='reservas/consulta', 
-        view = views.wms_reservas_lote_consulta_ajax,
+        view = views.wms_reservas_lote_consulta_ajax, #OK
         name = 'wms_reservas_lote_consulta_ajax'
     ),
     
     # Picking realizados
     path(
-        route='picking/realizado/list', 
-        view = views.wms_productos_en_despacho_list,
+        route='picking/producto-despacho/list', 
+        view = views.wms_productos_en_despacho_list, #OK
         name = 'wms_productos_en_despacho_list'
     ),
     

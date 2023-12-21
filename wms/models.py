@@ -31,6 +31,9 @@ REFERENCIA_INGRESOS = [
 ESTADO = [
     ('Cuarentena', 'Cuarentena'),
     ('Disponible', 'Disponible'),
+]
+
+ESTADO_PICKING = [
     ('En Despacho', 'En Despacho'),
     ('Despachado', 'Despachado'),
 ]
@@ -113,7 +116,8 @@ class Movimiento(models.Model):
     n_referencia    = models.CharField(verbose_name='Numero de referencia',max_length=20, blank=True)
     ubicacion       = models.ForeignKey(Ubicacion, verbose_name='Ubicación', max_length=5, on_delete=models.CASCADE, related_name='ubicacion')
     unidades        = models.IntegerField(verbose_name='Unidades ingresadas')
-    estado          = models.CharField(verbose_name='Estado', choices=ESTADO, max_length=20, blank=True)
+    estado          = models.CharField(verbose_name='Estado Stock', choices=ESTADO, max_length=20, blank=True)
+    estado_picking  = models.CharField(verbose_name='Estado Picking', choices=ESTADO_PICKING, max_length=20, blank=True)
     usuario         = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.CASCADE, blank=True, null=True)
     fecha_hora      = models.DateTimeField(verbose_name='Fecha Hora', auto_now_add=True)
 

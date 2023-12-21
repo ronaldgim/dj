@@ -668,7 +668,7 @@ def wms_movimientos_list(request): #OK
 ### PICKDING
 # Lista de pedidos
 # url: picking/list
-def wms_listado_pedidos(request):
+def wms_listado_pedidos(request): #OK
     """ Listado de pedidos (picking) """
 
     pedidos = pd.DataFrame(reservas_table())
@@ -685,8 +685,9 @@ def wms_listado_pedidos(request):
     return render(request, 'wms/listado_pedidos.html', context)
 
 
-
-def wms_egreso_picking(request, n_pedido):
+# Detalle de pedido
+# url: picking/<n_pedido>
+def wms_egreso_picking(request, n_pedido): #OK
         
     prod   = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     prod   = prod.rename(columns={'product_id':'PRODUCT_ID'})
@@ -726,7 +727,7 @@ def wms_egreso_picking(request, n_pedido):
         'product_id','lote_id','fecha_caducidad','unidades',
         'ubicacion_id','ubicacion__bodega','ubicacion__pasillo','ubicacion__modulo','ubicacion__nivel',
         'unidades',
-        'cuarentena'
+        'estado'
     )
     
     if inv.exists():
@@ -767,8 +768,8 @@ def wms_egreso_picking(request, n_pedido):
     return render(request, 'wms/picking.html', context)
 
 
-
-def wms_movimiento_egreso_picking(request):
+# Crear egreso en tabla movimientos
+def wms_movimiento_egreso_picking(request): #OK
     
     # Egreso
     unds_egreso = request.POST['unds']
@@ -811,17 +812,13 @@ def wms_movimiento_egreso_picking(request):
     total_pedido = pedido['QUANTITY']   
 
     if not existencia.exists():
-        #messages.error(request, 'Error, revise las existencias o refresque la pagina !!!')
         return JsonResponse({'msg':'❌ Error, revise las existencias o refresque la pagina !!!'})
     elif existencia.exists():
         if unds_egreso > existencia.last().unidades:
-            #messages.error(request, 'No puede retirar más unidades de las existentes !!!')
             return JsonResponse({'msg':'❌ No puede retirar más unidades de las existentes !!!'})
         elif unds_egreso == 0 or unds_egreso < 0:
-            #messages.error(request, 'La cantidad debe ser mayor 0 !!!')
             return JsonResponse({'msg':'❌ La cantidad debe ser mayor 0 !!!'})
         elif total_mov > total_pedido:
-            #messages.error(request, 'No puede retirar más unidades de las solicitadas en el Picking !!!')
             return JsonResponse({'msg':'❌ No puede retirar más unidades de las solicitadas en el Picking !!!'})
         elif total_mov <= total_pedido:
             
@@ -835,30 +832,24 @@ def wms_movimiento_egreso_picking(request):
                 n_referencia    = n_picking,
                 ubicacion_id    = ubi,
                 unidades        = unds_egreso*-1,
-                cuarentena      = False,
-                despacho        = True,
+                estado          = 'Disponible',
+                estado_picking  = 'En Despacho',
                 usuario_id      = request.user.id,
             )
             
             picking.save()
             
             wms_existencias_query()
-            #messages.success(request, f'Producto {prod_id}, lote {lote_id} seleccionado correctamente !!!')
-            #return HttpResponse('ok')
-            return JsonResponse({'msg':f'✅ Producto {prod_id}, lote {lote_id} seleccionado correctamente !!!'})
             
-        #return HttpResponse('fail')
+            return JsonResponse({'msg':f'✅ Producto {prod_id}, lote {lote_id} seleccionado correctamente !!!'})
         return JsonResponse({'msg':'❌ Error !!!'})
-    
-    #return HttpResponse('fail')
     return JsonResponse({'msg':'❌Error !!!'})
-
 
 
 #def wms_movimiento_reverso_picking()
 
-
-def wms_eliminar_movimiento(request):
+# Eliminar movimeinto de egreso AJAX
+def wms_eliminar_movimiento(request): #OK
 
     mov_id = request.POST['mov']
     mov_id = int(mov_id)
@@ -870,6 +861,7 @@ def wms_eliminar_movimiento(request):
     return JsonResponse({'msg':'Egreso eliminado ✔!!!'})
 
 
+# Tabla de reservas AJAX
 def wms_reservas_lote_consulta_ajax(request):
     
     
@@ -881,10 +873,11 @@ def wms_reservas_lote_consulta_ajax(request):
     return HttpResponse(r_lote)
 
 
-
-def wms_productos_en_despacho_list(request):
+# Lista de productos en despahco
+# url: picking/producto-despacho/list
+def wms_productos_en_despacho_list(request): #OK
     
-    mov = Movimiento.objects.filter(referencia='Picking')
+    mov = Movimiento.objects.filter(estado_picking='En Despacho')
     
     context = {
         'mov':mov
@@ -931,7 +924,7 @@ def wms_armar_codigo_factura(n_factura):
         return factura
 
     else:
-        return {'msg':'Factura no encontrada !!!'}
+        return JsonResponse({'msg':'Factura no encontrada !!!'})
 
 
 def wms_cruce_picking_factura(request):
@@ -962,7 +955,7 @@ def wms_cruce_check_despacho(request):
         )
     
     if items.exists():
-        items.update(despacho=False)
+        items.update(estado_picking='Despachado')
         
         return JsonResponse({
             'msg':'OK',
