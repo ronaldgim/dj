@@ -76,22 +76,6 @@ urlpatterns = [
         name = 'wms_mov_interno'
     ),
 
-    # Liberaciones
-    path(
-        route='liberaciones',
-        view = views.wms_lista_liberaciones,
-        name = 'wms_lista_liberaciones'
-    ),
-    
-    path(
-        route='wms_liberacion',
-        view = views.wms_liberacion,
-        name = 'wms_liberacion'
-    ),
-
-
-
-
 
     # Movimiento Ajuste
     path(
@@ -214,4 +198,21 @@ urlpatterns = [
         view = views.wms_cruce_check_despacho,
         name = 'wms_cruce_check_despacho'
     ),
+    
+    
+    
+    
+    
+    # Liberaciones
+    # path(
+    #     route='liberaciones',
+    #     view = views.wms_lista_liberaciones,
+    #     name = 'wms_lista_liberaciones'
+    # ),
+    
+    # path(
+    #     route='wms_liberacion',
+    #     view = views.wms_liberacion,
+    #     name = 'wms_liberacion'
+    # ),
 ]

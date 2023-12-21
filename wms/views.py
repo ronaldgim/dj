@@ -550,57 +550,6 @@ def wms_movimiento_interno(request, id): #OK
 
 
 
-
-
-
-
-
-
-# Listado de liberaciones
-# url: wms/liberaciones
-def wms_lista_liberaciones(request):
-    
-    lista_liberaciones = wms_datos_doc_liberaciones()
-    #inv_cuc = Movimiento.objects.filter(cuarentena=True)
-    #print(lista_liberaciones)
-    context = {
-        'liberaciones':de_dataframe_a_template(lista_liberaciones),
-        #'inv_cuc':inv_cuc
-    }
-    
-    return render(request, 'wms/movimientos/liberaciones_list.html', context)
-    
-
-
-
-
-
-
-
-
-def wms_liberacion(request):
-    
-    doc = request.POST['doc']
-    liberacion_query = wms_datos_liberacion_cuc(doc)
-    liberaciones_list = wms_datos_doc_liberaciones()[['DOC_ID_CORP','MEMO','ENTERED_DATE']]
-    liberaciones_list = liberaciones_list[liberaciones_list['DOC_ID_CORP']==doc]
-    
-    liberacion = liberacion_query.merge(liberaciones_list, on='DOC_ID_CORP', how='left')
-    liberacion['product_id'] = list(map(lambda x:x[:-6], liberacion['PRODUCT_ID_CORP']))
-    
-    # print(liberacion_query)
-    # print(liberaciones_list)
-    # print(liberacion)
-
-    return HttpResponse(liberacion_query)
-
-
-
-
-
-
-
-
 # Comprobar si existe para realizar el egreso
 def comprobar_ajuste_egreso(codigo, lote, fecha_cadu, ubicacion, und_egreso):
     
@@ -649,7 +598,8 @@ def wms_movimiento_ajuste(request):
                 usuario_id      = request.user.id,
                 fecha_caducidad = request.POST['fecha_caducidad'],
                 lote_id         = request.POST['lote_id'],
-                product_id      = request.POST['product_id']
+                product_id      = request.POST['product_id'],
+                estado          = request.POST['estado']
             )
             
             mov.save()
@@ -669,7 +619,8 @@ def wms_movimiento_ajuste(request):
                 usuario_id      = request.user.id,
                 fecha_caducidad = request.POST['fecha_caducidad'],
                 lote_id         = request.POST['lote_id'],
-                product_id      = request.POST['product_id']
+                product_id      = request.POST['product_id'],
+                estado          = request.POST['estado']
             )
             
             comprobar = comprobar_ajuste_egreso(
@@ -1108,3 +1059,43 @@ def wms_cruce_check_despacho(request):
         return JsonResponse({
             'msg':'FAIL',
             })    
+        
+        
+        
+        
+        
+        
+## FUNCIONES PENDIENTES POR DESARROLLAR
+# Listado de liberaciones
+# url: wms/liberaciones
+# def wms_lista_liberaciones(request):
+
+#     lista_liberaciones = wms_datos_doc_liberaciones()
+#     #inv_cuc = Movimiento.objects.filter(cuarentena=True)
+#     #print(lista_liberaciones)
+#     context = {
+#         'liberaciones':de_dataframe_a_template(lista_liberaciones),
+#         #'inv_cuc':inv_cuc
+#     }
+
+#     return render(request, 'wms/movimientos/liberaciones_list.html', context)
+
+
+# def wms_liberacion(request):
+
+#     doc = request.POST['doc']
+#     liberacion_query = wms_datos_liberacion_cuc(doc)
+#     liberaciones_list = wms_datos_doc_liberaciones()[['DOC_ID_CORP','MEMO','ENTERED_DATE']]
+#     liberaciones_list = liberaciones_list[liberaciones_list['DOC_ID_CORP']==doc]
+
+#     liberacion = liberacion_query.merge(liberaciones_list, on='DOC_ID_CORP', how='left')
+#     liberacion['product_id'] = list(map(lambda x:x[:-6], liberacion['PRODUCT_ID_CORP']))
+
+#     # print(liberacion_query)
+#     # print(liberaciones_list)
+#     # print(liberacion)
+
+#     return HttpResponse(liberacion_query)
+
+
+
