@@ -899,7 +899,7 @@ def wms_armar_codigo_factura(n_factura):
     
     n_f = 'FCSRI-1001' + input_ceros + n_factura + '-GIMPR'
     
-    factura = wms_detalle_factura(n_f)
+    factura = wms_detalle_factura(n_f) 
     if not factura.empty:
 
         fn_pedido = de_dataframe_a_template(factura)[0]['NUMERO_PEDIDO_SISTEMA']
