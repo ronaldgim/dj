@@ -121,9 +121,15 @@
 </div>
 
 <!--a class="btn btn-secondary btn-sm float-end mt-2" href="{#% url 'wms_bodega_imp' item.o_compra %#}"-->
-<a class="btn btn-secondary btn-sm float-end mt-2" href="{#% url 'wms_bodega_imp' item.n_referencia %#}">
+<!--a class="btn btn-secondary btn-sm float-end mt-2" href="{% url 'wms_bodega_imp' item.n_referencia %}">
     <i class="bi bi-arrow-return-left"></i> Regresar
-</a>
+</a-->
+
+<div class="text-end">
+    <a class="btn btn btn-warning mt-2 mb-2" href="{% url 'inv_home' %}">
+        Inventario
+    </a>
+</div>
 
 <script>
     $(document).ready(function() {
