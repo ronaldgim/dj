@@ -30,7 +30,14 @@ class UbicacionAdmin(admin.ModelAdmin):
 @admin.register(Movimiento)
 class MovimientoAdmin(admin.ModelAdmin):
 
-    list_display = ('product_id', 'lote_id', 'tipo', 'ubicacion', 'n_referencia', 'unidades')
+    list_display = (
+        'product_id', 
+        'lote_id', 
+        'tipo', 
+        #'ubicacion', 
+        'n_referencia', 
+        'unidades'
+        )
     
     # list_filter = ()
     # list_display_links = []

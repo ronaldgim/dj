@@ -43,33 +43,6 @@ BODEGA = [
     ('CN5', 'CN5'),
     ('CN6', 'CN6'),
     ('CN7', 'CN7'),
-    # ('CUC', 'CUC'),
-]
-
-PASILLO = [
-    ('A', 'A'),
-    ('B', 'B'),
-]
-
-MODULO = [
-    ('01', '01'),
-    ('02', '02'),
-    ('03', '03'),
-    ('04', '04'),
-    ('05', '05'),
-    ('06', '06'),
-    ('07', '07'),
-    ('08', '08'),
-    ('09', '09'),
-]
-
-NIVEL = [
-    ('01', '01'),
-    ('02', '02'),
-    ('03', '03'),
-    ('04', '04'),
-    ('05', '05'),
-    ('06', '06'),
 ]
 
 
@@ -94,13 +67,12 @@ class InventarioIngresoBodega(models.Model):
 class Ubicacion(models.Model):
 
     bodega           = models.CharField(verbose_name='Bodega', choices=BODEGA, max_length=10)
-    pasillo          = models.CharField(verbose_name='Pasillo', choices=PASILLO, max_length=10)
-    modulo           = models.CharField(verbose_name='ModuloPalet', choices=MODULO, max_length=10)
-    nivel            = models.CharField(verbose_name='Nivel', choices=NIVEL, max_length=10)
+    pasillo          = models.CharField(verbose_name='Pasillo', max_length=10)
+    modulo           = models.CharField(verbose_name='ModuloPalet', max_length=10)
+    nivel            = models.CharField(verbose_name='Nivel', max_length=10)
     capacidad_m3     = models.FloatField(verbose_name='Capacidad m3')
     distancia_puerta = models.FloatField(verbose_name='Distancia a puerta', blank=True, null=True)
     
-
     def __str__(self):
         return f"{self.bodega}-{self.pasillo}-{self.modulo}-{self.nivel}"
 
@@ -114,7 +86,7 @@ class Movimiento(models.Model):
     descripcion     = models.CharField(verbose_name='Descripción del movimiento', max_length=20, blank=True)
     referencia      = models.CharField(verbose_name='Referencia del movimiento', choices=REFERENCIA_MOVIMIENTOS, max_length=20, blank=True)
     n_referencia    = models.CharField(verbose_name='Numero de referencia',max_length=20, blank=True)
-    ubicacion       = models.ForeignKey(Ubicacion, verbose_name='Ubicación', max_length=5, on_delete=models.CASCADE, related_name='ubicacion')
+    ubicacion       = models.ForeignKey(Ubicacion, verbose_name='Ubicación', max_length=5, on_delete=models.CASCADE, related_name='ubicacion', blank=True, null=True)
     unidades        = models.IntegerField(verbose_name='Unidades ingresadas')
     estado          = models.CharField(verbose_name='Estado Stock', choices=ESTADO, max_length=20, blank=True)
     estado_picking  = models.CharField(verbose_name='Estado Picking', choices=ESTADO_PICKING, max_length=20, blank=True)
@@ -130,7 +102,7 @@ class Existencias(models.Model):
     product_id      = models.CharField(verbose_name='Product id', max_length=50)
     lote_id         = models.CharField(verbose_name='Lote id', max_length=50)
     fecha_caducidad = models.DateField(verbose_name='Fecha de caducidad')
-    ubicacion       = models.ForeignKey(Ubicacion, verbose_name='Ubicación', max_length=5, on_delete=models.CASCADE, related_name='existencias_ubicacion')
+    ubicacion       = models.ForeignKey(Ubicacion, verbose_name='Ubicación', max_length=5, on_delete=models.CASCADE, related_name='existencias_ubicacion', blank=True, null=True)
     unidades        = models.PositiveIntegerField(verbose_name='Unidades ingresadas')
     estado          = models.CharField(verbose_name='Estado', choices=ESTADO, max_length=20, blank=True)
     fecha_hora      = models.DateTimeField(verbose_name='Fecha Hora', auto_now_add=True)
