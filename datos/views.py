@@ -1998,3 +1998,17 @@ def wms_detalle_factura(n_factura):
     
     return df
     
+    
+    
+def stock_lote_cerezos_wms(): 
+    ''' Colusta de clientes por ruc a la base de datos '''
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute("SELECT * FROM warehouse.stock_lote  where WARE_CODE = 'BCT' OR WARE_CODE = 'CUC'")
+        columns = [col[0] for col in cursor.description]
+        stock = [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+        stock = pd.DataFrame(stock)
+        
+    return stock

@@ -14,7 +14,8 @@ from datos.views import (
     wms_datos_liberacion_cuc,
     wms_datos_liberacion_bct,
     wms_detalle_factura,
-    clientes_warehouse
+    clientes_warehouse,
+    stock_lote_cerezos_wms,
     )
 
 # Pedidos por clientes
@@ -340,6 +341,64 @@ def wms_existencias_query(): #OK
     Existencias.objects.bulk_create(existencias_list)
 
     return exitencias
+
+
+
+def cuadre_inventario(request):
+    
+    # Stock MBA - Cerezos
+    stock_cerezos = stock_lote_cerezos_wms()[[
+        'PRODUCT_ID', 
+        'PRODUCT_NAME',
+        'GROUP_CODE',
+        'LOTE_ID',
+        'FECHA_CADUCIDAD',
+        'LOCATION',
+        'OH2',
+        ]]
+    stock_cerezos = stock_cerezos.rename(columns={
+        'PRODUCT_ID':'product_id',
+        'LOTE_ID':'lote_id'
+    })    
+    
+    # Existencias WMS
+    exitencias = Movimiento.objects.all().values(
+        'product_id',
+        'lote_id',
+        'fecha_caducidad',
+        'ubicacion__bodega',
+        
+    ).annotate(total_unidades=Sum('unidades')).exclude(total_unidades=0) 
+    
+    exitencias = pd.DataFrame(exitencias)
+    exitencias = exitencias.rename(columns={'total_unidades':'unidades_wms'})
+    
+    inv = stock_cerezos.merge(exitencias, on=['product_id','lote_id'])
+    print(inv)
+    # from inventario.models import Inventario
+    # inventario_fisico = pd.DataFrame(Inventario.objects.filter(ware_code='BCT').values(
+    #     'product_id', 'lote_id', 'fecha_cadu_lote', 'total_unidades'
+    # ))
+    # inventario_fisico = inventario_fisico.rename(columns={'total_unidades':'unidades_inv'})
+    
+    
+    # inv = inventario_fisico.merge(
+    #     exitencias, on=['product_id','lote_id'],
+    #     how='left')
+    
+    # inv['dif'] = inv['unidades_inv'] - inv['unidades_wms']
+    
+    # inv = inv[['product_id','lote_id','fecha_cadu_lote','fecha_caducidad',
+    #             'unidades_inv','unidades_wms','dif']]
+    
+    # response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    # response['Content-Disposition'] = 'Rep.xlsx'
+
+    # inv.to_excel(response)
+    
+    # return response 
+    return HttpResponse(exitencias)
+
 
 
 # Inventario - Lista de productos Existencias
