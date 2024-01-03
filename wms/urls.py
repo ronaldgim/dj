@@ -150,8 +150,12 @@ urlpatterns = [
         name = 'wms_cruce_check_despacho'
     ),
     
-    
-    
+    # CRUCE DE INVENTARIOS 
+    path(
+        route='cruce/inventarios',
+        view = views.cuadre_inventario,
+        name = 'cuadre_inventario'
+    ),
     
     
     # Liberaciones

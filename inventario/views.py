@@ -386,7 +386,7 @@ def inventario_update_totales(request, id):
             messages.success(request, 'Total de unidades editado con éxito !!!')
             return redirect(f'/inventario/inv/{inv_totales_instance.ware_code_t}/{inv_totales_instance.location_t}')
         else:
-            messages.error(request, 'Error, intente nuevamente')
+            messages.error(request, 'Error, intente nuevamente') 
             return redirect(f'/inventario/inv/{inv_totales_instance.ware_code_t}/{inv_totales_instance.location_t}')
 
 
