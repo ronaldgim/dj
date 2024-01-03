@@ -32,6 +32,9 @@
     <a class="btn btn btn-warning mt-2 mb-2" href="{% url 'inv_home' %}">
         Inventario
     </a>
+    <!--a class="btn btn btn-warning mt-2 mb-2" href="{#% url 'inventario_por_bodega' %#}">
+        Inventario
+    </a-->
 </div>
 
 <div class="col-12 mb-2">
@@ -137,4 +140,16 @@
 </div>
 </div>
 
+<!--filtro buscar-->
+<script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
 {% endblock %}

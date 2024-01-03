@@ -2411,8 +2411,9 @@ def publico_dashboard_fun():
     data = data.reset_index()[['CONTRATO_ID', 't_1p', 't_2p', 't_3p']]
 
     data = data.fillna(0.0) #; data = data.replace([np.inf, -np.inf], 0.0, inplace=True)
-    data = data.merge(tiempos_df, on='CONTRATO_ID', how='left')
-    #print(data)
+    
+    if not tiempos_df.empty:
+        data = data.merge(tiempos_df, on='CONTRATO_ID', how='left')
 
     list_reservas = list_reservas.merge(data, on='CONTRATO_ID', how='left')
     list_reservas['t_1p_str'] = [str(timedelta(seconds=int(i))) for i in list_reservas['t_1p']]

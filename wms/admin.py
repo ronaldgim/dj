@@ -8,10 +8,10 @@ from wms.models import InventarioIngresoBodega, Ubicacion, Movimiento
 @admin.register(InventarioIngresoBodega)
 class InventarioIngresoBodegaAdmin(admin.ModelAdmin):
     
-    list_display = ('product_id', 'lote_id', 'fecha_caducidad', 'n_referencia', 'referencia', 'bodega', 'unidades_ingresadas', 'fecha_hora')
-    # list_filter = ()
+    list_display = ('id', 'product_id', 'lote_id', 'fecha_caducidad', 'n_referencia', 'referencia', 'bodega', 'unidades_ingresadas', 'fecha_hora')
+    list_filter = ('product_id',)
     # list_display_links = []
-    # search_fields = []
+    search_fields = ['product_id',]
     # orderin = []
 
 
@@ -19,7 +19,7 @@ class InventarioIngresoBodegaAdmin(admin.ModelAdmin):
 @admin.register(Ubicacion)
 class UbicacionAdmin(admin.ModelAdmin):
     
-    list_display = ('bodega', 'pasillo', 'modulo', 'nivel', 'capacidad_m3')
+    list_display = ('id', 'bodega', 'pasillo', 'modulo', 'nivel', 'capacidad_m3')
     # list_filter = ()
     # list_display_links = []
     # search_fields = []
@@ -31,15 +31,16 @@ class UbicacionAdmin(admin.ModelAdmin):
 class MovimientoAdmin(admin.ModelAdmin):
 
     list_display = (
+        'id',
         'product_id', 
         'lote_id', 
         'tipo', 
-        #'ubicacion', 
+        'ubicacion', 
         'n_referencia', 
         'unidades'
         )
     
-    # list_filter = ()
+    list_filter = ('product_id',)
     # list_display_links = []
-    # search_fields = []
+    search_fields = ['product_id',]
     # orderin = []
