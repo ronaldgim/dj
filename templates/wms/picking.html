@@ -22,6 +22,31 @@
     <span class="fw-bold" style="font-size: small;">Fecha-Hora: </span> <span style="font-size: small;"> {{fecha|date:'Y-m-d'}} {{hora}}</span> 
 </div>
 
+<hr>
+
+<div class="text-end mb-2">
+<button type="button" class="btn btn-sm btn-primary disabled">Estado: {{estado}}</button>
+</div>
+
+<div class="text-end">
+    <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
+        {% if estado == 'SIN ESTADO' %}
+        <button type="button" id="{{n_ped}}" name="estado_picking" class="btn btn-warning">EN PROCESO</button>
+        <button type="button" class="btn btn-success disabled">FINALIZADO</button>
+        
+        {% elif estado == 'EN PROCESO' %}
+        <button type="button" class="btn btn-warning disabled">EN PROCESO</button>
+        <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-success">FINALIZADO</button>
+
+        {% elif estado == 'FINALIZADO' %}
+        <button type="button" class="btn btn-warning disabled">EN PROCESO</button>
+        <button type="button" class="btn btn-success disabled">FINALIZADO</button>
+        {% endif %}
+        <!--button type="button" class="btn btn-primary">Right</button-->
+        
+    </div>
+</div>
+<hr>
 
 {% if messages %}
 {% for message in messages %}
@@ -396,6 +421,79 @@
                     }, 2000)
             }
         })
+    })
+</script>
+
+
+<!-- Estado Picking -->
+<script>
+    $("button[name='estado_picking']").click(function(){
+        var n_ped = $(this).attr('id');
+        var estado = $(this).text()
+
+        $.ajax({
+            type:"POST",
+            url:"{% url 'wms_estado_picking_ajax' %}",
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'n_ped':n_ped,
+                'estado':estado,
+                'user_id':{{request.user.id}}
+            },
+
+            success: function(response) {
+            
+            $('#msg').html(`<div class="text-center alert alert-${response.alert}" role="alert"> ${response.msg} </div>`)
+                setTimeout(function(){
+                window.location.reload();
+                }, 2000)
+        
+            },
+            
+            error: function() {
+                $('#msg').html('<div class="text-center alert alert-danger" role="alert"> Error al hacer el picking !!! </div>')
+                    setTimeout(function(){
+                    window.location.reload();
+                    }, 2000)
+            }
+        })
+        
+    })
+</script>
+
+<!-- Actuaizar Estado Picking -->
+<script>
+    $("button[name='estado_actualizar']").click(function(){
+        var id_picking = $(this).attr('id');
+        var estado = $(this).text()
+        console.log(id_picking, estado)
+        
+        $.ajax({
+            type:"POST",
+            url:"{% url 'wms_estado_picking_actualizar_ajax' %}",
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'id_picking':id_picking,
+                'estado':estado,
+            },
+
+            success: function(response) {
+            
+            $('#msg').html(`<div class="text-center alert alert-${response.alert}" role="alert"> ${response.msg} </div>`)
+                setTimeout(function(){
+                window.location.reload();
+                }, 2000)
+        
+            },
+            
+            error: function() {
+                $('#msg').html('<div class="text-center alert alert-danger" role="alert"> Error al hacer el picking !!! </div>')
+                    setTimeout(function(){
+                    window.location.reload();
+                    }, 2000)
+            }
+        })
+        
     })
 </script>
 

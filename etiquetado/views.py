@@ -1523,7 +1523,7 @@ def lista_correos(n_cliente):
 @login_required(login_url='login')
 @csrf_exempt
 def picking_estado_bodega(request, n_pedido, id):
-
+    
     if id == '-':
         # Form
         form = EstadoPickingForm()
