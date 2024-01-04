@@ -108,6 +108,20 @@ urlpatterns = [
         name = 'wms_egreso_picking'
     ),
 
+    # Estado Picking AJAX
+    path(
+        route='picking/estado/ajax', 
+        view = views.wms_estado_picking_ajax, #PRUEBA
+        name = 'wms_estado_picking_ajax'
+    ),
+    
+    # Actualizar Estado Picking AJAX
+    path(
+        route='picking/estado/actualizar/ajax', 
+        view = views.wms_estado_picking_actualizar_ajax, #PRUEBA
+        name = 'wms_estado_picking_actualizar_ajax'
+    ),
+
     # Movimiento Egreso Picking
     path(
         route='movimiento/egreso/picking', 
@@ -157,6 +171,12 @@ urlpatterns = [
         name = 'cuadre_inventario'
     ),
     
+    # Lista de picking realizados
+    path(
+        route='picking/realizados/list',
+        view = views.wms_picking_realizados,
+        name = 'wms_picking_realizados'
+    ),
     
     # Liberaciones
     # path(

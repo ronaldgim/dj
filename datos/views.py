@@ -1903,8 +1903,8 @@ def wms_datos_liberacion_bct():
     query = (
         "SELECT INVT_Producto_Lotes_Bodegas.Doc_id_Corp, INVT_Producto_Lotes_Bodegas.PRODUCT_ID_CORP, INVT_Producto_Lotes_Bodegas.LOTE_ID, INVT_Producto_Lotes_Bodegas.WARE_CODE, INVT_Producto_Lotes_Bodegas.LOCATION "
         "FROM INVT_Producto_Lotes_Bodegas INVT_Producto_Lotes_Bodegas "
-        #"WHERE (INVT_Producto_Lotes_Bodegas.Doc_id_Corp='A-0000045310-GIMPR')"
-        "WHERE (INVT_Producto_Lotes_Bodegas.Doc_id_Corp='A-0000059940-GIMPR')"
+        "WHERE (INVT_Producto_Lotes_Bodegas.Doc_id_Corp='A-0000045310-GIMPR')"
+        #"WHERE (INVT_Producto_Lotes_Bodegas.Doc_id_Corp='A-0000059940-GIMPR')"
     )
     
     df = pd.read_sql_query(query, cnxn)
@@ -2000,7 +2000,7 @@ def wms_detalle_factura(n_factura):
     
     
     
-def stock_lote_cerezos_wms(): 
+def wms_stock_lote_cerezos(): 
     ''' Colusta de clientes por ruc a la base de datos '''
     with connections['gimpromed_sql'].cursor() as cursor:
         cursor.execute("SELECT * FROM warehouse.stock_lote  where WARE_CODE = 'BCT' OR WARE_CODE = 'CUC'")
@@ -2012,3 +2012,33 @@ def stock_lote_cerezos_wms():
         stock = pd.DataFrame(stock)
         
     return stock
+
+
+def wms_picking_realizados_warehouse_list():
+    lista_pedidos = [74939]
+    query = f"SELECT * FROM warehouse.facturas WHERE NUMERO_PEDIDO_SISTEMA IN ({', '.join(map(str, lista_pedidos))});"
+    with connections['gimpromed_sql'].cursor() as cursor:
+        # cursor.execute(f"SELECT * FROM warehouse.facturas where NUMERO_PEDIDO_SISTEMA in '{lista_pedidos}'")
+        cursor.execute(query)
+        columns = [col[0] for col in cursor.description]
+        reservas = [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+        reservas = pd.DataFrame(reservas)
+        
+    return reservas
+
+
+def wms_reserva_por_contratoid(contrato_id):
+    
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute(f"SELECT * FROM warehouse.reservas WHERE CONTRATO_ID = '{contrato_id}'")
+        columns = [col[0] for col in cursor.description]
+        reserva = [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+        reserva = pd.DataFrame(reserva)
+        
+    return reserva

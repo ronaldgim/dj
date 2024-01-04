@@ -15,7 +15,9 @@ from datos.views import (
     wms_datos_liberacion_bct,
     wms_detalle_factura,
     clientes_warehouse,
-    stock_lote_cerezos_wms,
+    wms_stock_lote_cerezos,
+    wms_picking_realizados_warehouse_list,
+    wms_reserva_por_contratoid
     )
 
 # Pedidos por clientes
@@ -26,6 +28,9 @@ from django.http import HttpResponse,JsonResponse, HttpResponseRedirect
 
 # Json
 import json
+
+# Datetime
+from datetime import datetime
 
 # DB
 from django.db import connections
@@ -47,7 +52,8 @@ from django.contrib import messages
 from django.db.models import Q
 
 # Models
-from users.models import User
+from users.models import User, UserPerfil
+from etiquetado.models import EstadoPicking
 
 # Transactions INTEGRITY OF DATA
 from django.db import transaction
@@ -347,7 +353,7 @@ def wms_existencias_query(): #OK
 def cuadre_inventario(request):
     
     # Stock MBA - Cerezos
-    stock_cerezos = stock_lote_cerezos_wms()[[
+    stock_cerezos = wms_stock_lote_cerezos()[[
         'PRODUCT_ID', 
         'PRODUCT_NAME',
         'GROUP_CODE',
@@ -749,7 +755,16 @@ def wms_listado_pedidos(request): #OK
 # Detalle de pedido
 # url: picking/<n_pedido>
 def wms_egreso_picking(request, n_pedido): #OK
-        
+    
+    estado_picking = EstadoPicking.objects.filter(n_pedido=n_pedido).exists()
+    if estado_picking:
+        est = EstadoPicking.objects.get(n_pedido=n_pedido)
+        estado = est.estado
+        estado_id = est.id
+    else: 
+        estado = 'SIN ESTADO'
+        estado_id = ''
+    
     prod   = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     prod   = prod.rename(columns={'product_id':'PRODUCT_ID'})
     
@@ -823,10 +838,78 @@ def wms_egreso_picking(request, n_pedido): #OK
         'n_ped':n_ped,
         'cli':cli,
         'fecha': fecha ,
-        'hora':hora 
+        'hora':hora,
+        
+        'estado':estado,
+        'estado_id':estado_id
     }
     
     return render(request, 'wms/picking.html', context)
+
+# Estado Picking AJAX
+def wms_estado_picking_ajax(request):
+    
+    contrato_id = request.POST['n_ped']
+    estado = request.POST['estado']
+    user_id = int(request.POST['user_id'])
+    user_perfil_id   = UserPerfil.objects.get(user__id=user_id).id
+        
+    reserva = wms_reserva_por_contratoid(contrato_id)
+    cli     = clientes_warehouse()[['NOMBRE_CLIENTE','CODIGO_CLIENTE','CLIENT_TYPE']]
+    reserva = reserva.merge(cli, on='NOMBRE_CLIENTE', how='left')
+    
+    cliente = reserva['NOMBRE_CLIENTE'].iloc[0]
+    fecha_pedido = reserva['FECHA_PEDIDO'].iloc[0]
+    tipo_cliente = reserva['CLIENT_TYPE'].iloc[0]
+    bodega = reserva['WARE_CODE'].iloc[0]
+    codigo_cliente = reserva['CODIGO_CLIENTE'].iloc[0]
+    data = (reserva[['PRODUCT_ID', 'QUANTITY']]).to_dict()
+    data = json.dumps(data)
+    
+    estado_picking = EstadoPicking(
+        user_id        = user_perfil_id,
+        n_pedido       = contrato_id,
+        estado         = estado,
+        fecha_pedido   = fecha_pedido,
+        tipo_cliente   = tipo_cliente,
+        cliente        = cliente,
+        codigo_cliente = codigo_cliente,
+        detalle        = data,
+        bodega         = bodega,
+    )
+    
+    try:
+        estado_picking.save()
+    
+        if estado_picking.id:
+            return JsonResponse({'msg':f'✅ Estado de picking {estado_picking.estado}',
+                            'alert':'success'})
+    except:
+        return JsonResponse({'msg':'❌ Error, intente nuevamente !!!',
+                            'alert':'danger'})
+
+
+
+# Actualizar Estado Picking AJAX
+def wms_estado_picking_actualizar_ajax(request):
+    
+    id_picking = int(request.POST['id_picking'])
+    estado = request.POST['estado']
+    
+    estado_picking = EstadoPicking.objects.get(id=id_picking);print(estado_picking.estado)
+    estado_picking.estado = estado
+    estado_picking.fecha_actualizado = datetime.now()
+    
+    try:
+        estado_picking.save()
+    
+        if estado_picking.id:
+            return JsonResponse({'msg':f'✅ Estado de picking {estado_picking.estado}',
+                            'alert':'success'})
+    except:
+        return JsonResponse({'msg':'❌ Error, intente nuevamente !!!',
+                            'alert':'danger'})
+
 
 
 # Crear egreso en tabla movimientos
@@ -1029,8 +1112,23 @@ def wms_cruce_check_despacho(request):
         
         
         
-        
-        
+def wms_picking_realizados(request):
+    
+    picking = list(Movimiento.objects.filter(referencia='Picking').values_list('n_referencia',flat=True).distinct())
+    picking = tuple(map(lambda x: int(float(x)), picking))
+    
+    query = wms_picking_realizados_warehouse_list()
+    # print(query)
+    
+    return HttpResponse('ok')
+
+
+# Liberaciones Cuarentena
+def wms_liberaciones_cuarentena(request):
+    liberacion_mba3 = wms_datos_liberacion_cuc()
+    print(liberacion_mba3)
+    return HttpResponse('ok')
+
         
 ## FUNCIONES PENDIENTES POR DESARROLLAR
 # Listado de liberaciones
