@@ -123,6 +123,20 @@
 
                         <td>
                             <a class="btn btn-primary btn-sm" href="{% url 'wms_egreso_picking' i.CONTRATO_ID %}">PICKING</a>
+
+                            {% if i.estado == 'EN PAUSA' %}
+                            <a class="btn btn-danger btn-sm disabled">{{i.estado}}</a><br>{{i.user__user__first_name}} {{i.user__user__last_name}}
+                            {% elif i.estado == 'EN TRANSITO' %}
+                            <a class="btn btn-primary btn-sm disabled">{{i.estado}}</a><br>{{i.user__user__first_name}} {{i.user__user__last_name}}
+                            {% elif i.estado == 'EN PROCESO' %}
+                            <a class="btn btn-warning text-white btn-sm disabled">{{i.estado}}</a> <br>{{i.user__user__first_name}} {{i.user__user__last_name}}
+                            {% elif i.estado == 'INCOMPLETO' %} 
+                            <a class="btn text-white btn-sm disabled"  style="background-color:  #bf03c8 ;">{{i.estado}}</a><br>{{i.user__user__first_name}} {{i.user__user__last_name}}
+                            {% elif i.estado == 'FINALIZADO' %}
+                            <a class="btn btn-success btn-sm disabled">{{i.estado}}</a><br>{{i.user__user__first_name}} {{i.user__user__last_name}}
+                            {% else %}
+                            -
+                            {% endif %}
                         </td>
 
                         {% comment %}
