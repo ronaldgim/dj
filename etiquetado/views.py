@@ -2450,7 +2450,10 @@ def publico_dashboard_fun():
     
     list_reservas['fh'] = pd.to_datetime(list_reservas['fecha_hora'], errors='coerce')
     list_reservas['dia'] = list_reservas['fh'].dt.day_name(locale='es_EC.utf-8')
-    list_reservas['dia'] = list_reservas['dia'].str.replace('Miã©rcoles','Miércoles')
+    try:
+        list_reservas['dia'] = list_reservas['dia'].str.replace('Miã©rcoles','Miércoles')
+    except:
+        pass
     list_reservas['mes'] = list_reservas['fh'].dt.month_name(locale='es_EC.utf-8')
 
     list_reservas = list_reservas.merge(avance_df, on='CONTRATO_ID', how='left')
