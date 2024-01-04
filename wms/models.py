@@ -97,6 +97,12 @@ class Movimiento(models.Model):
     def __str__(self):
         return self.product_id
 
+    @property
+    def enum(self):
+        total_registros = Movimiento.objects.filter(id__lte=self.id).count()
+        enum = f'{total_registros:06d}'
+        return enum 
+
 
 class Existencias(models.Model):
     

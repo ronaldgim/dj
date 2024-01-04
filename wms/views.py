@@ -374,7 +374,8 @@ def cuadre_inventario(request):
     exitencias = exitencias.rename(columns={'total_unidades':'unidades_wms'})
     
     inv = stock_cerezos.merge(exitencias, on=['product_id','lote_id'])
-    print(inv)
+    #print(inv)
+    
     # from inventario.models import Inventario
     # inventario_fisico = pd.DataFrame(Inventario.objects.filter(ware_code='BCT').values(
     #     'product_id', 'lote_id', 'fecha_cadu_lote', 'total_unidades'
@@ -391,13 +392,14 @@ def cuadre_inventario(request):
     # inv = inv[['product_id','lote_id','fecha_cadu_lote','fecha_caducidad',
     #             'unidades_inv','unidades_wms','dif']]
     
-    # response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    # response['Content-Disposition'] = 'Rep.xlsx'
-
-    # inv.to_excel(response)
     
-    # return response 
-    return HttpResponse(exitencias)
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'Rep.xlsx'
+
+    inv.to_excel(response)
+    
+    return response 
+    # return HttpResponse(exitencias)
 
 
 
