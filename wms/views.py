@@ -743,6 +743,10 @@ def wms_listado_pedidos(request): #OK
     pedidos['FECHA_PEDIDO'] = pedidos['FECHA_PEDIDO'].astype(str)
     pedidos = pedidos.drop_duplicates(subset='CONTRATO_ID')
 
+    estados = pd.DataFrame(EstadoPicking.objects.all().values('n_pedido','estado','user__user__first_name','user__user__last_name'))
+    estados = estados.rename(columns={'n_pedido':'CONTRATO_ID'})   
+    pedidos = pedidos.merge(estados, on='CONTRATO_ID', how='left')
+    
     pedidos = de_dataframe_a_template(pedidos)
 
     context = {
@@ -845,6 +849,7 @@ def wms_egreso_picking(request, n_pedido): #OK
     }
     
     return render(request, 'wms/picking.html', context)
+
 
 # Estado Picking AJAX
 def wms_estado_picking_ajax(request):
