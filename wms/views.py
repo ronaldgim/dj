@@ -806,12 +806,13 @@ def wms_egreso_picking(request, n_pedido): #OK
     inv = Existencias.objects.filter(product_id__in=prod_list).values(
         'product_id','lote_id','fecha_caducidad','unidades',
         'ubicacion_id','ubicacion__bodega','ubicacion__pasillo','ubicacion__modulo','ubicacion__nivel',
+        'ubicacion__distancia_puerta',
         'unidades',
         'estado'
     )
     
     if inv.exists():
-        inv = pd.DataFrame(inv).sort_values(by='fecha_caducidad')
+        inv = pd.DataFrame(inv).sort_values(by=['lote_id','fecha_caducidad','ubicacion__distancia_puerta'], ascending=[True,True,True])
         inv['fecha_caducidad'] = inv['fecha_caducidad'].astype(str)
         
         r_lote = wms_reservas_lotes_datos()
