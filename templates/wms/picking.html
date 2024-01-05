@@ -136,13 +136,13 @@
                                                     {% if i.EGRESO_TEMP %}
                                                     <button class="text-sm m-0 p-0" style="background-color:yellow" id="{{i.lote_id}}" name="reservas" data-bs-toggle="modal" data-bs-target="#exampleModal">{{i.lote_id}}</button><br>
                                                     {% else %}
-                                                    <span>{{i.lote_id}}</span><br>
+                                                    <span style="background-color:#37F8F5">{{i.lote_id}}</span><br>
                                                     {% endif %}
                                                     <span id="caducidad">{{i.fecha_caducidad}}</span>
                                                 </td>
                                                 
                                                 <td class="{% if i.estado == 'Cuarentena' %}text-danger{% endif %}">{% if i.estado == 'Cuarentena' %}CUC-{% endif %}
-                                                    <span>{{i.ubicacion__bodega}}.{{i.ubicacion__pasillo}}.{{i.ubicacion__modulo}}.{{i.ubicacion__nivel}}</span><br>
+                                                    <span>{{i.ubicacion__bodega}}-{{i.ubicacion__pasillo}}-{{i.ubicacion__modulo}}-{{i.ubicacion__nivel}}</span><br>
                                                     <span class="fw-bold">Disp:</span> {{i.unidades|floatformat:"0g"}}
                                                 </td>
 
@@ -187,12 +187,17 @@
                                                             
                                                             <td id="reg_lote">{{j.lote_id}}</td>
                                                             <td id="reg_caducidad">{{j.fecha_caducidad}}</td>
-                                                            <td>{{j.ubicacion__bodega}}.{{j.ubicacion__pasillo}}.{{j.ubicacion__pasillo}}.{{j.ubicacion__modulo}}.{{j.ubicacion__nivel}}</td>
+                                                            <td>{{j.ubicacion__bodega}}-{{j.ubicacion__pasillo}}-{{j.ubicacion__modulo}}-{{j.ubicacion__nivel}}</td>
                                                             <td id="reg_unidades" class="text-end">{{j.unidades|floatformat:"0g"}}</td>
                                                             <td class="text-center">
                                                                 <!--button class="btn btn-sm btn-danger" name="reg_pick">
                                                                     <i class="bi bi-arrow-bar-left"></i>
                                                                 </button-->
+
+                                                                <!--button class="btn btn-sm btn-danger {% if estado == 'FINALIZADO' %}disabled{% endif %}" name="eliminar_picking" id="{{j.id}}">
+                                                                    <i class="bi bi-arrow-bar-left"></i>
+                                                                </button-->
+
                                                                 <button class="btn btn-sm btn-danger" name="eliminar_picking" id="{{j.id}}">
                                                                     <i class="bi bi-arrow-bar-left"></i>
                                                                 </button>
@@ -304,48 +309,6 @@
         })
     })
 </script>
-
-
-<!-- Regresar Picking -->
-<!--script>
-    $("button[name='reg_pick']").click(function(){
-        var reg_prod_id          = $(this).closest("tr").find("#reg_prod_id").val();
-        var reg_lote             = $(this).closest("tr").find("#reg_lote").html();
-        var reg_caducidad        = $(this).closest("tr").find("#reg_caducidad").html();
-        var reg_unidades         = $(this).closest("tr").find("#reg_unidades").html();
-        var reg_n_picking        = $(this).closest("tr").find("#reg_n_picking").val();
-        var reg_ubi              = $(this).closest("tr").find("#reg_ubi").val();
-
-        {% comment %}
-        $.ajax({
-            type:"POST",
-            //url:"{#% url 'wms_movimiento_egreso_picking' %#}",
-            data:{
-                'csrfmiddlewaretoken': '{{ csrf_token }}',
-                'prod_id':prod_id,
-                'lote_id':lote,
-                'caducidad':caducidad,
-                'unds'   :picking_cantidad,
-                'n_picking':n_picking,
-                'ubi':ubi
-            },
-
-            success: function() {
-                setTimeout(function(){
-                    window.location.reload();
-                }, 1000)
-            },
-
-            error: function() {
-                $('#msg').html('<div class="text-center alert alert-danger" role="alert"> Error al hacer el picking !!! </div>')
-                    setTimeout(function(){
-                    window.location.reload();
-                    }, 2000)
-            }
-        })
-        {% endcomment %}
-    })
-</script-->
 
 
 <!-- Eliminar Picking -->
@@ -508,5 +471,46 @@
             });
         });
     });
+</script-->
+
+<!-- Regresar Picking -->
+<!--script>
+    $("button[name='reg_pick']").click(function(){
+        var reg_prod_id          = $(this).closest("tr").find("#reg_prod_id").val();
+        var reg_lote             = $(this).closest("tr").find("#reg_lote").html();
+        var reg_caducidad        = $(this).closest("tr").find("#reg_caducidad").html();
+        var reg_unidades         = $(this).closest("tr").find("#reg_unidades").html();
+        var reg_n_picking        = $(this).closest("tr").find("#reg_n_picking").val();
+        var reg_ubi              = $(this).closest("tr").find("#reg_ubi").val();
+
+        {% comment %}
+        $.ajax({
+            type:"POST",
+            //url:"{#% url 'wms_movimiento_egreso_picking' %#}",
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'prod_id':prod_id,
+                'lote_id':lote,
+                'caducidad':caducidad,
+                'unds'   :picking_cantidad,
+                'n_picking':n_picking,
+                'ubi':ubi
+            },
+
+            success: function() {
+                setTimeout(function(){
+                    window.location.reload();
+                }, 1000)
+            },
+
+            error: function() {
+                $('#msg').html('<div class="text-center alert alert-danger" role="alert"> Error al hacer el picking !!! </div>')
+                    setTimeout(function(){
+                    window.location.reload();
+                    }, 2000)
+            }
+        })
+        {% endcomment %}
+    })
 </script-->
 {% endblock %}
