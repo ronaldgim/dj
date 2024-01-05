@@ -59,6 +59,9 @@ from etiquetado.models import EstadoPicking
 from django.db import transaction
 from django.db.utils import IntegrityError
 
+# Login
+from django.contrib.auth.decorators import login_required, permission_required
+
 
 """
     LISTAS DE INGRESOS 
@@ -758,6 +761,7 @@ def wms_listado_pedidos(request): #OK
 
 # Detalle de pedido
 # url: picking/<n_pedido>
+@login_required(login_url='login')
 def wms_egreso_picking(request, n_pedido): #OK
     
     estado_picking = EstadoPicking.objects.filter(n_pedido=n_pedido).exists()
