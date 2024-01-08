@@ -32,6 +32,7 @@ class MovimientoAdmin(admin.ModelAdmin):
 
     list_display = (
         'id',
+        'enum',
         'product_id', 
         'lote_id', 
         'tipo', 
