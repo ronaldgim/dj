@@ -74,13 +74,15 @@ from django.contrib.auth.decorators import login_required, permission_required
 def wms_importaciones_list(request): #OK
     """ Lista de importaciones llegadas """
 
-    imp = importaciones_llegadas_odbc()[['DOC_ID_CORP', 'ENTRADA_FECHA', 'WARE_COD_CORP', 'product_id']]
+    imp = importaciones_llegadas_odbc()#[['MEMO','DOC_ID_CORP', 'ENTRADA_FECHA', 'WARE_COD_CORP', 'product_id']];print(imp)
     imp = imp.drop_duplicates(subset=['DOC_ID_CORP'])
     
-    pro = productos_odbc_and_django()[['product_id', 'marca2']]  
+    pro = productos_odbc_and_django()[['product_id', 'Marca']]  
 
     imp = imp.merge(pro, on='product_id', how='left')
     imp = imp.sort_values(by=['ENTRADA_FECHA'], ascending=[False])
+    imp['ENTRADA_FECHA'] = pd.to_datetime(imp['ENTRADA_FECHA']).dt.strftime('%d-%m-%Y')
+    # imp = imp.sort_values(by=['ENTRADA_FECHA'], ascending=[False])
     
     imp_doc = pd.DataFrame(InventarioIngresoBodega.objects.all().values()).empty
 
@@ -430,7 +432,9 @@ def wms_inventario(request): #OK
         'estado'
     ))
     inv = inv.merge(prod, on='product_id', how='left')
-    inv['fecha_caducidad'] = inv['fecha_caducidad'].astype(str)
+    #inv['fecha_caducidad'] = inv['fecha_caducidad'].astype(str)
+    inv['fecha_caducidad'] = pd.to_datetime(inv['fecha_caducidad'])
+    inv['fecha_caducidad'] = inv['fecha_caducidad'].dt.strftime('%d-%m-%Y')
     inv = de_dataframe_a_template(inv)
 
     context = {
