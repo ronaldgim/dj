@@ -651,6 +651,7 @@ def comprobar_ajuste_egreso(codigo, lote, fecha_cadu, ubicacion, und_egreso): #O
 # movimiento de ingreso o egreso
 # url: inventario/mov-ajuste
 @transaction.atomic
+@login_required(login_url='login')
 def wms_movimiento_ajuste(request): #OK
     
     prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
