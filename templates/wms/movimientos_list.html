@@ -50,6 +50,7 @@
                         <th scope="col">Item</th>
                         <th scope="col">Lote</th>
                         <th scope="col">Tipo de movimiento</th>
+                        <th scope="col">Estado</th>
                         <th scope="col">Descripción</th>
                         <th scope="col">Referencia del movimiento</th>
                         <th scope="col">Ubicación</th>
@@ -74,8 +75,10 @@
                         </td>
 
                         <td>{{i.tipo}}</td>
+                        <td>{{i.estado}}</td>
+                        
                         <td>{{i.descripcion|default:'-'}}</td>
-
+                        
                         <td>
                             {% if i.referencia %}
                                 {{i.referencia}}: {{i.n_referencia}}
