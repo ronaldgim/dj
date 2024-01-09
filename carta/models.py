@@ -77,10 +77,10 @@ class CartaGeneral(models.Model):
         f = date.today()
         y = str(f.year)
         
-        if not CartaGeneral.objects.filter(fecha_emision__year=2023).exists():
+        if not CartaGeneral.objects.filter(fecha_emision__year=y).exists():
             n_of_f = '0001'
         else:
-            n_of = CartaGeneral.objects.filter(fecha_emision__year=2023).count() #.latest('id').pk
+            n_of = CartaGeneral.objects.filter(fecha_emision__year=y).count() #.latest('id').pk
             n_of += 1
             #n_of += 286
             if n_of < 10:
@@ -148,11 +148,11 @@ class CartaProcesos(models.Model):
         f = date.today()
         y = str(f.year)
         
-        if not CartaProcesos.objects.filter(fecha_emision__year=2023).exists():
+        if not CartaProcesos.objects.filter(fecha_emision__year=y).exists():
             n_of_f = '0001'
         else:
             # n_of = CartaProcesos.objects.latest('id').pk
-            n_of = CartaProcesos.objects.filter(fecha_emision__year=2023).count()
+            n_of = CartaProcesos.objects.filter(fecha_emision__year=y).count()
             n_of += 1
             # n_of += 285
             if n_of < 10:
@@ -219,10 +219,10 @@ class CartaItem(models.Model):
         f = date.today()
         y = str(f.year)
         
-        if not CartaItem.objects.filter(fecha_emision__year=2023).exists():
+        if not CartaItem.objects.filter(fecha_emision__year=y).exists():
             n_of_f = '0001'
         else:
-            n_of = CartaItem.objects.filter(fecha_emision__year=2023).count() #latest('id').pk
+            n_of = CartaItem.objects.filter(fecha_emision__year=y).count() #latest('id').pk
             n_of += 1
             if n_of < 10:
                 n_of_f = '000{n_oficio_final}'.format(n_oficio_final = str(n_of))
@@ -303,7 +303,7 @@ class AnularCartaItem(models.Model):
     usuario       = models.ForeignKey(UserPerfil, verbose_name='Usuario', blank=True, null=True, on_delete=models.PROTECT)
     
     def __str__(self):
-        return str(self.cartaprocesos)
+        return str(self.cartaitem)
     
     def save(self, *args, **kwargs):
         self.slug = slugify(uuid.uuid4())
