@@ -17,7 +17,10 @@ from datos.views import (
     clientes_warehouse,
     wms_stock_lote_cerezos,
     wms_picking_realizados_warehouse_list,
-    wms_reserva_por_contratoid
+    wms_reserva_por_contratoid,
+    
+    # Trasnferencia
+    doc_transferencia_odbc
     )
 
 # Pedidos por clientes
@@ -1144,7 +1147,64 @@ def wms_liberaciones_cuarentena(request):
     print(liberacion_mba3)
     return HttpResponse('ok')
 
+
+
+# Revisicón de transferencias
+def wms_revision_transferencia_ajax(n_trasf):
+    
+    # 60545 # 59952
+    n_trasf = '60545'
+    try:
         
+        prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+        
+        trasf_mba = doc_transferencia_odbc(n_trasf)
+        trasf_mba = trasf_mba.rename(columns={'unidades':'unidades_mba'})
+        trasf_mba = trasf_mba.merge(prod, on='product_id', how='left')    
+        
+        trasf_mov = pd.DataFrame(Movimiento.objects.filter(n_referencia=n_trasf).values('product_id','lote_id','unidades'))
+        
+        if not trasf_mov.empty:
+        
+            trasf_mov['unidades'] = trasf_mov['unidades'] * -1
+            trasf_mov = trasf_mov.rename(columns={'unidades':'unidades_wms'})
+            trasf_mov = trasf_mov.groupby(by=['product_id','lote_id']).sum().reset_index()
+            
+            trasf_rev = trasf_mba.merge(trasf_mov, on=['product_id','lote_id'], how='left').fillna(0)
+            trasf_rev['diferencia'] = trasf_rev['unidades_mba'] - trasf_rev['unidades_wms']
+            trasf_rev = trasf_rev[['product_id','Nombre','Marca','lote_id','unidades_mba','unidades_wms','diferencia']]
+            trasf_rev = trasf_rev.rename(columns={'product_id':'Código','lote_id':'Lote'}).sort_values('diferencia',ascending=False)
+            
+            trasf_rev = trasf_rev.to_html(
+                classes='table table-responsive table-bordered m-0 p-0', 
+                float_format='{:.0f}'.format,
+                index=False,
+                justify='start'
+            )
+            
+            return HttpResponse(trasf_rev)
+        
+        else:
+            trasf_mba = trasf_mba[['product_id','Nombre','Marca','lote_id','unidades_mba']]
+            trasf_mba['unidades_wms'] = 'no existen !!!'
+            trasf_mba['diferencia'] = 'no existen !!!'
+            
+            trasf_mba = trasf_mba.rename(columns={'product_id':'Código','lote_id':'Lote'})
+            trasf_rev = trasf_mba.to_html(
+                classes='table table-responsive table-bordered m-0 p-0', 
+                float_format='{:.0f}'.format,
+                index=False,
+                justify='start'
+            )
+            return HttpResponse(trasf_rev)
+            
+    except:
+        return HttpResponse('El número de trasferencia es incorrecto !!!')
+    
+    
+
+
+
 ## FUNCIONES PENDIENTES POR DESARROLLAR
 # Listado de liberaciones
 # url: wms/liberaciones

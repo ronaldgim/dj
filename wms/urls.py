@@ -178,6 +178,14 @@ urlpatterns = [
         name = 'wms_picking_realizados'
     ),
     
+    # Revisión de transferencia
+    path(
+        route='revision/trasferencia/ajax',
+        view = views.wms_revision_transferencia_ajax,
+        name = 'wms_revision_transferencia_ajax'
+    ),
+    
+    
     # Liberaciones
     # path(
     #     route='liberaciones',

@@ -253,90 +253,90 @@ def muestreo(data, und):
 
     # Nivel 1
     condiciones_nivel = [
-      (data[und] < 2),
-      (data[und] >= 2) & (data[und]<=8),
-      (data[und] >= 9) & (data[und]<=15),
-      (data[und] >= 16) & (data[und]<=25),
-      (data[und] >= 26) & (data[und]<=50),
-      (data[und] >= 51) & (data[und]<=90),
-      (data[und] >= 91) & (data[und]<=150),
-      (data[und] >= 151) & (data[und]<=280),
-      (data[und] >= 281) & (data[und]<=500),
-      (data[und] >= 501) & (data[und]<=1200),
-      (data[und] >= 1201) & (data[und]<=3200),
-      (data[und] >= 3201) & (data[und]<=10000),
-      (data[und] >= 10001) & (data[und]<=35000),
-      (data[und] >= 35001) & (data[und]<=150000),
-      (data[und] >= 150001) & (data[und]<=500000),
-      (data[und] >= 500001) & (data[und]<=9999999),
+    (data[und] < 2),
+    (data[und] >= 2) & (data[und]<=8),
+    (data[und] >= 9) & (data[und]<=15),
+    (data[und] >= 16) & (data[und]<=25),
+    (data[und] >= 26) & (data[und]<=50),
+    (data[und] >= 51) & (data[und]<=90),
+    (data[und] >= 91) & (data[und]<=150),
+    (data[und] >= 151) & (data[und]<=280),
+    (data[und] >= 281) & (data[und]<=500),
+    (data[und] >= 501) & (data[und]<=1200),
+    (data[und] >= 1201) & (data[und]<=3200),
+    (data[und] >= 3201) & (data[und]<=10000),
+    (data[und] >= 10001) & (data[und]<=35000),
+    (data[und] >= 35001) & (data[und]<=150000),
+    (data[und] >= 150001) & (data[und]<=500000),
+    (data[und] >= 500001) & (data[und]<=9999999),
     ]
     seleccion_nivel = ['A', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P', 'Q']
     data['Nivel'] = np.select(condiciones_nivel, seleccion_nivel, default='N/A')
 
     # Muestra 1
     condiciones_muestra = [
-      (data[und] < 2) & (data['Nivel'] == 'A'),
-      (data['Nivel'] == 'A'),
-      (data['Nivel'] == 'B'),
-      (data['Nivel'] == 'C'),
-      (data['Nivel'] == 'D'),
-      (data['Nivel'] == 'E'),
-      (data['Nivel'] == 'F'),
-      (data['Nivel'] == 'G'),
-      (data['Nivel'] == 'H'),
-      (data['Nivel'] == 'J'),
-      (data['Nivel'] == 'K'),
-      (data['Nivel'] == 'L'),
-      (data['Nivel'] == 'M'),
-      (data['Nivel'] == 'N'),
-      (data['Nivel'] == 'P'),
-      (data['Nivel'] == 'Q'),
-      (data['Nivel'] == 'R'),
+    (data[und] < 2) & (data['Nivel'] == 'A'),
+    (data['Nivel'] == 'A'),
+    (data['Nivel'] == 'B'),
+    (data['Nivel'] == 'C'),
+    (data['Nivel'] == 'D'),
+    (data['Nivel'] == 'E'),
+    (data['Nivel'] == 'F'),
+    (data['Nivel'] == 'G'),
+    (data['Nivel'] == 'H'),
+    (data['Nivel'] == 'J'),
+    (data['Nivel'] == 'K'),
+    (data['Nivel'] == 'L'),
+    (data['Nivel'] == 'M'),
+    (data['Nivel'] == 'N'),
+    (data['Nivel'] == 'P'),
+    (data['Nivel'] == 'Q'),
+    (data['Nivel'] == 'R'),
     ]
     seleccion_muestra = [1, 2, 3, 5, 8, 13, 20, 32, 50, 80, 125, 200, 325, 500, 800, 1250, 2000]
     data['Muestra'] = np.select(condiciones_muestra, seleccion_muestra, default=0)
 
     # Nivel 2
     condiciones_nivel_2 = [
-      (data['Muestra'] < 2),
-      (data['Muestra'] >= 2) & (data['Muestra']<=8),
-      (data['Muestra'] >= 9) & (data['Muestra']<=15),
-      (data['Muestra'] >= 16) & (data['Muestra']<=25),
-      (data['Muestra'] >= 26) & (data['Muestra']<=50),
-      (data['Muestra'] >= 51) & (data['Muestra']<=90),
-      (data['Muestra'] >= 91) & (data['Muestra']<=150),
-      (data['Muestra'] >= 151) & (data['Muestra']<=280),
-      (data['Muestra'] >= 281) & (data['Muestra']<=500),
-      (data['Muestra'] >= 501) & (data['Muestra']<=1200),
-      (data['Muestra'] >= 1201) & (data['Muestra']<=3200),
-      (data['Muestra'] >= 3201) & (data['Muestra']<=10000),
-      (data['Muestra'] >= 10001) & (data['Muestra']<=35000),
-      (data['Muestra'] >= 35001) & (data['Muestra']<=150000),
-      (data['Muestra'] >= 150001) & (data['Muestra']<=500000),
-      (data['Muestra'] >= 500001) & (data['Muestra']<=9999999),
+    (data['Muestra'] < 2),
+    (data['Muestra'] >= 2) & (data['Muestra']<=8),
+    (data['Muestra'] >= 9) & (data['Muestra']<=15),
+    (data['Muestra'] >= 16) & (data['Muestra']<=25),
+    (data['Muestra'] >= 26) & (data['Muestra']<=50),
+    (data['Muestra'] >= 51) & (data['Muestra']<=90),
+    (data['Muestra'] >= 91) & (data['Muestra']<=150),
+    (data['Muestra'] >= 151) & (data['Muestra']<=280),
+    (data['Muestra'] >= 281) & (data['Muestra']<=500),
+    (data['Muestra'] >= 501) & (data['Muestra']<=1200),
+    (data['Muestra'] >= 1201) & (data['Muestra']<=3200),
+    (data['Muestra'] >= 3201) & (data['Muestra']<=10000),
+    (data['Muestra'] >= 10001) & (data['Muestra']<=35000),
+    (data['Muestra'] >= 35001) & (data['Muestra']<=150000),
+    (data['Muestra'] >= 150001) & (data['Muestra']<=500000),
+    (data['Muestra'] >= 500001) & (data['Muestra']<=9999999),
     ]
     seleccion_nivel_2 = ['A', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P', 'Q']
     data['Nivel_2'] = np.select(condiciones_nivel_2, seleccion_nivel_2, default='N/A')
 
     # Muestra 2
     condiciones_muestra_2 = [
-      (data['Muestra'] < 2) & (data['Nivel_2'] == 'A'),
-      (data['Nivel_2'] == 'A'),
-      (data['Nivel_2'] == 'B'),
-      (data['Nivel_2'] == 'C'),
-      (data['Nivel_2'] == 'D'),
-      (data['Nivel_2'] == 'E'),
-      (data['Nivel_2'] == 'F'),
-      (data['Nivel_2'] == 'G'),
-      (data['Nivel_2'] == 'H'),
-      (data['Nivel_2'] == 'J'),
-      (data['Nivel_2'] == 'K'),
-      (data['Nivel_2'] == 'L'),
-      (data['Nivel_2'] == 'M'),
-      (data['Nivel_2'] == 'N'),
-      (data['Nivel_2'] == 'P'),
-      (data['Nivel_2'] == 'Q'),
-      (data['Nivel_2'] == 'R'),
+    (data['Muestra'] < 2) & (data['Nivel_2'] == 'A'),
+    (data['Nivel_2'] == 'A'),
+    (data['Nivel_2'] == 'B'),
+    (data['Nivel_2'] == 'C'),
+    (data['Nivel_2'] == 'D'),
+    (data['Nivel_2'] == 'E'),
+    (data['Nivel_2'] == 'F'),
+    (data['Nivel_2'] == 'G'),
+    (data['Nivel_2'] == 'H'),
+    (data['Nivel_2'] == 'J'),
+    (data['Nivel_2'] == 'K'),
+    (data['Nivel_2'] == 'L'),
+    (data['Nivel_2'] == 'M'),
+    (data['Nivel_2'] == 'N'),
+    (data['Nivel_2'] == 'P'),
+    (data['Nivel_2'] == 'Q'),
+    (data['Nivel_2'] == 'R'),
     ]
     seleccion_muestra_2 = [1, 2, 3, 5, 8, 13, 20, 32, 50, 80, 125, 200, 325, 500, 800, 1250, 2000]
     data['Muestra_2'] = np.select(condiciones_muestra_2, seleccion_muestra_2, default=0)
@@ -710,7 +710,7 @@ def r_san_alert(request):
             email.send()
             
     return HttpResponse(status=200)
-            
+
 
 
 # Nuevo Registro Sanitario
@@ -755,7 +755,7 @@ def reg_san_edit(request, id):
         disabled = ''
     else:
         disabled = 'disabled'
-    
+
 
     if request.method == 'POST':
 
@@ -789,7 +789,6 @@ def carta_no_reg_list(request):
     n_proximo = len([i for i in CartaNoRegistro.objects.all() if i.estado == 'Próximo a caducar'])
     n_vigente = len([i for i in CartaNoRegistro.objects.all() if i.estado == 'Vigente'])
     n_sin = len([i for i in CartaNoRegistro.objects.all() if i.estado == 'Sin especificar' ])
-
 
     context = {
         'r_san_list':r_san_list,
@@ -926,8 +925,4 @@ def importacion_detail(request, id):
     
 
     res = imp.merge(r_lote, on='PRODUCT_ID', how='left')
-
-    print(ing)
-    print(res)
-
 
