@@ -185,6 +185,12 @@ urlpatterns = [
         name = 'wms_revision_transferencia_ajax'
     ),
     
+    path(
+        route='revision/trasferencia',
+        view = views.wms_revision_transferencia,
+        name = 'wms_revision_transferencia'
+    ),
+    
     
     # Liberaciones
     # path(

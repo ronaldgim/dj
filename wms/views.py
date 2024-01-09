@@ -1150,12 +1150,13 @@ def wms_liberaciones_cuarentena(request):
 
 
 # Revisicón de transferencias
-def wms_revision_transferencia_ajax(n_trasf):
+def wms_revision_transferencia_ajax(request):
     
     # 60545 # 59952
-    n_trasf = '60545'
+    # n_trasf = '60545'
+    
     try:
-        
+        n_trasf = request.POST['n_trasf']#;print(n_trasf,type(n_trasf))
         prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
         
         trasf_mba = doc_transferencia_odbc(n_trasf)
@@ -1198,10 +1199,15 @@ def wms_revision_transferencia_ajax(n_trasf):
             )
             return HttpResponse(trasf_rev)
             
+    
     except:
         return HttpResponse('El número de trasferencia es incorrecto !!!')
     
-    
+
+def wms_revision_transferencia(request):
+    #print(request)
+    #trasf = wms_revision_transferencia_ajax()
+    return render(request, 'wms/revision_trasferencia.html', {})
 
 
 
