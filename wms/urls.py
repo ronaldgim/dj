@@ -193,10 +193,26 @@ urlpatterns = [
     
     
     path(
+        route='transferencia/input/ajax',
+        view = views.wms_transferencia_input_ajax,
+        name = 'wms_transferencia_input_ajax'
+    ),
+    
+    
+    path(
         route='transferencias/list',
         view = views.wms_transferencias_list,
         name = 'wms_transferencias_list'
     ),
+    
+    
+    path(
+        route='transferencia/<str:n_transf>',
+        view = views.wms_transferencia_picking,
+        name = 'wms_transferencia_picking'
+    ),
+    
+    
     # Liberaciones
     # path(
     #     route='liberaciones',
