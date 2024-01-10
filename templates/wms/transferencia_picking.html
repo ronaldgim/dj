@@ -1,7 +1,7 @@
 {%extends 'base.html' %}
 
 {% block title %}
-<title>Trasferencias</title>
+<title>Trasferencia {{n_transf}}</title>
 {% endblock%}
 
 {% block navbar %}
@@ -38,7 +38,7 @@
         }
 </style>
 
-<h6 class="mt-2 text-center"><strong>Revisión Trasferencias</strong></h6>
+<h6 class="mt-2 text-center"><strong>Trasferencia {{n_transf}}</strong></h6>
 
 
 {% if messages %}
@@ -79,23 +79,24 @@
                         <th scope="col">Item</th>
                         <th scope="col">Lote</th>
                         <th scope="col">Unidades</th>
-                        <th scope="col">Egreso</th>
+                        <th scope="col">Ubicación(es)</th>
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
                     {% for i in transf %}
                     <tr>
-                        <td>{{i.product_id}}<br>{{i.Nombre}} - {{i.Marca}}
+                        <td><span id="product_id">{{i.product_id}}</span><br>{{i.Nombre}} - {{i.Marca}}
                         </td>
-                        <td>{{i.lote_id}}<br>{{i.fecha_caducidad}}</td>
+                        <td><span id="lote_id">{{i.lote_id}}</span><br>{{i.fecha_caducidad}}</td>
                         <td>MBA: {{i.unidades}}<br>
                             WMS: {{i.unidades}}
                         </td>
-                        <th scope="col">
-                            <a class="btn btn-primary btn-sm" href="#">
-                                Picking
-                            </a>
-                        </th>
+                        <td class="text-end">
+                            {{i.ubi}}
+                            <button class="btn btn-primary btn-sm" name="boton_ubicaciones"> 
+                                <i class="bi bi-geo-fill"></i>
+                            </button>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -107,13 +108,12 @@
 
 <script>
 
-    $("button[name='trasferencia']").click(function(){
-        // var btn     = $(this)
-        var n_trasf  = $("#n_trasf").val();
-        //var tabla    = $("#tabla")
-        console.log(n_trasf)
-
-
+    $("button[name='boton_ubicaciones']").click(function(){
+        var fila = $(this).closest("tr").toggleClass("table-info") //.addClass("table-info")
+        var product_id = $(this).closest("tr").find("#product_id").html()
+        var lote_id    = $(this).closest("tr").find("#lote_id").html()
+        console.log(product_id, lote_id)
+        {% comment %}
         $.ajax({
             type:"POST",
             url:"{% url 'wms_transferencia_input_ajax' %}",
@@ -129,8 +129,8 @@
             error: function() {
                 $('#msg').fadeIn().html('<div class="text-center alert alert-danger" role="alert"> Error !!! </div>').fadeOut(6000)
             }
-            
         })
+        {% endcomment %}
     })
 </script>
 {% endblock %}
