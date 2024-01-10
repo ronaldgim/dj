@@ -18,6 +18,7 @@ from datos.views import (
     wms_stock_lote_cerezos,
     wms_picking_realizados_warehouse_list,
     wms_reserva_por_contratoid,
+    quitar_puntos,
     
     # Trasnferencia
     doc_transferencia_odbc
@@ -1061,6 +1062,7 @@ def wms_armar_codigo_factura(n_factura):
     
     n_f = 'FCSRI-1001' + input_ceros + n_factura + '-GIMPR'
     factura = wms_detalle_factura(n_f) 
+    factura['lote_id'] = quitar_puntos(factura['lote_id'])
     
     if not factura.empty:
 
