@@ -40,7 +40,7 @@ from django.db import connections
 
 # Models
 from django.db.models import Sum, Count
-from wms.models import InventarioIngresoBodega, Ubicacion, Movimiento, Existencias
+from wms.models import InventarioIngresoBodega, Ubicacion, Movimiento, Existencias, Transferencia
 
 # Pandas
 import pandas as pd
@@ -1152,19 +1152,17 @@ def wms_liberaciones_cuarentena(request):
 # Revisicón de transferencias
 def wms_revision_transferencia_ajax(request):
     
-    # 60545 # 59952
-    # n_trasf = '60545'
-    
     try:
         n_trasf = request.POST['n_trasf']#;print(n_trasf,type(n_trasf))
         prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
         
-        trasf_mba = doc_transferencia_odbc(n_trasf)
+        trasf_mba = doc_transferencia_odbc(n_trasf) ; print(trasf_mba)
+        trasf_mba = trasf_mba.groupby(by=['doc','product_id','lote_id','bodega_salida','f_cadu']).sum().reset_index()
         trasf_mba = trasf_mba.rename(columns={'unidades':'unidades_mba'})
         trasf_mba = trasf_mba.merge(prod, on='product_id', how='left')    
         
         trasf_mov = pd.DataFrame(Movimiento.objects.filter(n_referencia=n_trasf).values('product_id','lote_id','unidades'))
-        
+        print(trasf_mov)
         if not trasf_mov.empty:
         
             trasf_mov['unidades'] = trasf_mov['unidades'] * -1
@@ -1199,15 +1197,36 @@ def wms_revision_transferencia_ajax(request):
             )
             return HttpResponse(trasf_rev)
             
-    
     except:
         return HttpResponse('El número de trasferencia es incorrecto !!!')
     
 
 def wms_revision_transferencia(request):
-    #print(request)
-    #trasf = wms_revision_transferencia_ajax()
     return render(request, 'wms/revision_trasferencia.html', {})
+
+
+def wms_transferencias_list(request):
+    
+    transf_wms = pd.DataFrame(Transferencia.objects.all().values()).drop_duplicates()
+    # print(transf_wms)
+    transf_wms = de_dataframe_a_template(transf_wms)
+    
+    context = {
+        'transf_wms':transf_wms
+    }
+    
+    return render(request, 'wms/transferencias_list.html', context)
+    
+    
+    
+    # si exite
+        # añada la columna y haga el input
+        # redireccionar a la vista de picking trasferencia
+        
+    # sino existe
+        # regrese un mensaje
+
+
 
 
 

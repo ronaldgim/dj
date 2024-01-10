@@ -1,0 +1,185 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Trasferencias</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'wms/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+
+<style>
+    .btn.btn-warning.btn-sm.active {
+    background-color: blue;}
+
+    .mensaje-temporal {
+        display: none;
+        position: absolute;
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+    }
+
+    #msg_ss {
+        display: none;
+        position: fixed; /* Cambiado a fixed para que sea relativo a la ventana */
+        /*bottom: 10px; */ /* Distancia desde la parte inferior */
+        top:40%;
+        right: 10px; /* Distancia desde la derecha */
+        /*background-color: #4CAF50;*/
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+        width:auto;
+        z-index: 3;
+        }
+</style>
+
+<h6 class="mt-2 text-center"><strong>Revisión Trasferencias</strong></h6>
+
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
+<div id="msg"></div>
+<div id="msg_ss"></div>
+
+
+<!--form method="POST"-->
+    {#% csrf_token %#}
+<div class="input-group mb-3">
+    <input type="text" class="form-control" placeholder="Ingrese en número de trasferencia" id="n_trasf" required>
+    <button name="trasferencia" class="btn btn-primary" type="submit">Revisar</button>
+</div>
+<!--/form-->
+
+{% if factura.msg %}
+    <div class="alert text-center alert-danger" role="alert">
+        {{factura.msg}}
+    </div>
+{% endif %}
+
+<div class="card mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Proveedor</th>
+                        <th scope="col">Orden de compra</th>
+                        <th scope="col">Fecha de llegada</th>
+                        <th scope="col">Bodega</th>
+                        <th scope="col">Detalle de importación</th>
+                        <th scope="col">Documentos</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in imp %}
+                    <tr>
+                        <td>{{i.marca2}}</td>
+                        <td>{{i.DOC_ID_CORP}}</td>
+                        <td>{{i.ENTRADA_FECHA}}</td>
+                        <td>{{i.WARE_COD_CORP}}</td>
+
+                        {% if i.marca2 == 'ARMADOS' %}
+                        <td>
+                            <a class="btn btn-secondary btn-sm" href="{% url 'armados_list_imp' %}">
+                                Armados
+                            </a>
+                        </td>
+                        {% else %}
+                        <td>
+                            <a {% if i.lote_id == 0 %} class="btn btn-success btn-sm" {% else %} class="btn btn-warning btn-sm" {% endif %}
+                            href="{% url 'importaciones_orden_list' i.DOC_ID_CORP %}">
+                                {% if i.lote_id == 0 %}
+                                    Añadir
+                                {% else %}
+                                    Actualizar
+                                {% endif %}
+                            </a>
+                        </td>
+                        {% endif %}
+
+                        <td>
+                            {% if i.lote_id != 0 %}
+                            <progress id="file" max="100" value="{{i.completado|floatformat:'0g'}}">  </progress>
+                            {{i.con_documento|floatformat:"0g"}} de {{i.documento|floatformat:"0g"}} 
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    // Función para mostrar un mensaje temporal
+    function mostrarMensajeTemporal(mensaje, boton) {
+        var mensajeTemporal = $("button[name='cruce']");
+        var botonOffset = boton.offset();
+
+        // Colocar el mensaje al lado del botón
+        mensajeTemporal.css({
+            top: botonOffset.top + boton.outerHeight(),
+            left: botonOffset.left
+        });
+
+        // Establecer el contenido del mensaje
+        mensajeTemporal.text(mensaje);
+
+        // Mostrar el mensaje
+        mensajeTemporal.fadeIn();
+
+        // Ocultar el mensaje después de 3 segundos
+        setTimeout(function() {
+            mensajeTemporal.fadeOut();
+        }, 3000)}
+</script>    
+
+<script>
+
+    $("button[name='trasferencia']").click(function(){
+        // var btn     = $(this)
+        var n_trasf  = $("#n_trasf").val();
+        var tabla    = $("#tabla")
+        console.log(n_trasf)
+
+
+        $.ajax({
+            type:"POST",
+            url:"{% url 'wms_revision_transferencia_ajax' %}",
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'n_trasf':n_trasf,
+            },
+
+            success: function(response) {
+                //`<td colspan='4'>${response}</td>`
+                tabla.html(response)
+            },
+            
+            error: function() {
+                $('#msg').fadeIn().html('<div class="text-center alert alert-danger" role="alert"> Error !!! </div>').fadeOut(4000)
+            }
+            
+        })
+    })
+</script>
+{% endblock %}

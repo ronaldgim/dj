@@ -192,6 +192,11 @@ urlpatterns = [
     ),
     
     
+    path(
+        route='transferencias/list',
+        view = views.wms_transferencias_list,
+        name = 'wms_transferencias_list'
+    ),
     # Liberaciones
     # path(
     #     route='liberaciones',
