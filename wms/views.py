@@ -1247,7 +1247,8 @@ def wms_transferencia_input_ajax(request):
 def wms_transferencias_list(request):
     
     transf_wms = pd.DataFrame(Transferencia.objects.all().values()).drop_duplicates(subset='n_transferencia')
-    transf_wms['fecha_hora'] = pd.to_datetime(transf_wms['fecha_hora'].dt.strftime('%d-%m-%Y')).astype(str)
+    #transf_wms['fecha_hora'] = pd.to_datetime(transf_wms['fecha_hora'].dt.strftime('%d-%m-%Y')).astype(str)
+    transf_wms['fecha_hora'] = pd.to_datetime(transf_wms['fecha_hora']).dt.strftime('%d-%m-%Y').astype(str)
     transf_wms = de_dataframe_a_template(transf_wms)
     
     context = {
@@ -1259,15 +1260,49 @@ def wms_transferencias_list(request):
 
 
 def wms_transferencia_picking(request, n_transf):
+    
     prod   = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     transf = pd.DataFrame(Transferencia.objects.filter(n_transferencia=n_transf).values())
     transf = transf.merge(prod, on='product_id', how='left')
-    transf['fecha_caducidad'] = transf['fecha_caducidad'].astype(str)
-    transf = de_dataframe_a_template(transf)
+    transf['fecha_caducidad'] = pd.to_datetime(transf['fecha_caducidad']).dt.strftime('%d-%m-%Y').astype(str)
+    
+    
+    #lote = transf['lote_id']
+    #print(prod_lote)
+    
+    #transf = de_dataframe_a_template(transf)
+    
+    # Ubicaciones de productos en transferencia
+    prod_lote = transf[['product_id','lote_id']].to_dict('records')
+    ext_id = []
+    for i in prod_lote:
+        ext = Existencias.objects.filter(product_id=i['product_id'], lote_id=i['lote_id']).values()
+        if ext.exists():
+            for j in ext:
+                ext_id.append(j)
+        
+    #print(ext_id)
+    
+    transf_template = de_dataframe_a_template(transf)
+    
+    prod = list(transf['product_id'].unique())
+    for i in prod:
+        for j in transf_template:
+            if j['product_id'] == i:
+                j['ubi'] = ubi_list = []
+                for k in ext_id:
+                    if k['product_id'] == i:
+                        ubi_list.append(k)
+    
+    print(transf_template)
+    
     context = {
-        'transf':transf,
+        'transf':transf_template,
+        'n_transf':n_transf
     }
     return render(request, 'wms/transferencia_picking.html', context)
+
+
 
 
 
