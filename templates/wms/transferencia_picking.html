@@ -59,10 +59,10 @@
 <div id="msg_ss"></div>
 
 
-<div class="input-group mb-3">
+<!--div class="input-group mb-3">
     <input type="text" class="form-control" placeholder="Ingrese en número de trasferencia" id="n_trasf" required>
     <button name="trasferencia" class="btn btn-primary" type="submit">Añadir Transferencia</button>
-</div>
+</div-->
 
 {% if factura.msg %}
     <div class="alert text-center alert-danger" role="alert">
@@ -73,21 +73,29 @@
 <div class="card mb-2">
     <div class="card-body m-0 p-0">
         <div class="container table-responsive">
-            <table class="table">
+            <table class="table" style="font-size: small;">
                 <thead>
                     <tr>
-                        <th scope="col"># Transferencia</th>
-                        <!--th scope="col">Bodega de Salida</th-->
-                        <th scope="col">Fecha - Hora</th>
+                        <th scope="col">Item</th>
+                        <th scope="col">Lote</th>
+                        <th scope="col">Unidades</th>
+                        <th scope="col">Egreso</th>
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
-                    {% for i in transf_wms %}
+                    {% for i in transf %}
                     <tr>
-                        <td>{{i.n_transferencia}}</td>
-                        <td>{{i.fecha_hora}}</td>
-                        
-                        
+                        <td>{{i.product_id}}<br>{{i.Nombre}} - {{i.Marca}}
+                        </td>
+                        <td>{{i.lote_id}}<br>{{i.fecha_caducidad}}</td>
+                        <td>MBA: {{i.unidades}}<br>
+                            WMS: {{i.unidades}}
+                        </td>
+                        <th scope="col">
+                            <a class="btn btn-primary btn-sm" href="#">
+                                Picking
+                            </a>
+                        </th>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -124,30 +132,5 @@
             
         })
     })
-</script>
-
-
-<script>
-    // Función para mostrar un mensaje temporal
-    function mostrarMensajeTemporal(mensaje, boton) {
-        var mensajeTemporal = $("button[name='cruce']");
-        var botonOffset = boton.offset();
-
-        // Colocar el mensaje al lado del botón
-        mensajeTemporal.css({
-            top: botonOffset.top + boton.outerHeight(),
-            left: botonOffset.left
-        });
-
-        // Establecer el contenido del mensaje
-        mensajeTemporal.text(mensaje);
-
-        // Mostrar el mensaje
-        mensajeTemporal.fadeIn();
-
-        // Ocultar el mensaje después de 3 segundos
-        setTimeout(function() {
-            mensajeTemporal.fadeOut();
-        }, 3000)}
 </script>
 {% endblock %}

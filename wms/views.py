@@ -1060,8 +1060,8 @@ def wms_armar_codigo_factura(n_factura):
     input_ceros = '0' * len_ceros
     
     n_f = 'FCSRI-1001' + input_ceros + n_factura + '-GIMPR'
-    
     factura = wms_detalle_factura(n_f) 
+    
     if not factura.empty:
 
         fn_pedido = de_dataframe_a_template(factura)[0]['NUMERO_PEDIDO_SISTEMA']
@@ -1199,16 +1199,53 @@ def wms_revision_transferencia_ajax(request):
             
     except:
         return HttpResponse('El número de trasferencia es incorrecto !!!')
-    
+
+
 
 def wms_revision_transferencia(request):
     return render(request, 'wms/revision_trasferencia.html', {})
 
 
+
+def wms_transferencia_input_ajax(request):
+    
+    n_trasf = request.POST['n_trasf']
+    trans_mba  = doc_transferencia_odbc(n_trasf)
+    
+    new_transf = Transferencia.objects.filter(n_transferencia=n_trasf)
+    if not new_transf.exists():
+
+        trans_mba['n_transferencia'] = n_trasf
+        trans_mba = trans_mba.groupby(by=['doc','n_transferencia','product_id','lote_id','f_cadu','bodega_salida']).sum().reset_index()
+        trans_mba['f_cadu'] = trans_mba['f_cadu'].astype(str)
+        trans_mba = de_dataframe_a_template(trans_mba)
+        
+        tr_list = []
+        for i in trans_mba:        
+            tr = Transferencia(
+                doc_gimp        = i['doc'],
+                n_transferencia = i['n_transferencia'],
+                product_id      = i['product_id'],
+                lote_id         = i['lote_id'],
+                fecha_caducidad = i['f_cadu'],
+                bodega_salida   = i['bodega_salida'],
+                unidades        = i['unidades']
+            )
+        
+            tr_list.append(tr)
+            
+        Transferencia.objects.bulk_create(tr_list)
+        #return HttpResponse(trans_mba) RESPONSE REDIRECT
+    
+    elif new_transf.exists():
+        return HttpResponse(f'La Transferencia {n_trasf} ya fue añadida')
+    
+    
+
 def wms_transferencias_list(request):
     
-    transf_wms = pd.DataFrame(Transferencia.objects.all().values()).drop_duplicates()
-    # print(transf_wms)
+    transf_wms = pd.DataFrame(Transferencia.objects.all().values()).drop_duplicates(subset='n_transferencia')
+    transf_wms['fecha_hora'] = pd.to_datetime(transf_wms['fecha_hora'].dt.strftime('%d-%m-%Y')).astype(str)
     transf_wms = de_dataframe_a_template(transf_wms)
     
     context = {
@@ -1216,15 +1253,19 @@ def wms_transferencias_list(request):
     }
     
     return render(request, 'wms/transferencias_list.html', context)
-    
-    
-    
-    # si exite
-        # añada la columna y haga el input
-        # redireccionar a la vista de picking trasferencia
-        
-    # sino existe
-        # regrese un mensaje
+
+
+
+def wms_transferencia_picking(request, n_transf):
+    prod   = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+    transf = pd.DataFrame(Transferencia.objects.filter(n_transferencia=n_transf).values())
+    transf = transf.merge(prod, on='product_id', how='left')
+    transf['fecha_caducidad'] = transf['fecha_caducidad'].astype(str)
+    transf = de_dataframe_a_template(transf)
+    context = {
+        'transf':transf,
+    }
+    return render(request, 'wms/transferencia_picking.html', context)
 
 
 

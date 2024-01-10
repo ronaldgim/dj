@@ -121,7 +121,7 @@ class Existencias(models.Model):
 class Transferencia(models.Model):
     
     doc_gimp        = models.CharField(verbose_name='Doc - GIMPR', max_length=50)
-    n_trasferencia  = models.CharField(verbose_name='Número de trasferencia', max_length=50)
+    n_transferencia = models.CharField(verbose_name='Número de trasferencia', max_length=50)
     product_id      = models.CharField(verbose_name='Product id', max_length=50)
     lote_id         = models.CharField(verbose_name='Lote id', max_length=50)
     fecha_caducidad = models.DateField(verbose_name='Fecha de caducidad')
@@ -130,7 +130,7 @@ class Transferencia(models.Model):
     fecha_hora      = models.DateTimeField(verbose_name='Fecha Hora', auto_now_add=True)
     
     def __str__(self):
-        return self.n_trasferencia
+        return self.n_transferencia
 
 
 
