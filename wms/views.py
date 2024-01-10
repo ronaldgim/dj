@@ -1156,13 +1156,13 @@ def wms_revision_transferencia_ajax(request):
         n_trasf = request.POST['n_trasf']#;print(n_trasf,type(n_trasf))
         prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
         
-        trasf_mba = doc_transferencia_odbc(n_trasf) ; print(trasf_mba)
+        trasf_mba = doc_transferencia_odbc(n_trasf) 
         trasf_mba = trasf_mba.groupby(by=['doc','product_id','lote_id','bodega_salida','f_cadu']).sum().reset_index()
         trasf_mba = trasf_mba.rename(columns={'unidades':'unidades_mba'})
         trasf_mba = trasf_mba.merge(prod, on='product_id', how='left')    
         
         trasf_mov = pd.DataFrame(Movimiento.objects.filter(n_referencia=n_trasf).values('product_id','lote_id','unidades'))
-        print(trasf_mov)
+        
         if not trasf_mov.empty:
         
             trasf_mov['unidades'] = trasf_mov['unidades'] * -1
