@@ -118,6 +118,22 @@ class Existencias(models.Model):
         return self.product_id
     
     
+class Transferencia(models.Model):
+    
+    doc_gimp        = models.CharField(verbose_name='Doc - GIMPR', max_length=50)
+    n_trasferencia  = models.CharField(verbose_name='Número de trasferencia', max_length=50)
+    product_id      = models.CharField(verbose_name='Product id', max_length=50)
+    lote_id         = models.CharField(verbose_name='Lote id', max_length=50)
+    fecha_caducidad = models.DateField(verbose_name='Fecha de caducidad')
+    bodega_salida   = models.CharField(verbose_name='Bodega de salida', max_length=10)
+    unidades        = models.PositiveIntegerField(verbose_name='Unidades ingresadas')
+    fecha_hora      = models.DateTimeField(verbose_name='Fecha Hora', auto_now_add=True)
+    
+    def __str__(self):
+        return self.n_trasferencia
+
+
+
 # class Liberacion(models.Model):
     
 #     documento  = models.CharField(verbose_name='Documento', max_length=100, unique=True)
