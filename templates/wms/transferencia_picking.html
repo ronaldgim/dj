@@ -191,6 +191,42 @@
         })
     })
 </script>
+
+
+<!-- Eliminar Picking -->
+<script>
+    $("button[name='eliminar_picking']").click(function(){
+        var mov = $(this).attr('id');
+        
+        $.ajax({
+            type:"POST",
+            url:"{#% url 'wms_eliminar_movimiento' %#}",
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'mov':mov,
+            },
+
+            success: function() {
+                setTimeout(function(){
+                    window.location.reload();
+                    }, 2000);
+                if(response.msg){
+                    alert(response.msg)
+                }
+            },
+            error: function() {
+                setTimeout(function(){
+                    window.location.reload();
+                    }, 2000);
+                if(response.msg) {
+                    alert('Error al eliminar picking !!!')
+                }
+            }
+        })
+    })
+</script>
+
+
 {% comment %}
 <script>
 
