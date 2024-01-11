@@ -1262,21 +1262,39 @@ def wms_transferencias_list(request):
 def wms_transferencia_picking(request, n_transf):
     
     prod   = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+    
+    # Trasferencia
     transf = pd.DataFrame(Transferencia.objects.filter(n_transferencia=n_transf).values())
     transf = transf.merge(prod, on='product_id', how='left')
     transf['fecha_caducidad'] = pd.to_datetime(transf['fecha_caducidad']).dt.strftime('%d-%m-%Y').astype(str)
     
+    # Productos y cantidades egresados de WMS por Picking Transferencia
+    mov = pd.DataFrame(Movimiento.objects.filter(n_referencia='60509').values(
+        'id',
+        'product_id','lote_id','unidades','ubicacion__bodega','ubicacion__pasillo','ubicacion__modulo','ubicacion__nivel',
+        'ubicacion__distancia_puerta'))
+    mov['unidades'] = mov['unidades']*-1
     
-    #lote = transf['lote_id']
-    #print(prod_lote)
+    # Lista de movimientos
+    mov_list = de_dataframe_a_template(mov)
     
-    #transf = de_dataframe_a_template(transf)
+    # Agrupación de totales de movimeintos 
+    mov_group = mov.groupby(by=['product_id','lote_id']).sum().reset_index()
+    mov_group = mov_group.rename(columns={'unidades':'unidades_wms'})
     
+    # Si existen movimiento añadir al pedido la suma
+    if not mov.empty:
+        transf = transf.merge(mov_group, on=['product_id','lote_id'], how='left').fillna(0)
+        
     # Ubicaciones de productos en transferencia
     prod_lote = transf[['product_id','lote_id']].to_dict('records')
     ext_id = []
     for i in prod_lote:
-        ext = Existencias.objects.filter(product_id=i['product_id'], lote_id=i['lote_id']).values()
+        ext = Existencias.objects.filter(product_id=i['product_id'], lote_id=i['lote_id']).values(
+            'product_id','lote_id','fecha_caducidad','unidades','estado',
+            'ubicacion__bodega','ubicacion__pasillo','ubicacion__modulo','ubicacion__nivel',
+            'ubicacion__distancia_puerta'
+        )# .order_by('ubicacion__bodega','ubicacion__distancia_puerta')
         if ext.exists():
             for j in ext:
                 ext_id.append(j)
@@ -1284,17 +1302,21 @@ def wms_transferencia_picking(request, n_transf):
     #print(ext_id)
     
     transf_template = de_dataframe_a_template(transf)
-    
+    #print(transf_template)
     prod = list(transf['product_id'].unique())
     for i in prod:
         for j in transf_template:
             if j['product_id'] == i:
                 j['ubi'] = ubi_list = []
+                j['pik'] = pik_list = []
                 for k in ext_id:
                     if k['product_id'] == i:
                         ubi_list.append(k)
+                for m in mov_list:
+                    if m['product_id'] == i:
+                        pik_list.append(m)
     
-    print(transf_template)
+    #print(transf_template)
     
     context = {
         'transf':transf_template,

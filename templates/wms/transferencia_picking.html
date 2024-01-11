@@ -73,7 +73,7 @@
 <div class="card mb-2">
     <div class="card-body m-0 p-0">
         <div class="container table-responsive">
-            <table class="table" style="font-size: small;">
+            <table class="table m-0 p-0" style="font-size: small;">
                 <thead>
                     <tr>
                         <th scope="col">Item</th>
@@ -88,16 +88,93 @@
                         <td><span id="product_id">{{i.product_id}}</span><br>{{i.Nombre}} - {{i.Marca}}
                         </td>
                         <td><span id="lote_id">{{i.lote_id}}</span><br>{{i.fecha_caducidad}}</td>
-                        <td>MBA: {{i.unidades}}<br>
-                            WMS: {{i.unidades}}
+                        <td
+                            {% if i.unidades == i.unidades_wms %}
+                            style="background-color: #e3fde6;"
+                            {% elif not i.unidades_wms or i.unidades_wms < i.unidades %}
+                            style="background-color: #F6F490;"
+                            {% elif i.unidades < i.unidades_wms %}
+                            style="background-color: #F6B690;"
+                            {% endif %}
+                        >
+                            MBA: {{i.unidades|floatformat:"0g"}}<br>
+                            WMS: {{i.unidades_wms|floatformat:"0g"}}
                         </td>
                         <td class="text-end">
-                            {{i.ubi}}
                             <button class="btn btn-primary btn-sm" name="boton_ubicaciones"> 
                                 <i class="bi bi-geo-fill"></i>
                             </button>
                         </td>
                     </tr>
+                    
+                    {# FILA OCULA CON INVENTARIO Y MOVIMIENTOS #}
+                    <tr id="detalle_ubicaciones" style="display:none;" class="m-0 p-0">
+                        <td colspan="4">
+                            <h6 class="fw-bold" style="font-size: small;">Inventario</h6>
+                            <table class="table" style="font-size: small;">
+                                <thead>
+                                    <tr style="background-color: #e6e6e6;">
+                                        <th scope="col">Ubicación</th>
+                                        <th scope="col">Dips</th>
+                                        <th scope="col">Unds-Transferencia</th>
+                                        <th scope="col">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {# TABLA INVENTARIO #}
+                                    {% if i.ubi %}
+                                        {% for j in i.ubi %}
+                                        <tr style="background-color: #e6e6e6;">
+                                            <td>{{j.ubicacion__bodega}}-{{j.ubicacion__pasillo}}-{{j.ubicacion__modulo}}-{{j.ubicacion__nivel}}</td>
+                                            <td>{{j.unidades|floatformat:"0g"}}</td>
+                                            <td>
+                                                <input type="number" class="form-control form-control-sm">
+                                            </td>
+                                            <td>
+                                                <button type="button" class="btn btn-success btn-sm">
+                                                    <i class="bi bi-arrow-bar-right"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    {% endif %}
+
+                                    {# TABLA PICKING #}
+                                    {% if i.pik %}
+                                    <tr>
+                                        <td colspan="4" class="m-0 p-0">
+                                            <h6 class="fw-bold" style="font-size: small;">Picking</h6>
+                                            <table class="table m-0 p-0" style="background-color: #edfdff;">
+                                                <thead>
+                                                    <tr>
+                                                        <th scope="col">Ubicación</th>
+                                                        <th scope="col">Unds-Transferencia</th>
+                                                        <th scope="col">Acciones</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for k in i.pik %}
+                                                    <tr>
+                                                        <td>{{k.ubicacion__bodega}}-{{k.ubicacion__pasillo}}-{{k.ubicacion__modulo}}-{{k.ubicacion__nivel}}</td>
+                                                        <td>{{k.unidades|floatformat:"0g"}}</td>
+                                                        <td>
+                                                            <button class="btn btn-sm btn-danger" name="eliminar_picking" id="{{k.id}}">
+                                                                <i class="bi bi-arrow-bar-left"></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        <td>
+                                    </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                    {#% endcomment %#}
+
                     {% endfor %}
                 </tbody>
             </table>
@@ -105,7 +182,24 @@
     </div>
 </div>
 
-
+<script>
+    {% comment %}
+    $("button[name='boton_ubicaciones']").click(function(){
+        var fila = $(this).closest("tr").toggleClass("table-info") //.addClass("table-info")
+        var product_id = $(this).closest("tr").find("#product_id").html()
+        var lote_id    = $(this).closest("tr").find("#lote_id").html()
+        console.log(product_id, lote_id)
+    })
+    {% endcomment %}
+    $(document).ready(function(){
+        $("button[name='boton_ubicaciones']").click(function(){
+            var fila = $(this).closest("tr")
+            fila.next("#detalle_ubicaciones").toggle();
+            fila.toggleClass("table-info")
+        })
+    })
+</script>
+{% comment %}
 <script>
 
     $("button[name='boton_ubicaciones']").click(function(){
@@ -113,7 +207,7 @@
         var product_id = $(this).closest("tr").find("#product_id").html()
         var lote_id    = $(this).closest("tr").find("#lote_id").html()
         console.log(product_id, lote_id)
-        {% comment %}
+        
         $.ajax({
             type:"POST",
             url:"{% url 'wms_transferencia_input_ajax' %}",
@@ -130,7 +224,8 @@
                 $('#msg').fadeIn().html('<div class="text-center alert alert-danger" role="alert"> Error !!! </div>').fadeOut(6000)
             }
         })
-        {% endcomment %}
+        
     })
 </script>
+{% endcomment %}
 {% endblock %}
