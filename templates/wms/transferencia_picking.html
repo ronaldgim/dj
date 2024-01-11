@@ -58,12 +58,6 @@
 <div id="msg"></div>
 <div id="msg_ss"></div>
 
-
-<!--div class="input-group mb-3">
-    <input type="text" class="form-control" placeholder="Ingrese en número de trasferencia" id="n_trasf" required>
-    <button name="trasferencia" class="btn btn-primary" type="submit">Añadir Transferencia</button>
-</div-->
-
 {% if factura.msg %}
     <div class="alert text-center alert-danger" role="alert">
         {{factura.msg}}
@@ -173,8 +167,6 @@
                             </table>
                         </td>
                     </tr>
-                    {#% endcomment %#}
-
                     {% endfor %}
                 </tbody>
             </table>
