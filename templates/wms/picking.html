@@ -155,7 +155,6 @@
                                                 
                                                 <td class="text-center">
                                                     <button name="pick" type="button" class="btn btn-success btn-sm {% if i.estado == 'Cuarentena' %} disabled {% endif %}">
-                                                        <!--i class="bi bi-cart"></i-->
                                                         <i class="bi bi-arrow-bar-right"></i>
                                                     </button>
                                                 </td>
@@ -190,26 +189,12 @@
                                                             <td>{{j.ubicacion__bodega}}-{{j.ubicacion__pasillo}}-{{j.ubicacion__modulo}}-{{j.ubicacion__nivel}}</td>
                                                             <td id="reg_unidades" class="text-end">{{j.unidades|floatformat:"0g"}}</td>
                                                             <td class="text-center">
-                                                                <!--button class="btn btn-sm btn-danger" name="reg_pick">
-                                                                    <i class="bi bi-arrow-bar-left"></i>
-                                                                </button-->
-
-                                                                <!--button class="btn btn-sm btn-danger {% if estado == 'FINALIZADO' %}disabled{% endif %}" name="eliminar_picking" id="{{j.id}}">
-                                                                    <i class="bi bi-arrow-bar-left"></i>
-                                                                </button-->
-
                                                                 <button class="btn btn-sm btn-danger" name="eliminar_picking" id="{{j.id}}">
                                                                     <i class="bi bi-arrow-bar-left"></i>
                                                                 </button>
                                                             </td>
                                                         </tr>
                                                         {% endfor %}
-                                                        <!--tr>
-                                                            <td colspan="2"></td>
-                                                            <td class="text-end fw-bold">Total:</td>
-                                                            <td class="text-end">{{i.unds_picks}}</td>
-                                                            <td></td>
-                                                        </tr-->
                                                     </tbody>
                                                 </table>
                                             </td>
@@ -251,13 +236,7 @@
     </div>
 </div>
 
-
 <!-- Desplegar ubicaciones -->
-<!--style>
-    .seleccionada {
-        background-color: lightblue; /* Puedes cambiar el color aquí */
-    }
-</style-->
 <script>
     $(document).ready(function(){
         $("button[name='boton_ubicaciones']").click(function(){

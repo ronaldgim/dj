@@ -19,6 +19,7 @@ REFERENCIA_MOVIMIENTOS = [
     ('Liberación', 'Liberación'),
     ('Ajuste', 'Ajuste'),
     ('Picking', 'Picking'),
+    ('Transferencia', 'Transferencia'),
 ]
 
 REFERENCIA_INGRESOS = [

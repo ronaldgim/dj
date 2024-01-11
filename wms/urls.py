@@ -212,6 +212,13 @@ urlpatterns = [
         name = 'wms_transferencia_picking'
     ),
     
+    # Movimiento de egreso transferencia
+    path(
+        route='transferencia/movimiento/egreso/transferencia',
+        view = views.wms_movimiento_egreso_transferencia,
+        name = 'wms_movimiento_egreso_transferencia'
+    ),
+    
     
     # Liberaciones
     # path(

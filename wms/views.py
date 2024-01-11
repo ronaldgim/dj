@@ -973,7 +973,7 @@ def wms_movimiento_egreso_picking(request): #OK
     pedido = pedido[pedido['PRODUCT_ID']==prod_id][['PRODUCT_ID','QUANTITY']]#.reset_index()
     pedido = pedido.groupby(by='PRODUCT_ID').sum().to_dict('records')[0]
     total_pedido = pedido['QUANTITY']   
-
+    
     if not existencia.exists():
         return JsonResponse({'msg':'❌ Error, revise las existencias o refresque la pagina !!!'})
     elif existencia.exists():
@@ -1269,7 +1269,7 @@ def wms_transferencia_picking(request, n_transf):
     transf['fecha_caducidad'] = pd.to_datetime(transf['fecha_caducidad']).dt.strftime('%d-%m-%Y').astype(str)
     
     # Productos y cantidades egresados de WMS por Picking Transferencia
-    mov = pd.DataFrame(Movimiento.objects.filter(n_referencia='60509').values(
+    mov = pd.DataFrame(Movimiento.objects.filter(n_referencia=n_transf).values(
         'id',
         'product_id','lote_id','unidades','ubicacion__bodega','ubicacion__pasillo','ubicacion__modulo','ubicacion__nivel',
         'ubicacion__distancia_puerta'))
@@ -1292,17 +1292,16 @@ def wms_transferencia_picking(request, n_transf):
     for i in prod_lote:
         ext = Existencias.objects.filter(product_id=i['product_id'], lote_id=i['lote_id']).values(
             'product_id','lote_id','fecha_caducidad','unidades','estado',
+            'ubicacion__id',
             'ubicacion__bodega','ubicacion__pasillo','ubicacion__modulo','ubicacion__nivel',
             'ubicacion__distancia_puerta'
-        )# .order_by('ubicacion__bodega','ubicacion__distancia_puerta')
+        )
         if ext.exists():
             for j in ext:
                 ext_id.append(j)
-        
-    #print(ext_id)
     
     transf_template = de_dataframe_a_template(transf)
-    #print(transf_template)
+    
     prod = list(transf['product_id'].unique())
     for i in prod:
         for j in transf_template:
@@ -1316,7 +1315,8 @@ def wms_transferencia_picking(request, n_transf):
                     if m['product_id'] == i:
                         pik_list.append(m)
     
-    #print(transf_template)
+    # print(transf_template)
+    # transf_template = sorted(transf_template, key= lambda x: x['ubi'][0['ubicacion__bodega']])
     
     context = {
         'transf':transf_template,
@@ -1326,7 +1326,81 @@ def wms_transferencia_picking(request, n_transf):
 
 
 
-
+# Crear egreso en tabla movimientos
+def wms_movimiento_egreso_transferencia(request): #OK
+    
+    # Egreso
+    unds_egreso = request.POST['unds']
+    if not unds_egreso:
+        #messages.error(request, 'Error, ingrese una cantidad !!!')
+        unds_egreso = 0
+        return JsonResponse({'msg':'❌ Error, ingrese una cantidad !!!'})
+    else:
+        unds_egreso = int(unds_egreso)
+        
+    n_transf = request.POST['n_transf']
+    
+    # Item busqueda Existencias
+    prod_id   = request.POST['prod_id']
+    lote_id   = request.POST['lote_id']
+    caducidad = request.POST['caducidad']
+    ubi       = int(request.POST['ubi'])
+    
+    existencia = (Existencias.objects
+        .filter(product_id=prod_id,)
+        .filter(lote_id=lote_id)
+        .filter(fecha_caducidad=caducidad)
+        .filter(ubicacion_id=ubi)
+        )
+    
+    movimientos = Movimiento.objects.filter(product_id=prod_id).filter(n_referencia=n_transf)
+    
+    if movimientos.exists():
+        mov = pd.DataFrame(movimientos.values('product_id','unidades'))
+        mov['unidades'] = pd.Series.abs(mov['unidades'])
+        mov = mov[['product_id','unidades']].groupby(by='product_id').sum()
+        mov = de_dataframe_a_template(mov)[0]
+        total_mov = mov['unidades'] + int(unds_egreso)
+    else:
+        total_mov = int(unds_egreso)
+    
+    total_transf = sum(Transferencia.objects
+        .filter(n_transferencia=n_transf)
+        .filter(product_id=prod_id).values_list('unidades',flat=True))
+    
+    if not existencia.exists():
+        return JsonResponse({'msg':'❌ Error, revise las existencias o refresque la pagina !!!'})
+    elif existencia.exists():
+        if unds_egreso > existencia.last().unidades:
+            return JsonResponse({'msg':'❌ No puede retirar más unidades de las existentes !!!'})
+        elif unds_egreso == 0 or unds_egreso < 0:
+            return JsonResponse({'msg':'❌ La cantidad debe ser mayor 0 !!!'})
+        elif total_mov > total_transf:
+            return JsonResponse({'msg':'❌ No puede retirar más unidades de las solicitadas en el Picking !!!'})
+        elif total_mov <= total_transf:
+            
+            transferencia = Movimiento(
+                product_id      = prod_id,
+                lote_id         = lote_id,
+                fecha_caducidad = caducidad,
+                tipo            = 'Egreso',
+                descripcion     = 'Transferencia',
+                referencia      = 'Transferencia',
+                n_referencia    = n_transf,
+                ubicacion_id    = ubi,
+                unidades        = unds_egreso*-1,
+                estado          = 'Disponible',
+                estado_picking  = 'En Despacho',
+                usuario_id      = request.user.id,
+            )
+            
+            transferencia.save()
+            
+            wms_existencias_query()
+            
+            return JsonResponse({'msg':f'✅ Producto {prod_id}, lote {lote_id} seleccionado correctamente !!!'})
+        return JsonResponse({'msg':'❌ Error !!!'})
+    return JsonResponse({'msg':'❌Error !!!'})
 
 
 
