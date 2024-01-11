@@ -125,7 +125,7 @@
                                         {% if i.ubi %}
                                         {% for i in i.ubi %}
                                             {% if not i.tipo %}
-                                            {{i.unds_picks}}
+
                                             <tr {% if not i.tipo %} style="background-color: #e6e6e6;" {% else %} style="background-color: #e3fde6;" {% endif %}>
                                                 <input type="hidden" value="{{n_ped}}" id="n_picking">
                                                 <input type="hidden" value="{{i.product_id}}" id="prod_id">
