@@ -119,13 +119,24 @@
                                     {% if i.ubi %}
                                         {% for j in i.ubi %}
                                         <tr style="background-color: #e6e6e6;">
-                                            <td>{{j.ubicacion__bodega}}-{{j.ubicacion__pasillo}}-{{j.ubicacion__modulo}}-{{j.ubicacion__nivel}}</td>
+                                            
+                                            <!-- Datos para ajax fuction -->
+                                            <input type="hidden" value="{{j.product_id}}" id="product_id">
+                                            <input type="hidden" value="{{j.lote_id}}" id="lote_id">
+                                            <input type="hidden" value="{{j.fecha_caducidad|date:'Y-m-d'}}" id="fecha_caducidad">
+                                            <input type="hidden" value="{{j.ubicacion__id}}" id="ubicacion_id">
+                                            <input type="hidden" value="{{n_transf}}" id="n_transf">
+                                            <!-- -->
+
+                                            <td class="{% if j.estado == 'Cuarentena' %}text-danger{% endif %}">
+                                                {% if j.estado == 'Cuarentena' %}CUC-{% endif %}{{j.ubicacion__bodega}}-{{j.ubicacion__pasillo}}-{{j.ubicacion__modulo}}-{{j.ubicacion__nivel}}
+                                            </td>
                                             <td>{{j.unidades|floatformat:"0g"}}</td>
                                             <td>
-                                                <input type="number" class="form-control form-control-sm">
+                                                <input id="picking_cantidad" type="number" class="form-control form-control-sm" {% if j.estado == 'Cuarentena' %} disabled {% endif %}>
                                             </td>
                                             <td>
-                                                <button type="button" class="btn btn-success btn-sm">
+                                                <button name="pick" type="button" class="btn btn-success btn-sm {% if j.estado == 'Cuarentena' %} disabled {% endif %}">
                                                     <i class="bi bi-arrow-bar-right"></i>
                                                 </button>
                                             </td>
@@ -133,7 +144,7 @@
                                         {% endfor %}
                                     {% endif %}
 
-                                    {# TABLA PICKING #}
+                                    {# TABLA DE ELEMENTOS PICKEADOS #}
                                     {% if i.pik %}
                                     <tr>
                                         <td colspan="4" class="m-0 p-0">
@@ -174,15 +185,8 @@
     </div>
 </div>
 
+<!-- Desplegar ubicaciones -->
 <script>
-    {% comment %}
-    $("button[name='boton_ubicaciones']").click(function(){
-        var fila = $(this).closest("tr").toggleClass("table-info") //.addClass("table-info")
-        var product_id = $(this).closest("tr").find("#product_id").html()
-        var lote_id    = $(this).closest("tr").find("#lote_id").html()
-        console.log(product_id, lote_id)
-    })
-    {% endcomment %}
     $(document).ready(function(){
         $("button[name='boton_ubicaciones']").click(function(){
             var fila = $(this).closest("tr")
@@ -191,6 +195,84 @@
         })
     })
 </script>
+
+<!-- Picking -->
+<script>
+    $("button[name='pick']").click(function(){
+        var prod_id          = $(this).closest("tr").find("#product_id").val();
+        var lote             = $(this).closest("tr").find("#lote_id").val();
+        var caducidad        = $(this).closest("tr").find("#fecha_caducidad").val();
+        var picking_cantidad = $(this).closest("tr").find("#picking_cantidad").val();
+        var n_transf         = $(this).closest("tr").find("#n_transf").val();
+        var ubi              = $(this).closest("tr").find("#ubicacion_id").val();
+        
+        
+        $.ajax({
+            type:"POST",
+            url:"{% url 'wms_movimiento_egreso_transferencia' %}",
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'prod_id'  :prod_id,
+                'lote_id'  :lote,
+                'caducidad':caducidad,
+                'unds'     :picking_cantidad,
+                'n_transf' :n_transf,
+                'ubi'      :ubi
+            },
+
+            success: function(response) {
+                setTimeout(function(){
+                    window.location.reload();
+                }, 1000);
+                if(response.msg) {
+                    alert(response.msg)
+                }
+            },
+
+            error: function() {
+                $('#msg').html('<div class="text-center alert alert-danger" role="alert"> Error al hacer el picking !!! </div>')
+                    setTimeout(function(){
+                    window.location.reload();
+                    }, 2000)
+            }
+        })
+    })
+</script>
+
+<!-- Eliminar Picking -->
+<script>
+    $("button[name='eliminar_picking']").click(function(){
+        var mov = $(this).attr('id');
+        
+        $.ajax({
+            type:"POST",
+            url:"{#% url 'wms_eliminar_movimiento' %#}",
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'mov':mov,
+            },
+
+            success: function() {
+                setTimeout(function(){
+                    window.location.reload();
+                    }, 2000);
+                if(response.msg){
+                    alert(response.msg)
+                }
+            },
+            error: function() {
+                setTimeout(function(){
+                    window.location.reload();
+                    }, 2000);
+                if(response.msg) {
+                    alert('Error al eliminar picking !!!')
+                }
+            }
+        })
+    })
+</script>
+
+
 {% comment %}
 <script>
 
