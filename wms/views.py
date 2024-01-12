@@ -292,10 +292,7 @@ def wms_inventario_inicial_bodega(request, bodega): #OK
 
 
 
-    
     ####   QUERY DE EXISTENCIAS   ####
-
-
 
 
 
@@ -357,6 +354,10 @@ def wms_existencias_query(): #OK
 
     return exitencias
 
+
+# Actualizar existencias por item y lote
+def wms_existencias_query_product_lote(product_id, lote_id):
+    pass
 
 
 def cuadre_inventario(request):
