@@ -1176,10 +1176,10 @@ def wms_cruce_check_despacho(request):
         .filter(product_id=prod_id)
         .filter(lote_id=lote_id)
         )
-    
+    print(items)
     if items.exists():
         items.update(estado_picking='Despachado')
-        
+        print(items)
         return JsonResponse({
             'msg':'OK',
             })
@@ -1321,7 +1321,7 @@ def wms_transferencias_list(request):
     return render(request, 'wms/transferencias_list.html', context)
 
 
-
+@login_required(login_url='login')
 def wms_transferencia_picking(request, n_transf):
     
     prod   = productos_odbc_and_django()[['product_id','Nombre','Marca']]
@@ -1453,7 +1453,7 @@ def wms_movimiento_egreso_transferencia(request): #OK
                 ubicacion_id    = ubi,
                 unidades        = unds_egreso*-1,
                 estado          = 'Disponible',
-                estado_picking  = 'En Despacho',
+                estado_picking  = 'Despachado',
                 usuario_id      = request.user.id,
             )
             
