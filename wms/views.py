@@ -409,8 +409,10 @@ def wms_existencias_query_product_lote(product_id, lote_id):
     
     Existencias.objects.filter(product_id=product_id, lote_id=lote_id).delete()
     Existencias.objects.bulk_create(existencias_list)
-
+    
     return exitencias
+
+
 
 # Actualizar toda la tabla existencias
 def wms_btn_actualizar_todas_existencias(request):

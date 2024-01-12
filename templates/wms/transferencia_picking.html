@@ -129,7 +129,7 @@
                                             <!-- -->
 
                                             <td class="{% if j.estado == 'Cuarentena' %}text-danger{% endif %}">
-                                                {% if j.estado == 'Cuarentena' %}CUC-{% endif %}{{j.ubicacion__bodega}}-{{j.ubicacion__pasillo}}-{{j.ubicacion__modulo}}-{{j.ubicacion__nivel}}
+                                                {% if j.estado == 'Cuarentena' %}CUC-{% endif %}{{j.ubicacion__bodega}}-{{j.ubicacion__pasillo}}-{{j.ubicacion__modulo}}{% if j.ubicacion__bodega == 'CN6' %}-{{j.ubicacion__nivel}}{% else %}{% endif %}
                                             </td>
                                             <td>{{j.unidades|floatformat:"0g"}}</td>
                                             <td>
@@ -160,7 +160,7 @@
                                                 <tbody>
                                                     {% for k in i.pik %}
                                                     <tr>
-                                                        <td>{{k.ubicacion__bodega}}-{{k.ubicacion__pasillo}}-{{k.ubicacion__modulo}}-{{k.ubicacion__nivel}}</td>
+                                                        <td>{{k.ubicacion__bodega}}-{{k.ubicacion__pasillo}}-{{k.ubicacion__modulo}}{% if k.ubicacion__bodega == 'CN6' %}-{{k.ubicacion__nivel}}{% else %}{% endif %}</td>
                                                         <td>{{k.unidades|floatformat:"0g"}}</td>
                                                         <td>
                                                             <button class="btn btn-sm btn-danger" name="eliminar_picking" id="{{k.id}}">
