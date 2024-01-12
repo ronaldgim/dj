@@ -77,8 +77,8 @@
                 <thead>
                     <tr>
                         <th scope="col"># Transferencia</th>
-                        <!--th scope="col">Bodega de Salida</th-->
-                        <th scope="col">Fecha - Hora</th>
+                        <th scope="col">Fecha</th>
+                        <th scope="col">Ver Transferencia</th>
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
@@ -86,8 +86,11 @@
                     <tr>
                         <td>{{i.n_transferencia}}</td>
                         <td>{{i.fecha_hora}}</td>
-                        
-                        
+                        <td>
+                            <a class="btn btn-primary" href="{% url 'wms_transferencia_picking' i.n_transferencia %}">
+                                <i class="bi bi-truck"></i>
+                            </a>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>

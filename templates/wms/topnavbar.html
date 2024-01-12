@@ -51,7 +51,16 @@
                 <li><a class="dropdown-item" href="{% url 'wms_listado_pedidos' %}">Lista de pedidos</a></li>
                 <li><a class="dropdown-item" href="{% url 'wms_productos_en_despacho_list' %}">Productos en despacho</a></li>
                 <li><a class="dropdown-item" href="{% url 'wms_cruce_picking_factura' %}">Cruce Picking-Factura</a></li>
-                <li><a class="dropdown-item" href="{% url 'wms_revision_transferencia' %}">Trasferencias</a></li>
+            </ul>
+          </li>
+
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Transferencias
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                <li><a class="dropdown-item" href="{% url 'wms_transferencias_list' %}">Lista de transferencias</a></li>
+                <li><a class="dropdown-item" href="{% url 'wms_revision_transferencia' %}">Revisión Trasferencia</a></li>
             </ul>
           </li>
 
@@ -75,7 +84,7 @@
                 <li><a class="dropdown-item" href="{% url 'picking_estado' %}">Estado de Picking</a></li> 
                 <li><a class="dropdown-item" href="{% url 'inventario_bodega' %}">Inventario</a></li> 
             </ul-->
-          </li>
+          <!--/li-->
           <!--li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
               Mantenimiento

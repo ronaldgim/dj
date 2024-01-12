@@ -785,9 +785,8 @@ def wms_egreso_picking(request, n_pedido): #OK
     prod   = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     prod   = prod.rename(columns={'product_id':'PRODUCT_ID'})
     
-    pedido = pedido_por_cliente(n_pedido).sort_values('PRODUCT_ID')
+    pedido = pedido_por_cliente(n_pedido).sort_values('PRODUCT_ID') #;print(pedido.keys())
     pedido = pedido.merge(prod, on='PRODUCT_ID',how='left')
-    
     prod_list = list(pedido['PRODUCT_ID'].unique())
     
     n_ped = pedido['CONTRATO_ID'].iloc[0]
@@ -842,8 +841,6 @@ def wms_egreso_picking(request, n_pedido): #OK
             if j['PRODUCT_ID'] == i:
                 j['ubi'] = ubi_list = []
                 j['pik'] = pik_list = []
-                # if mov_group_total['product_id'] == i:
-                #     j['unds_picks'] = mov_group_total['unidades']
                 for k in inv:
                     if k['product_id'] == i:
                         ubi_list.append(k)
@@ -857,7 +854,6 @@ def wms_egreso_picking(request, n_pedido): #OK
         'cli':cli,
         'fecha': fecha ,
         'hora':hora,
-        
         'estado':estado,
         'estado_id':estado_id
     }
@@ -1070,6 +1066,7 @@ def wms_armar_codigo_factura(n_factura):
         
         try:
             picking = pd.DataFrame(Movimiento.objects.filter(n_referencia = fn_pedido).values())
+            picking['lote_id'] = quitar_puntos(picking['lote_id'])
             picking = picking.groupby(by=['product_id','lote_id','estado_picking']).sum().reset_index()
             
             factura = factura.merge(picking, on=['product_id','lote_id'], how='left').fillna(0)
@@ -1237,7 +1234,9 @@ def wms_transferencia_input_ajax(request):
             tr_list.append(tr)
             
         Transferencia.objects.bulk_create(tr_list)
-        #return HttpResponse(trans_mba) RESPONSE REDIRECT
+        
+        messages.success(f'La Transferencia {n_trasf} fue añadida exitosamente !!!')
+        return HttpResponseRedirect('/wms/transferencias/list') 
     
     elif new_transf.exists():
         return HttpResponse(f'La Transferencia {n_trasf} ya fue añadida')
@@ -1247,8 +1246,10 @@ def wms_transferencia_input_ajax(request):
 def wms_transferencias_list(request):
     
     transf_wms = pd.DataFrame(Transferencia.objects.all().values()).drop_duplicates(subset='n_transferencia')
-    #transf_wms['fecha_hora'] = pd.to_datetime(transf_wms['fecha_hora'].dt.strftime('%d-%m-%Y')).astype(str)
-    transf_wms['fecha_hora'] = pd.to_datetime(transf_wms['fecha_hora']).dt.strftime('%d-%m-%Y').astype(str)
+    if not transf_wms.empty:
+        transf_wms['fecha_hora'] = pd.to_datetime(transf_wms['fecha_hora']).dt.strftime('%d-%m-%Y - %r').astype(str)
+        transf_wms = transf_wms.sort_values(by='fecha_hora', ascending=False)
+        
     transf_wms = de_dataframe_a_template(transf_wms)
     
     context = {
@@ -1273,17 +1274,17 @@ def wms_transferencia_picking(request, n_transf):
         'id',
         'product_id','lote_id','unidades','ubicacion__bodega','ubicacion__pasillo','ubicacion__modulo','ubicacion__nivel',
         'ubicacion__distancia_puerta'))
-    mov['unidades'] = mov['unidades']*-1
     
+    if not mov.empty:
+        mov['unidades'] = mov['unidades']*-1
+        
     # Lista de movimientos
     mov_list = de_dataframe_a_template(mov)
     
-    # Agrupación de totales de movimeintos 
-    mov_group = mov.groupby(by=['product_id','lote_id']).sum().reset_index()
-    mov_group = mov_group.rename(columns={'unidades':'unidades_wms'})
-    
     # Si existen movimiento añadir al pedido la suma
     if not mov.empty:
+        mov_group = mov.groupby(by=['product_id','lote_id']).sum().reset_index()
+        mov_group = mov_group.rename(columns={'unidades':'unidades_wms'})
         transf = transf.merge(mov_group, on=['product_id','lote_id'], how='left').fillna(0)
         
     # Ubicaciones de productos en transferencia
