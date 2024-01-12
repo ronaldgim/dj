@@ -357,65 +357,124 @@ def wms_existencias_query(): #OK
 
 # Actualizar existencias por item y lote
 def wms_existencias_query_product_lote(product_id, lote_id):
-    pass
-
-
-def cuadre_inventario(request):
     
-    # Stock MBA - Cerezos
-    stock_cerezos = wms_stock_lote_cerezos()[[
-        'PRODUCT_ID', 
-        'PRODUCT_NAME',
-        'GROUP_CODE',
-        'LOTE_ID',
-        'FECHA_CADUCIDAD',
-        'LOCATION',
-        'OH2',
-        ]]
-    stock_cerezos = stock_cerezos.rename(columns={
-        'PRODUCT_ID':'product_id',
-        'LOTE_ID':'lote_id'
-    })    
-    
-    # Existencias WMS
-    exitencias = Movimiento.objects.all().values(
+    exitencias = Movimiento.objects.filter(
+        product_id=product_id, 
+        lote_id=lote_id
+    ).values(
+        # 'id',
         'product_id',
         'lote_id',
         'fecha_caducidad',
+        # 'item__product_id',
+        # 'item__nombre',
+        # 'item__marca2',
+        # 'item__lote_id',
+        # 'item__fecha_caducidad',
+        'ubicacion'        ,
         'ubicacion__bodega',
+        'ubicacion__pasillo',
+        'ubicacion__modulo',
+        'ubicacion__nivel',
+        'estado'
+    ).annotate(total_unidades=Sum('unidades')).order_by(
+        # 'item__product_id',
+        # 'item__marca2',
+        # 'item__fecha_caducidad',
+        'ubicacion__bodega',
+        'ubicacion__pasillo',
+        'ubicacion__modulo',
+        'ubicacion__nivel',
+    ).exclude(total_unidades = 0)
+    
+    existencias_list = []
+    for i in exitencias:
+        prod = i['product_id']
+        lote = i['lote_id']
+        fcad = i['fecha_caducidad']
+        ubi  = i['ubicacion']
+        und  = i['total_unidades']
+        est  = i['estado']
         
-    ).annotate(total_unidades=Sum('unidades')).exclude(total_unidades=0) 
+        ex = Existencias(
+            product_id      = prod,
+            lote_id         = lote,
+            fecha_caducidad = fcad,
+            ubicacion_id    = ubi,
+            unidades        = und,
+            estado          = est
+        )
+        
+        existencias_list.append(ex)
     
-    exitencias = pd.DataFrame(exitencias)
-    exitencias = exitencias.rename(columns={'total_unidades':'unidades_wms'})
-    
-    inv = stock_cerezos.merge(exitencias, on=['product_id','lote_id'])
-    #print(inv)
-    
-    # from inventario.models import Inventario
-    # inventario_fisico = pd.DataFrame(Inventario.objects.filter(ware_code='BCT').values(
-    #     'product_id', 'lote_id', 'fecha_cadu_lote', 'total_unidades'
-    # ))
-    # inventario_fisico = inventario_fisico.rename(columns={'total_unidades':'unidades_inv'})
-    
-    
-    # inv = inventario_fisico.merge(
-    #     exitencias, on=['product_id','lote_id'],
-    #     how='left')
-    
-    # inv['dif'] = inv['unidades_inv'] - inv['unidades_wms']
-    
-    # inv = inv[['product_id','lote_id','fecha_cadu_lote','fecha_caducidad',
-    #             'unidades_inv','unidades_wms','dif']]
-    
-    
-    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    response['Content-Disposition'] = 'Rep.xlsx'
+    Existencias.objects.filter(product_id=product_id, lote_id=lote_id).delete()
+    Existencias.objects.bulk_create(existencias_list)
 
-    inv.to_excel(response)
+    return exitencias
+
+# Actualizar toda la tabla existencias
+def wms_btn_actualizar_todas_existencias(request):
+    wms_existencias_query()
+    return redirect('/wms/inventario')
+
+
+
+# def cuadre_inventario(request):
     
-    return response 
-    # return HttpResponse(exitencias)
+#     # Stock MBA - Cerezos
+#     stock_cerezos = wms_stock_lote_cerezos()[[
+#         'PRODUCT_ID', 
+#         'PRODUCT_NAME',
+#         'GROUP_CODE',
+#         'LOTE_ID',
+#         'FECHA_CADUCIDAD',
+#         'LOCATION',
+#         'OH2',
+#         ]]
+#     stock_cerezos = stock_cerezos.rename(columns={
+#         'PRODUCT_ID':'product_id',
+#         'LOTE_ID':'lote_id'
+#     })    
+    
+#     # Existencias WMS
+#     exitencias = Movimiento.objects.all().values(
+#         'product_id',
+#         'lote_id',
+#         'fecha_caducidad',
+#         'ubicacion__bodega',
+        
+#     ).annotate(total_unidades=Sum('unidades')).exclude(total_unidades=0) 
+    
+#     exitencias = pd.DataFrame(exitencias)
+#     exitencias = exitencias.rename(columns={'total_unidades':'unidades_wms'})
+    
+#     inv = stock_cerezos.merge(exitencias, on=['product_id','lote_id'])
+#     #print(inv)
+    
+#     # from inventario.models import Inventario
+#     # inventario_fisico = pd.DataFrame(Inventario.objects.filter(ware_code='BCT').values(
+#     #     'product_id', 'lote_id', 'fecha_cadu_lote', 'total_unidades'
+#     # ))
+#     # inventario_fisico = inventario_fisico.rename(columns={'total_unidades':'unidades_inv'})
+    
+    
+#     # inv = inventario_fisico.merge(
+#     #     exitencias, on=['product_id','lote_id'],
+#     #     how='left')
+    
+#     # inv['dif'] = inv['unidades_inv'] - inv['unidades_wms']
+    
+#     # inv = inv[['product_id','lote_id','fecha_cadu_lote','fecha_caducidad',
+#     #             'unidades_inv','unidades_wms','dif']]
+    
+    
+#     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+#     response['Content-Disposition'] = 'Rep.xlsx'
+
+#     inv.to_excel(response)
+    
+#     return response 
+#     # return HttpResponse(exitencias)
 
 
 
@@ -426,7 +485,7 @@ def wms_inventario(request): #OK
         Suma de ingresos y egresos que dan el total de todo el inventario
     """
     
-    wms_existencias_query()
+    #wms_existencias_query()
     prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     
     #inv = wms_existencias_query()
@@ -502,10 +561,10 @@ def wms_movimientos_ingreso(request, id): #OK
         #if form.is_valid():
         if und == total_ingresado:
             # guardar
-            #form = MovimientosForm(request.POST)
             if form.is_valid():
                 form.save()
-                wms_existencias_query()
+                wms_existencias_query_product_lote(product_id=request.POST['product_id'], lote_id=request.POST['lote_id'])
+                #wms_existencias_query()
                 # regresar a la lista de productos en importacion
                 url_redirect
                 #return redirect(f'/wms/importacion/bodega/{item.n_referencia}')
@@ -522,10 +581,10 @@ def wms_movimientos_ingreso(request, id): #OK
 
         elif und < ingresados_ubicaciones :
             # guardar
-            #form = MovimientosForm(request.POST)
             if form.is_valid():
                 form.save()
-                wms_existencias_query()
+                wms_existencias_query_product_lote(product_id=request.POST['product_id'], lote_id=request.POST['lote_id'])
+                #wms_existencias_query()
                 # retornar a la misma view
                 return redirect(f'/wms/ingreso/{item.id}')
             else:
@@ -533,13 +592,10 @@ def wms_movimientos_ingreso(request, id): #OK
 
         elif ubicaciones_und == total_ingresado :
             # guardar
-            #form = MovimientosForm(request.POST)
             if form.is_valid():
                 form.save()
-                wms_existencias_query()
-                # retornar a la misma view
-                #return redirect(f'/wms/importacion/bodega/{item.n_referencia}')
-                #return redirect(f'/wms/importacion/bodega/{url_redirect}')
+                wms_existencias_query_product_lote(product_id=request.POST['product_id'], lote_id=request.POST['lote_id'])
+                #wms_existencias_query()
                 return redirect(url_redirect)
             else:
                 messages.error(request, form.errors)
@@ -607,18 +663,18 @@ def wms_movimiento_interno(request, id): #OK
             )
             mov_ingreso.save()
             
+            wms_existencias_query_product_lote(product_id=item.product_id, lote_id=item.lote_id)
+            
             messages.success(request, 'Movimiento realizado con exito !!!')
             return redirect('/wms/inventario')
         
         elif und_post > und_existentes:
             messages.error(request, 'No se puede retirar una cantidad mayor a la exitente !!!')
             return redirect(f'/wms/inventario/mov-interno/{id}')
-            #return redirect(f'/wms/inventario/mov-interno/{prod}/{lote}/{bod}/{pas}/{mod}/{niv}')
 
         else: 
             messages.error(request, 'Error en el movimiento !!!')
             return redirect(f'/wms/inventario/mov-interno/{id}')
-            #return redirect(f'/wms/inventario/mov-interno/{prod}/{lote}/{bod}/{pas}/{mod}/{niv}')
 
     context = {
         'item':item,
@@ -626,7 +682,6 @@ def wms_movimiento_interno(request, id): #OK
     }
 
     return render(request, 'wms/movimiento_interno.html', context)
-
 
 
 # Comprobar si existe para realizar el egreso
@@ -683,7 +738,7 @@ def wms_movimiento_ajuste(request): #OK
             )
             
             mov.save()
-            
+            wms_existencias_query_product_lote(product_id=request.POST['product_id'], lote_id=request.POST['lote_id'])
             messages.success(request, 'Ajuste realizado exitosamente !!!')
             return redirect('/wms/inventario')
                     
@@ -713,6 +768,7 @@ def wms_movimiento_ajuste(request): #OK
             
             if comprobar == True:
                 mov.save()
+                wms_existencias_query_product_lote(product_id=request.POST['product_id'], lote_id=request.POST['lote_id'])
                 messages.success(request, 'Ajuste realizado exitosamente !!!')
                 return redirect('/wms/inventario')
             else:
@@ -998,8 +1054,8 @@ def wms_movimiento_egreso_picking(request): #OK
             )
             
             picking.save()
-            
-            wms_existencias_query()
+            wms_existencias_query_product_lote(product_id=prod_id, lote_id=lote_id)
+            #wms_existencias_query()
             
             return JsonResponse({'msg':f'✅ Producto {prod_id}, lote {lote_id} seleccionado correctamente !!!'})
         return JsonResponse({'msg':'❌ Error !!!'})
@@ -1014,9 +1070,12 @@ def wms_eliminar_movimiento(request): #OK
     mov_id = request.POST['mov']
     mov_id = int(mov_id)
     mov = Movimiento.objects.get(id=mov_id)
+    m = mov
+    
     mov.delete()
     
-    wms_existencias_query()
+    wms_existencias_query_product_lote(product_id=m.product_id, lote_id=m.lote_id)
+    #wms_existencias_query()
 
     return JsonResponse({'msg':'Egreso eliminado ✔!!!'})
 
@@ -1237,7 +1296,7 @@ def wms_transferencia_input_ajax(request):
         Transferencia.objects.bulk_create(tr_list)
         
         messages.success(f'La Transferencia {n_trasf} fue añadida exitosamente !!!')
-        return HttpResponseRedirect('/wms/transferencias/list') 
+        return redirect('/wms/transferencias/list') 
     
     elif new_transf.exists():
         return HttpResponse(f'La Transferencia {n_trasf} ya fue añadida')
@@ -1398,7 +1457,8 @@ def wms_movimiento_egreso_transferencia(request): #OK
             
             transferencia.save()
             
-            wms_existencias_query()
+            wms_existencias_query_product_lote(product_id=prod_id, lote_id=lote_id)
+            #wms_existencias_query()
             
             return JsonResponse({'msg':f'✅ Producto {prod_id}, lote {lote_id} seleccionado correctamente !!!'})
         return JsonResponse({'msg':'❌ Error !!!'})

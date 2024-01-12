@@ -34,6 +34,10 @@
     </button>
 </form-->
 
+{% if request.user.is_superuser %}
+<a class="btn btn-primary mb-2" href="{% url 'wms_btn_actualizar_todas_existencias' %}">Actulizar todas las existencias</a>
+{% endif %}
+
 <div class="col-12">
     <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
 </div>
