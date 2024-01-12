@@ -164,12 +164,19 @@ urlpatterns = [
         name = 'wms_cruce_check_despacho'
     ),
     
-    # CRUCE DE INVENTARIOS 
+    # btn actualizar toda tabla de existencias
     path(
-        route='cruce/inventarios',
-        view = views.cuadre_inventario,
-        name = 'cuadre_inventario'
+        route='actualizar/todas/existencias',
+        view = views.wms_btn_actualizar_todas_existencias,
+        name = 'wms_btn_actualizar_todas_existencias'
     ),
+    
+    # # CRUCE DE INVENTARIOS 
+    # path(
+    #     route='cruce/inventarios',
+    #     view = views.cuadre_inventario,
+    #     name = 'cuadre_inventario'
+    # ),
     
     # Lista de picking realizados
     path(
