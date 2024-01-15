@@ -972,7 +972,7 @@ def wms_estado_picking_actualizar_ajax(request):
     id_picking = int(request.POST['id_picking'])
     estado = request.POST['estado']
     
-    estado_picking = EstadoPicking.objects.get(id=id_picking);print(estado_picking.estado)
+    estado_picking = EstadoPicking.objects.get(id=id_picking) 
     estado_picking.estado = estado
     estado_picking.fecha_actualizado = datetime.now()
     

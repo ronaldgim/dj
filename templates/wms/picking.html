@@ -25,7 +25,7 @@
 <hr>
 
 <div class="text-end mb-2">
-<button type="button" class="btn btn-sm btn-primary disabled">Estado: {{estado}}</button>
+<button type="button" class="btn btn-sm btn-info disabled">Estado: {{estado}}</button>
 </div>
 
 <div class="text-end">
@@ -34,13 +34,19 @@
         <button type="button" id="{{n_ped}}" name="estado_picking" class="btn btn-warning">EN PROCESO</button>
         <button type="button" class="btn btn-success disabled">FINALIZADO</button>
         
-        {% elif estado == 'EN PROCESO' %}
-        <button type="button" class="btn btn-warning disabled">EN PROCESO</button>
-        <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-success">FINALIZADO</button>
-
         {% elif estado == 'FINALIZADO' %}
         <button type="button" class="btn btn-warning disabled">EN PROCESO</button>
+        <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-primary disabled">EN TRANSITO</button>
+        <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-danger disabled">EN PAUSA</button>
+        <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn text-white disabled" style="background-color:#bf03c8 ;">INCOMPLETO</button>
         <button type="button" class="btn btn-success disabled">FINALIZADO</button>
+
+        {% else %}
+        <button type="button" class="btn btn-warning disabled">EN PROCESO</button>
+        <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-primary">EN TRANSITO</button>
+        <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-danger">EN PAUSA</button>
+        <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn text-white" style="background-color:#bf03c8 ;">INCOMPLETO</button>
+        <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-success">FINALIZADO</button>
         {% endif %}
         <!--button type="button" class="btn btn-primary">Right</button-->
         
@@ -408,7 +414,7 @@
     $("button[name='estado_actualizar']").click(function(){
         var id_picking = $(this).attr('id');
         var estado = $(this).text()
-        console.log(id_picking, estado)
+        
         
         $.ajax({
             type:"POST",
