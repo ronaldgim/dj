@@ -845,7 +845,9 @@ def wms_egreso_picking(request, n_pedido): #OK
     prod   = prod.rename(columns={'product_id':'PRODUCT_ID'})
     
     pedido = pedido_por_cliente(n_pedido).sort_values('PRODUCT_ID') #;print(pedido.keys())
+    pedido = pedido.groupby(by=['CONTRATO_ID','NOMBRE_CLIENTE','FECHA_PEDIDO','HORA_LLEGADA','PRODUCT_ID','PRODUCT_NAME']).sum().reset_index() 
     pedido = pedido.merge(prod, on='PRODUCT_ID',how='left')
+        
     prod_list = list(pedido['PRODUCT_ID'].unique())
     
     n_ped = pedido['CONTRATO_ID'].iloc[0]
@@ -1150,6 +1152,7 @@ def wms_armar_codigo_factura(n_factura):
         return JsonResponse({'msg':'Factura no encontrada !!!'})
 
 
+
 def wms_cruce_picking_factura(request):
     
     if request.method=="POST":
@@ -1205,7 +1208,7 @@ def wms_picking_realizados(request):
 # Liberaciones Cuarentena
 def wms_liberaciones_cuarentena(request):
     liberacion_mba3 = wms_datos_liberacion_cuc()
-    print(liberacion_mba3)
+    #print(liberacion_mba3)
     return HttpResponse('ok')
 
 
@@ -1321,7 +1324,7 @@ def wms_transferencias_list(request):
     return render(request, 'wms/transferencias_list.html', context)
 
 
-
+@login_required(login_url='login')
 def wms_transferencia_picking(request, n_transf):
     
     prod   = productos_odbc_and_django()[['product_id','Nombre','Marca']]
@@ -1453,7 +1456,7 @@ def wms_movimiento_egreso_transferencia(request): #OK
                 ubicacion_id    = ubi,
                 unidades        = unds_egreso*-1,
                 estado          = 'Disponible',
-                estado_picking  = 'En Despacho',
+                estado_picking  = 'Despachado',
                 usuario_id      = request.user.id,
             )
             
