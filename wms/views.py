@@ -75,6 +75,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 
 # Lista de importaciones por llegar
 # url: importaciones/list
+@login_required(login_url='login')
 def wms_importaciones_list(request): #OK
     """ Lista de importaciones llegadas """
 
@@ -109,6 +110,7 @@ def wms_importaciones_list(request): #OK
 
 # Lista de importaciones ingresadas
 # url: importaciones/ingresadas
+@login_required(login_url='login')
 def wms_imp_ingresadas(request): #OK
     """ Lista de importaciones ingresadas """
     
@@ -129,6 +131,7 @@ def wms_imp_ingresadas(request): #OK
 
 # Detalle de importación
 # url: importacion/<str:o_compra>
+@login_required(login_url='login')
 def wms_detalle_imp(request, o_compra): #OK
     """ Ver detalle de importaciones
         Seleccionar bodega 
@@ -184,6 +187,7 @@ def wms_detalle_imp(request, o_compra): #OK
 
 # Lista de productos de importación
 # url: importacion/bodega/<str:o_compra>
+@login_required(login_url='login')
 def wms_bodega_imp(request, o_compra): #OK
     """ Detalle de la importación 
         Botón para ingresar y asignar ubicación dentro de la bodega previamente selecionada
@@ -233,6 +237,7 @@ def wms_bodega_imp(request, o_compra): #OK
 
 # Lista de bodega de inventari inicial
 # url: inventario/inicial/list_bodega
+@login_required(login_url='login')
 def wms_inventario_inicial_list_bodega(request): #OK
     
     prod = productos_odbc_and_django()[['product_id','Marca']]
@@ -250,6 +255,7 @@ def wms_inventario_inicial_list_bodega(request): #OK
 
 # Lista de productos de inventario inicial por bodega
 # url: inventario/inicial/<str:bodega>
+@login_required(login_url='login')
 def wms_inventario_inicial_bodega(request, bodega): #OK
     
     prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
@@ -482,6 +488,7 @@ def wms_btn_actualizar_todas_existencias(request):
 
 # Inventario - Lista de productos Existencias
 # url: wms/inventario
+@login_required(login_url='login')
 def wms_inventario(request): #OK
     """ Inventario 
         Suma de ingresos y egresos que dan el total de todo el inventario
@@ -519,6 +526,7 @@ def wms_inventario(request): #OK
 # FUNCIÓN MOVIMIENTO
 # INGRESOS DE INVENTARIO INICIAL & IMPORTACIONES
 # url: wms/ingreso/<int:int>
+@login_required(login_url='login')
 def wms_movimientos_ingreso(request, id): #OK
     """ Esta función asigna una ubiación a los items intresados por la importación
         Esta asiganación de ubicación se permite solo dentro de la bodega preselecionada
@@ -615,6 +623,7 @@ def wms_movimientos_ingreso(request, id): #OK
 
 # Movimiento interno
 # url: inventario/mov-interno-<int:id>
+@login_required(login_url='login')
 def wms_movimiento_interno(request, id): #OK
     """ Filtra los movimientos por producto, lote, bodega, pasillo, modulo, nivel
         *** Los productos que tiene '/' en el codigo va a dar error ***
@@ -790,6 +799,7 @@ def wms_movimiento_ajuste(request): #OK
 
 # lista de movimientos
 # url: 'movimientos/list'
+@login_required(login_url='login')
 def wms_movimientos_list(request): #OK
     """ Lista de movimientos """
 
@@ -806,6 +816,7 @@ def wms_movimientos_list(request): #OK
 ### PICKDING
 # Lista de pedidos
 # url: picking/list
+@login_required(login_url='login')
 def wms_listado_pedidos(request): #OK
     """ Listado de pedidos (picking) """
 
@@ -1098,6 +1109,7 @@ def wms_reservas_lote_consulta_ajax(request):
 
 # Lista de productos en despahco
 # url: picking/producto-despacho/list
+@login_required(login_url='login')
 def wms_productos_en_despacho_list(request): #OK
     
     mov = Movimiento.objects.filter(estado_picking='En Despacho')
@@ -1152,7 +1164,9 @@ def wms_armar_codigo_factura(n_factura):
         return JsonResponse({'msg':'Factura no encontrada !!!'})
 
 
-
+# Cruce de picking y factura 
+# url: 'wms/cruce/picking/facturas'
+@login_required(login_url='login')
 def wms_cruce_picking_factura(request):
     
     if request.method=="POST":
@@ -1266,6 +1280,7 @@ def wms_revision_transferencia_ajax(request):
 
 
 
+@login_required(login_url='login')
 def wms_revision_transferencia(request):
     return render(request, 'wms/revision_trasferencia.html', {})
 
@@ -1307,7 +1322,8 @@ def wms_transferencia_input_ajax(request):
         return HttpResponse(f'La Transferencia {n_trasf} ya fue añadida')
     
     
-
+    
+@login_required(login_url='login')
 def wms_transferencias_list(request):
     
     transf_wms = pd.DataFrame(Transferencia.objects.all().values()).drop_duplicates(subset='n_transferencia')
@@ -1322,6 +1338,7 @@ def wms_transferencias_list(request):
     }
     
     return render(request, 'wms/transferencias_list.html', context)
+
 
 
 @login_required(login_url='login')
