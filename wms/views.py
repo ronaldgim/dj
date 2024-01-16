@@ -1133,17 +1133,22 @@ def wms_armar_codigo_factura(n_factura):
     input_ceros = '0' * len_ceros
     
     n_f = 'FCSRI-1001' + input_ceros + n_factura + '-GIMPR'
-    factura = wms_detalle_factura(n_f) 
+    factura = wms_detalle_factura(n_f)
     factura['lote_id'] = quitar_puntos(factura['lote_id'])
-    
+    factura = factura.groupby(by=[
+        'CODIGO_FACTURA','CODIGO_CLIENTE','FECHA_FACTURA','product_id','PRODUCT_NAME',
+        'GROUP_CODE','lote_id','FECHA_CADUCIDAD','NUMERO_PEDIDO_SISTEMA',
+        'NOMBRE_CLIENTE','IDENTIFICACION_FISCAL']).sum().reset_index()
+
     if not factura.empty:
 
         fn_pedido = de_dataframe_a_template(factura)[0]['NUMERO_PEDIDO_SISTEMA']
         
         try:
             picking = pd.DataFrame(Movimiento.objects.filter(n_referencia = fn_pedido).values())
+            picking['lote_wms'] = picking['lote_id']
             picking['lote_id'] = quitar_puntos(picking['lote_id'])
-            picking = picking.groupby(by=['product_id','lote_id','estado_picking']).sum().reset_index()
+            picking = picking.groupby(by=['product_id','lote_id','estado_picking','lote_wms']).sum().reset_index()
             
             factura = factura.merge(picking, on=['product_id','lote_id'], how='left').fillna(0)
             factura['unidades'] = factura['unidades'].abs()
