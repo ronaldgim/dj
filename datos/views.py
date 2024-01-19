@@ -2048,3 +2048,40 @@ def wms_reserva_por_contratoid(contrato_id):
         reserva = pd.DataFrame(reserva)
         
     return reserva
+
+
+def wms_stock_lote_products():
+    
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute(f"SELECT PRODUCT_ID, PRODUCT_NAME, GROUP_CODE FROM warehouse.stock_lote;")
+        columns = [col[0] for col in cursor.description]
+        products = [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+        products = pd.DataFrame(products) 
+        
+        products = products.drop_duplicates(subset='PRODUCT_ID')
+        products = products.rename(
+            columns={
+                'PRODUCT_ID':'product_id',
+                'PRODUCT_NAME':'Nombre',
+                'GROUP_CODE':'Marca'
+            }).sort_values(by=['Marca','product_id'], ascending=[True, True])
+        
+        products = de_dataframe_a_template(products)
+    return products
+
+
+def wms_stock_lote_cerezos_by_product(product_id):
+    
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute(f"SELECT * FROM warehouse.stock_lote WHERE WARE_CODE = 'BCT' AND PRODUCT_ID = '{product_id}';")
+        columns = [col[0] for col in cursor.description]
+        stock = [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+        stock = pd.DataFrame(stock)
+        
+    return stock

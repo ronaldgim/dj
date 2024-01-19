@@ -83,16 +83,35 @@ urlpatterns = [
         view = views.wms_movimiento_ajuste, #OK
         name = 'wms_movimiento_ajuste'
     ),
-
-
+    
+    path(
+        route='inventario/mov-ajuste/product/ajax',
+        view = views.wms_ajuste_product_ajax, #OK
+        name = 'wms_ajuste_product_ajax'
+    ),
+    
+    path(
+        route='inventario/mov-ajuste/lote/ajax',
+        view = views.wms_ajuste_lote_ajax, #OK
+        name = 'wms_ajuste_lote_ajax'
+    ),
+    
+    
+    path(
+        route='inventario/mov-ajuste/fecha/ajax',
+        view = views.wms_ajuste_fecha_ajax, #OK
+        name = 'wms_ajuste_fecha_ajax'
+    ),
+    
+    
     # Lista de movimientos
     path(
         route='movimientos/list',
         view = views.wms_movimientos_list, #OK
         name = 'wms_movimientos_list'
     ),
-
-
+    
+    
     ### PICKING
     # Listado de pedidos
     path(

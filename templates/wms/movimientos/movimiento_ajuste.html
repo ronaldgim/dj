@@ -11,95 +11,496 @@
 
 {% block body %}
 
+
 <h5 class="m-4 text-center"><strong>Ajuste de inventario</strong></h5>
 
 
 {% if messages %}
-{% for message in messages %}
-{% if message.tags == 'success'%}
-<div class="alert text-center alert-success" role="alert">
-    {{message}}
-</div>
-{% elif message.tags == 'error'%}
-<div class="alert text-center alert-danger" role="alert">
-    {{message}}
-</div>
-{%endif%}
-{% endfor %}
+    {% for message in messages %}
+        {% if message.tags == 'success'%}
+            <div class="alert text-center alert-success" role="alert">
+                {{message}}
+            </div>
+            {% elif message.tags == 'error'%}
+            <div class="alert text-center alert-danger" role="alert">
+                {{message}}
+            </div>
+        {%endif%}
+    {% endfor %}
 {% endif %}
 
-<!--h6 class="m-4 text-end"><strong>Actulizado: </strong>{{actualizado|slice:':-7'}}</h6-->
-<!--div class="col-12 mb-2">
-    <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
-</div-->
-
-<!--div class="card mb-2">
-    <div class="card-body ps-2 pe-2">
-        <h6 class="text-center"><strong>Item:</strong></h6>
-        <span style="font-size: small;"> <span class="fw-bold">Item: </span>{{item.product_id}} - {{item.Nombre}} - {{item.Marca}}</span><br>
-        <span style="font-size: small;"> <span class="fw-bold">Lote: </span>{{item.lote_id}}</span><br>
-        <span style="font-size: small;"> <span class="fw-bold">Caducidad: </span>{{item.fecha_caducidad|date:'Y-m-d'}}</span><br>
-        <span style="font-size: small;"> <span class="fw-bold">Unidades: </span>{{item.unidades|floatformat:"0g"}}</span><br>
-        <span style="font-size: small;"> <span class="fw-bold">Ubicación: </span>{{item.ubicacion}}</span>
-    </div>
-</div-->
 
 
 <form method="POST">
     {% csrf_token %} 
 
-    <label><strong>Producto:</strong></label>
-    <select class="form-select" name="product_id" id="chosen-select-product" required>
-        <option value="">-----------</option>
-        {% for i in productos %}
-        <option value="{{i.product_id}}">{{i.product_id}} - {{i.Nombre}} - {{i.Marca}}</option>
-        {% endfor %}
-    </select>
-
-    <label><strong>Lote:</strong></label>
-    <input type="text" name="lote_id" class="form-control">
-
-    <label><strong>Fecha de caducidad:</strong></label>
-    <input type="date" name="fecha_caducidad" class="form-control" required>
-
-    <hr>
-
-    <label><strong>Tipo de movimiento:</strong></label>
-    <select class="form-select" name="tipo" id="chosen-select" required>
+    <span id="tipo_label"></span> <label class="fw-bold">Tipo de movimiento:</label>
+    <select class="form-select form-select-sm" name="tipo" id="tipo" required>
         <option value="">-----------</option>
         <option value="Ingreso">Ingreso</option>
         <option value="Egreso">Egreso</option>
     </select>
 
-    <label><strong>Descripción del movimiento:</strong></label>
-    <input type="text" name="descripcion" class="form-control" maxlength="20" required>
+    <hr>
+    <h5 id="titulo_datos" class="fw-bold text-center"></h5>
+    <div class="row">
+        <div class="col-lg-4 col-md-12">
+            <span id="prod_label"></span> <label class="fw-bold">Producto :</label>
+            <select class="form-select" name="product_id" id="chosen-select-product" required>
+            </select>
+        </div>
+        <div class="col-lg-4 col-md-12">
+            <span id="lote_label"></span> <label class="fw-bold">Lote:</label>
+            <select class="form-select" name="lote_id" id="chosen-select-lote" required>
+            </select>
+        </div>
+        <div class="col-lg-4 col-md-12">
+            <span id="fecha_label"></span> <label class="fw-bold">Fecha de caducidad:</label>
+            <input name="fecha_caducidad" id="fc_auto_selected" class="form-control form-control-sm" type="text" required>
+        </div>
+    </div>
 
-    <!--input type="hidden" name="referencia" class="form-control" value="Ajuste"-->
+    <hr>
 
-    <label><strong>Referencia:</strong></label>
-    <input type="text" name="n_referencia" class="form-control" maxlength="20" required>
+    <div class="row">
+        <div class="col-lg-4 col-md-12">
+            <span id="ubi_label"></span> <label class="fw-bold">Ubicación:</label>
+            <select id="chosen-select-location" class="form-select" name="ubicacion" required>
+            </select>
+        </div>
+        
+        <div class="col-lg-4 col-md-12">
+            <span id="est_label"></span> <label class="fw-bold">Estado:</label>
+            <select id="chosen-select-estado" class="form-select" name="estado" required>
+            </select>
+        </div>
+        
+        <div class="col-lg-4 col-md-12">
+            <span id="tip_label"></span> <label class="fw-bold">Referencia:</label>
+            <!--select class="form-select" name="referencia" id="chosen-select-referencia" required>
+            </select-->
+            <input class="form-control form-control-sm" type="text" name="referencia" value="Ajuste" disabled>
+        </div>
+    </div>
 
-    <label><strong>Ubicación:</strong></label>
-    <select class="form-select" name="ubicacion" id="chosen-select-location" required>
-        <option value="">-----------</option>
-        {% for i in ubi %}
-        <option value="{{i.id}}">{{i}}</option>
-        {% endfor %}
-    </select>
+    <hr>
 
-    <label><strong>Estado:</strong></label>
-    <select class="form-select" name="estado" id="chosen-select-location" required>
-        <option value="">-----------</option>
-        <option value="Cuarentena">Cuarentena</option>
-        <option value="Disponible">Disponible</option>
-    </select>
+    <div class="row">
+        <div class="col-lg-4 col-md-12">
+            <span id="n_r_label"></span> <label class="fw-bold">N°. Referencia:</label>
+            <input id="id_n_referencia" type="text" name="n_referencia" class="form-control form-control-sm" maxlength="20"  required>
+        </div>
 
-    <label><strong>Unidades:</strong></label>
-    <input type="number" name="unidades" class="form-control" request>
+        <div class="col-lg-4 col-md-12">
+            <span id="des_label"></span> <label class="fw-bold">Descripción del movimiento:</label>
+            <input id="id_descripcion" type="text" name="descripcion" class="form-control form-control-sm" maxlength="20" required>
+        </div>
 
-    <button type="submit">Send</button>
+        <div class="col-lg-4 col-md-12">
+            <span id="und_label"></span> <label class="fw-bold">Unidades:</label>
+            <input id="id_unidades" type="number" name="unidades" class="form-control form-control-sm" required>
+        </div>
+    </div>
+
+    <hr>
+
+    <button class="btn btn-primary mt-2 mb-2" type="submit">
+        <i class="bi bi-send-check"></i> Crear Movimiento
+    </button>
 
 </form>
+
+<!-- Labels y values -->
+<script>
+    $(document).ready(function(){
+
+        // Datos
+        var prod      = $("#chosen-select-product");
+        var lote      = $("#chosen-select-lote");
+        var fecha     = $("#fc_auto_selected");
+        var ubi       = $("#chosen-select-location");
+        var est       = $("#chosen-select-estado");
+        var n_ref     = $("#id_n_referencia");
+        var descr     = $("#id_descripcion");
+        var unds      = $("#id_unidades");
+        
+        // Labels
+        var tipo_label  = $("#tipo_label");
+        var prod_label  = $("#prod_label");
+        var lote_label  = $("#lote_label");
+        var fecha_label = $("#fecha_label");
+        var ubi_label   = $("#ubi_label");
+        var est_label   = $("#est_label");
+        var tip_label   = $("#tip_label");
+        var n_r_label   = $("#n_r_label");
+        var des_label   = $("#des_label");
+        var und_label   = $("#und_label");
+
+        // "TIPO" Borrar todos los valores 
+        function borrarTodosValues() {
+            prod.empty()
+            lote.empty()
+            fecha.val('')
+            ubi.empty()
+            est.empty()
+            n_ref.val('')
+            descr.val('')
+            unds.val('')
+
+        }
+
+        // "TIPO" Borrar todas la labels
+        function borrarTodosLabels () {
+            prod_label.html('')  
+            lote_label.html('')  
+            fecha_label.html('') 
+            ubi_label.html('')   
+            est_label.html('')   
+            tip_label.html('')   
+            n_r_label.html('')   
+            des_label.html('')   
+            und_label.html('')
+            n_ref.attr('placeholder', '');
+            descr.attr('placeholder', '');
+        }
+
+        // "PROD" Borrar todos los valores 
+        function borrarProductValues() {
+            //prod.empty()
+            lote.empty()
+            fecha.val('')
+            ubi.empty()
+            est.empty()
+            n_ref.val('')
+            descr.val('')
+            unds.val('')
+        }
+
+        // "PROD" Borrar todas la labels
+        function borrarProductLabels () {
+            
+            lote_label.html('')  
+            fecha_label.html('') 
+            ubi_label.html('')   
+            est_label.html('')   
+            tip_label.html('')   
+            n_r_label.html('')   
+            des_label.html('')   
+            und_label.html('')   
+            n_ref.attr('placeholder', '');
+            descr.attr('placeholder', '');
+        }
+
+        // "LOTE" Borrar todos los valores 
+        function borrarLoteValues() {
+            //lote.empty()
+            fecha.val('')
+            ubi.empty()
+            est.empty()
+            n_ref.val('')
+            descr.val('')
+            unds.val('')
+        }
+
+        // "LOTE" Borrar todas la labels
+        function borrarLoteLabels () {
+            //lote_label.html('')  
+            fecha_label.html('') 
+            ubi_label.html('')   
+            est_label.html('')   
+            tip_label.html('')   
+            n_r_label.html('')   
+            des_label.html('')   
+            und_label.html('')   
+            n_ref.attr('placeholder', '');
+            descr.attr('placeholder', '');
+        }
+
+        $("#tipo").change(function(){
+            var tipo = $("#tipo").val();
+            var titulo = $("#titulo_datos")
+            
+            if(tipo==='Ingreso'){
+                titulo.html('Datos MBA')
+            } else if (tipo==='Egreso'){
+                titulo.html('Datos WMS')
+            } else {
+                titulo.html('')
+            }
+
+            // Datos
+            borrarTodosValues();
+            // Lables
+            borrarTodosLabels();
+            
+            if (tipo!==''){
+                tipo_label.html('<i class="bi bi-check-circle-fill"></i>').css('color', 'green');
+            } else {
+                tipo_label.html('');
+            }
+            
+        });
+        
+        $("#chosen-select-product").change(function(){
+            var prod = $("#chosen-select-product").val();
+
+            // Datos
+            borrarProductValues();
+            borrarProductLabels();
+            prod_label.css('color', '');
+            prod_label.css('color', '#d9d600');
+            lote_label.html('');
+
+            if(prod===''){
+                borrarProductValues();
+                borrarProductLabels();
+                
+                prod_label.css('color', '');
+                prod_label.css('color', '#d9d600');
+                lote_label.html('');
+
+            } else {
+                prod_label.css('color', '');
+                prod_label.css('color', 'green')
+                
+            }
+        });
+        
+        $("#chosen-select-lote").change(function(){
+            var lote = $("#chosen-select-lote").val();
+            
+            // Datos
+            borrarLoteValues();
+
+            if (lote===''){
+
+                borrarLoteValues();
+                
+                // Labels
+                borrarLoteLabels();
+                lote_label.css('color','#d9d600')
+
+            } else {
+                lote_label.html('<i class="bi bi-check-circle-fill"></i>').css('color', 'green');
+                fecha_label.html('<i class="bi bi-check-circle-fill"></i>').css('color', 'green');
+                // Ubicación
+                ubi.append('<option value="">Selecciona una ubicación</option>');
+                ubi_label.html('<i class="bi bi-check-circle-fill"></i>').css('color', '#d9d600');
+                ubi.change(function(){
+                    if(ubi.val()===''){
+                        ubi_label.css('color','');
+                        ubi_label.css('color','#d9d600');
+                    } else if (ubi.val()!==''){
+                        ubi_label.css('color','');
+                        ubi_label.css('color','green');
+                    }
+                })
+                // Estado
+                est.append('<option value="">Selecciona un estado</option>');
+                est_label.html('<i class="bi bi-check-circle-fill"></i>').css('color', '#d9d600');
+                est.change(function(){
+                    if(est.val()===''){
+                        est_label.css('color','');
+                        est_label.css('color','#d9d600');
+                    } else if (est.val()!==''){
+                        est_label.css('color','');
+                        est_label.css('color','green');
+                    }
+                })
+                // N Referencia
+                n_r_label.html('<i class="bi bi-check-circle-fill"></i>').css('color', '#d9d600');
+                n_ref.attr('placeholder', 'Ej: 70551');
+                n_ref.change(function(){
+                    if(n_ref.val()===''){
+                        n_r_label.css('color','');
+                        n_r_label.css('color','#d9d600');
+                    } else if (n_ref.val()!==''){
+                        n_r_label.css('color','');
+                        n_r_label.css('color','green');
+                    }
+                })
+                // Descripción
+                des_label.html('<i class="bi bi-check-circle-fill"></i>').css('color', '#d9d600');
+                descr.attr('placeholder', 'Ej: kit-Metro');
+                descr.change(function(){
+                    if(descr.val()===''){
+                        des_label.css('color','');
+                        des_label.css('color','#d9d600');
+                    } else if (descr.val()!==''){
+                        des_label.css('color','');
+                        des_label.css('color','green');
+                    }
+                })
+                // Unidades
+                und_label.html('<i class="bi bi-check-circle-fill"></i>').css('color', '#d9d600');
+                unds.change(function(){
+                    if(unds.val()===''){
+                        und_label.css('color','');
+                        und_label.css('color','#d9d600');
+                    } else if (unds.val()!==''){
+                        und_label.css('color','');
+                        und_label.css('color','green');
+                    }
+                })
+            }
+        });
+        
+    })
+</script>
+
+
+<!-- Traer la lista de productos dependiendo del tipo de movimiento -->
+<script>
+    $("#tipo").change(function(){
+        // Datos 
+        var tipo = $(this).val();
+        var prod = $("#chosen-select-product");
+        
+        // Labels
+        var tipo_label = $("#tipo_label");
+        var prod_label = $("#prod_label");
+
+        $.ajax({
+            type:"POST",
+            url:"{% url 'wms_ajuste_product_ajax' %}",
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'tipo':tipo,
+            },
+
+            success: function(response){
+
+                var productos = response.productos
+
+                if (productos!==null){
+                    prod.append('<option value="">Selecciona un producto</option>');
+                    prod_label.html('<i class="bi bi-check-circle-fill"></i>').css('color', '#d9d600'); 
+
+                    $.each(productos, function(index, item) {
+                        prod.append(`<option value="${item.product_id}">${item.product_id} - ${item.Nombre} - ${item.Marca}</option>`);
+                    });
+                }
+            },
+
+            error: function(){
+            }
+        })
+    })
+</script>
+
+
+<!-- Traer la lista de lotes y fechas dependiendo del tipo de movimiento y producto seleccionado-->
+<script>
+    $("#chosen-select-product").change(function(){
+        // Datos
+        var tipo             = $("#tipo").val();
+        var product_id       = $(this).val();
+        var lote             = $("#chosen-select-lote");
+
+        // Label
+        var lote_label       = $("#lote_label");
+
+        $.ajax({
+            type:"POST",
+            url:"{% url 'wms_ajuste_lote_ajax' %}",
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'tipo':tipo,
+                'product_id':product_id,
+            },
+
+            success: function(response){
+                
+                var lotes = response.lotes
+
+                if (lotes!==null) {
+                    lote.append('<option value="">Selecciona un lote</option>');
+                    lote_label.html('<i class="bi bi-check-circle-fill"></i>').css('color', '#d9d600');
+                    
+                    if(product_id===''){
+                        lote_label.html('');
+                        lote.html('')
+                    }
+
+                    $.each(lotes, function(index, item) {
+                        lote.append(`<option value="${item.lote_id}">${item.lote_id}</option>`);
+                    });
+                }                
+            },
+            error: function(){
+
+            }
+        })
+    })
+</script>
+
+
+<!-- Agregar la fecha del lote seleccionado -->
+<script>
+    $("#chosen-select-lote").change(function(){
+        // Datos
+        var tipo = $("#tipo").val();
+        var product_id = $("#chosen-select-product").val();
+        var lote_id = $("#chosen-select-lote").val();
+        var lote = $("#chosen-select-lote");
+        var fc_auto_selected = $("#fc_auto_selected").prop('readonly', true);
+
+        var ubi  = $("#chosen-select-location");
+        var est  = $("#chosen-select-estado");
+        var ref  = $("#chosen-select-referencia");
+        
+        $.ajax({
+            type:"POST",
+            url:"{% url 'wms_ajuste_fecha_ajax' %}",
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'tipo':tipo,
+                'product_id':product_id,
+                'lote_id':lote_id,
+            },
+
+            success: function(response){
+                
+                if (lote_id!==''){
+
+                // Fecha
+                fc_auto_selected.val(response.fecha);
+                
+                // Ubicaciones
+                var ubicaciones = response.ubicaciones
+                //ubi.empty();
+                //ubi.append('<option value="">Seleccione la ubicación</option>');
+                $.each(ubicaciones, function(indes, item) {
+                    ubi.append(`<option value="${item.ubicacion_id}">${item.ubicacion__bodega}-${item.ubicacion__pasillo}-${item.ubicacion__modulo}-${item.ubicacion__nivel}</option>`);
+                });
+
+                // Estado
+                var estados = response.estado
+                //est.empty();
+                //est.append('<option value="">Seleccione el estado</option>');
+                $.each(estados, function(indes, item) {
+                    est.append(`<option value="${item.estado}">${item.estado}</option>`);
+                });
+
+                // Referencia
+                var referencias = response.referencia
+                //ref.empty();
+                //ref.append('<option value="">Seleccione el referencia</option>');
+                $.each(referencias, function(indes, item) {
+                    ref.append(`<option value="${item.referencia}">${item.referencia}</option>`);
+                });
+            }
+            },
+
+            error: function(){
+
+            }
+            
+        })
+        
+    })
+</script>
+
 
 <script>
     $(document).ready(function() {
@@ -107,8 +508,20 @@
     });
 
     $(document).ready(function() {
+        $('#chosen-select-lote').select2();
+    });
+
+    $(document).ready(function() {
         $('#chosen-select-location').select2();
-    })
+    });
+
+    $(document).ready(function() {
+        $('#chosen-select-estado').select2();
+    });
+
+    $(document).ready(function() {
+        $('#chosen-select-referencia').select2();
+    });
 </script>
 
 
