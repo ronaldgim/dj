@@ -44,6 +44,7 @@ from django.db import connections
 # Models
 from django.db.models import Sum, Count
 from wms.models import InventarioIngresoBodega, Ubicacion, Movimiento, Existencias, Transferencia
+from etiquetado.models import EstadoPicking
 
 # Pandas
 import pandas as pd
@@ -954,7 +955,7 @@ def wms_ajuste_fecha_ajax(request):
 def wms_movimientos_list(request): #OK
     """ Lista de movimientos """
     
-    mov = Movimiento.objects.all().order_by('-fecha_hora')[:5]
+    mov = Movimiento.objects.all().order_by('-fecha_hora')
     
     context = {
         'mov':mov
@@ -1264,9 +1265,30 @@ def wms_reservas_lote_consulta_ajax(request):
 def wms_productos_en_despacho_list(request): #OK
     
     mov = Movimiento.objects.filter(estado_picking='En Despacho')
+    mov_list = mov.values_list('n_referencia', flat=True).distinct()
+    pik = EstadoPicking.objects.filter(n_pedido__in=mov_list)
     
+    en_despacho = pd.DataFrame(mov.values(
+        'product_id','lote_id','fecha_caducidad','referencia','n_referencia',
+        'ubicacion__bodega','ubicacion__pasillo','ubicacion__modulo','ubicacion__nivel',
+        'fecha_hora','unidades',
+        'usuario__first_name','usuario__last_name'
+    ))
+    contexto_picking = pd.DataFrame(pik.values())[['n_pedido','cliente']]
+    contexto_picking = contexto_picking.rename(columns={'n_pedido':'n_referencia'})
+    
+    en_despacho = en_despacho.merge(contexto_picking, on='n_referencia', how='left')
+    en_despacho['unidades'] = en_despacho['unidades']*-1
+    en_despacho['n_referencia'] = en_despacho['n_referencia'].astype('float')
+    en_despacho['n_referencia'] = en_despacho['n_referencia'].astype('int')
+    # en_despacho['fecha_caducidad'] = en_despacho['fecha_caducidad'].astype('str')
+    en_despacho['fecha_hora'] = pd.to_datetime(en_despacho['fecha_hora']).dt.strftime('%Y-%m-%d %H:%M')
+    
+    en_despacho = en_despacho.sort_values(by='n_referencia')
+    en_despacho = de_dataframe_a_template(en_despacho)
+
     context = {
-        'mov':mov
+        'mov':en_despacho
     }
     
     return render(request, 'wms/productos_en_despacho_list.html', context)
