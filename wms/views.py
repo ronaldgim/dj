@@ -507,7 +507,7 @@ def wms_inventario(request): #OK
         'product_id', 'lote_id', 'fecha_caducidad', 'unidades', 'fecha_hora', 
         'ubicacion', 'ubicacion__bodega', 'ubicacion__pasillo', 'ubicacion__modulo', 'ubicacion__nivel', 
         'estado'
-    ).order_by('fecha_caducidad', 'ubicacion__distancia_puerta'))
+    ).order_by('product_id','fecha_caducidad', 'ubicacion__distancia_puerta'))
     inv = inv.merge(prod, on='product_id', how='left')
     #inv['fecha_caducidad'] = inv['fecha_caducidad'].astype(str)
     inv['fecha_caducidad'] = pd.to_datetime(inv['fecha_caducidad'])
