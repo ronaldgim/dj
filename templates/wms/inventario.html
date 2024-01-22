@@ -62,19 +62,19 @@
                             <span class="fw-bold">Nombre:</span> {{i.Nombre}}<br>
                             <span class="fw-bold">Marca:</span> {{i.Marca}}<br>
                             <span class="fw-bold">Lote:</span> <span id="lote">{{i.lote_id}}</span> <br>
-                            <span class="fw-bold">Fecha:</span> {{i.fecha_caducidad}}
+                            <span class="fw-bold">FExp:</span> {{i.fecha_caducidad}}
                         </td>
                         <td>
-                            <span class="fw-bold">Ubicación:</span> <span id="ubi">
-                            {% if i.estado == "Cuarentena" %}CUC-{% endif %} {{i.ubicacion__bodega}}-{{i.ubicacion__pasillo}}-{{i.ubicacion__modulo}}{% if i.ubicacion__bodega == 'CN6' %}-{{i.ubicacion__nivel}}{% else %}{% endif %}
-                            </span> <br>
+                            <span class="fw-bold">Ubicación:</span><br>
+                                {% if i.estado == "Cuarentena" %}CUC-{% endif %}{{i.ubicacion__bodega}}-{{i.ubicacion__pasillo}}-{{i.ubicacion__modulo}}{% if i.ubicacion__bodega == 'CN6' %}-{{i.ubicacion__nivel}}{% else %}{% endif %}
+                            <br>
                             <span class="fw-bold">Unidades:</span> {{i.unidades|floatformat:"0g"}}<br>
-                            <span class="fw-bold">Acciones:</span>
-                            <div class="input-group"> 
+                            <span class="fw-bold">Acciones:</span><br>
+                            <!--div class="input-group"--> 
                                 <a class="btn btn-primary btn-sm" href="{% url 'wms_mov_interno' i.id %}">
-                                    <i class="bi bi-arrows-move"></i> Mov.Interno
+                                    <i class="bi bi-arrows-move"></i> Mov.Int.
                                 </a>
-                            </div>
+                            <!--/div-->
                         </td>
                     </tr>
                     {% endfor %}
