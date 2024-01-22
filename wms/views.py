@@ -81,15 +81,16 @@ from django.contrib.auth.decorators import login_required, permission_required
 @login_required(login_url='login')
 def wms_importaciones_list(request): #OK
     """ Lista de importaciones llegadas """
-
-    imp = importaciones_llegadas_odbc()#[['MEMO','DOC_ID_CORP', 'ENTRADA_FECHA', 'WARE_COD_CORP', 'product_id']];print(imp)
+    
+    imp = importaciones_llegadas_odbc()#[['MEMO','DOC_ID_CORP', 'ENTRADA_FECHA', 'WARE_COD_CORP', 'product_id']];print(imp).
+    #imp['ENTRADA_FECHA'] = pd.to_datetime(imp['ENTRADA_FECHA']).dt.strftime('%d-%m-%Y')
+    imp = imp[imp['ENTRADA_FECHA']>'2023-12-31']
+    imp = imp.sort_values(by=['ENTRADA_FECHA'], ascending=[False])
     imp = imp.drop_duplicates(subset=['DOC_ID_CORP'])
     
     pro = productos_odbc_and_django()[['product_id', 'Marca']]  
-
     imp = imp.merge(pro, on='product_id', how='left')
-    imp = imp.sort_values(by=['ENTRADA_FECHA'], ascending=[False])
-    imp['ENTRADA_FECHA'] = pd.to_datetime(imp['ENTRADA_FECHA']).dt.strftime('%d-%m-%Y')
+    
     # imp = imp.sort_values(by=['ENTRADA_FECHA'], ascending=[False])
     
     imp_doc = pd.DataFrame(InventarioIngresoBodega.objects.all().values()).empty
