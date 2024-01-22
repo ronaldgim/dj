@@ -872,8 +872,8 @@ def wms_ajuste_fecha_ajax(request):
         ubi = de_dataframe_a_template(existencias)[0]
         ubi = ubi['LOCATION']
         ubicaciones = pd.DataFrame(Ubicacion.objects
-            .filter(bodega=ubi)
-            #.all()
+            #.filter(bodega=ubi)
+            .all()
             .values(
             'id', 
             'bodega', 
