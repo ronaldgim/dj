@@ -9,7 +9,7 @@
 {% endblock %}
 
 {% block body %}
-<h5 class="m-4 text-center"><strong>LISTADO DE IMPORTACIONES POR LLEGAR</strong></h5>
+<h5 class="m-4 text-center"><strong>LISTADO DE IMPORTACIONES LLEGADAS</strong></h5>
 
 {% if messages %}
 {% for message in messages %}
@@ -47,6 +47,8 @@
                 <thead>
                     <tr>
                         <th scope="col">Proveedor</th>
+                        <th scope="col">Orden MBA</th>
+                        <th scope="col">Orden GIM</th>
                         <th scope="col">Fecha llegada</th>
                         <th scope="col">Acciones</th>
                     </tr>
@@ -54,11 +56,9 @@
                 <tbody id="pedidosbuscar">
                     {% for i in imp %}
                     <tr>
-                        <td>{{i.Marca}}<br>
-                            {{i.MEMO}}<br>
-                            {{i.DOC_ID_CORP}}
-                        </td>
-
+                        <td>{{i.Marca}}</td>
+                        <td>{{i.DOC_ID_CORP}}</td>
+                        <td>{{i.MEMO}}</td>
                         <td>{{i.ENTRADA_FECHA}}</td>
 
                         <td>
