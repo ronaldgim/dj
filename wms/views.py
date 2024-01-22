@@ -33,6 +33,9 @@ from django.http import HttpResponse,JsonResponse, HttpResponseRedirect
 # Json
 import json
 
+# Pyodbc
+import pyodbc 
+
 # Datetime
 from datetime import datetime
 
@@ -41,7 +44,7 @@ from django.db import connections
 
 # Models
 from django.db.models import Sum, Count
-from wms.models import InventarioIngresoBodega, Ubicacion, Movimiento, Existencias, Transferencia
+from wms.models import InventarioIngresoBodega, Ubicacion, Movimiento, Existencias, Transferencia, LiberacionCuarentena
 
 # Pandas
 import pandas as pd
@@ -1466,7 +1469,107 @@ def wms_movimiento_egreso_transferencia(request): #OK
         return JsonResponse({'msg':'❌ Error !!!'})
     return JsonResponse({'msg':'❌Error !!!'})
 
+def wms_ingreso_ajuste(request):
+    return render(request, 'wms/ingreso_ajuste.html', {'elementos': ''})
 
+
+def wms_busqueda_ajuste(request, n_ajuste):
+    print('entraaa')
+    cnxn = pyodbc.connect('DSN=mba3;PWD=API')
+    cursorOdbc = cnxn.cursor()
+    print('entraaa acaaa')
+
+    # La variable 'n' no está siendo usada en la consulta. Asegúrate de que sea necesario.
+    n = 'A-00000' + str(n_ajuste) + '-GIMPR'
+     
+    #Transferencia Egreso
+    try:
+        cursorOdbc.execute(
+           "SELECT INVT_Producto_Lotes_Bodegas.Doc_id_Corp, "
+           "INVT_Producto_Lotes_Bodegas.PRODUCT_ID_CORP, "
+           "INVT_Producto_Lotes_Bodegas.LOTE_ID, "
+           "INVT_Producto_Lotes_Bodegas.WARE_CODE, "
+           "INVT_Producto_Lotes_Bodegas.LOCATION "
+           "FROM INVT_Producto_Lotes_Bodegas "
+           f"WHERE (INVT_Producto_Lotes_Bodegas.Doc_id_Corp='{n}') "
+        )
+        print("odbc_execute 1")
+        
+        ajuste = [tuple(row) for row in cursorOdbc.fetchall()]
+       
+        ajuste_df = pd.DataFrame(ajuste, columns=['DOC_ID_CORP', 'PRODUCT_ID_CORP', 'LOTE_ID', 'WARE_CODE', 'LOCATION']) if ajuste else pd.DataFrame()
+
+        # Segunda consulta
+        cursorOdbc.execute(
+            "SELECT INVT_Lotes_Ubicacion.DOC_ID_CORP, INVT_Lotes_Ubicacion.PRODUCT_ID_CORP, INVT_Lotes_Ubicacion.LOTE_ID, "
+            "INVT_Lotes_Ubicacion.EGRESO_TEMP, INVT_Lotes_Ubicacion.COMMITED, INVT_Lotes_Ubicacion.WARE_CODE_CORP, "
+            "INVT_Lotes_Ubicacion.UBICACION, INVT_Producto_Lotes.Fecha_elaboracion_lote, INVT_Producto_Lotes.FECHA_CADUCIDAD "
+            "FROM INVT_Lotes_Ubicacion, INVT_Producto_Lotes "
+            "WHERE INVT_Lotes_Ubicacion.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP "
+            "AND INVT_Producto_Lotes.LOTE_ID = INVT_Lotes_Ubicacion.LOTE_ID "
+            f"AND ((INVT_Lotes_Ubicacion.DOC_ID_CORP='{n}') AND (INVT_Producto_Lotes.ENTRADA_TIPO='OC')) "
+        )
+        print("odbc_execute 2")
+        inventario = [tuple(row) for row in cursorOdbc.fetchall()]
+        print(inventario)
+        inventario_df = pd.DataFrame(inventario, columns=['DOC_ID_CORP', 'PRODUCT_ID_CORP', 'LOTE_ID', 'EGRESO_TEMP', 'COMMITED', 'WARE_CODE_CORP', 'UBICACION', 'Fecha_elaboracion_lote', 'FECHA_CADUCIDAD']) if inventario else pd.DataFrame()
+        # Unión (merge) de los DataFrames en los campos comunes
+        if not ajuste_df.empty and not inventario_df.empty:
+            resultado_df = pd.merge(ajuste_df, inventario_df, on=['DOC_ID_CORP', 'PRODUCT_ID_CORP', 'LOTE_ID'], how='inner')
+            resultado_df = resultado_df.drop_duplicates(subset=['DOC_ID_CORP', 'PRODUCT_ID_CORP', 'LOTE_ID'])
+
+            if 'Fecha_elaboracion_lote' in resultado_df.columns:
+                resultado_df['Fecha_elaboracion_lote'] = resultado_df['Fecha_elaboracion_lote'].apply(lambda x: x.strftime('%Y-%m-%d') if pd.notnull(x) else x)
+            if 'FECHA_CADUCIDAD' in resultado_df.columns:
+                resultado_df['FECHA_CADUCIDAD'] = resultado_df['FECHA_CADUCIDAD'].apply(lambda x: x.strftime('%Y-%m-%d') if pd.notnull(x) else x)
+
+            #eliminar por DOC_ID_CORP
+            LiberacionCuarentena.objects.filter(doc_id_corp = n ).delete(),
+            liberacion_cuarentena_objects = [
+
+                #si ya existe un registro con los mismos datos en doc_id_corp, product_id_corp ,lote_id que lo actualize o cree
+                #sino que lo cree
+                LiberacionCuarentena.objects.update_or_create(
+                    doc_id_corp = row['DOC_ID_CORP'],
+                    product_id_corp = row['PRODUCT_ID_CORP'],
+                    lote_id = row['LOTE_ID'],
+                    ware_code = row['WARE_CODE'],
+                    location = row['LOCATION'],
+                    egreso_temp = row['EGRESO_TEMP'],
+                    commited = row['COMMITED'],
+                    ware_code_corp = row['WARE_CODE_CORP'],
+                    ubicacion = row['UBICACION'],
+                    fecha_elaboracion_lote = row['Fecha_elaboracion_lote'],
+                    fecha_caducidad = row['FECHA_CADUCIDAD'],
+                )
+                for index, row in resultado_df.iterrows()
+
+            ]
+
+            print(liberacion_cuarentena_objects)
+
+            
+            # LiberacionCuarentena.objects.bulk_create(liberacion_cuarentena_objects)
+
+            # Asegúrate de que las columnas de fecha estén en un formato de fecha reconocible
+            # Si las columnas ya están en formato de fecha, no necesitas hacer nada más.
+            # Si necesitas ajustar el formato, puedes hacerlo aquí.
+
+            # Convertir DataFrame a JSON, asegurándose de que las fechas se formateen correctamente
+            resultado_json = resultado_df.to_json(orient='records', force_ascii=False, date_format='iso')
+            print(resultado_json)
+
+            return HttpResponse(resultado_json, content_type='application/json')
+        else:
+            return JsonResponse({'error': 'No se encontraron datos para realizar la unión.'}, status=404)
+
+
+
+    except Exception as e:
+        print(e)
+        return JsonResponse({'error': str(e)}, status=500)      
+
+   
 
 ## FUNCIONES PENDIENTES POR DESARROLLAR
 # Listado de liberaciones

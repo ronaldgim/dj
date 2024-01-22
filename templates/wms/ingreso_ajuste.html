@@ -1,0 +1,275 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Inventario</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'wms/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+<h5 class="m-4 text-center"><strong>NUMERO DE AJUSTE</strong></h5>
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
+<style>
+    #loading-spinner {
+  position: fixed;
+  z-index: 9999;
+  height: 2em;
+  width: 2em;
+  overflow: visible;
+  margin: auto;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+}
+
+#loading-spinner .spinner-border {
+  width: 3rem;
+  height: 3rem;
+  display: block;
+}
+
+/* Overlay */
+#loading-overlay {
+  position: fixed;
+  display: none;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,0.5); /* Black with opacity */
+  z-index: 9998; /* Just behind the spinner */
+  cursor: progress;
+}
+
+</style>
+
+<!-- Spinner de Carga -->
+<div id="loading-spinner" style="display: none;">
+    <div class="spinner-border text-primary" role="status">
+      <span class="sr-only">Cargando...</span>
+    </div>
+  </div>
+
+  <!-- Overlay que bloqueará la interacción con la página mientras se carga -->
+<div id="loading-overlay" style="display: none;"></div>
+
+
+<div class="row d-flex ">
+    <div class="col-8">
+        <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+    </div>
+    <div class="col-4">
+        {% if request.user.is_superuser %}
+        <button id="buscar-btn" class="btn btn-primary mb-2"
+            data-url="{% url 'wms-busqueda-ajuste' 9999 %}">Buscar</button>
+        {% endif %}
+    </div>
+</div>
+
+<!-- crea un tabla para COMMITED: 300
+​​
+DOC_ID_CORP: "A-0000045310-GIMPR"
+​​
+EGRESO_TEMP: 300
+​​
+FECHA_CADUCIDAD: "2026-04-30T00:00:00.000Z"
+​​
+Fecha_elaboracion_lote: "2021-05-01T00:00:00.000Z"
+​​
+LOCATION: "CN6"
+​​
+LOTE_ID: "20210510"
+​​
+PRODUCT_ID_CORP: "GC1909C12-GIMPR"
+​​
+UBICACION: "N/U"
+​​
+WARE_CODE: "BCT"
+​​
+WARE_CODE_CORP: "CUC" -->
+
+<div class="table-responsive">
+    <table id="tbl-result" class="table table-striped table-bordered" style="background-color: #ffffff;">
+        <thead class="thead-dark">
+            <tr>
+
+                <!--  // armar un tbody para la tabla
+                    // COMMITED: 300
+                    // DOC_ID_CORP: "A-0000045310-GIMPR"
+                    // EGRESO_TEMP: 300
+                    // FECHA_CADUCIDAD: "2026-04-30T00:00:00.000Z"
+                    // Fecha_elaboracion_lote: "2021-05-01T00:00:00.000Z"
+                    // LOCATION: "CN6"
+                    // LOTE_ID: "20210510"
+                    // PRODUCT_ID_CORP: "GC1909C12-GIMPR"
+                    // UBICACION: "N/U"
+                    // WARE_CODE: "BCT"
+                    // WARE_CODE_CORP: "CUC" -->
+
+                <th scope="col">DOC_ID_CORP</th>
+                <th scope="col">PRODUCT_ID_CORP</th>
+                <th scope="col">COMMITED</th>
+                <th scope="col">EGRESO_TEMP</th>
+                <th scope="col">LOCATION</th>
+                <th scope="col">LOTE_ID</th>
+                <th scope="col">UBICACION</th>
+                <th scope="col">WARE_CODE</th>
+                <th scope="col">WARE_CODE_CORP</th>
+                <th scope="col">Fecha Elaboracion</th>
+                <th scope="col">Fecha Caducidad</th>
+            </tr>
+        </thead>
+
+    </table>
+
+
+
+
+    <!--filtro buscar-->
+    <script>
+        document.getElementById('buscar-btn').addEventListener('click', function () {
+            const nAjuste = document.getElementById("inputbuscar").value;  // Asegúrate de obtener este valor de alguna parte, como un input del usuario
+            if(!nAjuste || nAjuste==="" ) return; // Si no hay valor, no continúes (o haz algo más)
+
+
+            var baseUrl = this.getAttribute('data-url'); // Obtiene la URL base
+            baseUrl = baseUrl.replace('9999', nAjuste); // Reemplaza el 9999 con el valor real de nAjuste
+            showLoading();
+            fetch(`${baseUrl}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Respuesta de red no fue ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    hideLoading();
+
+                    // armar un tbody para la tabla
+                    // COMMITED: 300
+                    // DOC_ID_CORP: "A-0000045310-GIMPR"
+                    // EGRESO_TEMP: 300
+                    // FECHA_CADUCIDAD: "2026-04-30T00:00:00.000Z"
+                    // Fecha_elaboracion_lote: "2021-05-01T00:00:00.000Z"
+                    // LOCATION: "CN6"
+                    // LOTE_ID: "20210510"
+                    // PRODUCT_ID_CORP: "GC1909C12-GIMPR"
+                    // UBICACION: "N/U"
+                    // WARE_CODE: "BCT"
+                    // WARE_CODE_CORP: "CUC"
+
+                    var thead = `<thead class="thead-dark">
+                                    <tr>
+                                       <th scope="col">DOC_ID_CORP</th>
+                                        <th scope="col">PRODUCT_ID_CORP</th>
+                                        <th scope="col">COMMITED</th>
+                                        <th scope="col">EGRESO_TEMP</th>
+                                        <th scope="col">LOCATION</th>
+                                        <th scope="col">LOTE_ID</th>
+                                        <th scope="col">UBICACION</th>
+                                        <th scope="col">WARE_CODE</th>
+                                        <th scope="col">WARE_CODE_CORP</th>
+                                        <th scope="col">Fecha Elaboracion</th>
+                                        <th scope="col">Fecha Caducidad</th>
+                                    </tr>
+                                </thead>`;
+                    var tbody = thead + `<tbody>`;
+                    //agrega thead
+                    data.forEach(function (item) {
+
+                        //split de fecha "T"
+                        var fecha_elaboracion = item.Fecha_elaboracion_lote.split("T");
+                        var fecha_caducidad = item.FECHA_CADUCIDAD.split("T");
+
+                        tbody += `<tr>
+                                <td id="prod">${item.DOC_ID_CORP}</td>
+                                <td id="prod">${item.PRODUCT_ID_CORP}</td>
+                                <td id="prod">${item.COMMITED}</td>
+                                <td id="prod">${item.EGRESO_TEMP}</td>
+                                <td id="prod">${item.LOCATION}</td>
+                                <td id="lote">${item.LOTE_ID}</td>
+                                <td id="ubi">${item.UBICACION}</td>
+                                <td>${item.WARE_CODE}</td>
+                                <td>${item.WARE_CODE_CORP}</td>
+                                <td>${fecha_elaboracion[0]}</td>
+                                <td>${fecha_caducidad[0]}</td>
+                            </tr>`;
+                    });
+
+                    tbody += `</tbody>`;
+
+                    document.getElementById('tbl-result').innerHTML = tbody;
+
+                })
+                .catch(error => {
+                    hideLoading();
+                    console.error('Hubo un problema con la petición Fetch:', error);
+                });
+        });
+
+        function showLoading(){
+             // Mostrar el spinner y el overlay
+                document.getElementById("loading-spinner").style.display = "block";
+                document.getElementById("loading-overlay").style.display = "block";
+        }
+
+        function hideLoading(){
+            document.getElementById("loading-spinner").style.display = "none";
+            document.getElementById("loading-overlay").style.display = "none";
+        }
+
+        hideLoading();
+
+    </script>
+    <!-- Pasar datos por request para movimiento interno-->
+    <!--script>
+
+$("button[name='mov-interno']").click(function(){
+    var product_id = $(this).closest("tr").find("#prod").html();
+    var lote_id = $(this).closest("tr").find("#lote").html();
+    var ubicacion  = $(this).closest("tr").find("#ubi").html();
+
+    $.ajax({
+        type:"GET",
+        url:"{#% url 'wms_mov_interno' %#}",
+        data:{
+            //'csrfmiddlewaretoken': '{{ csrf_token }}',
+            'product_id':product_id,
+            'lote_id':lote_id,
+            'ubicacion' :ubicacion
+        },
+        success: function(){
+            // window.location.replace("http://172.16.28.17:8000/wms/inventario/mov-interno")
+            window.location.replace("http://127.0.0.1:8000/wms/inventario/mov-interno")
+        },
+        error:function(){
+            $('#msg').html('<div class="text-center alert alert-danger mt-3" role="alert"> Error !!! </div>')
+                setTimeout(function(){
+                window.location.reload();
+                }, 2000)
+        }
+    })
+})
+
+</script-->
+
+    {% endblock %}
