@@ -853,32 +853,49 @@ def doc_transferencia_odbc(n_transf):
     #Transferencia Egreso
     try:
         cursorOdbc.execute(
-            "SELECT INVT_Lotes_Ubicacion.DOC_ID_CORP, INVT_Lotes_Ubicacion.PRODUCT_ID_CORP, INVT_Lotes_Ubicacion.LOTE_ID, INVT_Lotes_Ubicacion.EGRESO_TEMP, "
-            "INVT_Lotes_Ubicacion.WARE_CODE_CORP, INVT_Producto_Lotes.ANIADIDO, INVT_Lotes_Ubicacion.UBICACION, INVT_Producto_Lotes.Fecha_elaboracion_lote, "
+            # "SELECT INVT_Lotes_Ubicacion.DOC_ID_CORP, INVT_Lotes_Ubicacion.PRODUCT_ID_CORP, INVT_Lotes_Ubicacion.LOTE_ID, INVT_Lotes_Ubicacion.EGRESO_TEMP, "
+            # "INVT_Lotes_Ubicacion.WARE_CODE_CORP, INVT_Producto_Lotes.ANIADIDO, INVT_Lotes_Ubicacion.UBICACION, INVT_Producto_Lotes.Fecha_elaboracion_lote, "
+            # "INVT_Producto_Lotes.FECHA_CADUCIDAD "
+            # "FROM INVT_Lotes_Ubicacion INVT_Lotes_Ubicacion, INVT_Producto_Lotes INVT_Producto_Lotes "
+            # "WHERE INVT_Lotes_Ubicacion.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND INVT_Producto_Lotes.LOTE_ID = INVT_Lotes_Ubicacion.LOTE_ID AND "
+            # #"((INVT_Lotes_Ubicacion.DOC_ID_CORP='A-0000054824-gimpr') AND (INVT_Producto_Lotes.ENTRADA_TIPO='OC') AND (INVT_Lotes_Ubicacion.EGRESO_TEMP>0))"
+            # f"((INVT_Lotes_Ubicacion.DOC_ID_CORP='{n}') AND (INVT_Producto_Lotes.ENTRADA_TIPO='OC') AND (INVT_Lotes_Ubicacion.EGRESO_TEMP>0))"
+        
+            "SELECT INVT_Lotes_Ubicacion.DOC_ID_CORP, INVT_Lotes_Ubicacion.PRODUCT_ID_CORP, INVT_Lotes_Ubicacion.LOTE_ID, INVT_Producto_Lotes.COMMITED, INVT_Lotes_Ubicacion.EGRESO_TEMP, "
+            "INVT_Lotes_Ubicacion.WARE_CODE_CORP, INVT_Lotes_Ubicacion.UBICACION, INVT_Producto_Lotes.Fecha_elaboracion_lote, "
             "INVT_Producto_Lotes.FECHA_CADUCIDAD "
             "FROM INVT_Lotes_Ubicacion INVT_Lotes_Ubicacion, INVT_Producto_Lotes INVT_Producto_Lotes "
             "WHERE INVT_Lotes_Ubicacion.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND INVT_Producto_Lotes.LOTE_ID = INVT_Lotes_Ubicacion.LOTE_ID AND "
-            #"((INVT_Lotes_Ubicacion.DOC_ID_CORP='A-0000054824-gimpr') AND (INVT_Producto_Lotes.ENTRADA_TIPO='OC') AND (INVT_Lotes_Ubicacion.EGRESO_TEMP>0))"
-            f"((INVT_Lotes_Ubicacion.DOC_ID_CORP='{n}') AND (INVT_Producto_Lotes.ENTRADA_TIPO='OC') AND (INVT_Lotes_Ubicacion.EGRESO_TEMP>0))"
+            f"((INVT_Lotes_Ubicacion.DOC_ID_CORP='{n}') AND (INVT_Producto_Lotes.ENTRADA_TIPO='TR') AND (INVT_Lotes_Ubicacion.EGRESO_TEMP>0) AND (INVT_Producto_Lotes.WARE_CODE_CORP='BCT'))"
+        
         )
         transferencia = cursorOdbc.fetchall()
         transferencia = [list(rows) for rows in transferencia]
         transferencia = pd.DataFrame(transferencia)
         transferencia['product_id'] = list(map(lambda x:x[:-6], list(transferencia[1])))
-
+        
         transferencia = transferencia.rename(columns={
+            # 0:'doc',
+            # 2:'lote_id',
+            # 3:'unidades',
+            # 4:'bodega_salida',
+            # 5:'boleano',
+            # 6:'bodega_entrada',
+            # 7:'f_elab',
+            # 8:'f_cadu'
+            
             0:'doc',
             2:'lote_id',
-            3:'unidades',
-            4:'bodega_salida',
-            5:'boleano',
-            6:'bodega_entrada',
+            4:'unidades',
+            5:'bodega_salida',
+            #5:'boleano',
+            #6:'bodega_entrada',
             7:'f_elab',
             8:'f_cadu'
         })
 
         transferencia = transferencia[['doc', 'product_id', 'lote_id', 'unidades', 'bodega_salida', 'f_elab', 'f_cadu']]
-
+        print(transferencia)
     except:
         transferencia = pd.DataFrame()
     #print(transferencia)
@@ -913,7 +930,7 @@ def doc_transferencia_odbc(n_transf):
     except:
         transferencia2 = pd.DataFrame()
 
-    #print(transferencia2)
+    
     t = pd.concat([transferencia, transferencia2])
     t = t.reset_index(drop=True) #;print(t)
 

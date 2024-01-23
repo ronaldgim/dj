@@ -1474,7 +1474,7 @@ def wms_transferencia_input_ajax(request):
     
     n_trasf = request.POST['n_trasf']
     trans_mba  = doc_transferencia_odbc(n_trasf)
-    
+    #print(trans_mba)
     new_transf = Transferencia.objects.filter(n_transferencia=n_trasf)
     if not new_transf.exists():
 
@@ -1497,7 +1497,7 @@ def wms_transferencia_input_ajax(request):
         
             tr_list.append(tr)
             
-        Transferencia.objects.bulk_create(tr_list)
+        #Transferencia.objects.bulk_create(tr_list)
         
         messages.success(f'La Transferencia {n_trasf} fue añadida exitosamente !!!')
         return redirect('/wms/transferencias/list') 
