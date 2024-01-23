@@ -119,7 +119,12 @@ def wms_imp_ingresadas(request): #OK
     """ Lista de importaciones ingresadas """
     
     prod = productos_odbc_and_django()[['product_id','Marca']]
-    imps = pd.DataFrame(InventarioIngresoBodega.objects.filter(referencia='Ingreso Importación').values())
+    imps = pd.DataFrame(InventarioIngresoBodega.objects.filter(referencia='Ingreso Importación').values()).sort_values(by='fecha_hora',ascending=False)
+
+    imps_llegadas = importaciones_llegadas_odbc()[['DOC_ID_CORP','MEMO']]
+    imps_llegadas = imps_llegadas.rename(columns={'DOC_ID_CORP':'n_referencia'}).drop_duplicates(subset='n_referencia')
+    
+    imps = imps.merge(imps_llegadas, on='n_referencia', how='left')
 
     if not imps.empty:
         imps = imps.merge(prod, on='product_id', how='left')
@@ -144,10 +149,14 @@ def wms_detalle_imp(request, o_compra): #OK
         y aparece en la lista de importaciones ingresadas
     """
     
+    # imv_inicial_ing = pd.DataFrame(InventarioIngresoBodega.objects.filter(n_referencia=o_compra).values())
+    # print(imv_inicial_ing)
+    
     detalle = importaciones_llegadas_ocompra_odbc(o_compra) 
     pro     = productos_odbc_and_django()[['product_id', 'Nombre', 'marca','marca2']]
     detalle = detalle.merge(pro, on='product_id', how='left')
-
+    detalle = detalle[detalle['product_id']!='70114-3LHS']
+    
     marca = detalle['marca2'].iloc[0]
     orden = detalle['DOC_ID_CORP'].iloc[0]
 
@@ -629,10 +638,6 @@ def wms_movimientos_ingreso(request, id): #OK
 # url: inventario/mov-interno-<int:id>
 @login_required(login_url='login')
 def wms_movimiento_interno(request, id): #OK
-    """ Filtra los movimientos por producto, lote, bodega, pasillo, modulo, nivel
-        *** Los productos que tiene '/' en el codigo va a dar error ***
-        *** cambiar esta vista por ajax para pasar los datos por 'request' ***
-    """
     
     item = Existencias.objects.get(id=id)
     ubicaciones = Ubicacion.objects.exclude(id=item.ubicacion.id)
