@@ -895,10 +895,9 @@ def doc_transferencia_odbc(n_transf):
         })
 
         transferencia = transferencia[['doc', 'product_id', 'lote_id', 'unidades', 'bodega_salida', 'f_elab', 'f_cadu']]
-        print(transferencia)
+        
     except:
         transferencia = pd.DataFrame()
-    #print(transferencia)
 
     try:
         cursorOdbc.execute(
