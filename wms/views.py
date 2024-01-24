@@ -19,6 +19,8 @@ from datos.views import (
     wms_picking_realizados_warehouse_list,
     wms_reserva_por_contratoid,
     quitar_puntos,
+    wms_stock_lote_cerezos_by_product,
+    wms_stock_lote_products,
     
     # Trasnferencia
     doc_transferencia_odbc
@@ -33,9 +35,6 @@ from django.http import HttpResponse,JsonResponse, HttpResponseRedirect
 # Json
 import json
 
-# Pyodbc
-import pyodbc 
-
 # Datetime
 from datetime import datetime
 
@@ -44,7 +43,8 @@ from django.db import connections
 
 # Models
 from django.db.models import Sum, Count
-from wms.models import InventarioIngresoBodega, Ubicacion, Movimiento, Existencias, Transferencia, LiberacionCuarentena
+from wms.models import InventarioIngresoBodega, Ubicacion, Movimiento, Existencias, Transferencia
+from etiquetado.models import EstadoPicking
 
 # Pandas
 import pandas as pd
@@ -78,17 +78,19 @@ from django.contrib.auth.decorators import login_required, permission_required
 
 # Lista de importaciones por llegar
 # url: importaciones/list
+@login_required(login_url='login')
 def wms_importaciones_list(request): #OK
     """ Lista de importaciones llegadas """
-
-    imp = importaciones_llegadas_odbc()#[['MEMO','DOC_ID_CORP', 'ENTRADA_FECHA', 'WARE_COD_CORP', 'product_id']];print(imp)
+    
+    imp = importaciones_llegadas_odbc()#[['MEMO','DOC_ID_CORP', 'ENTRADA_FECHA', 'WARE_COD_CORP', 'product_id']];print(imp).
+    #imp['ENTRADA_FECHA'] = pd.to_datetime(imp['ENTRADA_FECHA']).dt.strftime('%d-%m-%Y')
+    imp = imp[imp['ENTRADA_FECHA']>'2023-12-31']
+    imp = imp.sort_values(by=['ENTRADA_FECHA'], ascending=[False])
     imp = imp.drop_duplicates(subset=['DOC_ID_CORP'])
     
     pro = productos_odbc_and_django()[['product_id', 'Marca']]  
-
     imp = imp.merge(pro, on='product_id', how='left')
-    imp = imp.sort_values(by=['ENTRADA_FECHA'], ascending=[False])
-    imp['ENTRADA_FECHA'] = pd.to_datetime(imp['ENTRADA_FECHA']).dt.strftime('%d-%m-%Y')
+    
     # imp = imp.sort_values(by=['ENTRADA_FECHA'], ascending=[False])
     
     imp_doc = pd.DataFrame(InventarioIngresoBodega.objects.all().values()).empty
@@ -112,11 +114,17 @@ def wms_importaciones_list(request): #OK
 
 # Lista de importaciones ingresadas
 # url: importaciones/ingresadas
+@login_required(login_url='login')
 def wms_imp_ingresadas(request): #OK
     """ Lista de importaciones ingresadas """
     
     prod = productos_odbc_and_django()[['product_id','Marca']]
-    imps = pd.DataFrame(InventarioIngresoBodega.objects.filter(referencia='Ingreso Importación').values())
+    imps = pd.DataFrame(InventarioIngresoBodega.objects.filter(referencia='Ingreso Importación').values()).sort_values(by='fecha_hora',ascending=False)
+
+    imps_llegadas = importaciones_llegadas_odbc()[['DOC_ID_CORP','MEMO']]
+    imps_llegadas = imps_llegadas.rename(columns={'DOC_ID_CORP':'n_referencia'}).drop_duplicates(subset='n_referencia')
+    
+    imps = imps.merge(imps_llegadas, on='n_referencia', how='left')
 
     if not imps.empty:
         imps = imps.merge(prod, on='product_id', how='left')
@@ -132,6 +140,7 @@ def wms_imp_ingresadas(request): #OK
 
 # Detalle de importación
 # url: importacion/<str:o_compra>
+@login_required(login_url='login')
 def wms_detalle_imp(request, o_compra): #OK
     """ Ver detalle de importaciones
         Seleccionar bodega 
@@ -140,10 +149,14 @@ def wms_detalle_imp(request, o_compra): #OK
         y aparece en la lista de importaciones ingresadas
     """
     
+    # imv_inicial_ing = pd.DataFrame(InventarioIngresoBodega.objects.filter(n_referencia=o_compra).values())
+    # print(imv_inicial_ing)
+    
     detalle = importaciones_llegadas_ocompra_odbc(o_compra) 
     pro     = productos_odbc_and_django()[['product_id', 'Nombre', 'marca','marca2']]
     detalle = detalle.merge(pro, on='product_id', how='left')
-
+    detalle = detalle[detalle['product_id']!='70114-3LHS']
+    
     marca = detalle['marca2'].iloc[0]
     orden = detalle['DOC_ID_CORP'].iloc[0]
 
@@ -187,6 +200,7 @@ def wms_detalle_imp(request, o_compra): #OK
 
 # Lista de productos de importación
 # url: importacion/bodega/<str:o_compra>
+@login_required(login_url='login')
 def wms_bodega_imp(request, o_compra): #OK
     """ Detalle de la importación 
         Botón para ingresar y asignar ubicación dentro de la bodega previamente selecionada
@@ -236,6 +250,7 @@ def wms_bodega_imp(request, o_compra): #OK
 
 # Lista de bodega de inventari inicial
 # url: inventario/inicial/list_bodega
+@login_required(login_url='login')
 def wms_inventario_inicial_list_bodega(request): #OK
     
     prod = productos_odbc_and_django()[['product_id','Marca']]
@@ -253,6 +268,7 @@ def wms_inventario_inicial_list_bodega(request): #OK
 
 # Lista de productos de inventario inicial por bodega
 # url: inventario/inicial/<str:bodega>
+@login_required(login_url='login')
 def wms_inventario_inicial_bodega(request, bodega): #OK
     
     prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
@@ -328,8 +344,8 @@ def wms_existencias_query(): #OK
         'ubicacion__pasillo',
         'ubicacion__modulo',
         'ubicacion__nivel',
-    ).exclude(total_unidades = 0) #.exclude(total_unidades__lte=0)
-    
+    ).exclude(total_unidades = 0) 
+        
     existencias_list = []
     for i in exitencias:
         prod = i['product_id']
@@ -485,6 +501,7 @@ def wms_btn_actualizar_todas_existencias(request):
 
 # Inventario - Lista de productos Existencias
 # url: wms/inventario
+@login_required(login_url='login')
 def wms_inventario(request): #OK
     """ Inventario 
         Suma de ingresos y egresos que dan el total de todo el inventario
@@ -499,7 +516,7 @@ def wms_inventario(request): #OK
         'product_id', 'lote_id', 'fecha_caducidad', 'unidades', 'fecha_hora', 
         'ubicacion', 'ubicacion__bodega', 'ubicacion__pasillo', 'ubicacion__modulo', 'ubicacion__nivel', 
         'estado'
-    ))
+    ).order_by('product_id','fecha_caducidad', 'ubicacion__distancia_puerta'))
     inv = inv.merge(prod, on='product_id', how='left')
     #inv['fecha_caducidad'] = inv['fecha_caducidad'].astype(str)
     inv['fecha_caducidad'] = pd.to_datetime(inv['fecha_caducidad'])
@@ -522,6 +539,7 @@ def wms_inventario(request): #OK
 # FUNCIÓN MOVIMIENTO
 # INGRESOS DE INVENTARIO INICIAL & IMPORTACIONES
 # url: wms/ingreso/<int:int>
+@login_required(login_url='login')
 def wms_movimientos_ingreso(request, id): #OK
     """ Esta función asigna una ubiación a los items intresados por la importación
         Esta asiganación de ubicación se permite solo dentro de la bodega preselecionada
@@ -618,11 +636,8 @@ def wms_movimientos_ingreso(request, id): #OK
 
 # Movimiento interno
 # url: inventario/mov-interno-<int:id>
+@login_required(login_url='login')
 def wms_movimiento_interno(request, id): #OK
-    """ Filtra los movimientos por producto, lote, bodega, pasillo, modulo, nivel
-        *** Los productos que tiene '/' en el codigo va a dar error ***
-        *** cambiar esta vista por ajax para pasar los datos por 'request' ***
-    """
     
     item = Existencias.objects.get(id=id)
     ubicaciones = Ubicacion.objects.exclude(id=item.ubicacion.id)
@@ -719,9 +734,9 @@ def comprobar_ajuste_egreso(codigo, lote, fecha_cadu, ubicacion, und_egreso): #O
 @login_required(login_url='login')
 def wms_movimiento_ajuste(request): #OK
     
-    prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
-    prod = de_dataframe_a_template(prod)
-    ubi  = Ubicacion.objects.all()
+    # prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+    # prod = de_dataframe_a_template(prod)
+    # ubi  = Ubicacion.objects.all()
     
     if request.method == 'POST':
         tipo = request.POST['tipo']
@@ -748,7 +763,7 @@ def wms_movimiento_ajuste(request): #OK
             return redirect('/wms/inventario')
                     
         elif tipo == 'Egreso':
-
+            
             mov = Movimiento(
                 tipo            = tipo,
                 unidades        = int(request.POST['unidades'])*-1,
@@ -783,19 +798,169 @@ def wms_movimiento_ajuste(request): #OK
         return redirect('/wms/inventario')
     
     context = {
-        'productos':prod,
-        'ubi':ubi
+        #'productos':prod,
+        #'ubi':ubi
     }
 
     return render(request, 'wms/movimientos/movimiento_ajuste.html', context)
 
 
+# Llamar los productos para ajuste de acuerdo a tipo de movimiento
+def wms_ajuste_product_ajax(request):
+    
+    tipo = request.POST['tipo']
+    
+    if tipo == 'Ingreso':
+        # Buscar en Existencias MBA
+        productos = wms_stock_lote_products()
+        return JsonResponse({'productos':productos})
+        
+    elif tipo == 'Egreso':
+        # Buscar en Existencias WMS
+        productos = pd.DataFrame(Existencias.objects.all().values('product_id'))
+        prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+        productos = productos.merge(prod, on='product_id', how='left').sort_values(by=['Marca','product_id'], ascending=[True, True])
+        productos = productos.drop_duplicates(subset='product_id')
+        productos = de_dataframe_a_template(productos)
+    
+        return JsonResponse({'productos':productos})
+    return JsonResponse({'productos':None})
+    
+    
+# Llamar los valores para ajuste de acuerdo a tipo de movimiento
+def wms_ajuste_lote_ajax(request):
+    
+    tipo = request.POST['tipo']
+    prod = request.POST['product_id']
+    
+    if tipo == 'Ingreso':
+        # Buscar en Existencias MBA
+        if not prod:
+            lotes = []
+        else:
+            lotes = wms_stock_lote_cerezos_by_product(product_id=prod)[['LOTE_ID']]
+            lotes = lotes.drop_duplicates(subset='LOTE_ID')
+            lotes = lotes.rename(columns={'LOTE_ID':'lote_id'})
+            lotes = de_dataframe_a_template(lotes)
+        
+        return JsonResponse({'lotes':lotes})
+        
+    elif tipo == 'Egreso':
+        # Buscar en Existencias WMS
+        lotes = pd.DataFrame(Existencias.objects.filter(product_id=prod)
+            .values('lote_id').distinct())
+        lotes = de_dataframe_a_template(lotes)
+        
+        return JsonResponse({'lotes':lotes})
+    return JsonResponse({'lotes':None})
+
+
+# Llamar los valores para ajuste de acuerdo a tipo de movimiento
+def wms_ajuste_fecha_ajax(request):
+    
+    tipo = request.POST['tipo']
+    prod = request.POST['product_id']
+    lote = request.POST['lote_id']
+    
+    if tipo == 'Ingreso':
+        existencias = wms_stock_lote_cerezos_by_product(product_id=prod)
+        existencias = existencias.drop_duplicates(subset='LOTE_ID')
+        
+        if not lote:
+            fecha = ''
+        else:
+            existencias = existencias[existencias['LOTE_ID']==lote]
+            existencias['FECHA_CADUCIDAD'] = existencias['FECHA_CADUCIDAD'].astype('str')
+            
+            fecha = de_dataframe_a_template(existencias)[0] 
+            fecha = fecha['FECHA_CADUCIDAD']
+        
+        ubi = de_dataframe_a_template(existencias)[0]
+        ubi = ubi['LOCATION']
+        ubicaciones = pd.DataFrame(Ubicacion.objects
+            #.filter(bodega=ubi)
+            .all()
+            .values(
+            'id', 
+            'bodega', 
+            'pasillo', 
+            'modulo',
+            'nivel'))
+        ubicaciones = ubicaciones.rename(
+            columns={
+                'id':'ubicacion_id', 
+                'bodega':'ubicacion__bodega', 
+                'pasillo':'ubicacion__pasillo', 
+                'modulo':'ubicacion__modulo',
+                'nivel':'ubicacion__nivel'
+            }
+        )
+        ubicaciones = de_dataframe_a_template(ubicaciones)
+        
+        estado = [
+            {'index':0, 'estado':'Disponible'},
+            {'index':1, 'estado':'Cuarentena'},
+        ]
+        
+        referencia = [
+            {'index':0, 'referencia':'Inventario Inicial'},
+            {'index':1, 'referencia':'Ingreso Importación'},
+            {'index':2, 'referencia':'Liberación'},
+            {'index':3, 'referencia':'Ajuste'},
+        ]
+        return JsonResponse({
+            'fecha':fecha,
+            'ubicaciones':ubicaciones,
+            'estado':estado,
+            'referencia':referencia
+        })
+        
+    elif tipo == 'Egreso':
+        # Buscar en Existencias WMS        
+        existencias = Existencias.objects.filter(product_id=prod, lote_id=lote) 
+        if not lote:
+            fecha = ''
+        else:
+            fecha = existencias.first().fecha_caducidad
+            
+        ubicaciones = pd.DataFrame(existencias.values(
+            'ubicacion_id', 'ubicacion__bodega', 
+            'ubicacion__pasillo', 'ubicacion__modulo',
+            'ubicacion__nivel').distinct())
+        ubicaciones = de_dataframe_a_template(ubicaciones)
+        
+        estado = pd.DataFrame(existencias.values('estado').distinct())
+        estado = de_dataframe_a_template(estado)
+        
+        referencia = [
+            {'index':0, 'referencia':'Liberación'},
+            {'index':1, 'referencia':'Ajuste'},
+            {'index':2, 'referencia':'Picking'},
+            {'index':3, 'referencia':'Transferencia'},
+        ]
+        
+        return JsonResponse({
+            'fecha':fecha,
+            'ubicaciones':ubicaciones,
+            'estado':estado,
+            'referencia':referencia
+        })
+            
+    return JsonResponse({
+            'fecha':None,
+            'ubicaciones':None,
+            'estado':None,
+            'referencia':None
+        })
+
+
 
 # lista de movimientos
 # url: 'movimientos/list'
+@login_required(login_url='login')
 def wms_movimientos_list(request): #OK
     """ Lista de movimientos """
-
+    
     mov = Movimiento.objects.all().order_by('-fecha_hora')
     
     context = {
@@ -809,6 +974,7 @@ def wms_movimientos_list(request): #OK
 ### PICKDING
 # Lista de pedidos
 # url: picking/list
+@login_required(login_url='login')
 def wms_listado_pedidos(request): #OK
     """ Listado de pedidos (picking) """
 
@@ -848,7 +1014,9 @@ def wms_egreso_picking(request, n_pedido): #OK
     prod   = prod.rename(columns={'product_id':'PRODUCT_ID'})
     
     pedido = pedido_por_cliente(n_pedido).sort_values('PRODUCT_ID') #;print(pedido.keys())
+    pedido = pedido.groupby(by=['CONTRATO_ID','NOMBRE_CLIENTE','FECHA_PEDIDO','HORA_LLEGADA','PRODUCT_ID','PRODUCT_NAME']).sum().reset_index() 
     pedido = pedido.merge(prod, on='PRODUCT_ID',how='left')
+        
     prod_list = list(pedido['PRODUCT_ID'].unique())
     
     n_ped = pedido['CONTRATO_ID'].iloc[0]
@@ -973,7 +1141,7 @@ def wms_estado_picking_actualizar_ajax(request):
     id_picking = int(request.POST['id_picking'])
     estado = request.POST['estado']
     
-    estado_picking = EstadoPicking.objects.get(id=id_picking);print(estado_picking.estado)
+    estado_picking = EstadoPicking.objects.get(id=id_picking) 
     estado_picking.estado = estado
     estado_picking.fecha_actualizado = datetime.now()
     
@@ -1099,12 +1267,34 @@ def wms_reservas_lote_consulta_ajax(request):
 
 # Lista de productos en despahco
 # url: picking/producto-despacho/list
+@login_required(login_url='login')
 def wms_productos_en_despacho_list(request): #OK
     
     mov = Movimiento.objects.filter(estado_picking='En Despacho')
+    mov_list = mov.values_list('n_referencia', flat=True).distinct()
+    pik = EstadoPicking.objects.filter(n_pedido__in=mov_list)
     
+    en_despacho = pd.DataFrame(mov.values(
+        'product_id','lote_id','fecha_caducidad','referencia','n_referencia',
+        'ubicacion__bodega','ubicacion__pasillo','ubicacion__modulo','ubicacion__nivel',
+        'fecha_hora','unidades',
+        'usuario__first_name','usuario__last_name'
+    ))
+    contexto_picking = pd.DataFrame(pik.values())[['n_pedido','cliente']]
+    contexto_picking = contexto_picking.rename(columns={'n_pedido':'n_referencia'})
+    
+    en_despacho = en_despacho.merge(contexto_picking, on='n_referencia', how='left')
+    en_despacho['unidades'] = en_despacho['unidades']*-1
+    en_despacho['n_referencia'] = en_despacho['n_referencia'].astype('float')
+    en_despacho['n_referencia'] = en_despacho['n_referencia'].astype('int')
+    # en_despacho['fecha_caducidad'] = en_despacho['fecha_caducidad'].astype('str')
+    en_despacho['fecha_hora'] = pd.to_datetime(en_despacho['fecha_hora']).dt.strftime('%Y-%m-%d %H:%M')
+    
+    en_despacho = en_despacho.sort_values(by='n_referencia')
+    en_despacho = de_dataframe_a_template(en_despacho)
+
     context = {
-        'mov':mov
+        'mov':en_despacho
     }
     
     return render(request, 'wms/productos_en_despacho_list.html', context)
@@ -1122,17 +1312,22 @@ def wms_armar_codigo_factura(n_factura):
     input_ceros = '0' * len_ceros
     
     n_f = 'FCSRI-1001' + input_ceros + n_factura + '-GIMPR'
-    factura = wms_detalle_factura(n_f) 
+    factura = wms_detalle_factura(n_f)
     factura['lote_id'] = quitar_puntos(factura['lote_id'])
-    
+    factura = factura.groupby(by=[
+        'CODIGO_FACTURA','CODIGO_CLIENTE','FECHA_FACTURA','product_id','PRODUCT_NAME',
+        'GROUP_CODE','lote_id','FECHA_CADUCIDAD','NUMERO_PEDIDO_SISTEMA',
+        'NOMBRE_CLIENTE','IDENTIFICACION_FISCAL']).sum().reset_index()
+
     if not factura.empty:
 
         fn_pedido = de_dataframe_a_template(factura)[0]['NUMERO_PEDIDO_SISTEMA']
         
         try:
             picking = pd.DataFrame(Movimiento.objects.filter(n_referencia = fn_pedido).values())
+            picking['lote_wms'] = picking['lote_id']
             picking['lote_id'] = quitar_puntos(picking['lote_id'])
-            picking = picking.groupby(by=['product_id','lote_id','estado_picking']).sum().reset_index()
+            picking = picking.groupby(by=['product_id','lote_id','estado_picking','lote_wms']).sum().reset_index()
             
             factura = factura.merge(picking, on=['product_id','lote_id'], how='left').fillna(0)
             factura['unidades'] = factura['unidades'].abs()
@@ -1153,6 +1348,9 @@ def wms_armar_codigo_factura(n_factura):
         return JsonResponse({'msg':'Factura no encontrada !!!'})
 
 
+# Cruce de picking y factura 
+# url: 'wms/cruce/picking/facturas'
+@login_required(login_url='login')
 def wms_cruce_picking_factura(request):
     
     if request.method=="POST":
@@ -1208,7 +1406,7 @@ def wms_picking_realizados(request):
 # Liberaciones Cuarentena
 def wms_liberaciones_cuarentena(request):
     liberacion_mba3 = wms_datos_liberacion_cuc()
-    print(liberacion_mba3)
+    #print(liberacion_mba3)
     return HttpResponse('ok')
 
 
@@ -1217,7 +1415,7 @@ def wms_liberaciones_cuarentena(request):
 def wms_revision_transferencia_ajax(request):
     
     try:
-        n_trasf = request.POST['n_trasf']#;print(n_trasf,type(n_trasf))
+        n_trasf = request.POST['n_trasf'] 
         prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
         
         trasf_mba = doc_transferencia_odbc(n_trasf) 
@@ -1266,6 +1464,7 @@ def wms_revision_transferencia_ajax(request):
 
 
 
+@login_required(login_url='login')
 def wms_revision_transferencia(request):
     return render(request, 'wms/revision_trasferencia.html', {})
 
@@ -1300,14 +1499,15 @@ def wms_transferencia_input_ajax(request):
             
         Transferencia.objects.bulk_create(tr_list)
         
-        messages.success(f'La Transferencia {n_trasf} fue añadida exitosamente !!!')
+        messages.success(request, f'La Transferencia {n_trasf} fue añadida exitosamente !!!')
         return redirect('/wms/transferencias/list') 
     
     elif new_transf.exists():
         return HttpResponse(f'La Transferencia {n_trasf} ya fue añadida')
     
     
-
+    
+@login_required(login_url='login')
 def wms_transferencias_list(request):
     
     transf_wms = pd.DataFrame(Transferencia.objects.all().values()).drop_duplicates(subset='n_transferencia')
@@ -1325,6 +1525,7 @@ def wms_transferencias_list(request):
 
 
 
+@login_required(login_url='login')
 def wms_transferencia_picking(request, n_transf):
     
     prod   = productos_odbc_and_django()[['product_id','Nombre','Marca']]
@@ -1456,7 +1657,7 @@ def wms_movimiento_egreso_transferencia(request): #OK
                 ubicacion_id    = ubi,
                 unidades        = unds_egreso*-1,
                 estado          = 'Disponible',
-                estado_picking  = 'En Despacho',
+                estado_picking  = 'Despachado',
                 usuario_id      = request.user.id,
             )
             
@@ -1469,107 +1670,7 @@ def wms_movimiento_egreso_transferencia(request): #OK
         return JsonResponse({'msg':'❌ Error !!!'})
     return JsonResponse({'msg':'❌Error !!!'})
 
-def wms_ingreso_ajuste(request):
-    return render(request, 'wms/ingreso_ajuste.html', {'elementos': ''})
 
-
-def wms_busqueda_ajuste(request, n_ajuste):
-    print('entraaa')
-    cnxn = pyodbc.connect('DSN=mba3;PWD=API')
-    cursorOdbc = cnxn.cursor()
-    print('entraaa acaaa')
-
-    # La variable 'n' no está siendo usada en la consulta. Asegúrate de que sea necesario.
-    n = 'A-00000' + str(n_ajuste) + '-GIMPR'
-     
-    #Transferencia Egreso
-    try:
-        cursorOdbc.execute(
-           "SELECT INVT_Producto_Lotes_Bodegas.Doc_id_Corp, "
-           "INVT_Producto_Lotes_Bodegas.PRODUCT_ID_CORP, "
-           "INVT_Producto_Lotes_Bodegas.LOTE_ID, "
-           "INVT_Producto_Lotes_Bodegas.WARE_CODE, "
-           "INVT_Producto_Lotes_Bodegas.LOCATION "
-           "FROM INVT_Producto_Lotes_Bodegas "
-           f"WHERE (INVT_Producto_Lotes_Bodegas.Doc_id_Corp='{n}') "
-        )
-        print("odbc_execute 1")
-        
-        ajuste = [tuple(row) for row in cursorOdbc.fetchall()]
-       
-        ajuste_df = pd.DataFrame(ajuste, columns=['DOC_ID_CORP', 'PRODUCT_ID_CORP', 'LOTE_ID', 'WARE_CODE', 'LOCATION']) if ajuste else pd.DataFrame()
-
-        # Segunda consulta
-        cursorOdbc.execute(
-            "SELECT INVT_Lotes_Ubicacion.DOC_ID_CORP, INVT_Lotes_Ubicacion.PRODUCT_ID_CORP, INVT_Lotes_Ubicacion.LOTE_ID, "
-            "INVT_Lotes_Ubicacion.EGRESO_TEMP, INVT_Lotes_Ubicacion.COMMITED, INVT_Lotes_Ubicacion.WARE_CODE_CORP, "
-            "INVT_Lotes_Ubicacion.UBICACION, INVT_Producto_Lotes.Fecha_elaboracion_lote, INVT_Producto_Lotes.FECHA_CADUCIDAD "
-            "FROM INVT_Lotes_Ubicacion, INVT_Producto_Lotes "
-            "WHERE INVT_Lotes_Ubicacion.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP "
-            "AND INVT_Producto_Lotes.LOTE_ID = INVT_Lotes_Ubicacion.LOTE_ID "
-            f"AND ((INVT_Lotes_Ubicacion.DOC_ID_CORP='{n}') AND (INVT_Producto_Lotes.ENTRADA_TIPO='OC')) "
-        )
-        print("odbc_execute 2")
-        inventario = [tuple(row) for row in cursorOdbc.fetchall()]
-        print(inventario)
-        inventario_df = pd.DataFrame(inventario, columns=['DOC_ID_CORP', 'PRODUCT_ID_CORP', 'LOTE_ID', 'EGRESO_TEMP', 'COMMITED', 'WARE_CODE_CORP', 'UBICACION', 'Fecha_elaboracion_lote', 'FECHA_CADUCIDAD']) if inventario else pd.DataFrame()
-        # Unión (merge) de los DataFrames en los campos comunes
-        if not ajuste_df.empty and not inventario_df.empty:
-            resultado_df = pd.merge(ajuste_df, inventario_df, on=['DOC_ID_CORP', 'PRODUCT_ID_CORP', 'LOTE_ID'], how='inner')
-            resultado_df = resultado_df.drop_duplicates(subset=['DOC_ID_CORP', 'PRODUCT_ID_CORP', 'LOTE_ID'])
-
-            if 'Fecha_elaboracion_lote' in resultado_df.columns:
-                resultado_df['Fecha_elaboracion_lote'] = resultado_df['Fecha_elaboracion_lote'].apply(lambda x: x.strftime('%Y-%m-%d') if pd.notnull(x) else x)
-            if 'FECHA_CADUCIDAD' in resultado_df.columns:
-                resultado_df['FECHA_CADUCIDAD'] = resultado_df['FECHA_CADUCIDAD'].apply(lambda x: x.strftime('%Y-%m-%d') if pd.notnull(x) else x)
-
-            #eliminar por DOC_ID_CORP
-            LiberacionCuarentena.objects.filter(doc_id_corp = n ).delete(),
-            liberacion_cuarentena_objects = [
-
-                #si ya existe un registro con los mismos datos en doc_id_corp, product_id_corp ,lote_id que lo actualize o cree
-                #sino que lo cree
-                LiberacionCuarentena.objects.update_or_create(
-                    doc_id_corp = row['DOC_ID_CORP'],
-                    product_id_corp = row['PRODUCT_ID_CORP'],
-                    lote_id = row['LOTE_ID'],
-                    ware_code = row['WARE_CODE'],
-                    location = row['LOCATION'],
-                    egreso_temp = row['EGRESO_TEMP'],
-                    commited = row['COMMITED'],
-                    ware_code_corp = row['WARE_CODE_CORP'],
-                    ubicacion = row['UBICACION'],
-                    fecha_elaboracion_lote = row['Fecha_elaboracion_lote'],
-                    fecha_caducidad = row['FECHA_CADUCIDAD'],
-                )
-                for index, row in resultado_df.iterrows()
-
-            ]
-
-            print(liberacion_cuarentena_objects)
-
-            
-            # LiberacionCuarentena.objects.bulk_create(liberacion_cuarentena_objects)
-
-            # Asegúrate de que las columnas de fecha estén en un formato de fecha reconocible
-            # Si las columnas ya están en formato de fecha, no necesitas hacer nada más.
-            # Si necesitas ajustar el formato, puedes hacerlo aquí.
-
-            # Convertir DataFrame a JSON, asegurándose de que las fechas se formateen correctamente
-            resultado_json = resultado_df.to_json(orient='records', force_ascii=False, date_format='iso')
-            print(resultado_json)
-
-            return HttpResponse(resultado_json, content_type='application/json')
-        else:
-            return JsonResponse({'error': 'No se encontraron datos para realizar la unión.'}, status=404)
-
-
-
-    except Exception as e:
-        print(e)
-        return JsonResponse({'error': str(e)}, status=500)      
-
-   
 
 ## FUNCIONES PENDIENTES POR DESARROLLAR
 # Listado de liberaciones
@@ -1602,6 +1703,3 @@ def wms_busqueda_ajuste(request, n_ajuste):
 #     # print(liberacion)
 
 #     return HttpResponse(liberacion_query)
-
-
-
