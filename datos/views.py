@@ -2092,7 +2092,7 @@ def wms_stock_lote_products():
 def wms_stock_lote_cerezos_by_product(product_id):
     
     with connections['gimpromed_sql'].cursor() as cursor:
-        cursor.execute(f"SELECT * FROM warehouse.stock_lote WHERE WARE_CODE = 'BCT' AND PRODUCT_ID = '{product_id}';")
+        cursor.execute(f"SELECT * FROM warehouse.stock_lote WHERE (WARE_CODE = 'BCT' OR WARE_CODE = 'CUC') AND PRODUCT_ID = '{product_id}';")
         columns = [col[0] for col in cursor.description]
         stock = [
             dict(zip(columns, row))
