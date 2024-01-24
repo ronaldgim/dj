@@ -104,7 +104,7 @@ urlpatterns = [
     ),
 
      ### INGRESO AJUSTE
-    Buscar ajuste
+    #Buscar ajuste
     path(
         route='ajuste/search',  
         view = views.wms_ingreso_ajuste, #OK
