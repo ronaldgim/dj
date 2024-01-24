@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 # Models
-from wms.models import InventarioIngresoBodega, Ubicacion, Movimiento
+from wms.models import InventarioIngresoBodega, Ubicacion, Movimiento, Transferencia
 
 
 # INVENTARIO
@@ -40,6 +40,22 @@ class MovimientoAdmin(admin.ModelAdmin):
         'estado_picking',
         'ubicacion', 
         'n_referencia', 
+        'unidades'
+        )
+    
+    list_filter = ('product_id',)
+    # list_display_links = []
+    search_fields = ['product_id',]
+    # orderin = []
+    
+    
+@admin.register(Transferencia)
+class TransferenciaAdmin(admin.ModelAdmin):
+
+    list_display = (
+        'n_transferencia',
+        'product_id', 
+        'lote_id', 
         'unidades'
         )
     
