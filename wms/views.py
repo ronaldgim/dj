@@ -674,7 +674,7 @@ Realizado por: {user.first_name} {user.last_name}\n
 def wms_movimiento_interno(request, id): #OK
     
     item = Existencias.objects.get(id=id)
-    ubicaciones = Ubicacion.objects.exclude(id=item.ubicacion.id)
+    #ubicaciones = Ubicacion.objects.exclude(id=item.ubicacion.id)
     und_existentes = item.unidades    
 
     if request.method == 'POST':
@@ -700,7 +700,7 @@ def wms_movimiento_interno(request, id): #OK
                 estado          = item.estado
             )
             mov_egreso.save()
-
+            
             # Crear registro de Inreso
             mov_ingreso = Movimiento(
                 tipo            = 'Ingreso',
@@ -744,10 +744,28 @@ def wms_movimiento_interno(request, id): #OK
 
     context = {
         'item':item,
-        'ubi':ubicaciones,
+        #'ubi':ubicaciones,
     }
 
     return render(request, 'wms/movimiento_interno.html', context)
+
+
+def wms_movimiento_interno_get_ubi_list_ajax(request):
+    
+    bodega  = request.POST['bodega']
+    pasillo = request.POST['pasillo']
+    ubi_salida = int(request.POST['ubi_salida'])
+    
+    ubi_list = pd.DataFrame(Ubicacion.objects
+        .filter(bodega=bodega)
+        .filter(pasillo=pasillo)
+        .exclude(id=ubi_salida)
+        .values()
+        ).sort_values(by=['bodega','pasillo','modulo','nivel'])
+    
+    ubi_list = de_dataframe_a_template(ubi_list)
+    
+    return JsonResponse({'ubi_list':ubi_list}, status=200)
     
 
 
