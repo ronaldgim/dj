@@ -69,6 +69,10 @@ from django.db.utils import IntegrityError
 # Login
 from django.contrib.auth.decorators import login_required, permission_required
 
+# Email
+from django.core.mail import send_mail
+from django.conf import settings
+
 
 """
     LISTAS DE INGRESOS 
@@ -634,6 +638,36 @@ def wms_movimientos_ingreso(request, id): #OK
     return render(request, 'wms/movimientos/ingreso_ubicacion_importacion.html', context)
 
 
+# Enviar correo en movimiento interno, en caso de que el 
+# movimiento se realice entre dos bodegas
+def wms_movimiento_entre_bodegas_email(product_id, lote_id, ubi_egreso, ubi_ingreso, unidades, usuario):
+    
+    ubi_eg = Ubicacion.objects.get(id=ubi_egreso)
+    ubi_in = Ubicacion.objects.get(id=ubi_ingreso)
+    user   = User.objects.get(id=usuario)
+
+    send_mail(
+        subject='WMS-Movimiento entre bodegas',
+        message=f'''
+Se ha realizado un movimiento entre bodegas:\n
+Código: {product_id}\n
+Lote: {lote_id}\n
+Sale de la ubicación: {ubi_eg} - unidades: {unidades}\n
+Entra a la ubicación: {ubi_in} - unidades: {unidades}
+
+Realizado por: {user.first_name} {user.last_name}\n
+
+***Este mensaje fue enviado automaticamente mediante WMS***
+''',
+        from_email     = settings.EMAIL_HOST_USER,
+        recipient_list = ['carcosh@gimpromed.com','dreyes@gimpromed.com','jgualotuna@gimpromed.com','ncaisapanta@gimpromed.com'],
+        fail_silently  = False
+        )
+
+    return JsonResponse({'msg':'Correo enviado'}, status=200)
+
+
+
 # Movimiento interno
 # url: inventario/mov-interno-<int:id>
 @login_required(login_url='login')
@@ -665,7 +699,7 @@ def wms_movimiento_interno(request, id): #OK
                 product_id      = item.product_id,
                 estado          = item.estado
             )
-            mov_egreso.save()
+            #mov_egreso.save()
 
             # Crear registro de Inreso
             mov_ingreso = Movimiento(
@@ -681,9 +715,21 @@ def wms_movimiento_interno(request, id): #OK
                 product_id      = item.product_id,
                 estado          = item.estado
             )
-            mov_ingreso.save()
+            #mov_ingreso.save()
             
+            # Actualizar inventario
             wms_existencias_query_product_lote(product_id=item.product_id, lote_id=item.lote_id)
+            
+            # Enviar correo si el movimiento es de una bodega a otra
+            if item.ubicacion.bodega != Ubicacion.objects.get(id=ubi_post).bodega:
+                wms_movimiento_entre_bodegas_email(
+                    product_id  = item.product_id, 
+                    lote_id     = item.lote_id, 
+                    ubi_egreso  = item.ubicacion.id, 
+                    ubi_ingreso = ubi_post, 
+                    unidades    = und_post,
+                    usuario=request.user.id
+                )
             
             messages.success(request, 'Movimiento realizado con exito !!!')
             return redirect('/wms/inventario')
@@ -702,6 +748,7 @@ def wms_movimiento_interno(request, id): #OK
     }
 
     return render(request, 'wms/movimiento_interno.html', context)
+    
 
 
 # Comprobar si existe para realizar el egreso
