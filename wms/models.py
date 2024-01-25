@@ -134,8 +134,10 @@ class Transferencia(models.Model):
         return self.n_transferencia
 
 class LiberacionCuarentena(models.Model):
+    doc_id = models.CharField(max_length=255)
     doc_id_corp = models.CharField(max_length=255, primary_key=True)
     product_id_corp = models.CharField(max_length=255)
+    product_id= models.CharField(max_length=255)
     lote_id = models.CharField(max_length=255)
     ware_code = models.CharField(max_length=50)
     location = models.CharField(max_length=50)
@@ -145,6 +147,7 @@ class LiberacionCuarentena(models.Model):
     ubicacion = models.CharField(max_length=50)
     fecha_elaboracion_lote = models.DateTimeField()
     fecha_caducidad = models.DateTimeField()
+    estado = models.PositiveIntegerField()
 
     class Meta:
         unique_together = (('doc_id_corp', 'product_id_corp', 'lote_id'),)

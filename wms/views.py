@@ -1474,10 +1474,10 @@ def wms_ingreso_ajuste(request):
 
 
 def wms_busqueda_ajuste(request, n_ajuste):
-    print('entraaa')
+   
     cnxn = pyodbc.connect('DSN=mba3;PWD=API')
     cursorOdbc = cnxn.cursor()
-    print('entraaa acaaa')
+    
 
     # La variable 'n' no está siendo usada en la consulta. Asegúrate de que sea necesario.
     n = 'A-00000' + str(n_ajuste) + '-GIMPR'
@@ -1493,7 +1493,6 @@ def wms_busqueda_ajuste(request, n_ajuste):
            "FROM INVT_Producto_Lotes_Bodegas "
            f"WHERE (INVT_Producto_Lotes_Bodegas.Doc_id_Corp='{n}') "
         )
-        print("odbc_execute 1")
         
         ajuste = [tuple(row) for row in cursorOdbc.fetchall()]
        
@@ -1509,7 +1508,6 @@ def wms_busqueda_ajuste(request, n_ajuste):
             "AND INVT_Producto_Lotes.LOTE_ID = INVT_Lotes_Ubicacion.LOTE_ID "
             f"AND ((INVT_Lotes_Ubicacion.DOC_ID_CORP='{n}') AND (INVT_Producto_Lotes.ENTRADA_TIPO='OC')) "
         )
-        print("odbc_execute 2")
         inventario = [tuple(row) for row in cursorOdbc.fetchall()]
         print(inventario)
         inventario_df = pd.DataFrame(inventario, columns=['DOC_ID_CORP', 'PRODUCT_ID_CORP', 'LOTE_ID', 'EGRESO_TEMP', 'COMMITED', 'WARE_CODE_CORP', 'UBICACION', 'Fecha_elaboracion_lote', 'FECHA_CADUCIDAD']) if inventario else pd.DataFrame()
@@ -1525,13 +1523,21 @@ def wms_busqueda_ajuste(request, n_ajuste):
 
             #eliminar por DOC_ID_CORP
             LiberacionCuarentena.objects.filter(doc_id_corp = n ).delete(),
-            liberacion_cuarentena_objects = [
+            
 
-                #si ya existe un registro con los mismos datos en doc_id_corp, product_id_corp ,lote_id que lo actualize o cree
-                #sino que lo cree
-                LiberacionCuarentena.objects.update_or_create(
+            #si ya existe un registro con los mismos datos en doc_id_corp, product_id_corp ,lote_id que lo actualize o cree
+            #sino que lo cree
+            
+            for index, row in resultado_df.iterrows():
+                #busca si existe el registro
+                existe = LiberacionCuarentena.objects.filter(doc_id_corp = row['DOC_ID_CORP']).filter(product_id_corp = row['PRODUCT_ID_CORP']).filter(lote_id = row['LOTE_ID']).exists()
+                if existe==False:
+                    LiberacionCuarentena.objects.update_or_create(
+                    #replace string
+                    doc_id = n_ajuste,
                     doc_id_corp = row['DOC_ID_CORP'],
                     product_id_corp = row['PRODUCT_ID_CORP'],
+                    product_id= row['PRODUCT_ID_CORP'].replace('-GIMPR',''),
                     lote_id = row['LOTE_ID'],
                     ware_code = row['WARE_CODE'],
                     location = row['LOCATION'],
@@ -1541,14 +1547,9 @@ def wms_busqueda_ajuste(request, n_ajuste):
                     ubicacion = row['UBICACION'],
                     fecha_elaboracion_lote = row['Fecha_elaboracion_lote'],
                     fecha_caducidad = row['FECHA_CADUCIDAD'],
-                )
-                for index, row in resultado_df.iterrows()
-
-            ]
-
-            print(liberacion_cuarentena_objects)
-
-            
+                    estado=0
+                    )
+                
             # LiberacionCuarentena.objects.bulk_create(liberacion_cuarentena_objects)
 
             # Asegúrate de que las columnas de fecha estén en un formato de fecha reconocible
