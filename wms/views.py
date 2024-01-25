@@ -699,7 +699,7 @@ def wms_movimiento_interno(request, id): #OK
                 product_id      = item.product_id,
                 estado          = item.estado
             )
-            #mov_egreso.save()
+            mov_egreso.save()
 
             # Crear registro de Inreso
             mov_ingreso = Movimiento(
@@ -715,7 +715,7 @@ def wms_movimiento_interno(request, id): #OK
                 product_id      = item.product_id,
                 estado          = item.estado
             )
-            #mov_ingreso.save()
+            mov_ingreso.save()
             
             # Actualizar inventario
             wms_existencias_query_product_lote(product_id=item.product_id, lote_id=item.lote_id)
