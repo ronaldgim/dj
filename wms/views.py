@@ -718,7 +718,7 @@ def wms_movimiento_interno(request, id): #OK
             mov_ingreso.save()
             
             # Actualizar inventario
-            #wms_existencias_query_product_lote(product_id=item.product_id, lote_id=item.lote_id)
+            wms_existencias_query_product_lote(product_id=item.product_id, lote_id=item.lote_id)
             
             # Enviar correo si el movimiento es de una bodega a otra
             if item.ubicacion.bodega != Ubicacion.objects.get(id=ubi_post).bodega:
