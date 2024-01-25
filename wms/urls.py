@@ -75,6 +75,13 @@ urlpatterns = [
         view = views.wms_movimiento_interno, #OK
         name = 'wms_mov_interno'
     ),
+    
+    # Movimiento Interno get ubi_list
+    path(
+        route='mov-interno/get/ubi_list',
+        view = views.wms_movimiento_interno_get_ubi_list_ajax, #OK
+        name = 'wms_movimiento_interno_get_ubi_list_ajax'
+    ),
 
 
     # Movimiento Ajuste
