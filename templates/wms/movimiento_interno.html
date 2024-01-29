@@ -85,6 +85,26 @@
         </div>
 </form>
 
+
+<div class="modal" tabindex="-1" id="myModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="title_modal"></h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <div id="cabecera_modal"></div>
+            <div id="body_modal"></div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            <!--button type="button" class="btn btn-primary">Save changes</button-->
+        </div>
+        </div>
+    </div>
+</div>
+
 <script src="{% static 'js/select_items_form.js' %}"></script>
 
 <script>
@@ -169,5 +189,45 @@
     
 </script>
 
+<script>
+    $(document).ready(function() {
+        $('#chosen-select').change(function() {
+            
+            var select_ubi = $(this); 
+            var title = $("#title_modal");
+            var cabecera = $('#cabecera_modal');
+            var body = $('#body_modal');
+
+
+            if (select_ubi.text().includes('CN6')) {
+                
+                $.ajax({
+                    type: "POST",
+                    url: "{% url 'wms_verificar_ubicacion_destino_ajax' %}", // Replace with your actual endpoint
+                    data: { 
+                        'csrfmiddlewaretoken': '{{csrf_token}}',
+                        'ubi_destino': select_ubi.val(),
+                    },
+                    success: function(response) {
+                        
+                        
+                        title.html(`<h5 class="fw-bold">Ubicación de destino ${select_ubi.find(':selected').text()}</h5>`)
+                        cabecera.html(`
+                            <span class="fw-bold">Capacidad de ubicación:</span> ${response.capacidad_ubicacion} m3<br>
+                            <span class="fw-bold">Volumen de existencias:</span> ${response.volumen_exitencias} m3<br>
+                            <span class="fw-bold">Volumen disponible:</span>     ${response.volumen_disponible} m3<br>`)
+
+                        body.html(response.exitencias)
+                        $('#myModal').modal('show')
+                    },
+                    error: function(error) {
+                        console.error(error);
+                    }
+                });
+                
+            }
+        });
+    });
+</script>
 
 {% endblock %}
