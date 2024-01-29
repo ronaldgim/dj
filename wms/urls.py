@@ -82,6 +82,13 @@ urlpatterns = [
         view = views.wms_movimiento_interno_get_ubi_list_ajax, #OK
         name = 'wms_movimiento_interno_get_ubi_list_ajax'
     ),
+    
+    # Verificar ubicación para movimiento interno CN6
+    path(
+        route='mov-interno/get/ubi_destino/data',
+        view = views.wms_verificar_ubicacion_destino_ajax, #OK
+        name = 'wms_verificar_ubicacion_destino_ajax'
+    ),
 
 
     # Movimiento Ajuste

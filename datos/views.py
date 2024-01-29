@@ -198,7 +198,8 @@ def tabla_productos():
 
 def productos_odbc_and_django():
     with connections['gimpromed_sql'].cursor() as cursor:
-        cursor.execute("SELECT Codigo, Nombre, Unidad, Marca, Unidad_Empaque, Unidad_Box, Inactivo FROM productos")
+        #cursor.execute("SELECT Codigo, Nombre, Unidad, Marca, Unidad_Empaque, Unidad_Box, Inactivo FROM productos")
+        cursor.execute("SELECT * FROM productos")
         columns = [col[0] for col in cursor.description]
         products = [ # Lista de diccionarios
             dict(zip(columns, row))
