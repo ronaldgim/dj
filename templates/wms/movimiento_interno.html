@@ -68,13 +68,10 @@
         <div id="form-movimiento-interno">
             <label class="fw-bold">Seleccione la ubicación:</label>
             <select class="form-select" name="ubicacion" id="chosen-select" required>
-                {% comment %}
-                <option value="">-----------</option>
-                {% for i in ubi %}
-                <option value="{{i.id}}">{{i}}</option>
-                {% endfor %}
-                {% endcomment %}
             </select>
+
+            <div id="msg"></div>
+            <div id="table_data" class="p0"></div>
 
             <label class="fw-bold">Unidades:</label>
             <input class="form-control form-control-sm" type="number" name="unidades" min="1" required>
@@ -84,26 +81,6 @@
             </button>
         </div>
 </form>
-
-
-<div class="modal" tabindex="-1" id="myModal">
-    <div class="modal-dialog">
-        <div class="modal-content">
-        <div class="modal-header">
-            <h5 class="modal-title" id="title_modal"></h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-            <div id="cabecera_modal"></div>
-            <div id="body_modal"></div>
-        </div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-            <!--button type="button" class="btn btn-primary">Save changes</button-->
-        </div>
-        </div>
-    </div>
-</div>
 
 <script src="{% static 'js/select_items_form.js' %}"></script>
 
@@ -142,6 +119,7 @@
             div_pasillo.html(`<label class="fw-bold">Seleccione pasillo de la bodega <span id='bod-selected'>${bod}</span>:<label><br>`);
                 
             btn_group.empty();
+
             $.each(pasillos_list(), function(index, item) {
                 var btn = $(`<button name="btn-pasillo" type="button" class="btn btn-${item.color}">${item.pasillo}</button>`)
                 btn_group.append(btn)
@@ -171,6 +149,9 @@
                         $('#form-movimiento-interno').css('display', 'block');
 
                         select_ubi_list.empty();
+                        $("#msg").empty();
+                        $("#table_data").empty();
+
                         select_ubi_list.append('<option value="">Selecciona una ubicación</option>');
                         $.each(response.ubi_list, function(index, item) {
                             if (item.bodega === 'CN6') {
@@ -203,22 +184,26 @@
                 
                 $.ajax({
                     type: "POST",
-                    url: "{% url 'wms_verificar_ubicacion_destino_ajax' %}", // Replace with your actual endpoint
+                    url: "{% url 'wms_verificar_ubicacion_destino_ajax' %}", 
                     data: { 
                         'csrfmiddlewaretoken': '{{csrf_token}}',
                         'ubi_destino': select_ubi.val(),
                     },
                     success: function(response) {
                         
+                        $("#msg").html(`<div class="text-center p-2 mt-2 mb-2 alert alert-${response.type}" role="alert">${response.msg}</div>`);
                         
-                        title.html(`<h5 class="fw-bold">Ubicación de destino ${select_ubi.find(':selected').text()}</h5>`)
-                        cabecera.html(`
-                            <span class="fw-bold">Capacidad de ubicación:</span> ${response.capacidad_ubicacion} m3<br>
-                            <span class="fw-bold">Volumen de existencias:</span> ${response.volumen_exitencias} m3<br>
-                            <span class="fw-bold">Volumen disponible:</span>     ${response.volumen_disponible} m3<br>`)
-
-                        body.html(response.exitencias)
-                        $('#myModal').modal('show')
+                        if(response.type === 'warning'){
+                            console.log('datos de posición');
+                            $("#table_data").html(
+                                `<div class="card p-0 mt-0">
+                                    <div class="card-body p-0">
+                                        ${response.exitencias}
+                                    </div>
+                                </div>
+                                `)} else {
+                                    $("#table_data").empty()
+                                }
                     },
                     error: function(error) {
                         console.error(error);
