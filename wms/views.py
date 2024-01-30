@@ -776,7 +776,7 @@ def wms_verificar_ubicacion_destino_ajax(request):
     
     ubi_destino = int(request.POST['ubi_destino'])
     
-    capacidad_ubi_destino = Ubicacion.objects.get(id=ubi_destino).capacidad_m3
+    ubi = Ubicacion.objects.get(id=ubi_destino)
     existencia_ubi_destino = pd.DataFrame(Existencias.objects.filter(ubicacion_id=ubi_destino).values())
     
     if not existencia_ubi_destino.empty:
@@ -785,15 +785,13 @@ def wms_verificar_ubicacion_destino_ajax(request):
         
         existencia_ubi_destino = existencia_ubi_destino.merge(product_data, on='product_id', how='left')
         existencia_ubi_destino['cartones'] = existencia_ubi_destino['unidades'] / existencia_ubi_destino['Unidad_Empaque']
-        existencia_ubi_destino['vol m3'] = existencia_ubi_destino['cartones'] * existencia_ubi_destino['vol_m3']
-        existencia_ubi_destino = existencia_ubi_destino[['product_id','lote_id','unidades','cartones','vol m3']]
+        existencia_ubi_destino = existencia_ubi_destino[['product_id','lote_id','unidades','cartones']]
         
-        volumen_exitencias = round(existencia_ubi_destino['vol m3'].sum(), 4)
-        
+        existencia_ubi_destino['unidades'] = existencia_ubi_destino['unidades'].astype('str')
         existencia_ubi_destino.loc['total'] = existencia_ubi_destino.sum(numeric_only=True, axis=0)
         
         existencia_ubi_destino_html = existencia_ubi_destino.to_html(
-            #float_format='{:,.3f}'.format,
+            float_format='{:,.2f}'.format,
             classes='table table-responsive table-bordered m-0 p-0',
             table_id= 'existencias',
             index=False,
@@ -802,18 +800,15 @@ def wms_verificar_ubicacion_destino_ajax(request):
         )
         
         return JsonResponse({
-            'capacidad_ubicacion':capacidad_ubi_destino,
-            'volumen_exitencias':volumen_exitencias,
-            'volumen_disponible':round(capacidad_ubi_destino-volumen_exitencias, 4),
-            'exitencias':existencia_ubi_destino_html
+            'exitencias':existencia_ubi_destino_html,
+            'msg':f'⚠ Posición {ubi} con mercaderia !!!',
+            'type':'warning'
             })
     
     else:
         return JsonResponse({
-            'capacidad_ubicacion':capacidad_ubi_destino,
-            'volumen_exitencias':0,
-            'volumen_disponible':capacidad_ubi_destino,
-            'exitencias':'No hay existenicas en esta ubicación'
+            'msg':f'✅ Posición {ubi} vacia !!!',
+            'type':'success'
         })
 
 
