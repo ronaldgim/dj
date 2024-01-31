@@ -1477,9 +1477,10 @@ def wms_cruce_picking_factura(request):
 
 def wms_cruce_check_despacho(request):
     
-    n_pick  = request.POST['n_picking']
-    prod_id = request.POST['prod_id']
-    lote_id = request.POST['lote_id']
+    n_pick    = request.POST['n_picking']
+    prod_id   = request.POST['prod_id']
+    lote_id   = request.POST['lote_id']
+    n_factura = request.POST['n_factura']
     
     items = (Movimiento.objects
         .filter(n_referencia=n_pick)
@@ -1488,7 +1489,7 @@ def wms_cruce_check_despacho(request):
         )
     
     if items.exists():
-        items.update(estado_picking='Despachado')
+        items.update(estado_picking='Despachado', n_factura=n_factura)
         
         return JsonResponse({
             'msg':'OK',
@@ -1779,6 +1780,29 @@ def wms_movimiento_egreso_transferencia(request): #OK
         return JsonResponse({'msg':'❌ Error !!!'})
     return JsonResponse({'msg':'❌Error !!!'})
 
+
+
+
+# # Reporte de reposición en nivel 1 bodega 6
+# def wms_reposicion_nivel1(request):
+    
+#     ubicaciones_n1 = set(Ubicacion.objects
+#         .filter(bodega='CN6', nivel='1')
+#         .values_list('id', flat=True))
+    
+#     ubicaciones_llenas_n1 = set(Existencias.objects
+#         .filter(ubicacion__bodega='CN6', ubicacion__nivel='1')
+#         .values_list('ubicacion_id', flat=True))
+    
+#     ubicaciones_vacias_n1 = ubicaciones_n1.difference(ubicaciones_llenas_n1)
+    
+#     if len(ubicaciones_vacias_n1) > 0:
+#         ubi_vacias_n1 = Ubicacion.objects.filter(id__in=list(ubicaciones_vacias_n1))
+#     else:
+#         ubi_vacias_n1 = ''
+    
+    
+#     return HttpResponse('ok')
 
 
 ## FUNCIONES PENDIENTES POR DESARROLLAR
