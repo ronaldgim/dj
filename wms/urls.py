@@ -259,6 +259,13 @@ urlpatterns = [
         name = 'wms_movimiento_egreso_transferencia'
     ),
     
+    # # Reporte de reposición de nivel 1 bodega 6
+    # path(
+    #     route='reposicion/nivel/1',
+    #     view = views.wms_reposicion_nivel1,
+    #     name = 'wms_reposicion_nivel1'
+    # ),
+    
     
     # Liberaciones
     # path(
