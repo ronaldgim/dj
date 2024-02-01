@@ -1248,22 +1248,49 @@ def wms_estado_picking_ajax(request):
 def wms_estado_picking_actualizar_ajax(request):
     
     id_picking = int(request.POST['id_picking'])
-    estado = request.POST['estado']
+    estado_post = request.POST['estado']
     
     estado_picking = EstadoPicking.objects.get(id=id_picking) 
-    estado_picking.estado = estado
-    estado_picking.fecha_actualizado = datetime.now()
     
-    try:
-        estado_picking.save()
-    
-        if estado_picking.id:
-            return JsonResponse({'msg':f'✅ Estado de picking {estado_picking.estado}',
-                            'alert':'success'})
-    except:
-        return JsonResponse({'msg':'❌ Error, intente nuevamente !!!',
-                            'alert':'danger'})
+    if estado_post == 'FINALIZADO':
+        
+        pick = pedido_por_cliente(n_pedido=estado_picking.n_pedido)
+        pick_total_unidades = pick['QUANTITY'].sum()
+        movs = Movimiento.objects.filter(n_referencia=estado_picking.n_pedido).values_list('unidades', flat=True)
+        movs_total_unidades = sum(movs) * -1
 
+        if movs_total_unidades < pick_total_unidades:
+        
+            return JsonResponse({'msg':' ⚠ Aun no a completado el picking !!!',
+                                'alert':'warning'})
+            
+        elif pick_total_unidades == movs_total_unidades:
+    
+            estado_picking.estado = estado_post
+            estado_picking.fecha_actualizado = datetime.now()
+            
+            try:
+                estado_picking.save()
+                
+                if estado_picking.id:
+                    return JsonResponse({'msg':f'✅ Estado de picking {estado_picking.estado}',
+                                    'alert':'success'}, status=200)
+            except:
+                return JsonResponse({'msg':'❌ Error, intente nuevamente !!!',
+                                    'alert':'danger'})
+    else:
+            estado_picking.estado = estado_post
+            estado_picking.fecha_actualizado = datetime.now()
+            
+            try:
+                estado_picking.save()
+                
+                if estado_picking.id:
+                    return JsonResponse({'msg':f'✅ Estado de picking {estado_picking.estado}',
+                                    'alert':'success'}, status=200)
+            except:
+                return JsonResponse({'msg':'❌ Error, intente nuevamente !!!',
+                                    'alert':'danger'})
 
 
 # Crear egreso en tabla movimientos
