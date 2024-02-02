@@ -2070,7 +2070,8 @@ def wms_reserva_por_contratoid(contrato_id):
 def wms_stock_lote_products():
     
     with connections['gimpromed_sql'].cursor() as cursor:
-        cursor.execute(f"SELECT PRODUCT_ID, PRODUCT_NAME, GROUP_CODE FROM warehouse.stock_lote;")
+        cursor.execute(
+            f"SELECT PRODUCT_ID, PRODUCT_NAME, GROUP_CODE FROM warehouse.stock_lote ;")
         columns = [col[0] for col in cursor.description]
         products = [
             dict(zip(columns, row))
