@@ -259,6 +259,14 @@ urlpatterns = [
         name = 'wms_movimiento_egreso_transferencia'
     ),
     
+    
+    # Reporte RM
+    path(
+        route='reporte/rm',
+        view = views.wms_resposicion_rm,
+        name = 'wms_resposicion_rm'
+    ),
+    
     # # Reporte de reposición de nivel 1 bodega 6
     # path(
     #     route='reposicion/nivel/1',

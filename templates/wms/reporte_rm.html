@@ -1,0 +1,84 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Productos en despacho</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'wms/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+
+<style>
+    .btn.btn-warning.btn-sm.active {
+    background-color: blue;
+}
+</style>
+
+<h5 class="mt-2 text-center"><strong>Reporte</strong></h5>
+
+<!--div class="mt-2 mb-2">   
+    <span class="fw-bold" style="font-size: small;">Pedido: </span> <span style="font-size: small;">{{n_ped|slice:'-2'}}</span> <br>
+    <span class="fw-bold" style="font-size: small;">Fecha-Hora: </span> <span style="font-size: small;"> {{fecha|date:'Y-m-d'}} - {{hora}}</span> 
+</div-->
+
+<div class="col-12 mt-2 mb-2">
+    <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+</div>
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
+
+<div id="msg"></div>
+
+<div class="card mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table" style="font-size: small;" id="mitabla">
+                <thead>
+                    <tr>
+                        <th scope="col">product_id</th>
+                        <th scope="col">count_x</th>
+                        <th scope="col">count_y</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in data %}
+                        <tr>
+                            <td>{{i.product_id}}</td>
+                            <td>{{i.count_x}}</td>
+                            <td>{{i.count_y}}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!--filtro buscar-->
+<script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+{% endblock %}
