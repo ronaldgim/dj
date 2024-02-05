@@ -75,6 +75,20 @@ urlpatterns = [
         view = views.wms_movimiento_interno, #OK
         name = 'wms_mov_interno'
     ),
+    
+    # Movimiento Interno get ubi_list
+    path(
+        route='mov-interno/get/ubi_list',
+        view = views.wms_movimiento_interno_get_ubi_list_ajax, #OK
+        name = 'wms_movimiento_interno_get_ubi_list_ajax'
+    ),
+    
+    # Verificar ubicación para movimiento interno CN6
+    path(
+        route='mov-interno/get/ubi_destino/data',
+        view = views.wms_verificar_ubicacion_destino_ajax, #OK
+        name = 'wms_verificar_ubicacion_destino_ajax'
+    ),
 
 
     # Movimiento Ajuste
@@ -84,17 +98,35 @@ urlpatterns = [
         name = 'wms_movimiento_ajuste'
     ),
 
-
-
-
+    
+    path(
+        route='inventario/mov-ajuste/product/ajax',
+        view = views.wms_ajuste_product_ajax, #OK
+        name = 'wms_ajuste_product_ajax'
+    ),
+    
+    path(
+        route='inventario/mov-ajuste/lote/ajax',
+        view = views.wms_ajuste_lote_ajax, #OK
+        name = 'wms_ajuste_lote_ajax'
+    ),
+    
+    
+    path(
+        route='inventario/mov-ajuste/fecha/ajax',
+        view = views.wms_ajuste_fecha_ajax, #OK
+        name = 'wms_ajuste_fecha_ajax'
+    ),
+    
+    
     # Lista de movimientos
     path(
         route='movimientos/list',
         view = views.wms_movimientos_list, #OK
         name = 'wms_movimientos_list'
     ),
-
-
+    
+    
     ### PICKING
     # Listado de pedidos
     path(
@@ -188,13 +220,6 @@ urlpatterns = [
         name = 'wms_btn_actualizar_todas_existencias'
     ),
     
-    # # CRUCE DE INVENTARIOS 
-    # path(
-    #     route='cruce/inventarios',
-    #     view = views.cuadre_inventario,
-    #     name = 'cuadre_inventario'
-    # ),
-    
     # Lista de picking realizados
     path(
         route='picking/realizados/list',
@@ -236,12 +261,57 @@ urlpatterns = [
         name = 'wms_transferencia_picking'
     ),
     
+    # Lista de transferencias ingresadas a Cerezos
+    path(
+        route='transferencia/ingreso/cerezos/list',
+        view = views.wms_transferencia_ingreso_cerezos_list,
+        name = 'wms_transferencia_ingreso_cerezos_list'
+    ),
+    
+    # Lista de transferencias ingresadas a Cerezos
+    path(
+        route='transferencia/ingreso/cerezos/<str:n_transferencia>',
+        view = views.wms_transferencia_ingreso_cerezos_detalle,
+        name = 'wms_transferencia_ingreso_cerezos_detalle'
+    ),
+    
+    
+    # Ingresar a inventario todos los productos de transferencia
+    path(
+        route='transferencia/ingreso/cerezos/input/ajax',
+        view = views.wms_transferencia_ingreso_cerezos_input_ajax,
+        name = 'wms_transferencia_ingreso_cerezos_input_ajax'
+    ),
+    
+    # Liberación ingresar a inventario todos los productos de transferencia
+    path(
+        route='transferencia/ingreso/cerezos/liberacion/ajax',
+        view = views.wms_transferencia_ingreso_cerezos_liberacion_ajax,
+        name = 'wms_transferencia_ingreso_cerezos_liberacion_ajax'
+    ),
+    
+    
     # Movimiento de egreso transferencia
     path(
         route='transferencia/movimiento/egreso/transferencia',
         view = views.wms_movimiento_egreso_transferencia,
         name = 'wms_movimiento_egreso_transferencia'
     ),
+    
+    
+    # Reporte RM
+    path(
+        route='reporte/rm',
+        view = views.wms_resposicion_rm,
+        name = 'wms_resposicion_rm'
+    ),
+    
+    # # Reporte de reposición de nivel 1 bodega 6
+    # path(
+    #     route='reposicion/nivel/1',
+    #     view = views.wms_reposicion_nivel1,
+    #     name = 'wms_reposicion_nivel1'
+    # ),
     
     
     # Liberaciones

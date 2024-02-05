@@ -87,6 +87,7 @@ class Movimiento(models.Model):
     descripcion     = models.CharField(verbose_name='Descripción del movimiento', max_length=20, blank=True)
     referencia      = models.CharField(verbose_name='Referencia del movimiento', choices=REFERENCIA_MOVIMIENTOS, max_length=20, blank=True)
     n_referencia    = models.CharField(verbose_name='Numero de referencia',max_length=20, blank=True)
+    n_factura       = models.CharField(verbose_name='Factura despachado',max_length=40, blank=True)
     ubicacion       = models.ForeignKey(Ubicacion, verbose_name='Ubicación', max_length=5, on_delete=models.CASCADE, related_name='ubicacion', blank=True, null=True)
     unidades        = models.IntegerField(verbose_name='Unidades ingresadas')
     estado          = models.CharField(verbose_name='Estado Stock', choices=ESTADO, max_length=20, blank=True)

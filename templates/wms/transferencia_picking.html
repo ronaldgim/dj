@@ -246,7 +246,7 @@
         
         $.ajax({
             type:"POST",
-            url:"{#% url 'wms_eliminar_movimiento' %#}",
+            url:"{% url 'wms_eliminar_movimiento' %}",
             data:{
                 'csrfmiddlewaretoken': '{{ csrf_token }}',
                 'mov':mov,

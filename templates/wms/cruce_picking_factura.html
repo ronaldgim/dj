@@ -79,7 +79,7 @@
 {% if factura %}
 <h6 class="fw-bold text-center">{{factura.cabecera.NOMBRE_CLIENTE}}</h6>
 <label class="fw-bold">RUC: </label> {{factura.cabecera.IDENTIFICACION_FISCAL}}<br>
-<label class="fw-bold">Factura: </label> {{factura.cabecera.CODIGO_FACTURA}}<br>
+<label class="fw-bold">Factura: </label> <span id="n_factura">{{factura.cabecera.CODIGO_FACTURA}}</span> <br>
 <mark><label class="fw-bold">Picking:</label> {{factura.cabecera.NUMERO_PEDIDO_SISTEMA|slice:"-2"}}</mark> <br>
 <label class="fw-bold">Fecha: </label> {{factura.cabecera.FECHA_FACTURA}}
 
@@ -117,7 +117,8 @@
                             </td>    
 
                             <td>
-                                <span id="lote_id">{{i.lote_id}}</span><br>
+                                <span>{{i.lote_id}}</span><br>
+                                <input type="hidden" id="lote_id" value="{{i.lote_wms}}">
                                 <span id=>{{i.FECHA_CADUCIDAD}}</span><br>
                             </td> 
 
@@ -183,10 +184,11 @@
 <script>
 
     $("button[name='cruce']").click(function(){
-        var btn     = $(this)
-        var prod_id = btn.closest("tr").find("#prod_id").html();
-        var lote_id = btn.closest("tr").find("#lote_id").html();
-        var n_pick  = $("#n_picking").val();
+        var btn       = $(this);
+        var prod_id   = btn.closest("tr").find("#prod_id").html();
+        var lote_id   = btn.closest("tr").find("#lote_id").val();
+        var n_pick    = $("#n_picking").val();
+        var n_factura = $("#n_factura").html();
         
         $.ajax({
             type:"POST",
@@ -196,6 +198,7 @@
                 'n_picking':n_pick,
                 'prod_id':prod_id,
                 'lote_id':lote_id,
+                'n_factura':n_factura
             },
 
             success: function(response) {

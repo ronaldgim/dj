@@ -198,7 +198,8 @@ def tabla_productos():
 
 def productos_odbc_and_django():
     with connections['gimpromed_sql'].cursor() as cursor:
-        cursor.execute("SELECT Codigo, Nombre, Unidad, Marca, Unidad_Empaque, Unidad_Box, Inactivo FROM productos")
+        #cursor.execute("SELECT Codigo, Nombre, Unidad, Marca, Unidad_Empaque, Unidad_Box, Inactivo FROM productos")
+        cursor.execute("SELECT * FROM productos")
         columns = [col[0] for col in cursor.description]
         products = [ # Lista de diccionarios
             dict(zip(columns, row))
@@ -853,35 +854,51 @@ def doc_transferencia_odbc(n_transf):
     #Transferencia Egreso
     try:
         cursorOdbc.execute(
-            "SELECT INVT_Lotes_Ubicacion.DOC_ID_CORP, INVT_Lotes_Ubicacion.PRODUCT_ID_CORP, INVT_Lotes_Ubicacion.LOTE_ID, INVT_Lotes_Ubicacion.EGRESO_TEMP, "
-            "INVT_Lotes_Ubicacion.WARE_CODE_CORP, INVT_Producto_Lotes.ANIADIDO, INVT_Lotes_Ubicacion.UBICACION, INVT_Producto_Lotes.Fecha_elaboracion_lote, "
+            # "SELECT INVT_Lotes_Ubicacion.DOC_ID_CORP, INVT_Lotes_Ubicacion.PRODUCT_ID_CORP, INVT_Lotes_Ubicacion.LOTE_ID, INVT_Lotes_Ubicacion.EGRESO_TEMP, "
+            # "INVT_Lotes_Ubicacion.WARE_CODE_CORP, INVT_Producto_Lotes.ANIADIDO, INVT_Lotes_Ubicacion.UBICACION, INVT_Producto_Lotes.Fecha_elaboracion_lote, "
+            # "INVT_Producto_Lotes.FECHA_CADUCIDAD "
+            # "FROM INVT_Lotes_Ubicacion INVT_Lotes_Ubicacion, INVT_Producto_Lotes INVT_Producto_Lotes "
+            # "WHERE INVT_Lotes_Ubicacion.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND INVT_Producto_Lotes.LOTE_ID = INVT_Lotes_Ubicacion.LOTE_ID AND "
+            # #"((INVT_Lotes_Ubicacion.DOC_ID_CORP='A-0000054824-gimpr') AND (INVT_Producto_Lotes.ENTRADA_TIPO='OC') AND (INVT_Lotes_Ubicacion.EGRESO_TEMP>0))"
+            # f"((INVT_Lotes_Ubicacion.DOC_ID_CORP='{n}') AND (INVT_Producto_Lotes.ENTRADA_TIPO='OC') AND (INVT_Lotes_Ubicacion.EGRESO_TEMP>0))"
+        
+            "SELECT INVT_Lotes_Ubicacion.DOC_ID_CORP, INVT_Lotes_Ubicacion.PRODUCT_ID_CORP, INVT_Lotes_Ubicacion.LOTE_ID, INVT_Producto_Lotes.COMMITED, INVT_Lotes_Ubicacion.EGRESO_TEMP, "
+            "INVT_Lotes_Ubicacion.WARE_CODE_CORP, INVT_Lotes_Ubicacion.UBICACION, INVT_Producto_Lotes.Fecha_elaboracion_lote, "
             "INVT_Producto_Lotes.FECHA_CADUCIDAD "
             "FROM INVT_Lotes_Ubicacion INVT_Lotes_Ubicacion, INVT_Producto_Lotes INVT_Producto_Lotes "
             "WHERE INVT_Lotes_Ubicacion.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND INVT_Producto_Lotes.LOTE_ID = INVT_Lotes_Ubicacion.LOTE_ID AND "
-            #"((INVT_Lotes_Ubicacion.DOC_ID_CORP='A-0000054824-gimpr') AND (INVT_Producto_Lotes.ENTRADA_TIPO='OC') AND (INVT_Lotes_Ubicacion.EGRESO_TEMP>0))"
-            f"((INVT_Lotes_Ubicacion.DOC_ID_CORP='{n}') AND (INVT_Producto_Lotes.ENTRADA_TIPO='OC') AND (INVT_Lotes_Ubicacion.EGRESO_TEMP>0))"
+            f"((INVT_Lotes_Ubicacion.DOC_ID_CORP='{n}') AND (INVT_Producto_Lotes.ENTRADA_TIPO='TR') AND (INVT_Lotes_Ubicacion.EGRESO_TEMP>0) AND (INVT_Producto_Lotes.WARE_CODE_CORP='BCT'))"
+        
         )
         transferencia = cursorOdbc.fetchall()
         transferencia = [list(rows) for rows in transferencia]
         transferencia = pd.DataFrame(transferencia)
         transferencia['product_id'] = list(map(lambda x:x[:-6], list(transferencia[1])))
-
+        
         transferencia = transferencia.rename(columns={
+            # 0:'doc',
+            # 2:'lote_id',
+            # 3:'unidades',
+            # 4:'bodega_salida',
+            # 5:'boleano',
+            # 6:'bodega_entrada',
+            # 7:'f_elab',
+            # 8:'f_cadu'
+            
             0:'doc',
             2:'lote_id',
-            3:'unidades',
-            4:'bodega_salida',
-            5:'boleano',
-            6:'bodega_entrada',
+            4:'unidades',
+            5:'bodega_salida',
+            #5:'boleano',
+            #6:'bodega_entrada',
             7:'f_elab',
             8:'f_cadu'
         })
 
         transferencia = transferencia[['doc', 'product_id', 'lote_id', 'unidades', 'bodega_salida', 'f_elab', 'f_cadu']]
-
+        
     except:
         transferencia = pd.DataFrame()
-    #print(transferencia)
 
     try:
         cursorOdbc.execute(
@@ -913,9 +930,9 @@ def doc_transferencia_odbc(n_transf):
     except:
         transferencia2 = pd.DataFrame()
 
-    #print(transferencia2)
+    
     t = pd.concat([transferencia, transferencia2])
-    t = t.reset_index(drop=True) #;print(t)
+    t = t.reset_index(drop=True) 
 
     return t
 
@@ -2048,3 +2065,41 @@ def wms_reserva_por_contratoid(contrato_id):
         reserva = pd.DataFrame(reserva)
         
     return reserva
+
+
+def wms_stock_lote_products():
+    
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute(
+            f"SELECT PRODUCT_ID, PRODUCT_NAME, GROUP_CODE FROM warehouse.stock_lote ;")
+        columns = [col[0] for col in cursor.description]
+        products = [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+        products = pd.DataFrame(products) 
+        
+        products = products.drop_duplicates(subset='PRODUCT_ID')
+        products = products.rename(
+            columns={
+                'PRODUCT_ID':'product_id',
+                'PRODUCT_NAME':'Nombre',
+                'GROUP_CODE':'Marca'
+            }).sort_values(by=['Marca','product_id'], ascending=[True, True])
+        
+        products = de_dataframe_a_template(products)
+    return products
+
+
+def wms_stock_lote_cerezos_by_product(product_id):
+    
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute(f"SELECT * FROM warehouse.stock_lote WHERE (WARE_CODE = 'BCT' OR WARE_CODE = 'CUC') AND PRODUCT_ID = '{product_id}';")
+        columns = [col[0] for col in cursor.description]
+        stock = [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+        stock = pd.DataFrame(stock)
+        
+    return stock

@@ -200,14 +200,15 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 # GMAIL
+# App name = gimpromed.web
 # email: gimpromed.web@gmail.com
-# contraseña: webgim2022/*
-# autentication gmail: ilattnvmzoshcxmf 
+# contraseña: webgim2024/*
+# autentication gmail: ejkv sofw saui vcfj 
 EMAIL_BACKEND= 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'gimpromed.web@gmail.com'
-EMAIL_HOST_PASSWORD = 'ilattnvmzoshcxmf'
+EMAIL_HOST_PASSWORD = 'ejkv sofw saui vcfj'
 EMAIL_USE_TLS = True
 
 # LAPTOP

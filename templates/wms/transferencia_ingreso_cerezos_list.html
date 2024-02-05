@@ -38,7 +38,7 @@
         }
 </style>
 
-<h6 class="mt-2 text-center"><strong>Revisión Trasferencias</strong></h6>
+<h6 class="mt-2 text-center"><strong>Trasferencias ingresadas a Cerezos</strong></h6>
 
 
 {% if messages %}
@@ -87,7 +87,7 @@
                         <td>{{i.n_transferencia}}</td>
                         <td>{{i.fecha_hora}}</td>
                         <td>
-                            <a class="btn btn-primary" href="{% url 'wms_transferencia_picking' i.n_transferencia %}">
+                            <a class="btn btn-primary" href="{% url 'wms_transferencia_ingreso_cerezos_detalle' i.n_transferencia %}">
                                 <i class="bi bi-truck"></i>
                             </a>
                         </td>
