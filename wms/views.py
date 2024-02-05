@@ -1716,9 +1716,10 @@ def wms_transferencia_ingreso_cerezos_detalle(request, n_transferencia):
     transf = de_dataframe_a_template(transf)
     
     movs = Movimiento.objects.filter(n_referencia=n_transferencia)
-    estado = movs.last().estado
+    
     if movs.exists():
-        estado = estado
+        estado = movs.last().estado
+
     else:
         estado = 'Sin estado'
     
