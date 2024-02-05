@@ -1548,7 +1548,11 @@ def wms_busqueda_ajuste(request, n_ajuste):
                     fecha_caducidad = row['FECHA_CADUCIDAD'],
                     estado=0
                     )
-                wms_get_existencias(row,n_ajuste)
+                    wms_get_existencias(row,n_ajuste)
+                else:
+                    if(existe.estado==0):
+                         wms_get_existencias(row,n_ajuste)
+                    
                 
             # LiberacionCuarentena.objects.bulk_create(liberacion_cuarentena_objects)
 
@@ -1579,6 +1583,7 @@ def wms_get_existencias(row,n_ajuste):
             lote_id=row['LOTE_ID']
         ).get()
         print(existencia)
+        #si tiene estado 0 
         wms_liberacion_cuarentena(existencia, n_ajuste, 2)
     except ObjectDoesNotExist:
         print('no existe')
