@@ -46,9 +46,9 @@ from django.db import connections
 
 # Models
 from django.db.models import Sum, Count
-
 from wms.models import InventarioIngresoBodega, Ubicacion, Movimiento, Existencias, Transferencia, LiberacionCuarentena
 from django.core.exceptions import ObjectDoesNotExist
+
 
 # Pandas
 import pandas as pd
@@ -1025,6 +1025,161 @@ def wms_movimientos_list(request): #OK
         'mov':mov
     }
 
+
+    elif tipo == 'Egreso':
+        # Buscar en Existencias WMS
+        productos = pd.DataFrame(Existencias.objects.all().values('product_id'))
+        prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+        productos = productos.merge(prod, on='product_id', how='left').sort_values(by=['Marca','product_id'], ascending=[True, True])
+        productos = productos.drop_duplicates(subset='product_id')
+        productos = de_dataframe_a_template(productos)
+
+        return JsonResponse({'productos':productos})
+    return JsonResponse({'productos':None})
+
+
+
+# Llamar los valores para ajuste de acuerdo a tipo de movimiento
+def wms_ajuste_lote_ajax(request):
+
+    tipo = request.POST['tipo']
+    prod = request.POST['product_id']
+
+    if tipo == 'Ingreso':
+        # Buscar en Existencias MBA
+        if not prod:
+            lotes = []
+        else:
+            lotes = wms_stock_lote_cerezos_by_product(product_id=prod)[['LOTE_ID']]
+            lotes = lotes.drop_duplicates(subset='LOTE_ID')
+            lotes = lotes.rename(columns={'LOTE_ID':'lote_id'})
+            lotes = de_dataframe_a_template(lotes)
+
+
+        return JsonResponse({'lotes':lotes})
+
+    elif tipo == 'Egreso':
+        # Buscar en Existencias WMS
+        lotes = pd.DataFrame(Existencias.objects.filter(product_id=prod)
+            .values('lote_id').distinct())
+        lotes = de_dataframe_a_template(lotes)
+
+        return JsonResponse({'lotes':lotes})
+    return JsonResponse({'lotes':None})
+
+
+# Llamar los valores para ajuste de acuerdo a tipo de movimiento
+def wms_ajuste_fecha_ajax(request):
+
+    tipo = request.POST['tipo']
+    prod = request.POST['product_id']
+    lote = request.POST['lote_id']
+
+    if tipo == 'Ingreso':
+        existencias = wms_stock_lote_cerezos_by_product(product_id=prod)
+        existencias = existencias.drop_duplicates(subset='LOTE_ID')
+
+        if not lote:
+            fecha = ''
+        else:
+            existencias = existencias[existencias['LOTE_ID']==lote]
+            existencias['FECHA_CADUCIDAD'] = existencias['FECHA_CADUCIDAD'].astype('str')
+
+            fecha = de_dataframe_a_template(existencias)[0]
+            fecha = fecha['FECHA_CADUCIDAD']
+
+        ubi = de_dataframe_a_template(existencias)[0]
+        ubi = ubi['LOCATION']
+        ubicaciones = pd.DataFrame(Ubicacion.objects
+            #.filter(bodega=ubi)
+            .all()
+            .values(
+            'id',
+            'bodega',
+            'pasillo',
+            'modulo',
+            'nivel'))
+        ubicaciones = ubicaciones.rename(
+            columns={
+                'id':'ubicacion_id',
+                'bodega':'ubicacion__bodega',
+                'pasillo':'ubicacion__pasillo',
+                'modulo':'ubicacion__modulo',
+                'nivel':'ubicacion__nivel'
+            }
+        )
+        ubicaciones = de_dataframe_a_template(ubicaciones)
+
+        estado = [
+            {'index':0, 'estado':'Disponible'},
+            {'index':1, 'estado':'Cuarentena'},
+        ]
+
+        referencia = [
+            {'index':0, 'referencia':'Inventario Inicial'},
+            {'index':1, 'referencia':'Ingreso Importación'},
+            {'index':2, 'referencia':'Liberación'},
+            {'index':3, 'referencia':'Ajuste'},
+        ]
+        return JsonResponse({
+            'fecha':fecha,
+            'ubicaciones':ubicaciones,
+            'estado':estado,
+            'referencia':referencia
+        })
+
+    elif tipo == 'Egreso':
+        # Buscar en Existencias WMS
+        existencias = Existencias.objects.filter(product_id=prod, lote_id=lote)
+        if not lote:
+            fecha = ''
+        else:
+            fecha = existencias.first().fecha_caducidad
+
+        ubicaciones = pd.DataFrame(existencias.values(
+            'ubicacion_id', 'ubicacion__bodega',
+            'ubicacion__pasillo', 'ubicacion__modulo',
+            'ubicacion__nivel').distinct())
+        ubicaciones = de_dataframe_a_template(ubicaciones)
+
+        estado = pd.DataFrame(existencias.values('estado').distinct())
+        estado = de_dataframe_a_template(estado)
+
+        referencia = [
+            {'index':0, 'referencia':'Liberación'},
+            {'index':1, 'referencia':'Ajuste'},
+            {'index':2, 'referencia':'Picking'},
+            {'index':3, 'referencia':'Transferencia'},
+        ]
+
+        return JsonResponse({
+            'fecha':fecha,
+            'ubicaciones':ubicaciones,
+            'estado':estado,
+            'referencia':referencia
+        })
+
+    return JsonResponse({
+            'fecha':None,
+            'ubicaciones':None,
+            'estado':None,
+            'referencia':None
+        })
+
+
+
+# lista de movimientos
+# url: 'movimientos/list'
+@login_required(login_url='login')
+def wms_movimientos_list(request): #OK
+    """ Lista de movimientos """
+
+    mov = Movimiento.objects.all().order_by('-fecha_hora')
+
+    context = {
+        'mov':mov
+    }
+
     return render(request, 'wms/movimientos_list.html', context)
 
 
@@ -1052,6 +1207,12 @@ def wms_listado_pedidos(request): #OK
     }
 
     return render(request, 'wms/listado_pedidos.html', context)
+
+
+# Detalle de pedido
+# url: picking/<n_pedido>
+@login_required(login_url='login')
+def wms_egreso_picking(request, n_pedido): #OK
 
 
 # Detalle de pedido
@@ -1214,6 +1375,7 @@ def wms_estado_picking_actualizar_ajax(request):
                                 'alert':'warning'})
 
         elif pick_total_unidades == movs_total_unidades:
+
 
             estado_picking.estado = estado_post
             estado_picking.fecha_actualizado = datetime.now()
@@ -1598,8 +1760,8 @@ def wms_transferencia_input_ajax(request):
     # else:
         # return HttpResponse(f'La Transferencia {n_trasf} no sale desde bodega Cerezos')
 
-
-
+      
+      
 @login_required(login_url='login')
 def wms_transferencias_list(request):
     
@@ -1716,6 +1878,7 @@ def wms_transferencia_ingreso_cerezos_detalle(request, n_transferencia):
     transf = de_dataframe_a_template(transf)
     
     movs = Movimiento.objects.filter(n_referencia=n_transferencia)
+
     
     if movs.exists():
         estado = movs.last().estado
@@ -2166,6 +2329,69 @@ def wms_resposicion_rm(request):
 
 #     return HttpResponse('ok')
 
+
+
+
+def wms_resposicion_rm(request):
+
+    try:
+        with connections['default'].cursor() as cursor:
+            cursor.execute(
+            "SELECT DISTINCT wms_existencias.product_id, count(wms_existencias.unidades) as count "
+            "FROM wms_existencias left join wms_ubicacion on wms_existencias.ubicacion_id=wms_ubicacion.id "
+            "where wms_ubicacion.bodega = 'CN6' AND wms_ubicacion.nivel>'1' group by wms_existencias.product_id;"
+            )
+            columns =  [col[0] for col in cursor.description]
+            query5  = [dict(zip(columns, row)) for row in cursor.fetchall()]
+            df_greater  = pd.DataFrame(query5)
+            
+        with connections['default'].cursor() as cursor:
+            cursor.execute(        
+            "SELECT DISTINCT wms_existencias.product_id, count(wms_existencias.unidades) as count "    
+            "FROM wms_existencias left join wms_ubicacion on wms_existencias.ubicacion_id=wms_ubicacion.id " 
+            "where wms_ubicacion.bodega = 'CN6' AND wms_ubicacion.nivel='1' group by wms_existencias.product_id;"
+            )
+            columns =  [col[0] for col in cursor.description]
+            query6  = [dict(zip(columns, row)) for row in cursor.fetchall()]
+            df_equal  = pd.DataFrame(query6)
+            
+            df_non_match = pd.merge(df_greater, df_equal, how='outer', indicator=True, on='product_id')
+            df_non_match = df_non_match[(df_non_match._merge == 'left_only')]
+            df_non_match = de_dataframe_a_template(df_non_match)
+            
+            context = {
+                'data': df_non_match,
+            }
+            
+    except Exception as e:
+        print(e)
+    finally:
+        cursor.close()
+        
+    return render(request, 'wms/reporte_rm.html', context)
+
+
+
+# # Reporte de reposición en nivel 1 bodega 6
+# def wms_reposicion_nivel1(request):
+
+#     ubicaciones_n1 = set(Ubicacion.objects
+#         .filter(bodega='CN6', nivel='1')
+#         .values_list('id', flat=True))
+
+#     ubicaciones_llenas_n1 = set(Existencias.objects
+#         .filter(ubicacion__bodega='CN6', ubicacion__nivel='1')
+#         .values_list('ubicacion_id', flat=True))
+
+#     ubicaciones_vacias_n1 = ubicaciones_n1.difference(ubicaciones_llenas_n1)
+
+#     if len(ubicaciones_vacias_n1) > 0:
+#         ubi_vacias_n1 = Ubicacion.objects.filter(id__in=list(ubicaciones_vacias_n1))
+#     else:
+#         ubi_vacias_n1 = ''
+
+
+#     return HttpResponse('ok')
 
 
 ## FUNCIONES PENDIENTES POR DESARROLLAR
