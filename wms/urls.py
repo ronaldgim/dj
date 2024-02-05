@@ -245,6 +245,29 @@ urlpatterns = [
         name = 'wms_transferencia_picking'
     ),
     
+    # Lista de transferencias ingresadas a Cerezos
+    path(
+        route='transferencia/ingreso/cerezos/list',
+        view = views.wms_transferencia_ingreso_cerezos_list,
+        name = 'wms_transferencia_ingreso_cerezos_list'
+    ),
+    
+    # Lista de transferencias ingresadas a Cerezos
+    path(
+        route='transferencia/ingreso/cerezos/<str:n_transferencia>',
+        view = views.wms_transferencia_ingreso_cerezos_detalle,
+        name = 'wms_transferencia_ingreso_cerezos_detalle'
+    ),
+    
+    
+    # Ingresar a inventario todos los productos de transferencia
+    path(
+        route='transferencia/ingreso/cerezos/input/ajax',
+        view = views.wms_transferencia_ingreso_cerezos_input_ajax,
+        name = 'wms_transferencia_ingreso_cerezos_input_ajax'
+    ),
+    
+    
     # Movimiento de egreso transferencia
     path(
         route='transferencia/movimiento/egreso/transferencia',

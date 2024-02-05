@@ -1551,11 +1551,14 @@ def wms_revision_transferencia(request):
     return render(request, 'wms/revision_trasferencia.html', {})
 
 
-
+# Agregar transferencia para realizar picking de transferencia 
 def wms_transferencia_input_ajax(request):
 
     n_trasf = request.POST['n_trasf']
     trans_mba  = doc_transferencia_odbc(n_trasf)
+
+    # bodega_salida = trans_mba.loc[0]['bodega_salida']
+    # if bodega_salida == 'BCT':
 
     new_transf = Transferencia.objects.filter(n_transferencia=n_trasf)
     if not new_transf.exists():
@@ -1581,19 +1584,23 @@ def wms_transferencia_input_ajax(request):
 
         Transferencia.objects.bulk_create(tr_list)
 
-        #messages.success(request, f'La Transferencia {n_trasf} fue añadida exitosamente !!!')
-        messages.success(message=f'La Transferencia {n_trasf} fue añadida exitosamente !!!')
+        messages.success(request, f'La Transferencia {n_trasf} fue añadida exitosamente !!!')
+        # messages.success(message=f'La Transferencia {n_trasf} fue añadida exitosamente !!!')
         return redirect('/wms/transferencias/list')
 
     elif new_transf.exists():
         return HttpResponse(f'La Transferencia {n_trasf} ya fue añadida')
+    
+    # else:
+        # return HttpResponse(f'La Transferencia {n_trasf} no sale desde bodega Cerezos')
 
 
 
 @login_required(login_url='login')
 def wms_transferencias_list(request):
-
+    
     transf_wms = pd.DataFrame(Transferencia.objects.all().values()).drop_duplicates(subset='n_transferencia')
+    transf_wms = transf_wms[transf_wms['bodega_salida']=='BCT']
     if not transf_wms.empty:
         transf_wms['fecha_hora'] = pd.to_datetime(transf_wms['fecha_hora']).dt.strftime('%d-%m-%Y - %r').astype(str)
         transf_wms = transf_wms.sort_values(by='fecha_hora', ascending=False)
@@ -1612,7 +1619,7 @@ def wms_transferencias_list(request):
 def wms_transferencia_picking(request, n_transf):
 
     prod   = productos_odbc_and_django()[['product_id','Nombre','Marca']]
-
+    
     # Trasferencia
     transf = pd.DataFrame(Transferencia.objects.filter(n_transferencia=n_transf).values())
     transf = transf.merge(prod, on='product_id', how='left')
@@ -1674,6 +1681,92 @@ def wms_transferencia_picking(request, n_transf):
     }
     return render(request, 'wms/transferencia_picking.html', context)
 
+
+
+# Ingreso de transferencias a bodega Cerezos List
+@login_required(login_url='login')
+def wms_transferencia_ingreso_cerezos_list(request):
+    
+    transf_wms = pd.DataFrame(Transferencia.objects.all().values()).drop_duplicates(subset='n_transferencia')
+    transf_wms = transf_wms[transf_wms['bodega_salida']!='BCT']
+    if not transf_wms.empty:
+        transf_wms['fecha_hora'] = pd.to_datetime(transf_wms['fecha_hora']).dt.strftime('%d-%m-%Y - %r').astype(str)
+        transf_wms = transf_wms.sort_values(by='fecha_hora', ascending=False)
+
+    transf_wms = de_dataframe_a_template(transf_wms)
+
+    context = {
+        'transf_wms':transf_wms
+    }
+
+    return render(request, 'wms/transferencia_ingreso_cerezos_list.html', context)
+
+
+# Detalle de transferencia de ingreso a cerezos
+def wms_transferencia_ingreso_cerezos_detalle(request, n_transferencia):
+    
+    transf = pd.DataFrame(Transferencia.objects.filter(n_transferencia=n_transferencia).values())
+    prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+    transf = transf.merge(prod, on='product_id', how='left')
+    transf['fecha_caducidad'] = transf['fecha_caducidad'].astype('str')
+    transf = de_dataframe_a_template(transf)
+    
+    movs = Movimiento.objects.filter(n_referencia=n_transferencia)
+    if movs.exists():
+        estado = 'ingresado'
+    else:
+        estado = 'No ingresado'
+    
+    context={
+        'transf':transf,
+        'n_transferencia':n_transferencia,
+        'estado':estado
+    }
+    return render(request, 'wms/transferencia_ingreso_cerezos_detalle.html', context)
+    
+
+def wms_transferencia_ingreso_cerezos_input_ajax(request):
+    
+    n_transf = request.POST['n_trasf']
+    user     = request.POST['usuario']
+    
+    transf  = Transferencia.objects.filter(n_transferencia=n_transf)
+    
+    for i in transf:
+    
+        ing = Movimiento(
+            tipo            = 'Ingreso',
+            unidades        = i.unidades,
+            descripcion     = 'N/A',
+            n_referencia    = i.n_transferencia,
+            referencia      = 'Transferencia',
+            usuario_id      = user,
+            fecha_caducidad = i.fecha_caducidad,
+            lote_id         = i.lote_id,
+            product_id      = i.product_id,
+            estado          = 'Cuarentena',
+            ubicacion_id    = 606,
+        )
+        
+        ing.save()
+        wms_existencias_query_product_lote(product_id=ing.product_id, lote_id=ing.lote_id)
+        
+    if ing:
+        
+        return JsonResponse({
+            'msg':{
+                'tipo':'success',
+                'texto':'Se agrego todos los productos al Inventario con estado Cuarentena'
+            }
+        })
+    
+    else:
+        return JsonResponse({
+            'msg':{
+                'tipo':'danger',
+                'texto':'Error, intente nuevamente !!!'
+            }
+        })
 
 
 # Crear egreso en tabla movimientos

@@ -1,0 +1,157 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Trasferencias</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'wms/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+
+<style>
+    .btn.btn-warning.btn-sm.active {
+    background-color: blue;}
+
+    .mensaje-temporal {
+        display: none;
+        position: absolute;
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+    }
+
+    #msg_ss {
+        display: none;
+        position: fixed; /* Cambiado a fixed para que sea relativo a la ventana */
+        /*bottom: 10px; */ /* Distancia desde la parte inferior */
+        top:40%;
+        right: 10px; /* Distancia desde la derecha */
+        /*background-color: #4CAF50;*/
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+        width:auto;
+        z-index: 3;
+        }
+</style>
+
+<h6 class="fw-bold mt-2 text-center">Trasferencias <span id="n_trasf">{{n_transferencia}}</span></h6>
+
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
+<div id="msg"></div>
+<div id="msg_ss"></div>
+
+
+<!--div class="input-group mb-3">
+    <input type="text" class="form-control" placeholder="Ingrese en número de trasferencia" id="n_trasf" required>
+    <button name="trasferencia" class="btn btn-primary" type="submit">Añadir Transferencia</button>
+</div-->
+
+{% if estado == 'ingresado' %}
+<button class="btn btn-primary mt-2 mb-2" name="ingresar_inventario">
+    <i class="bi bi-plus-circle"></i> Añadir a Inventario
+</button>
+{% else %}
+<button class="btn btn-primary mt-2 mb-2" name="ingresar_inventario">
+    <i class="bi bi-plus-circle"></i> Añadir a Inventario
+</button>
+{% endif %}
+
+<div class="card mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table" style="font-size:small">
+                <thead>
+                    <tr>
+                        <th scope="col">Código</th>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Marca</th>
+                        <th scope="col">Lote</th>
+                        <th scope="col">F.Expiración</th>
+                        <th scope="col">Unidades</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in transf %}
+                    <tr>
+                        <td>{{i.product_id}}</td>
+                        <td>{{i.Nombre}}</td>
+                        <td>{{i.Marca}}</td>
+                        <td>{{i.lote_id}}</td>
+                        <td>{{i.fecha_caducidad}}</td>
+                        <td class="text-end">{{i.unidades|floatformat:"0g"}}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    $("button[name='ingresar_inventario']").click(function(){
+        var n_trasf  = $("#n_trasf").html();
+
+        $.ajax({
+            type:"POST",
+            url:"{% url 'wms_transferencia_ingreso_cerezos_input_ajax' %}",
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'n_trasf':n_trasf,
+                'usuario':{{request.user.id}}
+            },
+            success: function(response) {
+                $('#msg').html(`<div class="text-center alert alert-${response.msg.tipo}" role="alert"> ${response.msg.texto} !!! </div>`)
+            },
+            error: function() {
+                $('#msg').html(`<div class="text-center alert alert-${response.msg.tipo}" role="alert"> ${response.msg.texto} !!! </div>`)
+            }
+        })
+    })
+</script>
+
+
+
+
+<script>
+    // Función para mostrar un mensaje temporal
+    function mostrarMensajeTemporal(mensaje, boton) {
+        var mensajeTemporal = $("button[name='cruce']");
+        var botonOffset = boton.offset();
+
+        // Colocar el mensaje al lado del botón
+        mensajeTemporal.css({
+            top: botonOffset.top + boton.outerHeight(),
+            left: botonOffset.left
+        });
+
+        // Establecer el contenido del mensaje
+        mensajeTemporal.text(mensaje);
+
+        // Mostrar el mensaje
+        mensajeTemporal.fadeIn();
+
+        // Ocultar el mensaje después de 3 segundos
+        setTimeout(function() {
+            mensajeTemporal.fadeOut();
+        }, 3000)}
+</script>
+{% endblock %}
