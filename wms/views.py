@@ -1730,7 +1730,7 @@ def wms_transferencia_ingreso_cerezos_detalle(request, n_transferencia):
 def wms_transferencia_ingreso_cerezos_input_ajax(request):
     
     n_transf = request.POST['n_trasf']
-    user     = request.POST['usuario']
+    user     = int(request.POST['usuario'])
     
     transf  = Transferencia.objects.filter(n_transferencia=n_transf)
     
@@ -1775,7 +1775,7 @@ def wms_transferencia_ingreso_cerezos_input_ajax(request):
 def wms_transferencia_ingreso_cerezos_liberacion_ajax(request):
     
     n_transf = request.POST['n_trasf']
-    user     = request.POST['usuario']
+    user     = int(request.POST['usuario'])
     
     movs = Movimiento.objects.filter(n_referencia=n_transf)
     estado = movs.last().estado
