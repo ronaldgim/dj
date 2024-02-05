@@ -1026,18 +1026,6 @@ def wms_movimientos_list(request): #OK
     }
 
 
-    elif tipo == 'Egreso':
-        # Buscar en Existencias WMS
-        productos = pd.DataFrame(Existencias.objects.all().values('product_id'))
-        prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
-        productos = productos.merge(prod, on='product_id', how='left').sort_values(by=['Marca','product_id'], ascending=[True, True])
-        productos = productos.drop_duplicates(subset='product_id')
-        productos = de_dataframe_a_template(productos)
-
-        return JsonResponse({'productos':productos})
-    return JsonResponse({'productos':None})
-
-
 
 # Llamar los valores para ajuste de acuerdo a tipo de movimiento
 def wms_ajuste_lote_ajax(request):
@@ -1208,11 +1196,6 @@ def wms_listado_pedidos(request): #OK
 
     return render(request, 'wms/listado_pedidos.html', context)
 
-
-# Detalle de pedido
-# url: picking/<n_pedido>
-@login_required(login_url='login')
-def wms_egreso_picking(request, n_pedido): #OK
 
 
 # Detalle de pedido
@@ -1926,7 +1909,7 @@ def wms_transferencia_ingreso_cerezos_input_ajax(request):
         return JsonResponse({
             'msg':{
                 'tipo':'success',
-                'texto':'Se agrego todos los productos al Inventario con estado Cuarentena'
+                'texto':'Se agrego todos los productos al Inventario con estado Cuarentena !!!'
             }
         })
     
