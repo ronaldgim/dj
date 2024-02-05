@@ -1548,7 +1548,7 @@ def wms_busqueda_ajuste(request, n_ajuste):
                     fecha_caducidad = row['FECHA_CADUCIDAD'],
                     estado=0
                     )
-                wms_get_existencias(row)
+                wms_get_existencias(row,n_ajuste)
                 
             # LiberacionCuarentena.objects.bulk_create(liberacion_cuarentena_objects)
 
