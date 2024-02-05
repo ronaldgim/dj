@@ -97,6 +97,7 @@ urlpatterns = [
         view = views.wms_movimiento_ajuste, #OK
         name = 'wms_movimiento_ajuste'
     ),
+
     
     path(
         route='inventario/mov-ajuste/product/ajax',
@@ -133,6 +134,21 @@ urlpatterns = [
         view = views.wms_listado_pedidos, #OK
         name = 'wms_listado_pedidos'
     ),
+
+     ### INGRESO AJUSTE
+    #Buscar ajuste
+    path(
+        route='ajuste/search',  
+        view = views.wms_ingreso_ajuste, #OK
+        name = 'wms_ingreso_ajuste'
+    ),
+
+    path(
+        route='wms-busqueda-ajuste/<int:n_ajuste>',  
+        view = views.wms_busqueda_ajuste, #OK
+        name = 'wms-busqueda-ajuste'
+    ),
+
 
     # Egreso Picking
     path(
