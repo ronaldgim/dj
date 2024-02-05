@@ -1763,7 +1763,7 @@ def wms_transferencia_ingreso_cerezos_input_ajax(request):
         return JsonResponse({
             'msg':{
                 'tipo':'success',
-                'texto':'Se agrego todos los productos al Inventario con estado Cuarentena'
+                'texto':'Se agrego todos los productos al Inventario con estado Cuarentena !!!'
             }
         })
     
