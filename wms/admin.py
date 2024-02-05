@@ -1,9 +1,7 @@
 from django.contrib import admin
 
 # Models
-
 from wms.models import InventarioIngresoBodega, Ubicacion, Movimiento, LiberacionCuarentena, Transferencia
-
 
 
 # INVENTARIO
