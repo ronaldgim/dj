@@ -1712,10 +1712,11 @@ def wms_transferencia_ingreso_cerezos_detalle(request, n_transferencia):
     transf = de_dataframe_a_template(transf)
     
     movs = Movimiento.objects.filter(n_referencia=n_transferencia)
+    estado = movs.last().estado
     if movs.exists():
-        estado = 'ingresado'
+        estado = estado
     else:
-        estado = 'No ingresado'
+        estado = 'Sin estado'
     
     context={
         'transf':transf,
@@ -1723,12 +1724,13 @@ def wms_transferencia_ingreso_cerezos_detalle(request, n_transferencia):
         'estado':estado
     }
     return render(request, 'wms/transferencia_ingreso_cerezos_detalle.html', context)
-    
+
+
 
 def wms_transferencia_ingreso_cerezos_input_ajax(request):
     
     n_transf = request.POST['n_trasf']
-    user     = request.POST['usuario']
+    user     = int(request.POST['usuario'])
     
     transf  = Transferencia.objects.filter(n_transferencia=n_transf)
     
@@ -1767,6 +1769,75 @@ def wms_transferencia_ingreso_cerezos_input_ajax(request):
                 'texto':'Error, intente nuevamente !!!'
             }
         })
+
+
+# Liberar transferencia de cuarentena a disponible
+def wms_transferencia_ingreso_cerezos_liberacion_ajax(request):
+    
+    n_transf = request.POST['n_trasf']
+    user     = int(request.POST['usuario'])
+    
+    movs = Movimiento.objects.filter(n_referencia=n_transf)
+    estado = movs.last().estado
+    
+    if estado == 'Cuarentena':
+        for i in movs:
+            lib_egreso = Movimiento(
+                tipo            = 'Egreso',
+                unidades        = i.unidades*-1,
+                descripcion     = 'N/A',
+                n_referencia    = i.n_referencia,
+                referencia      = 'Liberación',
+                usuario_id      = user,
+                fecha_caducidad = i.fecha_caducidad,
+                lote_id         = i.lote_id,
+                product_id      = i.product_id,
+                estado          = 'Cuarentena',
+                ubicacion_id    = i.ubicacion.id,
+            )
+            
+            lib_egreso.save()
+            
+            lib_ingreso = Movimiento(
+                tipo            = 'Ingreso',
+                unidades        = i.unidades,
+                descripcion     = 'N/A',
+                n_referencia    = i.n_referencia,
+                referencia      = 'Liberación',
+                usuario_id      = user,
+                fecha_caducidad = i.fecha_caducidad,
+                lote_id         = i.lote_id,
+                product_id      = i.product_id,
+                estado          = 'Disponible',
+                ubicacion_id    = i.ubicacion.id,
+            )
+            
+            lib_ingreso.save()
+            wms_existencias_query_product_lote(product_id=lib_ingreso.product_id, lote_id=lib_ingreso.lote_id)
+        
+        if lib_ingreso:
+            return JsonResponse({
+            'msg':{
+                'tipo':'success',
+                'texto':'Transferencia Liberada !!!'
+            }
+        })
+        
+    else:
+        return JsonResponse({
+            'msg':{
+                'tipo':'danger',
+                'texto':'Producto en ya Disponible !!!'
+            }
+        })
+    
+    return JsonResponse({
+            'msg':{
+                'tipo':'danger',
+                'texto':'Error !!!'
+            }
+        })
+
 
 
 # Crear egreso en tabla movimientos

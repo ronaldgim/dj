@@ -267,6 +267,13 @@ urlpatterns = [
         name = 'wms_transferencia_ingreso_cerezos_input_ajax'
     ),
     
+    # Liberación ingresar a inventario todos los productos de transferencia
+    path(
+        route='transferencia/ingreso/cerezos/liberacion/ajax',
+        view = views.wms_transferencia_ingreso_cerezos_liberacion_ajax,
+        name = 'wms_transferencia_ingreso_cerezos_liberacion_ajax'
+    ),
+    
     
     # Movimiento de egreso transferencia
     path(
