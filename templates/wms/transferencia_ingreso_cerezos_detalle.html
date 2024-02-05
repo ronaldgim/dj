@@ -64,15 +64,33 @@
     <button name="trasferencia" class="btn btn-primary" type="submit">Añadir Transferencia</button>
 </div-->
 
-{% if estado == 'ingresado' %}
-<button class="btn btn-primary mt-2 mb-2 disabled" name="ingresar_inventario">
+{% if estado == 'Cuarentena' %}
+<button class="btn btn-primary mt-2 mb-2 disabled">
     <i class="bi bi-plus-circle"></i> Añadir a Inventario
-</button>
-{% else %}
+</button><br>
+<span>Estado: </span>{{estado}}<br>
+<!-- boton de liberación -->
+<button class="btn btn-success mt-2 mb-2" name="liberar_trasnferencia">
+    <i class="bi bi-truck"></i> Liberar transferencia
+</button><br>
+
+{% elif estado == 'Disponible' %}
+<button class="btn btn-primary mt-2 mb-2 disabled"> 
+    <i class="bi bi-plus-circle"></i> Añadir a Inventario
+</button><br>
+<span>Estado: </span>{{estado}}<br>
+<!-- boton de liberación disabled -->
+<button class="btn btn-success mt-2 mb-2 disabled"> <!--disabled-->
+    <i class="bi bi-truck"></i> Liberar transferencia
+</button><br>
+
+
+{% elif estado == 'Sin estado' %}
 <button class="btn btn-primary mt-2 mb-2" name="ingresar_inventario">
     <i class="bi bi-plus-circle"></i> Añadir a Inventario
 </button>
 {% endif %}
+
 
 <div class="card mb-2">
     <div class="card-body m-0 p-0">
@@ -120,6 +138,10 @@
             },
             success: function(response) {
                 $('#msg').html(`<div class="text-center alert alert-${response.msg.tipo}" role="alert"> ${response.msg.texto} !!! </div>`)
+                setTimeout(function(){
+                    window.location.reload();
+                }, 2000)
+
             },
             error: function() {
                 $('#msg').html(`<div class="text-center alert alert-${response.msg.tipo}" role="alert"> ${response.msg.texto} !!! </div>`)
@@ -129,6 +151,31 @@
 </script>
 
 
+<script>
+    $("button[name='liberar_trasnferencia']").click(function(){
+        var n_trasf  = $("#n_trasf").html();
+
+        $.ajax({
+            type:"POST",
+            url:"{% url 'wms_transferencia_ingreso_cerezos_liberacion_ajax' %}",
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'n_trasf':n_trasf,
+                'usuario':{{request.user.id}}
+            },
+            success: function(response) {
+                $('#msg').html(`<div class="text-center alert alert-${response.msg.tipo}" role="alert"> ${response.msg.texto} !!! </div>`)
+                setTimeout(function(){
+                    window.location.reload();
+                }, 2000)
+            
+            },
+            error: function() {
+                $('#msg').html(`<div class="text-center alert alert-${response.msg.tipo}" role="alert"> ${response.msg.texto} !!! </div>`)
+            }
+        })
+    })
+</script>
 
 
 <script>
