@@ -1571,7 +1571,7 @@ def wms_busqueda_ajuste(request, n_ajuste):
         return JsonResponse({'error': str(e)}, status=500)      
 
    
-def wms_get_existencias(row):
+def wms_get_existencias(row,n_ajuste):
     try:
         existencia = Existencias.objects.filter(
             estado='Cuarentena',
@@ -1579,12 +1579,69 @@ def wms_get_existencias(row):
             lote_id=row['LOTE_ID']
         ).get()
         print(existencia)
+        wms_liberacion_cuarentena(existencia, n_ajuste, 2)
     except ObjectDoesNotExist:
         print('no existe')
         # Maneja el caso de no existencia aquí
     except Exception as e:
         print(e)
         return JsonResponse({'error': str(e)}, status=500)
+    
+def wms_liberacion_cuarentena(existencia,n_referencia,user_id):
+    try:
+        #crea un egreso en la tabla movimientos ejmpl: 
+        Movimiento.objects.create(
+            tipo='Egreso',
+            unidades=-existencia.unidades,
+            descripcion='N/A',
+            n_referencia=n_referencia,
+            referencia='Liberación',
+            product_id=existencia.product_id,
+            lote_id=existencia.lote_id,
+            fecha_caducidad=existencia.fecha_caducidad,
+            estado='Cuarentena',
+            estado_picking='',
+            ubicacion_id=existencia.ubicacion,
+            usuario_id=user_id,
+            fecha_hora=datetime.now(),
+            actualizado=datetime.now()
+        )
+        
+        #crear un ingreso
+        Movimiento.objects.create(
+            tipo='Ingreso',
+            unidades=existencia.unidades,
+            descripcion='N/A',
+            n_referencia=n_referencia,
+            referencia='Liberación',
+            product_id=existencia.product_id,
+            lote_id=existencia.lote_id,
+            fecha_caducidad=existencia.fecha_caducidad,
+            estado='Disponible',
+            estado_picking='',
+            ubicacion_id=existencia.ubicacion,
+            usuario_id=user_id,
+            fecha_hora=datetime.now(),
+            actualizado=datetime.now()
+        )
+        
+        #actualizar estado de LiberacionCuarentena a 1
+        Existencias.objects.filter(
+            product_id=existencia.product_id,
+            lote_id=existencia.lote_id,
+            doc_id=n_referencia
+        ).update(estado=1)
+        
+        #actualizar wms_existencias_query_product_lote
+        wms_existencias_query_product_lote(product_id=existencia.product_id, lote_id=existencia.lote_id)
+        
+    except ObjectDoesNotExist:
+        print('no existe')
+        # Maneja el caso de no existencia aquí
+    except Exception as e:
+        print(e)
+        return JsonResponse({'error': str(e)}, status=500)
+   
     
     
 
