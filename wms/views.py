@@ -45,7 +45,7 @@ from django.db import connections
 # Models
 from django.db.models import Sum, Count
 from wms.models import InventarioIngresoBodega, Ubicacion, Movimiento, Existencias, Transferencia, LiberacionCuarentena
-
+from django.core.exceptions import ObjectDoesNotExist
 # Pandas
 import pandas as pd
 
@@ -1509,7 +1509,6 @@ def wms_busqueda_ajuste(request, n_ajuste):
             f"AND ((INVT_Lotes_Ubicacion.DOC_ID_CORP='{n}') AND (INVT_Producto_Lotes.ENTRADA_TIPO='OC')) "
         )
         inventario = [tuple(row) for row in cursorOdbc.fetchall()]
-        print(inventario)
         inventario_df = pd.DataFrame(inventario, columns=['DOC_ID_CORP', 'PRODUCT_ID_CORP', 'LOTE_ID', 'EGRESO_TEMP', 'COMMITED', 'WARE_CODE_CORP', 'UBICACION', 'Fecha_elaboracion_lote', 'FECHA_CADUCIDAD']) if inventario else pd.DataFrame()
         # Unión (merge) de los DataFrames en los campos comunes
         if not ajuste_df.empty and not inventario_df.empty:
@@ -1549,6 +1548,7 @@ def wms_busqueda_ajuste(request, n_ajuste):
                     fecha_caducidad = row['FECHA_CADUCIDAD'],
                     estado=0
                     )
+                wms_get_existencias(row)
                 
             # LiberacionCuarentena.objects.bulk_create(liberacion_cuarentena_objects)
 
@@ -1558,7 +1558,7 @@ def wms_busqueda_ajuste(request, n_ajuste):
 
             # Convertir DataFrame a JSON, asegurándose de que las fechas se formateen correctamente
             resultado_json = resultado_df.to_json(orient='records', force_ascii=False, date_format='iso')
-            print(resultado_json)
+            
 
             return HttpResponse(resultado_json, content_type='application/json')
         else:
@@ -1571,6 +1571,22 @@ def wms_busqueda_ajuste(request, n_ajuste):
         return JsonResponse({'error': str(e)}, status=500)      
 
    
+def wms_get_existencias(row):
+    try:
+        existencia = Existencias.objects.filter(
+            estado='Cuarentena',
+            product_id=row['PRODUCT_ID_CORP'].replace('-GIMPR', ''),
+            lote_id=row['LOTE_ID']
+        ).get()
+        print(existencia)
+    except ObjectDoesNotExist:
+        print('no existe')
+        # Maneja el caso de no existencia aquí
+    except Exception as e:
+        print(e)
+        return JsonResponse({'error': str(e)}, status=500)
+    
+    
 
 ## FUNCIONES PENDIENTES POR DESARROLLAR
 # Listado de liberaciones
