@@ -931,7 +931,8 @@ def doc_transferencia_odbc(n_transf):
         transferencia2 = pd.DataFrame()
 
     
-    t = pd.concat([transferencia, transferencia2])
+    #t = pd.concat([transferencia, transferencia2])
+    t = transferencia
     t = t.reset_index(drop=True) 
 
     return t
