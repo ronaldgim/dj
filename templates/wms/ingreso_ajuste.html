@@ -78,10 +78,10 @@
         <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
     </div>
     <div class="col-4">
-        {% if request.user.is_superuser %}
+        {#% if request.user.is_superuser %#}
         <button id="buscar-btn" class="btn btn-primary mb-2"
             data-url="{% url 'wms-busqueda-ajuste' 9999 %}">Buscar</button>
-        {% endif %}
+        {#% endif %#}
     </div>
 </div>
 

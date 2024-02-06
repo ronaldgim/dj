@@ -2068,8 +2068,11 @@ def wms_movimiento_egreso_transferencia(request): #OK
         return JsonResponse({'msg':'❌ Error !!!'})
     return JsonResponse({'msg':'❌Error !!!'})
 
+
+
 def wms_ingreso_ajuste(request):
     return render(request, 'wms/ingreso_ajuste.html', {'elementos': ''})
+
 
 
 def wms_busqueda_ajuste(request, n_ajuste):
