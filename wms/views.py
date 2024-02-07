@@ -1500,27 +1500,30 @@ def wms_reservas_lote_consulta_ajax(request):
 @login_required(login_url='login')
 def wms_productos_en_despacho_list(request): #OK
 
-    mov = Movimiento.objects.filter(estado_picking='En Despacho')
+    mov      = Movimiento.objects.filter(estado_picking='En Despacho')
     mov_list = mov.values_list('n_referencia', flat=True).distinct()
-    pik = EstadoPicking.objects.filter(n_pedido__in=mov_list)
+    pik      = EstadoPicking.objects.filter(n_pedido__in=mov_list)
 
     en_despacho = pd.DataFrame(mov.values(
-        'product_id','lote_id','fecha_caducidad','referencia','n_referencia',
-        'ubicacion__bodega','ubicacion__pasillo','ubicacion__modulo','ubicacion__nivel',
-        'fecha_hora','unidades',
-        'usuario__first_name','usuario__last_name'
+        'product_id',
+        # 'lote_id','fecha_caducidad',
+        'referencia','n_referencia',
+        #'ubicacion__bodega','ubicacion__pasillo','ubicacion__modulo','ubicacion__nivel',
+        'fecha_hora',
+        # 'unidades','usuario__first_name','usuario__last_name'
     ))
     contexto_picking = pd.DataFrame(pik.values())[['n_pedido','cliente']]
     contexto_picking = contexto_picking.rename(columns={'n_pedido':'n_referencia'})
 
     en_despacho = en_despacho.merge(contexto_picking, on='n_referencia', how='left')
-    en_despacho['unidades'] = en_despacho['unidades']*-1
+    #en_despacho['unidades'] = en_despacho['unidades']*-1
     en_despacho['n_referencia'] = en_despacho['n_referencia'].astype('float')
     en_despacho['n_referencia'] = en_despacho['n_referencia'].astype('int')
     # en_despacho['fecha_caducidad'] = en_despacho['fecha_caducidad'].astype('str')
     en_despacho['fecha_hora'] = pd.to_datetime(en_despacho['fecha_hora']).dt.strftime('%Y-%m-%d %H:%M')
 
     en_despacho = en_despacho.sort_values(by='n_referencia')
+    en_despacho = en_despacho.drop_duplicates(subset='n_referencia', keep='last')
     en_despacho = de_dataframe_a_template(en_despacho)
 
     context = {
