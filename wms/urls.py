@@ -192,11 +192,18 @@ urlpatterns = [
         name = 'wms_reservas_lote_consulta_ajax'
     ),
     
-    # Picking realizados
+    # Productos en despacho list
     path(
         route='picking/producto-despacho/list', 
         view = views.wms_productos_en_despacho_list, #OK
         name = 'wms_productos_en_despacho_list'
+    ),
+    
+    # Picking en despacho list
+    path(
+        route='picking/picking-despacho/list', 
+        view = views.wms_picking_en_despacho_list, #OK
+        name = 'wms_picking_en_despacho_list'
     ),
     
     # wms_cruce_picking_factura

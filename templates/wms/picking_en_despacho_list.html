@@ -1,7 +1,7 @@
 {%extends 'base.html' %}
 
 {% block title %}
-<title>Productos en despacho</title>
+<title>Picking en despacho</title>
 {% endblock%}
 
 {% block navbar %}
@@ -16,7 +16,7 @@
 }
 </style>
 
-<h5 class="mt-2 text-center"><strong>Lista de productos en despacho</strong></h5>
+<h5 class="mt-2 text-center"><strong>Lista de picking en despacho</strong></h5>
 
 <!--div class="mt-2 mb-2">   
     <span class="fw-bold" style="font-size: small;">Pedido: </span> <span style="font-size: small;">{{n_ped|slice:'-2'}}</span> <br>
@@ -53,12 +53,12 @@
                         <th scope="col">Referencia</th>
                         <th scope="col"># Picking</th>
                         <th scope="col">Cliente</th>
-                        <th scope="col">Código</th>
+                        <!--th scope="col">Código</th>
                         <th scope="col">Lote</th>
-                        <th scope="col">Ubicación de salida</th>
+                        <th scope="col">Unidades</th-->
                         <th scope="col">Enviado a despacho el</th>
-                        <th scope="col">Unidades</th>
-                        <!--th scope="col">Acciones</th-->
+                        <!--th scope="col">Ubicación de salida</th>
+                        <th scope="col">Acciones</th-->
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
@@ -67,12 +67,11 @@
                             <td>{{i.referencia}}</td>
                             <td>{{i.n_referencia}}</td>
                             <td>{{i.cliente|default:"N/A"}}</td>                            
-                            <td>{{i.product_id}}</td>
+                            <!--td>{{i.product_id}}</td>
                             <td>{{i.lote_id}}</td>
-                            <td>{{i.ubicacion__bodega}}-{{i.ubicacion__pasillo}}-{{i.ubicacion__modulo}}-{{i.ubicacion__nivel}}</td>
+                            <td class="text-end">{{i.unidades|floatformat:"0g"}}</td-->
                             <td>{{i.fecha_hora}}</td>
-                            <td class="text-end">{{i.unidades|floatformat:"0g"}}</td>
-                            
+                            <!--td>{{i.ubicacion__bodega}}-{{i.ubicacion__pasillo}}-{{i.ubicacion__modulo}}-{{i.ubicacion__nivel}}</td-->
                             <!--td class="text-end">
                                 <button class="btn btn-primary btn-sm disabled">
                                     <i class="bi bi-geo-fill"></i>
