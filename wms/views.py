@@ -1780,8 +1780,8 @@ def wms_transferencias_list(request):
     transf_wms = pd.DataFrame(Transferencia.objects.all().values()).drop_duplicates(subset='n_transferencia')
     transf_wms = transf_wms[transf_wms['bodega_salida']=='BCT']
     if not transf_wms.empty:
+        transf_wms = transf_wms.sort_values(by='fecha_hora', ascending=False)
         transf_wms['fecha_hora'] = pd.to_datetime(transf_wms['fecha_hora']).dt.strftime('%d-%m-%Y - %r').astype(str)
-        transf_wms = transf_wms.sort_values(by='n_transferencia', ascending=False)
 
     transf_wms = de_dataframe_a_template(transf_wms)
 
@@ -1868,8 +1868,9 @@ def wms_transferencia_ingreso_cerezos_list(request):
     transf_wms = pd.DataFrame(Transferencia.objects.all().values()).drop_duplicates(subset='n_transferencia')
     transf_wms = transf_wms[transf_wms['bodega_salida']!='BCT']
     if not transf_wms.empty:
+        transf_wms = transf_wms.sort_values(by='fecha_hora', ascending=False)
         transf_wms['fecha_hora'] = pd.to_datetime(transf_wms['fecha_hora']).dt.strftime('%d-%m-%Y - %r').astype(str)
-        transf_wms = transf_wms.sort_values(by='n_transferencia', ascending=False)
+        #transf_wms = transf_wms.sort_values(by=['fecha_hora'], ascending=[False])
 
     transf_wms = de_dataframe_a_template(transf_wms)
 
