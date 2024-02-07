@@ -1772,8 +1772,8 @@ def wms_transferencia_input_ajax(request):
     # else:
         # return HttpResponse(f'La Transferencia {n_trasf} no sale desde bodega Cerezos')
 
-      
-      
+
+
 @login_required(login_url='login')
 def wms_transferencias_list(request):
     
@@ -1781,7 +1781,7 @@ def wms_transferencias_list(request):
     transf_wms = transf_wms[transf_wms['bodega_salida']=='BCT']
     if not transf_wms.empty:
         transf_wms['fecha_hora'] = pd.to_datetime(transf_wms['fecha_hora']).dt.strftime('%d-%m-%Y - %r').astype(str)
-        transf_wms = transf_wms.sort_values(by='fecha_hora', ascending=False)
+        transf_wms = transf_wms.sort_values(by='n_transferencia', ascending=False)
 
     transf_wms = de_dataframe_a_template(transf_wms)
 
@@ -1869,7 +1869,7 @@ def wms_transferencia_ingreso_cerezos_list(request):
     transf_wms = transf_wms[transf_wms['bodega_salida']!='BCT']
     if not transf_wms.empty:
         transf_wms['fecha_hora'] = pd.to_datetime(transf_wms['fecha_hora']).dt.strftime('%d-%m-%Y - %r').astype(str)
-        transf_wms = transf_wms.sort_values(by='fecha_hora', ascending=False)
+        transf_wms = transf_wms.sort_values(by='n_transferencia', ascending=False)
 
     transf_wms = de_dataframe_a_template(transf_wms)
 
@@ -2343,47 +2343,6 @@ def wms_resposicion_rm(request):
 
 
 #     return HttpResponse('ok')
-
-
-
-
-def wms_resposicion_rm(request):
-
-    try:
-        with connections['default'].cursor() as cursor:
-            cursor.execute(
-            "SELECT DISTINCT wms_existencias.product_id, count(wms_existencias.unidades) as count "
-            "FROM wms_existencias left join wms_ubicacion on wms_existencias.ubicacion_id=wms_ubicacion.id "
-            "where wms_ubicacion.bodega = 'CN6' AND wms_ubicacion.nivel>'1' group by wms_existencias.product_id;"
-            )
-            columns =  [col[0] for col in cursor.description]
-            query5  = [dict(zip(columns, row)) for row in cursor.fetchall()]
-            df_greater  = pd.DataFrame(query5)
-            
-        with connections['default'].cursor() as cursor:
-            cursor.execute(        
-            "SELECT DISTINCT wms_existencias.product_id, count(wms_existencias.unidades) as count "    
-            "FROM wms_existencias left join wms_ubicacion on wms_existencias.ubicacion_id=wms_ubicacion.id " 
-            "where wms_ubicacion.bodega = 'CN6' AND wms_ubicacion.nivel='1' group by wms_existencias.product_id;"
-            )
-            columns =  [col[0] for col in cursor.description]
-            query6  = [dict(zip(columns, row)) for row in cursor.fetchall()]
-            df_equal  = pd.DataFrame(query6)
-            
-            df_non_match = pd.merge(df_greater, df_equal, how='outer', indicator=True, on='product_id')
-            df_non_match = df_non_match[(df_non_match._merge == 'left_only')]
-            df_non_match = de_dataframe_a_template(df_non_match)
-            
-            context = {
-                'data': df_non_match,
-            }
-            
-    except Exception as e:
-        print(e)
-    finally:
-        cursor.close()
-        
-    return render(request, 'wms/reporte_rm.html', context)
 
 
 
