@@ -2509,7 +2509,7 @@ def wms_movimiento_egreso_nota_entrega(request): #OK
     else:
         total_mov = int(unds_egreso)
 
-    total_transf = sum(Transferencia.objects
+    total_nota_entrega = sum(Transferencia.objects
         .filter(n_transferencia=n_entrega)
         .filter(product_id=prod_id).values_list('unidades',flat=True))
 
@@ -2520,11 +2520,11 @@ def wms_movimiento_egreso_nota_entrega(request): #OK
             return JsonResponse({'msg':'❌ No puede retirar más unidades de las existentes !!!'})
         elif unds_egreso == 0 or unds_egreso < 0:
             return JsonResponse({'msg':'❌ La cantidad debe ser mayor 0 !!!'})
-        elif total_mov > total_transf:
+        elif total_mov > total_nota_entrega:
             return JsonResponse({'msg':'❌ No puede retirar más unidades de las solicitadas en el Picking !!!'})
-        elif total_mov <= total_transf:
+        elif total_mov <= total_nota_entrega:
 
-            transferencia = Movimiento(
+            nota_entrega = Movimiento(
                 product_id      = prod_id,
                 lote_id         = lote_id,
                 fecha_caducidad = caducidad,
@@ -2539,7 +2539,7 @@ def wms_movimiento_egreso_nota_entrega(request): #OK
                 usuario_id      = request.user.id,
             )
 
-            transferencia.save()
+            nota_entrega.save()
             wms_existencias_query_product_lote(product_id=prod_id, lote_id=lote_id)
 
             return JsonResponse({'msg':f'✅ Producto {prod_id}, lote {lote_id} seleccionado correctamente !!!'})
