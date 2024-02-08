@@ -87,7 +87,7 @@
                         <td>{{i.doc_id}}</td>
                         <td>{{i.fecha_hora}}</td>
                         <td>
-                            <a class="btn btn-primary" href="{#% url %#}">
+                            <a class="btn btn-primary" href="{% url 'wms_nota_entrega_picking' i.doc_id %}">
                                 <i class="bi bi-truck"></i>
                             </a>
                         </td>

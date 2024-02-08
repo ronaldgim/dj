@@ -2394,7 +2394,7 @@ def wms_nota_entrega_list(request):
     ne_list = pd.DataFrame(NotaEntrega.objects.all().values()).drop_duplicates(subset='doc_id', keep='last')
     
     if not ne_list.empty:
-        ne_list = ne_list.sort_values(by='fecha_hora')
+        ne_list = ne_list.sort_values(by='fecha_hora', ascending=False)
         ne_list['fecha_hora'] = pd.to_datetime(ne_list['fecha_hora']).dt.strftime('%d-%m-%Y - %r').astype(str)
         
         ne_list = de_dataframe_a_template(ne_list)
@@ -2405,6 +2405,144 @@ def wms_nota_entrega_list(request):
 
 
 
+@login_required(login_url='login')
+def wms_nota_entrega_picking(request, n_entrega):
+    
+    prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+    
+    # Nota Entrega
+    nota_entrega = pd.DataFrame(NotaEntrega.objects.filter(doc_id=n_entrega).values())
+    nota_entrega = nota_entrega.merge(prod, on='product_id', how='left')
+    nota_entrega['fecha_caducidad'] = pd.to_datetime(nota_entrega['fecha_caducidad']).dt.strftime('%d-%m-%Y').astype(str)
+    
+    # Movimientos
+    mov = pd.DataFrame(Movimiento.objects.filter(n_referencia=n_entrega).values(
+        'id',
+        'product_id','lote_id','unidades','ubicacion__bodega','ubicacion__pasillo','ubicacion__modulo','ubicacion__nivel',
+        'ubicacion__distancia_puerta'))
+    
+    if not mov.empty:
+        mov['unidades'] = mov['unidades'] * -1
+        
+    mov_list = de_dataframe_a_template(mov)
+    
+    # Si existe movimiento añadir al pedido
+    if not mov.empty:
+        mov_group = mov.groupby(by=['product_id','lote_id']).sum().reset_index()
+        mov_group = mov_group.rename(columns={'unidades':'unidades_wms'})
+        nota_entrega = nota_entrega.merge(mov_group, on=['product_id','lote_id'], how='left').fillna(0)
+    
+    # Ubicaciones de productos en nota entrega
+    prod_lote = nota_entrega[['product_id','lote_id']].to_dict('records')
+    ext_id = []
+    for i in prod_lote:
+        ext = Existencias.objects.filter(product_id=i['product_id'], lote_id=i['lote_id']).values(
+            'product_id','lote_id','fecha_caducidad','unidades','estado',
+            'ubicacion__id',
+            'ubicacion__bodega','ubicacion__pasillo','ubicacion__modulo','ubicacion__nivel',
+            'ubicacion__distancia_puerta'
+        )
+        
+        if ext.exists():
+            for j in ext:
+                ext_id.append(j)
+                
+    nota_entrega_template = de_dataframe_a_template(nota_entrega)
+    
+    prod = list(nota_entrega['product_id'].unique())
+    for i in prod:
+        for j in nota_entrega_template:
+            if j['product_id'] == i:
+                j['ubi'] = ubi_list = []
+                j['pik'] = pik_list = []
+                for k in ext_id:
+                    if k['product_id'] == i:
+                        ubi_list.append(k)
+                for m in mov_list:
+                    if m['product_id'] == i:
+                        pik_list.append(m)
+                        
+    context = {
+        'nota_entrega':nota_entrega_template,
+        'n_entrega':n_entrega
+    }
+    
+    return render(request, 'wms/nota_entrega_picking.html', context)
+
+
+
+def wms_movimiento_egreso_nota_entrega(request): #OK
+
+    # Egreso
+    unds_egreso = request.POST['unds']
+    if not unds_egreso:
+        unds_egreso = 0
+        return JsonResponse({'msg':'❌ Error, ingrese una cantidad !!!'})
+    else:
+        unds_egreso = int(unds_egreso)
+    
+    n_entrega = request.POST['n_entrega']
+
+    # Item busqueda Existencias
+    prod_id   = request.POST['prod_id']
+    lote_id   = request.POST['lote_id']
+    caducidad = request.POST['caducidad']
+    ubi       = int(request.POST['ubi'])
+
+    existencia = (Existencias.objects
+        .filter(product_id=prod_id,)
+        .filter(lote_id=lote_id)
+        .filter(fecha_caducidad=caducidad)
+        .filter(ubicacion_id=ubi)
+        )
+
+    movimientos = Movimiento.objects.filter(product_id=prod_id).filter(n_referencia=n_entrega)
+
+    if movimientos.exists():
+        mov = pd.DataFrame(movimientos.values('product_id','unidades'))
+        mov['unidades'] = pd.Series.abs(mov['unidades'])
+        mov = mov[['product_id','unidades']].groupby(by='product_id').sum()
+        mov = de_dataframe_a_template(mov)[0]
+        total_mov = mov['unidades'] + int(unds_egreso)
+    else:
+        total_mov = int(unds_egreso)
+
+    total_transf = sum(Transferencia.objects
+        .filter(n_transferencia=n_entrega)
+        .filter(product_id=prod_id).values_list('unidades',flat=True))
+
+    if not existencia.exists():
+        return JsonResponse({'msg':'❌ Error, revise las existencias o refresque la pagina !!!'})
+    elif existencia.exists():
+        if unds_egreso > existencia.last().unidades:
+            return JsonResponse({'msg':'❌ No puede retirar más unidades de las existentes !!!'})
+        elif unds_egreso == 0 or unds_egreso < 0:
+            return JsonResponse({'msg':'❌ La cantidad debe ser mayor 0 !!!'})
+        elif total_mov > total_transf:
+            return JsonResponse({'msg':'❌ No puede retirar más unidades de las solicitadas en el Picking !!!'})
+        elif total_mov <= total_transf:
+
+            transferencia = Movimiento(
+                product_id      = prod_id,
+                lote_id         = lote_id,
+                fecha_caducidad = caducidad,
+                tipo            = 'Egreso',
+                descripcion     = 'Nota de entrega',
+                referencia      = 'Nota de entrega',
+                n_referencia    = n_entrega,
+                ubicacion_id    = ubi,
+                unidades        = unds_egreso*-1,
+                estado          = 'Disponible',
+                estado_picking  = 'Despachado',
+                usuario_id      = request.user.id,
+            )
+
+            transferencia.save()
+            wms_existencias_query_product_lote(product_id=prod_id, lote_id=lote_id)
+
+            return JsonResponse({'msg':f'✅ Producto {prod_id}, lote {lote_id} seleccionado correctamente !!!'})
+        return JsonResponse({'msg':'❌ Error !!!'})
+    return JsonResponse({'msg':'❌Error !!!'})
 
 
 

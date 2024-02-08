@@ -20,6 +20,7 @@ REFERENCIA_MOVIMIENTOS = [
     ('Ajuste', 'Ajuste'),
     ('Picking', 'Picking'),
     ('Transferencia', 'Transferencia'),
+    ('Nota de entrega', 'Nota de entrega'),
 ]
 
 REFERENCIA_INGRESOS = [

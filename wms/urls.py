@@ -328,6 +328,19 @@ urlpatterns = [
     ),
     
     
+    path(
+        route='nota-entrega/picking/<int:n_entrega>',
+        view = views.wms_nota_entrega_picking,
+        name = 'wms_nota_entrega_picking'
+    ),
+    
+    path(
+        route='nota-entrega/picking/ajax',
+        view = views.wms_movimiento_egreso_nota_entrega,
+        name = 'wms_movimiento_egreso_nota_entrega'
+    ),
+    
+    
     
     # # Reporte de reposición de nivel 1 bodega 6
     # path(
