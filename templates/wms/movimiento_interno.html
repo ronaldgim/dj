@@ -38,6 +38,7 @@
             <span class="fw-bold">Caducidad: </span>{{item.fecha_caducidad|date:'Y-m-d'}}<br>
             <span class="fw-bold">Unidades: </span>{{item.unidades|floatformat:"0g"}}<br>
             <span class="fw-bold">Ubicación: </span>
+                {% if item.estado == 'Cuarentena' %}CUC-{% endif %}
                 {% if item.ubicacion.bodega == 'CN6' %}
                     {{item.ubicacion}}
                 {% else %}
