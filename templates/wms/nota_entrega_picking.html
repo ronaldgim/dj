@@ -1,0 +1,306 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Trasferencia {{n_transf}}</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'wms/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+
+<style>
+    .btn.btn-warning.btn-sm.active {
+    background-color: blue;}
+
+    .mensaje-temporal {
+        display: none;
+        position: absolute;
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+    }
+
+    #msg_ss {
+        display: none;
+        position: fixed; /* Cambiado a fixed para que sea relativo a la ventana */
+        /*bottom: 10px; */ /* Distancia desde la parte inferior */
+        top:40%;
+        right: 10px; /* Distancia desde la derecha */
+        /*background-color: #4CAF50;*/
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+        width:auto;
+        z-index: 3;
+        }
+</style>
+
+<h6 class="mt-2 text-center"><strong>Nota de entrega {{n_entrega}}</strong></h6>
+
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
+<div id="msg"></div>
+<div id="msg_ss"></div>
+
+{% if factura.msg %}
+    <div class="alert text-center alert-danger" role="alert">
+        {{factura.msg}}
+    </div>
+{% endif %}
+
+<div class="card mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table" style="font-size: small;">
+                <thead>
+                    <tr>
+                        <th scope="col">Item</th>
+                        <th scope="col">Lote</th>
+                        <th scope="col">Unidades</th>
+                        <th scope="col">Ubicación(es)</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in nota_entrega %}
+                    <tr>
+                        <td><span id="product_id">{{i.product_id}}</span><br>{{i.Nombre}} - {{i.Marca}}
+                        </td>
+                        <td><span id="lote_id">{{i.lote_id}}</span><br>{{i.fecha_caducidad}}</td>
+                        <td
+                            {% if i.unidades == i.unidades_wms %}
+                            style="background-color: #e3fde6;"
+                            {% elif not i.unidades_wms or i.unidades_wms < i.unidades %}
+                            style="background-color: #F6F490;"
+                            {% elif i.unidades < i.unidades_wms %}
+                            style="background-color: #F6B690;"
+                            {% endif %}
+                        >
+                            MBA: <mark>{{i.unidades|floatformat:"0g"}}</mark><br>
+                            WMS: {{i.unidades_wms|floatformat:"0g"}}
+                        </td>
+                        <td class="text-end">
+                            <button class="btn btn-primary btn-sm" name="boton_ubicaciones"> 
+                                <i class="bi bi-geo-fill"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    
+                    {# FILA OCULA CON INVENTARIO Y MOVIMIENTOS #}
+                    <tr id="detalle_ubicaciones" style="display:none;" class="m-0 p-0">
+                        <td colspan="4" class="mb-0 pb-0">
+                            <h6 class="fw-bold" style="font-size: small;">Inventario</h6>
+                            <table class="table" style="font-size: small;">
+                                <thead>
+                                    <tr style="background-color: #e6e6e6;">
+                                        <th scope="col">Ubicación</th>
+                                        <th scope="col">Dips</th>
+                                        <th scope="col">Unds-Transferencia</th>
+                                        <th scope="col">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {# TABLA INVENTARIO #}
+                                    {% if i.ubi %}
+                                        {% for j in i.ubi %}
+                                        <tr style="background-color: #e6e6e6;">
+                                            
+                                            <!-- Datos para ajax fuction -->
+                                            <input type="hidden" value="{{j.product_id}}" id="product_id">
+                                            <input type="hidden" value="{{j.lote_id}}" id="lote_id">
+                                            <input type="hidden" value="{{j.fecha_caducidad|date:'Y-m-d'}}" id="fecha_caducidad">
+                                            <input type="hidden" value="{{j.ubicacion__id}}" id="ubicacion_id">
+                                            <input type="hidden" value="{{n_entrega}}" id="n_entrega">
+                                            <!-- -->
+
+                                            <td class="{% if j.estado == 'Cuarentena' %}text-danger{% endif %}">
+                                                {% if j.estado == 'Cuarentena' %}CUC-{% endif %}{{j.ubicacion__bodega}}-{{j.ubicacion__pasillo}}-{{j.ubicacion__modulo}}{% if j.ubicacion__bodega == 'CN6' %}-{{j.ubicacion__nivel}}{% else %}{% endif %}
+                                            </td>
+                                            <td>{{j.unidades|floatformat:"0g"}}</td>
+                                            <td>
+                                                <input id="picking_cantidad" type="number" class="form-control form-control-sm" {% if j.estado == 'Cuarentena' %} disabled {% endif %}>
+                                            </td>
+                                            <td>
+                                                <button name="pick" type="button" class="btn btn-success btn-sm {% if j.estado == 'Cuarentena' %} disabled {% endif %}">
+                                                    <i class="bi bi-arrow-bar-right"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    {% endif %}
+
+                                    {# TABLA DE ELEMENTOS PICKEADOS #}
+                                    {% if i.pik %}
+                                    <tr>
+                                        <td colspan="4" class="m-0 p-0">
+                                            <h6 class="fw-bold" style="font-size: small;">Picking</h6>
+                                            <table class="table m-0 p-0" style="background-color: #edfdff;">
+                                                <thead>
+                                                    <tr>
+                                                        <th scope="col">Ubicación</th>
+                                                        <th scope="col">Unds-Transferencia</th>
+                                                        <th scope="col">Acciones</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for k in i.pik %}
+                                                    <tr>
+                                                        <td>{{k.ubicacion__bodega}}-{{k.ubicacion__pasillo}}-{{k.ubicacion__modulo}}{% if k.ubicacion__bodega == 'CN6' %}-{{k.ubicacion__nivel}}{% else %}{% endif %}</td>
+                                                        <td>{{k.unidades|floatformat:"0g"}}</td>
+                                                        <td>
+                                                            <button class="btn btn-sm btn-danger" name="eliminar_picking" id="{{k.id}}">
+                                                                <i class="bi bi-arrow-bar-left"></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        <td>
+                                    </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Desplegar ubicaciones -->
+<script>
+    $(document).ready(function(){
+        $("button[name='boton_ubicaciones']").click(function(){
+            var fila = $(this).closest("tr")
+            fila.next("#detalle_ubicaciones").toggle();
+            fila.toggleClass("table-info")
+        })
+    })
+</script>
+
+<!-- Picking -->
+<script>
+    $("button[name='pick']").click(function(){
+        var prod_id          = $(this).closest("tr").find("#product_id").val();
+        var lote             = $(this).closest("tr").find("#lote_id").val();
+        var caducidad        = $(this).closest("tr").find("#fecha_caducidad").val();
+        var picking_cantidad = $(this).closest("tr").find("#picking_cantidad").val();
+        var n_entrega        = $(this).closest("tr").find("#n_entrega").val();
+        var ubi              = $(this).closest("tr").find("#ubicacion_id").val();
+        
+        
+        $.ajax({
+            type:"POST",
+            url:"{% url 'wms_movimiento_egreso_nota_entrega' %}",
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'prod_id'  :prod_id,
+                'lote_id'  :lote,
+                'caducidad':caducidad,
+                'unds'     :picking_cantidad,
+                'n_entrega':n_entrega,
+                'ubi'      :ubi
+            },
+
+            success: function(response) {
+                setTimeout(function(){
+                    window.location.reload();
+                }, 1000);
+                if(response.msg) {
+                    alert(response.msg)
+                }
+            },
+
+            error: function() {
+                $('#msg').html('<div class="text-center alert alert-danger" role="alert"> Error al hacer el picking !!! </div>')
+                    setTimeout(function(){
+                    window.location.reload();
+                    }, 2000)
+            }
+        })
+    })
+</script>
+
+
+<!-- Eliminar Picking -->
+<script>
+    $("button[name='eliminar_picking']").click(function(){
+        var mov = $(this).attr('id');
+        
+        $.ajax({
+            type:"POST",
+            url:"{% url 'wms_eliminar_movimiento' %}",
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'mov':mov,
+            },
+
+            success: function() {
+                setTimeout(function(){
+                    window.location.reload();
+                    }, 2000);
+                if(response.msg){
+                    alert(response.msg)
+                }
+            },
+            error: function() {
+                setTimeout(function(){
+                    window.location.reload();
+                    }, 2000);
+                if(response.msg) {
+                    alert('Error al eliminar picking !!!')
+                }
+            }
+        })
+    })
+</script>
+
+
+{% comment %}
+<script>
+
+    $("button[name='boton_ubicaciones']").click(function(){
+        var fila = $(this).closest("tr").toggleClass("table-info") //.addClass("table-info")
+        var product_id = $(this).closest("tr").find("#product_id").html()
+        var lote_id    = $(this).closest("tr").find("#lote_id").html()
+        console.log(product_id, lote_id)
+        
+        $.ajax({
+            type:"POST",
+            url:"{% url 'wms_transferencia_input_ajax' %}",
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'n_trasf':n_trasf,
+            },
+
+            success: function(response) {
+                $('#msg').fadeIn().html(`<div class="text-center alert alert-danger" role="alert"> ${response} !!! </div>`).fadeOut(6000)
+            },
+            
+            error: function() {
+                $('#msg').fadeIn().html('<div class="text-center alert alert-danger" role="alert"> Error !!! </div>').fadeOut(6000)
+            }
+        })
+        
+    })
+</script>
+{% endcomment %}
+{% endblock %}
