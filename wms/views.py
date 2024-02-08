@@ -2333,6 +2333,7 @@ def wms_resposicion_rm(request):
 
 
 
+# Ingresar nota de entrega AJAX
 def wms_nota_entrega_input_ajax(request):
     
     
@@ -2389,6 +2390,7 @@ def wms_nota_entrega_input_ajax(request):
             })
 
 
+# Lisata de Notas de entrega 
 def wms_nota_entrega_list(request):
     
     ne_list = pd.DataFrame(NotaEntrega.objects.all().values()).drop_duplicates(subset='doc_id', keep='last')
@@ -2404,7 +2406,7 @@ def wms_nota_entrega_list(request):
     return render(request, 'wms/nota_entrega_list.html', context)
 
 
-
+# Picking de nota de entrega
 @login_required(login_url='login')
 def wms_nota_entrega_picking(request, n_entrega):
     
@@ -2470,7 +2472,7 @@ def wms_nota_entrega_picking(request, n_entrega):
     return render(request, 'wms/nota_entrega_picking.html', context)
 
 
-
+# Movimiento de egreso de Nota de entrega
 def wms_movimiento_egreso_nota_entrega(request): #OK
 
     # Egreso
