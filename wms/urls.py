@@ -313,6 +313,22 @@ urlpatterns = [
         name = 'wms_resposicion_rm'
     ),
     
+    
+    # Notas de entrega
+    path(
+        route='notas-entrega/list',
+        view = views.wms_nota_entrega_list,
+        name = 'wms_nota_entrega_list'
+    ),
+    
+    path(
+        route='nota-entrega/input/ajax',
+        view = views.wms_nota_entrega_input_ajax,
+        name = 'wms_nota_entrega_input_ajax'
+    ),
+    
+    
+    
     # # Reporte de reposición de nivel 1 bodega 6
     # path(
     #     route='reposicion/nivel/1',
