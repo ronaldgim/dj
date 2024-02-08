@@ -155,6 +155,19 @@ class LiberacionCuarentena(models.Model):
 
 
 
+class NotaEntrega(models.Model):
+    
+    doc_id_corp     = models.CharField(verbose_name='Doc - GIMPR', max_length=50)
+    doc_id          = models.CharField(verbose_name="Doc", max_length=30)
+    product_id      = models.CharField(verbose_name='Product id', max_length=50)
+    lote_id         = models.CharField(verbose_name='Lote id', max_length=50)
+    fecha_caducidad = models.DateField(verbose_name='Fecha de caducidad')
+    unidades        = models.PositiveIntegerField(verbose_name='Unidades ingresadas')
+    fecha_hora      = models.DateTimeField(verbose_name='Fecha Hora', auto_now_add=True)
+
+    def __str__(self):
+        return self.doc_id
+
 
 # class Liberacion(models.Model):
     

@@ -1577,6 +1577,7 @@ def reservas_sinlote():
     return reservas_sinlote
 
 
+
 def stock_lote_odbc(): 
     # Stock
     with connections['gimpromed_sql'].cursor() as cursor:
@@ -1606,6 +1607,7 @@ def stock_lote_odbc():
     stock_lote['DISP-MENOS-RESERVA'] = stock_lote['OH2'] - stock_lote['EGRESO_TEMP']
 
     return stock_lote
+
 
 
 def revision_reservas_fun():
@@ -1743,6 +1745,7 @@ def revision_reservas_fun():
     return reporte
 
 
+
 ### Consulta de productos en cuarentena para etiquetado stock
 def stock_lote_cuc_etiquetado_detalle_odbc(): 
     
@@ -1822,6 +1825,7 @@ def trazabilidad_odbc(cod, lot):
 #     return df
 
 
+
 # Filtrar avance de etiquetado por pedido
 def etiquetado_avance_pedido(n_pedido):
     avance = EtiquetadoAvance.objects.filter(n_pedido=n_pedido).values()
@@ -1831,6 +1835,7 @@ def etiquetado_avance_pedido(n_pedido):
         'product_id':'PRODUCT_ID'
         })
     return avance
+
 
 
 def calculo_etiquetado_avance(n_pedido):
@@ -1852,6 +1857,7 @@ def calculo_etiquetado_avance(n_pedido):
         
         return porcentaje_avance
     
+
     
 def lotes_bodega(bodega, product_id):
     
@@ -1901,6 +1907,7 @@ def wms_datos_doc_liberaciones():
     return df
 
 
+
 def wms_datos_liberacion_cuc(doc):
 
     cnxn = pyodbc.connect('DSN=mba3;PWD=API')
@@ -1918,6 +1925,7 @@ def wms_datos_liberacion_cuc(doc):
     # CAMBIAR PRODUCT_ID
     
     return df
+
 
 
 def wms_datos_liberacion_bct():
@@ -1938,6 +1946,7 @@ def wms_datos_liberacion_bct():
     return df
 
 
+
 def wms_reservas_lotes_datos():
     r_lote = reservas_lote()[['CONTRATO_ID','CODIGO_CLIENTE','PRODUCT_ID','LOTE_ID','EGRESO_TEMP']]
     r_lote = r_lote.rename(columns={
@@ -1952,6 +1961,7 @@ def wms_reservas_lotes_datos():
 
 
 def wms_reservas_lote_consulta(product_id, lote_id):
+    
     with connections['gimpromed_sql'].cursor() as cursor:
         
         cursor.execute(f"SELECT * FROM reservas_lote WHERE PRODUCT_ID = '{product_id}' AND LOTE_ID = '{lote_id}' ")
@@ -1998,6 +2008,7 @@ def wms_reservas_lote_consulta(product_id, lote_id):
         )
         
     return r_lote 
+
 
 
 def wms_detalle_factura(n_factura):
@@ -2104,3 +2115,50 @@ def wms_stock_lote_cerezos_by_product(product_id):
         stock = pd.DataFrame(stock)
         
     return stock
+
+
+def wms_datos_nota_entrega(nota_entrega):
+    
+    try:
+        cnxn = pyodbc.connect('DSN=mba3;PWD=API')
+        ne = 'A-' + f'{nota_entrega:010d}' + '-gimpr'
+        
+        query = (       
+            "SELECT INVT_Lotes_Ubicacion.DOC_ID_CORP, INVT_Lotes_Ubicacion.PRODUCT_ID_CORP, "
+            "INVT_Lotes_Ubicacion.LOTE_ID, INVT_Lotes_Ubicacion.EGRESO_TEMP, INVT_Lotes_Ubicacion.COMMITED, "
+            "INVT_Lotes_Ubicacion.WARE_CODE_CORP, INVT_Lotes_Ubicacion.UBICACION, INVT_Producto_Lotes.Fecha_elaboracion_lote, "
+            "INVT_Producto_Lotes.FECHA_CADUCIDAD "
+            "FROM INVT_Lotes_Ubicacion INVT_Lotes_Ubicacion, INVT_Producto_Lotes INVT_Producto_Lotes "
+            "WHERE INVT_Lotes_Ubicacion.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND "
+            "INVT_Producto_Lotes.LOTE_ID = INVT_Lotes_Ubicacion.LOTE_ID AND "
+            f"((INVT_Lotes_Ubicacion.DOC_ID_CORP='{ne}') "
+            #"((INVT_Lotes_Ubicacion.DOC_ID_CORP='A-0000045310-gimpr') "
+            "AND (INVT_Producto_Lotes.ENTRADA_TIPO='OC'))"
+        )
+        
+        df = pd.read_sql_query(query, cnxn)
+        
+        prod_id_list = []
+        
+        for i in df['PRODUCT_ID_CORP']:
+            prod_id = i.replace('-GIMPR','')
+            prod_id_list.append(prod_id)
+        
+        df['product_id'] = prod_id_list
+        df['doc_id']     = nota_entrega
+        
+        df = df.rename(columns={
+            'DOC_ID_CORP':'doc_id_corp',
+            'LOTE_ID':'lote_id',
+            'EGRESO_TEMP':'unidades',
+            'FECHA_CADUCIDAD':'fecha_caducidad'
+        })
+        
+        df = df[['doc_id_corp', 'doc_id','product_id','lote_id','fecha_caducidad','unidades']]
+        
+        return df.to_dict(orient='records')
+    
+    except Exception as e:
+        print(e)
+    finally:
+        cnxn.close()

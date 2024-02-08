@@ -21,6 +21,7 @@ from datos.views import (
     quitar_puntos,
     wms_stock_lote_cerezos_by_product,
     wms_stock_lote_products,
+    wms_datos_nota_entrega,
 
     # Trasnferencia
     doc_transferencia_odbc
@@ -46,7 +47,13 @@ from django.db import connections
 
 # Models
 from django.db.models import Sum, Count
-from wms.models import InventarioIngresoBodega, Ubicacion, Movimiento, Existencias, Transferencia, LiberacionCuarentena
+from wms.models import (
+    InventarioIngresoBodega, 
+    Ubicacion, Movimiento, 
+    Existencias, 
+    Transferencia, 
+    LiberacionCuarentena,
+    NotaEntrega)
 from django.core.exceptions import ObjectDoesNotExist
 
 
@@ -2225,6 +2232,8 @@ def wms_get_existencias(row,n_ajuste):
         print(e)
         return JsonResponse({'error': str(e)}, status=500)
     
+    
+    
 def wms_liberacion_cuarentena(existencia,n_referencia,user_id):
     try:
         #crea un egreso en la tabla movimientos ejmpl: 
@@ -2321,6 +2330,82 @@ def wms_resposicion_rm(request):
         cursor.close()
         
     return render(request, 'wms/reporte_rm.html', context)
+
+
+
+def wms_nota_entrega_input_ajax(request):
+    
+    
+    n_entrega = int(request.POST['nota_entrega'])
+    
+    ne_existente = NotaEntrega.objects.filter(doc_id=n_entrega)
+    
+    if ne_existente.exists():
+        return JsonResponse({
+                'msg':{
+                    'type': 'warning',
+                    'texto':'⚠ Nota de entrega ya añadida !!!'
+                }
+            })
+        
+    elif not ne_existente.exists():
+
+        ne_datos = wms_datos_nota_entrega(n_entrega)
+        try:
+            for i in ne_datos:
+                
+                ne = NotaEntrega(
+                    doc_id_corp     = i['doc_id_corp'],
+                    doc_id          = i['doc_id'],
+                    product_id      = i['product_id'],
+                    lote_id         = i['lote_id'],
+                    fecha_caducidad = i['fecha_caducidad'],
+                    unidades        = i['unidades']
+                )
+            
+                ne.save()
+            
+            if ne.id:
+                return JsonResponse({
+                    'msg':{
+                        'type': 'success',
+                        'texto': f'✅ Nota de entrega {ne.doc_id} añadida exitosamente !!!'
+                    }
+                })
+        except:
+            return JsonResponse({
+                'msg':{
+                    'type': 'danger',
+                    'texto':'❌ Error !!!'
+                }
+            })
+    
+    else:
+        return JsonResponse({
+                'msg':{
+                    'type': 'danger',
+                    'texto':'❌ Error !!!'
+                }
+            })
+
+
+def wms_nota_entrega_list(request):
+    
+    ne_list = pd.DataFrame(NotaEntrega.objects.all().values()).drop_duplicates(subset='doc_id', keep='last')
+    
+    if not ne_list.empty:
+        ne_list = ne_list.sort_values(by='fecha_hora')
+        ne_list['fecha_hora'] = pd.to_datetime(ne_list['fecha_hora']).dt.strftime('%d-%m-%Y - %r').astype(str)
+        
+        ne_list = de_dataframe_a_template(ne_list)
+    
+    context= {'ne_list':ne_list,}
+    
+    return render(request, 'wms/nota_entrega_list.html', context)
+
+
+
+
 
 
 

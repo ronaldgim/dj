@@ -81,4 +81,11 @@ urlpatterns = [
         name='tramaco_function_ajax',   
     ),
 
+    # Query notas de credito
+    path(
+        route='wms_datos_nota_entrega',
+        view=views.wms_datos_nota_entrega,
+        name='wms_datos_nota_entrega',   
+    ),
+
 ]
