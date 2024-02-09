@@ -47,6 +47,8 @@
                 <thead>
                     <tr>
                         <th scope="col">Proveedor</th>
+                        <th scope="col">Orden MBA</th>
+                        <th scope="col">Orden GIM</th>
                         <th scope="col">Bodega</th>
                         <th scope="col">Acciones</th>
                     </tr>
@@ -54,10 +56,9 @@
                 <tbody id="pedidosbuscar">
                     {% for i in imp %}
                     <tr>
-                        <td>{{i.Marca}} <br>
-                            {{i.n_referencia}} <br>
-                        </td>
-
+                        <td>{{i.Marca}}</td>
+                        <td>{{i.n_referencia}}</td>
+                        <td>{{i.MEMO}}</td>
                         <td>{{i.bodega}}</td>
 
                         <td>

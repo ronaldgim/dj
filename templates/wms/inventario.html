@@ -11,6 +11,8 @@
 {% block body %}
 <h5 class="m-4 text-center"><strong>INVENTARIO - EXISTENCIAS</strong></h5>
 
+<div id="msg"></div>
+
 {% if messages %}
 {% for message in messages %}
 {% if message.tags == 'success'%}
@@ -25,24 +27,22 @@
 {% endfor %}
 {% endif %}
 
-<!--h6 class="m-4 text-end"><strong>Actulizado: </strong>{{actualizado|slice:':-7'}}</h6-->
-
-<!--form method="POST">
-    {% csrf_token %} 
-    <button type="submit" class="btn btn-primary mb-2">
-        <i class="bi bi-arrow-clockwise"></i> Actulizar Tabla
-    </button>
-</form-->
 
 {% if request.user.is_superuser %}
-<a class="btn btn-primary mb-2" href="{% url 'wms_btn_actualizar_todas_existencias' %}">Actulizar todas las existencias</a>
+<a class="btn btn-warning mb-2" href="{% url 'wms_btn_actualizar_todas_existencias' %}">Actulizar todas las existencias</a>
 {% endif %}
+
+<div class="text-end">
+    <button class="btn btn-sm btn-primary mb-2" name="actualizar_get">
+        <i class="bi bi-arrow-clockwise"></i> Actuaizar
+    </button>
+</div>
 
 <div class="col-12">
     <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
 </div>
 
-<div id="msg"></div>
+
 
 <div class="card mt-2 mb-2">
     <div class="card-body m-0 p-0">
@@ -51,11 +51,7 @@
                 <thead>
                     <tr>
                         <th scope="col">Item</th>
-                        <!--th scope="col">Lote</th-->
-                        <!--th scope="col">Caducidad</th-->
                         <th scope="col">Ubicación</th>
-                        <!--th scope="col">Unidades</th-->
-                        <!--th scope="col">Acciones</th-->
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
@@ -66,39 +62,20 @@
                             <span class="fw-bold">Nombre:</span> {{i.Nombre}}<br>
                             <span class="fw-bold">Marca:</span> {{i.Marca}}<br>
                             <span class="fw-bold">Lote:</span> <span id="lote">{{i.lote_id}}</span> <br>
-                            <span class="fw-bold">Fecha:</span> {{i.fecha_caducidad}}
+                            <span class="fw-bold">FExp:</span> {{i.fecha_caducidad}}
                         </td>
-                        <!--td>{{i.item__lote_id}}<br>
-                            {{i.item__fecha_caducidad|date:'Y-m-d'}}
-                        </td-->
-                        <!--td>{{i.item__fecha_caducidad|date:'Y-m-d'}}</td-->
-                        {#% if i.ubicacion__bodega %#}
                         <td>
-                            <span class="fw-bold">Ubicación:</span> <span id="ubi">
-                            {% if i.estado == "Cuarentena" %}CUC-{% endif %} {{i.ubicacion__bodega}}-{{i.ubicacion__pasillo}}-{{i.ubicacion__modulo}}{% if i.ubicacion__bodega == 'CN6' %}-{{i.ubicacion__nivel}}{% else %}{% endif %}
-                            </span> <br>
+                            <span class="fw-bold">Ubicación:</span><br>
+                                {% if i.estado == "Cuarentena" %}CUC-{% endif %}{{i.ubicacion__bodega}}-{{i.ubicacion__pasillo}}-{{i.ubicacion__modulo}}{% if i.ubicacion__bodega == 'CN6' %}-{{i.ubicacion__nivel}}{% else %}{% endif %}
+                            <br>
                             <span class="fw-bold">Unidades:</span> {{i.unidades|floatformat:"0g"}}<br>
-                            <span class="fw-bold">Acciones:</span> <div class="input-group"> <!-- href="{#% url 'wms_mov_int' i.id %#}"  lote='{{i.item__lote_id}}' bod='i.ubicacion__bodega' pas='i.ubicacion__pasillo' mod='i.ubicacion__modulo' niv='i.ubicacion__nivel' -->
-                                
+                            <span class="fw-bold">Acciones:</span><br>
+                            <!--div class="input-group"--> 
                                 <a class="btn btn-primary btn-sm" href="{% url 'wms_mov_interno' i.id %}">
-                                    <i class="bi bi-arrows-move"></i> Mov.Interno
+                                    <i class="bi bi-arrows-move"></i> Mov.Int.
                                 </a>
-
-                                <!--a class="btn btn-primary btn-sm" 
-                                href="{#% url 'wms_mov_interno' prod=i.item__product_id lote=i.item__lote_id bod=i.ubicacion__bodega pas=i.ubicacion__pasillo mod=i.ubicacion__modulo niv=i.ubicacion__nivel %#}"
-                                >
-                                    <i class="bi bi-arrows-move"></i> Mov.Interno
-                                </a-->
-
-                                <!--button class="btn btn-primary btn-sm" name="mov-interno">
-                                    <i class="bi bi-arrows-move"></i> Mov.Interno
-                                </button-->
-
-                            </div>
+                            <!--/div-->
                         </td>
-                        {#% endif %#}
-                        <!--td class="text-end">{{i.total_unidades|floatformat:"0g"}}</td-->
-                        <!--td>asd</td-->
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -121,36 +98,14 @@
     });
 </script>
 
-<!-- Pasar datos por request para movimiento interno-->
-<!--script>
+<!-- Actualizar lista -->
+<script>
 
-$("button[name='mov-interno']").click(function(){
-    var product_id = $(this).closest("tr").find("#prod").html();
-    var lote_id = $(this).closest("tr").find("#lote").html();
-    var ubicacion  = $(this).closest("tr").find("#ubi").html();
-
-    $.ajax({
-        type:"GET",
-        url:"{#% url 'wms_mov_interno' %#}",
-        data:{
-            //'csrfmiddlewaretoken': '{{ csrf_token }}',
-            'product_id':product_id,
-            'lote_id':lote_id,
-            'ubicacion' :ubicacion
-        },
-        success: function(){
-            // window.location.replace("http://172.16.28.17:8000/wms/inventario/mov-interno")
-            window.location.replace("http://127.0.0.1:8000/wms/inventario/mov-interno")
-        },
-        error:function(){
-            $('#msg').html('<div class="text-center alert alert-danger mt-3" role="alert"> Error !!! </div>')
-                setTimeout(function(){
-                window.location.reload();
-                }, 2000)
-        }
-    })
+$("button[name='actualizar_get']").click(function(){
+    window.location.reload();
+    $('#msg').html('<div class="text-center alert alert-success" role="alert"> Inventario Actualizado !!! </div>')
 })
 
-</script-->
+</script>
 
 {% endblock %}

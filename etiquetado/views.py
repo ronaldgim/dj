@@ -1381,7 +1381,7 @@ def picking(request):
 # Vista personal de picking (lista)
 @login_required(login_url='login')
 def picking_estado(request):
-
+    
     if request.user.has_perm('etiquetado.view_estadopicking'):
         # HABILITAR ACTUALIZACIÓN
         actualizado = pd.DataFrame(TimeStamp.objects.all().values())
@@ -1437,7 +1437,10 @@ def picking_estado(request):
         # Config
         reservas['FECHA_PEDIDO'] = reservas['FECHA_PEDIDO'].astype(str)
 
-        # Convertir en lista de diccionarios para pasar al template
+        # Filtrar solo por bodega Andagoya
+        reservas = reservas[reservas['WARE_CODE']=='BAN']
+        
+        # Convertir en lista de diccionarios para pasar al template        
         reservas = de_dataframe_a_template(reservas)
 
 
