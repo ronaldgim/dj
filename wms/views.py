@@ -1580,11 +1580,13 @@ def wms_get_existencias(row,n_ajuste):
         existencia = Existencias.objects.filter(
             estado='Cuarentena',
             product_id=row['PRODUCT_ID_CORP'].replace('-GIMPR', ''),
-            lote_id=row['LOTE_ID']
+            lote_id=row['LOTE_ID'],
+            unidades__lte=row['COMMITED']
         ).get()
+
         print(existencia)
         #si tiene estado 0 
-        wms_liberacion_cuarentena(existencia, n_ajuste, 2)
+        wms_liberacion_cuarentena(existencia, n_ajuste, 2,row['COMMITED'])
     except ObjectDoesNotExist:
         print('no existe')
         # Maneja el caso de no existencia aquí
@@ -1592,12 +1594,12 @@ def wms_get_existencias(row,n_ajuste):
         print(e)
         return JsonResponse({'error': str(e)}, status=500)
     
-def wms_liberacion_cuarentena(existencia,n_referencia,user_id):
+def wms_liberacion_cuarentena(existencia,n_referencia,user_id,cantidad):
     try:
         #crea un egreso en la tabla movimientos ejmpl: 
         Movimiento.objects.create(
             tipo='Egreso',
-            unidades=-existencia.unidades,
+            unidades=cantidad * -1,
             descripcion='N/A',
             n_referencia=n_referencia,
             referencia='Liberación',
@@ -1615,7 +1617,7 @@ def wms_liberacion_cuarentena(existencia,n_referencia,user_id):
         #crear un ingreso
         Movimiento.objects.create(
             tipo='Ingreso',
-            unidades=existencia.unidades,
+            unidades=cantidad,
             descripcion='N/A',
             n_referencia=n_referencia,
             referencia='Liberación',
@@ -1624,7 +1626,7 @@ def wms_liberacion_cuarentena(existencia,n_referencia,user_id):
             fecha_caducidad=existencia.fecha_caducidad,
             estado='Disponible',
             estado_picking='',
-            ubicacion_id=existencia.ubicacion,
+            ubicacion_id=606,
             usuario_id=user_id,
             fecha_hora=datetime.now(),
             actualizado=datetime.now()
