@@ -630,7 +630,6 @@ Realizado por: {user.first_name} {user.last_name}\n
 def wms_movimiento_interno(request, id): #OK
 
     item = Existencias.objects.get(id=id)
-    #ubicaciones = Ubicacion.objects.exclude(id=item.ubicacion.id)
     und_existentes = item.unidades
 
     if request.method == 'POST':
@@ -700,7 +699,6 @@ def wms_movimiento_interno(request, id): #OK
 
     context = {
         'item':item,
-        #'ubi':ubicaciones,
     }
 
     return render(request, 'wms/movimiento_interno.html', context)
@@ -2214,7 +2212,8 @@ def wms_busqueda_ajuste(request, n_ajuste):
         print(e)
         return JsonResponse({'error': str(e)}, status=500)      
 
-   
+
+
 def wms_get_existencias(row,n_ajuste):
     try:
         existencia = Existencias.objects.filter(
@@ -2288,9 +2287,8 @@ def wms_liberacion_cuarentena(existencia,n_referencia,user_id):
     except Exception as e:
         print(e)
         return JsonResponse({'error': str(e)}, status=500)
-   
-    
-    
+
+
 
 
 def wms_resposicion_rm(request):
@@ -2331,6 +2329,27 @@ def wms_resposicion_rm(request):
         
     return render(request, 'wms/reporte_rm.html', context)
 
+
+# Reporte de nivel uno vacio rm
+def wms_reporte_nivelunovacio_rm(request):
+    try:
+        with connections['default'].cursor() as cursor:
+            cursor.execute(
+            "SELECT bodega, pasillo, modulo, nivel, count(nivel) as count " 
+            "FROM wms_ubicacion left join wms_existencias on wms_ubicacion.id=wms_existencias.ubicacion_id " 
+            "where wms_existencias.unidades IS null AND bodega='CN6' GROUP BY bodega, pasillo, modulo, nivel;" 
+            )
+            columns =  [col[0] for col in cursor.description]
+            query   = [dict(zip(columns, row)) for row in cursor.fetchall()]
+            df_free = pd.DataFrame(query)
+            df_free = df_free[df_free['nivel'] == "1"]
+            df_free_template = de_dataframe_a_template(df_free)
+    except Exception as e:
+        print(e)
+    finally:
+        cursor.close()
+        context = {'reporte':df_free_template}
+    return render(request, 'wms/reporte_nivelunovacio.html', context)
 
 
 # Ingresar nota de entrega AJAX
@@ -2545,6 +2564,11 @@ def wms_movimiento_egreso_nota_entrega(request): #OK
             return JsonResponse({'msg':f'✅ Producto {prod_id}, lote {lote_id} seleccionado correctamente !!!'})
         return JsonResponse({'msg':'❌ Error !!!'})
     return JsonResponse({'msg':'❌Error !!!'})
+
+
+
+
+
 
 
 

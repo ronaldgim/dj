@@ -313,6 +313,12 @@ urlpatterns = [
         name = 'wms_resposicion_rm'
     ),
     
+    path(
+        route='reporte/nivelunovacio/rm',
+        view = views.wms_reporte_nivelunovacio_rm,
+        name = 'wms_reporte_nivelunovacio_rm'
+    ),
+    
     
     # Notas de entrega
     path(
