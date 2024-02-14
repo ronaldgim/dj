@@ -42,6 +42,10 @@
 {% endif %}
 
 
+<button class="btn btn-primary mb-2" name="actualizar">
+    <i class="bi bi-arrow-clockwise"></i> Actualizar
+</button>
+
 <div id="msg"></div>
 
 <div class="card mb-2">
@@ -51,8 +55,8 @@
                 <thead>
                     <tr>
                         <th scope="col">product_id</th>
-                        <th scope="col">count_x</th>
-                        <th scope="col">count_y</th>
+                        <th scope="col">Psiciones</th>
+                        <!--th scope="col">count_y</th-->
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
@@ -60,7 +64,7 @@
                         <tr>
                             <td>{{i.product_id}}</td>
                             <td>{{i.count_x}}</td>
-                            <td>{{i.count_y}}</td>
+                            <!--td>{{i.count_y}}</td-->
                         </tr>
                     {% endfor %}
                 </tbody>
@@ -68,6 +72,17 @@
         </div>
     </div>
 </div>
+
+
+<!-- Actualizar tabla "GET" -->
+<script>
+    $(document).ready(function() {
+        $("button[name='actualizar']").click(function(){
+            window.location.reload(true);  // Recarga la pagina sin almacenar en cache
+        })
+    })
+
+</script>
 
 <!--filtro buscar-->
 <script>
