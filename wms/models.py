@@ -170,6 +170,19 @@ class NotaEntrega(models.Model):
         return self.doc_id
 
 
+class AnulacionPicking(models.Model):
+    
+    picking_anulado = models.CharField(verbose_name='Pikcing nulado', max_length=50, unique=True)
+    picking_nuevo   = models.CharField(verbose_name='Pikcing nuevo', max_length=50)
+    estado          = models.BooleanField(verbose_name='Estado', default=False) 
+    usuario         = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.CASCADE, blank=True, null=True)
+    fecha_hora      = models.DateTimeField(verbose_name='Fecha Hora', auto_now_add=True)
+    
+    
+    def __str__(self):
+        return self.picking_anulado #, self.picking_nuevo
+    
+    
 # class Liberacion(models.Model):
     
 #     documento  = models.CharField(verbose_name='Documento', max_length=100, unique=True)

@@ -53,7 +53,9 @@ from wms.models import (
     Existencias, 
     Transferencia, 
     LiberacionCuarentena,
-    NotaEntrega)
+    NotaEntrega,
+    AnulacionPicking)
+
 from django.core.exceptions import ObjectDoesNotExist
 
 
@@ -616,7 +618,7 @@ Realizado por: {user.first_name} {user.last_name}\n
 ***Este mensaje fue enviado automaticamente mediante WMS***
 ''',
         from_email     = settings.EMAIL_HOST_USER,
-        recipient_list = ['carcosh@gimpromed.com','dreyes@gimpromed.com','jgualotuna@gimpromed.com','ncaisapanta@gimpromed.com'],
+        recipient_list = ['dreyes@gimpromed.com','jgualotuna@gimpromed.com','ncaisapanta@gimpromed.com'],
         fail_silently  = False
         )
 
@@ -683,7 +685,7 @@ def wms_movimiento_interno(request, id): #OK
                     ubi_egreso  = item.ubicacion.id,
                     ubi_ingreso = ubi_post,
                     unidades    = und_post,
-                    usuario=request.user.id
+                    usuario     = request.user.id
                 )
 
             messages.success(request, 'Movimiento realizado con exito !!!')
@@ -1740,9 +1742,6 @@ def wms_transferencia_input_ajax(request):
     n_trasf = request.POST['n_trasf']
     trans_mba  = doc_transferencia_odbc(n_trasf)
 
-    # bodega_salida = trans_mba.loc[0]['bodega_salida']
-    # if bodega_salida == 'BCT':
-
     new_transf = Transferencia.objects.filter(n_transferencia=n_trasf)
     if not new_transf.exists():
 
@@ -1773,9 +1772,6 @@ def wms_transferencia_input_ajax(request):
 
     elif new_transf.exists():
         return HttpResponse(f'La Transferencia {n_trasf} ya fue añadida')
-    
-    # else:
-        # return HttpResponse(f'La Transferencia {n_trasf} no sale desde bodega Cerezos')
 
 
 
@@ -2355,7 +2351,6 @@ def wms_reporte_nivelunovacio_rm(request):
 # Ingresar nota de entrega AJAX
 def wms_nota_entrega_input_ajax(request):
     
-    
     n_entrega = int(request.POST['nota_entrega'])
     
     ne_existente = NotaEntrega.objects.filter(doc_id=n_entrega)
@@ -2566,6 +2561,103 @@ def wms_movimiento_egreso_nota_entrega(request): #OK
     return JsonResponse({'msg':'❌Error !!!'})
 
 
+
+## Anulación picking
+def wms_anulacion_picking_list(request):
+    
+    anuladas = AnulacionPicking.objects.all().order_by('-fecha_hora')
+    
+    if request.method == 'POST':
+        
+        p_anulado = request.POST['p_anulado'] + '.0'
+        p_nuevo   = request.POST['p_nuevo']   + '.0'
+        
+        try:
+        
+            pn = AnulacionPicking(
+                picking_anulado = p_anulado,
+                picking_nuevo   = p_nuevo,
+                usuario_id      = request.user.id
+            )
+            
+            pn.save()
+            
+            messages.success(request, f'Se añadio la anulación del picking {p_anulado}')
+            
+            return redirect('wms_anulacion_picking_list')
+            
+        except Exception as e:
+            messages.error(request, e)
+            
+    
+    context = {
+        'anuladas':anuladas
+    }
+    
+    return render(request, 'wms/anulacion_picking_crear.html', context)
+
+
+# Anulación de picking detalle
+def wms_anulacion_picking_detalle(request, id_anulacion):
+    
+    prod      = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+    anulacion = AnulacionPicking.objects.get(id=id_anulacion)
+    cabecera  = EstadoPicking.objects.get(n_pedido=anulacion.picking_anulado)
+    
+    if anulacion.estado == True:
+        picking = anulacion.picking_nuevo
+    else:
+        picking = anulacion.picking_anulado
+    
+    
+    movs = pd.DataFrame(Movimiento.objects.filter(n_referencia=picking)
+                    .values('n_referencia','product_id','lote_id', 'unidades'))
+    movs['Picking nuevo'] = anulacion.picking_nuevo
+    movs['estado']        = anulacion.estado
+    movs['unidades']      = movs['unidades'] *-1
+    
+    movs = movs.merge(prod, on='product_id', how='left')
+    movs = de_dataframe_a_template(movs)
+    
+    context = {
+        'cabecera':cabecera,
+        'anulacion':anulacion,
+        'movs':movs,
+    }
+
+    return render(request, 'wms/anulacion_picking_detalle.html', context)
+
+
+
+
+## Anulación picking
+def wms_anulacion_picking_ajax(request):
+    
+    id_anulacion = int(request.POST['id_anulacion'])
+    anulacion = AnulacionPicking.objects.get(id=id_anulacion)
+        
+    movs = Movimiento.objects.filter(n_referencia=anulacion.picking_anulado)
+    
+    if movs.exists():
+        
+        movs.update(n_referencia=anulacion.picking_nuevo)
+        anulacion.estado = True
+        anulacion.save()
+    
+        return JsonResponse({
+            'msg':{
+                'tipo': 'success',
+                'texto': f'✅ Se ha cambiado el picking {anulacion.picking_anulado} por {anulacion.picking_nuevo} !!!'
+            }
+        })
+        
+    else:
+        return JsonResponse({
+            'msg':{
+                'tipo': 'error',
+                'texto': f'❌ Error, intenta nuevamente !!!'
+            }
+        })
 
 
 
