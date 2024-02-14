@@ -1,0 +1,185 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Anular Picking</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'wms/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+
+<style>
+    .btn.btn-warning.btn-sm.active {
+    background-color: blue;}
+
+    .mensaje-temporal {
+        display: none;
+        position: absolute;
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+    }
+
+    #msg_ss {
+        display: none;
+        position: fixed; /* Cambiado a fixed para que sea relativo a la ventana */
+        /*bottom: 10px; */ /* Distancia desde la parte inferior */
+        top:40%;
+        right: 10px; /* Distancia desde la derecha */
+        /*background-color: #4CAF50;*/
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+        width:auto;
+        z-index: 3;
+        }
+</style>
+
+<h6 class="mt-2 text-center"><strong>Anular picking</strong></h6>
+
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
+
+<form method='POST'>
+    {% csrf_token %}
+    <label class="fw-bold">Pikcing Anulado:</label>
+    <input class="form-control" name="p_anulado" required />
+    <label class="fw-bold">Picking Nuevo:</label>
+    <input class="form-control" name="p_nuevo" required />
+
+    <button type="submit" class="btn btn-primary mt-2" name="anular">
+        Anular picking
+    </button>
+</form>
+
+<div class="mt-2" id="msg"></div>
+<div class="mensaje-temporal" id="miMensajeTemporal"></div>
+
+<div class="mt-4 mb-4" id="datos"></div>
+
+
+<div class="card mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table" style="font-size: small;" id="mitabla">
+                <thead>
+                    <tr>
+                        <th scope="col">Picking anulado</th>
+                        <th scope="col">Picking nuevo</th>
+                        <th scope="col">Fecha de anulación</th>
+                        <th scope="col">Estado</th>
+                        <th scope="col">Ver</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in anuladas %}
+                        <tr>
+                            <td>{{i.picking_anulado | slice:'-2'}}</td>
+                            <td>{{i.picking_nuevo | slice:'-2'}}</td>
+                            <td>{{i.fecha_hora}}</td>                            
+                            <td>
+                                {% if i.estado %}
+                                    Confirmado
+                                {% else %}
+                                    Sin confirmar
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a class="btn btn-primary btn-sm" href="{% url 'wms_anulacion_picking_detalle' i.id %}"> 
+                                    <i class="bi bi-eye"></i> 
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<script>
+
+    $("button[name='anular']").click(function(){
+
+        var p_anulado = $("#p_anulado").val();
+        var p_nuevo   = $("#p_nuevo").val();
+
+        $.ajax({
+            type:"POST",
+            url:"{#% url 'wms_crear_anulacion_picking_ajax' %#}",
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'p_anulado':p_anulado,
+                'p_nuevo':p_nuevo,
+            },
+
+            success: function(response) {
+                $('#msg').html(`
+                <div class="text-center alert alert-${response.msg.tipo}" role="alert"> 
+                    ${response.msg.texto}
+                </div>
+                `)
+
+                $("#datos").html(`
+                <h6>${response.cliente} - ${response.tipo_cliente}</h6>
+                <div class="card">
+                    <div class="card-body">
+                    ${response.table}
+                    </div>
+                </div>
+                `)
+            },
+
+            error: function() {
+                $('#msg').html(`
+                <div class="text-center alert alert-${response.msg.tipo}" role="alert"> 
+                    ${response.msg.texto}
+                </div>
+                `)
+            }
+            
+        })
+    })
+</script>
+
+<script>
+    // Función para mostrar un mensaje temporal
+    function mostrarMensajeTemporal(mensaje, boton) {
+        var mensajeTemporal = $("button[name='cruce']");
+        var botonOffset = boton.offset();
+
+        // Colocar el mensaje al lado del botón
+        mensajeTemporal.css({
+            top: botonOffset.top + boton.outerHeight(),
+            left: botonOffset.left
+        });
+
+        // Establecer el contenido del mensaje
+        mensajeTemporal.text(mensaje);
+
+        // Mostrar el mensaje
+        mensajeTemporal.fadeIn();
+
+        // Ocultar el mensaje después de 3 segundos
+        setTimeout(function() {
+            mensajeTemporal.fadeOut();
+        }, 3000)}
+</script>  
+{% endblock %}

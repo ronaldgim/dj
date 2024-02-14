@@ -347,6 +347,26 @@ urlpatterns = [
     ),
     
     
+    # Anulación de pikcing
+    path(
+        route='anulacion-picking/list',
+        view = views.wms_anulacion_picking_list,
+        name = 'wms_anulacion_picking_list'
+    ),
+    
+    path(
+        route='anulacion-picking/detalle/<int:id_anulacion>',
+        view = views.wms_anulacion_picking_detalle,
+        name = 'wms_anulacion_picking_detalle'
+    ),
+    
+    path(
+        route='anulacion-picking/ajax',
+        view = views.wms_anulacion_picking_ajax,
+        name = 'wms_anulacion_picking_ajax'
+    ),
+    
+    
     
     # # Reporte de reposición de nivel 1 bodega 6
     # path(
