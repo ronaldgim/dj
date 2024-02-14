@@ -1508,6 +1508,12 @@ def wms_reservas_lote_consulta_ajax(request):
 @login_required(login_url='login')
 def wms_productos_en_despacho_list(request): #OK
 
+    anulados = pd.DataFrame(AnulacionPicking.objects.filter(estado=True).values(
+        'picking_nuevo','picking_anulado'))
+    anulados = anulados.rename(columns={'picking_nuevo':'n_referencia'})
+    anulados['n_referencia'] = anulados['n_referencia'].astype('float')
+    anulados['n_referencia'] = anulados['n_referencia'].astype('int')
+    
     mov      = Movimiento.objects.filter(estado_picking='En Despacho')
     mov_list = mov.values_list('n_referencia', flat=True).distinct()
     pik      = EstadoPicking.objects.filter(n_pedido__in=mov_list)
@@ -1528,6 +1534,7 @@ def wms_productos_en_despacho_list(request): #OK
     en_despacho['fecha_hora'] = pd.to_datetime(en_despacho['fecha_hora']).dt.strftime('%Y-%m-%d %H:%M')
 
     en_despacho = en_despacho.sort_values(by='n_referencia')
+    en_despacho = en_despacho.merge(anulados, on='n_referencia', how='left')
     en_despacho = de_dataframe_a_template(en_despacho)
 
     context = {
@@ -1541,6 +1548,12 @@ def wms_productos_en_despacho_list(request): #OK
 # Lista de picking en despacho
 @login_required(login_url='login')
 def wms_picking_en_despacho_list(request): #OK
+    
+    anulados = pd.DataFrame(AnulacionPicking.objects.filter(estado=True).values(
+        'picking_nuevo','picking_anulado'))
+    anulados = anulados.rename(columns={'picking_nuevo':'n_referencia'})
+    anulados['n_referencia'] = anulados['n_referencia'].astype('float')
+    anulados['n_referencia'] = anulados['n_referencia'].astype('int')
 
     mov      = Movimiento.objects.filter(estado_picking='En Despacho')
     mov_list = mov.values_list('n_referencia', flat=True).distinct()
@@ -1557,6 +1570,7 @@ def wms_picking_en_despacho_list(request): #OK
 
     en_despacho = en_despacho.sort_values(by='n_referencia')
     en_despacho = en_despacho.drop_duplicates(subset='n_referencia', keep='last')
+    en_despacho = en_despacho.merge(anulados, on='n_referencia', how='left')
     en_despacho = de_dataframe_a_template(en_despacho)
 
     context = {
