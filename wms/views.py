@@ -2533,12 +2533,12 @@ def wms_movimiento_egreso_nota_entrega(request): #OK
         mov['unidades'] = pd.Series.abs(mov['unidades'])
         mov = mov[['product_id','unidades']].groupby(by='product_id').sum()
         mov = de_dataframe_a_template(mov)[0]
-        total_mov = mov['unidades'] + int(unds_egreso)
+        total_mov = mov['unidades'] + unds_egreso
     else:
-        total_mov = int(unds_egreso)
+        total_mov = unds_egreso
 
-    total_nota_entrega = sum(Transferencia.objects
-        .filter(n_transferencia=n_entrega)
+    total_nota_entrega = sum(NotaEntrega.objects
+        .filter(doc_id=n_entrega)
         .filter(product_id=prod_id).values_list('unidades',flat=True))
 
     if not existencia.exists():
