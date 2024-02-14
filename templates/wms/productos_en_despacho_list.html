@@ -65,19 +65,18 @@
                     {% for i in mov %}
                         <tr>
                             <td>{{i.referencia}}</td>
-                            <td>{{i.n_referencia}}</td>
+                            <td>{{i.n_referencia}} 
+
+                                {% if i.picking_anulado %}
+                                    <a class="btn btn-danger btn-sm disabled">{{i.picking_anulado|slice:"-2"}}</a>
+                                {% endif %}
+                            </td>
                             <td>{{i.cliente|default:"N/A"}}</td>                            
                             <td>{{i.product_id}}</td>
                             <td>{{i.lote_id}}</td>
                             <td>{{i.ubicacion__bodega}}-{{i.ubicacion__pasillo}}-{{i.ubicacion__modulo}}-{{i.ubicacion__nivel}}</td>
                             <td>{{i.fecha_hora}}</td>
                             <td class="text-end">{{i.unidades|floatformat:"0g"}}</td>
-                            
-                            <!--td class="text-end">
-                                <button class="btn btn-primary btn-sm disabled">
-                                    <i class="bi bi-geo-fill"></i>
-                                </button>
-                            </td-->
                         </tr>
                     {% endfor %}
                 </tbody>
