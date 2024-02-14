@@ -44,27 +44,23 @@
 
 <div id="msg"></div>
 
+<button class="btn btn-primary mb-2" name="actualizar">
+    <i class="bi bi-arrow-clockwise"></i> Actualizar
+</button>
+
 <div class="card mb-2">
     <div class="card-body m-0 p-0">
         <div class="container table-responsive">
             <table class="table" style="font-size: small;" id="mitabla">
                 <thead>
                     <tr>
-                        <th scope="col">boodega</th>
-                        <th scope="col">pasillo</th>
-                        <th scope="col">modulo</th>
-                        <th scope="col">nivel</th>
-                        <th scope="col">count</th>
+                        <th scope="col">Posición</th>
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
                     {% for i in reporte %}
                         <tr>
-                            <td>{{i.bodega}}</td>
-                            <td>{{i.pasillo}}</td>
-                            <td>{{i.modulo}}</td>
-                            <td>{{i.nivel}}</td>
-                            <td>{{i.count}}</td>
+                            <td>{{i.bodega}}-{{i.pasillo}}-{{i.modulo}}-{{i.nivel}}</td>
                         </tr>
                     {% endfor %}
                 </tbody>
@@ -72,6 +68,17 @@
         </div>
     </div>
 </div>
+
+
+<!-- Actualizar tabla "GET" -->
+<script>
+    $(document).ready(function() {
+        $("button[name='actualizar']").click(function(){
+            window.location.reload(true);  // Recarga la pagina sin almacenar en cache
+        })
+    })
+
+</script>
 
 <!--filtro buscar-->
 <script>
