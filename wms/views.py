@@ -1700,7 +1700,7 @@ def wms_revision_transferencia_ajax(request):
         n_trasf = request.POST['n_trasf']
         prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
 
-        trasf_mba = doc_transferencia_odbc(n_trasf);print(trasf_mba)
+        trasf_mba = doc_transferencia_odbc(n_trasf) ;print(trasf_mba)
         trasf_mba = trasf_mba.groupby(by=['doc','product_id','lote_id','bodega_salida','f_cadu']).sum().reset_index()
         trasf_mba = trasf_mba.rename(columns={'unidades':'unidades_mba'})
         trasf_mba = trasf_mba.merge(prod, on='product_id', how='left')
@@ -1752,7 +1752,7 @@ def wms_revision_transferencia(request):
 
 
 # Transferencias estatus
-def wms_transferencias_estatus():
+def wms_transferencias_estatus_all():
     
     transf_list = Transferencia.objects.filter(bodega_salida='BCT').values_list('n_transferencia', flat=True).distinct()
     
@@ -1787,8 +1787,42 @@ def wms_transferencias_estatus():
             'texto':'✅ Estado de transferencia actualizado !!!'
         }
     })
-        
-        
+
+
+
+def wms_transferencias_estatus_transf(n_transf):
+    
+    transf_mba = Transferencia.objects.filter(n_transferencia=n_transf)
+    mba_total  = sum(transf_mba.values_list('unidades', flat=True))
+    
+    transf_wms = Movimiento.objects.filter(referencia='Transferencia').filter(n_referencia=n_transf)
+    wms_total  = sum(transf_wms.values_list('unidades', flat=True))*-1
+    
+    avance_i = round(((wms_total / mba_total) * 100), 1)
+    
+    if wms_total == 0 or wms_total == None:
+        estado_i = 'CREADO'
+    elif wms_total < mba_total:
+        estado_i = 'EN PROCESO'
+    elif mba_total == wms_total or wms_total > mba_total:
+        estado_i = 'FINALIZADO'    
+
+    transf_status = TransferenciaStatus.objects.get(n_transferencia=n_transf)
+    transf_status.estado       = estado_i
+    transf_status.unidades_mba = mba_total
+    transf_status.unidades_wms = wms_total
+    transf_status.avance       = avance_i
+    
+    transf_status.save()
+
+    return JsonResponse({
+        'msg':{
+            'tipo':'success',
+            'texto':f'✅ Transferencia {n_transf} actualizado !!!'
+        }
+    })
+
+
 # Agregar transferencia para realizar picking de transferencia 
 def wms_transferencia_input_ajax(request):
 
@@ -1832,17 +1866,19 @@ def wms_transferencia_input_ajax(request):
 def wms_transferencias_list(request):
     
     transf_wms = pd.DataFrame(Transferencia.objects.all().values()).drop_duplicates(subset='n_transferencia')
-    transf_wms = transf_wms[transf_wms['bodega_salida']=='BCT']
+    transf_wms = transf_wms[transf_wms['bodega_salida']=='BCT'] 
     
-    transf_status = pd.DataFrame(TransferenciaStatus.objects.all().values())[['n_transferencia','estado']]
+    transf_status = pd.DataFrame(TransferenciaStatus.objects.all().values())[['n_transferencia','estado','avance']]
     
     if not transf_wms.empty:
         transf_wms = transf_wms.sort_values(by='fecha_hora', ascending=False)
         transf_wms['fecha_hora'] = pd.to_datetime(transf_wms['fecha_hora']).dt.strftime('%d-%m-%Y - %r').astype(str)
+        
+    if not transf_status.empty:
         transf_wms = transf_wms.merge(transf_status, on='n_transferencia', how='left')
     
     transf_wms = de_dataframe_a_template(transf_wms)
-    wms_transferencias_estatus()
+    #wms_transferencias_estatus_all()
     context = {
         'transf_wms':transf_wms
     }
@@ -2156,8 +2192,7 @@ def wms_movimiento_egreso_transferencia(request): #OK
             transferencia.save()
 
             wms_existencias_query_product_lote(product_id=prod_id, lote_id=lote_id)
-            wms_transferencias_estatus()
-            #wms_existencias_query()
+            wms_transferencias_estatus_transf(transferencia.n_referencia)
 
             return JsonResponse({'msg':f'✅ Producto {prod_id}, lote {lote_id} seleccionado correctamente !!!'})
         return JsonResponse({'msg':'❌ Error !!!'})
