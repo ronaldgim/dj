@@ -78,6 +78,7 @@
                     <tr>
                         <th scope="col"># Transferencia</th>
                         <th scope="col">Fecha</th>
+                        <th scope="col">Estado</th>
                         <th scope="col">Ver Transferencia</th>
                     </tr>
                 </thead>
@@ -86,6 +87,17 @@
                     <tr>
                         <td>{{i.n_transferencia}}</td>
                         <td>{{i.fecha_hora}}</td>
+
+                        <td>
+                            {% if i.estado == 'CREADO' %}
+                            <a class="btn btn-sm btn-primary disabled">{{i.estado}}</a>
+                            {% elif i.estado == 'EN PROCESO' %}
+                            <a class="btn btn-sm btn-warning disabled">{{i.estado}} - {{i.avance}}%</a>
+                            {% elif i.estado == 'FINALIZADO' %}
+                            <a class="btn btn-sm btn-success disabled">{{i.estado}}</a>
+                            {% endif %}
+                        </td>
+
                         <td>
                             <a class="btn btn-primary" href="{% url 'wms_transferencia_picking' i.n_transferencia %}">
                                 <i class="bi bi-truck"></i>

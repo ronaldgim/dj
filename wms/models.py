@@ -134,6 +134,18 @@ class Transferencia(models.Model):
     
     def __str__(self):
         return self.n_transferencia
+    
+    
+class TransferenciaStatus(models.Model):
+    
+    n_transferencia = models.CharField(verbose_name='Número de trasferencia', max_length=50)
+    unidades_mba    = models.PositiveIntegerField(verbose_name='Unidades mba', default=0)
+    unidades_wms    = models.PositiveIntegerField(verbose_name='Unidades wms', default=0)
+    avance          = models.FloatField(verbose_name='Avance', default=0.0)
+    estado          = models.CharField(verbose_name='Estado', max_length=20)
+    
+    def __str__(self):
+        return self.estado
 
 class LiberacionCuarentena(models.Model):
     doc_id = models.CharField(max_length=255)
