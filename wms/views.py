@@ -54,7 +54,8 @@ from wms.models import (
     Transferencia, 
     LiberacionCuarentena,
     NotaEntrega,
-    AnulacionPicking)
+    AnulacionPicking,
+    TransferenciaStatus)
 
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -1750,6 +1751,44 @@ def wms_revision_transferencia(request):
     return render(request, 'wms/revision_trasferencia.html', {})
 
 
+# Transferencias estatus
+def wms_transferencias_estatus():
+    
+    transf_list = Transferencia.objects.filter(bodega_salida='BCT').values_list('n_transferencia', flat=True).distinct()
+    
+    for i in transf_list:
+        
+        transf_mba = Transferencia.objects.filter(n_transferencia=i)
+        mba_total  = sum(transf_mba.values_list('unidades', flat=True))
+        
+        transf_wms = Movimiento.objects.filter(n_referencia=i)
+        wms_total  = sum(transf_wms.values_list('unidades', flat=True))*-1
+        
+        avance_i = round(((wms_total / mba_total) * 100), 2)
+        
+        if wms_total == 0 or wms_total == None:
+            estado_i = 'CREADO'
+        elif wms_total < mba_total:
+            estado_i = 'EN PROCESO'
+        elif mba_total == wms_total or wms_total > mba_total:
+            estado_i = 'FINALIZADO'        
+        
+        TransferenciaStatus.objects.update_or_create(
+            n_transferencia = i,
+            unidades_mba    = mba_total,
+            unidades_wms    = wms_total,
+            avance          = avance_i,
+            estado          = estado_i
+        )
+        
+    return JsonResponse({
+        'msg':{
+            'tipo':'success',
+            'texto':'✅ Estado de transferencia actualizado !!!'
+        }
+    })
+        
+        
 # Agregar transferencia para realizar picking de transferencia 
 def wms_transferencia_input_ajax(request):
 
@@ -1794,12 +1833,16 @@ def wms_transferencias_list(request):
     
     transf_wms = pd.DataFrame(Transferencia.objects.all().values()).drop_duplicates(subset='n_transferencia')
     transf_wms = transf_wms[transf_wms['bodega_salida']=='BCT']
+    
+    transf_status = pd.DataFrame(TransferenciaStatus.objects.all().values())[['n_transferencia','estado']]
+    
     if not transf_wms.empty:
         transf_wms = transf_wms.sort_values(by='fecha_hora', ascending=False)
         transf_wms['fecha_hora'] = pd.to_datetime(transf_wms['fecha_hora']).dt.strftime('%d-%m-%Y - %r').astype(str)
-
+        transf_wms = transf_wms.merge(transf_status, on='n_transferencia', how='left')
+    
     transf_wms = de_dataframe_a_template(transf_wms)
-
+    wms_transferencias_estatus()
     context = {
         'transf_wms':transf_wms
     }
@@ -1810,7 +1853,10 @@ def wms_transferencias_list(request):
 
 @login_required(login_url='login')
 def wms_transferencia_picking(request, n_transf):
-
+    
+    estado = TransferenciaStatus.objects.get(n_transferencia=n_transf).estado
+    avance = TransferenciaStatus.objects.get(n_transferencia=n_transf).avance
+    
     prod   = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     
     # Trasferencia
@@ -1870,9 +1916,12 @@ def wms_transferencia_picking(request, n_transf):
 
     context = {
         'transf':transf_template,
-        'n_transf':n_transf
+        'n_transf':n_transf,
+        'estado':estado,
+        'avance':avance
     }
     return render(request, 'wms/transferencia_picking.html', context)
+
 
 
 
@@ -2107,6 +2156,7 @@ def wms_movimiento_egreso_transferencia(request): #OK
             transferencia.save()
 
             wms_existencias_query_product_lote(product_id=prod_id, lote_id=lote_id)
+            wms_transferencias_estatus()
             #wms_existencias_query()
 
             return JsonResponse({'msg':f'✅ Producto {prod_id}, lote {lote_id} seleccionado correctamente !!!'})
@@ -2603,7 +2653,6 @@ def wms_anulacion_picking_list(request):
         except Exception as e:
             messages.error(request, e)
             
-    
     context = {
         'anuladas':anuladas
     }
