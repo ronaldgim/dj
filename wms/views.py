@@ -1827,10 +1827,19 @@ def wms_transferencias_estatus_transf(n_transf):
 def wms_transferencia_input_ajax(request):
 
     n_trasf = request.POST['n_trasf']
+    
     trans_mba  = doc_transferencia_odbc(n_trasf)
 
     new_transf = Transferencia.objects.filter(n_transferencia=n_trasf)
     if not new_transf.exists():
+
+        TransferenciaStatus.objects.create(
+                n_transferencia = n_trasf,
+                estado          = 'CREADO',
+                unidades_mba    = 0,
+                unidades_wms    = 0,
+                avance          = 0.0
+            )
 
         trans_mba['n_transferencia'] = n_trasf
         trans_mba = trans_mba.groupby(by=['doc','n_transferencia','product_id','lote_id','f_cadu','bodega_salida']).sum().reset_index()
@@ -1854,7 +1863,7 @@ def wms_transferencia_input_ajax(request):
         Transferencia.objects.bulk_create(tr_list)
 
         messages.success(request, f'La Transferencia {n_trasf} fue añadida exitosamente !!!')
-        # messages.success(message=f'La Transferencia {n_trasf} fue añadida exitosamente !!!')
+        
         return redirect('/wms/transferencias/list')
 
     elif new_transf.exists():
@@ -1878,7 +1887,6 @@ def wms_transferencias_list(request):
         transf_wms = transf_wms.merge(transf_status, on='n_transferencia', how='left')
     
     transf_wms = de_dataframe_a_template(transf_wms)
-    #wms_transferencias_estatus_all()
     context = {
         'transf_wms':transf_wms
     }
@@ -1957,7 +1965,6 @@ def wms_transferencia_picking(request, n_transf):
         'avance':avance
     }
     return render(request, 'wms/transferencia_picking.html', context)
-
 
 
 
