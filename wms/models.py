@@ -192,23 +192,5 @@ class AnulacionPicking(models.Model):
     
     
     def __str__(self):
-        return self.picking_anulado #, self.picking_nuevo
-    
-    
-# class Liberacion(models.Model):
-    
-#     documento  = models.CharField(verbose_name='Documento', max_length=100, unique=True)
-#     memo       = models.TextField(verbose_name='Memo', blank=True)
-#     fecha_mba  = models.DateField(verbose_name='Fecha MBA', blank=True)
-    
-#     product_id = models.CharField(verbose_name='Product id', max_length=50)
-#     lote_id    = models.CharField(verbose_name='Lote id', max_length=50)
-#     fecha_caducidad = models.DateField(verbose_name='Fecha de caducidad')
-#     unidades        = models.PositiveIntegerField(verbose_name='Unidades ingresadas')
-    
-#     usuario    = models.ForeignKey(User, verbose_name='User', blank=True, on_delete=models.CASCADE)
-#     fecha_hora = models.DateTimeField(verbose_name='Fecha Hora', auto_now_add=True)
-    
-#     def __str__(self):
-#         return self.documento
+        return self.picking_anulado 
     
