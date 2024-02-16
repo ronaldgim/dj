@@ -2290,7 +2290,7 @@ def wms_busqueda_ajuste(request, n_ajuste):
                     wms_get_existencias(row,n_ajuste)
                 else:
                     if(existe.estado==0):
-                         wms_get_existencias(row,n_ajuste)
+                        wms_get_existencias(row,n_ajuste)
                     
                 
             # LiberacionCuarentena.objects.bulk_create(liberacion_cuarentena_objects)
@@ -2349,7 +2349,8 @@ def wms_liberacion_cuarentena(existencia,n_referencia,user_id):
             fecha_caducidad=existencia.fecha_caducidad,
             estado='Cuarentena',
             estado_picking='',
-            ubicacion_id=existencia.ubicacion,
+            #ubicacion_id=existencia.ubicacion,
+            ubicacion_id=existencia.ubicacion.id,
             usuario_id=user_id,
             fecha_hora=datetime.now(),
             actualizado=datetime.now()
@@ -2367,14 +2368,21 @@ def wms_liberacion_cuarentena(existencia,n_referencia,user_id):
             fecha_caducidad=existencia.fecha_caducidad,
             estado='Disponible',
             estado_picking='',
-            ubicacion_id=existencia.ubicacion,
+            #ubicacion_id=existencia.ubicacion,
+            ubicacion_id=existencia.ubicacion.id,
             usuario_id=user_id,
             fecha_hora=datetime.now(),
             actualizado=datetime.now()
         )
         
         #actualizar estado de LiberacionCuarentena a 1
-        Existencias.objects.filter(
+        # Existencias.objects.filter(
+        #     product_id=existencia.product_id,
+        #     lote_id=existencia.lote_id,
+        #     doc_id=n_referencia
+        # ).update(estado=1)
+        
+        LiberacionCuarentena.objects.filter(
             product_id=existencia.product_id,
             lote_id=existencia.lote_id,
             doc_id=n_referencia
