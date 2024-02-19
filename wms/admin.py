@@ -63,3 +63,20 @@ class TransferenciaAdmin(admin.ModelAdmin):
     # list_display_links = []
     search_fields = ['product_id',]
     # orderin = []
+    
+    
+    
+@admin.register(LiberacionCuarentena)
+class TransferenciaAdmin(admin.ModelAdmin):
+
+    list_display = (
+        'doc_id',
+        'product_id', 
+        'lote_id', 
+        'egreso_temp'
+        )
+    
+    list_filter = ('product_id',)
+    # list_display_links = []
+    search_fields = ['product_id',]
+    # orderin = []
