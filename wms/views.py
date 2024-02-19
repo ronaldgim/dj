@@ -2213,28 +2213,28 @@ def wms_ingreso_ajuste(request):
 
 
 def wms_busqueda_ajuste(request, n_ajuste):
-   
+
     cnxn = pyodbc.connect('DSN=mba3;PWD=API')
     cursorOdbc = cnxn.cursor()
     
 
     # La variable 'n' no está siendo usada en la consulta. Asegúrate de que sea necesario.
     n = 'A-00000' + str(n_ajuste) + '-GIMPR'
-     
+    
     #Transferencia Egreso
     try:
         cursorOdbc.execute(
-           "SELECT INVT_Producto_Lotes_Bodegas.Doc_id_Corp, "
-           "INVT_Producto_Lotes_Bodegas.PRODUCT_ID_CORP, "
-           "INVT_Producto_Lotes_Bodegas.LOTE_ID, "
-           "INVT_Producto_Lotes_Bodegas.WARE_CODE, "
-           "INVT_Producto_Lotes_Bodegas.LOCATION "
-           "FROM INVT_Producto_Lotes_Bodegas "
-           f"WHERE (INVT_Producto_Lotes_Bodegas.Doc_id_Corp='{n}') "
+            "SELECT INVT_Producto_Lotes_Bodegas.Doc_id_Corp, "
+            "INVT_Producto_Lotes_Bodegas.PRODUCT_ID_CORP, "
+            "INVT_Producto_Lotes_Bodegas.LOTE_ID, "
+            "INVT_Producto_Lotes_Bodegas.WARE_CODE, "
+            "INVT_Producto_Lotes_Bodegas.LOCATION "
+            "FROM INVT_Producto_Lotes_Bodegas "
+            f"WHERE (INVT_Producto_Lotes_Bodegas.Doc_id_Corp='{n}') "
         )
         
         ajuste = [tuple(row) for row in cursorOdbc.fetchall()]
-       
+
         ajuste_df = pd.DataFrame(ajuste, columns=['DOC_ID_CORP', 'PRODUCT_ID_CORP', 'LOTE_ID', 'WARE_CODE', 'LOCATION']) if ajuste else pd.DataFrame()
 
         # Segunda consulta
@@ -2292,7 +2292,6 @@ def wms_busqueda_ajuste(request, n_ajuste):
                     if(existe.estado==0):
                         wms_get_existencias(row,n_ajuste)
                     
-                
             # LiberacionCuarentena.objects.bulk_create(liberacion_cuarentena_objects)
 
             # Asegúrate de que las columnas de fecha estén en un formato de fecha reconocible
@@ -2302,13 +2301,9 @@ def wms_busqueda_ajuste(request, n_ajuste):
             # Convertir DataFrame a JSON, asegurándose de que las fechas se formateen correctamente
             resultado_json = resultado_df.to_json(orient='records', force_ascii=False, date_format='iso')
             
-
             return HttpResponse(resultado_json, content_type='application/json')
         else:
             return JsonResponse({'error': 'No se encontraron datos para realizar la unión.'}, status=404)
-
-
-
 
     except Exception as e:
         print(e)
@@ -2375,7 +2370,7 @@ def wms_liberacion_cuarentena(existencia,n_referencia,user_id):
             actualizado=datetime.now()
         )
         
-        #actualizar estado de LiberacionCuarentena a 1
+        # #actualizar estado de LiberacionCuarentena a 1
         # Existencias.objects.filter(
         #     product_id=existencia.product_id,
         #     lote_id=existencia.lote_id,
