@@ -1,0 +1,118 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Importaciones en transito</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'wms/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+<h5 class="fw-bold m-4 text-center">IMPORTACIONES DE TRANSITO</h5>
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
+
+<div id="msg"></div>
+
+<button class="btn btn-primary mb-2" name="actualizar">
+    <i class="bi bi-arrow-clockwise"></i> Actualizar
+</button>
+
+<div class="col-12">
+    <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+</div>
+
+<div id="msg"></div>
+
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table" style="font-size: small;">
+                <thead>
+                    <tr>
+                        <th scope="col">Proveedor</th>
+                        <th scope="col">Memo</th>
+                        <th scope="col">Fecha entrega</th>
+                        <th scope="col">Detalle</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in imp_transito %}
+                    <tr>
+                        <td>{{i.VENDOR_NAME}}</td>
+                        <td>{{i.MEMO}}</td>
+                        <td>{{i.FECHA_ENTREGA}}</td>
+
+                        <td>
+                            <a class="btn btn-primary btn-sm" href="{% url 'wms_importaciones_transito_detalle' i.VENDOR_NAME %}">
+                                <i class="bi bi-binoculars-fill"></i>  Ver 
+                            </a>
+                        </td>
+
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<!--filtro buscar-->
+<script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+
+
+<script>
+    $("button[name='actualizar']").click(function() {
+        
+        $.ajax({
+            type: "POST",
+            url : "{#% url 'actualizar_imp_llegadas_odbc' %#}",
+            data : {"csrfmiddlewaretoken": "{{csrf_token}}"},
+
+            success: function() {
+                
+                $('#msg').html('<div class="text-center alert alert-success" role="alert"> Tabla actualizada con exito !!! </div>');
+                // var sp = document.getElementById("spinner").style.display = "block";
+                setTimeout(function(){
+                    window.location.reload();
+                }, 2000)
+                
+            },
+
+            error: function() {
+                $('#msg').html(`<div class="text-center alert alert-danger" role="alert"> Error vuelva a intentar !!! </div>`)
+                //setTimeout(function(){
+                //    window.location.reload();
+                //}, 2000)
+            }
+
+        })
+
+    })
+</script>
+{% endblock %}
