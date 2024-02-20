@@ -48,6 +48,8 @@
                     <a class="btn btn-warning text-white btn-sm disabled"  target="_blank">{{i.estado}}</a> 
                     {% elif i.estado == 'FINALIZADO' %}
                     <a class="btn btn-success btn-sm disabled"  target="_blank">{{i.estado}}</a> 
+                    {% elif i.estado == 'ANULADO' %}
+                    <a class="btn btn-danger btn-sm disabled"  target="_blank">{{i.estado}}</a> 
                     {% else %}
                 {% endif %}
                 </div>
@@ -56,7 +58,7 @@
                 </div>
                 </div>
                 <div class="card-footer bg-transparent border-primary">
-                    <a class="btn btn-primary" href="{% url 'arqueo_bodega_tomafisica' i.arqueo i.ware_code %}">
+                    <a class="btn btn-primary {% if i.estado == 'ANULADO' %} disabled {% endif %}" href="{% url 'arqueo_bodega_tomafisica' i.arqueo i.ware_code %}">
                         Ingresar <i class="bi bi-box-arrow-in-up-right"></i>
                     </a>
                 </div>
