@@ -39,7 +39,7 @@ urlpatterns = [
     
     # Importaciones en transito detalle
     path(
-        route='importaciones/transito/detalle/<str:memo_id>',
+        route='importaciones/transito/detalle/<str:contrato_id>',
         view = views.wms_importaciones_transito_detalle, #OK
         name = 'wms_importaciones_transito_detalle'
     ),

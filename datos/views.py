@@ -1050,11 +1050,11 @@ def importaciones_en_transito_odbc():
     return importaciones_transito
 
 
-def importaciones_en_transito_detalle_odbc(memo):
+def importaciones_en_transito_detalle_odbc(contrato_id):
 
     with connections['gimpromed_sql'].cursor() as cursor:
         cursor.execute(
-            f"SELECT * FROM imp_transito Where MEMO = '{memo}'"
+            f"SELECT * FROM imp_transito Where CONTRATO_ID = '{contrato_id}'"
             )
         columns = [col[0] for col in cursor.description]
         importaciones_transito = [
