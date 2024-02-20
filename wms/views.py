@@ -228,9 +228,9 @@ def wms_detalle_imp(request, o_compra): #OK
 @login_required(login_url='login')
 def wms_importaciones_transito_list(request):
     
-    imp_transito = importaciones_en_transito_odbc().drop_duplicates(subset=['MEMO'])
+    imp_transito = importaciones_en_transito_odbc().drop_duplicates(subset=['CONTRATO_ID'])
     imp_transito = imp_transito.sort_values(by='FECHA_ENTREGA', ascending=False)
-
+    
     imp_transito = de_dataframe_a_template(imp_transito)
     
     context = {
@@ -242,25 +242,39 @@ def wms_importaciones_transito_list(request):
 
 # Detalle de importación en transito
 @login_required(login_url='login')
-def wms_importaciones_transito_detalle(request, memo):
-    print(memo)
-    # imp_transito = importaciones_en_transito_odbc()
-    imp_transito = importaciones_en_transito_detalle_odbc(memo)
-    # url_memo = []
-    # for i in imp_transito['MEMO']:
-    #     url_memo.append(i.replace(' ','_'))
+def wms_importaciones_transito_detalle(request, contrato_id):
     
-    # imp_transito['url_memo'] = url_memo
+    prod = productos_odbc_and_django()[['product_id','Nombre','Marca','Unidad_Empaque','UnidadesPorPallet']]
+    prod = prod.fillna(0)
     
-    #imp_transito = imp_transito[imp_transito['MEMO']==memo]
-    print(imp_transito)
+    imp_transito = importaciones_en_transito_detalle_odbc(contrato_id)   
+    imp_transito = imp_transito.rename(columns={'PRODUCT_ID':'product_id'})
+    
+    imp_transito =  imp_transito.merge(prod, on='product_id', how='left')
+    
+    imp_transito['cartones'] = imp_transito['QUANTITY'] / imp_transito['Unidad_Empaque']
+    imp_transito['pallets'] = imp_transito['QUANTITY'] / imp_transito['UnidadesPorPallet']
+    
+    unidades_total = imp_transito['QUANTITY'].sum()
+    cartones_total = imp_transito['cartones'].sum()
+    pallets_total  = imp_transito['pallets'].sum()
+    
+    proveedor = imp_transito.loc[0]['VENDOR_NAME']
+    importacion = imp_transito.loc[0]['MEMO']
+    
     imp_transito = de_dataframe_a_template(imp_transito)
     
     context = {
-        'imp_transito':imp_transito
+        'proveedor':proveedor,
+        'importacion':importacion,
+        'imp_transito':imp_transito,
+        
+        'unidades_total':unidades_total,
+        'cartones_total':cartones_total,
+        'pallets_total':pallets_total
     }
     
-    return render(request, 'wms/importaciones_transito_list.html', context)
+    return render(request, 'wms/importaciones_transito_detalle.html', context)
 
 
 
