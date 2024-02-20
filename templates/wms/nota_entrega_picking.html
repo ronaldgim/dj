@@ -109,7 +109,8 @@
                                 <thead>
                                     <tr style="background-color: #e6e6e6;">
                                         <th scope="col">Ubicación</th>
-                                        <th scope="col">Dips</th>
+                                        <th scope="col">Lote</th>
+                                        <th scope="col">Unds.Disp</th>
                                         <th scope="col">Unds-Transferencia</th>
                                         <th scope="col">Acciones</th>
                                     </tr>
@@ -130,6 +131,10 @@
 
                                             <td class="{% if j.estado == 'Cuarentena' %}text-danger{% endif %}">
                                                 {% if j.estado == 'Cuarentena' %}CUC-{% endif %}{{j.ubicacion__bodega}}-{{j.ubicacion__pasillo}}-{{j.ubicacion__modulo}}{% if j.ubicacion__bodega == 'CN6' %}-{{j.ubicacion__nivel}}{% else %}{% endif %}
+                                            </td>
+                                            <td>
+                                                {{j.lote_id}} <br>
+                                                {{j.fecha_caducidad|date:"d-m-Y"}}
                                             </td>
                                             <td>{{j.unidades|floatformat:"0g"}}</td>
                                             <td>
@@ -153,7 +158,8 @@
                                                 <thead>
                                                     <tr>
                                                         <th scope="col">Ubicación</th>
-                                                        <th scope="col">Unds-Transferencia</th>
+                                                        <th scope="col">Lote</th>
+                                                        <th scope="col">Unds.NotaEntrega</th>
                                                         <th scope="col">Acciones</th>
                                                     </tr>
                                                 </thead>
@@ -161,6 +167,10 @@
                                                     {% for k in i.pik %}
                                                     <tr>
                                                         <td>{{k.ubicacion__bodega}}-{{k.ubicacion__pasillo}}-{{k.ubicacion__modulo}}{% if k.ubicacion__bodega == 'CN6' %}-{{k.ubicacion__nivel}}{% else %}{% endif %}</td>
+                                                        <td>
+                                                            {{k.lote_id}} <br>
+                                                            {{k.fecha_caducidad}}
+                                                        </td>
                                                         <td>{{k.unidades|floatformat:"0g"}}</td>
                                                         <td>
                                                             <button class="btn btn-sm btn-danger" name="eliminar_picking" id="{{k.id}}">

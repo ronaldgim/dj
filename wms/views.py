@@ -2606,10 +2606,12 @@ def wms_nota_entrega_picking(request, n_entrega):
     # Movimientos
     mov = pd.DataFrame(Movimiento.objects.filter(n_referencia=n_entrega).values(
         'id',
-        'product_id','lote_id','unidades','ubicacion__bodega','ubicacion__pasillo','ubicacion__modulo','ubicacion__nivel',
+        'product_id','lote_id','fecha_caducidad',
+        'unidades','ubicacion__bodega','ubicacion__pasillo','ubicacion__modulo','ubicacion__nivel',
         'ubicacion__distancia_puerta'))
     
     if not mov.empty:
+        mov['fecha_caducidad'] = pd.to_datetime(mov['fecha_caducidad']).dt.strftime('%d-%m-%Y')
         mov['unidades'] = mov['unidades'] * -1
         
     mov_list = de_dataframe_a_template(mov)
@@ -2649,7 +2651,7 @@ def wms_nota_entrega_picking(request, n_entrega):
                 for m in mov_list:
                     if m['product_id'] == i:
                         pik_list.append(m)
-                        
+    
     context = {
         'nota_entrega':nota_entrega_template,
         'n_entrega':n_entrega
