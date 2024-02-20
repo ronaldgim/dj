@@ -699,19 +699,17 @@ def stock_lote(request):
 
             try:
                 #Productos
-                # cursorOdbc.execute(
-                #     "SELECT INVT_Ficha_Principal.PRODUCT_ID, INVT_Ficha_Principal.PRODUCT_NAME, "
-                #     "INVT_Ficha_Principal.UM, INVT_Ficha_Principal.GROUP_CODE, INVT_Ficha_Principal.UNIDADES_EMPAQUE, INVT_Ficha_Principal.`Custom Field 1`, INVT_Ficha_Principal.`Custom Field 4`, "
-                #     "INVT_Ficha_Principal.INACTIVE, INVT_Ficha_Principal.LARGO, INVT_Ficha_Principal.ANCHO, INVT_Ficha_Principal.ALTURA, INVT_Ficha_Principal.VOLUMEN, INVT_Ficha_Principal.WEIGHT "
-                #     "FROM INVT_Ficha_Principal INVT_Ficha_Principal"
-                # )
-                # productos = cursorOdbc.fetchall()
-                
                 cursorOdbc.execute(
+                    # "SELECT INVT_Ficha_Principal.PRODUCT_ID, INVT_Ficha_Principal.PRODUCT_NAME, "
+                    # "INVT_Ficha_Principal.UM, INVT_Ficha_Principal.GROUP_CODE, INVT_Ficha_Principal.UNIDADES_EMPAQUE, INVT_Ficha_Principal.`Custom Field 1`, INVT_Ficha_Principal.`Custom Field 4`, "
+                    # "INVT_Ficha_Principal.INACTIVE, INVT_Ficha_Principal.LARGO, INVT_Ficha_Principal.ANCHO, INVT_Ficha_Principal.ALTURA, INVT_Ficha_Principal.VOLUMEN, INVT_Ficha_Principal.WEIGHT, INVT_Ficha_Principal.AVAILABLE "
+                    # "FROM INVT_Ficha_Principal INVT_Ficha_Principal"
+                    
                     "SELECT INVT_Ficha_Principal.PRODUCT_ID, INVT_Ficha_Principal.PRODUCT_NAME, "
                     "INVT_Ficha_Principal.UM, INVT_Ficha_Principal.GROUP_CODE, INVT_Ficha_Principal.UNIDADES_EMPAQUE, INVT_Ficha_Principal.`Custom Field 1`, INVT_Ficha_Principal.`Custom Field 4`, "
-                    "INVT_Ficha_Principal.INACTIVE, INVT_Ficha_Principal.LARGO, INVT_Ficha_Principal.ANCHO, INVT_Ficha_Principal.ALTURA, INVT_Ficha_Principal.VOLUMEN, INVT_Ficha_Principal.WEIGHT, INVT_Ficha_Principal.AVAILABLE "
+                    "INVT_Ficha_Principal.INACTIVE, INVT_Ficha_Principal.LARGO, INVT_Ficha_Principal.ANCHO, INVT_Ficha_Principal.ALTURA, INVT_Ficha_Principal.VOLUMEN, INVT_Ficha_Principal.WEIGHT, INVT_Ficha_Principal.AVAILABLE, INVT_Ficha_Principal.UnidadesPorPallet "
                     "FROM INVT_Ficha_Principal INVT_Ficha_Principal"
+                    
                 )
                 productos = cursorOdbc.fetchall()
             except:
@@ -815,7 +813,8 @@ def stock_lote(request):
                 # print("Sucessful Updated Productos")
                 # mydb.commit()
                 
-                sql_insert = """INSERT INTO productos (Codigo,Nombre,Unidad,Marca,Unidad_Empaque,Reg_San,Unidad_Box,Inactivo,Largo,Ancho,Altura,Volumen,Peso,Disponible) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+                # sql_insert = """INSERT INTO productos (Codigo,Nombre,Unidad,Marca,Unidad_Empaque,Reg_San,Unidad_Box,Inactivo,Largo,Ancho,Altura,Volumen,Peso,Disponible) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+                sql_insert = """INSERT INTO productos (Codigo,Nombre,Unidad,Marca,Unidad_Empaque,Reg_San,Unidad_Box,Inactivo,Largo,Ancho,Altura,Volumen,Peso,Disponible,UnidadesPorPallet) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,%s)"""
                 data_productos = [list(rows) for rows in productos]
                 mycursorMysql.executemany(sql_insert, data_productos)
                 print("Sucessful Updated Productos")
