@@ -1969,10 +1969,12 @@ def wms_transferencia_picking(request, n_transf):
     # Productos y cantidades egresados de WMS por Picking Transferencia
     mov = pd.DataFrame(Movimiento.objects.filter(n_referencia=n_transf).values(
         'id',
-        'product_id','lote_id','unidades','ubicacion__bodega','ubicacion__pasillo','ubicacion__modulo','ubicacion__nivel',
+        'product_id','lote_id','fecha_caducidad',
+        'unidades','ubicacion__bodega','ubicacion__pasillo','ubicacion__modulo','ubicacion__nivel',
         'ubicacion__distancia_puerta'))
 
     if not mov.empty:
+        mov['fecha_caducidad'] = pd.to_datetime(mov['fecha_caducidad']).dt.strftime('%d-%m-%Y')
         mov['unidades'] = mov['unidades']*-1
 
     # Lista de movimientos
