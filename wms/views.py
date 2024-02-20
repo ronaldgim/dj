@@ -3,6 +3,8 @@ from django.shortcuts import render, redirect
 # Datos de importaciones
 from datos.views import (
     importaciones_llegadas_odbc,
+    importaciones_en_transito_odbc,
+    importaciones_en_transito_detalle_odbc,
     productos_odbc_and_django,
     de_dataframe_a_template,
     importaciones_llegadas_ocompra_odbc,
@@ -25,6 +27,7 @@ from datos.views import (
 
     # Trasnferencia
     doc_transferencia_odbc
+    
     )
 
 # Pedidos por clientes
@@ -104,8 +107,8 @@ import pyodbc
 def wms_importaciones_list(request): #OK
     """ Lista de importaciones llegadas """
 
-    imp = importaciones_llegadas_odbc()#[['MEMO','DOC_ID_CORP', 'ENTRADA_FECHA', 'WARE_COD_CORP', 'product_id']];print(imp).
-    #imp['ENTRADA_FECHA'] = pd.to_datetime(imp['ENTRADA_FECHA']).dt.strftime('%d-%m-%Y')
+    imp = importaciones_llegadas_odbc()
+    imp = imp[imp['WARE_COD_CORP']=='CUC']
     imp = imp[imp['ENTRADA_FECHA']>'2023-12-31']
     imp = imp.sort_values(by=['ENTRADA_FECHA'], ascending=[False])
     imp = imp.drop_duplicates(subset=['DOC_ID_CORP'])
@@ -218,6 +221,47 @@ def wms_detalle_imp(request, o_compra): #OK
     }
 
     return render(request, 'wms/detalle_importacion.html', context)
+
+
+
+# Lista de importaciones en transito
+@login_required(login_url='login')
+def wms_importaciones_transito_list(request):
+    
+    imp_transito = importaciones_en_transito_odbc().drop_duplicates(subset=['MEMO'])
+    imp_transito = imp_transito.sort_values(by='FECHA_ENTREGA', ascending=False)
+
+    imp_transito = de_dataframe_a_template(imp_transito)
+    
+    context = {
+        'imp_transito':imp_transito
+    }
+    
+    return render(request, 'wms/importaciones_transito_list.html', context)
+
+
+# Detalle de importación en transito
+@login_required(login_url='login')
+def wms_importaciones_transito_detalle(request, memo):
+    print(memo)
+    # imp_transito = importaciones_en_transito_odbc()
+    imp_transito = importaciones_en_transito_detalle_odbc(memo)
+    # url_memo = []
+    # for i in imp_transito['MEMO']:
+    #     url_memo.append(i.replace(' ','_'))
+    
+    # imp_transito['url_memo'] = url_memo
+    
+    #imp_transito = imp_transito[imp_transito['MEMO']==memo]
+    print(imp_transito)
+    imp_transito = de_dataframe_a_template(imp_transito)
+    
+    context = {
+        'imp_transito':imp_transito
+    }
+    
+    return render(request, 'wms/importaciones_transito_list.html', context)
+
 
 
 # Lista de productos de importación

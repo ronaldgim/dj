@@ -30,6 +30,20 @@ urlpatterns = [
         name = 'wms_detalle_imp'
     ),
 
+    # Importaciones en transito list
+    path(
+        route='importaciones/transito/list',
+        view = views.wms_importaciones_transito_list, #OK
+        name = 'wms_importaciones_transito_list'
+    ),
+    
+    # Importaciones en transito detalle
+    path(
+        route='importaciones/transito/detalle/<str:memo_id>',
+        view = views.wms_importaciones_transito_detalle, #OK
+        name = 'wms_importaciones_transito_detalle'
+    ),
+    
     # Ver detalle ya en tabla local y pedir ubicaciones
     path(
         route='importacion/bodega/<str:o_compra>',

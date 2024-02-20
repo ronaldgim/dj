@@ -570,10 +570,51 @@ def etiquetado_ajax(request):
     return HttpResponseRedirect('/etiquetado/stock')
 
 
+def importaciones_en_transito_odbc_insert_warehouse():
+    
+    try:
+        # MBA ODBC
+        cnx_odbc_mba     = pyodbc.connect('DSN=mba3;PWD=API')
+        cursor_odbc_mba  = cnx_odbc_mba.cursor()
+        
+        # DB WAREHOUSE
+        cnx_db_warehouse = mysql.connector.connect(
+            host="172.16.28.102",
+            user="standard",
+            passwd="gimpromed",
+            database="warehouse"
+        )
+        
+        cursor_db_warehouse = cnx_db_warehouse.cursor()
+        
+        sql_query = cursor_odbc_mba.execute(
+            "SELECT CLNT_Pedidos_Principal.CONTRATO_ID, PROV_Ficha_Principal.VENDOR_NAME, CLNT_Pedidos_Detalle.PRODUCT_ID, CLNT_Pedidos_Detalle.QUANTITY, CLNT_Pedidos_Principal.FECHA_PEDIDO, CLNT_Pedidos_Principal.MEMO "
+            "FROM CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, CLNT_Pedidos_Principal CLNT_Pedidos_Principal, PROV_Ficha_Principal PROV_Ficha_Principal "
+            "WHERE CLNT_Pedidos_Detalle.CONTRATO_ID_CORP = CLNT_Pedidos_Principal.CONTRATO_ID_CORP AND CLNT_Pedidos_Principal.CLIENT_ID_CORP = PROV_Ficha_Principal.CODIGO_PROVEEDOR_EMPRESA "
+            "AND ((CLNT_Pedidos_Principal.FECHA_PEDIDO>'01/01/2020'))"
+        )
+        
+        sql_query = sql_query.fetchall()
+        
+        # Delete
+        cursor_db_warehouse.execute("DELETE FROM imp_transito")
+        
+        sql_insert = """INSERT INTO imp_transito (CONTRATO_ID, VENDOR_NAME,PRODUCT_ID,QUANTITY,FECHA_ENTREGA,MEMO) VALUES (%s, %s, %s, %s, %s, %s)"""
+        data_transito = [list(rows) for rows in sql_query]
+        cursor_db_warehouse.executemany(sql_insert, data_transito)
+        
+        print('Importaciones Warehouse Actualizados')
+    except Exception as e:
+        print(e)
+    
+    finally:
+        cursor_odbc_mba.close()
+        cursor_db_warehouse.close()
+
+
 
 # # Carga la tabla de stock lote automaticamente
 def stock_lote(request):
-
 
     if request.method == 'GET':
 
@@ -601,6 +642,8 @@ def stock_lote(request):
 
             #####Connect to MYSQL Database#####
             mycursorMysql = mydb.cursor()
+
+            importaciones_en_transito_odbc_insert_warehouse()
 
             ##Stock Lotes
             cursorOdbc.execute(
@@ -780,8 +823,6 @@ def stock_lote(request):
             except:
                 print('Error actulizar productos')
                 
-
-
             # INSERT FACTURAS
             delete_sql = "DELETE FROM facturas"
             mycursorMysql.execute(delete_sql)
@@ -815,7 +856,6 @@ def stock_lote(request):
             odbc(mydb)
 
         main()
-
 
         time = str(datetime.now())
         TimeStamp.objects.create(actulization_stoklote=time)
@@ -990,6 +1030,42 @@ def importaciones_llegadas_ocompra_odbc(o_compra):
         importaciones_llegadas['product_id'] = list(map(lambda x:x[:-6], list(importaciones_llegadas['PRODUCT_ID_CORP'])))
 
     return importaciones_llegadas
+
+
+
+def importaciones_en_transito_odbc():
+
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute(
+            "SELECT * FROM imp_transito"
+            )
+        columns = [col[0] for col in cursor.description]
+        importaciones_transito = [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+
+        importaciones_transito = pd.DataFrame(importaciones_transito)
+
+    return importaciones_transito
+
+
+def importaciones_en_transito_detalle_odbc(memo):
+
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute(
+            f"SELECT * FROM imp_transito Where MEMO = '{memo}'"
+            )
+        columns = [col[0] for col in cursor.description]
+        importaciones_transito = [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+
+        importaciones_transito = pd.DataFrame(importaciones_transito)
+
+    return importaciones_transito
+
 
 
 def clientes_warehouse():
