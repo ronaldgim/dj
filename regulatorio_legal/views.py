@@ -326,12 +326,10 @@ def factura_detalle(request, n_factura):
     docs['lote_sp'] = quitar_puntos(lotes_docs)
     
     # MERGE FACTURA Y DOCUMENTOS
-    # factura = factura.merge(docs, on=['PRODUCT_ID','LOTE_ID'], how='left').fillna(0) 
-    factura = factura.merge(docs, on=['PRODUCT_ID','lote_sp'], how='left').fillna(0) #;print(factura)
+    factura = factura.merge(docs, on=['PRODUCT_ID','lote_sp'], how='left').fillna(0)
     factura = factura.sort_values('PRODUCT_NAME')
-    #factura = factura.drop_duplicates(subset=['PRODUCT_ID','LOTE_ID'])
     factura = factura.drop_duplicates(subset=['PRODUCT_ID','lote_sp'])
-    factura['id'] = factura['id'].astype(int)  #; print(factura)
+    factura['id'] = factura['id'].astype(int)  
     
     # JSON DETALLE DE FACTURA Y DOCUMENTOS
     detalle = factura[['PRODUCT_ID', 'lote_sp', 'documento']].to_dict('list')
@@ -356,7 +354,7 @@ def factura_detalle(request, n_factura):
     if request.method == 'POST':
         
         # Quien envia el correo
-        who_send = User.objects.get(id=request.POST['usuario']).email
+        # who_send = User.objects.get(id=request.POST['usuario']).email
         
         if doc_len == prod_len:
             
@@ -369,7 +367,7 @@ def factura_detalle(request, n_factura):
                 archivos = [documentos[i:i+n_archivos] for i in range(0, doc_len, n_archivos)]
                 
                 correo_cliente = [request.POST['correo_cliente']]
-                correo_cliente.append(who_send)
+                # correo_cliente.append(who_send)
 
                 if n_correos == 1:   
                     
@@ -382,9 +380,8 @@ GIMPROMED Cia. Ltda.\n
 ****Esta notificación ha sido enviada automáticamente - No responder****
                         """,
                         from_email=settings.EMAIL_HOST_USER,
-                        # to=['egarces@gimpromed.com','jgualotuna@gimpromed.com','ncaisapanta@gimpromed.com'],
-                        # to=['egarces@gimpromed.com'],
                         to = correo_cliente,
+                        bcc=['jgualotuna@gimpromed.com','ncaisapanta@gimpromed.com','dtrujillo@gimpromed.com'],
                         headers={'Message-ID':'Documentos'}
                     )
 
@@ -404,7 +401,7 @@ GIMPROMED Cia. Ltda.\n
                 else:
                     for i in range(0, n_correos):
                         corr = i+1
-                   
+
                         email = EmailMessage(
                             subject=f'Documentos de factura N°. {fac} - Parte {corr}',
                             body=f"""
@@ -414,13 +411,11 @@ GIMPROMED Cia. Ltda.\n
 ****Esta notificación ha sido enviada automáticamente - No responder****
                             """,
                             from_email=settings.EMAIL_HOST_USER,
-                            #to=['egarces@gimpromed.com','jgualotuna@gimpromed.com','ncaisapanta@gimpromed.com'],
-                            #to=['egarces@gimpromed.com'],
                             to = correo_cliente,
+                            bcc=['jgualotuna@gimpromed.com','ncaisapanta@gimpromed.com','dtrujillo@gimpromed.com'],
                             headers={'Message-ID':'Documentos'}
                         )
 
-                        
                         for j in archivos[i]:
                             docs = 'media/' + j
                             email.attach_file(docs)
@@ -433,25 +428,19 @@ GIMPROMED Cia. Ltda.\n
 
                     messages.success(request, f'Se enviarón {n_correos} correos !!!')
                     return HttpResponseRedirect('/regulatorio-legal/facturas')
-            
             except SMTPException as e:
                 messages.error(request, f'Error al enviar el correo, {e} !!!')
-                
         else:
             messages.error(request, 'No se ha subido todos los documentos !!!')
-
+            
     context = {
         'factura':factura,
-
         'fac':fac,
         'cli':cli,
         'ff':ff,
-
         'correo_cli':correo,
-
         'n_fac':n_fac,
         'codigo_cliente':cliente,
         'detalle':detalle
     }
-
     return render(request, 'regulatorio_legal/factura_detalle.html', context)
