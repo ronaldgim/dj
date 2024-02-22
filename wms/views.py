@@ -2457,8 +2457,7 @@ def wms_liberacion_cuarentena(existencia,n_referencia,user,cantidad):
         return JsonResponse({'error': str(e)}, status=500)
 
 
-
-
+# Reporte de reposición
 def wms_resposicion_rm(request):
 
     try:
@@ -2474,9 +2473,21 @@ def wms_resposicion_rm(request):
             
         with connections['default'].cursor() as cursor:
             cursor.execute(        
-            "SELECT DISTINCT wms_existencias.product_id, count(wms_existencias.unidades) as count "    
-            "FROM wms_existencias left join wms_ubicacion on wms_existencias.ubicacion_id=wms_ubicacion.id " 
-            "where wms_ubicacion.bodega = 'CN6' AND wms_ubicacion.nivel='1' group by wms_existencias.product_id;"
+            # "SELECT DISTINCT wms_existencias.product_id, count(wms_existencias.unidades) as count "    
+            # "FROM wms_existencias left join wms_ubicacion on wms_existencias.ubicacion_id=wms_ubicacion.id " 
+            # "where wms_ubicacion.bodega = 'CN6' AND wms_ubicacion.nivel='1' group by wms_existencias.product_id;"
+            
+            
+            "Select T.product_id, T.lote_id, T.count from (SELECT * FROM wms_existencias as S JOIN "
+            "(SELECT product_id as pro_id, MIN(fecha_caducidad) as min_fecha_caducidad, count(unidades) as count  from "
+            "wms_existencias group by product_id) as U "
+            "ON S.product_id=U.pro_id and S.fecha_caducidad=U.min_fecha_caducidad "
+            "group by S.product_id order by S.product_id) as T "
+            "LEFT JOIN wms_ubicacion as W on T.ubicacion_id=W.id WHERE W.bodega <>'CN6' "
+            "UNION "
+            "SELECT  wms_existencias.product_id, wms_existencias.lote_id, count(wms_existencias.unidades) as count "
+            "FROM wms_existencias left join wms_ubicacion on wms_existencias.ubicacion_id=wms_ubicacion.id "
+            "where wms_ubicacion.bodega = 'CN6' AND wms_ubicacion.nivel=1 group by wms_existencias.product_id;"
             )
             columns =  [col[0] for col in cursor.description]
             query6  = [dict(zip(columns, row)) for row in cursor.fetchall()]
