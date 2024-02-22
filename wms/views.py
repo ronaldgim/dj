@@ -2409,7 +2409,6 @@ def wms_liberacion_cuarentena(existencia,n_referencia,user,cantidad):
             fecha_caducidad=existencia.fecha_caducidad,
             estado='Cuarentena',
             estado_picking='',
-            #ubicacion_id=existencia.ubicacion,
             ubicacion_id=existencia.ubicacion.id,
             usuario_id=user,
             fecha_hora=datetime.now(),
@@ -2428,8 +2427,7 @@ def wms_liberacion_cuarentena(existencia,n_referencia,user,cantidad):
             fecha_caducidad=existencia.fecha_caducidad,
             estado='Disponible',
             estado_picking='',
-            #ubicacion_id=existencia.ubicacion,
-            ubicacion_id=existencia.ubicacion.id,
+            ubicacion_id=606,
             usuario_id=user,
             fecha_hora=datetime.now(),
             actualizado=datetime.now()
