@@ -572,6 +572,11 @@ def etiquetado_ajax(request):
 
 def importaciones_en_transito_odbc_insert_warehouse():
     
+    from dateutil.relativedelta import relativedelta
+
+    currentTimeDate = datetime.now() - relativedelta(days=15)
+    TwoWeekTime = currentTimeDate.strftime('%d-%m-%Y')
+    
     try:
         # MBA ODBC
         cnx_odbc_mba     = pyodbc.connect('DSN=mba3;PWD=API')
@@ -587,11 +592,11 @@ def importaciones_en_transito_odbc_insert_warehouse():
         
         cursor_db_warehouse = cnx_db_warehouse.cursor()
         
-        sql_query = cursor_odbc_mba.execute(
-            "SELECT CLNT_Pedidos_Principal.CONTRATO_ID, PROV_Ficha_Principal.VENDOR_NAME, CLNT_Pedidos_Detalle.PRODUCT_ID, CLNT_Pedidos_Detalle.QUANTITY, CLNT_Pedidos_Principal.FECHA_PEDIDO, CLNT_Pedidos_Principal.MEMO "
+        sql_query = cursor_odbc_mba.execute(            
+            "SELECT CLNT_Pedidos_Principal.CONTRATO_ID, PROV_Ficha_Principal.VENDOR_NAME, CLNT_Pedidos_Detalle.PRODUCT_ID, CLNT_Pedidos_Detalle.QUANTITY, CLNT_Pedidos_Principal.FECHA_ENTREGA, CLNT_Pedidos_Principal.MEMO "
             "FROM CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, CLNT_Pedidos_Principal CLNT_Pedidos_Principal, PROV_Ficha_Principal PROV_Ficha_Principal "
             "WHERE CLNT_Pedidos_Detalle.CONTRATO_ID_CORP = CLNT_Pedidos_Principal.CONTRATO_ID_CORP AND CLNT_Pedidos_Principal.CLIENT_ID_CORP = PROV_Ficha_Principal.CODIGO_PROVEEDOR_EMPRESA "
-            "AND ((CLNT_Pedidos_Principal.FECHA_PEDIDO>'01/01/2020'))"
+            f"AND ((CLNT_Pedidos_Principal.FECHA_ENTREGA>'{TwoWeekTime}'))"
         )
         
         sql_query = sql_query.fetchall()
