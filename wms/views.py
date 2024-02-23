@@ -180,7 +180,7 @@ def wms_detalle_imp(request, o_compra): #OK
     detalle = importaciones_llegadas_ocompra_odbc(o_compra)
     pro     = productos_odbc_and_django()[['product_id', 'Nombre', 'marca','marca2']]
     detalle = detalle.merge(pro, on='product_id', how='left')
-    detalle = detalle[detalle['product_id']!='70114-3LHS']
+    #detalle = detalle[detalle['product_id']!='70114-3LHS']
 
     marca = detalle['marca2'].iloc[0]
     orden = detalle['DOC_ID_CORP'].iloc[0]
