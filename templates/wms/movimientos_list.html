@@ -103,6 +103,28 @@
     </div>
 </div>
 
+<div class="pagination mt-2 mb-2">
+    <span class="step-links">
+        {% if mov.has_previous %}
+            <a class="btn btn-outline-secondary btn-sm" href="?page=1">
+                <span aria-hidden="true"> &laquo; Primera </span>
+            </a>
+            <a class="btn btn-outline-secondary btn-sm" href="?page={{ mov.previous_page_number }}">Anterior</a>
+        {% endif %}
+
+        <!--span class="current btn btn-outline-primary btn-sm"-->
+        <span class="current btn btn-secondary btn-sm disabled">
+            Pagina {{ mov.number }} de {{ mov.paginator.num_pages }}
+        </span>
+
+        {% if mov.has_next %}
+            <a class="btn btn-outline-secondary btn-sm" href="?page={{ mov.next_page_number }}">Siguiente</a>
+            <a class="btn btn-outline-secondary btn-sm" href="?page={{ mov.paginator.num_pages }}">
+                <span aria-hidden="true"> Última &raquo; </span>
+            </a>
+        {% endif %}
+    </span>
+</div>
 
 <!--filtro buscar-->
 <script>

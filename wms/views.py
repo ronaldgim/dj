@@ -94,6 +94,8 @@ from django.conf import settings
 # Pyodbc
 import pyodbc
 
+# Paginado
+from django.core.paginator import Paginator
 
 """
     LISTAS DE INGRESOS
@@ -1079,20 +1081,6 @@ def wms_ajuste_fecha_ajax(request):
 
 
 
-# lista de movimientos
-# url: 'movimientos/list'
-@login_required(login_url='login')
-def wms_movimientos_list(request): #OK
-    """ Lista de movimientos """
-
-    mov = Movimiento.objects.all().order_by('-fecha_hora')
-
-    context = {
-        'mov':mov
-    }
-
-
-
 # Llamar los valores para ajuste de acuerdo a tipo de movimiento
 def wms_ajuste_lote_ajax(request):
 
@@ -1229,7 +1217,14 @@ def wms_movimientos_list(request): #OK
     """ Lista de movimientos """
 
     mov = Movimiento.objects.all().order_by('-fecha_hora')
-
+    
+    paginator = Paginator(mov, 50)
+    page_number = request.GET.get('page')
+    
+    if page_number == None: page_number = 1
+    
+    mov = paginator.get_page(page_number)
+    
     context = {
         'mov':mov
     }
@@ -2312,7 +2307,9 @@ def wms_busqueda_ajuste(request, n_ajuste):
         )
         inventario = [tuple(row) for row in cursorOdbc.fetchall()]
         inventario_df = pd.DataFrame(inventario, columns=['DOC_ID_CORP', 'PRODUCT_ID_CORP', 'LOTE_ID', 'EGRESO_TEMP', 'COMMITED', 'WARE_CODE_CORP', 'UBICACION', 'Fecha_elaboracion_lote', 'FECHA_CADUCIDAD']) if inventario else pd.DataFrame()
+        print(inventario_df)
         # Unión (merge) de los DataFrames en los campos comunes
+        
         if not ajuste_df.empty and not inventario_df.empty:
             resultado_df = pd.merge(ajuste_df, inventario_df, on=['DOC_ID_CORP', 'PRODUCT_ID_CORP', 'LOTE_ID'], how='inner')
             resultado_df = resultado_df.drop_duplicates(subset=['DOC_ID_CORP', 'PRODUCT_ID_CORP', 'LOTE_ID'])
@@ -2363,7 +2360,7 @@ def wms_busqueda_ajuste(request, n_ajuste):
 
             # Convertir DataFrame a JSON, asegurándose de que las fechas se formateen correctamente
             resultado_json = resultado_df.to_json(orient='records', force_ascii=False, date_format='iso')
-            
+        
             return HttpResponse(resultado_json, content_type='application/json')
         else:
             return JsonResponse({'error': 'No se encontraron datos para realizar la unión.'}, status=404)
