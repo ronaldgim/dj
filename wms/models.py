@@ -163,8 +163,11 @@ class LiberacionCuarentena(models.Model):
     fecha_caducidad = models.DateTimeField()
     estado = models.PositiveIntegerField()
 
-    class Meta:
-        unique_together = (('doc_id_corp', 'product_id_corp', 'lote_id'),)
+    def __str__(self):
+        return self.product_id
+
+    # class Meta:
+    #     unique_together = (('doc_id_corp', 'product_id_corp', 'lote_id'),)
 
 
 
