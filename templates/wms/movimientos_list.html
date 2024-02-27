@@ -49,10 +49,10 @@
                         <th scope="col">#</th>
                         <th scope="col">Item</th>
                         <th scope="col">Lote</th>
-                        <th scope="col">Tipo de movimiento</th>
+                        <th scope="col">Tipo</th>
                         <th scope="col">Estado</th>
                         <th scope="col">Descripción</th>
-                        <th scope="col">Referencia del movimiento</th>
+                        <th scope="col">Referencia</th>
                         <th scope="col">Ubicación</th>
                         <th scope="col">Unidades</th>
                         <th scope="col">Realizado por</th>
@@ -93,7 +93,7 @@
 
                         <td>{{i.usuario.first_name}} {{i.usuario.last_name}}</td>
 
-                        <td>{{i.fecha_hora|date:'H:i - Y-m-d'}}</td>
+                        <td>{{i.fecha_hora|date:'Y-m-d - H:i'}}</td>
                         
                     </tr>
                     {% endfor %}
