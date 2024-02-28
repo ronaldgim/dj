@@ -543,6 +543,7 @@ def wms_inventario(request): #OK
     inv['fecha_caducidad'] = pd.to_datetime(inv['fecha_caducidad'])
     inv['fecha_caducidad'] = inv['fecha_caducidad'].dt.strftime('%d-%m-%Y')
     
+    # orden de inventario
     inv = inv.sort_values(
         by=['estado', 'product_id', 'lote_id', 'fecha_caducidad', 'ubicacion__bodega', 'ubicacion__nivel'],
         ascending=[False, True, True, True, True, True]
