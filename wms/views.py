@@ -530,20 +530,24 @@ def wms_inventario(request): #OK
         Suma de ingresos y egresos que dan el total de todo el inventario
     """
 
-    #wms_existencias_query()
     prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
 
-    #inv = wms_existencias_query()
     inv = pd.DataFrame(Existencias.objects.all().values(
         'id',
         'product_id', 'lote_id', 'fecha_caducidad', 'unidades', 'fecha_hora',
         'ubicacion', 'ubicacion__bodega', 'ubicacion__pasillo', 'ubicacion__modulo', 'ubicacion__nivel',
         'estado'
-    ).order_by('product_id','fecha_caducidad', 'ubicacion__distancia_puerta'))
+    )) 
+    
     inv = inv.merge(prod, on='product_id', how='left')
-    #inv['fecha_caducidad'] = inv['fecha_caducidad'].astype(str)
     inv['fecha_caducidad'] = pd.to_datetime(inv['fecha_caducidad'])
     inv['fecha_caducidad'] = inv['fecha_caducidad'].dt.strftime('%d-%m-%Y')
+    
+    inv = inv.sort_values(
+        by=['estado', 'product_id', 'lote_id', 'fecha_caducidad', 'ubicacion__bodega', 'ubicacion__nivel'],
+        ascending=[False, True, True, True, True, True]
+    )
+    
     inv = de_dataframe_a_template(inv)
 
     context = {
