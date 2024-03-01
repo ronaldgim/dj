@@ -92,7 +92,13 @@
                         <td>{{i.lote_id}}</td>
                         <td>{{i.fecha_caducidad}}</td>
                         <td>{{i.ubicacion_id}}</td>
-                        <td>{{i.estado}}</td>
+                        <td>
+                            {% if i.estado == 'Liberado' %}
+                            <a class="btn btn-success btn-sm disabled">{{i.estado}}</a>
+                            {% else %}
+                            <a class="btn btn-warning btn-sm disabled">{{i.estado}}</a>
+                            {% endif %}
+                        </td>
                         <td>{{i.egreso_temp}}</td>
                     </tr>
                     {% endfor %}

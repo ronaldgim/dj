@@ -100,7 +100,13 @@
                     <tr>
                         <td>{{i.doc_id}}</td>
                         <td>{{i.tipo}}</td>
-                        <td>{{i.estado}}</td>
+                        <td>
+                            {% if i.estado == 'Liberado' %}
+                            <a class="btn btn-success btn-sm disabled">{{i.estado}}</a>
+                            {% else %}
+                            <a class="btn btn-warning btn-sm disabled">{{i.estado}}</a>
+                            {% endif %}
+                        </td>
                         <td>
                             <a class="btn btn-primary btn-sm" href="{% url 'wms_ajuste_liberacion_detalle' i.doc_id %}">
                                 <i class="bi bi-truck"></i>
