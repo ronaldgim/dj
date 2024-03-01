@@ -1,0 +1,168 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Liberaciones</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'wms/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+
+<style>
+    .btn.btn-warning.btn-sm.active {
+    background-color: blue;}
+
+    .mensaje-temporal {
+        display: none;
+        position: absolute;
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+    }
+
+    #msg_ss {
+        display: none;
+        position: fixed; /* Cambiado a fixed para que sea relativo a la ventana */
+        /*bottom: 10px; */ /* Distancia desde la parte inferior */
+        top:40%;
+        right: 10px; /* Distancia desde la derecha */
+        /*background-color: #4CAF50;*/
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+        width:auto;
+        z-index: 3;
+        }
+</style>
+
+<h6 class="mt-2 text-center"><strong>Revisión Trasferencias</strong></h6>
+
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
+<div id="msg"></div>
+<div id="msg_ss"></div>
+
+
+<div class="row">
+
+    <div class="col">
+        <select id="id_tipo_liberacion" class="form-select" aria-label="Default select example">
+            <option selected></option>
+            <option value="Liberación Acondicionamiento">Liberación Acondicionamiento</option>
+            <option value="Liberación Importación">Liberación Importación</option>
+        </select>
+    </div>
+
+    <div class="col input-group mb-3">
+        <input type="text" class="form-control" placeholder="Ingrese en número de liberación" id="n_liberacion" required>
+        <button id="id_button_liberacion" name="liberacion" class="btn btn-primary" type="submit">Añadir liberación</button>
+    </div>
+
+</div>
+
+
+{% if factura.msg %}
+    <div class="alert text-center alert-danger" role="alert">
+        {{factura.msg}}
+    </div>
+{% endif %}
+
+<div class="card mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table" style="font-size:small" >
+                <thead>
+                    <tr>
+                        <th scope="col"># Ajuste</th>
+                        <th scope="col">Tipo</th>
+                        <th scope="col">Estado</th>
+                        <th scope="col">Ver Ajuste</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in ajuste_liberacion %}
+                    <tr>
+                        <td>{{i.doc_id}}</td>
+                        <td>{{i.tipo}}</td>
+                        <td>{{i.estado}}</td>
+                        <td>
+                            <a class="btn btn-primary btn-sm" href="{% url 'wms_ajuste_liberacion_detalle' i.doc_id %}">
+                                <i class="bi bi-truck"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    $(document).ready(function() {
+        $("#id_button_liberacion").addClass('disabled');
+    });
+
+    $("#id_tipo_liberacion").change(function(){
+        var tipo = $("#id_tipo_liberacion option:selected").val();
+        if  (tipo!=='') {
+            $("#id_button_liberacion").removeClass('disabled');
+        } else if (tipo==='') {
+            $("#id_button_liberacion").addClass('disabled');
+        }
+
+    })
+</script>
+
+
+<script>
+
+    $("button[name='liberacion']").click(function(){
+        var n_liberacion = $("#n_liberacion").val();
+        var tipo         = $("#id_tipo_liberacion option:selected").val()
+        console.log(n_liberacion, tipo);
+
+        
+        $.ajax({
+            type:"POST",
+            url:"{% url 'wms_ajuste_liberacion_input_ajax' %}",
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'tipo':tipo,
+                'n_liberacion':n_liberacion,
+            },
+
+            success: function(response) {
+                $('#msg').html(`<div class="text-center alert alert-${response.msg.tipo}" role="alert"> ${response.msg.texto} !!! </div>`);
+                setTimeout(function(){
+                    window.location.href = `/wms/ajuste-liberacion/detalle/${n_liberacion}`;
+                }, 4000)
+
+            },
+            
+            error: function() {
+                $('#msg').fadeIn().html('<div class="text-center alert alert-danger" role="alert"> Error !!! </div>').fadeOut(6000)
+            }
+            
+        })
+    })
+</script>
+
+{% endblock %}

@@ -47,6 +47,10 @@ BODEGA = [
     ('CN7', 'CN7'),
 ]
 
+TIPO_LIBERACION = [
+    ('Liberación Etiquetado', 'Liberación Etiquetado'),
+    ('Liberación Importación', 'Liberación Importación'),
+]
 
 # Create your models here.
 class InventarioIngresoBodega(models.Model):
@@ -163,9 +167,6 @@ class LiberacionCuarentena(models.Model):
     fecha_caducidad = models.DateTimeField()
     estado = models.PositiveIntegerField()
 
-    def __str__(self):
-        return self.product_id
-
     # class Meta:
     #     unique_together = (('doc_id_corp', 'product_id_corp', 'lote_id'),)
 
@@ -197,3 +198,23 @@ class AnulacionPicking(models.Model):
     def __str__(self):
         return self.picking_anulado 
     
+    
+class AjusteLiberacion(models.Model):
+    
+    doc_id_corp     = models.CharField(verbose_name='Doc id corp', max_length=255)
+    doc_id          = models.CharField(verbose_name='Doc id', max_length=255)
+    tipo            = models.CharField(verbose_name='Tipo', choices=TIPO_LIBERACION, max_length=50)
+    product_id      = models.CharField(verbose_name='Product id', max_length=255)
+    lote_id         = models.CharField(verbose_name='Lote id', max_length=255)
+    ware_code       = models.CharField(verbose_name='Bodega', max_length=50)
+    location        = models.CharField(verbose_name='Ubicación', max_length=50)
+    egreso_temp     = models.PositiveIntegerField(verbose_name='Egreso temp')
+    commited        = models.PositiveIntegerField(verbose_name='Commited')
+    fecha_caducidad = models.DateField(verbose_name='Fecha caducidad')
+    
+    unidades_cuc    = models.PositiveIntegerField(verbose_name='Unidades cuarentena', null=True, blank=True)
+    ubicacion       = models.ForeignKey(Ubicacion, verbose_name='Ubicación', max_length=5, on_delete=models.CASCADE, related_name='ubicacion_cuc_liberacion', blank=True, null=True)
+    estado          = models.CharField(verbose_name='Estado', max_length=50, null=True, blank=True)
+    
+    def __str__(self):
+        return self.product_id
