@@ -241,13 +241,6 @@ urlpatterns = [
         name = 'wms_btn_actualizar_todas_existencias'
     ),
     
-    # Lista de picking realizados
-    path(
-        route='picking/realizados/list',
-        view = views.wms_picking_realizados,
-        name = 'wms_picking_realizados'
-    ),
-    
     # Revisión de transferencia
     path(
         route='revision/trasferencia/ajax',
@@ -381,25 +374,22 @@ urlpatterns = [
     ),
     
     
+    # Ajuste liberación ERIK
+    path(
+        route='ajuste-liberacion/list',
+        view = views.wms_ajuste_liberacion_list,
+        name = 'wms_ajuste_liberacion_list'
+    ),
     
-    # # Reporte de reposición de nivel 1 bodega 6
-    # path(
-    #     route='reposicion/nivel/1',
-    #     view = views.wms_reposicion_nivel1,
-    #     name = 'wms_reposicion_nivel1'
-    # ),
+    path(
+        route='ajuste-liberacion/wms_ajuste_liberacion_input_ajax',
+        view = views.wms_ajuste_liberacion_input_ajax,
+        name = 'wms_ajuste_liberacion_input_ajax'
+    ),
     
-    
-    # Liberaciones
-    # path(
-    #     route='liberaciones',
-    #     view = views.wms_lista_liberaciones,
-    #     name = 'wms_lista_liberaciones'
-    # ),
-    
-    # path(
-    #     route='wms_liberacion',
-    #     view = views.wms_liberacion,
-    #     name = 'wms_liberacion'
-    # ),
+    path(
+        route='ajuste-liberacion/detalle/<str:n_liberacion>',
+        view = views.wms_ajuste_liberacion_detalle,
+        name = 'wms_ajuste_liberacion_detalle'
+    ),
 ]

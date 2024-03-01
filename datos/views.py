@@ -1980,69 +1980,6 @@ def lotes_bodega(bodega, product_id):
     return stock_lote
 
 
-### WMS ###
-# DATOS MBA - WMS
-# LISTA DE DOC DE LIBERACIONES
-def wms_datos_doc_liberaciones():
-
-    cnxn = pyodbc.connect('DSN=mba3;PWD=API')
-
-    query = (
-        "SELECT INVT_Ajustes_Principal.DOC_ID_CORP, INVT_Ajustes_Principal.`CROSS REF`, INVT_Ajustes_Principal.`CONF IMPORT`, INVT_Ajustes_Principal.WAR_CODE_DEST, INVT_Ajustes_Principal.WARE_CODE, INVT_Ajustes_Principal.TransferenciaDirecta, INVT_Ajustes_Principal.`ENTERED DATE`, INVT_Ajustes_Principal.MEMO "
-        "FROM INVT_Ajustes_Principal INVT_Ajustes_Principal "
-        "WHERE (INVT_Ajustes_Principal.`CONF IMPORT`=true) AND (INVT_Ajustes_Principal.WARE_CODE='cuc') AND (INVT_Ajustes_Principal.TransferenciaDirecta=true)"
-    )
-    
-    df = pd.read_sql_query(query, cnxn)
-    df = df.rename(columns={'ENTERED DATE':'ENTERED_DATE','CROSS REF':'CROSS_REF'})
-    df['ENTERED_DATE'] = df['ENTERED_DATE'].astype(str)
-    df['CROSS_REF'] = df['CROSS_REF'].astype(str)
-    df = df.sort_values(by='ENTERED_DATE', ascending=False)
-    # CAMBIAR PRODUCT_ID
-    
-    return df
-
-
-
-def wms_datos_liberacion_cuc(doc):
-
-    cnxn = pyodbc.connect('DSN=mba3;PWD=API')
-
-    query = (
-        "SELECT INVT_Lotes_Ubicacion.DOC_ID_CORP, INVT_Lotes_Ubicacion.PRODUCT_ID_CORP, INVT_Lotes_Ubicacion.LOTE_ID, INVT_Lotes_Ubicacion.EGRESO_TEMP, INVT_Lotes_Ubicacion.COMMITED, INVT_Lotes_Ubicacion.WARE_CODE_CORP, INVT_Lotes_Ubicacion.UBICACION, INVT_Producto_Lotes.Fecha_elaboracion_lote, INVT_Producto_Lotes.FECHA_CADUCIDAD "
-        "FROM INVT_Lotes_Ubicacion INVT_Lotes_Ubicacion, INVT_Producto_Lotes INVT_Producto_Lotes "
-        "WHERE INVT_Lotes_Ubicacion.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND INVT_Producto_Lotes.LOTE_ID = INVT_Lotes_Ubicacion.LOTE_ID "
-        #"AND ((INVT_Lotes_Ubicacion.DOC_ID_CORP='A-0000059940-gimpr') AND (INVT_Producto_Lotes.ENTRADA_TIPO='OC'))"
-        f"AND ((INVT_Lotes_Ubicacion.DOC_ID_CORP='{doc}') AND (INVT_Producto_Lotes.ENTRADA_TIPO='OC'))"
-    )
-    
-    df = pd.read_sql_query(query, cnxn)
-    
-    # CAMBIAR PRODUCT_ID
-    
-    return df
-
-
-
-def wms_datos_liberacion_bct():
-
-    cnxn = pyodbc.connect('DSN=mba3;PWD=API')
-
-    query = (
-        "SELECT INVT_Producto_Lotes_Bodegas.Doc_id_Corp, INVT_Producto_Lotes_Bodegas.PRODUCT_ID_CORP, INVT_Producto_Lotes_Bodegas.LOTE_ID, INVT_Producto_Lotes_Bodegas.WARE_CODE, INVT_Producto_Lotes_Bodegas.LOCATION "
-        "FROM INVT_Producto_Lotes_Bodegas INVT_Producto_Lotes_Bodegas "
-        "WHERE (INVT_Producto_Lotes_Bodegas.Doc_id_Corp='A-0000045310-GIMPR')"
-        #"WHERE (INVT_Producto_Lotes_Bodegas.Doc_id_Corp='A-0000059940-GIMPR')"
-    )
-    
-    df = pd.read_sql_query(query, cnxn)
-    
-    # CAMBIAR PRODUCT_ID
-    
-    return df
-
-
-
 def wms_reservas_lotes_datos():
     r_lote = reservas_lote()[['CONTRATO_ID','CODIGO_CLIENTE','PRODUCT_ID','LOTE_ID','EGRESO_TEMP']]
     r_lote = r_lote.rename(columns={
@@ -2128,37 +2065,7 @@ def wms_detalle_factura(n_factura):
         })
     
     return df
-    
-    
-    
-def wms_stock_lote_cerezos(): 
-    ''' Colusta de clientes por ruc a la base de datos '''
-    with connections['gimpromed_sql'].cursor() as cursor:
-        cursor.execute("SELECT * FROM warehouse.stock_lote  where WARE_CODE = 'BCT' OR WARE_CODE = 'CUC'")
-        columns = [col[0] for col in cursor.description]
-        stock = [
-            dict(zip(columns, row))
-            for row in cursor.fetchall()
-        ]
-        stock = pd.DataFrame(stock)
-        
-    return stock
 
-
-def wms_picking_realizados_warehouse_list():
-    lista_pedidos = [74939]
-    query = f"SELECT * FROM warehouse.facturas WHERE NUMERO_PEDIDO_SISTEMA IN ({', '.join(map(str, lista_pedidos))});"
-    with connections['gimpromed_sql'].cursor() as cursor:
-        # cursor.execute(f"SELECT * FROM warehouse.facturas where NUMERO_PEDIDO_SISTEMA in '{lista_pedidos}'")
-        cursor.execute(query)
-        columns = [col[0] for col in cursor.description]
-        reservas = [
-            dict(zip(columns, row))
-            for row in cursor.fetchall()
-        ]
-        reservas = pd.DataFrame(reservas)
-        
-    return reservas
 
 
 def wms_reserva_por_contratoid(contrato_id):
@@ -2258,3 +2165,38 @@ def wms_datos_nota_entrega(nota_entrega):
         print(e)
     finally:
         cnxn.close()
+        
+        
+        
+def wms_ajuste_query_odbc(n_ajuste):
+    
+    cnxn = pyodbc.connect('DSN=mba3;PWD=API')
+    cursorOdbc = cnxn.cursor()
+    
+    # La variable 'n' no está siendo usada en la consulta. Asegúrate de que sea necesario.
+    n = 'A-00000' + str(n_ajuste) + '-GIMPR'
+    
+    #Transferencia Egreso
+    try:
+
+        # Segunda consulta
+        cursorOdbc.execute(
+            "SELECT INVT_Lotes_Ubicacion.DOC_ID_CORP, INVT_Lotes_Ubicacion.PRODUCT_ID_CORP, INVT_Lotes_Ubicacion.LOTE_ID, "
+            "INVT_Lotes_Ubicacion.EGRESO_TEMP, INVT_Lotes_Ubicacion.COMMITED, INVT_Lotes_Ubicacion.WARE_CODE_CORP, "
+            "INVT_Lotes_Ubicacion.UBICACION, INVT_Producto_Lotes.Fecha_elaboracion_lote, INVT_Producto_Lotes.FECHA_CADUCIDAD "
+            "FROM INVT_Lotes_Ubicacion, INVT_Producto_Lotes "
+            "WHERE INVT_Lotes_Ubicacion.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP "
+            "AND INVT_Producto_Lotes.LOTE_ID = INVT_Lotes_Ubicacion.LOTE_ID "
+            f"AND ((INVT_Lotes_Ubicacion.DOC_ID_CORP='{n}') AND (INVT_Producto_Lotes.ENTRADA_TIPO='OC')) "
+        )
+        inventario = [tuple(row) for row in cursorOdbc.fetchall()]
+        inventario_df = pd.DataFrame(inventario, columns=['DOC_ID_CORP', 'PRODUCT_ID_CORP', 'LOTE_ID', 'EGRESO_TEMP', 'COMMITED', 'WARE_CODE_CORP', 'UBICACION', 'Fecha_elaboracion_lote', 'FECHA_CADUCIDAD']) if inventario else pd.DataFrame()
+        inventario_df['product_id'] = list(map(lambda x:x[:-6], list(inventario_df['PRODUCT_ID_CORP'])))
+        
+        return inventario_df
+        
+    except Exception as e:
+        print(e)
+    
+    finally:
+        cursorOdbc.close()

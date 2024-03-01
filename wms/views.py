@@ -12,13 +12,8 @@ from datos.views import (
     wms_reservas_lote_consulta,
 
     # DATOS
-    wms_datos_doc_liberaciones,
-    wms_datos_liberacion_cuc,
-    wms_datos_liberacion_bct,
     wms_detalle_factura,
     clientes_warehouse,
-    wms_stock_lote_cerezos,
-    wms_picking_realizados_warehouse_list,
     wms_reserva_por_contratoid,
     quitar_puntos,
     wms_stock_lote_cerezos_by_product,
@@ -26,8 +21,10 @@ from datos.views import (
     wms_datos_nota_entrega,
 
     # Trasnferencia
-    doc_transferencia_odbc
+    doc_transferencia_odbc,
     
+    # Ajuste Datos
+    wms_ajuste_query_odbc
     )
 
 # Pedidos por clientes
@@ -58,7 +55,8 @@ from wms.models import (
     LiberacionCuarentena,
     NotaEntrega,
     AnulacionPicking,
-    TransferenciaStatus)
+    TransferenciaStatus,
+    AjusteLiberacion)
 
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -1087,35 +1085,6 @@ def wms_ajuste_fecha_ajax(request):
 
 
 # Llamar los valores para ajuste de acuerdo a tipo de movimiento
-def wms_ajuste_lote_ajax(request):
-
-    tipo = request.POST['tipo']
-    prod = request.POST['product_id']
-
-    if tipo == 'Ingreso':
-        # Buscar en Existencias MBA
-        if not prod:
-            lotes = []
-        else:
-            lotes = wms_stock_lote_cerezos_by_product(product_id=prod)[['LOTE_ID']]
-            lotes = lotes.drop_duplicates(subset='LOTE_ID')
-            lotes = lotes.rename(columns={'LOTE_ID':'lote_id'})
-            lotes = de_dataframe_a_template(lotes)
-
-
-        return JsonResponse({'lotes':lotes})
-
-    elif tipo == 'Egreso':
-        # Buscar en Existencias WMS
-        lotes = pd.DataFrame(Existencias.objects.filter(product_id=prod)
-            .values('lote_id').distinct())
-        lotes = de_dataframe_a_template(lotes)
-
-        return JsonResponse({'lotes':lotes})
-    return JsonResponse({'lotes':None})
-
-
-# Llamar los valores para ajuste de acuerdo a tipo de movimiento
 def wms_ajuste_fecha_ajax(request):
 
     tipo = request.POST['tipo']
@@ -1732,25 +1701,6 @@ def wms_cruce_check_despacho(request):
 
 
 
-def wms_picking_realizados(request):
-
-    picking = list(Movimiento.objects.filter(referencia='Picking').values_list('n_referencia',flat=True).distinct())
-    picking = tuple(map(lambda x: int(float(x)), picking))
-
-    query = wms_picking_realizados_warehouse_list()
-    # print(query)
-
-    return HttpResponse('ok')
-
-
-# Liberaciones Cuarentena
-def wms_liberaciones_cuarentena(request):
-    liberacion_mba3 = wms_datos_liberacion_cuc()
-    #print(liberacion_mba3)
-    return HttpResponse('ok')
-
-
-
 # Revisicón de transferencias
 def wms_revision_transferencia_ajax(request):
 
@@ -2266,7 +2216,7 @@ def wms_movimiento_egreso_transferencia(request): #OK
     return JsonResponse({'msg':'❌Error !!!'})
 
 
-
+# LIBERACIONES JUAN
 def wms_ingreso_ajuste(request):
     return render(request, 'wms/ingreso_ajuste.html', {'elementos': ''})
 
@@ -2299,7 +2249,7 @@ def wms_busqueda_ajuste(request, n_ajuste):
         ajuste = [tuple(row) for row in cursorOdbc.fetchall()]
 
         ajuste_df = pd.DataFrame(ajuste, columns=['DOC_ID_CORP', 'PRODUCT_ID_CORP', 'LOTE_ID', 'WARE_CODE', 'LOCATION']) if ajuste else pd.DataFrame()
-
+        print(ajuste_df)
         # Segunda consulta
         cursorOdbc.execute(
             "SELECT INVT_Lotes_Ubicacion.DOC_ID_CORP, INVT_Lotes_Ubicacion.PRODUCT_ID_CORP, INVT_Lotes_Ubicacion.LOTE_ID, "
@@ -2314,16 +2264,15 @@ def wms_busqueda_ajuste(request, n_ajuste):
         inventario_df = pd.DataFrame(inventario, columns=['DOC_ID_CORP', 'PRODUCT_ID_CORP', 'LOTE_ID', 'EGRESO_TEMP', 'COMMITED', 'WARE_CODE_CORP', 'UBICACION', 'Fecha_elaboracion_lote', 'FECHA_CADUCIDAD']) if inventario else pd.DataFrame()
         print(inventario_df)
         # Unión (merge) de los DataFrames en los campos comunes
-        
         if not ajuste_df.empty and not inventario_df.empty:
             resultado_df = pd.merge(ajuste_df, inventario_df, on=['DOC_ID_CORP', 'PRODUCT_ID_CORP', 'LOTE_ID'], how='inner')
             resultado_df = resultado_df.drop_duplicates(subset=['DOC_ID_CORP', 'PRODUCT_ID_CORP', 'LOTE_ID'])
-
+            
             if 'Fecha_elaboracion_lote' in resultado_df.columns:
                 resultado_df['Fecha_elaboracion_lote'] = resultado_df['Fecha_elaboracion_lote'].apply(lambda x: x.strftime('%Y-%m-%d') if pd.notnull(x) else x)
             if 'FECHA_CADUCIDAD' in resultado_df.columns:
                 resultado_df['FECHA_CADUCIDAD'] = resultado_df['FECHA_CADUCIDAD'].apply(lambda x: x.strftime('%Y-%m-%d') if pd.notnull(x) else x)
-
+            print(resultado_df)
             #eliminar por DOC_ID_CORP
             LiberacionCuarentena.objects.filter(doc_id_corp = n ).delete(),
             
@@ -2352,10 +2301,11 @@ def wms_busqueda_ajuste(request, n_ajuste):
                     fecha_caducidad = row['FECHA_CADUCIDAD'],
                     estado=0
                     )
-                    wms_get_existencias(row,n_ajuste,user)
+                    #wms_get_existencias(row,n_ajuste,user)
                 else:
                     if(existe.estado==0):
-                        wms_get_existencias(row,n_ajuste,user)
+                        pass
+                        #wms_get_existencias(row,n_ajuste,user)
                     
             # LiberacionCuarentena.objects.bulk_create(liberacion_cuarentena_objects)
 
@@ -2816,7 +2766,6 @@ def wms_anulacion_picking_detalle(request, id_anulacion):
 
 
 
-
 ## Anulación picking
 def wms_anulacion_picking_ajax(request):
     
@@ -2845,3 +2794,144 @@ def wms_anulacion_picking_ajax(request):
                 'texto': f'❌ Error, intenta nuevamente !!!'
             }
         })
+
+
+
+### Ajuste Liberación ERIK
+def wms_ajuste_liberacion_list(request):
+    
+    ajuste_liberacion = pd.DataFrame(AjusteLiberacion.objects.all().values()).drop_duplicates(subset=['doc_id'])
+    ajuste_liberacion = de_dataframe_a_template(ajuste_liberacion)
+    
+    context = {
+        'ajuste_liberacion':ajuste_liberacion
+        }
+    
+    return render(request, 'wms/ajuste_liberacion_list.html', context)
+
+
+
+def wms_ajuste_liberacion_input_ajax(request):
+    
+    tipo_liberacion = request.POST['tipo']
+    n_liberacion = request.POST['n_liberacion']
+    
+    liberacion_data = wms_ajuste_query_odbc(n_liberacion)
+    
+    liberacion_data['doc_id'] = n_liberacion
+    liberacion_data['tipo'] = tipo_liberacion
+    liberacion_data['FECHA_CADUCIDAD'] = liberacion_data['FECHA_CADUCIDAD'].astype('str')
+    liberacion_data = liberacion_data.rename(columns={'LOTE_ID':'lote_id'})
+    
+    existencias = pd.DataFrame(Existencias.objects.filter(estado='Cuarentena').values(
+        'product_id', 'lote_id','unidades','ubicacion_id','estado'
+    ))
+    
+    liberacion_data = liberacion_data.merge(existencias, on=['product_id','lote_id'], how='left')
+    
+    lib_data_list = []
+    for i in de_dataframe_a_template(liberacion_data):
+        
+        lib_data = AjusteLiberacion(
+            doc_id_corp     = i['DOC_ID_CORP'],
+            doc_id          = i['doc_id'],
+            tipo            = i['tipo'],
+            product_id      = i['product_id'],
+            lote_id         = i['lote_id'],
+            ware_code       = i['WARE_CODE_CORP'],
+            location        = i['UBICACION'],
+            egreso_temp     = i['EGRESO_TEMP'],
+            commited        = i['COMMITED'],
+            fecha_caducidad = i['FECHA_CADUCIDAD'],
+            
+            unidades_cuc    = i['unidades'],
+            ubicacion_id    = i['ubicacion_id'], #int(i['ubicacion_id']),
+            estado          = i['estado']
+        )
+        
+        lib_data_list.append(lib_data)
+    
+    lib_data_exist = AjusteLiberacion.objects.filter(doc_id=n_liberacion).exists()
+    
+    if lib_data_exist:
+    
+        return JsonResponse({
+            'msg':{
+                'tipo': 'danger', 
+                'texto': f'La liberación {n_liberacion} ya fue ingresada !!!'
+            }
+        })
+    
+    else:
+        
+        AjusteLiberacion.objects.bulk_create(lib_data_list)
+        return JsonResponse({
+            'msg':{
+                'tipo': 'success', 
+                'texto': f'La liberación {n_liberacion} ingresada exitosamente !!!'
+            }
+        })
+        
+        
+def wms_ajuste_liberacion_detalle(request, n_liberacion):
+    
+    prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+    
+    ajuste = pd.DataFrame(AjusteLiberacion.objects.filter(doc_id=n_liberacion).values())
+    ajuste['fecha_caducidad'] = ajuste['fecha_caducidad'].astype('str')
+    ajuste = ajuste.merge(prod, on='product_id', how='left')[[
+        'tipo','product_id','lote_id','fecha_caducidad','egreso_temp','estado','ubicacion_id'
+    ]]
+    
+    ajuste = ajuste.merge(prod, on='product_id', how='left')
+    
+    ajuste['ubicacion_liberacion'] = ajuste.apply(
+        lambda x: '606' if x['tipo'] == 'Liberación Acondicionamiento' else x['ubicacion_id'], axis=1
+    )
+    
+    tipo = ajuste.iloc[0]['tipo']
+    
+    ajuste = de_dataframe_a_template(ajuste)
+    
+    if request.method == 'POST':
+        for i in ajuste:
+            mov_eg = Movimiento(
+                tipo            = 'Egreso',
+                unidades        = int(i['egreso_temp']) *-1,
+                descripcion     = 'N/A' ,
+                n_referencia    = n_liberacion,
+                referencia      = 'Liberación',
+                usuario_id      = int(request.user.id),
+                fecha_caducidad = i['fecha_caducidad'],
+                lote_id         = i['lote_id'],
+                product_id      = i['product_id'],
+                estado          = 'Cuarentena',
+                ubicacion_id    = int(i['ubicacion_id']),
+            )
+            mov_eg.save()
+            
+            mov_in = Movimiento(
+                tipo            = 'Ingreso',
+                unidades        = int(i['egreso_temp']),
+                descripcion     = 'N/A' ,
+                n_referencia    = n_liberacion,
+                referencia      = 'Liberación',
+                usuario_id      = int(request.user.id),
+                fecha_caducidad = i['fecha_caducidad'],
+                lote_id         = i['lote_id'],
+                product_id      = i['product_id'],
+                estado          = 'Cuarentena',
+                ubicacion_id    = int(i['ubicacion_liberacion']),
+            )
+            mov_in.save()
+            
+        AjusteLiberacion.objects.filter(doc_id=n_liberacion).update(estado='Liberado')
+    
+    
+    context = {
+        'ajuste':ajuste,
+        'n_liberacion':n_liberacion,
+        'tipo':tipo
+    }
+
+    return render(request, 'wms/ajuste_liberacion_detalle.html', context)
