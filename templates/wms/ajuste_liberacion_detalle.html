@@ -80,7 +80,8 @@
                         <th scope="col">F.Expiración</th>
                         <th scope="col">Ubicación</th>
                         <th scope="col">Estado</th>
-                        <th scope="col">Unidades</th>
+                        <th scope="col">Unidades Ajuste</th>
+                        <th scope="col">Unidades WMS</th>
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
@@ -91,7 +92,7 @@
                         <td>{{i.Marca}}</td>
                         <td>{{i.lote_id}}</td>
                         <td>{{i.fecha_caducidad}}</td>
-                        <td>{{i.ubicacion_id}}</td>
+                        <td>{{i.bodega}}-{{i.pasillo}}-{{i.modulo}}-{{i.nivel}}</td>
                         <td>
                             {% if i.estado == 'Liberado' %}
                             <a class="btn btn-success btn-sm disabled">{{i.estado}}</a>
@@ -99,7 +100,8 @@
                             <a class="btn btn-warning btn-sm disabled">{{i.estado}}</a>
                             {% endif %}
                         </td>
-                        <td>{{i.egreso_temp}}</td>
+                        <td class="text-end">{{i.egreso_temp|floatformat:"0g"}}</td>
+                        <td class="text-end">{{i.unidades_cuc|floatformat:"0g"}}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
