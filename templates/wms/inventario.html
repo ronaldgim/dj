@@ -66,7 +66,9 @@
                         </td>
                         <td>
                             <span class="fw-bold">Ubicación:</span><br>
-                                {% if i.estado == "Cuarentena" %}CUC-{% endif %}{{i.ubicacion__bodega}}-{{i.ubicacion__pasillo}}-{{i.ubicacion__modulo}}{% if i.ubicacion__bodega == 'CN6' %}-{{i.ubicacion__nivel}}{% else %}{% endif %}
+                                <span {% if i.estado == "Cuarentena" %} class="text-danger" {% endif %}>
+                                    {% if i.estado == "Cuarentena" %}CUC-{% endif %}{{i.ubicacion__bodega}}-{{i.ubicacion__pasillo}}-{{i.ubicacion__modulo}}{% if i.ubicacion__bodega == 'CN6' %}-{{i.ubicacion__nivel}}{% endif %}
+                                </span>
                             <br>
                             <span class="fw-bold">Unidades:</span> {{i.unidades|floatformat:"0g"}}<br>
                             <span class="fw-bold">Acciones:</span><br>

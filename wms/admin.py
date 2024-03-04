@@ -1,7 +1,13 @@
 from django.contrib import admin
 
 # Models
-from wms.models import InventarioIngresoBodega, Ubicacion, Movimiento, LiberacionCuarentena, Transferencia
+from wms.models import (
+    InventarioIngresoBodega, 
+    Ubicacion, 
+    Movimiento, 
+    LiberacionCuarentena, 
+    Transferencia,
+    AjusteLiberacion)
 
 
 # INVENTARIO
@@ -80,3 +86,14 @@ class TransferenciaAdmin(admin.ModelAdmin):
     # list_display_links = []
     # search_fields = ['product_id',]
     # orderin = []
+    
+    
+@admin.register(AjusteLiberacion)
+class AjusteLiberacionAdmin(admin.ModelAdmin):
+
+    list_display = (
+        'doc_id',
+        'product_id', 
+        'lote_id', 
+        'egreso_temp'
+        )
