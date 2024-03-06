@@ -180,6 +180,8 @@ def importacion_list_detail(request, o_compra):
         'DOC_ID_CORP':'o_compra'
     })
     
+    imp_tuple = [tuple(i) for i in imp.values]
+    
     doc_lot_df = pd.DataFrame(doc_lot.values())
     doc_lot_df['exist'] = 'si'
     
@@ -187,7 +189,7 @@ def importacion_list_detail(request, o_compra):
         # Guardar todos los valores
         with connections['default'].cursor() as cursor:
             cursor.executemany(
-                "INSERT INTO regulatorio_legal_documentolote (product_id, lote_id, f_caducidad, documento, o_compra) VALUES (%s,%s,%s,%s,%s)", imp
+                "INSERT INTO regulatorio_legal_documentolote (product_id, lote_id, f_caducidad, documento, o_compra) VALUES (%s,%s,%s,%s,%s)", imp_tuple
             )
 
     elif len(doc_lot_df) < len(imp):
