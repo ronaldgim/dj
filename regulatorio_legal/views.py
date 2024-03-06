@@ -168,21 +168,45 @@ def importacion_list_detail(request, o_compra):
 
     doc_lot = DocumentoLote.objects.filter(o_compra=o_compra)
     
-    imp = importaciones_llegadas_odbc()
+    imp = importaciones_llegadas_odbc().reset_index()
     imp = imp[imp['DOC_ID_CORP']==o_compra]
-
+    
     imp = imp.sort_values(by=['product_id', 'FECHA_CADUCIDAD'])
     imp['doc'] = ''
     imp = imp[['product_id','LOTE_ID', 'FECHA_CADUCIDAD', 'doc','DOC_ID_CORP']]
-    imp = [tuple(i) for i in imp.values]
-
-    if not doc_lot.exists():
+    imp = imp.rename(columns={
+        'LOTE_ID':'lote_id',
+        'FECHA_CADUCIDAD':'f_caducidad',
+        'DOC_ID_CORP':'o_compra'
+    })
     
+    doc_lot_df = pd.DataFrame(doc_lot.values())
+    doc_lot_df['exist'] = 'si'
+    
+    if doc_lot_df.empty:
+        # Guardar todos los valores
         with connections['default'].cursor() as cursor:
             cursor.executemany(
                 "INSERT INTO regulatorio_legal_documentolote (product_id, lote_id, f_caducidad, documento, o_compra) VALUES (%s,%s,%s,%s,%s)", imp
             )
 
+    elif len(doc_lot_df) < len(imp):
+        # hacer un merge y guardar la diferencia
+        imp_data = imp.merge(doc_lot_df, on=['o_compra','product_id', 'lote_id'], how='left').fillna(0)
+        imp_data = imp_data[imp_data['exist']==0]
+        imp_data = de_dataframe_a_template(imp_data)
+        for i in imp_data:
+            doc_lot = DocumentoLote(
+                product_id = i['product_id'],
+                lote_id = i['lote_id'],
+                f_caducidad = i['f_caducidad_x'],
+                documento = '',
+                o_compra = i['o_compra']
+            )
+            
+            doc_lot.save()
+            
+            
     d_l_list = pd.DataFrame(DocumentoLote.objects.filter(o_compra=o_compra).values())
     d_l_list = d_l_list.merge(productos_odbc_and_django()[['product_id', 'Nombre', 'Marca']], on='product_id', how='left')
     d_l_list['f_caducidad'] = d_l_list['f_caducidad'].astype(str)

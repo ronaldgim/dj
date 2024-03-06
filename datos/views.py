@@ -2191,6 +2191,7 @@ def wms_ajuste_query_odbc(n_ajuste):
         )
         inventario = [tuple(row) for row in cursorOdbc.fetchall()]
         inventario_df = pd.DataFrame(inventario, columns=['DOC_ID_CORP', 'PRODUCT_ID_CORP', 'LOTE_ID', 'EGRESO_TEMP', 'COMMITED', 'WARE_CODE_CORP', 'UBICACION', 'Fecha_elaboracion_lote', 'FECHA_CADUCIDAD']) if inventario else pd.DataFrame()
+        
         inventario_df['product_id'] = list(map(lambda x:x[:-6], list(inventario_df['PRODUCT_ID_CORP'])))
         
         return inventario_df
