@@ -149,17 +149,14 @@ def doc_importacion_por_lote_ajax(request):
             dict(zip(columns, row))
             for row in cursor.fetchall()
         ]
-
         imp = pd.DataFrame(importacion)
         imp = imp.drop_duplicates()
         imp = list(imp['DOC_ID_CORP'])
         
         if len(imp)>1:
             i = '; '.join(imp)
-
         else:
             i = imp[0]
-
     return HttpResponse(i)
 
 
@@ -208,13 +205,10 @@ def importacion_list_detail(request, o_compra):
             
             doc_lot.save()
             
-            
     d_l_list = pd.DataFrame(DocumentoLote.objects.filter(o_compra=o_compra).values())
     d_l_list = d_l_list.merge(productos_odbc_and_django()[['product_id', 'Nombre', 'Marca']], on='product_id', how='left')
     d_l_list['f_caducidad'] = d_l_list['f_caducidad'].astype(str)
-    
     marca = d_l_list['Marca'][0]
-
     d = list(d_l_list['documento'].fillna(0))
     d_list = []
     for i in d:
@@ -222,9 +216,7 @@ def importacion_list_detail(request, o_compra):
             i = i.split('/')[1]
         d_list.append(i)
     d_l_list['doc'] = d_list
-
     d_l_list = de_dataframe_a_template(d_l_list)
-
 
     context = {
         'imp':d_l_list,
