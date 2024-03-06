@@ -48,7 +48,7 @@ BODEGA = [
 ]
 
 TIPO_LIBERACION = [
-    ('Liberación Etiquetado', 'Liberación Etiquetado'),
+    ('Liberación Acondicionamiento', 'Liberación Acondicionamiento'),
     ('Liberación Importación', 'Liberación Importación'),
 ]
 

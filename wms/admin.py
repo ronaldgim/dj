@@ -7,7 +7,8 @@ from wms.models import (
     Movimiento, 
     LiberacionCuarentena, 
     Transferencia,
-    AjusteLiberacion)
+    AjusteLiberacion,
+    TransferenciaStatus)
 
 
 # INVENTARIO
@@ -96,4 +97,16 @@ class AjusteLiberacionAdmin(admin.ModelAdmin):
         'product_id', 
         'lote_id', 
         'egreso_temp'
+        )
+    
+@admin.register(TransferenciaStatus)
+class TransferenciaStatusAdmin(admin.ModelAdmin):
+
+    list_display = (
+        'id',
+        'n_transferencia', 
+        'estado', 
+        'unidades_mba',
+        'unidades_wms',
+        'avance'
         )
