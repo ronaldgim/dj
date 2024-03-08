@@ -111,22 +111,26 @@ def wms_importaciones_list(request): #OK
     imp = imp[imp['WARE_COD_CORP']=='CUC']
     imp = imp[imp['ENTRADA_FECHA']>'2023-12-31']
     imp = imp.sort_values(by=['ENTRADA_FECHA'], ascending=[False])
-    imp = imp.drop_duplicates(subset=['DOC_ID_CORP'])
-
+    
     pro = productos_odbc_and_django()[['product_id', 'Marca']]
     imp = imp.merge(pro, on='product_id', how='left')
-
     imp = imp.sort_values(by=['ENTRADA_FECHA'], ascending=[False])
-
-    imp_doc = pd.DataFrame(InventarioIngresoBodega.objects.all().values()).empty
-
-    if not imp_doc:
-        imp_doc = pd.DataFrame(InventarioIngresoBodega.objects.all().values())[['n_referencia', 'bodega']]
-        imp_doc = imp_doc.drop_duplicates(subset='n_referencia')
-        imp_doc = imp_doc.rename(columns={'n_referencia':'DOC_ID_CORP'})
-        imp = imp.merge(imp_doc, on='DOC_ID_CORP', how='left').fillna(0)
-        imp = imp[imp['bodega']==0]
-
+    imp = imp.rename(columns={
+        'LOTE_ID':'lote_id',
+        'OH':'unidades_ingresadas',
+        })
+    
+    imp_wms = pd.DataFrame(InventarioIngresoBodega.objects.filter(referencia='Ingreso Importación').values(
+        'product_id','lote_id','unidades_ingresadas','n_referencia'
+    ))
+    
+    imp_wms = imp_wms.rename(columns={'n_referencia':'DOC_ID_CORP'})
+    imp_wms['ingresado'] = 'si'
+    
+    imp = imp.merge(imp_wms, on=['product_id','lote_id','unidades_ingresadas','DOC_ID_CORP'], how='left').fillna('no')
+    
+    imp = imp[imp['ingresado']=='no']
+    imp = imp.drop_duplicates(subset=['DOC_ID_CORP'])
     imp = de_dataframe_a_template(imp)
 
     context = {
@@ -174,24 +178,39 @@ def wms_detalle_imp(request, o_compra): #OK
         y aparece en la lista de importaciones ingresadas
     """
 
-    # imv_inicial_ing = pd.DataFrame(InventarioIngresoBodega.objects.filter(n_referencia=o_compra).values())
-    # print(imv_inicial_ing)
-
-    detalle = importaciones_llegadas_ocompra_odbc(o_compra)
-    pro     = productos_odbc_and_django()[['product_id', 'Nombre', 'marca','marca2']]
-    detalle = detalle.merge(pro, on='product_id', how='left')
-    #detalle = detalle[detalle['product_id']!='70114-3LHS']
-
-    marca = detalle['marca2'].iloc[0]
-    orden = detalle['DOC_ID_CORP'].iloc[0]
-
-    detalle = de_dataframe_a_template(detalle)
+    imp = importaciones_llegadas_ocompra_odbc(o_compra)
+    pro = productos_odbc_and_django()[['product_id', 'Nombre', 'marca','marca2']]
+    imp = imp.merge(pro, on='product_id', how='left')
+    imp = imp.sort_values(by='marca2', ascending=True)
+    
+    marca = imp['marca2'].iloc[0]
+    orden = imp['DOC_ID_CORP'].iloc[0]
+    
+    imp_wms = pd.DataFrame(InventarioIngresoBodega.objects
+        .filter(referencia='Ingreso Importación')
+        .filter(n_referencia=o_compra)
+        .values('product_id','lote_id','unidades_ingresadas','n_referencia')
+        )
+    
+    imp_wms = imp_wms.rename(columns={
+        'lote_id':'LOTE_ID',
+        'unidades_ingresadas':'OH',
+        'n_referencia':'DOC_ID_CORP'
+        })
+    
+    imp_wms['ingresado'] = 'si'
+    
+    if not imp_wms.empty:
+        imp = imp.merge(imp_wms, on=['product_id','LOTE_ID','OH','DOC_ID_CORP'], how='left').fillna('no')
+        imp = imp[imp['ingresado']=='no']   
+    
+    imp_template = de_dataframe_a_template(imp)
 
     if request.method == 'POST':
         bodega = request.POST['bodega']
-        d = importaciones_llegadas_ocompra_odbc(o_compra)
+        d = imp
         d['bodega'] = bodega
-
+        
         imp_ing = []
         for i in de_dataframe_a_template(d):
             imp = InventarioIngresoBodega(
@@ -205,17 +224,12 @@ def wms_detalle_imp(request, o_compra): #OK
             )
 
             imp_ing.append(imp)
-
-        imp_exist = InventarioIngresoBodega.objects.filter(n_referencia=o_compra).exists()
-
-        if imp_exist:
-            messages.add_message(request, messages.INFO, f'La imprtación {o_compra} ya fue ingresada !!!')
-        else:
-            InventarioIngresoBodega.objects.bulk_create(imp_ing)
-            return redirect(f'/wms/importacion/bodega/{o_compra}')
+            
+        InventarioIngresoBodega.objects.bulk_create(imp_ing)
+        return redirect(f'/wms/importacion/bodega/{o_compra}')
 
     context = {
-        'imp':detalle,
+        'imp':imp_template,
         'marca':marca,
         'orden':orden,
     }
