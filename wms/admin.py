@@ -47,10 +47,13 @@ class MovimientoAdmin(admin.ModelAdmin):
         'estado_picking',
         'ubicacion', 
         'n_referencia', 
+        'usuario',
+        'fecha_hora',
+        'n_factura',
         'unidades'
         )
     
-    list_filter = ('product_id',)
+    # list_filter = ('product_id',)
     # list_display_links = []
     search_fields = ['product_id',]
     # orderin = []
