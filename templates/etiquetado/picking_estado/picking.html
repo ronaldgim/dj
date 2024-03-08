@@ -64,6 +64,10 @@
     {% endfor %}
 {% endif %}
 
+<button class="btn btn-primary mb-2" name="actualizar">
+    Actualizar
+</button>
+
 <div class="col-4">
     <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
 </div>
@@ -113,69 +117,59 @@
                 <tbody id="pedidosbuscar">
                     {% for i in reservas %}
                     <tr class="content" style="font-size: small;">
-                        <!--td>{{i.NOMBRE_CLIENTE}}</td-->
-                        <td id="cli">{{i.cliente_x}}</td>
-                        <!--td>{{i.WARE_CODE}}</td-->
+                        <td id="cli">{{i.cliente}}</td>
                         <td id="bod">{{i.bodega}}</td>
                         <td class="tipo" data-tipo="{{i.CLIENT_TYPE}}">{{i.CLIENT_TYPE}}</td>
                         <td>{{i.CIUDAD_PRINCIPAL}}</td>
                         <td>{{i.fecha_pedido}}</td>
-                        <td id="ped">{% if i.CLIENT_TYPE == 'STOCK' %}{{i.CONTRATO_ID}} {% else %}  {{i.CONTRATO_ID|slice:':-2'}} {% endif %}</td>     
+                        <td id="ped">{% if i.CLIENT_TYPE == 'STOCK' %}{{i.n_pedido}}{% else %}{{i.n_pedido|slice:':-2'}}{% endif %}</td>
 
                         <td class="estado text-center" data-estado="{{i.estado}}">
                             {% if i.estado == 'EN PAUSA' %}
-                            <a class="btn btn-danger btn-sm disabled" href="{#% url 'estado_pedido' i.CONTRATO_ID i.id %#}" >{{i.estado}}</a><!--target="_blank"-->
+                            <a class="btn btn-danger btn-sm disabled">{{i.estado}}</a>
                             {% elif i.estado == 'EN TRANSITO' %}
-                            <a class="btn btn-danger btn-sm disabled" href="{#% url 'estado_pedido' i.CONTRATO_ID i.id %#}" >{{i.estado}}</a><!--target="_blank"-->
+                            <a class="btn btn-danger btn-sm disabled">{{i.estado}}</a>
                             {% elif i.estado == 'EN PROCESO' %}
-                            <a class="btn btn-warning text-white btn-sm disabled" href="{#% url 'estado_pedido' i.CONTRATO_ID i.id %#}">{{i.estado}}</a> <!-- target="_blank"-->
+                            <a class="btn btn-warning text-white btn-sm disabled">{{i.estado}}</a> 
                             {% elif i.estado == 'INCOMPLETO' %}
-                            <a class="btn btn-danger btn-sm disabled" href="{#% url 'estado_pedido' i.CONTRATO_ID i.id %#}">{{i.estado}}</a><!--target="_blank"-->
+                            <a class="btn btn-danger btn-sm disabled">{{i.estado}}</a>
                             {% elif i.estado == 'FINALIZADO' %}
-                            <a class="btn btn-success btn-sm disabled" href="{#% url 'estado_pedido' i.CONTRATO_ID i.id %#}">{{i.estado}}</a><!--target="_blank"-->
+                            <a class="btn btn-success btn-sm disabled">{{i.estado}}</a>
                             {% else %}
                             {% endif %}
                         </td>
-     
+
                         <td>
                             {% if i.estado == 'FINALIZADO' %}
-                                <!--a class="btn btn-info btn-sm disabled"> {{i.fecha_actualizado|slice:'0:16'}}</a--> 
-                                <!--a class="btn btn-primary btn-sm disabled"> {{i.first_name}} {{i.last_name}}</a-->
-                                {{i.first_name}} {{i.last_name}}
-                                {% else %}
-                                {% if i.first_name != '-' %}
-                                <!--a class="btn btn-primary btn-sm disabled"> {{i.first_name}} {{i.last_name}}</a-->
-                                {{i.first_name}} {{i.last_name}}
+                                {{i.user__user__first_name}} {{i.user__user__last_name}}
+                            {% else %}
+                                {% if i.user__user__first_name != '-' %}
+                                    {{i.user__user__first_name}} {{i.user__user__last_name}}
                                 {% endif %}
                             {% endif %}
                         </td>                           
                         <td>
                             {% if i.estado == 'FINALIZADO' %}
-                                <!--a class="btn btn-info btn-sm disabled"> {{i.fecha_actualizado|slice:'0:16'}}</a--> 
-                                <!--a class="btn btn-primary btn-sm disabled"> {{i.first_name}} {{i.last_name}}</a--> 
                                 {{i.fecha_actualizado|slice:'0:16'}}
-                                {% else %}
-                                {% if i.first_name != '-' %}
-                                <!--a class="btn btn-primary btn-sm disabled"> {{i.first_name}} {{i.last_name}}</a-->
-                                {% endif %}
                             {% endif %}
                         </td>   
                         <td>
-                            <!--div class="btn-group"-->
-                                <a class="btn btn-primary btn-sm" href="{% url 'picking_historial_detail' i.id %}">
-                                    Detalle
-                                </a>
+                            <a class="btn btn-primary btn-sm" href="{% url 'picking_historial_detail' i.id %}">
+                                Detalle
+                            </a>
 
-                                {% if i.estado == 'FINALIZADO' and i.CIUDAD_PRINCIPAL == 'QUITO' or i.CIUDAD_PRINCIPAL == 'SANGOLQUI' %}
+                            {% if i.estado == 'FINALIZADO' and i.CIUDAD_PRINCIPAL == 'QUITO' or i.CIUDAD_PRINCIPAL == 'SANGOLQUI' %}
                                 {% if i.CLIENT_TYPE == 'DISTR' or i.CLIENT_TYPE == 'CONSU' %}
-                                {% if i.facturado %}
-                                Facturado 
-                                {% else %}
-                                <button class="btn btn-warning btn-sm" name="facturado" id="{{i.id}}">Facturado</button>
+                                    {% if i.facturado %}
+                                    Facturado 
+                                    {% else %}
+                                        {% if i.CODIGO_FACTURA %}
+                                            <button class="btn btn-warning btn-sm" name="facturado" id="{{i.id}}">Facturado</button>
+                                            <input type="hidden" value="{{i.CODIGO_FACTURA}}" id="fac" />
+                                        {% endif %}
+                                    {% endif %}
                                 {% endif %}
-                                {% endif %}
-                                {% endif %}
-                            <!--/div-->
+                            {% endif %}
                         </td>
                     </tr>
                     {% endfor %}
@@ -193,12 +187,18 @@
         var cli = $(this).closest('tr').find('#cli').html()
         var ped = $(this).closest('tr').find('#ped').html()
         var bod = $(this).closest('tr').find('#bod').html()
-
+        var fac = $(this).closest('tr').find('#fac').val()
+        
         $.ajax({
             url : "{% url 'correo_facturado' %}",
             type: 'GET',
-            data: {'id_button':id_button,'bod':bod, 'ped':ped},
-            //dataType: 'json',
+            data: {
+                    'id_button':id_button,
+                    'bod':bod, 
+                    'ped':ped,
+                    'fac':fac
+            },
+            
             success: function() {
                 //console.log('hola');
                 $('.growl-notice-succes').fadeIn().html('EL PEDIDO #' + ped + ' ' + 'DE ' + cli + ' FACTURADO Y NOTIFICADO EXITOSAMENTE !!!');
@@ -305,8 +305,11 @@
 
 
 <script type="text/javascript">
-    function actualizar(){location.reload(true);}
+    $("button[name='actualizar']").click(function () {
+        location.reload(true);
+    })
+    //function actualizar(){location.reload(true);}
     //Función para actualizar cada 30 min = 1,800,000 milisegundos
-    setInterval("actualizar()",1800000);
+    //setInterval("actualizar()",1800000);
 </script>
 {% endblock %}
