@@ -618,6 +618,77 @@ def importaciones_en_transito_odbc_insert_warehouse():
 
 
 
+def actulizar_facturas_warehouse():
+
+    actualizacion_stocklote = pd.DataFrame(TimeStamp.objects.all().values())
+    actualizacion_stocklote = list(actualizacion_stocklote['actulization_stoklote'])
+    actualizacion_stocklote_list = []
+    for i in actualizacion_stocklote:
+        if i != '':
+            actualizacion_stocklote_list.append(i)
+    actualizacion_stocklote_ultimo = actualizacion_stocklote_list[-1][:-7]
+    actualizacion_stocklote_ultimo = datetime.strptime(actualizacion_stocklote_ultimo, '%Y-%m-%d %H:%M:%S')
+    # ACTULIZACIÓN FACTURAS
+    actulizacion_facturas = pd.DataFrame(TimeStamp.objects.all().values())
+    actulizacion_facturas = list(actulizacion_facturas['actulization_facturas'])
+    actulizacion_facturas_list = []
+    for i in actulizacion_facturas:
+        if i != '':
+            actulizacion_facturas_list.append(i)
+    actulizacion_facturas_ultimo = actulizacion_facturas_list[-1][:-7]
+    actulizacion_facturas_ultimo = datetime.strptime(actulizacion_facturas_ultimo, '%Y-%m-%d %H:%M:%S')
+
+    aho = datetime.now()
+    ul_stocklote = aho - actualizacion_stocklote_ultimo
+    ul_factura = aho - actulizacion_facturas_ultimo
+    ul_stocklote = pd.Timedelta(ul_stocklote).total_seconds()
+    ul_factura = pd.Timedelta(ul_factura).total_seconds()
+
+    if ul_factura > 60 or ul_stocklote > 60:
+        ### ACTUALIZAR FACTURAS
+        from dateutil.relativedelta import relativedelta
+        currentTimeDate = datetime.now() - relativedelta(days=35)
+        OneMonthTime = currentTimeDate.strftime('%d-%m-%Y')
+        ## LEER TABLA FACTURAS MBA
+        cnxn = pyodbc.connect('DSN=mba3;PWD=API')
+        cursorODBC = cnxn.cursor()
+        cursorODBC.execute(
+                    "SELECT CLNT_Factura_Principal.CODIGO_FACTURA, CLNT_Factura_Principal.FECHA_FACTURA, "
+                    "CLNT_Ficha_Principal.NOMBRE_CLIENTE, INVT_Ficha_Principal.PRODUCT_ID, "
+                    "INVT_Ficha_Principal.PRODUCT_NAME, INVT_Ficha_Principal.GROUP_CODE, INVT_Producto_Movimientos.QUANTITY, CLNT_Factura_Principal.NUMERO_PEDIDO_SISTEMA "
+                    "FROM CLNT_Factura_Principal CLNT_Factura_Principal, CLNT_Ficha_Principal CLNT_Ficha_Principal, INVT_Ficha_Principal INVT_Ficha_Principal, INVT_Producto_Movimientos INVT_Producto_Movimientos "
+                    "WHERE INVT_Ficha_Principal.PRODUCT_ID_CORP = INVT_Producto_Movimientos.PRODUCT_ID_CORP AND "
+                    "CLNT_Factura_Principal.CODIGO_CLIENTE = CLNT_Ficha_Principal.CODIGO_CLIENTE AND CLNT_Factura_Principal.CODIGO_FACTURA = INVT_Producto_Movimientos.DOC_ID_CORP2 "
+                    "AND ((INVT_Producto_Movimientos.CONFIRM=TRUE And INVT_Producto_Movimientos.CONFIRM=TRUE) AND (INVT_Producto_Movimientos.I_E_SIGN='-') "
+                    "AND (INVT_Producto_Movimientos.ADJUSTMENT_TYPE='FT') AND (CLNT_Factura_Principal.ANULADA=FALSE)) AND  FECHA_FACTURA >='"+OneMonthTime+"'"
+                )
+        facturas_consulta = cursorODBC.fetchall()
+        ## INSERTAR TABLA FACTURAS WAREHOUSE
+        coneccion = mysql.connector.connect(
+            host="172.16.28.102",
+            user="standard",
+            passwd="gimpromed",
+            database="warehouse"
+        )
+        cn = coneccion.cursor()
+        ## BORRAR DATOS ACTUALES DE FACTURAS WAREHOUSE
+        cn.execute("DELETE FROM facturas")
+        coneccion.commit()
+        ## INSERTAR NUEVOS DATOS DE FACTURAS EN WAREHOUSE
+        sql_insert = """INSERT INTO facturas (CODIGO_FACTURA,FECHA_FACTURA,NOMBRE_CLIENTE,PRODUCT_ID,PRODUCT_NAME,GROUP_CODE,QUANTITY,NUMERO_PEDIDO_SISTEMA) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"""
+        data_facturas = [list(rows) for rows in facturas_consulta]
+        cn.executemany(sql_insert, data_facturas)
+        coneccion.commit()
+
+        time = str(datetime.now())
+        TimeStamp.objects.create(actulization_facturas=time)
+    else:
+        pass
+
+    return None
+
+
+
 # # Carga la tabla de stock lote automaticamente
 def stock_lote(request):
 
@@ -849,6 +920,10 @@ def stock_lote(request):
             mycursorMysql.executemany(sql_insert, data_productos_transito)
             print("Sucessful Updated Productos Transito")
             mydb.commit()
+            
+            
+            actulizar_facturas_warehouse()
+            
 
         def main():
             mydb = mysql.connector.connect(
@@ -2201,3 +2276,5 @@ def wms_ajuste_query_odbc(n_ajuste):
     
     finally:
         cursorOdbc.close()
+        
+        

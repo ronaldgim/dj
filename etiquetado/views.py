@@ -1161,85 +1161,61 @@ def detail_stock_etiquetado_bodega(request, id):
     return render(request, 'etiquetado/etiquetado_estado/orden_stock_bodega.html', context)
 
 
-def actulizar_facturas_warehouse():
-
-    actualizacion_stocklote = pd.DataFrame(TimeStamp.objects.all().values())
-    actualizacion_stocklote = list(actualizacion_stocklote['actulization_stoklote'])
-    actualizacion_stocklote_list = []
-    for i in actualizacion_stocklote:
-        if i != '':
-            actualizacion_stocklote_list.append(i)
-    actualizacion_stocklote_ultimo = actualizacion_stocklote_list[-1][:-7]
-    actualizacion_stocklote_ultimo = datetime.strptime(actualizacion_stocklote_ultimo, '%Y-%m-%d %H:%M:%S')
-    # ACTULIZACIÓN FACTURAS
-    actulizacion_facturas = pd.DataFrame(TimeStamp.objects.all().values())
-    actulizacion_facturas = list(actulizacion_facturas['actulization_facturas'])
-    actulizacion_facturas_list = []
-    for i in actulizacion_facturas:
-        if i != '':
-            actulizacion_facturas_list.append(i)
-    actulizacion_facturas_ultimo = actulizacion_facturas_list[-1][:-7]
-    actulizacion_facturas_ultimo = datetime.strptime(actulizacion_facturas_ultimo, '%Y-%m-%d %H:%M:%S')
-
-    aho = datetime.now()
-    ul_stocklote = aho - actualizacion_stocklote_ultimo
-    ul_factura = aho - actulizacion_facturas_ultimo
-    ul_stocklote = pd.Timedelta(ul_stocklote).total_seconds()
-    ul_factura = pd.Timedelta(ul_factura).total_seconds()
-
-    if ul_factura > 60 or ul_stocklote > 60:
-        ### ACTUALIZAR FACTURAS
-        from dateutil.relativedelta import relativedelta
-        currentTimeDate = datetime.now() - relativedelta(days=35)
-        OneMonthTime = currentTimeDate.strftime('%d-%m-%Y')
-        ## LEER TABLA FACTURAS MBA
-        cnxn = pyodbc.connect('DSN=mba3;PWD=API')
-        cursorODBC = cnxn.cursor()
-        cursorODBC.execute(
-                    "SELECT CLNT_Factura_Principal.CODIGO_FACTURA, CLNT_Factura_Principal.FECHA_FACTURA, "
-                    "CLNT_Ficha_Principal.NOMBRE_CLIENTE, INVT_Ficha_Principal.PRODUCT_ID, "
-                    "INVT_Ficha_Principal.PRODUCT_NAME, INVT_Ficha_Principal.GROUP_CODE, INVT_Producto_Movimientos.QUANTITY, CLNT_Factura_Principal.NUMERO_PEDIDO_SISTEMA "
-                    "FROM CLNT_Factura_Principal CLNT_Factura_Principal, CLNT_Ficha_Principal CLNT_Ficha_Principal, INVT_Ficha_Principal INVT_Ficha_Principal, INVT_Producto_Movimientos INVT_Producto_Movimientos "
-                    "WHERE INVT_Ficha_Principal.PRODUCT_ID_CORP = INVT_Producto_Movimientos.PRODUCT_ID_CORP AND "
-                    "CLNT_Factura_Principal.CODIGO_CLIENTE = CLNT_Ficha_Principal.CODIGO_CLIENTE AND CLNT_Factura_Principal.CODIGO_FACTURA = INVT_Producto_Movimientos.DOC_ID_CORP2 "
-                    "AND ((INVT_Producto_Movimientos.CONFIRM=TRUE And INVT_Producto_Movimientos.CONFIRM=TRUE) AND (INVT_Producto_Movimientos.I_E_SIGN='-') "
-                    "AND (INVT_Producto_Movimientos.ADJUSTMENT_TYPE='FT') AND (CLNT_Factura_Principal.ANULADA=FALSE)) AND  FECHA_FACTURA >='"+OneMonthTime+"'"
-                )
-        facturas_consulta = cursorODBC.fetchall()
-        ## INSERTAR TABLA FACTURAS WAREHOUSE
-        coneccion = mysql.connector.connect(
-            host="172.16.28.102",
-            user="standard",
-            passwd="gimpromed",
-            database="warehouse"
+def n_factura_consulta():
+    
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute(
+            f"SELECT CODIGO_FACTURA, NUMERO_PEDIDO_SISTEMA CODIGO_FACTURA FROM warehouse.facturas"
         )
-        cn = coneccion.cursor()
-        ## BORRAR DATOS ACTUALES DE FACTURAS WAREHOUSE
-        cn.execute("DELETE FROM facturas")
-        coneccion.commit()
-        ## INSERTAR NUEVOS DATOS DE FACTURAS EN WAREHOUSE
-        sql_insert = """INSERT INTO facturas (CODIGO_FACTURA,FECHA_FACTURA,NOMBRE_CLIENTE,PRODUCT_ID,PRODUCT_NAME,GROUP_CODE,QUANTITY,NUMERO_PEDIDO_SISTEMA) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"""
-        data_facturas = [list(rows) for rows in facturas_consulta]
-        cn.executemany(sql_insert, data_facturas)
-        coneccion.commit()
-
-        time = str(datetime.now())
-        TimeStamp.objects.create(actulization_facturas=time)
-    else:
-        pass
-
-    return None
+        
+        fac = [tuple(row) for row in cursor.fetchall()]
+        fac = pd.DataFrame(fac
+            ,columns=[
+                'CODIGO_FACTURA',
+                'n_pedido'
+            ]
+            )
+        
+        fac['n_pedido'] = fac['n_pedido'].astype('str') + '.0'
+        
+    return fac
 
 
-def n_factura_consulta(n_pedido):
-
+def n_factura_volumen_cartones(n_pedido):
+    
     n_pedido = int(n_pedido)
     with connections['gimpromed_sql'].cursor() as cursor:
         cursor.execute(
-            f"SELECT CODIGO_FACTURA FROM warehouse.facturas WHERE NUMERO_PEDIDO_SISTEMA = '{n_pedido}' LIMIT 1"
+            f"SELECT NUMERO_PEDIDO_SISTEMA, PRODUCT_ID, QUANTITY FROM warehouse.facturas WHERE NUMERO_PEDIDO_SISTEMA = '{n_pedido}'"
         )
-        a = cursor.fetchall()[0][0]
-    return a
+        
+        fac = [tuple(row) for row in cursor.fetchall()]
+        fac = pd.DataFrame(fac
+            ,columns=[
+                'n_pedido',
+                'product_id',
+                'unidades_pedido'
+            ]
+            )
+        
+        prod = productos_odbc_and_django()[['product_id','Unidad_Empaque','Volumen']]
+        
+        if not fac.empty:
+        
+            fac = fac.merge(prod, on='product_id', how='left').fillna(0)
+            fac['vol'] = fac['Volumen'] / 1000000
+            fac['car'] = fac['unidades_pedido'] / fac['Unidad_Empaque']
+            
+            vol = round(fac['vol'].sum(), 1)
+            car = round(fac['car'].sum(), 1)
+            
+            if car < 1: car = 1.0
+            
+            return vol, car
+        
+        else:
+            vol, car = 0, 0
+            return vol, car
 
 
 def correos_notificacion_factura(nombre_cliente):
@@ -1271,22 +1247,28 @@ def correos_notificacion_factura(nombre_cliente):
 
 # Envio de correo con ajax
 def correo_facturado(request):
-
+    
     ### ACTUALIZAR FACTURAS
     # ACTULIZACIÓN STOCK LOTE
-    actulizar_facturas_warehouse()
+    # actulizar_facturas_warehouse()
 
     ### NUMERO DE FACTURA
     n_pedido = request.GET['ped']
-    n_factura = n_factura_consulta(n_pedido)[:-6]
-
+    n_factura = request.GET['fac']
     id_picking = request.GET['id_button']
     picking_estado = EstadoPicking.objects.get(id=id_picking)
 
     vendedor = User.objects.get(id=request.user.id).id
     hora_fecha = datetime.now()
     facturado = True
-
+    
+    # Volumen Carton    
+    vol, car = n_factura_volumen_cartones(n_pedido)
+    if vol > 0 and car > 0:
+        vol_car = f'Volumen: {vol} m3 / Cartones: {car}'
+    else:
+        vol_car = ''
+    
     picking_estado.facturado_por_id = vendedor
     picking_estado.hora_facturado = hora_fecha
     picking_estado.facturado = facturado
@@ -1298,7 +1280,7 @@ def correo_facturado(request):
     correo_vendedor = User.objects.get(id=request.user.id)
     correo_vendedor = correo_vendedor.email
 
-    #correos = ['egarces@gimpromed.com', 'ronaldm@gimpromed.com']
+    # correos = ['egarces@gimpromed.com']
     correos = correos_notificacion_factura(picking_estado.cliente)
     correos.append(correo_vendedor)
 
@@ -1314,14 +1296,14 @@ def correo_facturado(request):
 Señores {picking_estado.cliente} \n
 Su pedido con factura # {n_factura}, se encuentra listo para ser retirado en:
 Bodega: {b}. \n
-Nuestro horario de atención es: Lunes a Viernes de 7:30 am a 13:30 pm y de 14:00 pm a 16:00 pm.
+{vol_car} \n
+Nuestro horario de atención es: Lunes a Viernes de 7:30 am a 13:30 pm y de 14:30 pm a 16:30 pm.
 Estamos para servirle.
 GIMPROMED Cia. Ltda.\n
 ****Esta notificación ha sido enviada automáticamente - No responder****
 """
 
     send_mail(
-        #subject=f'PEDIDO # {picking_estado.n_pedido[:-2]} - FACTURADO',
         subject='Notificación Pedido FACTURADO',
         message= mensaje,
         from_email=settings.EMAIL_HOST_USER,
@@ -1337,40 +1319,34 @@ GIMPROMED Cia. Ltda.\n
 # Vista Todos (lista)
 @login_required(login_url='login')
 def picking(request):
-
+    
+    # actulizar_facturas_warehouse()
+    
     import datetime
     hoy = datetime.datetime.now()
     un_mes = hoy - datetime.timedelta(days=10)
 
-    # Tablas
-    #reservas = pd.DataFrame(reservas_table())
-    clientes = pd.DataFrame(clientes_table())
-    estados  = pd.DataFrame(EstadoPicking.objects.filter(fecha_creado__gte=un_mes).order_by('-id').values())
-    users    = pd.DataFrame(User.objects.all().values())
-    perfil   = pd.DataFrame(UserPerfil.objects.all().values())
+    clientes = pd.DataFrame(clientes_table()[['CODIGO_CLIENTE','CIUDAD_PRINCIPAL','CLIENT_TYPE']])
+    clientes = clientes.rename(columns={'CODIGO_CLIENTE':'codigo_cliente'})
+    
+    estados = pd.DataFrame(EstadoPicking.objects.filter(fecha_creado__gte=un_mes).order_by('-id').values(
+        'id','n_pedido','estado','fecha_pedido','cliente','fecha_creado','fecha_actualizado','bodega','facturado',
+        'user__user__first_name','user__user__last_name','codigo_cliente'
+    ))
 
-    # Conf Perfil y Usuario
-    users = users.rename(columns={'id':'user_id'})
-    perfil = perfil.merge(users, on='user_id', how='left')
-    perfil = perfil.rename(columns={'user_id':'peril_id', 'id':'user_id'})
-    estados = estados.rename(columns={'codigo_cliente':'CODIGO_CLIENTE'})
-
-    # Merge Perfil y Estados
-    estados = estados.merge(perfil, on='user_id', how='left')
-    estados = estados.rename(columns={'n_pedido':'CONTRATO_ID'})
     estados['fecha_creado'] = estados['fecha_creado'].astype(str)
     estados['fecha_actualizado'] = estados['fecha_actualizado'].astype(str)
-
-    clientes = clientes.rename(columns={'NOMBRE_CLIENTE':'cliente'})
-    #estados = estados.merge(clientes, on='cliente', how='left')
-    estados = estados.merge(clientes, on='CODIGO_CLIENTE', how='left')
-    #print(estados);print(estados.keys())
-    estados = estados.drop_duplicates(subset=['CONTRATO_ID'])
-    estados = estados.sort_values(by=['CONTRATO_ID'], ascending=[False])
-
-    json_records = estados.reset_index().to_json(orient='records') # reset_index().
-    reservas = json.loads(json_records)
-    #print(reservas[0])
+    
+    estados = estados.merge(clientes, on='codigo_cliente', how='left')
+    estados = estados.drop_duplicates(subset=['n_pedido'])
+    estados = estados.sort_values(by=['n_pedido'], ascending=[False])
+    
+    facturas = n_factura_consulta()
+    if not facturas.empty:
+        estados = estados.merge(facturas, on='n_pedido', how='left')
+    
+    reservas = de_dataframe_a_template(estados)
+    
     context = {
         'reservas':reservas
     }
