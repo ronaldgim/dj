@@ -1633,8 +1633,8 @@ def wms_picking_en_despacho_list(request): #OK
     en_despacho['n_referencia'] = en_despacho['n_referencia'].astype('float')
     en_despacho['n_referencia'] = en_despacho['n_referencia'].astype('int')
     en_despacho['fecha_hora'] = pd.to_datetime(en_despacho['fecha_hora']).dt.strftime('%Y-%m-%d %H:%M')
-
-    en_despacho = en_despacho.sort_values(by='n_referencia')
+    
+    en_despacho = en_despacho.sort_values(by='fecha_hora', ascending=True)
     en_despacho = en_despacho.drop_duplicates(subset='n_referencia', keep='last')
     en_despacho = en_despacho.merge(anulados, on='n_referencia', how='left')
     en_despacho = de_dataframe_a_template(en_despacho)
