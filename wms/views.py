@@ -1199,6 +1199,41 @@ def wms_movimientos_list(request): #OK
     
     mov = paginator.get_page(page_number)
     
+    if request.method == 'POST':
+        
+        tipo = request.POST['tipo']
+        valor = request.POST['valor']
+        
+        if tipo == 'Código':
+            mov = Movimiento.objects.filter(product_id=valor).order_by('-fecha_hora')
+            context = {
+                'mov':mov,
+                'len':len(mov),
+                'tipo':tipo,
+                'valor':valor
+                }
+            return render(request, 'wms/movimientos_list.html', context)
+        
+        elif tipo=='Número de referencia':
+            mov = Movimiento.objects.filter(n_referencia__icontains=valor).order_by('-fecha_hora')
+            context = {
+                'mov':mov,
+                'len':len(mov),
+                'tipo':tipo,
+                'valor':valor
+                }
+            return render(request, 'wms/movimientos_list.html', context)
+        
+        elif tipo=='Número de factura':
+            mov = Movimiento.objects.filter(estado_picking='Despachado').filter(n_factura__icontains=valor).order_by('-fecha_hora')
+            context = {
+                'mov':mov,
+                'len':len(mov),
+                'tipo':tipo,
+                'valor':valor
+                }
+            return render(request, 'wms/movimientos_list.html', context)
+    
     context = {
         'mov':mov
     }
@@ -1237,7 +1272,7 @@ def wms_listado_pedidos(request): #OK
 # url: picking/<n_pedido>
 @login_required(login_url='login')
 def wms_egreso_picking(request, n_pedido): #OK
-
+    
     estado_picking = EstadoPicking.objects.filter(n_pedido=n_pedido).exists()
     if estado_picking:
         est = EstadoPicking.objects.get(n_pedido=n_pedido)
@@ -1250,7 +1285,7 @@ def wms_egreso_picking(request, n_pedido): #OK
     prod   = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     prod   = prod.rename(columns={'product_id':'PRODUCT_ID'})
 
-    pedido = pedido_por_cliente(n_pedido).sort_values('PRODUCT_ID') #;print(pedido.keys())
+    pedido = pedido_por_cliente(n_pedido).sort_values('PRODUCT_ID') 
     pedido = pedido.groupby(by=['CONTRATO_ID','NOMBRE_CLIENTE','FECHA_PEDIDO','HORA_LLEGADA','PRODUCT_ID','PRODUCT_NAME']).sum().reset_index()
     pedido = pedido.merge(prod, on='PRODUCT_ID',how='left')
 
@@ -1314,7 +1349,10 @@ def wms_egreso_picking(request, n_pedido): #OK
                 for m in mov:
                     if m['product_id'] == i:
                         pik_list.append(m)
-
+                        
+    # Ordenar listado de picking
+    ped = sorted(ped, key=lambda x: (x['ubi'][0]['ubicacion__bodega'], x['ubi'][0]['ubicacion__distancia_puerta']))
+    
     context = {
         'pedido':ped,
         'n_ped':n_ped,
