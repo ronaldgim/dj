@@ -942,15 +942,15 @@ def estado_etiquetado(request, n_pedido, id):
             avance = avance.rename(columns={'id':'avance'})
             pedido = pedido.merge(avance, on='PRODUCT_ID', how='left')
         
-        product = productos_odbc_and_django()[['product_id','marca','unidad_empaque']]
+        product = productos_odbc_and_django()[['product_id','marca','Unidad_Empaque']]
         product = product.rename(columns={'product_id':'PRODUCT_ID'})
 
         # Merge Dataframes
-        pedido = pedido.merge(product, on='PRODUCT_ID', how='left').sort_values(by='PRODUCT_ID').fillna('')
+        pedido = pedido.merge(product, on='PRODUCT_ID', how='left').sort_values(by='PRODUCT_ID').fillna(0)
 
         # Calculos
-        pedido['Cartones'] = pedido['QUANTITY'] / pedido['unidad_empaque']
-        
+        pedido['Cartones'] = pedido['QUANTITY'] / pedido['Unidad_Empaque']
+        print(pedido)
         # Totales de tabla
         cliente = pedido['NOMBRE_CLIENTE'].iloc[0]
         fecha_pedido = pedido['FECHA_PEDIDO'].iloc[0]
@@ -1502,13 +1502,13 @@ def lista_correos(n_cliente):
 @login_required(login_url='login')
 @csrf_exempt
 def picking_estado_bodega(request, n_pedido, id):
-    
+    print('asdf')
     if id == '-':
         # Form
         form = EstadoPickingForm()
 
         pedido = pedido_por_cliente(n_pedido)
-        # print(pedido)
+        
         cliente = pd.DataFrame(clientes_table())
         pedido = pedido.merge(cliente, on='NOMBRE_CLIENTE', how='left')
         p_json = (pedido[['PRODUCT_ID', 'QUANTITY']]).to_dict()
@@ -1518,10 +1518,12 @@ def picking_estado_bodega(request, n_pedido, id):
         product = product.rename(columns={'product_id':'PRODUCT_ID'})
 
         # Merge
-        pedido = pedido.merge(product, on='PRODUCT_ID', how='left')
-
+        # pedido = pedido.merge(product, on='PRODUCT_ID', how='left')
+        pedido = pedido.merge(product, on='product_id', how='left')
+        print(pedido)
         # Calculos
-        pedido['Cartones'] = pedido['QUANTITY'] / pedido['unidad_empaque'] #;print(pedido)
+        #pedido['Cartones'] = pedido['QUANTITY'] / pedido['unidad_empaque'] 
+        pedido['Cartones'] = pedido['QUANTITY'] / pedido['Unidad_Empaque'] 
         f_pedido = str(pedido['FECHA_PEDIDO'].iloc[0])
         t_cartones = pedido['Cartones'].sum()
         t_unidades = pedido['QUANTITY'].sum()
@@ -1538,7 +1540,7 @@ def picking_estado_bodega(request, n_pedido, id):
         bodega = pedido['WARE_CODE'].iloc[0]
         codigo_cliente = pedido['CODIGO_CLIENTE'].iloc[0]
 
-        estados_list_inicial = ['EN PROCESO']#,'EN PAUSA', 'INCOMPLETO']
+        estados_list_inicial = ['EN PROCESO']
 
         context = {
             'reservas':data,
@@ -1657,7 +1659,6 @@ def picking_estado_bodega(request, n_pedido, id):
             if  est == 'FINALIZADO':
                 estado_registro.fecha_actualizado = h
                 estado_registro.save()
-
 
                 # # mail
                 # est = request.POST.get('estado')
