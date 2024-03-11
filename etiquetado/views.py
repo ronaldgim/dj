@@ -950,7 +950,7 @@ def estado_etiquetado(request, n_pedido, id):
 
         # Calculos
         pedido['Cartones'] = pedido['QUANTITY'] / pedido['Unidad_Empaque']
-        print(pedido)
+        
         # Totales de tabla
         cliente = pedido['NOMBRE_CLIENTE'].iloc[0]
         fecha_pedido = pedido['FECHA_PEDIDO'].iloc[0]
@@ -1514,13 +1514,14 @@ def picking_estado_bodega(request, n_pedido, id):
         p_json = (pedido[['PRODUCT_ID', 'QUANTITY']]).to_dict()
         p_str = json.dumps(p_json)
 
-        product = pd.DataFrame(list(Product.objects.all().values()))
+        # product = pd.DataFrame(list(Product.objects.all().values()))
+        product = productos_odbc_and_django()[['product_id','Unidad_Empaque']]
         product = product.rename(columns={'product_id':'PRODUCT_ID'})
 
         # Merge
         # pedido = pedido.merge(product, on='PRODUCT_ID', how='left')
         pedido = pedido.merge(product, on='product_id', how='left')
-        print(pedido)
+        
         # Calculos
         #pedido['Cartones'] = pedido['QUANTITY'] / pedido['unidad_empaque'] 
         pedido['Cartones'] = pedido['QUANTITY'] / pedido['Unidad_Empaque'] 
