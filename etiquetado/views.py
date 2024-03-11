@@ -1502,7 +1502,7 @@ def lista_correos(n_cliente):
 @login_required(login_url='login')
 @csrf_exempt
 def picking_estado_bodega(request, n_pedido, id):
-    print('asdf')
+    
     if id == '-':
         # Form
         form = EstadoPickingForm()
@@ -1519,8 +1519,8 @@ def picking_estado_bodega(request, n_pedido, id):
         product = product.rename(columns={'product_id':'PRODUCT_ID'})
 
         # Merge
-        # pedido = pedido.merge(product, on='PRODUCT_ID', how='left')
-        pedido = pedido.merge(product, on='product_id', how='left')
+        pedido = pedido.merge(product, on='PRODUCT_ID', how='left')
+        # pedido = pedido.merge(product, on='product_id', how='left')
         
         # Calculos
         #pedido['Cartones'] = pedido['QUANTITY'] / pedido['unidad_empaque'] 
