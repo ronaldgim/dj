@@ -1515,8 +1515,8 @@ def picking_estado_bodega(request, n_pedido, id):
         p_str = json.dumps(p_json)
 
         # product = pd.DataFrame(list(Product.objects.all().values()))
-        product = productos_odbc_and_django()[['product_id','Unidad_Empaque']]
-        product = product.rename(columns={'product_id':'PRODUCT_ID'})
+        product = productos_odbc_and_django()[['product_id','Unidad_Empaque','Marca']]
+        product = product.rename(columns={'product_id':'PRODUCT_ID','Marca':'marca2'})
 
         # Merge
         pedido = pedido.merge(product, on='PRODUCT_ID', how='left')
