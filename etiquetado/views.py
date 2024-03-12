@@ -1344,6 +1344,7 @@ def picking(request):
     facturas = n_factura_consulta()
     if not facturas.empty:
         estados = estados.merge(facturas, on='n_pedido', how='left')
+        estados = estados.drop_duplicates(subset=['n_pedido'])
     
     reservas = de_dataframe_a_template(estados)
     
