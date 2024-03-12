@@ -2903,7 +2903,7 @@ def wms_ajuste_liberacion_input_ajax(request):
             fecha_caducidad = i['FECHA_CADUCIDAD'],
             
             unidades_cuc    = i['unidades'],
-            ubicacion_id    = i['ubicacion_id'], #int(i['ubicacion_id']),
+            ubicacion_id    = i['ubicacion_id'], 
             estado          = i['estado']
         )
         
@@ -2921,7 +2921,7 @@ def wms_ajuste_liberacion_input_ajax(request):
         })
     
     else:
-        
+        # Add liberación
         AjusteLiberacion.objects.bulk_create(lib_data_list)
         return JsonResponse({
             'msg':{
