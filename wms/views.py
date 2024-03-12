@@ -1556,8 +1556,6 @@ def wms_movimiento_egreso_picking(request): #OK
     return JsonResponse({'msg':'❌Error !!!'})
 
 
-#def wms_movimiento_reverso_picking()
-
 # Eliminar movimeinto de egreso AJAX
 def wms_eliminar_movimiento(request): #OK
 
@@ -1576,7 +1574,6 @@ def wms_eliminar_movimiento(request): #OK
 
 # Tabla de reservas AJAX
 def wms_reservas_lote_consulta_ajax(request):
-
 
     prod = request.POST['prod_id']
     lote = request.POST['lote_id']
