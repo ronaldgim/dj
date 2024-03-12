@@ -284,11 +284,12 @@ def infimas(request):
 
 def procesos_sercop_sql():
     with connections['procesos_sercop'].cursor() as cursor:
-        cursor.execute(
-            """
-            SELECT * FROM procesos_sercop.procesos
-            """
-        )
+        cursor.execute("""
+            SELECT * 
+            FROM procesos_sercop.procesos
+            LEFT JOIN procesos_sercop.fechas
+            ON procesos_sercop.procesos.Codigo = procesos_sercop.fechas.Codigo
+            """)
 
         columns  = [col[0] for col in cursor.description]
         procesos = [dict(zip(columns, row)) for row in cursor.fetchall()]
@@ -306,6 +307,8 @@ def procesos_sercop(request):
     procesos_sql = procesos_sql.rename(columns={'Codigo':'proceso'})
 
     procesos = procesos.merge(procesos_sql, on='proceso', how='left')
+    procesos = procesos.sort_values(by=['fecha_hora','Fecha_Puja','Hora_Puja'], ascending=[False,False,True])
+    
     procesos = de_dataframe_a_template(procesos)
 
     form = ProcesosSercopForm()

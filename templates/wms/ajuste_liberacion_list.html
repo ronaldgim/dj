@@ -83,6 +83,12 @@
     </div>
 {% endif %}
 
+<hr>
+
+<div class="col-12 mb-2">
+    <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+</div>
+
 <div class="card mb-2">
     <div class="card-body m-0 p-0">
         <div class="container table-responsive">
@@ -171,4 +177,17 @@
     })
 </script>
 
+
+<!--filtro buscar-->
+<script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
 {% endblock %}

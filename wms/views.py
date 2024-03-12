@@ -2857,7 +2857,7 @@ def wms_anulacion_picking_ajax(request):
 ### Ajuste Liberación ERIK
 def wms_ajuste_liberacion_list(request):
     
-    ajuste_liberacion = pd.DataFrame(AjusteLiberacion.objects.all().values()).drop_duplicates(subset=['doc_id'])
+    ajuste_liberacion = pd.DataFrame(AjusteLiberacion.objects.all().values().order_by('-doc_id')).drop_duplicates(subset=['doc_id'])
     ajuste_liberacion = de_dataframe_a_template(ajuste_liberacion)
     
     context = {
@@ -2922,7 +2922,7 @@ def wms_ajuste_liberacion_input_ajax(request):
     
     else:
         
-        AjusteLiberacion.objects.bulk_create(lib_data_list)
+        #AjusteLiberacion.objects.bulk_create(lib_data_list)
         return JsonResponse({
             'msg':{
                 'tipo': 'success', 

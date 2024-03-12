@@ -56,6 +56,8 @@
                 <thead>
                     <tr>
                         <th scope="col">Proceso</th>
+                        <th scope="col">Estado</th>
+                        <th scope="col">Fecha Puja</th>
                         <th scope="col">Entidad</th>
                         <th scope="col">Objeto</th>
                         <th scope="col">Publicación</th>
@@ -66,6 +68,8 @@
                     {% for i in procesos %}
                     <tr>
                         <td>{{i.proceso}}</td>
+                        <td>{{i.Estado|default:"-"}}</td>
+                        <td>{{i.Fecha_Puja|default:"-"}}<br>{% if i.Hora_Puja %}{{i.Hora_Puja|slice:":-3"}}{% endif %}</td>
                         <td>{{i.Entidad|default:"-"}}</td>
                         <td>{{i.Objeto|default:"-"}}</td>
                         <td>{{i.Fecha_Publicacion|default:"-"}}</td>
