@@ -1368,7 +1368,7 @@ def wms_egreso_picking(request, n_pedido): #OK
     try:
         ped = sorted(ped, key=lambda x: (x['ubi'][0]['ubicacion__bodega'], x['ubi'][0]['ubicacion__distancia_puerta']))
     except Exception as e:
-        print(e)
+        pass
     
     
     context = {
@@ -1897,14 +1897,6 @@ def wms_transferencia_input_ajax(request):
     new_transf = Transferencia.objects.filter(n_transferencia=n_trasf)
     if not new_transf.exists():
 
-        TransferenciaStatus.objects.create(
-                n_transferencia = n_trasf,
-                estado          = 'CREADO',
-                unidades_mba    = 0,
-                unidades_wms    = 0,
-                avance          = 0.0
-            )
-
         trans_mba['n_transferencia'] = n_trasf
         trans_mba = trans_mba.groupby(by=['doc','n_transferencia','product_id','lote_id','f_cadu','bodega_salida']).sum().reset_index()
         trans_mba['f_cadu'] = trans_mba['f_cadu'].astype(str)
@@ -1924,6 +1916,15 @@ def wms_transferencia_input_ajax(request):
 
             tr_list.append(tr)
 
+        if len(tr_list) > 0:
+            TransferenciaStatus.objects.create(
+                n_transferencia = n_trasf,
+                estado          = 'CREADO',
+                unidades_mba    = 0,
+                unidades_wms    = 0,
+                avance          = 0.0
+            )
+            
         Transferencia.objects.bulk_create(tr_list)
 
         messages.success(request, f'La Transferencia {n_trasf} fue añadida exitosamente !!!')
@@ -2021,9 +2022,12 @@ def wms_transferencia_picking(request, n_transf):
                     if m['product_id'] == i:
                         pik_list.append(m)
 
-    # print(transf_template)
-    # transf_template = sorted(transf_template, key= lambda x: x['ubi'][0['ubicacion__bodega']])
-
+    try:
+        transf_template = sorted(transf_template, key=lambda x: (x['ubi'][0]['ubicacion__bodega'], x['ubi'][0]['ubicacion__distancia_puerta']))
+    except Exception as e:
+        pass
+    
+    
     context = {
         'transf':transf_template,
         'n_transf':n_transf,
