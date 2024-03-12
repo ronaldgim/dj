@@ -2922,7 +2922,7 @@ def wms_ajuste_liberacion_input_ajax(request):
     
     else:
         
-        #AjusteLiberacion.objects.bulk_create(lib_data_list)
+        AjusteLiberacion.objects.bulk_create(lib_data_list)
         return JsonResponse({
             'msg':{
                 'tipo': 'success', 
