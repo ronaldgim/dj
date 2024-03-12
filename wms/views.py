@@ -2950,6 +2950,10 @@ def wms_ajuste_liberacion_detalle(request, n_liberacion):
         lambda x: '606' if x['tipo'] == 'Liberación Acondicionamiento' else x['ubicacion_id'], axis=1
     )
     
+    ajuste['unidades_cuc'] = ajuste.apply(
+        lambda x: x['egreso_temp'] if x['tipo'] == 'Liberación Acondicionamiento' else x['unidades_cuc'], axis=1
+    )
+    print(ajuste)
     tipo = ajuste.iloc[0]['tipo']
     
     ajuste = de_dataframe_a_template(ajuste)
