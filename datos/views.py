@@ -2233,6 +2233,7 @@ def wms_datos_nota_entrega(nota_entrega):
         })
         
         df = df[['doc_id_corp', 'doc_id','product_id','lote_id','fecha_caducidad','unidades']]
+        df = df[df['unidades']!=0]
         
         return df.to_dict(orient='records')
     
