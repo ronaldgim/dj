@@ -170,8 +170,6 @@ class LiberacionCuarentena(models.Model):
     # class Meta:
     #     unique_together = (('doc_id_corp', 'product_id_corp', 'lote_id'),)
 
-
-
 class NotaEntrega(models.Model):
     
     doc_id_corp     = models.CharField(verbose_name='Doc - GIMPR', max_length=50)
@@ -185,6 +183,18 @@ class NotaEntrega(models.Model):
     def __str__(self):
         return self.doc_id
 
+
+class NotaEntregaStatus(models.Model):
+    
+    nota_entrega = models.CharField(verbose_name='Número de nota de entrega', max_length=50, unique=True)
+    unidades_mba = models.PositiveIntegerField(verbose_name='Unidades mba', default=0)
+    unidades_wms = models.PositiveIntegerField(verbose_name='Unidades wms', default=0)
+    avance       = models.FloatField(verbose_name='Avance', default=0.0)
+    estado       = models.CharField(verbose_name='Estado', max_length=20)
+    
+    def __str__(self):
+        return self.estado
+    
 
 class AnulacionPicking(models.Model):
     

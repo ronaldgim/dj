@@ -9,7 +9,9 @@ from wms.models import (
     Transferencia,
     AjusteLiberacion,
     TransferenciaStatus,
-    NotaEntrega)
+    NotaEntrega,
+    NotaEntregaStatus,
+    )
 
 
 # INVENTARIO
@@ -125,4 +127,16 @@ class NotaEntregaAdmin(admin.ModelAdmin):
         'product_id', 
         'lote_id',
         'unidades',
+        )
+    
+@admin.register(NotaEntregaStatus)
+class NotaEntregaStatusAdmin(admin.ModelAdmin):
+
+    list_display = (
+        'id',
+        'nota_entrega', 
+        'estado', 
+        'unidades_mba',
+        'unidades_wms',
+        'avance'
         )
