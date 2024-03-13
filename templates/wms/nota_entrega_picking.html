@@ -55,14 +55,19 @@
 {% endfor %}
 {% endif %}
 
-<div id="msg"></div>
-<div id="msg_ss"></div>
 
-{% if factura.msg %}
-    <div class="alert text-center alert-danger" role="alert">
-        {{factura.msg}}
-    </div>
-{% endif %}
+<div class="mt-2 mb-2">
+    {% if estado %}
+        <label class="fw-bold">Estado:</label><br>
+        {% if estado == 'CREADO' %}
+        <a class="btn btn-sm btn-primary disabled">{{estado}}</a>
+        {% elif estado == 'EN PROCESO' %}
+        <a class="btn btn-sm btn-warning disabled">{{estado}} - {{avance}}%</a>
+        {% elif estado == 'FINALIZADO' %}
+        <a class="btn btn-sm btn-success disabled">{{estado}}</a>
+        {% endif %}
+    {% endif %}
+</div>
 
 <div class="card mb-2">
     <div class="card-body m-0 p-0">

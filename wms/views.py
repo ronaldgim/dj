@@ -1962,8 +1962,7 @@ def wms_transferencias_list(request):
 @login_required(login_url='login')
 def wms_transferencia_picking(request, n_transf):
     
-    estado = TransferenciaStatus.objects.get(n_transferencia=n_transf).estado
-    avance = TransferenciaStatus.objects.get(n_transferencia=n_transf).avance
+    estado = TransferenciaStatus.objects.get(n_transferencia=n_transf)
     
     prod   = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     
@@ -2030,8 +2029,8 @@ def wms_transferencia_picking(request, n_transf):
     context = {
         'transf':transf_template,
         'n_transf':n_transf,
-        'estado':estado,
-        'avance':avance
+        'estado':estado.estado,
+        'avance':estado.avance
     }
     return render(request, 'wms/transferencia_picking.html', context)
 
@@ -2663,6 +2662,8 @@ def wms_nota_entrega_estatus(nota_entrega):
 @login_required(login_url='login')
 def wms_nota_entrega_picking(request, n_entrega):
     
+    estado = NotaEntregaStatus.objects.get(nota_entrega=n_entrega)
+    
     prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     
     # Nota Entrega
@@ -2721,7 +2722,9 @@ def wms_nota_entrega_picking(request, n_entrega):
     
     context = {
         'nota_entrega':nota_entrega_template,
-        'n_entrega':n_entrega
+        'n_entrega':n_entrega,
+        'estado':estado.estado,
+        'avance':estado.avance
     }
     
     return render(request, 'wms/nota_entrega_picking.html', context)

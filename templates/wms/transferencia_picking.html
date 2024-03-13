@@ -55,14 +55,7 @@
 {% endfor %}
 {% endif %}
 
-<div id="msg"></div>
-<div id="msg_ss"></div>
 
-{% if factura.msg %}
-    <div class="alert text-center alert-danger" role="alert">
-        {{factura.msg}}
-    </div>
-{% endif %}
 
 <div class="mt-2 mb-2">
 {% if estado %}
@@ -74,7 +67,6 @@
     {% elif estado == 'FINALIZADO' %}
     <a class="btn btn-sm btn-success disabled">{{estado}}</a>
     {% endif %}
-    
 {% endif %}
 </div>
 
