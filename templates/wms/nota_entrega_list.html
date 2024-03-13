@@ -1,7 +1,7 @@
 {%extends 'base.html' %}
 
 {% block title %}
-<title>Trasferencias</title>
+<title>Notas de entrega</title>
 {% endblock%}
 
 {% block navbar %}
@@ -64,11 +64,11 @@
     <button name="nota_entrega" class="btn btn-primary" type="submit">Añadir Nota de entrega</button>
 </div>
 
-{% if factura.msg %}
-    <div class="alert text-center alert-danger" role="alert">
-        {{factura.msg}}
-    </div>
-{% endif %}
+<hr>
+
+<div class="col-12 mb-2">
+    <input id="inputbuscar" type="text" placeholder="Filtro" class="form-control">
+</div>
 
 <div class="card mb-2">
     <div class="card-body m-0 p-0">
@@ -130,6 +130,19 @@
             
         })
     })
+</script>
+
+<!--filtro buscar-->
+<script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
 </script>
 
 

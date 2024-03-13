@@ -56,7 +56,9 @@ from wms.models import (
     NotaEntrega,
     AnulacionPicking,
     TransferenciaStatus,
-    AjusteLiberacion)
+    AjusteLiberacion,
+    NotaEntregaStatus
+    )
 
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -1815,17 +1817,17 @@ def wms_revision_transferencia(request):
 # Transferencias estatus
 def wms_transferencias_estatus_all():
     
-    transf_list = Transferencia.objects.filter(bodega_salida='BCT').values_list('n_transferencia', flat=True).distinct()
+    transf_list = NotaEntrega.objects.values_list('doc_id', flat=True).distinct()
     
     for i in transf_list:
         
-        transf_mba = Transferencia.objects.filter(n_transferencia=i)
+        transf_mba = NotaEntrega.objects.filter(doc_id=i)
         mba_total  = sum(transf_mba.values_list('unidades', flat=True))
         
-        transf_wms = Movimiento.objects.filter(n_referencia=i)
+        transf_wms = Movimiento.objects.filter(referencia='Nota de entrega').filter(n_referencia=i)
         wms_total  = sum(transf_wms.values_list('unidades', flat=True))*-1
         
-        avance_i = round(((wms_total / mba_total) * 100), 2)
+        avance_i = round(((wms_total / mba_total) * 100), 1)
         
         if wms_total == 0 or wms_total == None:
             estado_i = 'CREADO'
@@ -1834,8 +1836,8 @@ def wms_transferencias_estatus_all():
         elif mba_total == wms_total or wms_total > mba_total:
             estado_i = 'FINALIZADO'        
         
-        TransferenciaStatus.objects.update_or_create(
-            n_transferencia = i,
+        NotaEntregaStatus.objects.update_or_create(
+            nota_entrega    = i,
             unidades_mba    = mba_total,
             unidades_wms    = wms_total,
             avance          = avance_i,
@@ -1912,7 +1914,9 @@ def wms_transferencia_input_ajax(request):
             )
 
             tr_list.append(tr)
-
+            
+        Transferencia.objects.bulk_create(tr_list)
+        
         if len(tr_list) > 0:
             TransferenciaStatus.objects.create(
                 n_transferencia = n_trasf,
@@ -1921,8 +1925,6 @@ def wms_transferencia_input_ajax(request):
                 unidades_wms    = 0,
                 avance          = 0.0
             )
-            
-        Transferencia.objects.bulk_create(tr_list)
 
         messages.success(request, f'La Transferencia {n_trasf} fue añadida exitosamente !!!')
         

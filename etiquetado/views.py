@@ -753,6 +753,8 @@ def facturas(request, n_factura):
 
     # Dataframes
     factura = factura_por_cliente(n_factura)
+    factura = factura[factura['PRODUCT_ID']!='MANTEN']
+    
     product = productos_odbc_and_django()
     product = product.rename(columns={'product_id':'PRODUCT_ID'})
     
