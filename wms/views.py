@@ -1814,42 +1814,42 @@ def wms_revision_transferencia(request):
     return render(request, 'wms/revision_trasferencia.html', {})
 
 
-# Transferencias estatus
-def wms_transferencias_estatus_all():
+# # Transferencias estatus
+# def wms_transferencias_estatus_all():
     
-    transf_list = NotaEntrega.objects.values_list('doc_id', flat=True).distinct()
+#     transf_list = NotaEntrega.objects.values_list('doc_id', flat=True).distinct()
     
-    for i in transf_list:
+#     for i in transf_list:
         
-        transf_mba = NotaEntrega.objects.filter(doc_id=i)
-        mba_total  = sum(transf_mba.values_list('unidades', flat=True))
+#         transf_mba = NotaEntrega.objects.filter(doc_id=i)
+#         mba_total  = sum(transf_mba.values_list('unidades', flat=True))
         
-        transf_wms = Movimiento.objects.filter(referencia='Nota de entrega').filter(n_referencia=i)
-        wms_total  = sum(transf_wms.values_list('unidades', flat=True))*-1
+#         transf_wms = Movimiento.objects.filter(referencia='Nota de entrega').filter(n_referencia=i)
+#         wms_total  = sum(transf_wms.values_list('unidades', flat=True))*-1
         
-        avance_i = round(((wms_total / mba_total) * 100), 1)
+#         avance_i = round(((wms_total / mba_total) * 100), 1)
         
-        if wms_total == 0 or wms_total == None:
-            estado_i = 'CREADO'
-        elif wms_total < mba_total:
-            estado_i = 'EN PROCESO'
-        elif mba_total == wms_total or wms_total > mba_total:
-            estado_i = 'FINALIZADO'        
+#         if wms_total == 0 or wms_total == None:
+#             estado_i = 'CREADO'
+#         elif wms_total < mba_total:
+#             estado_i = 'EN PROCESO'
+#         elif mba_total == wms_total or wms_total > mba_total:
+#             estado_i = 'FINALIZADO'        
         
-        NotaEntregaStatus.objects.update_or_create(
-            nota_entrega    = i,
-            unidades_mba    = mba_total,
-            unidades_wms    = wms_total,
-            avance          = avance_i,
-            estado          = estado_i
-        )
+#         NotaEntregaStatus.objects.update_or_create(
+#             nota_entrega    = i,
+#             unidades_mba    = mba_total,
+#             unidades_wms    = wms_total,
+#             avance          = avance_i,
+#             estado          = estado_i
+#         )
         
-    return JsonResponse({
-        'msg':{
-            'tipo':'success',
-            'texto':'✅ Estado de transferencia actualizado !!!'
-        }
-    })
+#     return JsonResponse({
+#         'msg':{
+#             'tipo':'success',
+#             'texto':'✅ Estado de transferencia actualizado !!!'
+#         }
+#     })
 
 
 
@@ -2576,6 +2576,13 @@ def wms_nota_entrega_input_ajax(request):
                 ne.save()
             
             if ne.id:
+                NotaEntregaStatus.objects.create(
+                    nota_entrega = ne.doc_id,
+                    unidades_mba = 0,
+                    unidades_wms = 0,
+                    avance       = 0.0,
+                    estado       = 'CREADO'
+                )
                 return JsonResponse({
                     'msg':{
                         'type': 'success',
@@ -2603,6 +2610,10 @@ def wms_nota_entrega_input_ajax(request):
 def wms_nota_entrega_list(request):
     
     ne_list = pd.DataFrame(NotaEntrega.objects.all().values()).drop_duplicates(subset='doc_id', keep='last')
+    ne_status = pd.DataFrame(NotaEntregaStatus.objects.all().values())
+    ne_status = ne_status.rename(columns={'nota_entrega':'doc_id'})
+    
+    ne_list = ne_list.merge(ne_status, on='doc_id', how='left')
     
     if not ne_list.empty:
         ne_list = ne_list.sort_values(by='fecha_hora', ascending=False)
@@ -2615,6 +2626,39 @@ def wms_nota_entrega_list(request):
     return render(request, 'wms/nota_entrega_list.html', context)
 
 
+def wms_nota_entrega_estatus(nota_entrega):
+    
+    nentrega_mba = NotaEntrega.objects.filter(doc_id=nota_entrega)
+    mba_total  = sum(nentrega_mba.values_list('unidades', flat=True))
+    
+    transf_wms = Movimiento.objects.filter(referencia='Nota de entrega').filter(n_referencia=nota_entrega)
+    wms_total  = sum(transf_wms.values_list('unidades', flat=True))*-1
+    
+    avance_i = round(((wms_total / mba_total) * 100), 1)
+    
+    if wms_total == 0 or wms_total == None:
+        estado_i = 'CREADO'
+    elif wms_total < mba_total:
+        estado_i = 'EN PROCESO'
+    elif mba_total == wms_total or wms_total > mba_total:
+        estado_i = 'FINALIZADO'    
+
+    n_entrega_status = NotaEntregaStatus.objects.get(nota_entrega=nota_entrega)
+    n_entrega_status.estado       = estado_i
+    n_entrega_status.unidades_mba = mba_total
+    n_entrega_status.unidades_wms = wms_total
+    n_entrega_status.avance       = avance_i
+    
+    n_entrega_status.save()
+
+    return JsonResponse({
+        'msg':{
+            'tipo':'success',
+            'texto':f'✅ Transferencia {nota_entrega} actualizado !!!'
+        }
+    })
+    
+    
 # Picking de nota de entrega
 @login_required(login_url='login')
 def wms_nota_entrega_picking(request, n_entrega):
@@ -2752,7 +2796,8 @@ def wms_movimiento_egreso_nota_entrega(request): #OK
 
             nota_entrega.save()
             wms_existencias_query_product_lote(product_id=prod_id, lote_id=lote_id)
-
+            wms_nota_entrega_estatus(nota_entrega.n_referencia)
+            
             return JsonResponse({'msg':f'✅ Producto {prod_id}, lote {lote_id} seleccionado correctamente !!!'})
         return JsonResponse({'msg':'❌ Error !!!'})
     return JsonResponse({'msg':'❌Error !!!'})
