@@ -114,7 +114,7 @@
                             </td>
 
                             <td class="text-end">
-                                <button class="btn btn-primary btn-sm" id="{{i.PRODUCT_ID}}" name="boton_ubicaciones"> 
+                                <button class="btn btn-primary btn-sm {% if estado == 'SIN ESTADO' %} disabled {% endif %} " id="{{i.PRODUCT_ID}}" name="boton_ubicaciones"> 
                                     <i class="bi bi-geo-fill"></i>
                                 </button>
                             </td>
@@ -203,7 +203,7 @@
                                                             <td>{{j.ubicacion__bodega}}-{{j.ubicacion__pasillo}}-{{j.ubicacion__modulo}}{% if j.ubicacion__bodega == 'CN6' %}-{{j.ubicacion__nivel}}{% else %}{% endif %}</td>
                                                             <td id="reg_unidades" class="text-end">{{j.unidades|floatformat:"0g"}}</td>
                                                             <td class="text-center">
-                                                                <button class="btn btn-sm btn-danger" name="eliminar_picking" id="{{j.id}}">
+                                                                <button class="btn btn-sm btn-danger {% if estado == 'FINALIZADO' %} disabled {% endif %}" name="eliminar_picking" id="{{j.id}}">
                                                                     <i class="bi bi-arrow-bar-left"></i>
                                                                 </button>
                                                             </td>
