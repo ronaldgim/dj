@@ -558,8 +558,8 @@ def wms_inventario(request): #OK
     
     # orden de inventario
     inv = inv.sort_values(
-        by        = ['estado', 'product_id', 'lote_id', 'fecha_caducidad', 'ubicacion__bodega', 'ubicacion__nivel', 'unidades'],
-        ascending = [False,    True,         True,      True,              True,                True,               True]
+        by        = ['estado', 'product_id', 'fecha_caducidad', 'lote_id', 'ubicacion__bodega', 'ubicacion__nivel', 'unidades'],
+        ascending = [False,    True,         True,              True,      True,                True,               True]
     )
     
     inv['fecha_caducidad'] = inv['fecha_caducidad'].dt.strftime('%d-%m-%Y')
