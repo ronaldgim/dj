@@ -19,6 +19,7 @@ REFERENCIA_MOVIMIENTOS = [
     ('Liberación', 'Liberación'),
     ('Ajuste', 'Ajuste'),
     ('Picking', 'Picking'),
+    ('Reverso de picking', 'Reverso de picking'),
     ('Transferencia', 'Transferencia'),
     ('Nota de entrega', 'Nota de entrega'),
 ]
@@ -38,6 +39,7 @@ ESTADO = [
 ESTADO_PICKING = [
     ('En Despacho', 'En Despacho'),
     ('Despachado', 'Despachado'),
+    ('No Despachado', 'No Despachado'),
 ]
 
 BODEGA = [

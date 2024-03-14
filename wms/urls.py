@@ -392,4 +392,17 @@ urlpatterns = [
         view = views.wms_ajuste_liberacion_detalle,
         name = 'wms_ajuste_liberacion_detalle'
     ),
+    
+    # Retirar producto en despacho 
+    path(
+        route='retiro-producto-despacho',
+        view = views.wms_retiro_producto_despacho,
+        name = 'wms_retiro_producto_despacho'
+    ),
+    
+    path(
+        route='retiro-producto-despacho-ajax',
+        view = views.wms_retiro_producto_despacho_ajax,
+        name = 'wms_retiro_producto_despacho_ajax'
+    ),
 ]

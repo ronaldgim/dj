@@ -3053,3 +3053,74 @@ def wms_ajuste_liberacion_detalle(request, n_liberacion):
     }
 
     return render(request, 'wms/ajuste_liberacion_detalle.html', context)
+
+
+### Regresar productos en despacho al inventario
+def wms_retiro_producto_despacho(request):
+
+    if request.method == 'POST':
+        n_picking = request.POST['n_picking'] + '.0'
+        estado_picking = EstadoPicking.objects.filter(n_pedido=n_picking)
+        
+        if not estado_picking.exists():
+            messages.error(request, f"No se encontró el Picking {request.POST['n_picking']}")
+            
+        elif estado_picking.exists():
+            estado = estado_picking.last().estado
+            bodega = estado_picking.last().bodega
+            
+            if bodega == 'BAN':
+                messages.error(request, f"El Picking {request.POST['n_picking']} esta en bodega Andagoya")
+                
+            elif bodega == 'BCT':
+                if estado == 'FINALIZADO':
+                    picking = Movimiento.objects.filter(n_referencia=n_picking).filter(estado_picking='En Despacho')
+                    
+                    context = {
+                        'picking':picking,
+                        'cabecera':estado_picking.last()
+                        }
+                    return render(request, 'wms/retiro_producto_despacho_list.html', context)
+                
+                else:
+                    messages.error(request, f"El Picking {request.POST['n_picking']} su esta es {estado}")
+    
+    return render(request, 'wms/retiro_producto_despacho_list.html', {})
+
+
+
+def wms_retiro_producto_despacho_ajax(request):
+    
+    id_mov = int(request.POST['id']) 
+    
+    mov = Movimiento.objects.get(id=id_mov)
+    
+    mov_ing = Movimiento(
+        product_id      = mov.product_id,
+        lote_id         = mov.lote_id,
+        fecha_caducidad = mov.fecha_caducidad,
+        tipo            = 'Ingreso',
+        descripcion     = mov.descripcion,
+        referencia      = 'Reverso de picking',
+        n_referencia    = mov.n_referencia,
+        n_factura       = '',
+        ubicacion_id    = 605,
+        unidades        = (mov.unidades)*-1,
+        estado          = mov.estado,
+        estado_picking  = '',
+        usuario_id      = request.user.id
+    )
+    
+    # Nuevo registro de ingreso
+    mov_ing.save()
+    
+    # Cambio de estado al registro de egreso picking
+    mov.estado_picking = 'No Despachado'
+    mov.save()
+    
+    wms_existencias_query_product_lote(product_id=mov.product_id, lote_id=mov.lote_id)
+    
+    return JsonResponse({
+        'tipo':'success',
+        'msg':f'Las {(mov.unidades*-1)} unidades del producto {mov.product_id} - {mov.lote_id} regreso a la ubicación CN6-G-1'
+        })
