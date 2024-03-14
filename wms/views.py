@@ -3080,6 +3080,7 @@ def wms_retiro_producto_despacho(request):
                         'picking':picking,
                         'cabecera':estado_picking.last()
                         }
+                    
                     return render(request, 'wms/retiro_producto_despacho_list.html', context)
                 
                 else:
