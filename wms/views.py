@@ -2558,8 +2558,7 @@ def wms_resposicion_rm(request):
             df_non_match = de_dataframe_a_template(df_non_match)
             
             context = {
-                #'data': df_non_match,
-                'data':[{'product_id':'1110/70229'},{'product_id':'1600'}]
+                'data': df_non_match,
             }
             
     except Exception as e:
