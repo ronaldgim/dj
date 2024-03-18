@@ -62,9 +62,17 @@
                 <tbody id="pedidosbuscar">
                     {% for i in data %}
                         <tr>
-                            <td>{{i.product_id}}</td>
+                            <td>
+                                <!--a class="btn btn-outline-primary" href="{#% url 'wms_inventario_filter' i.product_id %#}">
+                                    {{i.product_id}}
+                                </a-->
+                                <form id="formRedirect" action="/wms/inventario" method="POST">
+                                    {% csrf_token %}
+                                    <input type="hidden" id="botonIdInput" name="codigo" value="{{i.product_id}}">
+                                    <button class="btn btn-outline-primary">{{i.product_id}}</button>
+                                </form>
+                            </td>
                             <td>{{i.count_x}}</td>
-                            <!--td>{{i.count_y}}</td-->
                         </tr>
                     {% endfor %}
                 </tbody>
@@ -96,4 +104,5 @@
         });
     });
 </script>
+
 {% endblock %}

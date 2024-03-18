@@ -423,7 +423,6 @@
         var id_picking = $(this).attr('id');
         var estado = $(this).text()
         
-        
         $.ajax({
             type:"POST",
             url:"{% url 'wms_estado_picking_actualizar_ajax' %}",
@@ -453,57 +452,4 @@
     })
 </script>
 
-<!--filtro buscar-->
-<!--script>
-    $(document).ready(function() {
-        $("#inputbuscar").on("keyup", function() {
-            var value = $(this).val().toLowerCase();
-            $("#pedidosbuscar tr").filter(function() {
-                $(this).toggle($(this).text()
-                .toLowerCase().indexOf(value) > -1)
-            });
-        });
-    });
-</script-->
-
-<!-- Regresar Picking -->
-<!--script>
-    $("button[name='reg_pick']").click(function(){
-        var reg_prod_id          = $(this).closest("tr").find("#reg_prod_id").val();
-        var reg_lote             = $(this).closest("tr").find("#reg_lote").html();
-        var reg_caducidad        = $(this).closest("tr").find("#reg_caducidad").html();
-        var reg_unidades         = $(this).closest("tr").find("#reg_unidades").html();
-        var reg_n_picking        = $(this).closest("tr").find("#reg_n_picking").val();
-        var reg_ubi              = $(this).closest("tr").find("#reg_ubi").val();
-
-        {% comment %}
-        $.ajax({
-            type:"POST",
-            //url:"{#% url 'wms_movimiento_egreso_picking' %#}",
-            data:{
-                'csrfmiddlewaretoken': '{{ csrf_token }}',
-                'prod_id':prod_id,
-                'lote_id':lote,
-                'caducidad':caducidad,
-                'unds'   :picking_cantidad,
-                'n_picking':n_picking,
-                'ubi':ubi
-            },
-
-            success: function() {
-                setTimeout(function(){
-                    window.location.reload();
-                }, 1000)
-            },
-
-            error: function() {
-                $('#msg').html('<div class="text-center alert alert-danger" role="alert"> Error al hacer el picking !!! </div>')
-                    setTimeout(function(){
-                    window.location.reload();
-                    }, 2000)
-            }
-        })
-        {% endcomment %}
-    })
-</script-->
 {% endblock %}
