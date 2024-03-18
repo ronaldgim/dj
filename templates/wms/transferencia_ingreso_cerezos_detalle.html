@@ -59,28 +59,24 @@
 <div id="msg_ss"></div>
 
 
-<!--div class="input-group mb-3">
-    <input type="text" class="form-control" placeholder="Ingrese en número de trasferencia" id="n_trasf" required>
-    <button name="trasferencia" class="btn btn-primary" type="submit">Añadir Transferencia</button>
-</div-->
-
 {% if estado == 'Cuarentena' %}
-<button class="btn btn-primary mt-2 mb-2 disabled">
+<button class="btn btn-primary mt-2 mb-2 disabled"> <!--disabled-->
     <i class="bi bi-plus-circle"></i> Añadir a Inventario
 </button><br>
 <span>Estado: </span>{{estado}}<br>
+
 <!-- boton de liberación -->
 <button class="btn btn-success mt-2 mb-2" name="liberar_trasnferencia">
     <i class="bi bi-truck"></i> Liberar transferencia
 </button><br>
 
 {% elif estado == 'Disponible' %}
-<button class="btn btn-primary mt-2 mb-2 disabled"> 
+<button class="btn btn-primary mt-2 mb-2 disabled"> <!--disabled-->
     <i class="bi bi-plus-circle"></i> Añadir a Inventario
 </button><br>
 <span>Estado: </span>{{estado}}<br>
 <!-- boton de liberación disabled -->
-<button class="btn btn-success mt-2 mb-2 disabled"> <!--disabled-->
+<button class="btn btn-success mt-2 mb-2"> <!--disabled-->
     <i class="bi bi-truck"></i> Liberar transferencia
 </button><br>
 
@@ -127,7 +123,7 @@
 <script>
     $("button[name='ingresar_inventario']").click(function(){
         var n_trasf  = $("#n_trasf").html();
-
+        
         $.ajax({
             type:"POST",
             url:"{% url 'wms_transferencia_ingreso_cerezos_input_ajax' %}",

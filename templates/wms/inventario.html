@@ -38,10 +38,31 @@
     </button>
 </div>
 
-<div class="col-12">
-    <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
-</div>
+<form method = 'POST'>
+    {% csrf_token %}
+    <div class="input-group mb-3">
+        <input type="text" name="codigo" class="form-control" placeholder="Busqueda por código" required>
+        <button class="btn btn-primary" type="submit">Buscar</button>
+    </div>
+</form>
 
+{% if request.method == 'POST' %}
+<div class="card mt-2 mb-2">
+    <div class="card-body">
+        <label class="fw-bold">Código: </label> {{codigo}}<br>
+        <label class="fw-bold">Resultados: </label> {{len_inv}}<br>
+        <a class="btn btn-sm btn-danger" href="{% url 'wms_inventario' %}">Borrar busqueda</a>
+    </div>
+</div>
+{% endif %}
+
+
+<hr>
+
+
+<div class="col-12">
+    <input id="inputbuscar" type="text" placeholder="Filtro" class="form-control">
+</div>
 
 
 <div class="card mt-2 mb-2">
@@ -102,12 +123,10 @@
 
 <!-- Actualizar lista -->
 <script>
-
 $("button[name='actualizar_get']").click(function(){
     window.location.reload();
     $('#msg').html('<div class="text-center alert alert-success" role="alert"> Inventario Actualizado !!! </div>')
 })
-
 </script>
 
 {% endblock %}

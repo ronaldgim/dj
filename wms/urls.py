@@ -72,6 +72,13 @@ urlpatterns = [
         name = 'wms_inventario'
     ),
     
+    # Inventario Filtrado
+    # path(
+    #     route='inventario/filter/<str:codigo>',
+    #     view = views.wms_inventario_filter, #OK
+    #     name = 'wms_inventario_filter'
+    # ),
+    
     
     # FUNCIONES DE MOVIMIENTO
 

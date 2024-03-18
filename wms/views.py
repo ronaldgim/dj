@@ -543,33 +543,81 @@ def wms_inventario(request): #OK
     """ Inventario
         Suma de ingresos y egresos que dan el total de todo el inventario
     """
-
+    
     prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+    
+    if request.method == 'POST':
+        codigo = request.POST['codigo']
+        inv = Existencias.objects.filter(product_id=codigo)
 
-    inv = pd.DataFrame(Existencias.objects.all().values(
-        'id',
-        'product_id', 'lote_id', 'fecha_caducidad', 'unidades', 'fecha_hora',
-        'ubicacion', 'ubicacion__bodega', 'ubicacion__pasillo', 'ubicacion__modulo', 'ubicacion__nivel',
-        'estado'
-    )) 
-    
-    inv = inv.merge(prod, on='product_id', how='left')
-    inv['fecha_caducidad'] = pd.to_datetime(inv['fecha_caducidad'])
-    
-    # orden de inventario
-    inv = inv.sort_values(
-        by        = ['estado', 'product_id', 'fecha_caducidad', 'lote_id', 'ubicacion__bodega', 'ubicacion__nivel', 'unidades'],
-        ascending = [False,    True,         True,              True,      True,                True,               True]
-    )
-    
-    inv['fecha_caducidad'] = inv['fecha_caducidad'].dt.strftime('%d-%m-%Y')
-    inv = de_dataframe_a_template(inv)
+    else:
+        codigo=None
+        inv = Existencias.objects.all()
+
+    if inv:
+
+        inv = pd.DataFrame(inv.values(
+            'id',
+            'product_id', 'lote_id', 'fecha_caducidad', 'unidades', 'fecha_hora',
+            'ubicacion', 'ubicacion__bodega', 'ubicacion__pasillo', 'ubicacion__modulo', 'ubicacion__nivel',
+            'estado'
+        )) 
+        
+        inv = inv.merge(prod, on='product_id', how='left')
+        inv['fecha_caducidad'] = pd.to_datetime(inv['fecha_caducidad'])
+        
+        # orden de inventario
+        inv = inv.sort_values(
+            by        = ['estado', 'product_id', 'fecha_caducidad', 'lote_id', 'ubicacion__bodega', 'ubicacion__nivel', 'unidades'],
+            ascending = [False,    True,         True,              True,      True,                True,               True]
+        )
+        
+        inv['fecha_caducidad'] = inv['fecha_caducidad'].dt.strftime('%d-%m-%Y')
+        inv = de_dataframe_a_template(inv)
 
     context = {
         'inv':inv,
+        'len_inv':len(inv),
+        'codigo':codigo
     }
 
     return render(request, 'wms/inventario.html', context)
+
+
+# def wms_inventario_filter(request, codigo): #OK
+#     """ Inventario
+#         Suma de ingresos y egresos que dan el total de todo el inventario
+#     """
+    
+#     prod = Existencias.objects.filter(product_id=codigo).last()
+    
+    
+#     prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+
+#     inv = pd.DataFrame(Existencias.objects.filter(product_id=prod.id).values(
+#         'id',
+#         'product_id', 'lote_id', 'fecha_caducidad', 'unidades', 'fecha_hora',
+#         'ubicacion', 'ubicacion__bodega', 'ubicacion__pasillo', 'ubicacion__modulo', 'ubicacion__nivel',
+#         'estado'
+#     )) 
+    
+#     inv = inv.merge(prod, on='product_id', how='left')
+#     inv['fecha_caducidad'] = pd.to_datetime(inv['fecha_caducidad'])
+    
+#     # orden de inventario
+#     inv = inv.sort_values(
+#         by        = ['estado', 'product_id', 'fecha_caducidad', 'lote_id', 'ubicacion__bodega', 'ubicacion__nivel', 'unidades'],
+#         ascending = [False,    True,         True,              True,      True,                True,               True]
+#     )
+    
+#     inv['fecha_caducidad'] = inv['fecha_caducidad'].dt.strftime('%d-%m-%Y')
+#     inv = de_dataframe_a_template(inv)
+
+#     context = {
+#         'inv':inv,
+#     }
+
+#     return render(request, 'wms/inventario.html', context)
 
 
 
@@ -2066,13 +2114,13 @@ def wms_transferencia_ingreso_cerezos_detalle(request, n_transferencia):
     transf = de_dataframe_a_template(transf)
     
     movs = Movimiento.objects.filter(n_referencia=n_transferencia)
-
     
-    if movs.exists():
-        estado = movs.last().estado
+    # if movs.exists():
+    #     estado = movs.last().estado
 
-    else:
-        estado = 'Sin estado'
+    # else:
+    #     estado = 'Sin estado'
+    estado = 'Cuarentena'
     
     context={
         'transf':transf,
@@ -2091,7 +2139,7 @@ def wms_transferencia_ingreso_cerezos_input_ajax(request):
     transf  = Transferencia.objects.filter(n_transferencia=n_transf)
     
     for i in transf:
-    
+        
         ing = Movimiento(
             tipo            = 'Ingreso',
             unidades        = i.unidades,
@@ -2133,10 +2181,11 @@ def wms_transferencia_ingreso_cerezos_liberacion_ajax(request):
     n_transf = request.POST['n_trasf']
     user     = int(request.POST['usuario'])
     
-    movs = Movimiento.objects.filter(n_referencia=n_transf)
+    movs = Movimiento.objects.filter(n_referencia=n_transf).filter(estado='Cuarentena')
     estado = movs.last().estado
     
-    if estado == 'Cuarentena':
+    if estado == 'Cuarentena': 
+        
         for i in movs:
             lib_egreso = Movimiento(
                 tipo            = 'Egreso',
@@ -2500,7 +2549,7 @@ def wms_resposicion_rm(request):
             "FROM wms_existencias left join wms_ubicacion on wms_existencias.ubicacion_id=wms_ubicacion.id "
             "where wms_ubicacion.bodega = 'CN6' AND wms_ubicacion.nivel=1 group by wms_existencias.product_id;"
             )
-            columns =  [col[0] for col in cursor.description]
+            columns = [col[0] for col in cursor.description]
             query6  = [dict(zip(columns, row)) for row in cursor.fetchall()]
             df_equal  = pd.DataFrame(query6)
             
@@ -2509,7 +2558,8 @@ def wms_resposicion_rm(request):
             df_non_match = de_dataframe_a_template(df_non_match)
             
             context = {
-                'data': df_non_match,
+                #'data': df_non_match,
+                'data':[{'product_id':'1110/70229'},{'product_id':'1600'}]
             }
             
     except Exception as e:
