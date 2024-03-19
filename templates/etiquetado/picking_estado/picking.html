@@ -206,18 +206,20 @@
                     'fac':fac
             },
             
-            success: function() {
-                //console.log('hola');
-                $('.growl-notice-succes').fadeIn().html('EL PEDIDO #' + ped + ' ' + 'DE ' + cli + ' FACTURADO Y NOTIFICADO EXITOSAMENTE !!!');
+            success: function(response) {
+                console.log(response)
+
+                $(`.growl-notice-${response.tipo}`).fadeIn().html(response.msg);
                 setTimeout(function(){ 
-                $('.growl-notice-succes').fadeOut();
+                $(`.growl-notice-${$.tipo}`).fadeOut();
                 }, 3000);
                 setTimeout(function(){
                     window.location.reload();
                 }, 3000)},
 
+
             error: function(){
-                $('.growl-notice-error').fadeIn().html('ERROR EN LA NOTIICACIÓN DEL PEDIDO #' + ped + ' ' + 'DE ' + cli +' REVISAR SI SE FACTURO CORRECTAMENTE!!!');
+                $('.growl-notice-error').fadeIn().html('Error intente nuevamente !!!');
                 setTimeout(function(){ 
                 $('.growl-notice-error').fadeOut();
                 }, 3000);

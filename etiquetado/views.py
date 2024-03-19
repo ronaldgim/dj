@@ -66,8 +66,7 @@ from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 
 # Url
-from django.http import HttpResponse
-from django.http import HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.urls import reverse_lazy
 
 # PDF
@@ -1277,7 +1276,7 @@ def correo_facturado(request):
     
     picking_estado.facturado_por_id = vendedor
     picking_estado.hora_facturado = hora_fecha
-    picking_estado.facturado = True
+    #picking_estado.facturado = True
 
     vend = str(picking_estado.facturado_por.first_name) + ' ' + str(picking_estado.facturado_por.last_name)
     vend = vend.upper()
@@ -1317,8 +1316,9 @@ GIMPROMED Cia. Ltda.\n
             fail_silently=False,
         )
         picking_estado.facturado = True
+        
     except Exception as e:
-        pass
+        picking_estado.facturado = False
     
     # # ENVIAR WHATSAPP
     # whatsapp_json = {
@@ -1338,7 +1338,16 @@ GIMPROMED Cia. Ltda.\n
     
     picking_estado.save()
     
-    return HttpResponse('/etiquetado/picking')
+    if picking_estado.facturado == True or picking_estado.whatsapp == True:
+        return JsonResponse({
+            'tipo':'succes',
+            'msg':f'El pedido # {picking_estado.n_pedido} de {picking_estado.cliente} fue facturado y notificado exitosamente !!!'
+        })
+    elif picking_estado.facturado == False and picking_estado.whatsapp == False:
+        return JsonResponse({
+            'tipo':'error',
+            'msg':'Error intente nuevamente !!!'
+        })
 
 
 # PICKING AJAX
