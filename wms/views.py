@@ -1965,7 +1965,7 @@ def wms_transferencia_input_ajax(request):
             
         Transferencia.objects.bulk_create(tr_list)
         
-        if len(tr_list) > 0:
+        if len(tr_list) > 0 and tr.bodega_salida == 'BCT':
             TransferenciaStatus.objects.create(
                 n_transferencia = n_trasf,
                 estado          = 'CREADO',
@@ -2115,12 +2115,11 @@ def wms_transferencia_ingreso_cerezos_detalle(request, n_transferencia):
     
     movs = Movimiento.objects.filter(n_referencia=n_transferencia)
     
-    # if movs.exists():
-    #     estado = movs.last().estado
+    if movs.exists():
+        estado = movs.last().estado
 
-    # else:
-    #     estado = 'Sin estado'
-    estado = 'Cuarentena'
+    else:
+        estado = 'Sin estado'
     
     context={
         'transf':transf,
@@ -3052,7 +3051,7 @@ def wms_ajuste_liberacion_detalle(request, n_liberacion):
     ajuste['unidades_cuc'] = ajuste.apply(
         lambda x: x['egreso_temp'] if x['tipo'] == 'Liberación Acondicionamiento' else x['unidades_cuc'], axis=1
     )
-    print(ajuste)
+    
     tipo = ajuste.iloc[0]['tipo']
     
     ajuste = de_dataframe_a_template(ajuste)
