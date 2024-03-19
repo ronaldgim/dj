@@ -1262,7 +1262,7 @@ def correo_facturado(request):
 
     vendedor = User.objects.get(id=request.user.id).id
     hora_fecha = datetime.now()
-    facturado = True
+    
     
     # Volumen Carton    
     vol, car = n_factura_volumen_cartones(n_pedido)
@@ -1273,8 +1273,7 @@ def correo_facturado(request):
     
     picking_estado.facturado_por_id = vendedor
     picking_estado.hora_facturado = hora_fecha
-    picking_estado.facturado = facturado
-    picking_estado.save()
+    picking_estado.facturado = True
 
     vend = str(picking_estado.facturado_por.first_name) + ' ' + str(picking_estado.facturado_por.last_name)
     vend = vend.upper()
@@ -1305,13 +1304,36 @@ GIMPROMED Cia. Ltda.\n
 ****Esta notificación ha sido enviada automáticamente - No responder****
 """
 
-    send_mail(
-        subject='Notificación Pedido FACTURADO',
-        message= mensaje,
-        from_email=settings.EMAIL_HOST_USER,
-        recipient_list= correos,
-        fail_silently=True,
-    )
+    # try:
+    #     send_mail(
+    #         subject='Notificación Pedido FACTURADO',
+    #         message= mensaje,
+    #         from_email=settings.EMAIL_HOST_USER,
+    #         recipient_list= correos,
+    #         fail_silently=False,
+    #     )
+    #     #picking_estado.save()
+    # except Exception as e:
+    #     pass
+    
+    # # ENVIAR WHATSAPP
+    # whatsapp_json = {
+    #     'senores': picking_estado.cliente,
+    #     'recipient': '+593999922603',
+    #     'factura':n_factura,
+    #     'bodega':b,
+    #     'n_cartones':car
+    # }
+    
+    # response = requests.post(
+    #     url='http://gimpromed.com/app/api/send-whatsapp',
+    #     data= whatsapp_json
+    # )
+    
+    # if response.status_code == 200: picking_estado.whatsapp = True
+    
+    picking_estado.save()
+    
 
     #messages.success(request, f'PEDIDO # {picking_estado.n_pedido[:-2]} DE {picking_estado.cliente} FACTURADO POR {vend}')
     return HttpResponse('/etiquetado/picking')
@@ -1333,7 +1355,7 @@ def picking(request):
     
     estados = pd.DataFrame(EstadoPicking.objects.filter(fecha_creado__gte=un_mes).order_by('-id').values(
         'id','n_pedido','estado','fecha_pedido','cliente','fecha_creado','fecha_actualizado','bodega','facturado',
-        'user__user__first_name','user__user__last_name','codigo_cliente'
+        'user__user__first_name','user__user__last_name','codigo_cliente','whatsapp'
     ))
 
     estados['fecha_creado'] = estados['fecha_creado'].astype(str)

@@ -111,7 +111,7 @@
                         </th>
                         <th scope="col">OPERADOR</th>
                         <th scope="col">FINALIZADO</th>
-                        <th scope="col">ACCIONES</th>
+                        <th scope="col" class="text-center">ACCIONES</th>
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
@@ -161,11 +161,18 @@
                             {% if i.estado == 'FINALIZADO' and i.CIUDAD_PRINCIPAL == 'QUITO' or i.CIUDAD_PRINCIPAL == 'SANGOLQUI' %}
                                 {% if i.CLIENT_TYPE == 'DISTR' or i.CLIENT_TYPE == 'CONSU' %}
                                     {% if i.facturado %}
-                                    Facturado 
+                                    
+                                        {% if i.facturado %}
+                                        <i class="bi bi-envelope" style="color:#a85700"></i>
+                                        {% endif %}
+                                        {% if i.whatsapp %}
+                                        <i class="bi bi-whatsapp" style="color:green"></i>
+                                        {% endif %}
+
                                     {% else %}
                                         {% if i.CODIGO_FACTURA %}
                                             <button class="btn btn-warning btn-sm" name="facturado" id="{{i.id}}">Facturado</button>
-                                            <input type="hidden" value="{{i.CODIGO_FACTURA}}" id="fac" />
+                                            <input type="hidden" value="{{i.CODIGO_FACTURA}}" id="fac"/>
                                         {% endif %}
                                     {% endif %}
                                 {% endif %}
