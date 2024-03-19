@@ -1,7 +1,8 @@
 # DB
-from cmath import pi
-from datetime import datetime, date, timedelta
 from django.db import connections
+
+# Time
+from datetime import datetime, date, timedelta
 
 # Shorcuts
 from django.shortcuts import render, redirect
@@ -1345,11 +1346,8 @@ GIMPROMED Cia. Ltda.\n
 @login_required(login_url='login')
 def picking(request):
     
-    # actulizar_facturas_warehouse()
-    
-    import datetime
-    hoy = datetime.datetime.now()
-    un_mes = hoy - datetime.timedelta(days=10)
+    hoy = datetime.now()
+    un_mes = hoy - timedelta(days=10)
 
     clientes = pd.DataFrame(clientes_table()[['CODIGO_CLIENTE','CIUDAD_PRINCIPAL','CLIENT_TYPE']])
     clientes = clientes.rename(columns={'CODIGO_CLIENTE':'codigo_cliente'})
