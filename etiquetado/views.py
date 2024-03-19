@@ -1304,17 +1304,17 @@ GIMPROMED Cia. Ltda.\n
 ****Esta notificación ha sido enviada automáticamente - No responder****
 """
 
-    # try:
-    #     send_mail(
-    #         subject='Notificación Pedido FACTURADO',
-    #         message= mensaje,
-    #         from_email=settings.EMAIL_HOST_USER,
-    #         recipient_list= correos,
-    #         fail_silently=False,
-    #     )
-    #     #picking_estado.save()
-    # except Exception as e:
-    #     pass
+    try:
+        send_mail(
+            subject='Notificación Pedido FACTURADO',
+            message= mensaje,
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list= correos,
+            fail_silently=False,
+        )
+        #picking_estado.save()
+    except Exception as e:
+        pass
     
     # # ENVIAR WHATSAPP
     # whatsapp_json = {
