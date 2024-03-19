@@ -72,7 +72,6 @@ from django.urls import reverse_lazy
 # PDF
 from django_xhtml2pdf.utils import pdf_decorator
 
-
 # Email
 from django.core.mail import send_mail
 from django.conf import settings
@@ -84,6 +83,10 @@ import mysql.connector
 
 # No utilizar csrf_token
 from django.views.decorators.csrf import csrf_exempt
+
+# Requests
+import requests
+
 
 # Datos
 from datos.views import (
@@ -1334,8 +1337,6 @@ GIMPROMED Cia. Ltda.\n
     
     picking_estado.save()
     
-
-    #messages.success(request, f'PEDIDO # {picking_estado.n_pedido[:-2]} DE {picking_estado.cliente} FACTURADO POR {vend}')
     return HttpResponse('/etiquetado/picking')
 
 
