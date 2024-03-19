@@ -1316,7 +1316,7 @@ GIMPROMED Cia. Ltda.\n
             recipient_list= correos,
             fail_silently=False,
         )
-        #picking_estado.save()
+        picking_estado.facturado = True
     except Exception as e:
         pass
     
@@ -1326,7 +1326,7 @@ GIMPROMED Cia. Ltda.\n
     #     'recipient': '+593999922603',
     #     'factura':n_factura,
     #     'bodega':b,
-    #     'n_cartones':car
+    #     'n_cartones':str(car)
     # }
     
     # response = requests.post(
