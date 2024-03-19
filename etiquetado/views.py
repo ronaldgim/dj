@@ -1,7 +1,8 @@
 # DB
-from cmath import pi
-from datetime import datetime, date, timedelta
 from django.db import connections
+
+# Time
+from datetime import datetime, date, timedelta
 
 # Shorcuts
 from django.shortcuts import render, redirect
@@ -72,7 +73,6 @@ from django.urls import reverse_lazy
 # PDF
 from django_xhtml2pdf.utils import pdf_decorator
 
-
 # Email
 from django.core.mail import send_mail
 from django.conf import settings
@@ -84,6 +84,10 @@ import mysql.connector
 
 # No utilizar csrf_token
 from django.views.decorators.csrf import csrf_exempt
+
+# Requests
+import requests
+
 
 # Datos
 from datos.views import (
@@ -1334,8 +1338,6 @@ GIMPROMED Cia. Ltda.\n
     
     picking_estado.save()
     
-
-    #messages.success(request, f'PEDIDO # {picking_estado.n_pedido[:-2]} DE {picking_estado.cliente} FACTURADO POR {vend}')
     return HttpResponse('/etiquetado/picking')
 
 
@@ -1344,11 +1346,8 @@ GIMPROMED Cia. Ltda.\n
 @login_required(login_url='login')
 def picking(request):
     
-    # actulizar_facturas_warehouse()
-    
-    import datetime
-    hoy = datetime.datetime.now()
-    un_mes = hoy - datetime.timedelta(days=10)
+    hoy = datetime.now()
+    un_mes = hoy - timedelta(days=10)
 
     clientes = pd.DataFrame(clientes_table()[['CODIGO_CLIENTE','CIUDAD_PRINCIPAL','CLIENT_TYPE']])
     clientes = clientes.rename(columns={'CODIGO_CLIENTE':'codigo_cliente'})
