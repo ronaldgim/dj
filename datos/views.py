@@ -2281,4 +2281,49 @@ def wms_ajuste_query_odbc(n_ajuste):
     finally:
         cursorOdbc.close()
         
+
+# TRAER TELEFONO DE CLIENTES
+def whastapp_cliente_por_codigo(codigo_cliente):
+    
+    with connections['gimpromed_sql'].cursor() as cursor:
         
+        cursor.execute(f"""
+            SELECT CAST(EMAIL AS CHAR) AS CORREO
+            FROM warehouse.clientes
+            WHERE CODIGO_CLIENTE = 'CLI00006';"""
+            )
+        #WHERE CODIGO_CLIENTE = '{codigo_cliente}';"""
+        #WHERE CODIGO_CLIENTE = 'CLI00008';"""
+        
+        correo = cursor.fetchone()[0] #fetchall()
+        correo = correo.split(',')[0]
+        
+        return correo 
+    
+    
+def email_cliente_por_codigo(codigo_cliente):
+    
+    with connections['gimpromed_sql'].cursor() as cursor:
+        
+        cursor.execute(f"""
+            SELECT EMAIL, Email_Fiscal
+            FROM warehouse.clientes
+            WHERE CODIGO_CLIENTE = '{codigo_cliente}';"""
+            )
+        
+        correo = cursor.fetchone() 
+        
+        email = []
+        
+        if correo[0]:
+            e = correo[0].split(',')[0]
+        
+        elif not correo[0]:
+            e = correo[1].split(',')[0]
+        
+        if e:
+            email.append(e)
+        else:
+            email = None
+        
+        return email

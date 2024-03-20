@@ -109,7 +109,10 @@ from datos.views import (
     productos_transito_odbc,
     etiquetado_avance_pedido,
     calculo_etiquetado_avance,
-    lotes_bodega
+    lotes_bodega,
+    
+    whastapp_cliente_por_codigo,
+    email_cliente_por_codigo,
     )
 
 
@@ -1225,8 +1228,7 @@ def n_factura_volumen_cartones(n_pedido):
 
 def correos_notificacion_factura(nombre_cliente):
     with connections['gimpromed_sql'].cursor() as cursor:
-        cursor.execute(
-            f"SELECT EMAIL, Email_Fiscal FROM warehouse.clientes WHERE NOMBRE_CLIENTE='{nombre_cliente}'"
+        cursor.execute(f"SELECT EMAIL, Email_Fiscal FROM warehouse.clientes WHERE NOMBRE_CLIENTE='{nombre_cliente}'"
         )
         correos = cursor.fetchall()[0]
 
@@ -1253,19 +1255,15 @@ def correos_notificacion_factura(nombre_cliente):
 # Envio de correo con ajax
 def correo_facturado(request):
     
-    ### ACTUALIZAR FACTURAS
-    # ACTULIZACIÓN STOCK LOTE
-    # actulizar_facturas_warehouse()
-
-    ### NUMERO DE FACTURA
+    # Numero de factura
     n_pedido = request.GET['ped']
     n_factura = request.GET['fac']
     id_picking = request.GET['id_button']
-    picking_estado = EstadoPicking.objects.get(id=id_picking)
-
-    vendedor = User.objects.get(id=request.user.id).id
-    hora_fecha = datetime.now()
     
+    # Objeto Django
+    picking_estado = EstadoPicking.objects.get(id=id_picking)
+    picking_estado.facturado_por_id = User.objects.get(id=request.user.id).id
+    picking_estado.hora_facturado = datetime.now()
     
     # Volumen Carton    
     vol, car = n_factura_volumen_cartones(n_pedido)
@@ -1273,21 +1271,20 @@ def correo_facturado(request):
         vol_car = f'Volumen: {vol} m3 / Cartones: {car}'
     else:
         vol_car = ''
-    
-    picking_estado.facturado_por_id = vendedor
-    picking_estado.hora_facturado = hora_fecha
-    #picking_estado.facturado = True
 
-    vend = str(picking_estado.facturado_por.first_name) + ' ' + str(picking_estado.facturado_por.last_name)
-    vend = vend.upper()
-
+    # Correos
     correo_vendedor = User.objects.get(id=request.user.id)
     correo_vendedor = correo_vendedor.email
+    
+    emails = email_cliente_por_codigo(picking_estado.codigo_cliente)
+    
+    if emails == None: 
+        picking_estado.facturado == False
+    else:
+        emails.append(correo_vendedor)
+        picking_estado.facturado == True
 
-    # correos = ['egarces@gimpromed.com']
-    correos = correos_notificacion_factura(picking_estado.cliente)
-    correos.append(correo_vendedor)
-
+    # Bodega
     bod = request.GET['bod']
     if bod == 'BAN':
         b = 'Andagoya'
@@ -1296,6 +1293,7 @@ def correo_facturado(request):
     else:
         b = ''
 
+    # Mensaje email
     mensaje = f"""
 Señores {picking_estado.cliente} \n
 Su pedido con factura # {n_factura}, se encuentra listo para ser retirado en:
@@ -1307,23 +1305,22 @@ GIMPROMED Cia. Ltda.\n
 ****Esta notificación ha sido enviada automáticamente - No responder****
 """
 
-    try:
-        send_mail(
-            subject='Notificación Pedido FACTURADO',
-            message= mensaje,
-            from_email=settings.EMAIL_HOST_USER,
-            recipient_list= correos,
-            fail_silently=False,
-        )
-        picking_estado.facturado = True
-        
-    except Exception as e:
-        picking_estado.facturado = False
+    # Send mail
+    send_mail(
+        subject='Notificación Pedido FACTURADO',
+        message= mensaje,
+        from_email=settings.EMAIL_HOST_USER,
+        recipient_list= emails,
+        fail_silently=True,
+    )
     
-    # # ENVIAR WHATSAPP
+    # ENVIAR WHATSAPP
+    # n_whatsapp = whastapp_cliente_por_codigo(picking_estado.codigo_cliente)
+    
     # whatsapp_json = {
     #     'senores': picking_estado.cliente,
     #     'recipient': '+593999922603',
+    #     #'recipient': n_whatsapp,
     #     'factura':n_factura,
     #     'bodega':b,
     #     'n_cartones':str(car)
