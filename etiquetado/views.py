@@ -1307,15 +1307,15 @@ GIMPROMED Cia. Ltda.\n
 ****Esta notificación ha sido enviada automáticamente - No responder****
 """
 
-    # Send mail
-    send_mail(
-        subject='Notificación Pedido FACTURADO',
-        message= mensaje,
-        from_email=settings.EMAIL_HOST_USER,
-        recipient_list= emails,
-        # recipient_list= ['egarces@gimpromed.com'],
-        fail_silently=True,
-    )
+    # # Send mail
+    # send_mail(
+    #     subject='Notificación Pedido FACTURADO',
+    #     message= mensaje,
+    #     from_email=settings.EMAIL_HOST_USER,
+    #     recipient_list= emails,
+    #     # recipient_list= ['egarces@gimpromed.com'],
+    #     fail_silently=True,
+    # )
     
     # ENVIAR WHATSAPP
     # n_whatsapp = whastapp_cliente_por_codigo(picking_estado.codigo_cliente)
