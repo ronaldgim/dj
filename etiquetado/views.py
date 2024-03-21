@@ -1279,10 +1279,12 @@ def correo_facturado(request):
     emails = email_cliente_por_codigo(picking_estado.codigo_cliente)
     
     if emails == None: 
-        picking_estado.facturado == False
-    else:
+        picking_estado.facturado = False
+        
+    elif not emails == None:
         emails.append(correo_vendedor)
-        picking_estado.facturado == True
+        picking_estado.facturado = True
+        
 
     # Bodega
     bod = request.GET['bod']
@@ -1311,6 +1313,7 @@ GIMPROMED Cia. Ltda.\n
         message= mensaje,
         from_email=settings.EMAIL_HOST_USER,
         recipient_list= emails,
+        # recipient_list= ['egarces@gimpromed.com'],
         fail_silently=True,
     )
     
