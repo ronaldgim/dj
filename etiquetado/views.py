@@ -1313,7 +1313,6 @@ GIMPROMED Cia. Ltda.\n
         message= mensaje,
         from_email=settings.EMAIL_HOST_USER,
         recipient_list= emails,
-        # recipient_list= ['egarces@gimpromed.com'],
         fail_silently=True,
     )
     
