@@ -800,7 +800,7 @@ def stock_lote(request):
             cursorOdbc.execute(
                 "SELECT CLNT_Ficha_Principal.CODIGO_CLIENTE, CLNT_Ficha_Principal.IDENTIFICACION_FISCAL, CLNT_Ficha_Principal.NOMBRE_CLIENTE, "
                 "CLNT_Ficha_Principal.CIUDAD_PRINCIPAL, CLNT_Ficha_Principal.CLIENT_TYPE, CLNT_Ficha_Principal.SALESMAN, CLNT_Ficha_Principal.LIMITE_CREDITO, "
-                "CLNT_Ficha_Principal.PriceList, CLNT_Ficha_Principal.E_MAIL, CLNT_Ficha_Principal.Email_Fiscal "
+                "CLNT_Ficha_Principal.PriceList, CLNT_Ficha_Principal.E_MAIL, CLNT_Ficha_Principal.Email_Fiscal, CLNT_Ficha_Principal.DIRECCION_PRINCIPAL_1, CLNT_Ficha_Principal.FAX "
                 "FROM CLNT_Ficha_Principal CLNT_Ficha_Principal"
             )
 
@@ -809,9 +809,10 @@ def stock_lote(request):
             sql_delete = "DELETE FROM clientes"
             mycursorMysql.execute(sql_delete)
             print("successfully deleted clientes")
-
+            
             sql_insert_clientes = """INSERT INTO clientes (CODIGO_CLIENTE, IDENTIFICACION_FISCAL, NOMBRE_CLIENTE,
-            CIUDAD_PRINCIPAL, CLIENT_TYPE, SALESMAN, LIMITE_CREDITO, PRICELIST, EMAIL, Email_Fiscal) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);"""
+            CIUDAD_PRINCIPAL, CLIENT_TYPE, SALESMAN, LIMITE_CREDITO, PRICELIST, EMAIL, Email_Fiscal, DIRECCION, WP) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);"""
+
 
             data_clientes = [list(rows) for rows in clientes]
             result = mycursorMysql.executemany(sql_insert_clientes, data_clientes)
