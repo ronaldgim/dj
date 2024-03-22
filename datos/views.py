@@ -2267,17 +2267,17 @@ def whastapp_cliente_por_codigo(codigo_cliente):
     with connections['gimpromed_sql'].cursor() as cursor:
         
         cursor.execute(f"""
-            SELECT CAST(EMAIL AS CHAR) AS CORREO
+            SELECT CAST(WP AS CHAR) AS WP
             FROM warehouse.clientes
-            WHERE CODIGO_CLIENTE = 'CLI00006';"""
+            WHERE CODIGO_CLIENTE = 'CLI00009';"""
             )
         #WHERE CODIGO_CLIENTE = '{codigo_cliente}';"""
         #WHERE CODIGO_CLIENTE = 'CLI00008';"""
         
-        correo = cursor.fetchone()[0] #fetchall()
-        correo = correo.split(',')[0]
+        wp = cursor.fetchone()[0] 
+        wp = wp.replace(' ', '')
         
-        return correo 
+        return wp 
     
     
 def email_cliente_por_codigo(codigo_cliente):
