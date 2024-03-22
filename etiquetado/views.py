@@ -1285,7 +1285,6 @@ def correo_facturado(request):
         emails.append(correo_vendedor)
         picking_estado.facturado = True
         
-
     # Bodega
     bod = request.GET['bod']
     if bod == 'BAN':
