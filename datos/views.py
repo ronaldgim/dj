@@ -2269,10 +2269,8 @@ def whastapp_cliente_por_codigo(codigo_cliente):
         cursor.execute(f"""
             SELECT CAST(WP AS CHAR) AS WP
             FROM warehouse.clientes
-            WHERE CODIGO_CLIENTE = 'CLI00009';"""
+            WHERE CODIGO_CLIENTE = '{codigo_cliente}';"""
             )
-        #WHERE CODIGO_CLIENTE = '{codigo_cliente}';"""
-        #WHERE CODIGO_CLIENTE = 'CLI00008';"""
         
         wp = cursor.fetchone()[0] 
         wp = wp.replace(' ', '')

@@ -160,13 +160,19 @@
                             
                             {% if i.estado == 'FINALIZADO' and i.CIUDAD_PRINCIPAL == 'QUITO' or i.CIUDAD_PRINCIPAL == 'SANGOLQUI' %}
                                 {% if i.CLIENT_TYPE == 'DISTR' or i.CLIENT_TYPE == 'CONSU' %}
-                                    {% if i.facturado %}
+
+                                    {% if i.facturado or i.whatsapp or i.wh_fail_number %}
                                     
                                         {% if i.facturado %}
                                         <i class="bi bi-envelope" style="color:#a85700"></i>
                                         {% endif %}
-                                        {% if i.whatsapp %}
+
+                                        {% if i.whatsapp and not i.wh_fail_number %}
                                         <i class="bi bi-whatsapp" style="color:green"></i>
+                                        {% endif %}
+                                        
+                                        {% if i.wh_fail_number and not i.whatsapp %}
+                                        <i class="bi bi-whatsapp" style="color:red"></i>
                                         {% endif %}
 
                                     {% else %}
@@ -175,6 +181,7 @@
                                             <input type="hidden" value="{{i.CODIGO_FACTURA}}" id="fac"/>
                                         {% endif %}
                                     {% endif %}
+
                                 {% endif %}
                             {% endif %}
                         </td>
