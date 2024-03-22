@@ -1320,8 +1320,7 @@ GIMPROMED Cia. Ltda.\n
     
     # whatsapp_json = {
     #     'senores': picking_estado.cliente,
-    #     'recipient': '+593999 922 603',
-    #     #'recipient': n_whatsapp,
+    #     'recipient': n_whatsapp,
     #     'factura':n_factura,
     #     'bodega':b,
     #     'n_cartones':str(car)
@@ -1336,9 +1335,7 @@ GIMPROMED Cia. Ltda.\n
     #     picking_estado.whatsapp = True
     # else:
     #     if n_whatsapp.startswith('+593'):
-    #         picking_estado.whatsapp = False
-    #     else:
-    #         picking_estado.whatsapp = ''
+    #         picking_estado.wh_fail_number = True
     
     picking_estado.save()
     
@@ -1362,12 +1359,12 @@ def picking(request):
     hoy = datetime.now()
     un_mes = hoy - timedelta(days=10)
 
-    clientes = pd.DataFrame(clientes_table()[['CODIGO_CLIENTE','CIUDAD_PRINCIPAL','CLIENT_TYPE']])
+    clientes = clientes_table()[['CODIGO_CLIENTE','CIUDAD_PRINCIPAL','CLIENT_TYPE']]
     clientes = clientes.rename(columns={'CODIGO_CLIENTE':'codigo_cliente'})
     
     estados = pd.DataFrame(EstadoPicking.objects.filter(fecha_creado__gte=un_mes).order_by('-id').values(
         'id','n_pedido','estado','fecha_pedido','cliente','fecha_creado','fecha_actualizado','bodega','facturado',
-        'user__user__first_name','user__user__last_name','codigo_cliente','whatsapp'
+        'user__user__first_name','user__user__last_name','codigo_cliente','whatsapp', 'wh_fail_number'
     ))
 
     estados['fecha_creado'] = estados['fecha_creado'].astype(str)
