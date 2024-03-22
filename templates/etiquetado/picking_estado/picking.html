@@ -46,6 +46,10 @@
     line-height:30px;
     z-index: 3;
 }
+
+.icon-size-medium {
+    font-size: 20px; /* Tamaño mediano */
+}
 </style>
 
 <h5 class="m-4 text-center"><strong>LISTADO DE PICKING</strong></h5>
@@ -164,15 +168,15 @@
                                     {% if i.facturado or i.whatsapp or i.wh_fail_number %}
                                     
                                         {% if i.facturado %}
-                                        <i class="bi bi-envelope" style="color:#a85700"></i>
+                                        <i class="bi bi-envelope icon-size-medium btn btn-sm disabled mt-0 pt-0 mb-0 pb-0" style="color:#a85700"></i>
                                         {% endif %}
 
                                         {% if i.whatsapp and not i.wh_fail_number %}
-                                        <i class="bi bi-whatsapp" style="color:green"></i>
+                                        <i class="bi bi-whatsapp icon-size-medium btn btn-sm disabled mt-0 pt-0 mb-0 pb-0" style="color:green"></i>
                                         {% endif %}
                                         
                                         {% if i.wh_fail_number and not i.whatsapp %}
-                                        <i class="bi bi-whatsapp" style="color:red"></i>
+                                        <i class="bi bi-whatsapp icon-size-medium btn btn-sm disabled mt-0 pt-0 mb-0 pb-0" style="color:red"></i>
                                         {% endif %}
 
                                     {% else %}
