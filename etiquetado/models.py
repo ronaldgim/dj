@@ -115,7 +115,7 @@ class EstadoPicking(models.Model):
     facturado_por  = models.ForeignKey(User, verbose_name='Vendedor', on_delete=models.PROTECT ,blank=True, null=True)
     hora_facturado = models.DateTimeField(verbose_name='Hora de facturación', blank=True, null=True)
     facturado      = models.BooleanField(verbose_name='Facturado', default=False)
-    whatsapp       = models.BooleanField(verbose_name='Whatsapp', default=False)
+    whatsapp       = models.BooleanField(verbose_name='Whatsapp', blank=True)
     
     def __str__(self):
         return self.n_pedido

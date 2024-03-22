@@ -157,7 +157,7 @@
                             <a class="btn btn-primary btn-sm" href="{% url 'picking_historial_detail' i.id %}">
                                 Detalle
                             </a>
-
+                            
                             {% if i.estado == 'FINALIZADO' and i.CIUDAD_PRINCIPAL == 'QUITO' or i.CIUDAD_PRINCIPAL == 'SANGOLQUI' %}
                                 {% if i.CLIENT_TYPE == 'DISTR' or i.CLIENT_TYPE == 'CONSU' %}
                                     {% if i.facturado %}

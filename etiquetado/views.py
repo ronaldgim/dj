@@ -1315,12 +1315,12 @@ GIMPROMED Cia. Ltda.\n
         fail_silently=True,
     )
     
-    # ENVIAR WHATSAPP
+    # # ENVIAR WHATSAPP
     # n_whatsapp = whastapp_cliente_por_codigo(picking_estado.codigo_cliente)
     
     # whatsapp_json = {
     #     'senores': picking_estado.cliente,
-    #     'recipient': '+593999922603',
+    #     'recipient': '+593999 922 603',
     #     #'recipient': n_whatsapp,
     #     'factura':n_factura,
     #     'bodega':b,
@@ -1332,7 +1332,13 @@ GIMPROMED Cia. Ltda.\n
     #     data= whatsapp_json
     # )
     
-    # if response.status_code == 200: picking_estado.whatsapp = True
+    # if response.status_code == 200: 
+    #     picking_estado.whatsapp = True
+    # else:
+    #     if n_whatsapp.startswith('+593'):
+    #         picking_estado.whatsapp = False
+    #     else:
+    #         picking_estado.whatsapp = ''
     
     picking_estado.save()
     
