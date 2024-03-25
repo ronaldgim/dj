@@ -2985,48 +2985,58 @@ def wms_ajuste_liberacion_input_ajax(request):
     
     liberacion_data = liberacion_data.merge(existencias, on=['product_id','lote_id'], how='left')
     
-    lib_data_list = []
-    for i in de_dataframe_a_template(liberacion_data):
-        
-        lib_data = AjusteLiberacion(
-            doc_id_corp     = i['DOC_ID_CORP'],
-            doc_id          = i['doc_id'],
-            tipo            = i['tipo'],
-            product_id      = i['product_id'],
-            lote_id         = i['lote_id'],
-            ware_code       = i['WARE_CODE_CORP'],
-            location        = i['UBICACION'],
-            egreso_temp     = i['EGRESO_TEMP'],
-            commited        = i['COMMITED'],
-            fecha_caducidad = i['FECHA_CADUCIDAD'],
-            
-            unidades_cuc    = i['unidades'],
-            ubicacion_id    = i['ubicacion_id'], 
-            estado          = i['estado']
-        )
-        
-        lib_data_list.append(lib_data)
-    
-    lib_data_exist = AjusteLiberacion.objects.filter(doc_id=n_liberacion).exists()
-    
-    if lib_data_exist:
-    
+    if liberacion_data['unidades'].isna().any():
         return JsonResponse({
             'msg':{
                 'tipo': 'danger', 
-                'texto': f'La liberación {n_liberacion} ya fue ingresada !!!'
+                'texto': f'La liberación {n_liberacion} no hay productos en Cuarentena !!!'
             }
         })
     
     else:
-        # Add liberación
-        AjusteLiberacion.objects.bulk_create(lib_data_list)
-        return JsonResponse({
-            'msg':{
-                'tipo': 'success', 
-                'texto': f'La liberación {n_liberacion} ingresada exitosamente !!!'
-            }
-        })
+    
+        lib_data_list = []
+        for i in de_dataframe_a_template(liberacion_data):
+            
+            lib_data = AjusteLiberacion(
+                doc_id_corp     = i['DOC_ID_CORP'],
+                doc_id          = i['doc_id'],
+                tipo            = i['tipo'],
+                product_id      = i['product_id'],
+                lote_id         = i['lote_id'],
+                ware_code       = i['WARE_CODE_CORP'],
+                location        = i['UBICACION'],
+                egreso_temp     = i['EGRESO_TEMP'],
+                commited        = i['COMMITED'],
+                fecha_caducidad = i['FECHA_CADUCIDAD'],
+                
+                unidades_cuc    = i['unidades'],
+                ubicacion_id    = i['ubicacion_id'], 
+                estado          = i['estado']
+            )
+            
+            lib_data_list.append(lib_data)
+        
+        lib_data_exist = AjusteLiberacion.objects.filter(doc_id=n_liberacion).exists()
+        
+        if lib_data_exist:
+        
+            return JsonResponse({
+                'msg':{
+                    'tipo': 'danger', 
+                    'texto': f'La liberación {n_liberacion} ya fue ingresada !!!'
+                }
+            })
+        
+        else:
+            # Add liberación
+            AjusteLiberacion.objects.bulk_create(lib_data_list)
+            return JsonResponse({
+                'msg':{
+                    'tipo': 'success', 
+                    'texto': f'La liberación {n_liberacion} ingresada exitosamente !!!'
+                }
+            })
         
         
 def wms_ajuste_liberacion_detalle(request, n_liberacion):
