@@ -163,9 +163,12 @@
 
             success: function(response) {
                 $('#msg').html(`<div class="text-center alert alert-${response.msg.tipo}" role="alert"> ${response.msg.texto} !!! </div>`);
-                setTimeout(function(){
-                    window.location.href = `/wms/ajuste-liberacion/detalle/${n_liberacion}`;
-                }, 2000)
+
+                if (response.msg.tipo === 'success') {
+                    setTimeout(function(){
+                        window.location.href = `/wms/ajuste-liberacion/detalle/${n_liberacion}`;
+                    }, 2000)
+                }
 
             },
             
