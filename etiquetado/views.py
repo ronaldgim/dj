@@ -1315,27 +1315,27 @@ GIMPROMED Cia. Ltda.\n
         fail_silently=True,
     )
     
-    # # ENVIAR WHATSAPP
-    # n_whatsapp = whastapp_cliente_por_codigo(picking_estado.codigo_cliente)
+    # ENVIAR WHATSAPP
+    n_whatsapp = whastapp_cliente_por_codigo(picking_estado.codigo_cliente)
     
-    # whatsapp_json = {
-    #     'senores': picking_estado.cliente,
-    #     'recipient': n_whatsapp,
-    #     'factura':n_factura,
-    #     'bodega':b,
-    #     'n_cartones':str(car)
-    # }
+    whatsapp_json = {
+        'senores': picking_estado.cliente,
+        'recipient': n_whatsapp,
+        'factura':n_factura,
+        'bodega':b,
+        'n_cartones':str(car)
+    }
     
-    # response = requests.post(
-    #     url='http://gimpromed.com/app/api/send-whatsapp',
-    #     data= whatsapp_json
-    # )
+    response = requests.post(
+        url='http://gimpromed.com/app/api/send-whatsapp',
+        data= whatsapp_json
+    )
     
-    # if response.status_code == 200: 
-    #     picking_estado.whatsapp = True
-    # else:
-    #     if n_whatsapp.startswith('+593'):
-    #         picking_estado.wh_fail_number = True
+    if response.status_code == 200: 
+        picking_estado.whatsapp = True
+    else:
+        if n_whatsapp.startswith('+593'):
+            picking_estado.wh_fail_number = True
     
     picking_estado.save()
     
