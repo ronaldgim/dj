@@ -1630,8 +1630,8 @@ def picking_estado_bodega(request, n_pedido, id):
 
         # Dataframes
         pedido = pedido_por_cliente(n_pedido)
-        cliente = pd.DataFrame(clientes_table())
-        pedido = pedido.merge(cliente, on='NOMBRE_CLIENTE', how='left')
+        cliente = clientes_table()[['CODIGO_CLIENTE','CLIENT_TYPE']]
+        pedido = pedido.merge(cliente, on='CODIGO_CLIENTE', how='left')
         p_json = (pedido[['PRODUCT_ID', 'QUANTITY']]).to_dict()
         p_str = json.dumps(p_json)
 
@@ -1654,10 +1654,10 @@ def picking_estado_bodega(request, n_pedido, id):
 
 
         # Datos
-        cliente = pedido['NOMBRE_CLIENTE'].iloc[0]
-        fecha_pedido = pedido['FECHA_PEDIDO'].iloc[0]
-        tipo_cliente = pedido['CLIENT_TYPE'].iloc[0]
-        bodega = pedido['WARE_CODE'].iloc[0]
+        cliente        = pedido['NOMBRE_CLIENTE'].iloc[0]
+        fecha_pedido   = pedido['FECHA_PEDIDO'].iloc[0]
+        tipo_cliente   = pedido['CLIENT_TYPE'].iloc[0]
+        bodega         = pedido['WARE_CODE'].iloc[0]
         codigo_cliente = pedido['CODIGO_CLIENTE'].iloc[0]
 
         estados_list_finalizado = ['EN PROCESO', 'EN PAUSA', 'INCOMPLETO', 'EN TRANSITO', 'FINALIZADO']
