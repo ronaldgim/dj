@@ -1349,7 +1349,7 @@ def wms_egreso_picking(request, n_pedido): #OK
     prod   = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     prod   = prod.rename(columns={'product_id':'PRODUCT_ID'})
 
-    pedido = pedido_por_cliente(n_pedido).sort_values('PRODUCT_ID') 
+    pedido = pedido_por_cliente(n_pedido).sort_values('PRODUCT_ID')
     pedido = pedido.groupby(by=['CONTRATO_ID','NOMBRE_CLIENTE','FECHA_PEDIDO','HORA_LLEGADA','PRODUCT_ID','PRODUCT_NAME']).sum().reset_index()
     pedido = pedido.merge(prod, on='PRODUCT_ID',how='left')
 
@@ -1443,16 +1443,16 @@ def wms_estado_picking_ajax(request):
     user_perfil_id   = UserPerfil.objects.get(user__id=user_id).id
 
     reserva = wms_reserva_por_contratoid(contrato_id)
-    cli     = clientes_warehouse()[['NOMBRE_CLIENTE','CODIGO_CLIENTE','CLIENT_TYPE']]
-    reserva = reserva.merge(cli, on='NOMBRE_CLIENTE', how='left')
-
-    cliente = reserva['NOMBRE_CLIENTE'].iloc[0]
-    fecha_pedido = reserva['FECHA_PEDIDO'].iloc[0]
-    tipo_cliente = reserva['CLIENT_TYPE'].iloc[0]
-    bodega = reserva['WARE_CODE'].iloc[0]
+    cli     = clientes_warehouse()[['CODIGO_CLIENTE','CLIENT_TYPE']]
+    reserva = reserva.merge(cli, on='CODIGO_CLIENTE', how='left')
+    
+    cliente        = reserva['NOMBRE_CLIENTE'].iloc[0]
+    fecha_pedido   = reserva['FECHA_PEDIDO'].iloc[0]
+    tipo_cliente   = reserva['CLIENT_TYPE'].iloc[0]
+    bodega         = reserva['WARE_CODE'].iloc[0]
     codigo_cliente = reserva['CODIGO_CLIENTE'].iloc[0]
-    data = (reserva[['PRODUCT_ID', 'QUANTITY']]).to_dict()
-    data = json.dumps(data)
+    data           = (reserva[['PRODUCT_ID', 'QUANTITY']]).to_dict()
+    data           = json.dumps(data)
 
     estado_picking = EstadoPicking(
         user_id        = user_perfil_id,
