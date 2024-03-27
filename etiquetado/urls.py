@@ -296,4 +296,11 @@ urlpatterns = [
         view  = views.set_estado_etiquetado_stock,
         name  = 'set_estado_etiquetado_stock'
     ),
+    
+    # Actualizar facturas ajax
+    path(
+        route = 'actualizar-facturas-ajax',
+        view  = views.actualizar_facturas_ajax,
+        name  = 'actualizar_facturas_ajax'
+    ),
 ]

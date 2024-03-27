@@ -113,6 +113,8 @@ from datos.views import (
     
     whastapp_cliente_por_codigo,
     email_cliente_por_codigo,
+    
+    actualizar_facturas_odbc,
     )
 
 
@@ -2960,22 +2962,24 @@ def set_estado_etiquetado_stock(request):
     
     return HttpResponse('Cambio de estado exitoso !!!')
 
-# def crear_instructivo_etiquetado(request):
+
+def actualizar_facturas_ajax(request):
     
-#     form = InstructivoEtiquetadoForm()
+    update = actualizar_facturas_odbc()
+
+    if update == 'ok':
     
-#     if request.method == 'POST':
-#         form = InstructivoEtiquetadoForm(request.POST, request.FILES)
-#         if form.is_valid():
-#             form.save()
-#             messages.error(request, 'Instructivo creado con exito !!!')
-#             return redirect()
+        return JsonResponse({
+            'tipo':'success',
+            'msg':'Actualización exitosa'
+        })
+    elif update == 'fail':
         
-#         else:
-#             messages.error(request, 'Error al crear instructivo !!!')
+        return JsonResponse({
+            'tipo' : 'danger',
+            'msg':'Error en actualización'
+        })
     
-#     context = {'form':form}
     
-#     return render(request, '', )
 
 
