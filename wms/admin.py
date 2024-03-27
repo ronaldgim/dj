@@ -11,6 +11,7 @@ from wms.models import (
     TransferenciaStatus,
     NotaEntrega,
     NotaEntregaStatus,
+    AnulacionPicking,
     )
 
 
@@ -139,4 +140,16 @@ class NotaEntregaStatusAdmin(admin.ModelAdmin):
         'unidades_mba',
         'unidades_wms',
         'avance'
+        )
+    
+@admin.register(AnulacionPicking)
+class AnulacionPickingAdmin(admin.ModelAdmin):
+
+    list_display = (
+        'id',
+        'picking_anulado', 
+        'picking_nuevo', 
+        'estado',
+        'usuario',
+        'fecha_hora'
         )

@@ -95,9 +95,10 @@
                             <td>{{i.fecha_hora}}</td>                            
                             <td>
                                 {% if i.estado %}
-                                    Confirmado
+
+                                    <a class="btn btn-success btn-sm disabled">Confirmado</a>
                                 {% else %}
-                                    Sin confirmar
+                                    <a class="btn btn-warning btn-sm disabled">Sin confirmar</a>
                                 {% endif %}
                             </td>
                             <td>
