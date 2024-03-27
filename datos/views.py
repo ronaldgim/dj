@@ -41,6 +41,7 @@ from sshtunnel import SSHTunnelForwarder
 # Pyodbc
 import pyodbc
 
+
 # Json
 import json
 
@@ -49,7 +50,8 @@ import json
 from django.http import HttpResponseRedirect, HttpResponse
 
 # Time
-from datetime import datetime, date, timedelta
+from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
 
 # Mysql connector
 import mysql.connector
@@ -62,6 +64,20 @@ from django.contrib.auth.models import User
 
 ### PERMISO PERSONALIZADO
 from functools import wraps
+
+
+# CONECIONES A MBA
+# cnx_odbc_mba     = pyodbc.connect('DSN=mba3;PWD=API')
+
+# # DB WAREHOUSE
+# cnx_db_warehouse = mysql.connector.connect(
+#     host="172.16.28.102",
+#     user="standard",
+#     passwd="gimpromed",
+#     database="warehouse"
+# )
+
+
 
 # Chequear si el usuario tiene permiso
 def user_perm(user_id, permiso):
@@ -570,6 +586,7 @@ def etiquetado_ajax(request):
     return HttpResponseRedirect('/etiquetado/stock')
 
 
+
 def importaciones_en_transito_odbc_insert_warehouse():
     
     from dateutil.relativedelta import relativedelta
@@ -689,24 +706,71 @@ def actulizar_facturas_warehouse():
 
 
 
+def actualizar_facturas_odbc():
+    # DB MBA
+    cnx_odbc_mba     = pyodbc.connect('DSN=mba3;PWD=API')
+
+    # DB WAREHOUSE
+    cnx_db_warehouse = mysql.connector.connect(
+        host="172.16.28.102",
+        user="standard",
+        passwd="gimpromed",
+        database="warehouse"
+    )
+    
+    currentTimeDate = datetime.now() - relativedelta(days=60)
+    OneMonthTime = currentTimeDate.strftime('%d-%m-%Y')
+    
+    try:
+        # CONECCIÓN ODBC
+        cursorOdbc = cnx_odbc_mba.cursor()
+        
+        # SELECT FACTURAS ODBC
+        cursorOdbc.execute(
+            "SELECT CLNT_Factura_Principal.CODIGO_FACTURA, CLNT_Factura_Principal.FECHA_FACTURA, "
+            "CLNT_Ficha_Principal.NOMBRE_CLIENTE, INVT_Ficha_Principal.PRODUCT_ID, "
+            "INVT_Ficha_Principal.PRODUCT_NAME, INVT_Ficha_Principal.GROUP_CODE, INVT_Producto_Movimientos.QUANTITY, CLNT_Factura_Principal.NUMERO_PEDIDO_SISTEMA "
+            "FROM CLNT_Factura_Principal CLNT_Factura_Principal, CLNT_Ficha_Principal CLNT_Ficha_Principal, INVT_Ficha_Principal INVT_Ficha_Principal, INVT_Producto_Movimientos INVT_Producto_Movimientos "
+            "WHERE INVT_Ficha_Principal.PRODUCT_ID_CORP = INVT_Producto_Movimientos.PRODUCT_ID_CORP AND "
+            "CLNT_Factura_Principal.CODIGO_CLIENTE = CLNT_Ficha_Principal.CODIGO_CLIENTE AND CLNT_Factura_Principal.CODIGO_FACTURA = INVT_Producto_Movimientos.DOC_ID_CORP2 "
+            "AND ((INVT_Producto_Movimientos.CONFIRM=TRUE And INVT_Producto_Movimientos.CONFIRM=TRUE) AND (INVT_Producto_Movimientos.I_E_SIGN='-') "
+            "AND (INVT_Producto_Movimientos.ADJUSTMENT_TYPE='FT') AND (CLNT_Factura_Principal.ANULADA=FALSE)) AND  FECHA_FACTURA >='"+OneMonthTime+"'"
+        )
+        facturas = cursorOdbc.fetchall()
+        
+        # CONECCIÓN WAREHOUSE
+        cursorMysql = cnx_db_warehouse.cursor()
+        
+        # DELETE FACTURAS
+        cursorMysql.execute("DELETE FROM facturas")
+        cnx_db_warehouse.commit()
+        print("Sucessful Deleted facturas")
+
+        # INSERT FACTURAS
+        sql_insert = """INSERT INTO facturas (CODIGO_FACTURA,FECHA_FACTURA,NOMBRE_CLIENTE,PRODUCT_ID,PRODUCT_NAME,GROUP_CODE,QUANTITY,NUMERO_PEDIDO_SISTEMA) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"""
+        data_facturas = [list(rows) for rows in facturas] 
+        cursorMysql.executemany(sql_insert, data_facturas)
+        cnx_db_warehouse.commit()
+        print("Sucessful Updated Facturas")    
+        return 'ok'
+    
+    except Exception as e :
+        print('Error --> ', e)
+        return 'fail'
+    
+    finally:
+        cnx_db_warehouse.close()
+        cnx_odbc_mba.close()
+
+
 # # Carga la tabla de stock lote automaticamente
 def stock_lote(request):
 
     if request.method == 'GET':
 
-        import sqlite3
-        import csv
-        import pyodbc
-        # import mysql.connector
-        from dateutil.relativedelta import relativedelta
-        import calendar
-
-        from sqlite3 import Error
-
-        currentTimeDate = datetime.now() - relativedelta(days=60)
-        #currentTimeDate = datetime.now() - datetime.timedelta(15)
-        OneMonthTime = currentTimeDate.strftime('%d-%m-%Y')
-        print(OneMonthTime)
+        # currentTimeDate = datetime.now() - relativedelta(days=60)
+        # OneMonthTime = currentTimeDate.strftime('%d-%m-%Y')
+        # print(OneMonthTime)
 
         def odbc(mydb):
             # Using a DSN, but providing a password as well
@@ -719,8 +783,6 @@ def stock_lote(request):
             #####Connect to MYSQL Database#####
             mycursorMysql = mydb.cursor()
 
-            
-            
             # ACTUALIZAR PRODUCTOS 
             try:
                 #Productos
@@ -849,29 +911,30 @@ def stock_lote(request):
 
 
             # Facturas (ultimos 2 meses)
-            cursorOdbc.execute(
-                "SELECT CLNT_Factura_Principal.CODIGO_FACTURA, CLNT_Factura_Principal.FECHA_FACTURA, "
-                "CLNT_Ficha_Principal.NOMBRE_CLIENTE, INVT_Ficha_Principal.PRODUCT_ID, "
-                "INVT_Ficha_Principal.PRODUCT_NAME, INVT_Ficha_Principal.GROUP_CODE, INVT_Producto_Movimientos.QUANTITY, CLNT_Factura_Principal.NUMERO_PEDIDO_SISTEMA "
-                "FROM CLNT_Factura_Principal CLNT_Factura_Principal, CLNT_Ficha_Principal CLNT_Ficha_Principal, INVT_Ficha_Principal INVT_Ficha_Principal, INVT_Producto_Movimientos INVT_Producto_Movimientos "
-                "WHERE INVT_Ficha_Principal.PRODUCT_ID_CORP = INVT_Producto_Movimientos.PRODUCT_ID_CORP AND "
-                "CLNT_Factura_Principal.CODIGO_CLIENTE = CLNT_Ficha_Principal.CODIGO_CLIENTE AND CLNT_Factura_Principal.CODIGO_FACTURA = INVT_Producto_Movimientos.DOC_ID_CORP2 "
-                "AND ((INVT_Producto_Movimientos.CONFIRM=TRUE And INVT_Producto_Movimientos.CONFIRM=TRUE) AND (INVT_Producto_Movimientos.I_E_SIGN='-') "
-                "AND (INVT_Producto_Movimientos.ADJUSTMENT_TYPE='FT') AND (CLNT_Factura_Principal.ANULADA=FALSE)) AND  FECHA_FACTURA >='"+OneMonthTime+"'"
-            )
-            facturas = cursorOdbc.fetchall()
+            actualizar_facturas_odbc()
+            # cursorOdbc.execute(
+            #     "SELECT CLNT_Factura_Principal.CODIGO_FACTURA, CLNT_Factura_Principal.FECHA_FACTURA, "
+            #     "CLNT_Ficha_Principal.NOMBRE_CLIENTE, INVT_Ficha_Principal.PRODUCT_ID, "
+            #     "INVT_Ficha_Principal.PRODUCT_NAME, INVT_Ficha_Principal.GROUP_CODE, INVT_Producto_Movimientos.QUANTITY, CLNT_Factura_Principal.NUMERO_PEDIDO_SISTEMA "
+            #     "FROM CLNT_Factura_Principal CLNT_Factura_Principal, CLNT_Ficha_Principal CLNT_Ficha_Principal, INVT_Ficha_Principal INVT_Ficha_Principal, INVT_Producto_Movimientos INVT_Producto_Movimientos "
+            #     "WHERE INVT_Ficha_Principal.PRODUCT_ID_CORP = INVT_Producto_Movimientos.PRODUCT_ID_CORP AND "
+            #     "CLNT_Factura_Principal.CODIGO_CLIENTE = CLNT_Ficha_Principal.CODIGO_CLIENTE AND CLNT_Factura_Principal.CODIGO_FACTURA = INVT_Producto_Movimientos.DOC_ID_CORP2 "
+            #     "AND ((INVT_Producto_Movimientos.CONFIRM=TRUE And INVT_Producto_Movimientos.CONFIRM=TRUE) AND (INVT_Producto_Movimientos.I_E_SIGN='-') "
+            #     "AND (INVT_Producto_Movimientos.ADJUSTMENT_TYPE='FT') AND (CLNT_Factura_Principal.ANULADA=FALSE)) AND  FECHA_FACTURA >='"+OneMonthTime+"'"
+            # )
+            # facturas = cursorOdbc.fetchall()
 
-            # INSERT FACTURAS
-            delete_sql = "DELETE FROM facturas"
-            mycursorMysql.execute(delete_sql)
-            mydb.commit()
-            print("Sucessful Deleted facturas")
+            # # INSERT FACTURAS
+            # delete_sql = "DELETE FROM facturas"
+            # mycursorMysql.execute(delete_sql)
+            # mydb.commit()
+            # print("Sucessful Deleted facturas")
 
-            sql_insert = """INSERT INTO facturas (CODIGO_FACTURA,FECHA_FACTURA,NOMBRE_CLIENTE,PRODUCT_ID,PRODUCT_NAME,GROUP_CODE,QUANTITY,NUMERO_PEDIDO_SISTEMA) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"""
-            data_facturas = [list(rows) for rows in facturas] 
-            mycursorMysql.executemany(sql_insert, data_facturas)
-            print("Sucessful Updated Facturas")
-            mydb.commit()
+            # sql_insert = """INSERT INTO facturas (CODIGO_FACTURA,FECHA_FACTURA,NOMBRE_CLIENTE,PRODUCT_ID,PRODUCT_NAME,GROUP_CODE,QUANTITY,NUMERO_PEDIDO_SISTEMA) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"""
+            # data_facturas = [list(rows) for rows in facturas] 
+            # mycursorMysql.executemany(sql_insert, data_facturas)
+            # print("Sucessful Updated Facturas")
+            # mydb.commit()
             
             
             # Actualizar facturas warehouse

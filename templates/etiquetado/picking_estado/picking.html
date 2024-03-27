@@ -45,11 +45,11 @@
     bottom: 34px;
     line-height:30px;
     z-index: 3;
-}
+    }
 
-.icon-size-medium {
+    .icon-size-medium {
     font-size: 20px; /* Tamaño mediano */
-}
+    }
 </style>
 
 <h5 class="m-4 text-center"><strong>LISTADO DE PICKING</strong></h5>
@@ -68,12 +68,22 @@
     {% endfor %}
 {% endif %}
 
+<div id="msg"></div>
+
 <button class="btn btn-primary mb-2" name="actualizar">
-    Actualizar
+    <i class="bi bi-arrow-clockwise"></i> Actualizar
 </button>
+
 
 <div class="col-4">
     <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+</div>
+
+<div class="text-center" id="spinner">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div><br>
+    <span class="text-center text-primary">Actualizando... </span>
 </div>
 
 <div class="growl-notice-succes"></div>
@@ -260,9 +270,9 @@
     $('.filter').change(function(){
         filter_function(); //calling filter function each select box value change
     });
-      
+    
     $('table tbody tr').show(); //intially all rows will be shown
-      
+
     function filter_function(){
         $('table tbody tr').hide(); //hide all rows
         
@@ -270,22 +280,21 @@
         var tipoValue = $('#filter-tipo').val();
         
        //traversing each row one by one
-        $('table tr').each(function() {  
-          if(tipoValue == 'TODOS'){
-            tipoFlag = 1;
-          }
-          else if(tipoValue == $(this).find('td.tipo').data('tipo')){
-            tipoFlag = 1;
-          }
-          else{
-            tipoFlag = 0;
-          }
+        $('table tr').each(function() {
 
-         if(tipoFlag){
+        if(tipoValue == 'TODOS') {
+            tipoFlag = 1;
+        } else if(tipoValue == $(this).find('td.tipo').data('tipo')){
+            tipoFlag = 1;
+        } else{
+            tipoFlag = 0;
+        }        
+
+        if(tipoFlag){
             $(this).show();
-         }
-      
-      });
+        }
+    
+        });
     }
 </script>
 
@@ -294,9 +303,8 @@
     $('.filter-est').change(function(){
         filter_function_estado(); //calling filter function each select box value change
     });
-      
-    $('table tbody tr').show(); //intially all rows will be shown
-      
+    
+    $('table tbody tr').show(); //intially all rows will be shown      
     function filter_function_estado(){
         $('table tbody tr').hide(); //hide all rows
         
@@ -305,31 +313,50 @@
         
        //traversing each row one by one
         $('table tr').each(function() {  
-          if(tipoValue == 'ESTADO'){
+        if(tipoValue == 'ESTADO'){
             tipoFlag = 1;
-          }
-          else if(tipoValue == $(this).find('td.estado').data('estado')){
+        } else if(tipoValue == $(this).find('td.estado').data('estado')){
             tipoFlag = 1;
-          }
-          else{
+        } else{
             tipoFlag = 0;
-          }
+        }
 
-         if(tipoFlag){
+        if(tipoFlag){
             $(this).show();
-         }
-      
-      });
+        }
+
+    });
     }
 </script>
 
 
-<script type="text/javascript">
+<script>
+    var sp = document.getElementById("spinner").style.display = "none";
+
     $("button[name='actualizar']").click(function () {
-        location.reload(true);
+        var sp = document.getElementById("spinner").style.display = "block";
+        $.ajax({
+            type: "POST",
+            url:  "{% url 'actualizar_facturas_ajax' %}",
+            data: {'csrfmiddlewaretoken': '{{ csrf_token }}'},
+
+            success: function(response) {
+                
+                $('#msg').html(`<div class="text-center alert alert-${response.tipo}" role="alert">${response.msg}</div>`);
+                
+                if (response.tipo === 'success') {
+                    setTimeout(function () {
+                        window.location.reload();
+                    }, 4000)
+                }
+
+            },
+
+            error: function() {
+                $('#msg').html('<div class="text-center alert alert-danger" role="alert"> Error !!! </div>')
+            }
+        })
     })
-    //function actualizar(){location.reload(true);}
-    //Función para actualizar cada 30 min = 1,800,000 milisegundos
-    //setInterval("actualizar()",1800000);
 </script>
+
 {% endblock %}
