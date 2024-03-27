@@ -1543,22 +1543,18 @@ def picking_estado_bodega(request, n_pedido, id):
 
         pedido = pedido_por_cliente(n_pedido)
         
-        
         cliente = clientes_table()[['CODIGO_CLIENTE','CLIENT_TYPE']]
         pedido = pedido.merge(cliente, on='CODIGO_CLIENTE', how='left')
         p_json = (pedido[['PRODUCT_ID', 'QUANTITY']]).to_dict()
         p_str = json.dumps(p_json)
 
-        # product = pd.DataFrame(list(Product.objects.all().values()))
         product = productos_odbc_and_django()[['product_id','Unidad_Empaque','Marca']]
         product = product.rename(columns={'product_id':'PRODUCT_ID','Marca':'marca2'})
 
         # Merge
         pedido = pedido.merge(product, on='PRODUCT_ID', how='left')
-        # pedido = pedido.merge(product, on='product_id', how='left')
         
         # Calculos
-        #pedido['Cartones'] = pedido['QUANTITY'] / pedido['unidad_empaque'] 
         pedido['Cartones'] = pedido['QUANTITY'] / pedido['Unidad_Empaque'] 
         f_pedido = str(pedido['FECHA_PEDIDO'].iloc[0])
         t_cartones = pedido['Cartones'].sum()
@@ -1575,7 +1571,7 @@ def picking_estado_bodega(request, n_pedido, id):
         tipo_cliente   = pedido['CLIENT_TYPE'].iloc[0]
         bodega         = pedido['WARE_CODE'].iloc[0]
         codigo_cliente = pedido['CODIGO_CLIENTE'].iloc[0]
-
+        
         estados_list_inicial = ['EN PROCESO']
 
         context = {
@@ -1602,23 +1598,7 @@ def picking_estado_bodega(request, n_pedido, id):
             form = EstadoPickingForm(request.POST)
             if form.is_valid():
                 form.save()
-
-                # # mail
-                # est = request.POST.get('estado')
-                # if est == 'FINALIZADO':
-                #     ped = request.POST.get('n_pedido')[0:-2]
-                #     cli = request.POST.get('cliente')
-                #     bod = request.POST.get('bodega')
-                #     men = f'El pedido {ped} - {cli}\nEstá listo para ser facturado\nBodega: {bod}'
-                #     correos = lista_correos(cli)
-                #     send_mail(
-                #         subject=f'Pedido {ped} - {cli} - Listo Facturación',
-                #         message= men,
-                #         from_email=settings.EMAIL_HOST_USER,
-                #         recipient_list= correos,
-                #         fail_silently=True,
-                #     )
-
+                
                 return redirect(f'/etiquetado/picking/estado')
             else:
                 messages.error(request, 'Error !!! Actulize su listado de picking')
@@ -1635,18 +1615,18 @@ def picking_estado_bodega(request, n_pedido, id):
         p_json = (pedido[['PRODUCT_ID', 'QUANTITY']]).to_dict()
         p_str = json.dumps(p_json)
 
-        product = pd.DataFrame(list(Product.objects.all().values()))
-        product = product.rename(columns={'product_id':'PRODUCT_ID'})
+        product = productos_odbc_and_django()[['product_id','Unidad_Empaque','Marca']]
+        product = product.rename(columns={'product_id':'PRODUCT_ID','Marca':'marca2'})
 
         # Merge
         pedido = pedido.merge(product, on='PRODUCT_ID', how='left')
 
         # Calculos
-        pedido['Cartones'] = pedido['QUANTITY'] / pedido['unidad_empaque']
+        pedido['Cartones'] = pedido['QUANTITY'] / pedido['Unidad_Empaque']
         f_pedido = str(pedido['FECHA_PEDIDO'].iloc[0])
         t_cartones = pedido['Cartones'].sum()
         t_unidades = pedido['QUANTITY'].sum()
-
+        
         # Trasformar datos para pasar al template
         json_records = pedido.sort_values(by='PRODUCT_ID').reset_index().to_json(orient='records')
         data = []
@@ -1686,8 +1666,8 @@ def picking_estado_bodega(request, n_pedido, id):
             estado_registro = EstadoPicking.objects.get(id=id_estado)
             form_update = EstadoPickingForm(request.POST, instance=estado_registro)
 
-            h = datetime.now() #;print(h)
-            est = request.POST.get('estado') #;print(est)
+            h = datetime.now() 
+            est = request.POST.get('estado') 
 
             if form_update.is_valid():
                 form_update.save()
@@ -1695,22 +1675,6 @@ def picking_estado_bodega(request, n_pedido, id):
             if  est == 'FINALIZADO':
                 estado_registro.fecha_actualizado = h
                 estado_registro.save()
-
-                # # mail
-                # est = request.POST.get('estado')
-                # if est == 'FINALIZADO':
-                #     ped = request.POST.get('n_pedido')[0:-2]
-                #     cli = request.POST.get('cliente')
-                #     bod = request.POST.get('bodega')
-                #     men = f'El pedido {ped} - {cli}\nEstá listo para ser facturado\nBodega: {bod}'
-                #     correos = lista_correos(cli)
-                #     send_mail(
-                #         subject=f'Pedido {ped} - {cli} - Listo Facturación',
-                #         message= men,
-                #         from_email=settings.EMAIL_HOST_USER,
-                #         recipient_list=correos,
-                #         fail_silently=True,
-                #     )
 
                 return redirect(f'/etiquetado/picking/estado')
             else:
