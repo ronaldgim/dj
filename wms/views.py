@@ -1767,7 +1767,7 @@ def wms_cruce_picking_factura(request):
     if request.method=="POST":
         n_factura = request.POST['n_factura']
         factura = wms_armar_codigo_factura(n_factura)
-
+        
         context={
             'factura':factura,
         }
