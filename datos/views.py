@@ -588,8 +588,6 @@ def etiquetado_ajax(request):
 
 
 def importaciones_en_transito_odbc_insert_warehouse():
-    
-    from dateutil.relativedelta import relativedelta
 
     currentTimeDate = datetime.now() - relativedelta(days=15)
     TwoWeekTime = currentTimeDate.strftime('%d-%m-%Y')
