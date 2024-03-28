@@ -157,12 +157,15 @@ def importaciones_transito(): #request
         
         importaciones = pd.DataFrame(importaciones)
         
-        pro = pd.DataFrame(Product.objects.all().values())
-        pro = pro[['product_id', 'description','unidad_empaque']]
+        # pro = pd.DataFrame(Product.objects.all().values())
+        # pro = pro[['product_id', 'description','unidad_empaque']]
+        # pro = pro.rename(columns={'product_id':'PRODUCT_ID'})
+
+        pro = productos_odbc_and_django()[['product_id', 'Nombre','Marca','Unidad_Empaque']]
         pro = pro.rename(columns={'product_id':'PRODUCT_ID'})
 
         imp = importaciones.merge(pro, on='PRODUCT_ID')
-        imp['CARTONES'] = (imp['QUANTITY']/imp['unidad_empaque']).round(0)
+        imp['CARTONES'] = (imp['QUANTITY']/imp['Unidad_Empaque']).round(0)
         
     return imp
 
@@ -185,7 +188,7 @@ def importaciones(request):
     imp = imp.drop_duplicates(subset='MEMO')
     imp['FECHA_ENTREGA'] = pd.to_datetime(imp['FECHA_ENTREGA'])
     imp['FECHA_ENTREGA'] = imp['FECHA_ENTREGA'].astype(str)
-    imp = imp.sort_values(by='FECHA_ENTREGA', ascending=False);print(imp)
+    imp = imp.sort_values(by='FECHA_ENTREGA', ascending=False)
     json_records = imp.reset_index().to_json(orient='records')
     imp = json.loads(json_records)
 
@@ -211,7 +214,7 @@ def importaciones(request):
 def nacionales_odbc():
     nacionales_list = ['SARALEJ','NILOTEX','NACIONAL','ATRAS','CARICIA']
     nac = importaciones_llegadas_odbc()
-    prod = productos_odbc_and_django()[['product_id','description','marca2','unidad_empaque']] #'unidad_empaque'
+    prod = productos_odbc_and_django()[['product_id','description','marca2','Unidad_Empaque']] #'unidad_empaque'
     
     nac = nac.merge(prod, on='product_id', how='left')
     nac = nac[nac.marca2.isin(nacionales_list)]
@@ -428,7 +431,6 @@ def revision_tecnica(request, memo):
     
     context = {
         'imp':imp,
-
         'proveedor':proveedor,
         'n_imp':n_imp,
         'fecha':fecha,
@@ -517,8 +519,11 @@ def transferencias(request):
 def muestreo_transferencia(request, doc):
 
     trans = pd.DataFrame(Trasferencia.objects.all().values())
-    prod  = pd.DataFrame(Product.objects.all().values())
-    prod  = prod[['product_id', 'description']]
+    
+    # prod  = pd.DataFrame(Product.objects.all().values())
+    # prod  = prod[['product_id', 'description']]
+    
+    prod = productos_odbc_and_django()[['product_id','Nombre']]
     
     trans = trans.groupby(['product_id', 'documento']).sum()
     trans = trans.reset_index()
@@ -544,9 +549,12 @@ def muestreo_transferencia(request, doc):
 @login_required(login_url='login')
 def revision_tecnica_transferencia(request, doc):
     trans = pd.DataFrame(Trasferencia.objects.all().values())
-    prod = productos()
-    prod_2 = pd.DataFrame(Product.objects.all().values())
-    prod_2 = prod_2[['product_id', 'emp_primario', 'emp_secundario', 'emp_terciario']]
+    
+    # prod = productos()
+    # prod_2 = pd.DataFrame(Product.objects.all().values())
+    # prod_2 = prod_2[['product_id', 'emp_primario', 'emp_secundario', 'emp_terciario']]
+    
+    prod = productos_odbc_and_django()[['product_id','Nombre','Marca','Reg_San','emp_primario', 'emp_secundario', 'emp_terciario']]
 
     trans = trans.groupby(['product_id', 'documento']).sum()
     trans = trans.reset_index()
@@ -556,7 +564,7 @@ def revision_tecnica_transferencia(request, doc):
 
     muest = muestreo(trans, 'unidades')
     muest = muest.merge(prod, on='product_id', how='left')
-    muest = muest.merge(prod_2, on='product_id', how='left')
+    # muest = muest.merge(prod_2, on='product_id', how='left')
     
     json_records = muest.reset_index().to_json(orient='records') 
     muest = json.loads(json_records)
@@ -576,12 +584,12 @@ def reg_san_list(request):
     r_san_list = RegistroSanitario.objects.all().order_by('marca', 'fecha_expiracion')
     r_san_list_2 = RegistroSanitario.objects.all().order_by('fecha_expiracion')
     
-    n_docs = len([i for i in RegistroSanitario.objects.all() if i.obs_doc == 'Docs ok'])    
-    n_enviar = len([i for i in RegistroSanitario.objects.all() if i.obs_doc == 'Enviar a notaria'])   
-    n_caducado = len([i for i in RegistroSanitario.objects.all() if i.estado == 'Caducado'])
-    n_proximo = len([i for i in RegistroSanitario.objects.all() if i.estado == 'Próximo a caducar'])
-    n_vigente = len([i for i in RegistroSanitario.objects.all() if i.estado == 'Vigente'])
-    n_sin = len([i for i in RegistroSanitario.objects.all() if i.estado == 'Sin especificar' ])
+    n_docs     = len([i for i in RegistroSanitario.objects.all() if i.obs_doc == 'Docs ok'])    
+    n_enviar   = len([i for i in RegistroSanitario.objects.all() if i.obs_doc == 'Enviar a notaria'])   
+    n_caducado = len([i for i in RegistroSanitario.objects.all() if i.estado  == 'Caducado'])
+    n_proximo  = len([i for i in RegistroSanitario.objects.all() if i.estado  == 'Próximo a caducar'])
+    n_vigente  = len([i for i in RegistroSanitario.objects.all() if i.estado  == 'Vigente'])
+    n_sin      = len([i for i in RegistroSanitario.objects.all() if i.estado  == 'Sin especificar' ])
 
     context = {
         'r_san_list':r_san_list,
