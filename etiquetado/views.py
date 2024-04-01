@@ -2333,13 +2333,24 @@ def publico_dashboard_fun():
 
     reservas = pd.DataFrame(reservas_table())
     reservas = reservas[reservas['PRODUCT_ID']!='MANTEN']
-
+    
+    # davimed #
+    davimed_list = ['77317.0','77318.0','77319.0','77320.0']
+    davimed = reservas[reservas.CONTRATO_ID.isin(davimed_list)]
+    # davimed #
+    
     pro = productos_odbc_and_django()[['product_id', 'Unidad_Empaque', 't_etiq_1p', 't_etiq_2p', 't_etiq_3p']]
     estado = pd.DataFrame(PedidosEstadoEtiquetado.objects.all().values('n_pedido','estado__estado','fecha_creado'))
     estado = estado.rename(columns={'n_pedido':'CONTRATO_ID','estado__estado':'estado'})
     estado['fecha_creado'] = estado['fecha_creado'].astype(str)
 
     reservas = reservas[reservas['SEC_NAME_CLIENTE']=='PUBLICO']
+    
+    # davimed #
+    if not davimed.empty:
+        reservas = pd.concat([reservas,davimed])
+    # davimed #
+    
     reservas = reservas.rename(columns={'PRODUCT_ID':'product_id'})
     reservas = reservas.merge(pro, on='product_id', how='left')
     reservas['FECHA_PEDIDO'] = reservas['FECHA_PEDIDO'].astype(str)
@@ -2351,6 +2362,9 @@ def publico_dashboard_fun():
     reservas['t_1p'] = (reservas['cartones'] * reservas['t_etiq_1p']).round(0)
     reservas['t_2p'] = (reservas['cartones'] * reservas['t_etiq_2p']).round(0)
     reservas['t_3p'] = (reservas['cartones'] * reservas['t_etiq_3p']).round(0)
+    
+
+
     
     ### CONF TIEMPOS
     contratos = reservas['CONTRATO_ID'].unique()
@@ -2515,6 +2529,7 @@ def dashboard_completo(request):
     publico = publico[publico['estado']!='FINALIZADO']
     contratos_publicos = list(publico['CONTRATO_ID'].unique())
     sto_publico = stock_faltante_contrato(contratos_publicos, 'BCT')
+    
     
     if not sto_publico.empty:
         publico = publico.merge(sto_publico, on='CONTRATO_ID', how='left')
