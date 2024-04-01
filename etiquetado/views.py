@@ -2967,8 +2967,11 @@ def set_estado_etiquetado_stock(request):
 
 def actualizar_facturas_ajax(request):
     
-    update = actualizar_facturas_odbc()
-
+    #update = actualizar_facturas_odbc()
+    import time
+    time.sleep(3)
+    update = 'ok'
+    
     if update == 'ok':
     
         return JsonResponse({
