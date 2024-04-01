@@ -128,6 +128,7 @@
                         <th scope="col" class="text-center">
                             ACCIONES 
                             <button class="btn btn-warning btn-sm" id="factura">F</button>
+                            <button class="btn btn-primary btn-sm" id="todos">T</button>
                         </th>
                     </tr>
                 </thead>
@@ -269,6 +270,69 @@
     });
 </script>
 
+
+
+
+<script>
+    var sp = document.getElementById("spinner").style.display = "none";
+
+    $("button[name='actualizar']").click(function () {
+        var sp = document.getElementById("spinner").style.display = "block";
+        $.ajax({
+            type: "POST",
+            url:  "{% url 'actualizar_facturas_ajax' %}",
+            data: {'csrfmiddlewaretoken': '{{ csrf_token }}'},
+
+            success: function(response) {
+                var sp = document.getElementById("spinner").style.display = "none";
+                $('#msg').html(`<div class="text-center alert alert-${response.tipo}" role="alert">${response.msg}</div>`);
+                
+                if (response.tipo === 'success') {
+                    setTimeout(function () {
+                        window.location.reload();
+                    }, 3000)
+                }
+
+            },
+
+            error: function() {
+                $('#msg').html('<div class="text-center alert alert-danger" role="alert"> Error !!! </div>')
+            }
+        })
+    })
+</script>
+
+
+<script>
+    // Facturados
+    $(document).ready(function() {
+        $("#factura").on("click", function() {
+            var factura = "Facturado".toLowerCase();
+            $("#pedidosbuscar tr").filter(
+                function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(factura)>-1)
+            }
+            );
+        });
+    });
+
+    // Todos
+    $(document).ready(function() {
+        $("#todos").on("click", function() {
+            var todos = "".toLowerCase();
+            $("#pedidosbuscar tr").filter(
+                function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(todos)>-1)
+            }
+            );
+        });
+    });
+
+</script>
+
+
 <script>
     $('.filter').change(function(){
         filter_function(); //calling filter function each select box value change
@@ -330,52 +394,5 @@
 
     });
     }
-</script>
-
-
-<script>
-    var sp = document.getElementById("spinner").style.display = "none";
-
-    $("button[name='actualizar']").click(function () {
-        var sp = document.getElementById("spinner").style.display = "block";
-        $.ajax({
-            type: "POST",
-            url:  "{% url 'actualizar_facturas_ajax' %}",
-            data: {'csrfmiddlewaretoken': '{{ csrf_token }}'},
-
-            success: function(response) {
-                
-                $('#msg').html(`<div class="text-center alert alert-${response.tipo}" role="alert">${response.msg}</div>`);
-                
-                if (response.tipo === 'success') {
-                    setTimeout(function () {
-                        window.location.reload();
-                    }, 2000)
-                }
-
-            },
-
-            error: function() {
-                $('#msg').html('<div class="text-center alert alert-danger" role="alert"> Error !!! </div>')
-            }
-        })
-    })
-</script>
-
-
-<script>
-    // Mis pedidos
-    $(document).ready(function() {
-        $("#factura").on("click", function() {
-            var factura = "Facturado".toLowerCase();
-            $("#pedidosbuscar tr").filter(
-                function() {
-                $(this).toggle($(this).text()
-                .toLowerCase().indexOf(factura)>-1)
-            }
-            );
-        });
-    });
-
 </script>
 {% endblock %}
