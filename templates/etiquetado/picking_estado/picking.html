@@ -125,7 +125,10 @@
                         </th>
                         <th scope="col">OPERADOR</th>
                         <th scope="col">FINALIZADO</th>
-                        <th scope="col" class="text-center">ACCIONES</th>
+                        <th scope="col" class="text-center">
+                            ACCIONES 
+                            <button class="btn btn-warning btn-sm" id="factura">F</button>
+                        </th>
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
@@ -359,4 +362,20 @@
     })
 </script>
 
+
+<script>
+    // Mis pedidos
+    $(document).ready(function() {
+        $("#factura").on("click", function() {
+            var factura = "Facturado".toLowerCase();
+            $("#pedidosbuscar tr").filter(
+                function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(factura)>-1)
+            }
+            );
+        });
+    });
+
+</script>
 {% endblock %}
