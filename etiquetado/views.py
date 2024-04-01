@@ -830,6 +830,8 @@ def facturas(request, n_factura):
 # Lista de actulización BODEGA
 def pedidos_estado_list(request):
 
+    davimed_list = ['77317.0','77318.0','77319.0','77320.0']
+
     if request.user.has_perm('etiquetado.view_pedidosestadoetiquetado'):
 
         # Tablas
@@ -873,6 +875,10 @@ def pedidos_estado_list(request):
         reservas = reservas.fillna('-')
         reservas = reservas.sort_values(by='FECHA_PEDIDO', ascending=False)
 
+        # davimed
+        davimed = reservas[reservas.CONTRATO_ID.isin(davimed_list)]
+        # davimed
+
         # Etiquetado especial
         especial = reservas[reservas['CONTRATO_ID']=='69236.0']
 
@@ -883,8 +889,9 @@ def pedidos_estado_list(request):
         tipo_clientes = ['HOSPU', 'STOCK'] #'DISTR'
         #reservas = reservas[reservas['SEC_NAME_CLIENTE']=='PUBLICO']
         reservas = reservas[reservas.CLIENT_TYPE.isin(tipo_clientes)]
+        
 
-        reservas = pd.concat([reservas, eti_p, especial])
+        reservas = pd.concat([reservas, eti_p, especial,davimed])
         reservas = reservas.drop_duplicates(subset=['CONTRATO_ID'])
 
         # Convertir en lista de diccionarios para pasar al template
