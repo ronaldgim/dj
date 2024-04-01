@@ -1606,6 +1606,7 @@ def picking_estado_bodega(request, n_pedido, id):
                 messages.error(request, 'Error !!! Actulize su listado de picking')
 
     else:
+        
         id_estado = int(float(id))
         estado_registro = EstadoPicking.objects.get(id=id_estado)
         form_update = EstadoPickingForm(instance=estado_registro)
@@ -1641,7 +1642,7 @@ def picking_estado_bodega(request, n_pedido, id):
         tipo_cliente   = pedido['CLIENT_TYPE'].iloc[0]
         bodega         = pedido['WARE_CODE'].iloc[0]
         codigo_cliente = pedido['CODIGO_CLIENTE'].iloc[0]
-
+        
         estados_list_finalizado = ['EN PROCESO', 'EN PAUSA', 'INCOMPLETO', 'EN TRANSITO', 'FINALIZADO']
 
         context = {
@@ -1669,14 +1670,15 @@ def picking_estado_bodega(request, n_pedido, id):
             form_update = EstadoPickingForm(request.POST, instance=estado_registro)
 
             h = datetime.now() 
-            est = request.POST.get('estado') 
+            #est = request.POST.get('estado') 
 
             if form_update.is_valid():
+                form_update.clean()
                 form_update.save()
-
-            if  est == 'FINALIZADO':
-                estado_registro.fecha_actualizado = h
-                estado_registro.save()
+                
+                if  form_update.clean()['estado'] == 'FINALIZADO':
+                    estado_registro.fecha_actualizado = h
+                    estado_registro.save()
 
                 return redirect(f'/etiquetado/picking/estado')
             else:
