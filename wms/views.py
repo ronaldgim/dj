@@ -247,6 +247,8 @@ def wms_importaciones_transito_list(request):
     imp_transito = importaciones_en_transito_odbc().drop_duplicates(subset=['CONTRATO_ID'])
     imp_transito = imp_transito.sort_values(by='FECHA_ENTREGA', ascending=True)
     
+    imp_transito['FECHA_ENTREGA'] = pd.to_datetime(imp_transito['FECHA_ENTREGA']).dt.strftime('%Y-%m-%d')
+    
     imp_transito = de_dataframe_a_template(imp_transito)
     
     context = {
