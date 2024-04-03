@@ -34,7 +34,8 @@
         <button type="button" id="{{n_ped}}" name="estado_picking" class="btn btn-warning">EN PROCESO</button>
         <!--button type="button" class="btn btn-success disabled">FINALIZADO</button-->
         
-        {#% elif estado == 'FINALIZADO' %#}
+        {% elif estado == 'FINALIZADO' %}
+        <button type="button" id="{{n_ped}}" name="estado_picking" class="btn btn-warning">EN PROCESO</button>
         <!--div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
             <button type="button" class="btn btn-warning disabled">EN PROCESO</button>
             <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-primary disabled">EN TRANSITO</button>
