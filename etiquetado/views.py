@@ -1544,152 +1544,165 @@ def lista_correos(n_cliente):
 # From
 @login_required(login_url='login')
 @csrf_exempt
-def picking_estado_bodega(request, n_pedido, id):
+def picking_estado_bodega(request, n_pedido):
+# def picking_estado_bodega(request, n_pedido, id):
     
-    if id == '-':
+    # if id == '-':
         # Form
-        form = EstadoPickingForm()
-
-        pedido = pedido_por_cliente(n_pedido)
+        # form = EstadoPickingForm()
         
-        cliente = clientes_table()[['CODIGO_CLIENTE','CLIENT_TYPE']]
-        pedido = pedido.merge(cliente, on='CODIGO_CLIENTE', how='left')
-        p_json = (pedido[['PRODUCT_ID', 'QUANTITY']]).to_dict()
-        p_str = json.dumps(p_json)
-
-        product = productos_odbc_and_django()[['product_id','Unidad_Empaque','Marca']]
-        product = product.rename(columns={'product_id':'PRODUCT_ID','Marca':'marca2'})
-
-        # Merge
-        pedido = pedido.merge(product, on='PRODUCT_ID', how='left')
-        
-        # Calculos
-        pedido['Cartones'] = pedido['QUANTITY'] / pedido['Unidad_Empaque'] 
-        f_pedido = str(pedido['FECHA_PEDIDO'].iloc[0])
-        t_cartones = pedido['Cartones'].sum()
-        t_unidades = pedido['QUANTITY'].sum()
-
-        # Trasformar datos para pasar al template
-        json_records = pedido.sort_values(by='PRODUCT_ID').reset_index().to_json(orient='records')
-        data = []
-        data = json.loads(json_records)
-
-        # Datos
-        cliente        = pedido['NOMBRE_CLIENTE'].iloc[0]
-        fecha_pedido   = pedido['FECHA_PEDIDO'].iloc[0]
-        tipo_cliente   = pedido['CLIENT_TYPE'].iloc[0]
-        bodega         = pedido['WARE_CODE'].iloc[0]
-        codigo_cliente = pedido['CODIGO_CLIENTE'].iloc[0]
-        
-        estados_list_inicial = ['EN PROCESO']
-
-        context = {
-            'reservas':data,
-            'pedido':n_pedido,
-            'cliente':cliente,
-            'fecha_pedido':fecha_pedido,
-            'tipo_cliente':tipo_cliente,
-            'bodega':bodega,
-            'codigo_cliente':codigo_cliente,
-            'f_pedido':f_pedido,
-
-            't_cartones':t_cartones,
-            't_unidades':t_unidades,
-
-            'detalle':p_str,
-
-            'form':form,
-
-            'estados':estados_list_inicial
-        }
-
-        if request.method == 'POST':
-            form = EstadoPickingForm(request.POST)
-            if form.is_valid():
-                form.save()
-                
-                return redirect(f'/etiquetado/picking/estado')
-            else:
-                messages.error(request, 'Error !!! Actulize su listado de picking')
-
+    estado_picking = EstadoPicking.objects.filter(n_pedido=n_pedido).exists()
+    if estado_picking:
+        est = EstadoPicking.objects.get(n_pedido=n_pedido)
+        estado = est.estado
+        estado_id = est.id
     else:
+        estado = 'SIN ESTADO'
+        estado_id = ''
+
+    pedido = pedido_por_cliente(n_pedido)
+    
+    cliente = clientes_table()[['CODIGO_CLIENTE','CLIENT_TYPE']]
+    pedido = pedido.merge(cliente, on='CODIGO_CLIENTE', how='left')
+    p_json = (pedido[['PRODUCT_ID', 'QUANTITY']]).to_dict()
+    p_str = json.dumps(p_json)
+
+    product = productos_odbc_and_django()[['product_id','Unidad_Empaque','Marca']]
+    product = product.rename(columns={'product_id':'PRODUCT_ID','Marca':'marca2'})
+
+    # Merge
+    pedido = pedido.merge(product, on='PRODUCT_ID', how='left')
+    
+    # Calculos
+    pedido['Cartones'] = pedido['QUANTITY'] / pedido['Unidad_Empaque'] 
+    f_pedido = str(pedido['FECHA_PEDIDO'].iloc[0])
+    t_cartones = pedido['Cartones'].sum()
+    t_unidades = pedido['QUANTITY'].sum()
+
+    # Trasformar datos para pasar al template
+    json_records = pedido.sort_values(by='PRODUCT_ID').reset_index().to_json(orient='records')
+    data = []
+    data = json.loads(json_records)
+
+    # Datos
+    cliente        = pedido['NOMBRE_CLIENTE'].iloc[0]
+    fecha_pedido   = pedido['FECHA_PEDIDO'].iloc[0]
+    tipo_cliente   = pedido['CLIENT_TYPE'].iloc[0]
+    bodega         = pedido['WARE_CODE'].iloc[0]
+    codigo_cliente = pedido['CODIGO_CLIENTE'].iloc[0]
+    
+    estados_list_inicial = ['EN PROCESO']
+
+    context = {
+        'reservas':data,
+        'pedido':n_pedido,
+        'cliente':cliente,
+        'fecha_pedido':fecha_pedido,
+        'tipo_cliente':tipo_cliente,
+        'bodega':bodega,
+        'codigo_cliente':codigo_cliente,
+        'f_pedido':f_pedido,
+
+        't_cartones':t_cartones,
+        't_unidades':t_unidades,
+
+        'detalle':p_str,
+
+        #'form':form,
+
+        'estados':estados_list_inicial,
         
-        id_estado = int(float(id))
-        estado_registro = EstadoPicking.objects.get(id=id_estado)
-        form_update = EstadoPickingForm(instance=estado_registro)
+        'estado':estado,
+        'estado_id':estado_id
+    }
 
-        # Dataframes
-        pedido = pedido_por_cliente(n_pedido)
-        cliente = clientes_table()[['CODIGO_CLIENTE','CLIENT_TYPE']]
-        pedido = pedido.merge(cliente, on='CODIGO_CLIENTE', how='left')
-        p_json = (pedido[['PRODUCT_ID', 'QUANTITY']]).to_dict()
-        p_str = json.dumps(p_json)
-
-        product = productos_odbc_and_django()[['product_id','Unidad_Empaque','Marca']]
-        product = product.rename(columns={'product_id':'PRODUCT_ID','Marca':'marca2'})
-
-        # Merge
-        pedido = pedido.merge(product, on='PRODUCT_ID', how='left')
-
-        # Calculos
-        pedido['Cartones'] = pedido['QUANTITY'] / pedido['Unidad_Empaque']
-        f_pedido = str(pedido['FECHA_PEDIDO'].iloc[0])
-        t_cartones = pedido['Cartones'].sum()
-        t_unidades = pedido['QUANTITY'].sum()
-        
-        # Trasformar datos para pasar al template
-        json_records = pedido.sort_values(by='PRODUCT_ID').reset_index().to_json(orient='records')
-        data = []
-        data = json.loads(json_records)
-
-
-        # Datos
-        cliente        = pedido['NOMBRE_CLIENTE'].iloc[0]
-        fecha_pedido   = pedido['FECHA_PEDIDO'].iloc[0]
-        tipo_cliente   = pedido['CLIENT_TYPE'].iloc[0]
-        bodega         = pedido['WARE_CODE'].iloc[0]
-        codigo_cliente = pedido['CODIGO_CLIENTE'].iloc[0]
-        
-        estados_list_finalizado = ['EN PROCESO', 'EN PAUSA', 'INCOMPLETO', 'EN TRANSITO', 'FINALIZADO']
-
-        context = {
-            'reservas':data,
-            'pedido':n_pedido,
-            'cliente':cliente,
-            'fecha_pedido':fecha_pedido,
-            'tipo_cliente':tipo_cliente,
-            'bodega':bodega,
-            'codigo_cliente':codigo_cliente,
-            'f_pedido':f_pedido,
-
-            't_cartones':t_cartones,
-            't_unidades':t_unidades,
-
-            'detalle':p_str,
-
-            'form':form_update,
-
-            'estados':estados_list_finalizado
-        }
-
-        if request.method == 'POST':
-            estado_registro = EstadoPicking.objects.get(id=id_estado)
-            form_update = EstadoPickingForm(request.POST, instance=estado_registro)
-
-            h = datetime.now() 
-            #est = request.POST.get('estado') 
-
-            if form_update.is_valid():
-                form_update.clean()
-                form_update.save()
+    #     if request.method == 'POST':
+    #         form = EstadoPickingForm(request.POST)
+    #         if form.is_valid():
+    #             form.save()
                 
-                if  form_update.clean()['estado'] == 'FINALIZADO':
-                    estado_registro.fecha_actualizado = h
-                    estado_registro.save()
+    #             return redirect(f'/etiquetado/picking/estado')
+    #         else:
+    #             messages.error(request, 'Error !!! Actulize su listado de picking')
 
-                return redirect(f'/etiquetado/picking/estado')
-            else:
-                messages.warning(request, 'Error !!! Actulize su lista de pedidos')
+    # else:
+        
+    #     id_estado = int(float(id))
+    #     estado_registro = EstadoPicking.objects.get(id=id_estado)
+    #     form_update = EstadoPickingForm(instance=estado_registro)
+
+    #     # Dataframes
+    #     pedido = pedido_por_cliente(n_pedido)
+    #     cliente = clientes_table()[['CODIGO_CLIENTE','CLIENT_TYPE']]
+    #     pedido = pedido.merge(cliente, on='CODIGO_CLIENTE', how='left')
+    #     p_json = (pedido[['PRODUCT_ID', 'QUANTITY']]).to_dict()
+    #     p_str = json.dumps(p_json)
+
+    #     product = productos_odbc_and_django()[['product_id','Unidad_Empaque','Marca']]
+    #     product = product.rename(columns={'product_id':'PRODUCT_ID','Marca':'marca2'})
+
+    #     # Merge
+    #     pedido = pedido.merge(product, on='PRODUCT_ID', how='left')
+
+    #     # Calculos
+    #     pedido['Cartones'] = pedido['QUANTITY'] / pedido['Unidad_Empaque']
+    #     f_pedido = str(pedido['FECHA_PEDIDO'].iloc[0])
+    #     t_cartones = pedido['Cartones'].sum()
+    #     t_unidades = pedido['QUANTITY'].sum()
+        
+    #     # Trasformar datos para pasar al template
+    #     json_records = pedido.sort_values(by='PRODUCT_ID').reset_index().to_json(orient='records')
+    #     data = []
+    #     data = json.loads(json_records)
+
+
+    #     # Datos
+    #     cliente        = pedido['NOMBRE_CLIENTE'].iloc[0]
+    #     fecha_pedido   = pedido['FECHA_PEDIDO'].iloc[0]
+    #     tipo_cliente   = pedido['CLIENT_TYPE'].iloc[0]
+    #     bodega         = pedido['WARE_CODE'].iloc[0]
+    #     codigo_cliente = pedido['CODIGO_CLIENTE'].iloc[0]
+        
+    #     estados_list_finalizado = ['EN PROCESO', 'EN PAUSA', 'INCOMPLETO', 'EN TRANSITO', 'FINALIZADO']
+
+    #     context = {
+    #         'reservas':data,
+    #         'pedido':n_pedido,
+    #         'cliente':cliente,
+    #         'fecha_pedido':fecha_pedido,
+    #         'tipo_cliente':tipo_cliente,
+    #         'bodega':bodega,
+    #         'codigo_cliente':codigo_cliente,
+    #         'f_pedido':f_pedido,
+
+    #         't_cartones':t_cartones,
+    #         't_unidades':t_unidades,
+
+    #         'detalle':p_str,
+
+    #         'form':form_update,
+
+    #         'estados':estados_list_finalizado
+    #     }
+
+    #     if request.method == 'POST':
+    #         estado_registro = EstadoPicking.objects.get(id=id_estado)
+    #         form_update = EstadoPickingForm(request.POST, instance=estado_registro)
+
+    #         h = datetime.now() 
+    #         #est = request.POST.get('estado') 
+
+    #         if form_update.is_valid():
+    #             form_update.clean()
+    #             form_update.save()
+                
+    #             if  form_update.clean()['estado'] == 'FINALIZADO':
+    #                 estado_registro.fecha_actualizado = h
+    #                 estado_registro.save()
+
+    #             return redirect(f'/etiquetado/picking/estado')
+    #         else:
+    #             messages.warning(request, 'Error !!! Actulize su lista de pedidos')
 
     return render(request, 'etiquetado/picking_estado/picking_estado_bodega.html', context)
 

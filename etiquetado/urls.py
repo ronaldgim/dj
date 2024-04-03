@@ -116,7 +116,8 @@ urlpatterns = [
     ),
     
     path(
-        route = 'picking/estado/<str:n_pedido>/<str:id>',
+        route = 'picking/estado/<str:n_pedido>',
+        # route = 'picking/estado/<str:n_pedido>/<str:id>',
         view  = views.picking_estado_bodega,
         name  = 'picking_estado_bodega'
     ),

@@ -134,38 +134,23 @@
                                 {% else %} 
                                     class="btn btn-primary btn-sm mt-2 mb-2"
                                 {% endif %} 
-                                
+
+                                {% comment %}
                                 href="{% url 'picking_estado_bodega' i.CONTRATO_ID i.id %}">
+                                {% endcomment %}
+
+                                href="{% url 'picking_estado_bodega' i.CONTRATO_ID %}">
                                     {{i.estado}}
                             </a> 
 
                             {% if i.estado != '-' %}
                             <a class="btn btn-primary btn-sm mt-2 mb-2 disabled"                           
-                               href="{% url 'picking_estado_bodega' i.CONTRATO_ID i.id %}">
-                                    {{i.first_name}} {{i.last_name}} {% if i.estado == 'FINALIZADO' %}| {{i.fecha_actualizado|slice:'0:16'}} {% endif %}
+                                href="{% url 'picking_estado_bodega' i.CONTRATO_ID %}">
+                                {% comment %}href="{% url 'picking_estado_bodega' i.CONTRATO_ID i.id %}"> {% endcomment %}
+                                {{i.first_name}} {{i.last_name}} {% if i.estado == 'FINALIZADO' %} | {{i.fecha_actualizado|slice:'0:16'}} {% endif %}
                             </a> 
                             {% endif %}
-
-                            <!--
-                            {% if i.nombre != '-' %}
-                                {% if i.nombre|length == 15 %}
-                                    <a class="btn btn-info btn-sm disabled">{{i.nombre|slice:'0:5'}}</a>
-                                    <a class="btn btn-info btn-sm disabled">{{i.nombre|slice:'5:10'}}</a>
-                                    <a class="btn btn-info btn-sm disabled">{{i.nombre|slice:'10:15'}}</a>
-                                {% elif i.nombre|length == 10 %}
-                                    <a class="btn btn-info btn-sm disabled">{{i.nombre|slice:'0:5'}}</a>
-                                    <a class="btn btn-info btn-sm disabled">{{i.nombre|slice:'5:10'}}</a>
-                                {% elif i.nombre|length == 5 %}
-                                    <a class="btn btn-info btn-sm disabled">{{i.nombre}}</a>
-                                {% endif %}
-                            {% endif %}
-                            -->
                         </td>                    
-                        <!--td class="text-center">
-                            <a class="btn btn-primary btn-sm" href="{% url 'pedidos' i.CONTRATO_ID %}" target="_blank">
-                                <i class="bi bi-stopwatch"></i>
-                            </a>
-                        </td-->
                     </tr>
                     {% endfor %}
                 </tbody>
