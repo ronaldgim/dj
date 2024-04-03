@@ -1497,7 +1497,7 @@ def wms_estado_picking_actualizar_ajax(request):
         pick_total_unidades = pick['QUANTITY'].sum()
         movs = Movimiento.objects.filter(referencia='Picking').filter(n_referencia=estado_picking.n_pedido).values_list('unidades', flat=True)
         movs_total_unidades = sum(movs) * -1
-        print(movs_total_unidades, pick_total_unidades)
+        
         if movs_total_unidades < pick_total_unidades:
 
             return JsonResponse({'msg':' ⚠ Aun no a completado el picking !!!',
