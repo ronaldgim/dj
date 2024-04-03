@@ -2,7 +2,7 @@
 from django.contrib import admin
 
 # Model
-from bpa.models import Trasferencia, RegistroSanitario, CartaNoRegistro, ImportacionesExcel
+from bpa.models import Trasferencia, RegistroSanitario, CartaNoRegistro
 
 # # Register your models here.
 @admin.register(Trasferencia)
@@ -48,11 +48,3 @@ class CartaNoRegistroAdmin(admin.ModelAdmin):
         'observacion'
     )
     
-
-@admin.register(ImportacionesExcel)
-class ImportacionExcelAdmin(admin.ModelAdmin):
-    list_display = (
-        #'excel',
-        'marca',
-        'orden_importacion'
-    )

@@ -133,13 +133,3 @@ class CartaNoRegistro(models.Model):
             else:
                 dias = dias
         return dias
-
-    
-class ImportacionesExcel(models.Model):
-
-    excel = models.FileField(verbose_name='Archivo Excel', upload_to='excel_importacion')
-    marca = models.CharField(verbose_name='Marca ó Proveedor', max_length=150)
-    orden_importacion = models.CharField(verbose_name='Número de Orden/Importación', max_length=150)
-
-    def __str__(self):
-        return str(self.excel)
