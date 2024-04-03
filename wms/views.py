@@ -24,7 +24,10 @@ from datos.views import (
     doc_transferencia_odbc,
     
     # Ajuste Datos
-    wms_ajuste_query_odbc
+    wms_ajuste_query_odbc,
+    
+    # Permisos costum @decorador
+    # permisos
     )
 
 # Pedidos por clientes
@@ -2955,6 +2958,7 @@ def wms_anulacion_picking_ajax(request):
 
 
 ### Ajuste Liberación ERIK
+# @permisos('Trazabilidad', '/')
 def wms_ajuste_liberacion_list(request):
     
     ajuste_liberacion = pd.DataFrame(AjusteLiberacion.objects.all().values().order_by('-doc_id')).drop_duplicates(subset=['doc_id'])

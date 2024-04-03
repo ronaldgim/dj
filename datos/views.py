@@ -120,6 +120,7 @@ def permisos(permiso, redirect_url):
     return decorador
     
 
+
 def de_dataframe_a_template(dataframe):
 
     json_records = dataframe.reset_index().to_json(orient='records') # reset_index().
