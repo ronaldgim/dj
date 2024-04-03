@@ -46,10 +46,10 @@ import mysql.connector
 
 
 # Tabla Registro Sanitario
-from bpa.models import RegistroSanitario, CartaNoRegistro, ImportacionesExcel
+from bpa.models import RegistroSanitario, CartaNoRegistro
 
 # Forms
-from bpa.forms import RegistroSanitarioForm, CartaNoRegistroForm, ImportacionExcelForm
+from bpa.forms import RegistroSanitarioForm, CartaNoRegistroForm
 
 # Messages
 from django.contrib import messages
@@ -455,8 +455,6 @@ def transferencias(request):
     if request.method == 'POST':
         
         n = request.POST.get('n_transf')
-        # doc_transferencia_odbc(n)
-        #print(doc_transferencia_odbc(n))
 
         try:
             
@@ -485,58 +483,23 @@ def transferencias(request):
 
 
 
-# @login_required(login_url='login')
-# def doc_transferencia(request):   
-#     if request.method == 'POST':
-#         n = request.POST.get('n_transf')
-#         transf = doc_transferencia_odbc(n)
-#         documento = transf['doc'][0][7:-6]
-#         transf = transf.groupby(['product_id', 'doc']).sum()
-#         m = muestreo(transf, 'unidades')
-#         m = m.merge(productos(), on='product_id', how='left')
-#         m = m.rename(columns={
-#             'Nombre':'description'
-#         })
-
-#         m = de_dataframe_a_template(m)
-
-#         context = {
-#             'muestreo':m,
-#             'documento':documento
-#         }
-        
-#         resp = HttpResponse(content_type='application/pdf')
-#         result = generate_pdf('bpa/muestreos/muestreo_transferencias.html', file_object=resp, context=context)
-#         return result
-    
-#     return render(request, 'bpa/muestreos/doc_transf.html')
-
-
-
-
 @pdf_decorator(pdfname='muestreo_transferencia.pdf')
 @login_required(login_url='login')
 def muestreo_transferencia(request, doc):
 
-    trans = pd.DataFrame(Trasferencia.objects.all().values())
-    
-    # prod  = pd.DataFrame(Product.objects.all().values())
-    # prod  = prod[['product_id', 'description']]
-    
+    trans = pd.DataFrame(Trasferencia.objects.filter(documento=doc).values())    
     prod = productos_odbc_and_django()[['product_id','Nombre']]
     
     trans = trans.groupby(['product_id', 'documento']).sum()
     trans = trans.reset_index()
 
-    trans = trans[trans['documento']==doc]
     docum = trans['documento'].iloc[0]
 
     muest = muestreo(trans, 'unidades')
     muest = muest.merge(prod, on='product_id', how='left')
 
-    json_records = muest.reset_index().to_json(orient='records') 
-    muest = json.loads(json_records)
-
+    muest = de_dataframe_a_template(muest)
+    
     context = {
         'documento':docum,
         'muestreo':muest
@@ -548,26 +511,26 @@ def muestreo_transferencia(request, doc):
 @pdf_decorator(pdfname='muestreo_transferencia.pdf')
 @login_required(login_url='login')
 def revision_tecnica_transferencia(request, doc):
-    trans = pd.DataFrame(Trasferencia.objects.all().values())
     
-    # prod = productos()
-    # prod_2 = pd.DataFrame(Product.objects.all().values())
-    # prod_2 = prod_2[['product_id', 'emp_primario', 'emp_secundario', 'emp_terciario']]
-    
-    prod = productos_odbc_and_django()[['product_id','Nombre','Marca','Reg_San','emp_primario', 'emp_secundario', 'emp_terciario']]
+    trans = pd.DataFrame(Trasferencia.objects.filter(documento=doc).values())
+    prod = productos_odbc_and_django()[[
+        'product_id',
+        'Nombre',
+        'Marca',
+        'Reg_San',
+        'emp_primario', 
+        'emp_secundario', 
+        'emp_terciario']]
 
     trans = trans.groupby(['product_id', 'documento']).sum()
     trans = trans.reset_index()
 
-    trans = trans[trans['documento']==doc]
     docum = trans['documento'].iloc[0]
 
     muest = muestreo(trans, 'unidades')
     muest = muest.merge(prod, on='product_id', how='left')
-    # muest = muest.merge(prod_2, on='product_id', how='left')
     
-    json_records = muest.reset_index().to_json(orient='records') 
-    muest = json.loads(json_records)
+    muest = de_dataframe_a_template(muest)
 
     context = {
         'documento':docum,
@@ -630,7 +593,7 @@ def r_san_alerta_list_correo(request):
     email.send()
                     
     return HttpResponse(status=200)
-        
+    
 
 # Enviar correos individuales por registro sanitario
 def r_san_alert(request):
@@ -792,7 +755,7 @@ def carta_no_reg_list(request):
 
 
     r_san_list = CartaNoRegistro.objects.all()
-  
+
     n_caducado = len([i for i in CartaNoRegistro.objects.all() if i.estado == 'Caducado'])
     n_proximo = len([i for i in CartaNoRegistro.objects.all() if i.estado == 'Próximo a caducar'])
     n_vigente = len([i for i in CartaNoRegistro.objects.all() if i.estado == 'Vigente'])
@@ -876,35 +839,6 @@ def carta_no_reg_edit(request, id):
 
 
 
-
-
-### IMPORTACIONES EXCEL
-def importacion_list(request):
-    imp = ImportacionesExcel.objects.all()
-    context = {
-        'imp':imp
-    }
-
-    return render(request, 'bpa/imp_excel/imp_list.html', context)
-
-def importacion_create(request):
-    form = ImportacionExcelForm()
-
-    if request.method == 'POST':
-        form = ImportacionExcelForm(request.POST, request.FILES)
-        if form.is_valid():
-            form.save()
-            return redirect('carta_no_reg_list')
-        else:
-            print(form.errors)
-            messages.error(request, 'Error al cargar el archivo')
-        
-    context = {
-        'form':form
-    }
-
-    return render(request, 'bpa/imp_excel/imp_create.html', context)
-
 def reservas_lote(): #request
     ''' Colusta de clientes por ruc a la base de datos '''
     with connections['gimpromed_sql'].cursor() as cursor:
@@ -916,21 +850,3 @@ def reservas_lote(): #request
         ]
         reservas_lote = pd.DataFrame(reservas_lote)        
     return reservas_lote
-
-def importacion_detail(request, id):
-
-    imp = ImportacionesExcel.objects.get(id=id)
-    imp = 'media/' + str(imp)
-    imp = pd.read_excel(imp)
-
-    imp = imp.rename(columns={'CÓDIGO DE ITEM':'PRODUCT_ID'})
-    imp['PRODUCT_ID'] = imp['PRODUCT_ID'].astype(str)
-
-    r_lote = reservas_lote()
-
-    ing = imp.merge(r_lote, on='PRODUCT_ID', how='left')
-    ing = ing.dropna()
-    
-
-    res = imp.merge(r_lote, on='PRODUCT_ID', how='left')
-

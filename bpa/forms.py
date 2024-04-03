@@ -2,7 +2,7 @@
 from django import forms
 
 # Models
-from bpa.models import RegistroSanitario, CartaNoRegistro, ImportacionesExcel
+from bpa.models import RegistroSanitario, CartaNoRegistro
 
 # My forms
 # Reg Sanitario Form
@@ -16,11 +16,4 @@ class RegistroSanitarioForm(forms.ModelForm):
 class CartaNoRegistroForm(forms.ModelForm):
     class Meta:
         model = CartaNoRegistro
-        fields = '__all__'
-
-
-# Importación Excel
-class ImportacionExcelForm(forms.ModelForm):
-    class Meta:
-        model = ImportacionesExcel
         fields = '__all__'

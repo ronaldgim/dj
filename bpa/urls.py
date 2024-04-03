@@ -119,31 +119,4 @@ urlpatterns = [
         name = 'carta_no_reg_edit'
     ),
 
-    
-    # IMPORTACIONES EXCEL
-    path(
-        route= 'imp_list',
-        view = views.importacion_list,
-        name = 'imp_list'
-    ),
-
-    path(
-        route= 'imp_create',
-        view = views.importacion_create,
-        name = 'imp_create'
-    ),
-
-    path(
-        route= 'imp_detail/<int:id>',
-        view = views.importacion_detail,
-        name = 'imp_detail'
-    ),
-
-    # # Transferencias ODBC
-    # path(
-    #     route= 'transf/muestreo',
-    #     view = views.doc_transferencia,
-    #     name = 'trasf_muestreo'
-    # ),
-
 ]
