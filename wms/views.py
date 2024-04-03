@@ -1497,15 +1497,31 @@ def wms_estado_picking_actualizar_ajax(request):
         pick_total_unidades = pick['QUANTITY'].sum()
         movs = Movimiento.objects.filter(referencia='Picking').filter(n_referencia=estado_picking.n_pedido).values_list('unidades', flat=True)
         movs_total_unidades = sum(movs) * -1
+            
+        if estado_picking.bodega == 'BCT':
+            
+            if movs_total_unidades < pick_total_unidades:
+
+                return JsonResponse({'msg':' ⚠ Aun no a completado el picking !!!',
+                                    'alert':'warning'})
+
+            elif pick_total_unidades == movs_total_unidades:
+
+                estado_picking.estado = estado_post
+                estado_picking.fecha_actualizado = datetime.now()
+
+                try:
+                    estado_picking.save()
+
+                    if estado_picking.id:
+                        return JsonResponse({'msg':f'✅ Estado de picking {estado_picking.estado}',
+                                        'alert':'success'}, status=200)
+                except:
+                    return JsonResponse({'msg':'❌ Error, intente nuevamente !!!',
+                                        'alert':'danger'})
         
-        if movs_total_unidades < pick_total_unidades:
-
-            return JsonResponse({'msg':' ⚠ Aun no a completado el picking !!!',
-                                'alert':'warning'})
-
-        elif pick_total_unidades == movs_total_unidades:
-
-
+        elif estado_picking.bodega == 'BAN':
+            
             estado_picking.estado = estado_post
             estado_picking.fecha_actualizado = datetime.now()
 
@@ -1518,6 +1534,7 @@ def wms_estado_picking_actualizar_ajax(request):
             except:
                 return JsonResponse({'msg':'❌ Error, intente nuevamente !!!',
                                     'alert':'danger'})
+            
     else:
             estado_picking.estado = estado_post
             estado_picking.fecha_actualizado = datetime.now()
