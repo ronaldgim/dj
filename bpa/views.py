@@ -237,7 +237,6 @@ def nacionales_odbc():
     return nac
 
 
-
 def nacionales(request):
     
     nac = nacionales_odbc()
@@ -353,7 +352,7 @@ def muestreo_unidades(request, memo):
 
     n = nacionales_odbc()
     data = importaciones_transito()
-
+    
     data = pd.concat([data, n])
 
     data = data[data['MEMO']==memo]
@@ -364,12 +363,10 @@ def muestreo_unidades(request, memo):
     proveedor = imp['VENDOR_NAME'].iloc[0]
     n_imp = imp['MEMO'].iloc[0]
     
-    json_records = imp.reset_index().to_json(orient='records')
-    imp = json.loads(json_records)
+    imp = de_dataframe_a_template(imp)
 
     context = {
         'imp':imp,
-
         'proveedor':proveedor,
         'n_imp':n_imp,
     }
@@ -390,8 +387,7 @@ def muestreo_cartones(request, memo):
     proveedor = imp['VENDOR_NAME'].iloc[0]
     n_imp = imp['MEMO'].iloc[0]
     
-    json_records = imp.reset_index().to_json(orient='records')
-    imp = json.loads(json_records)
+    imp = de_dataframe_a_template(imp)
     
     context = {
         'imp':imp,
@@ -412,22 +408,28 @@ def revision_tecnica(request, memo):
     data = pd.concat([data,n])
 
     data = data[data['MEMO']==memo]   
-    prod = productos()
+    
+    prod = productos_odbc_and_django()[[
+        'product_id',
+        #'Nombre',
+        'Reg_San',
+        'emp_primario', 
+        'emp_secundario', 
+        'emp_terciario'
+    ]]
+    
     prod = prod.rename(columns={'product_id':'PRODUCT_ID'})
-    prod_2 = pd.DataFrame(Product.objects.all().values())
-    prod_2 = prod_2.rename(columns={'product_id':'PRODUCT_ID'})
-    prod_2 = prod_2[['PRODUCT_ID', 'emp_primario', 'emp_secundario', 'emp_terciario']]
 
     imp = muestreo(data, 'CARTONES')
     imp = imp.merge(prod, on='PRODUCT_ID', how='left')
-    imp = imp.merge(prod_2, on='PRODUCT_ID', how='left')
+    
     imp = imp.sort_values(by='PRODUCT_ID')
     
     proveedor = imp['VENDOR_NAME'].iloc[0]
     n_imp = imp['MEMO'].iloc[0]
     fecha = imp['FECHA_ENTREGA'].iloc[0]
-    json_records = imp.reset_index().to_json(orient='records')
-    imp = json.loads(json_records)
+    
+    imp = de_dataframe_a_template(imp)
     
     context = {
         'imp':imp,
