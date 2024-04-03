@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 # Register your models here.
-from compras_publicas.models import EvaluacionProcesos
+from compras_publicas.models import EvaluacionProcesos, ProcesosSercop
 
 @admin.register(EvaluacionProcesos)
 class EvaluacionProcesosAdmin(admin.ModelAdmin):
@@ -24,3 +24,10 @@ class EvaluacionProcesosAdmin(admin.ModelAdmin):
     # search_fields = (
 
     # )
+    
+@admin.register(ProcesosSercop)
+class ProcesosSercopAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'proceso',
+    )
