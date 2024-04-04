@@ -212,25 +212,26 @@ def importaciones(request):
 
 
 def nacionales_odbc():
-    nacionales_list = ['SARALEJ','NILOTEX','NACIONAL','ATRAS','CARICIA']
+    # nacionales_list = ['SARALEJ','NILOTEX','NACIONAL','ATRAS','CARICIA']
     nac = importaciones_llegadas_odbc()
-    prod = productos_odbc_and_django()[['product_id','description','marca2','Unidad_Empaque']] #'unidad_empaque'
+    prod = productos_odbc_and_django()[['product_id','Nombre','marca2','Marca','Unidad_Empaque','Procedencia']] #'unidad_empaque'
     
     nac = nac.merge(prod, on='product_id', how='left')
-    nac = nac[nac.marca2.isin(nacionales_list)]
-    nac = nac.pivot_table(index=['product_id','description','marca2','ENTRADA_FECHA','DOC_ID_CORP'], values=['OH'], aggfunc='sum').reset_index()
-
+    nac = nac[(nac['Procedencia'].str.contains('NACIONAL')) | (nac['Procedencia'].str.contains('Nacional'))]
+    
+    #nac = nac[nac.marca2.isin(nacionales_list)]
+    #nac = nac.pivot_table(index=['product_id','Nombre','marca2','ENTRADA_FECHA','DOC_ID_CORP','MEMO'], values=['OH'], aggfunc='sum').reset_index()
+    
     nac['ENTRADA_FECHA'] = pd.to_datetime(nac['ENTRADA_FECHA'])
     nac = nac.sort_values(by='ENTRADA_FECHA', ascending=False)
     nac['ENTRADA_FECHA'] = nac['ENTRADA_FECHA'].astype(str)
-
 
     nac = nac.rename(columns={
         'marca2':'VENDOR_NAME',
         'product_id':'PRODUCT_ID',
         'OH':'QUANTITY',
         'ENTRADA_FECHA':'FECHA_ENTREGA',
-        'DOC_ID_CORP':'MEMO',
+        #'DOC_ID_CORP':'MEMO',
 
     })
 
@@ -240,13 +241,13 @@ def nacionales_odbc():
 def nacionales(request):
     
     nac = nacionales_odbc()
-    nac = nac.drop_duplicates(subset=['MEMO'])
+    # nac = nac.drop_duplicates(subset=['MEMO'])
+    nac = nac.drop_duplicates(subset=['DOC_ID_CORP'])
     nac = de_dataframe_a_template(nac)
 
     context = {
         'nac':nac
     }
-
     
     return render(request, 'bpa/muestreos/lista_nacionales.html', context)
 
