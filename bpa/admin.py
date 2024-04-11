@@ -4,7 +4,7 @@ from django.contrib import admin
 # Model
 from bpa.models import Trasferencia, RegistroSanitario, CartaNoRegistro
 
-# # Register your models here.
+# Register your models here.
 @admin.register(Trasferencia)
 class TransferenciaAdmin(admin.ModelAdmin):
     list_display = ('id', 'documento', 'product_id', 'lote', 'unidades')
@@ -47,4 +47,3 @@ class CartaNoRegistroAdmin(admin.ModelAdmin):
         'estado',
         'observacion'
     )
-    

@@ -40,35 +40,28 @@
 
 <h6 class="mt-2 text-center"><strong>Trasferencias</strong></h6>
 
-
-{% if messages %}
-{% for message in messages %}
-{% if message.tags == 'success'%}
-<div class="alert text-center alert-success" role="alert">
-    {{message}}
-</div>
-{% elif message.tags == 'error'%}
-<div class="alert text-center alert-danger" role="alert">
-    {{message}}
-</div>
-{%endif%}
-{% endfor %}
-{% endif %}
-
-<div id="msg"></div>
-<div id="msg_ss"></div>
-
-
 <div class="input-group mb-3">
     <input type="text" class="form-control" placeholder="Ingrese en número de trasferencia" id="n_trasf" required>
     <button name="trasferencia" class="btn btn-primary" type="submit">Añadir Transferencia</button>
 </div>
 
-{% if factura.msg %}
-    <div class="alert text-center alert-danger" role="alert">
-        {{factura.msg}}
-    </div>
+
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == 'success'%}
+        <div class="alert text-center alert-success" role="alert">
+            {{message}}
+        </div>
+        {% elif message.tags == 'error'%}
+        <div class="alert text-center alert-danger" role="alert">
+            {{message}}
+        </div>
+        {% endif %}
+    {% endfor %}
 {% endif %}
+
+<div id="msg"></div>
+<!--div id="msg_ss"></div-->
 
 <div class="card mb-2">
     <div class="card-body m-0 p-0">
@@ -115,11 +108,7 @@
 <script>
 
     $("button[name='trasferencia']").click(function(){
-        // var btn     = $(this)
         var n_trasf  = $("#n_trasf").val();
-        //var tabla    = $("#tabla")
-        //console.log(n_trasf)
-
 
         $.ajax({
             type:"POST",
@@ -130,11 +119,23 @@
             },
 
             success: function(response) {
-                $('#msg').fadeIn().html(`<div class="text-center alert alert-danger" role="alert"> ${response} !!! </div>`).fadeOut(6000)
+                
+                //$('#msg').fadeIn().html(`<div class="text-center alert alert-${response.tipo}" role="alert"> ${response.msg} !!! </div>`).fadeOut(6000)
+                if (response.msg) {
+                    $('#msg').html(`<div class="text-center alert alert-${response.alert}" role="alert"> ${response.msg} !!! </div>`)
+                }
+                
+                setTimeout(function(){
+                    window.location.reload();
+                }, 2000)
             },
             
             error: function() {
-                $('#msg').fadeIn().html('<div class="text-center alert alert-danger" role="alert"> Error !!! </div>').fadeOut(6000)
+                //$('#msg').fadeIn().html('<div class="text-center alert alert-danger" role="alert"> Error !!! </div>').fadeOut(6000)
+                $('#msg').html('<div class="text-center alert alert-danger" role="alert"> Error !!! </div>')
+                //setTimeout(function(){
+                //    window.location.reload();
+                //},1000)
             }
             
         })
@@ -142,7 +143,7 @@
 </script>
 
 
-<script>
+<!--script>
     // Función para mostrar un mensaje temporal
     function mostrarMensajeTemporal(mensaje, boton) {
         var mensajeTemporal = $("button[name='cruce']");
@@ -164,5 +165,5 @@
         setTimeout(function() {
             mensajeTemporal.fadeOut();
         }, 3000)}
-</script>
+</script-->
 {% endblock %}

@@ -6,6 +6,13 @@ from wms import views
 
 urlpatterns = [
     
+    # HOME
+    path(
+        route='home',
+        view = views.wms_home, #OK
+        name = 'wms_home'
+    ),
+    
     # """LISTA DE INGRESOS
     # """
     
@@ -156,7 +163,7 @@ urlpatterns = [
         name = 'wms_listado_pedidos'
     ),
 
-     ### INGRESO AJUSTE
+    ### INGRESO AJUSTE
     #Buscar ajuste
     path(
         route='ajuste/search',  

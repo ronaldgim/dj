@@ -80,33 +80,27 @@ from functools import wraps
 
 
 # Chequear si el usuario tiene permiso
-def user_perm(user_id, permiso):
-
+def user_perm(user_id, permisos_function):
+    
     user = User.objects.get(id=user_id)
     superuser = user.is_superuser
 
     if superuser: 
-        perm = True 
-        return perm
+        return True
     
     else:
-        permisos_list = list(
-            UserPerfil.objects.get(user_id=user.id).permisos.values_list('permiso', flat=True)
-        )
-
-        my_perm = permiso in permisos_list
-
-        if my_perm:
-            perm = True
-
-        else:
-            perm = False
-
-        return perm
+        permisos_user_list = list(UserPerfil.objects.get(user_id=user.id).permisos.values_list('permiso', flat=True))
+        # print('PERMISOS DE LA FUNCIÓN:',permisos_function)
+        # print('PERMISOS DEL USUARIO: ',permisos_user_list)        
+        for permiso in permisos_user_list:
+            if permiso in permisos_function:
+                return True
+            else:
+                return False
 
 
 # Decorador de permiso de vista
-def permisos(permiso, redirect_url):
+def permisos(permiso, redirect_url, modulo):
     def decorador(view_func):
         @wraps(view_func)
         def _wrapped_view(request, *args, **kwargs):
@@ -114,7 +108,7 @@ def permisos(permiso, redirect_url):
             if user_has_perm:
                 return view_func(request, *args, **kwargs)
             else:
-                messages.error(request, 'No tiene permiso de ingresar !!!')
+                messages.error(request, f'{request.user} no tiene permiso de {modulo} !!!')
                 return redirect(redirect_url)
         return _wrapped_view
     return decorador
