@@ -159,8 +159,10 @@ def kpi_capacidad():
     existencias = existencias.merge(prod, on='product_id', how='left').fillna(0)
     existencias['cartones'] = existencias['unidades'] / existencias['Unidad_Empaque']    
     existencias['capacidad_utilizada_m3'] = round(existencias['cartones'] * (existencias['Volumen']/1000000), 0)
-    existencias['adicional'] = round(existencias['capacidad_utilizada_m3'] * 0.05, 0)
-    existencias['capacidad_utilizada_m3'] = round(existencias['capacidad_utilizada_m3'] * 0.1, 0) + existencias['capacidad_utilizada_m3']
+    
+    existencias['adicional'] = round(existencias['capacidad_utilizada_m3'] * 0.025, 0)
+    existencias['capacidad_utilizada_m3'] = existencias['adicional'] + existencias['capacidad_utilizada_m3']
+    
     existencias = existencias.replace(np.inf, 0)
     existencias = existencias.replace(np.nan, 0)
     #existencias = existencias[['ubicacion__bodega','capacidad_utilizada_m3']]
