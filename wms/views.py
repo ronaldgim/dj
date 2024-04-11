@@ -1733,8 +1733,8 @@ def wms_movimiento_egreso_picking(request): #OK
                 usuario_id      = request.user.id,
             )
 
-            #picking.save()
-            #wms_existencias_query_product_lote(product_id=prod_id, lote_id=lote_id)
+            picking.save()
+            wms_existencias_query_product_lote(product_id=prod_id, lote_id=lote_id)
 
             return JsonResponse({'msg':f'✅ Producto {prod_id}, lote {lote_id} seleccionado correctamente !!!'})
         return JsonResponse({'msg':'❌ Error !!!'})

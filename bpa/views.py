@@ -171,6 +171,9 @@ def importaciones_transito(): #request
 def importaciones(request):
 
     imp = importaciones_transito()
+    # imp_llegadas = importaciones_llegadas_odbc()
+    # print(imp)
+    # print(imp_llegadas)
     
     actualizado = pd.DataFrame(TimeStamp.objects.all().values())
     actualizado = list(actualizado['actulization_importaciones'])
