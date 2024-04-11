@@ -2476,7 +2476,6 @@ def wms_ingreso_ajuste(request):
 
 def wms_busqueda_ajuste(request, n_ajuste):
 
-
     user = request.user.id
     
     cnxn = pyodbc.connect('DSN=mba3;PWD=API')
@@ -2717,6 +2716,7 @@ def wms_resposicion_rm(request):
 
 
 # Reporte de nivel uno vacio rm
+@permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'],'/wms/home', 'ingresar a reporte repocición')
 def wms_reporte_nivelunovacio_rm(request):
     try:
         with connections['default'].cursor() as cursor:
@@ -2803,7 +2803,7 @@ def wms_nota_entrega_input_ajax(request):
 
 # Lisata de Notas de entrega 
 @login_required(login_url='login')
-@permisos(['BODEGA'], '/wms/home', 'ingresar notas de entrega')
+@permisos(['OPERACIONES','BODEGA'], '/wms/home', 'ingresar notas de entrega')
 def wms_nota_entrega_list(request):
     
     ne_list = pd.DataFrame(NotaEntrega.objects.all().values()).drop_duplicates(subset='doc_id', keep='last')
