@@ -103,8 +103,18 @@
 
         <br>
 
+        {% if proveedor %}
         <label><strong>Proveedor:</strong> {{proveedor}}</label><br>
+        {% elif not proveedor %}
+        <label><strong>Proveedor:</strong> {{proveedor2}}</label><br>
+        {% endif %}
+
+
+        {% if n_imp %}
         <label><strong>No.Importación/Transferencia:</strong> {{n_imp}}</label><br>
+        {% elif not n_imp %}
+        <label><strong>No.Importación/Transferencia:</strong> {{n_doc}}</label><br>
+        {% endif %}
         <label><strong>Nivel de inspección:</strong> General</label><br>
         <label><strong>Unidades a Trabajar</strong> Unidades</label><br>
 
@@ -133,10 +143,12 @@
             {% for i in imp %}
             
             <tr>
-                <td class="t_row">{{i.PRODUCT_ID}}</td>
+                <!--td class="t_row">{{i.PRODUCT_ID}}</td-->
+                <td class="t_row">{{i.product_id}}</td>
                 <td class="t_row">{{i.Nombre}}</td>
 
-                <td class="t_row_cal">{{i.QUANTITY|floatformat:'0g'}}</td>
+                <!--td class="t_row_cal">{{i.QUANTITY|floatformat:'0g'}}</td-->
+                <td class="t_row_cal">{{i.OH|floatformat:'0g'}}</td>
                 <td class="t_row_cal">{{i.Nivel}}</td>
 
                 <td class="t_row_cal">{{i.Muestra|floatformat:'0g'}}</td>

@@ -32,8 +32,8 @@
                         <th scope="col">Proveedor</th>
                         <th scope="col">Código proveedor</th>
                         <th scope="col">Fecha de llegada</th>
-                        <th scope="col">Orden de compra</th>
                         <th scope="col">Memo</th>
+                        <th scope="col">Orden de compra</th>
                         <th scope="col">M. Unidades.</th>
                         <!--th scope="col">M. Cartones.</th-->
                         <th scope="col">R. Técnica.</th>
@@ -42,11 +42,12 @@
                 <tbody id="pedidosbuscar">
                     {% for i in nac %}
                     <tr>
-                        <td>{{i.VENDOR_NAME}}</td>
+                        <td>{{i.marca2|default:"-"}}</td>
                         <td>{{i.Marca}}</td>
-                        <td>{{i.FECHA_ENTREGA}}</td>
-                        <td>{{i.DOC_ID_CORP}}</td>
+                        <td>{{i.ENTRADA_FECHA}}</td>
                         <td>{{i.MEMO|default:"-"}}</td>
+                        <td>{{i.DOC_ID_CORP}}</td>
+                        
                         <td>
                             {% if i.DOC_ID_CORP %}
                             <a class="btn btn-primary btn-sm" href="{% url 'muestreos_imp_unidades' i.DOC_ID_CORP %}" target="_blank">
