@@ -82,7 +82,7 @@ def odbc(mydb):
 
     ##Imp Transito
     cursorOdbc.execute(
-        "SELECT PROV_Ficha_Principal.VENDOR_NAME, CLNT_Pedidos_Detalle.PRODUCT_ID, CLNT_Pedidos_Detalle.QUANTITY, CLNT_Pedidos_Principal.FECHA_ENTREGA, CLNT_Pedidos_Principal.MEMO "
+        "SELECT CLNT_Pedidos_Principal.CONTRATO_ID, PROV_Ficha_Principal.VENDOR_NAME, CLNT_Pedidos_Detalle.PRODUCT_ID, CLNT_Pedidos_Detalle.QUANTITY, CLNT_Pedidos_Principal.FECHA_ENTREGA, CLNT_Pedidos_Principal.MEMO "
         "FROM CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, CLNT_Pedidos_Principal CLNT_Pedidos_Principal, PROV_Ficha_Principal PROV_Ficha_Principal "
         "WHERE CLNT_Pedidos_Detalle.CONTRATO_ID_CORP = CLNT_Pedidos_Principal.CONTRATO_ID_CORP AND CLNT_Pedidos_Principal.CLIENT_ID_CORP = PROV_Ficha_Principal.CODIGO_PROVEEDOR_EMPRESA "
         "AND ((CLNT_Pedidos_Principal.FECHA_PEDIDO>'01-01-2021') AND (CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND (CLNT_Pedidos_Detalle.EN_ORDEN=0) "
@@ -97,7 +97,7 @@ def odbc(mydb):
     mydb.commit()
     print("Sucessful Deleted importaciones en transito")
 
-    sql_insert = """INSERT INTO imp_transito (VENDOR_NAME,PRODUCT_ID,QUANTITY,FECHA_ENTREGA,MEMO) VALUES (%s, %s, %s, %s, %s)"""
+    sql_insert = """INSERT INTO imp_transito (CONTRATO_ID, VENDOR_NAME,PRODUCT_ID,QUANTITY,FECHA_ENTREGA,MEMO) VALUES (%s, %s, %s, %s, %s, %s)"""
     data_transito = [list(rows) for rows in transito]
     mycursorMysql.executemany(sql_insert, data_transito)
 
@@ -156,10 +156,6 @@ def importaciones_transito(): #request
         ]
         
         importaciones = pd.DataFrame(importaciones)
-        
-        # pro = pd.DataFrame(Product.objects.all().values())
-        # pro = pro[['product_id', 'description','unidad_empaque']]
-        # pro = pro.rename(columns={'product_id':'PRODUCT_ID'})
 
         pro = productos_odbc_and_django()[['product_id', 'Nombre','Marca','Unidad_Empaque']]
         pro = pro.rename(columns={'product_id':'PRODUCT_ID'})
@@ -189,6 +185,7 @@ def importaciones(request):
     imp['FECHA_ENTREGA'] = pd.to_datetime(imp['FECHA_ENTREGA'])
     imp['FECHA_ENTREGA'] = imp['FECHA_ENTREGA'].astype(str)
     imp = imp.sort_values(by='FECHA_ENTREGA', ascending=False)
+    
     json_records = imp.reset_index().to_json(orient='records')
     imp = json.loads(json_records)
 

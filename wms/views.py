@@ -186,6 +186,7 @@ def kpi_capacidad():
     return capacidad
 
 
+
 def kpi_tiempo_de_almacenamiento():
     
     prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
@@ -219,7 +220,7 @@ def kpi_tiempo_de_almacenamiento():
     
     df = de_dataframe_a_template(df)
     return df
-    
+
 
 
 
