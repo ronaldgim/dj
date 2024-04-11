@@ -27,7 +27,7 @@ from datos.views import (
     wms_ajuste_query_odbc,
     
     # Permisos costum @decorador
-    # permisos
+    permisos
     )
 
 # Pedidos por clientes
@@ -66,8 +66,9 @@ from wms.models import (
 from django.core.exceptions import ObjectDoesNotExist
 
 
-# Pandas
+# Pandas y Numpy
 import pandas as pd
+import numpy as np
 
 # Forms
 from wms.forms import MovimientosForm
@@ -100,15 +101,154 @@ import pyodbc
 # Paginado
 from django.core.paginator import Paginator
 
+# Time
+from datetime import timedelta
+
 """
     LISTAS DE INGRESOS
     - LISTA DE IMPORTACIONES
     - LISTA DE BODEGA DE INVENTARIO INICIAL
 """
+# def kpi_tiempo():
+    
+#     list_picking = Movimiento.objects.filter(referencia='Picking').values_list('n_referencia', flat=True).distinct()
+    
+#     picking_len_0_a_5   = []
+#     picking_len_5_a_10  = []
+#     picking_len_10_a_20 = []
+#     picking_len_mas_20  = []
+    
+#     for i in list_picking:
+#         mov = Movimiento.objects.filter(n_referencia=i).order_by('fecha_hora')
+#         n_items = len(mov)
+#         mov_first = mov.first()
+#         mov_last  = mov.last()
+        
+#         tiempo =  (mov_last.fecha_hora-mov_first.fecha_hora)
+#         print(i, n_items, tiempo)
+        
+#         if n_items <= 5:
+#             picking_len_0_a_5.append(tiempo)
+#         elif 5 < n_items <= 10:
+#             picking_len_5_a_10.append(tiempo)
+#         elif 10 < n_items <= 20:
+#             picking_len_10_a_20.append(tiempo)
+#         elif n_items > 20:
+#             picking_len_mas_20.append(tiempo)
+    
+#     # from datetime import timedelta
+#     # sum_0_a_5 = sum(picking_len_0_a_5, timedelta(0))
+#     # mean_0_a_5 = sum_0_a_5/len(picking_len_0_a_5)
+#     # print(sum_0_a_5, mean_0_a_5)
+
+#     print('Tiempo promedio picking de 0 a 5 items: ', sum(picking_len_0_a_5, timedelta(0)))
+#     print('Tiempo promedio picking de 5 a 10 items: ', sum(picking_len_5_a_10, timedelta(0)))
+#     print('Tiempo promedio picking de 10 a 20 items: ', sum(picking_len_10_a_20, timedelta(0)))
+#     print('Tiempo promedio picking de mas de 20items: ', sum(picking_len_mas_20, timedelta(0)))
+    
+#     # suma_total = sum(lista_timedelta, timedelta(0))
+#     # promedio = suma_total / len(lista_timedelta)
+#     return 
+
+def kpi_capacidad():
+    
+    # capacidad_utilizada
+    existencias = pd.DataFrame(Existencias.objects.all().values('product_id', 'unidades','ubicacion__bodega'))
+    prod = productos_odbc_and_django()[['product_id','Unidad_Empaque','Volumen']]
+    existencias = existencias.groupby(by=['product_id','ubicacion__bodega']).sum().reset_index()   
+    existencias = existencias.merge(prod, on='product_id', how='left').fillna(0)
+    existencias['cartones'] = existencias['unidades'] / existencias['Unidad_Empaque']    
+    existencias['capacidad_utilizada_m3'] = round(existencias['cartones'] * (existencias['Volumen']/1000000), 0)
+    existencias['adicional'] = round(existencias['capacidad_utilizada_m3'] * 0.05, 0)
+    existencias['capacidad_utilizada_m3'] = round(existencias['capacidad_utilizada_m3'] * 0.1, 0) + existencias['capacidad_utilizada_m3']
+    existencias = existencias.replace(np.inf, 0)
+    existencias = existencias.replace(np.nan, 0)
+    #existencias = existencias[['ubicacion__bodega','capacidad_utilizada_m3']]
+    existencias = existencias.groupby(by=['ubicacion__bodega']).sum().reset_index()
+    existencias = existencias.rename(columns={'ubicacion__bodega':'bodega'})
+    
+    # capacidad disponible
+    capacidad_disponible = pd.DataFrame(Ubicacion.objects.all().values('bodega','capacidad_m3'))
+    #print(capacidad_disponible[capacidad_disponible['bodega']=='CN5'])
+    capacidad_disponible = capacidad_disponible.groupby(by='bodega').sum().reset_index()
+    capacidad_disponible = capacidad_disponible.rename(columns={'capacidad_m3':'capacidad_disponible_m3'})
+    capacidad_disponible['capacidad_disponible_m3'] = capacidad_disponible.apply(lambda x: x['capacidad_disponible_m3'] - 40 if x['bodega'] == 'CN4' else x['capacidad_disponible_m3'], axis = 1)
+    
+    # capacidad
+    capacidad = capacidad_disponible.merge(existencias, on='bodega', how='left')
+    capacidad['utilizacion'] = capacidad['capacidad_utilizada_m3'] / capacidad['capacidad_disponible_m3']
+    capacidad['porcentaje_utilizacion'] = round(capacidad['utilizacion'] * 100, 1)
+    capacidad['capacidad_no_utilizada_m3'] = round(capacidad['capacidad_disponible_m3'] - capacidad['capacidad_utilizada_m3'], 0)
+    
+    capacidad = capacidad.sort_values(by='bodega')
+    capacidad = capacidad.to_dict('records')
+    
+    return capacidad
+
+
+def kpi_tiempo_de_almacenamiento():
+    
+    prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+    
+    existencias = pd.DataFrame(Existencias.objects.all().values(
+        'product_id',
+        'lote_id',
+        'unidades',
+        'ubicacion__bodega','ubicacion__pasillo','ubicacion__modulo','ubicacion__nivel'
+        ))
+    movimientos = pd.DataFrame(Movimiento.objects.values(
+        'product_id',
+        'lote_id',
+        #'ubicacion__bodega',
+        #'ubicacion__pasillo',
+        'fecha_hora'
+        )).sort_values(by='fecha_hora')
+    movimientos = movimientos.drop_duplicates(subset=['product_id','lote_id'], keep='first')
+    
+    df = existencias.merge(movimientos, on=['product_id','lote_id'], how='left')
+    
+    hoy = datetime.now()
+    df['hoy'] = hoy
+    df['tiempo'] =  (df['hoy'] - df['fecha_hora']) #/timedelta(days=1)
+    df['tiempo_dias'] =  (df['hoy'] - df['fecha_hora']).dt.days #/timedelta(days=1)
+    
+    df = df.sort_values(
+        by=['tiempo_dias','product_id','ubicacion__bodega','ubicacion__pasillo','ubicacion__modulo','ubicacion__nivel'], 
+        ascending=[False,True,True,True,True,True])
+    df = df.merge(prod, on='product_id', how='left')
+    
+    df = de_dataframe_a_template(df)
+    return df
+    
+
+
+
+# WMS HOME
+@login_required(login_url='login')
+def wms_home(request):
+    
+    tiempo_de_almacenamiento = kpi_tiempo_de_almacenamiento()
+    capacidad = kpi_capacidad()
+    bodegas_list = []
+    utilizacion_list = []
+    for i in capacidad:
+        bodegas_list.append(i['bodega'])
+        utilizacion_list.append(i['porcentaje_utilizacion'])
+    
+    context = {
+        'bodegas':bodegas_list,
+        'utilizacion':utilizacion_list,
+        'capacidad':capacidad,
+        'tiempo_de_almacenamiento':tiempo_de_almacenamiento
+    }
+    
+    return render(request, 'wms/home.html', context)
+
 
 # Lista de importaciones por llegar
 # url: importaciones/list
 @login_required(login_url='login')
+@permisos(['ADMINISTRADOR','OPERACIONES'], '/wms/home', 'Importaciones llegadas')
 def wms_importaciones_list(request): #OK
     """ Lista de importaciones llegadas """
 
@@ -145,10 +285,10 @@ def wms_importaciones_list(request): #OK
     return render(request, 'wms/importaciones_list.html', context)
 
 
-
 # Lista de importaciones ingresadas
 # url: importaciones/ingresadas
 @login_required(login_url='login')
+@permisos(['ADMINISTRADOR','OPERACIONES'], '/wms/home', 'Importaciones ingresadas')
 def wms_imp_ingresadas(request): #OK
     """ Lista de importaciones ingresadas """
 
@@ -175,6 +315,7 @@ def wms_imp_ingresadas(request): #OK
 # Detalle de importación
 # url: importacion/<str:o_compra>
 @login_required(login_url='login')
+@permisos(['ADMINISTRADOR','OPERACIONES'], '/wms/home', 'Detalle de importación')
 def wms_detalle_imp(request, o_compra): #OK
     """ Ver detalle de importaciones
         Seleccionar bodega
@@ -245,6 +386,7 @@ def wms_detalle_imp(request, o_compra): #OK
 
 # Lista de importaciones en transito
 @login_required(login_url='login')
+@permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'], '/wms/home', 'Importaciones en tránsito')
 def wms_importaciones_transito_list(request):
     
     imp_transito = importaciones_en_transito_odbc().drop_duplicates(subset=['CONTRATO_ID'])
@@ -263,6 +405,7 @@ def wms_importaciones_transito_list(request):
 
 # Detalle de importación en transito
 @login_required(login_url='login')
+@permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'], '/wms/home', 'Importaciones en tránsito')
 def wms_importaciones_transito_detalle(request, contrato_id):
     
     prod = productos_odbc_and_django()[['product_id','Nombre','Marca','Unidad_Empaque','UnidadesPorPallet']]
@@ -298,10 +441,10 @@ def wms_importaciones_transito_detalle(request, contrato_id):
     return render(request, 'wms/importaciones_transito_detalle.html', context)
 
 
-
 # Lista de productos de importación
 # url: importacion/bodega/<str:o_compra>
 @login_required(login_url='login')
+@permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'], '/wms/home', 'detalle de productos')
 def wms_bodega_imp(request, o_compra): #OK
     """ Detalle de la importación
         Botón para ingresar y asignar ubicación dentro de la bodega previamente selecionada
@@ -345,13 +488,13 @@ def wms_bodega_imp(request, o_compra): #OK
         'bod'  :bodega,
     }
 
-
     return render(request, 'wms/detalle_bodega.html', context)
 
 
 # Lista de bodega de inventari inicial
 # url: inventario/inicial/list_bodega
 @login_required(login_url='login')
+@permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'], '/wms/home', 'Inventario inicial')
 def wms_inventario_inicial_list_bodega(request): #OK
 
     prod = productos_odbc_and_django()[['product_id','Marca']]
@@ -370,6 +513,7 @@ def wms_inventario_inicial_list_bodega(request): #OK
 # Lista de productos de inventario inicial por bodega
 # url: inventario/inicial/<str:bodega>
 @login_required(login_url='login')
+@permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'], '/wms/home', 'Inventario inicial')
 def wms_inventario_inicial_bodega(request, bodega): #OK
 
     prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
@@ -533,7 +677,6 @@ def wms_existencias_query_product_lote(product_id, lote_id):
     return exitencias
 
 
-
 # Actualizar toda la tabla existencias
 def wms_btn_actualizar_todas_existencias(request):
     wms_existencias_query()
@@ -544,6 +687,7 @@ def wms_btn_actualizar_todas_existencias(request):
 # Inventario - Lista de productos Existencias
 # url: wms/inventario
 @login_required(login_url='login')
+@permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'], '/wms/home', 'ingrear a Inventario')
 def wms_inventario(request): #OK
     """ Inventario
         Suma de ingresos y egresos que dan el total de todo el inventario
@@ -589,41 +733,6 @@ def wms_inventario(request): #OK
     return render(request, 'wms/inventario.html', context)
 
 
-# def wms_inventario_filter(request, codigo): #OK
-#     """ Inventario
-#         Suma de ingresos y egresos que dan el total de todo el inventario
-#     """
-    
-#     prod = Existencias.objects.filter(product_id=codigo).last()
-    
-    
-#     prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
-
-#     inv = pd.DataFrame(Existencias.objects.filter(product_id=prod.id).values(
-#         'id',
-#         'product_id', 'lote_id', 'fecha_caducidad', 'unidades', 'fecha_hora',
-#         'ubicacion', 'ubicacion__bodega', 'ubicacion__pasillo', 'ubicacion__modulo', 'ubicacion__nivel',
-#         'estado'
-#     )) 
-    
-#     inv = inv.merge(prod, on='product_id', how='left')
-#     inv['fecha_caducidad'] = pd.to_datetime(inv['fecha_caducidad'])
-    
-#     # orden de inventario
-#     inv = inv.sort_values(
-#         by        = ['estado', 'product_id', 'fecha_caducidad', 'lote_id', 'ubicacion__bodega', 'ubicacion__nivel', 'unidades'],
-#         ascending = [False,    True,         True,              True,      True,                True,               True]
-#     )
-    
-#     inv['fecha_caducidad'] = inv['fecha_caducidad'].dt.strftime('%d-%m-%Y')
-#     inv = de_dataframe_a_template(inv)
-
-#     context = {
-#         'inv':inv,
-#     }
-
-#     return render(request, 'wms/inventario.html', context)
-
 
 
 """
@@ -635,6 +744,7 @@ def wms_inventario(request): #OK
 # INGRESOS DE INVENTARIO INICIAL & IMPORTACIONES
 # url: wms/ingreso/<int:int>
 @login_required(login_url='login')
+@permisos(['ADMINISTRADOR','OPERACIONES'], '/wms/home', 'de ingrear a movimiento de ingreso')
 def wms_movimientos_ingreso(request, id): #OK
     """ Esta función asigna una ubiación a los items intresados por la importación
         Esta asiganación de ubicación se permite solo dentro de la bodega preselecionada
@@ -762,6 +872,7 @@ Realizado por: {user.first_name} {user.last_name}\n
 # Movimiento interno
 # url: inventario/mov-interno-<int:id>
 @login_required(login_url='login')
+@permisos(['BODEGA'], '/wms/inventario', 'ingrear a Movimiento interno')
 def wms_movimiento_interno(request, id): #OK
 
     item = Existencias.objects.get(id=id)
@@ -857,7 +968,6 @@ def wms_movimiento_interno_get_ubi_list_ajax(request):
     return JsonResponse({'ubi_list':ubi_list}, status=200)
 
 
-
 # Si el movimiento se va a realizar dentro de bodega 6
 # disparar un modal que indique el producto que se encuntra
 # en la ubicación seleccionada y el volumen ocupado
@@ -930,11 +1040,8 @@ def comprobar_ajuste_egreso(codigo, lote, fecha_cadu, ubicacion, und_egreso): #O
 # url: inventario/mov-ajuste
 @transaction.atomic
 @login_required(login_url='login')
+@permisos(['ADMINISTRADOR','OPERACIONES'], '/wms/home', 'ingresar a Ajustes')
 def wms_movimiento_ajuste(request): #OK
-
-    # prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
-    # prod = de_dataframe_a_template(prod)
-    # ubi  = Ubicacion.objects.all()
 
     if request.method == 'POST':
         tipo = request.POST['tipo']
@@ -1256,6 +1363,7 @@ def wms_ajuste_fecha_ajax(request):
 # lista de movimientos
 # url: 'movimientos/list'
 @login_required(login_url='login')
+@permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'], '/wms/home', 'ingresar a Movimientos')
 def wms_movimientos_list(request): #OK
     """ Lista de movimientos """
 
@@ -1315,6 +1423,7 @@ def wms_movimientos_list(request): #OK
 # Lista de pedidos
 # url: picking/list
 @login_required(login_url='login')
+@permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'], '/wms/home', 'ingrear a Listado de Pedidos')
 def wms_listado_pedidos(request): #OK
     """ Listado de pedidos (picking) """
 
@@ -1340,6 +1449,7 @@ def wms_listado_pedidos(request): #OK
 # Detalle de pedido
 # url: picking/<n_pedido>
 @login_required(login_url='login')
+@permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'], '/picking/list', 'ingresar a Detalle de Pedido')
 def wms_egreso_picking(request, n_pedido): #OK
     
     estado_picking = EstadoPicking.objects.filter(n_pedido=n_pedido).exists()
@@ -1440,6 +1550,7 @@ def wms_egreso_picking(request, n_pedido): #OK
 
 
 # Estado Picking AJAX
+@permisos(['BODEGA'], '/wms/picking/list', 'cambio de estado de picking')
 def wms_estado_picking_ajax(request):
 
     contrato_id = request.POST['n_ped']
@@ -1473,10 +1584,9 @@ def wms_estado_picking_ajax(request):
 
     try:
         estado_picking.save()
-
         if estado_picking.id:
             return JsonResponse({'msg':f'✅ Estado de picking {estado_picking.estado}',
-                            'alert':'success'})
+                                'alert':'success'})
     except:
         return JsonResponse({'msg':'❌ Error, intente nuevamente !!!',
                             'alert':'danger'})
@@ -1484,6 +1594,7 @@ def wms_estado_picking_ajax(request):
 
 
 # Actualizar Estado Picking AJAX
+@permisos(['BODEGA'], '/wms/picking/list', 'cambio de estado de picking')
 def wms_estado_picking_actualizar_ajax(request):
 
     id_picking = int(request.POST['id_picking'])
@@ -1551,6 +1662,8 @@ def wms_estado_picking_actualizar_ajax(request):
 
 
 # Crear egreso en tabla movimientos
+@login_required(login_url='login')
+@permisos(['BODEGA'], '/wms/picking/list', 'retirar productos de inventario')
 def wms_movimiento_egreso_picking(request): #OK
 
     # Egreso
@@ -1619,9 +1732,8 @@ def wms_movimiento_egreso_picking(request): #OK
                 usuario_id      = request.user.id,
             )
 
-            picking.save()
-            wms_existencias_query_product_lote(product_id=prod_id, lote_id=lote_id)
-            #wms_existencias_query()
+            #picking.save()
+            #wms_existencias_query_product_lote(product_id=prod_id, lote_id=lote_id)
 
             return JsonResponse({'msg':f'✅ Producto {prod_id}, lote {lote_id} seleccionado correctamente !!!'})
         return JsonResponse({'msg':'❌ Error !!!'})
@@ -1629,6 +1741,8 @@ def wms_movimiento_egreso_picking(request): #OK
 
 
 # Eliminar movimeinto de egreso AJAX
+@login_required(login_url='login')
+@permisos(['BODEGA'], '/wms/picking/list', 'retirar productos de inventario')
 def wms_eliminar_movimiento(request): #OK
 
     mov_id = request.POST['mov']
@@ -1655,10 +1769,10 @@ def wms_reservas_lote_consulta_ajax(request):
     return HttpResponse(r_lote)
 
 
-
 # Lista de productos en despahco
 # url: picking/producto-despacho/list
 @login_required(login_url='login')
+@permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'], '/wms/home', 'ingresar a productos en despacho')
 def wms_productos_en_despacho_list(request): #OK
 
     anulados = pd.DataFrame(AnulacionPicking.objects.filter(estado=True).values(
@@ -1700,6 +1814,7 @@ def wms_productos_en_despacho_list(request): #OK
 
 # Lista de picking en despacho
 @login_required(login_url='login')
+@permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'], '/wms/home', 'ingresar a picking en despacho')
 def wms_picking_en_despacho_list(request): #OK
     
     anulados = pd.DataFrame(AnulacionPicking.objects.filter(estado=True).values(
@@ -1784,6 +1899,7 @@ def wms_armar_codigo_factura(n_factura):
 # Cruce de picking y factura
 # url: 'wms/cruce/picking/facturas'
 @login_required(login_url='login')
+@permisos(['BODEGA'], '/wms/home', 'ingresar a cruce de picking-factura')
 def wms_cruce_picking_factura(request):
 
     if request.method=="POST":
@@ -1798,7 +1914,7 @@ def wms_cruce_picking_factura(request):
     return render(request, 'wms/cruce_picking_factura.html', context)
 
 
-
+@permisos(['BODEGA'], '/wms/home/', 'ingresar a cruce de picking-factura')
 def wms_cruce_check_despacho(request):
 
     n_pick    = request.POST['n_picking']
@@ -1880,6 +1996,7 @@ def wms_revision_transferencia_ajax(request):
 
 
 @login_required(login_url='login')
+@permisos(['ADMINISTRADOR','OPERACIONES'], '/wms/home', 'ingresar a revisión de transferencia')
 def wms_revision_transferencia(request):
     return render(request, 'wms/revision_trasferencia.html', {})
 
@@ -1957,8 +2074,9 @@ def wms_transferencias_estatus_transf(n_transf):
 
 
 # Agregar transferencia para realizar picking de transferencia 
+@login_required(login_url='login')
 def wms_transferencia_input_ajax(request):
-
+    
     n_trasf = request.POST['n_trasf']
     
     trans_mba  = doc_transferencia_odbc(n_trasf)
@@ -1996,16 +2114,21 @@ def wms_transferencia_input_ajax(request):
                 avance          = 0.0
             )
 
-        messages.success(request, f'La Transferencia {n_trasf} fue añadida exitosamente !!!')
-        
-        return redirect('/wms/transferencias/list')
+        return JsonResponse({
+            'msg':f'La Transferencia {n_trasf} fue añadida exitosamente !!!',
+            'alert':'success'
+        })
 
-    elif new_transf.exists():
-        return HttpResponse(f'La Transferencia {n_trasf} ya fue añadida')
-
+    else:
+    #elif new_transf.exists():
+        return JsonResponse({
+            'msg':f'La Transferencia {n_trasf} ya fue añadida anteriormente !!!',
+            'alert':'danger'
+        })
 
 
 @login_required(login_url='login')
+@permisos(['BODEGA'], '/wms/home', 'ingresar una transferencia nueva')
 def wms_transferencias_list(request):
     
     transf_wms = pd.DataFrame(Transferencia.objects.all().values()).drop_duplicates(subset='n_transferencia')
@@ -2108,6 +2231,7 @@ def wms_transferencia_picking(request, n_transf):
 
 # Ingreso de transferencias a bodega Cerezos List
 @login_required(login_url='login')
+@permisos(['ADMINISTRADOR','OPERACIONES'], '/wms/home', 'ingresar una transferencia a Cerezos')
 def wms_transferencia_ingreso_cerezos_list(request):
     
     transf_wms = pd.DataFrame(Transferencia.objects.all().values()).drop_duplicates(subset='n_transferencia')
@@ -2127,6 +2251,7 @@ def wms_transferencia_ingreso_cerezos_list(request):
 
 
 # Detalle de transferencia de ingreso a cerezos
+@permisos(['ADMINISTRADOR','OPERACIONES'], '/wms/home', 'ingresar una transferencia a Cerezos')
 def wms_transferencia_ingreso_cerezos_detalle(request, n_transferencia):
     
     transf = pd.DataFrame(Transferencia.objects.filter(n_transferencia=n_transferencia).values())
@@ -2149,7 +2274,6 @@ def wms_transferencia_ingreso_cerezos_detalle(request, n_transferencia):
         'estado':estado
     }
     return render(request, 'wms/transferencia_ingreso_cerezos_detalle.html', context)
-
 
 
 def wms_transferencia_ingreso_cerezos_input_ajax(request):
@@ -2263,7 +2387,6 @@ def wms_transferencia_ingreso_cerezos_liberacion_ajax(request):
                 'texto':'Error !!!'
             }
         })
-
 
 
 # Crear egreso en tabla movimientos
@@ -2539,6 +2662,8 @@ def wms_liberacion_cuarentena(existencia,n_referencia,user,cantidad):
 
 
 # Reporte de reposición
+@login_required(login_url='login')
+@permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'],'/wms/home', 'ingresar a reporte repocición')
 def wms_resposicion_rm(request):
 
     try:
@@ -2676,6 +2801,8 @@ def wms_nota_entrega_input_ajax(request):
 
 
 # Lisata de Notas de entrega 
+@login_required(login_url='login')
+@permisos(['BODEGA'], '/wms/home', 'ingresar notas de entrega')
 def wms_nota_entrega_list(request):
     
     ne_list = pd.DataFrame(NotaEntrega.objects.all().values()).drop_duplicates(subset='doc_id', keep='last')
@@ -2730,6 +2857,7 @@ def wms_nota_entrega_estatus(nota_entrega):
     
 # Picking de nota de entrega
 @login_required(login_url='login')
+@permisos(['BODEGA'], '/wms/home', 'ingresar nota de entrega')
 def wms_nota_entrega_picking(request, n_entrega):
     
     estado = NotaEntregaStatus.objects.get(nota_entrega=n_entrega)
@@ -2878,6 +3006,8 @@ def wms_movimiento_egreso_nota_entrega(request): #OK
 
 
 ## Anulación picking
+@login_required(login_url='login')
+@permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'],'/wms/home', 'ingresar a anulación de picking')
 def wms_anulacion_picking_list(request):
     
     anuladas = AnulacionPicking.objects.all().order_by('-fecha_hora')
@@ -2912,6 +3042,8 @@ def wms_anulacion_picking_list(request):
 
 
 # Anulación de picking detalle
+@login_required(login_url='login')
+@permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'],'/wms/home', 'ingresar a anulación de picking')
 def wms_anulacion_picking_detalle(request, id_anulacion):
     
     prod      = productos_odbc_and_django()[['product_id','Nombre','Marca']]
@@ -2940,7 +3072,6 @@ def wms_anulacion_picking_detalle(request, id_anulacion):
     }
 
     return render(request, 'wms/anulacion_picking_detalle.html', context)
-
 
 
 ## Anulación picking
@@ -2975,7 +3106,8 @@ def wms_anulacion_picking_ajax(request):
 
 
 ### Ajuste Liberación ERIK
-# @permisos('Trazabilidad', '/')
+@login_required(login_url='login')
+@permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'],'/wms/home', 'ingresar a ajuste liberaciones')
 def wms_ajuste_liberacion_list(request):
     
     ajuste_liberacion = pd.DataFrame(AjusteLiberacion.objects.all().values().order_by('-doc_id')).drop_duplicates(subset=['doc_id'])
@@ -2986,7 +3118,6 @@ def wms_ajuste_liberacion_list(request):
         }
     
     return render(request, 'wms/ajuste_liberacion_list.html', context)
-
 
 
 def wms_ajuste_liberacion_input_ajax(request):
@@ -3137,6 +3268,8 @@ def wms_ajuste_liberacion_detalle(request, n_liberacion):
 
 
 ### Regresar productos en despacho al inventario
+@login_required(login_url='login')
+@permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'],'/wms/home', 'ingresar a retiro de productos en despacho')
 def wms_retiro_producto_despacho(request):
 
     if request.method == 'POST':
@@ -3168,7 +3301,6 @@ def wms_retiro_producto_despacho(request):
                     messages.error(request, f"El Picking {request.POST['n_picking']} su esta es {estado}")
     
     return render(request, 'wms/retiro_producto_despacho_list.html', {})
-
 
 
 def wms_retiro_producto_despacho_ajax(request):

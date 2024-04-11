@@ -364,11 +364,7 @@
             )
 
             $("#reservas_table").css("font-size", "smaller")
-            //$("#reservas_table tbody tr td:eq(-1)").addClass("text-end")
-            //$("#reservas_table tbody tr").each(function(){
-            //    $(this).find("td:eq(-1)").addClass("text-end")
-            //}),
-        
+
             },
             
             error: function() {
@@ -400,10 +396,13 @@
 
             success: function(response) {
             
-            $('#msg').html(`<div class="text-center alert alert-${response.alert}" role="alert"> ${response.msg} </div>`)
-                setTimeout(function(){
+            if (response.msg) {
+                $('#msg').html(`<div class="text-center alert alert-${response.alert}" role="alert"> ${response.msg} </div>`)
+            }
+            
+            setTimeout(function(){
                 window.location.reload();
-                }, 2000)
+            }, 1000)
         
             },
             
@@ -435,10 +434,13 @@
 
             success: function(response) {
             
-            $('#msg').html(`<div class="text-center alert alert-${response.alert}" role="alert"> ${response.msg} </div>`)
-                setTimeout(function(){
+            if (response.msg) {
+                $('#msg').html(`<div class="text-center alert alert-${response.alert}" role="alert"> ${response.msg} </div>`)
+            }
+            
+            setTimeout(function(){
                 window.location.reload();
-                }, 2000)
+            }, 2000)
         
             },
             

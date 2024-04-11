@@ -1,0 +1,245 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>WMS Home</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'wms/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+
+<style>
+    
+    thead {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background-color: #ffffff;
+    }
+    
+    .table-responsive-tiempo-almacenamiento {
+        height: 506px;
+        overflow-y: scroll;
+    }
+</style>
+
+
+<h5 class="m-4 text-center fw-bold">WMS</h5>
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
+<h6 class="m-4 text-center">KPI(s) - WMS</h6>
+
+<!--
+<div class="row">
+    {% for i in capacidad %}
+    <div class="col mb-3">
+        <div class="card">
+            <h6 class="card-header text-center">Utilización de bodega {{i.bodega}}</h6>
+            <div class="card-body">
+                {{i.capacidad_disponible_m3}}<br>
+                {{i.capacidad_utilizada_m3}}<br>
+                {{i.utilizacion}}<br>
+                {{i.porcentaje_utilizacion}}
+                <canvas id="myChart1"></canvas>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+-->
+
+<div class="row">
+    <div class="col mb-6">
+        <div class="card mb-2">
+            <h6 class="card-header text-center fw-bold">Ocupación de bodegas</h6>
+            <div class="card-body">
+                <canvas id="OcupacionBodegaChart"></canvas><br>
+                <table class="table mb-0 pb-0" style="font-size: small;">
+                    <thead>
+                        <tr>
+                            <th>Bodega</th>
+                            <th class="text-end">Total</th>
+                            <th class="text-end">Utilizada</th>
+                            <th class="text-end">Disponible</th>
+                            <th class="text-end">% Ocupación</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for i in capacidad %}
+                        <tr>
+                            <td>{{i.bodega}}</td>
+                            <td class="text-end">{{i.capacidad_disponible_m3}} m<sup>3</sup></td>
+                            <td class="text-end">{{i.capacidad_utilizada_m3}} m<sup>3</sup></td>
+                            <td class="text-end">{{i.capacidad_no_utilizada_m3}} m<sup>3</sup></td>
+                            <td class="text-end">{{i.porcentaje_utilizacion}}%</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col mb-6">
+        <div class="card">
+            <h6 class="card-header text-center fw-bold">Tiempo de almacenamiento</h6>
+            <div class="card-body">
+                <div class="table-responsive-tiempo-almacenamiento">
+                    <table class="table" style="font-size: small;">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Nombre</th>
+                                <th>Lote</th>
+                                <!--th class="text-end">Unidades</th-->
+                                <th>Ubicación</th>
+                                <th class="text-end">Tiempo</th>
+                            </tr>
+                        </thead>
+                        <tbody >
+                            {% for i in tiempo_de_almacenamiento %}
+                            <tr>
+                                <td>{{i.product_id}}</td>
+                                <td>{{i.Nombre}}</td>
+                                <td>{{i.lote_id}}</td>
+                                <!--td class="text-end">{{i.unidades}}</td-->
+                                <td>{{i.ubicacion__bodega}}-{{i.ubicacion__pasillo}}-{{i.ubicacion__modulo}}-{{i.ubicacion__nivel}}</td>
+                                <td class="text-end">{{i.tiempo_dias}} días</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    const ctx = document.getElementById('OcupacionBodegaChart').getContext('2d');
+    const myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+        //labels: ['Valor 1', 'Valor 2', 'Valor 3', 'Valor 4'],
+        labels: {% autoescape off %}{{bodegas|safe}}{% endautoescape %},
+        datasets: [
+            {
+            //label: 'Valor',
+            data: {% autoescape off %}{{utilizacion|safe}}{% endautoescape %},
+            //data: [75, 25, 50, 90],
+            backgroundColor: [
+                //'rgba(255, 99, 132, 1)',
+                //'rgba(54, 162, 235, 1)',
+                //'rgba(255, 206, 86, 1)',
+                //'rgba(75, 192, 192, 1)'
+                '#BAF690'
+            ],
+            //borderColor: 'rgba(0, 0, 0, 1)',
+            //borderWidth: 1,
+            borderRadius: 10,
+            barPercentage: 0.9,
+            categoryPercentage: 0.8
+            },
+            {
+            //label: 'Fondo',
+            data: [100, 100, 100, 100],
+            //backgroundColor: 'rgba(128, 128, 128, 0.5)',
+            //borderColor: 'rgba(128, 128, 128, 1)',
+            //borderWidth: 1,
+            borderRadius: 10,
+            barPercentage: 0.9,
+            categoryPercentage: 0.8
+            }
+        ]
+        },
+        options: {
+            plugins:{
+                legend:{display: false},
+                //tooltip:{enabled:false},
+            },
+            indexAxis: 'y',
+            scales: {
+                x: {
+                    stacked: true,
+                    max: 100,
+                    //ticks:{display:false}
+                    },
+                y: {
+                    stacked: true,
+                    //ticks:{display:false}
+                    }
+                }
+            },
+    });
+</script>
+<!--
+Grafico de velocimetro
+<script>
+    const gris = '#DDDDDD'
+    const verde = '#BAF690'
+    const amarillo = '#F6F490'
+    const rojo = '#F6B690'  
+
+    const ctx = document.getElementById('myChart').getContext('2d');
+
+    var myChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            //labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+            datasets: [{
+                //label: '# of Votes',
+                //data: [70, 30],
+                data: [{{capacidad.capacidad_utilizada_m3}}, {{capacidad.capacidad_no_utilizada_m3}}],
+                borderWidth: 1,
+                //backgroundColor :[verde,gris],
+                hoverOffset:4,
+                }]
+            },
+        options: {
+            cutout:'60%',
+            rotation:270,
+            circumference:180,
+            plugins:{
+                legend:{display: false},
+                tooltip:{enabled:false},
+            },
+            layout:{padding:16}
+        },
+        plugins:[{
+            beforeDraw: function(chart){
+                var width = chart.width,
+                    height = chart.height,
+                    ctx = chart.ctx;
+                ctx.restore();
+                const fontSize = (height/124).toFixed(2);
+                ctx.font = fontSize + "em sans-serif";
+                ctx.textBaseline = "middle";
+                //const text = "70%",
+                const text = "{{capacidad.porcentaje_utilizacion}}%",
+                    textX = Math.round((width-ctx.measureText(text).width)/2),
+                    textY = height/1.5;
+                ctx.fillText(text, textX, textY);
+                ctx.save();
+            }
+        }]
+    });
+
+</script>
+-->
+{% endblock %}

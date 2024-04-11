@@ -1229,7 +1229,7 @@ def add_obs2_ajax(request):
 
 
         
-@permisos('Trazabilidad', '/inventario/bodegas')
+@permisos('TRAZABILIDAD', '/inventario/bodegas', 'Trazabilidad')
 def trazabilidad(request):
     
     try:
