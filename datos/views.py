@@ -1682,15 +1682,15 @@ def actualizar_imp_llegadas_odbc(request):
         "INVT_Lotes_Trasabilidad.AVAILABLE, INVT_Lotes_Trasabilidad.EGRESO_TEMP, INVT_Lotes_Trasabilidad.OH, INVT_Lotes_Trasabilidad.WARE_COD_CORP, CLNT_Pedidos_Principal.MEMO "
         "FROM INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad "
         "LEFT JOIN CLNT_Pedidos_Principal ON INVT_Lotes_Trasabilidad.DOC_ID_CORP = CLNT_Pedidos_Principal.CONTRATO_ID_CORP "
-        # "WHERE (INVT_Lotes_Trasabilidad.ENTRADA_TIPO='OC') AND (INVT_Lotes_Trasabilidad.ENTRADA_FECHA>'01/01/2023') AND (INVT_Lotes_Trasabilidad.Tipo_Movimiento='RP')"
-        f"WHERE (INVT_Lotes_Trasabilidad.ENTRADA_TIPO='OC') AND (INVT_Lotes_Trasabilidad.ENTRADA_FECHA>'01/01/{anio}') AND (INVT_Lotes_Trasabilidad.Tipo_Movimiento='RP')"
+        "WHERE (INVT_Lotes_Trasabilidad.ENTRADA_TIPO='OC') AND (INVT_Lotes_Trasabilidad.ENTRADA_FECHA>'01/01/2021') AND (INVT_Lotes_Trasabilidad.Tipo_Movimiento='RP')"
+        #f"WHERE (INVT_Lotes_Trasabilidad.ENTRADA_TIPO='OC') AND (INVT_Lotes_Trasabilidad.ENTRADA_FECHA>'01/01/{anio}') AND (INVT_Lotes_Trasabilidad.Tipo_Movimiento='RP')"
     )
     llegada = cursorOdbc.fetchall()
     #llegada = [list(rows) for rows in llegada]
     
     # delete_sql = "DELETE FROM imp_llegadas WHERE ENTRADA_FECHA LIKE '%2023%' OR ENTRADA_FECHA LIKE '%2024%'"
-    delete_sql = f"DELETE FROM imp_llegadas WHERE ENTRADA_FECHA LIKE '{anio_sql}'"
-    #delete_sql = "DELETE FROM imp_llegadas"
+    # delete_sql = f"DELETE FROM imp_llegadas WHERE ENTRADA_FECHA LIKE '{anio_sql}'"
+    delete_sql = "DELETE FROM imp_llegadas"
     mycursorMysql.execute(delete_sql)
     #mydb.commit()
     print("Sucessful Deleted importaciones arrived")

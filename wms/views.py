@@ -1754,7 +1754,6 @@ def wms_eliminar_movimiento(request): #OK
     mov.delete()
 
     wms_existencias_query_product_lote(product_id=m.product_id, lote_id=m.lote_id)
-    #wms_existencias_query()
 
     return JsonResponse({'msg':'Egreso eliminado ✔!!!'})
 

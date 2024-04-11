@@ -166,82 +166,51 @@ def importaciones_transito(): #request
     return imp
 
 
+
+# DATOS DE COMPRAS
+def importaciones_compras_df():
+    
+    imp_llegadas = importaciones_llegadas_odbc()
+    prod = productos_odbc_and_django()[['product_id','Nombre','marca2','Marca','Unidad_Empaque','Procedencia']]
+    
+    imp_llegadas = imp_llegadas.drop_duplicates(subset='DOC_ID_CORP')
+    imp_llegadas['ENTRADA_FECHA'] = pd.to_datetime(imp_llegadas['ENTRADA_FECHA']).dt.strftime('%Y-%m-%d')
+    imp_llegadas = imp_llegadas.sort_values(by='ENTRADA_FECHA', ascending=False)
+    imp_llegadas['ENTRADA_FECHA'] = imp_llegadas['ENTRADA_FECHA'].astype('str')
+    
+    imp_llegadas = imp_llegadas.merge(prod, on='product_id', how='left')
+    imp_llegadas['Procedencia'] = imp_llegadas['Procedencia'].astype('str')
+    
+    imp_llegadas['CARTONES'] = imp_llegadas['OH'] / imp_llegadas['Unidad_Empaque']
+    
+    return imp_llegadas
+    
+
 # Muestreos Importaciones
 @login_required(login_url='login')
 def importaciones(request):
 
-    imp = importaciones_transito()
-    # imp_llegadas = importaciones_llegadas_odbc()
-    # print(imp)
-    # print(imp_llegadas)
+    imp = importaciones_compras_df()
     
-    actualizado = pd.DataFrame(TimeStamp.objects.all().values())
-    actualizado = list(actualizado['actulization_importaciones'])
-    act = []
-    for i in actualizado:
-        if i != '':
-            act.append(i)
-
-    actualizado = act[-1]
-
-    imp = imp.drop_duplicates(subset='MEMO')
-    imp['FECHA_ENTREGA'] = pd.to_datetime(imp['FECHA_ENTREGA'])
-    imp['FECHA_ENTREGA'] = imp['FECHA_ENTREGA'].astype(str)
-    imp = imp.sort_values(by='FECHA_ENTREGA', ascending=False)
+    filtro_1 = imp['Procedencia'].str.contains('NACIONAL')
+    filtro_2 = imp['Procedencia'].str.contains('Nacional')
     
-    json_records = imp.reset_index().to_json(orient='records')
-    imp = json.loads(json_records)
-
+    imp = imp[~filtro_1]
+    imp = imp[~filtro_2]
+    
+    imp_llegadas = de_dataframe_a_template(imp)
+    
     context = {
-        'imp':imp,
-        'actualizado':actualizado
+        'imp':imp_llegadas,
     }
-
-    if request.method == 'POST':
-        main_importaciones()
-        
-        actualizado = str(datetime.now())
-        TimeStamp.objects.create(actulization_importaciones=actualizado)
-
-        context = {
-            'imp':imp,
-            'actualizado':actualizado
-        }
 
     return render(request, 'bpa/muestreos/lista_importaciones.html', context)
 
 
-def nacionales_odbc():
-    # nacionales_list = ['SARALEJ','NILOTEX','NACIONAL','ATRAS','CARICIA']
-    nac = importaciones_llegadas_odbc()
-    prod = productos_odbc_and_django()[['product_id','Nombre','marca2','Marca','Unidad_Empaque','Procedencia']] #'unidad_empaque'
-    
-    nac = nac.merge(prod, on='product_id', how='left')
-    nac = nac[(nac['Procedencia'].str.contains('NACIONAL')) | (nac['Procedencia'].str.contains('Nacional'))]
-    
-    #nac = nac[nac.marca2.isin(nacionales_list)]
-    #nac = nac.pivot_table(index=['product_id','Nombre','marca2','ENTRADA_FECHA','DOC_ID_CORP','MEMO'], values=['OH'], aggfunc='sum').reset_index()
-    
-    nac['ENTRADA_FECHA'] = pd.to_datetime(nac['ENTRADA_FECHA'])
-    nac = nac.sort_values(by='ENTRADA_FECHA', ascending=False)
-    nac['ENTRADA_FECHA'] = nac['ENTRADA_FECHA'].astype(str)
-
-    nac = nac.rename(columns={
-        'marca2':'VENDOR_NAME',
-        'product_id':'PRODUCT_ID',
-        'OH':'QUANTITY',
-        'ENTRADA_FECHA':'FECHA_ENTREGA',
-        #'DOC_ID_CORP':'MEMO',
-
-    })
-
-    return nac
-
-
 def nacionales(request):
     
-    nac = nacionales_odbc()
-    # nac = nac.drop_duplicates(subset=['MEMO'])
+    nac = importaciones_compras_df()    
+    nac = nac[(nac['Procedencia'].str.contains('NACIONAL')) | (nac['Procedencia'].str.contains('Nacional'))]
     nac = nac.drop_duplicates(subset=['DOC_ID_CORP'])
     nac = de_dataframe_a_template(nac)
 
@@ -351,25 +320,34 @@ def muestreo(data, und):
 @login_required(login_url='login')
 def muestreo_unidades(request, memo):
 
-    n = nacionales_odbc()
-    data = importaciones_transito()
+    #n = nacionales_odbc()
+    #data = importaciones_transito()
+    data = importaciones_compras_df()
     
-    data = pd.concat([data, n])
+    #data = pd.concat([data, n])
 
-    data = data[data['MEMO']==memo]
+    #data = data[data['MEMO']==memo]
+    data = data[data['DOC_ID_CORP']==memo].fillna('')
+    print(data[['Marca','marca2']])
+    #imp = muestreo(data, 'QUANTITY')
+    imp = muestreo(data, 'OH')
+    #imp = imp.sort_values(by='PRODUCT_ID')
+    imp = imp.sort_values(by='product_id')
 
-    imp = muestreo(data, 'QUANTITY')
-    imp = imp.sort_values(by='PRODUCT_ID')
-
-    proveedor = imp['VENDOR_NAME'].iloc[0]
+    #proveedor = imp['VENDOR_NAME'].iloc[0]
+    proveedor = imp['marca2'].iloc[0]
+    proveedor2 = imp['Marca'].iloc[0]
     n_imp = imp['MEMO'].iloc[0]
+    n_doc = imp['DOC_ID_CORP'].iloc[0]
     
     imp = de_dataframe_a_template(imp)
 
     context = {
         'imp':imp,
         'proveedor':proveedor,
+        'proveedor2':proveedor2,
         'n_imp':n_imp,
+        'n_doc':n_doc
     }
 
     return render(request, 'bpa/muestreos/muestreo_imp_unidades.html', context)
@@ -379,22 +357,28 @@ def muestreo_unidades(request, memo):
 @login_required(login_url='login')
 def muestreo_cartones(request, memo):
 
-    data = importaciones_transito()
-    data = data[data['MEMO']==memo]   
+    # data = importaciones_transito()
+    data = importaciones_compras_df()
+    # data = data[data['MEMO']==memo]
+    data = data[data['DOC_ID_CORP']==memo].fillna('')
     
     imp = muestreo(data, 'CARTONES')
-    imp = imp.sort_values(by='PRODUCT_ID')
+    imp = imp.sort_values(by='product_id')
 
-    proveedor = imp['VENDOR_NAME'].iloc[0]
+    #proveedor = imp['VENDOR_NAME'].iloc[0]
+    proveedor = imp['marca2'].iloc[0]
+    proveedor2 = imp['Marca'].iloc[0]
     n_imp = imp['MEMO'].iloc[0]
+    n_doc = imp['DOC_ID_CORP'].iloc[0]
     
     imp = de_dataframe_a_template(imp)
     
     context = {
         'imp':imp,
-
         'proveedor':proveedor,
+        'proveedor2':proveedor2,
         'n_imp':n_imp,
+        'n_doc':n_doc
     }
 
     return render(request, 'bpa/muestreos/muestreo_imp_cartones.html', context)
@@ -404,9 +388,9 @@ def muestreo_cartones(request, memo):
 @login_required(login_url='login')
 def revision_tecnica(request, memo):
 
-    n = nacionales_odbc()
+    #n = nacionales_odbc()
     data = importaciones_transito()
-    data = pd.concat([data,n])
+    #data = pd.concat([data,n])
 
     data = data[data['MEMO']==memo]   
     

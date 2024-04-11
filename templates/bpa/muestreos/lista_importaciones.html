@@ -10,14 +10,14 @@
 
 {% block body %}
 <h5 class="m-4 text-center"><strong>LISTADO DE IMPORTACIONES</strong></h5>
-<h6 class="m-4 text-end"><strong>Actulizado: </strong>{{actualizado|slice:':-7'}}</h6>
+<!--h6 class="m-4 text-end"><strong>Actulizado: </strong>{{actualizado|slice:':-7'}}</h6-->
 
-<form method="POST">
+<!--form method="POST">
     {% csrf_token %} 
     <button type="submit" class="btn btn-primary mb-2">
         <i class="bi bi-arrow-clockwise"></i> Actulizar Tabla
     </button>
-</form>
+</form-->
 
 <div class="col-4">
     <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
@@ -30,8 +30,11 @@
                 <thead>
                     <tr>
                         <th scope="col">Proveedor</th>
-                        <th scope="col">Fecha de entrega</th>
+                        <th scope="col">Código proveedor</th>
+                        <!--th scope="col">Fecha de entrega</th-->
+                        <th scope="col">Fecha de llegada</th>
                         <th scope="col">Memo</th>
+                        <th scope="col">Orden de compra</th>
                         <th scope="col">M. Unidades.</th>
                         <th scope="col">M. Cartones.</th>
                         <th scope="col">R. Técnica.</th>
@@ -40,29 +43,36 @@
                 <tbody id="pedidosbuscar">
                     {% for i in imp %}
                     <tr>
-                        <td>{{i.VENDOR_NAME}}</td>
-                        <td>{{i.FECHA_ENTREGA}}</td>
-                        <td>{{i.MEMO}}</td>
+                        <!--td>{{i.VENDOR_NAME}}</td-->
+                        <td>{{i.marca2|default:"-"}}</td>
+                        <td>{{i.Marca}}</td>
+                        <!--td>{{i.FECHA_ENTREGA}}</td-->
+                        <td>{{i.ENTRADA_FECHA}}</td>
+                        <td>{{i.MEMO|default:"-"}}</td>
+                        <td>{{i.DOC_ID_CORP}}</td>
                         <td>
-                            {% if i.MEMO %}
-                            <a class="btn btn-primary btn-sm" href="{% url 'muestreos_imp_unidades' i.MEMO %}" target="_blank">
+                            {#% if i.MEMO %#}
+                            <!--a class="btn btn-primary btn-sm" href="{#% url 'muestreos_imp_unidades' i.MEMO %#}" target="_blank"-->
+                            <a class="btn btn-primary btn-sm" href="{% url 'muestreos_imp_unidades' i.DOC_ID_CORP %}" target="_blank">
                                 <i class="bi bi-box"></i>
                             </a>
-                            {% endif %}
+                            {#% endif %#}
                         </td>
                         <td>
-                            {% if i.MEMO %}
-                            <a class="btn btn-primary btn-sm" href="{% url 'muestreos_imp_cartones' i.MEMO %}" target="_blank">
+                            {#% if i.MEMO %#}
+                            <!--a class="btn btn-primary btn-sm" href="{#% url 'muestreos_imp_cartones' i.MEMO %#}" target="_blank"-->
+                            <a class="btn btn-primary btn-sm" href="{% url 'muestreos_imp_cartones' i.DOC_ID_CORP %}" target="_blank">
                                 <i class="bi bi-boxes"></i>
                             </a>
-                            {% endif %}
+                            {#% endif %#}
                         </td>
                         <td>
-                            {% if i.MEMO %}
-                            <a class="btn btn-primary btn-sm" href="{% url 'revision_tencnica' i.MEMO %}" target="_blank">
+                            {#% if i.MEMO %#}
+                            <!--a class="btn btn-primary btn-sm" href="{#% url 'revision_tencnica' i.MEMO %#}" target="_blank"-->
+                            <a class="btn btn-primary btn-sm" href="{% url 'revision_tencnica' i.DOC_ID_CORP %}" target="_blank">
                                 <i class="bi bi-list-check"></i>
                             </a>
-                            {% endif %}
+                            {#% endif %#}
                         </td>
                     </tr>
                     {% endfor %}

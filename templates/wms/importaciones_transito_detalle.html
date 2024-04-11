@@ -29,10 +29,6 @@
 
 <div id="msg"></div>
 
-<!-- button class="btn btn-primary mb-2" name="actualizar">
-    <i class="bi bi-arrow-clockwise"></i> Actualizar
-</button-->
-
 <div class="col-12">
     <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
 </div>
@@ -91,34 +87,4 @@
     });
 </script>
 
-
-<script>
-    $("button[name='actualizar']").click(function() {
-        
-        $.ajax({
-            type: "POST",
-            url : "{#% url 'actualizar_imp_llegadas_odbc' %#}",
-            data : {"csrfmiddlewaretoken": "{{csrf_token}}"},
-
-            success: function() {
-                
-                $('#msg').html('<div class="text-center alert alert-success" role="alert"> Tabla actualizada con exito !!! </div>');
-                // var sp = document.getElementById("spinner").style.display = "block";
-                setTimeout(function(){
-                    window.location.reload();
-                }, 2000)
-                
-            },
-
-            error: function() {
-                $('#msg').html(`<div class="text-center alert alert-danger" role="alert"> Error vuelva a intentar !!! </div>`)
-                //setTimeout(function(){
-                //    window.location.reload();
-                //}, 2000)
-            }
-
-        })
-
-    })
-</script>
 {% endblock %}
