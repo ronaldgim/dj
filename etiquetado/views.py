@@ -115,6 +115,10 @@ from datos.views import (
     email_cliente_por_codigo,
     
     actualizar_facturas_odbc,
+    
+    # Proformas
+    lista_proformas_odbc,
+    proformas_por_contrato_id_odbc
     )
 
 
@@ -3002,10 +3006,10 @@ def set_estado_etiquetado_stock(request):
 
 def actualizar_facturas_ajax(request):
     
-    #update = actualizar_facturas_odbc()
-    import time
-    time.sleep(3)
-    update = 'ok'
+    update = actualizar_facturas_odbc()
+    #import time
+    #time.sleep(3)
+    #update = 'ok'
     
     if update == 'ok':
     
@@ -3020,6 +3024,81 @@ def actualizar_facturas_ajax(request):
             'msg':'Error en actualización'
         })
     
+# Listado de proformas
+def listado_proformas(request):
     
+    proformas = lista_proformas_odbc()
+    proformas = proformas.drop_duplicates(subset=['contrato_id'])
+    proformas['fecha_pedido'] = pd.to_datetime(proformas['fecha_pedido']).dt.strftime("%Y-%m-%d")
+    proformas = proformas.sort_values(by='fecha_pedido', ascending=False)
+    proformas = de_dataframe_a_template(proformas)
+    
+    context = {
+        'proformas':proformas
+    }
+
+    return render(request, 'etiquetado/proformas/listado.html', context)
 
 
+
+# Detalle de proforma
+def detalle_proforma(request, contrato_id):
+    
+    prod = productos_odbc_and_django()[['product_id','Nombre','Marca','Unidad_Empaque','Volumen','Peso','t_etiq_1p','t_etiq_2p','t_etiq_3p']]
+    proforma = proformas_por_contrato_id_odbc(contrato_id)
+    proforma = proforma[proforma['product_id']!='MANTEN']
+    
+    proforma = proforma.merge(prod, on='product_id', how='left')
+    
+    # Calculos
+    proforma['cartones'] = proforma['quantity'] / proforma['Unidad_Empaque']
+    proforma = proforma.fillna(0.0).replace(np.inf, 0.0)
+    proforma['volumen'] = proforma['cartones'] * (proforma['Volumen']/1000000)
+    proforma['peso'] = proforma['cartones'] * proforma['Peso']
+    
+    # Tiempos
+    proforma['t_1p'] = (proforma['cartones'] * proforma['t_etiq_1p']).round(0)
+    proforma['t_2p'] = (proforma['cartones'] * proforma['t_etiq_2p']).round(0)
+    proforma['t_3p'] = (proforma['cartones'] * proforma['t_etiq_3p']).round(0)
+    
+    proforma['t_1p_str'] = [str(timedelta(seconds=(i))) for i in proforma['t_1p']]
+    proforma['t_2p_str'] = [str(timedelta(seconds=(i))) for i in proforma['t_2p']]
+    proforma['t_3p_str'] = [str(timedelta(seconds=(i))) for i in proforma['t_3p']]
+    
+    # Totales
+    t_unidades = proforma['quantity'].sum()
+    t_cartones = proforma['cartones'].sum()
+    t_1p = str(timedelta(seconds=int(proforma['t_1p'].sum())))
+    t_2p = str(timedelta(seconds=int(proforma['t_2p'].sum())))
+    t_3p = str(timedelta(seconds=int(proforma['t_3p'].sum())))
+    t_volumen = proforma['volumen'].sum()
+    t_peso = proforma['peso'].sum()
+    
+    # Cabecera
+    cliente = proforma['nombre_cliente'].iloc[0]
+    fecha_proforma = proforma['fecha_pedido'].iloc[0]
+    
+    # Cero en peso
+    p_cero = 0 in list(proforma['peso'])
+    proforma = de_dataframe_a_template(proforma)
+    
+    context = {
+        'proforma':proforma,
+        
+        # totales
+        't_unidades':t_unidades,
+        't_cartones':t_cartones,
+        't_1p':t_1p,
+        't_2p':t_2p,
+        't_3p':t_3p,
+        't_volumen':t_volumen,
+        't_peso':t_peso,
+        
+        # cabecera
+        'contrato_id':contrato_id,
+        'cliente':cliente,
+        'fecha_proforma':fecha_proforma,
+        'p_cero':p_cero
+    }
+    
+    return render(request, 'etiquetado/proformas/proforma.html', context)

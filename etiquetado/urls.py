@@ -304,4 +304,18 @@ urlpatterns = [
         view  = views.actualizar_facturas_ajax,
         name  = 'actualizar_facturas_ajax'
     ),
+    
+    # Listado de proformas
+    path(
+        route = 'proformas/list',
+        view  = views.listado_proformas,
+        name  = 'listado_proformas'
+    ),
+    
+    # Detalle de proforma
+    path(
+        route = 'proforma/<str:contrato_id>',
+        view  = views.detalle_proforma,
+        name  = 'detalle_proforma'
+    ),
 ]
