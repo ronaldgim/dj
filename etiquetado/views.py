@@ -2977,7 +2977,6 @@ def etiquetado_stock_detalle(request, product_id):
     
 
 ### INSTRUCTIVO ETIQUETADO
-
 def list_instructo_etiquetado(request):
     
     inst = InstructivoEtiquetado.objects.all().order_by('producto__product_id')
@@ -3024,6 +3023,7 @@ def actualizar_facturas_ajax(request):
             'msg':'Error en actualización'
         })
     
+
 # Listado de proformas
 def listado_proformas(request):
     
@@ -3040,10 +3040,10 @@ def listado_proformas(request):
     return render(request, 'etiquetado/proformas/listado.html', context)
 
 
-
 # Detalle de proforma
 def detalle_proforma(request, contrato_id):
     
+    vehiculo = Vehiculos.objects.filter(activo=True).order_by('transportista')
     prod = productos_odbc_and_django()[['product_id','Nombre','Marca','Unidad_Empaque','Volumen','Peso','t_etiq_1p','t_etiq_2p','t_etiq_3p']]
     proforma = proformas_por_contrato_id_odbc(contrato_id)
     proforma = proforma[proforma['product_id']!='MANTEN']
@@ -3098,7 +3098,10 @@ def detalle_proforma(request, contrato_id):
         'contrato_id':contrato_id,
         'cliente':cliente,
         'fecha_proforma':fecha_proforma,
-        'p_cero':p_cero
+        'p_cero':p_cero,
+        
+        # Vehiculos
+        'vehiculos':vehiculo,
     }
     
     return render(request, 'etiquetado/proformas/proforma.html', context)
