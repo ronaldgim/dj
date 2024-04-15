@@ -87,5 +87,12 @@ urlpatterns = [
         view=views.wms_datos_nota_entrega,
         name='wms_datos_nota_entrega',   
     ),
+    
+    # Actualizar proformas ajax
+    path(
+        route='actualizar_proformas_ajax',
+        view=views.actualizar_proformas_ajax,
+        name='actualizar_proformas_ajax',
+    ),
 
 ]
