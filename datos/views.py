@@ -2359,3 +2359,25 @@ def email_cliente_por_codigo(codigo_cliente):
             email = None
         
         return email
+    
+# Obtener todas las proformas
+def lista_proformas_odbc():
+    
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute("SELECT * FROM proformas")
+        columns = [col[0] for col in cursor.description]
+        proformas = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        proformas = pd.DataFrame(proformas)
+        
+    return proformas
+
+# Obtener una proforma por contrato_id
+def proformas_por_contrato_id_odbc(contrato_id):
+    
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute(f"SELECT * FROM proformas WHERE contrato_id = '{contrato_id}'")
+        columns = [col[0] for col in cursor.description]
+        proformas = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        proformas = pd.DataFrame(proformas)
+        
+    return proformas
