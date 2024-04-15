@@ -2433,7 +2433,9 @@ def actualizar_proformas_ajax(request):
             'msg': f'Error {e} !!!'
             })
         
-    #finally:
+    finally:
+        cnx_db_warehouse.close()
+        cursor_odbc_mba.close()
     
     
 
