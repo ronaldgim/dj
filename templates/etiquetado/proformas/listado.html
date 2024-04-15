@@ -9,9 +9,13 @@
 {% endblock %}
 
 {% block body %}
-<h5 class="m-4 text-center"><strong>LISTADO DE PEDIDOS</strong></h5>
+<h5 class="m-4 text-center"><strong>LISTADO DE PROFORMAS</strong></h5>
 
-<!--h6 class="m-4 text-end"><strong>Actulizado: </strong>{{time_reservas}}</h6-->
+<div id="msg"></div>
+
+<button class="btn btn-primary mt-2 mb-2" name="actualizar_proformas">
+    <i class="bi bi-arrow-clockwise"></i> Actualizar
+</button>
 
 <div class="col-4">
     <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
@@ -69,71 +73,27 @@
     });
 </script>
 
-<!-- Filtro de columna -->
 <script>
-    $('.filter').change(function(){
-        filter_function(); //calling filter function each select box value change
-    });
-      
-    $('table tbody tr').show(); //intially all rows will be shown
-      
-    function filter_function(){
-        $('table tbody tr').hide(); //hide all rows
-        
-        var tipoFlag = 'TODOS';
-        var tipoValue = $('#filter-tipo').val();
-        
-       //traversing each row one by one
-        $('table tr').each(function() {  
-          if(tipoValue == 'TODOS'){
-            tipoFlag = 1;
-          }
-          else if(tipoValue == $(this).find('td.tipo').data('tipo')){
-            tipoFlag = 1;
-          }
-          else{
-            tipoFlag = 0;
-          }
 
-         if(tipoFlag){ 
-            $(this).show();
-         }
-      
-      });
-    }
+    $("button[name='actualizar_proformas']").click(function(){
+        $.ajax({
+            type:"POST",
+            url:"{% url 'actualizar_proformas_ajax' %}",
+            data:{'csrfmiddlewaretoken': '{{ csrf_token }}'},
+
+            success: function(response){
+                $("#msg").html(`<div class="text-center alert alert-${response.tipo} mt-2" role="alert"> ${response.msg} !!! </div>`)
+                setTimeout(function(){
+                    window.location.reload();
+                }, 3000)
+            },
+
+            error: function() {
+                $("#msg").html('<div class="text-center alert alert-danger mt-2" role="alert"> Error intenta nuevamente !!! </div>')
+            }
+        })
+    })
+
 </script>
 
-<!-- Filtro estado de etiquetado -->
-<script>
-    $('.filter-est').change(function(){
-        filter_function_estado(); //calling filter function each select box value change
-    });
-      
-    $('table tbody tr').show(); //intially all rows will be shown
-      
-    function filter_function_estado(){
-        $('table tbody tr').hide(); //hide all rows
-        
-        var tipoFlag = 'ESTADO';
-        var tipoValue = $('#filter-estado').val();
-        
-       //traversing each row one by one
-        $('table tr').each(function() {  
-          if(tipoValue == 'ESTADO'){
-            tipoFlag = 1;
-          }
-          else if(tipoValue == $(this).find('td.estado').data('estado')){
-            tipoFlag = 1;
-          }
-          else{
-            tipoFlag = 0;
-          }
-
-         if(tipoFlag){
-            $(this).show();
-         }
-      
-      });
-    }
-</script>
 {% endblock %}
