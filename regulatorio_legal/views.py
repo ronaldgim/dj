@@ -283,7 +283,7 @@ def new_document(request):
 
 
 def lista_facturas(request):
-
+    
     facturas = facturas_odbc()
     facturas = facturas.drop_duplicates(subset='CODIGO_FACTURA')
     
@@ -312,7 +312,18 @@ def lista_facturas(request):
     facturas = de_dataframe_a_template(facturas)
 
     actualizacion = ultima_actualizacion('actulization_stoklote')
-
+    
+    if request.method == 'POST':
+        n_factura = request.POST['n_factura']
+        doc_enviados = DocumentoEnviado.objects.filter(n_factura__icontains=n_factura)
+        
+        context = {
+            'facturas':doc_enviados,
+            'act':actualizacion
+        }
+        return render(request, 'regulatorio_legal/lista_facturas_enviadas.html', context)
+        
+        
     context = {
         'facturas':facturas,
         'act':actualizacion

@@ -9,7 +9,7 @@
 {% endblock %}
 
 {% block body %}
-<h5 class="m-4 text-center"><strong>LISTADO DE FACTURAS</strong></h5>
+<h5 class="m-4 text-center"><strong>LISTADO DE FACTURAS ENVIADAS</strong></h5>
 
 <div class="text-end mb-2">
     <label class="fw-bold text-end">Actualizado: </label> {{act}}
@@ -20,7 +20,8 @@
         <div class="input-group mb-3">
             {% csrf_token %}
             <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control" name="n_factura">
-            <button class="btn btn-primary" type="submit">Buscar</button>
+            <button class="btn btn-primary">Buscar</button>
+            <a class="btn btn-danger" href="{% url 'r_l_facturas' %}">Borrar busqueda</a>
         </div>
     </form>
 </div>
@@ -47,7 +48,7 @@
                 <thead>
                     <tr>
                         <th scope="col">Cliente</th>
-                        <th scope="col">Fecha</th>
+                        <th scope="col">Fecha de envio</th>
                         <th scope="col">Factura</th>
                         <th class="text-center" scope="col">Enviado por</th>
                         <th class="text-center" scope="col">Detalle</th>
@@ -56,20 +57,16 @@
                 <tbody id="pedidosbuscar">
                     {% for i in facturas %}
                     <tr class="content">
-                        <td>{{i.NOMBRE_CLIENTE}}</td>
-                        <td>{{i.FECHA_FACTURA}}</td>
-                        <td>{{i.codigo_factura}}</td>
+                        <td>{{i.nombre_cliente}}</td>
+                        <td>{{i.fecha_hora}}</td>
+                        <td>{{i.n_factura|slice:"6:19"}}</td>
                         
                         <td>
-                            {% if i.user %}
-                            {{i.user}} - {{i.fecha_hora}}
-                            {% else %}
-                            -
-                            {% endif %}
+                            {{i.usuario.first_name}} {{i.usuario.last_name}} 
                         </td>
                         <!-- target="_blank" -->
                         <td class="text-center">
-                            <a href="{% url 'factura_detalle' i.CODIGO_FACTURA %}" 
+                            <a href="{% url 'factura_detalle' i.n_factura %}"
                             {% if i.user %}
                                 class="btn btn-success btn-sm"
                             {% else %}
