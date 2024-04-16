@@ -1002,8 +1002,8 @@ def doc_transferencia_odbc(n_transf):
     cnxn = pyodbc.connect('DSN=mba3;PWD=API')
     cursorOdbc = cnxn.cursor()
 
-    n = 'A-00000' + str(n_transf) + '-gimpr'
-
+    n = 'A-00000' + str(n_transf) + '-GIMPR'
+    
     #Transferencia Egreso
     try:
         cursorOdbc.execute(
@@ -1099,7 +1099,7 @@ def doc_transferencia_odbc(n_transf):
         transferencia2 = transferencia2[['doc', 'product_id', 'lote_id', 'unidades', 'bodega_salida', 'f_elab', 'f_cadu']]
     except:
         transferencia2 = pd.DataFrame()
-        
+    
     #t = pd.concat([transferencia, transferencia2])
     t = transferencia
     t = t.reset_index(drop=True) 
