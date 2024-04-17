@@ -3109,7 +3109,7 @@ def wms_anulacion_picking_ajax(request):
 
 ### Ajuste Liberación ERIK
 @login_required(login_url='login')
-@permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'],'/wms/home', 'ingresar a ajuste liberaciones')
+@permisos(['ADMINISTRADOR','OPERACIONES'],'/wms/home', 'ingresar a ajuste liberaciones')
 def wms_ajuste_liberacion_list(request):
     
     ajuste_liberacion = pd.DataFrame(AjusteLiberacion.objects.all().values().order_by('-doc_id')).drop_duplicates(subset=['doc_id'])
@@ -3193,8 +3193,9 @@ def wms_ajuste_liberacion_input_ajax(request):
                     'texto': f'La liberación {n_liberacion} ingresada exitosamente !!!'
                 }
             })
-        
-        
+
+
+@permisos(['ADMINISTRADOR','OPERACIONES'],'/wms/home', 'ingresar a ajuste liberaciones')
 def wms_ajuste_liberacion_detalle(request, n_liberacion):
     
     prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
