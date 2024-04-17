@@ -3272,7 +3272,7 @@ def wms_ajuste_liberacion_detalle(request, n_liberacion):
 
 ### Regresar productos en despacho al inventario
 @login_required(login_url='login')
-@permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'],'/wms/home', 'ingresar a retiro de productos en despacho')
+@permisos(['ADMINISTRADOR','OPERACIONES'],'/wms/home', 'ingresar a retiro de productos en despacho')
 def wms_retiro_producto_despacho(request):
 
     if request.method == 'POST':
@@ -3306,6 +3306,7 @@ def wms_retiro_producto_despacho(request):
     return render(request, 'wms/retiro_producto_despacho_list.html', {})
 
 
+@permisos(['ADMINISTRADOR','OPERACIONES'],'/wms/home', 'ingresar a retiro de productos en despacho')
 def wms_retiro_producto_despacho_ajax(request):
     
     id_mov = int(request.POST['id']) 
