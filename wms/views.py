@@ -392,10 +392,35 @@ def wms_detalle_imp(request, o_compra): #OK
 @permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'], '/wms/home', 'Importaciones en tránsito')
 def wms_importaciones_transito_list(request):
     
-    imp_transito = importaciones_en_transito_odbc().drop_duplicates(subset=['CONTRATO_ID'])
+    prod = productos_odbc_and_django()[['product_id','UnidadesPorPallet']]
+    prod = prod.rename(columns={'product_id':'PRODUCT_ID'}) 
+    
+    imp_transito = importaciones_en_transito_odbc() 
+    imp_transito['FECHA_ENTREGA'] = pd.to_datetime(imp_transito['FECHA_ENTREGA']).dt.strftime('%Y-%m-%d')
     imp_transito = imp_transito.sort_values(by='FECHA_ENTREGA', ascending=True)
     
-    imp_transito['FECHA_ENTREGA'] = pd.to_datetime(imp_transito['FECHA_ENTREGA']).dt.strftime('%Y-%m-%d')
+    imps_contratos = []
+    imps_total_pallets = []
+    imps_incompleto = []
+    for i in imp_transito['CONTRATO_ID'].unique():
+        imp_contrato = imp_transito[imp_transito['CONTRATO_ID']==i]
+        imp_contrato = imp_contrato.merge(prod, on='PRODUCT_ID',how='left')
+        imp_contrato['pallets'] = imp_contrato['QUANTITY'] / imp_contrato['UnidadesPorPallet']
+        imp_contrato = imp_contrato.replace(np.inf, 0)
+        
+        total_pallets = round(imp_contrato['pallets'].sum(), 2)
+        incompleto = 0 in list(imp_contrato['pallets'])
+
+        imps_contratos.append(i)
+        imps_total_pallets.append(total_pallets)
+        imps_incompleto.append(incompleto)
+        
+    imp_total_pallets = pd.DataFrame()
+    imp_total_pallets['CONTRATO_ID'] = imps_contratos
+    imp_total_pallets['total_pallets'] = imps_total_pallets
+    imp_total_pallets['incompleto'] = imps_incompleto
+    imp_transito = imp_transito.drop_duplicates(subset='CONTRATO_ID')
+    imp_transito = imp_transito.merge(imp_total_pallets, on='CONTRATO_ID', how='left')
     
     imp_transito = de_dataframe_a_template(imp_transito)
     
@@ -421,6 +446,7 @@ def wms_importaciones_transito_detalle(request, contrato_id):
     
     imp_transito['cartones'] = imp_transito['QUANTITY'] / imp_transito['Unidad_Empaque']
     imp_transito['pallets'] = imp_transito['QUANTITY'] / imp_transito['UnidadesPorPallet']
+    imp_transito = imp_transito.replace(np.inf, 0)
     
     unidades_total = imp_transito['QUANTITY'].sum()
     cartones_total = imp_transito['cartones'].sum()

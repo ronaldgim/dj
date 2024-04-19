@@ -602,10 +602,19 @@ def importaciones_en_transito_odbc_insert_warehouse():
         
         cursor_db_warehouse = cnx_db_warehouse.cursor()
         
-        sql_query = cursor_odbc_mba.execute(            
+        # sql_query = cursor_odbc_mba.execute(            
+        #     "SELECT CLNT_Pedidos_Principal.CONTRATO_ID, PROV_Ficha_Principal.VENDOR_NAME, CLNT_Pedidos_Detalle.PRODUCT_ID, CLNT_Pedidos_Detalle.QUANTITY, CLNT_Pedidos_Principal.FECHA_ENTREGA, CLNT_Pedidos_Principal.MEMO "
+        #     "FROM CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, CLNT_Pedidos_Principal CLNT_Pedidos_Principal, PROV_Ficha_Principal PROV_Ficha_Principal "
+        #     "WHERE CLNT_Pedidos_Detalle.CONTRATO_ID_CORP = CLNT_Pedidos_Principal.CONTRATO_ID_CORP AND CLNT_Pedidos_Principal.CLIENT_ID_CORP = PROV_Ficha_Principal.CODIGO_PROVEEDOR_EMPRESA "
+        #     f"AND ((CLNT_Pedidos_Principal.FECHA_ENTREGA>'{TwoWeekTime}'))"
+        # )
+        
+        sql_query = cursor_odbc_mba.execute(
             "SELECT CLNT_Pedidos_Principal.CONTRATO_ID, PROV_Ficha_Principal.VENDOR_NAME, CLNT_Pedidos_Detalle.PRODUCT_ID, CLNT_Pedidos_Detalle.QUANTITY, CLNT_Pedidos_Principal.FECHA_ENTREGA, CLNT_Pedidos_Principal.MEMO "
             "FROM CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, CLNT_Pedidos_Principal CLNT_Pedidos_Principal, PROV_Ficha_Principal PROV_Ficha_Principal "
-            "WHERE CLNT_Pedidos_Detalle.CONTRATO_ID_CORP = CLNT_Pedidos_Principal.CONTRATO_ID_CORP AND CLNT_Pedidos_Principal.CLIENT_ID_CORP = PROV_Ficha_Principal.CODIGO_PROVEEDOR_EMPRESA "
+            "WHERE CLNT_Pedidos_Detalle.CONTRATO_ID_CORP = CLNT_Pedidos_Principal.CONTRATO_ID_CORP AND "
+            "CLNT_Pedidos_Principal.CLIENT_ID_CORP = PROV_Ficha_Principal.CODIGO_PROVEEDOR_EMPRESA AND (CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND "
+            "(CLNT_Pedidos_Principal.CONFIRMED=false) AND (CLNT_Pedidos_Principal.VOID=false)) "
             f"AND ((CLNT_Pedidos_Principal.FECHA_ENTREGA>'{TwoWeekTime}'))"
         )
         
