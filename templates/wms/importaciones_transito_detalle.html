@@ -57,7 +57,9 @@
                         <td>{{i.Marca}}</td>
                         <td class="text-end">{{i.QUANTITY|floatformat:'0g'}}</td>
                         <td class="text-end">{{i.cartones|floatformat:'2g'}}</td>
-                        <td class="text-end">{{i.pallets|floatformat:'2g'|default:'-'}}</td>
+                        <td class="text-end" {% if i.pallets == 0 %} style="background-color:#ffffcf" {% endif %}>
+                            {{i.pallets|floatformat:'2g'|default:'-'}}
+                        </td>
                     </tr>
                     {% endfor %}
                     <tr>
