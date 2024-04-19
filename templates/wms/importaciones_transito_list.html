@@ -43,6 +43,7 @@
                         <th scope="col">Proveedor</th>
                         <th scope="col">Memo</th>
                         <th scope="col">Fecha entrega</th>
+                        <th scope="col">Número de pallets</th>
                         <th scope="col">Detalle</th>
                     </tr>
                 </thead>
@@ -52,8 +53,14 @@
                         <td>{{i.VENDOR_NAME}}</td>
                         <td>{{i.MEMO}}</td>
                         <td>{{i.FECHA_ENTREGA}}</td>
+                        <td class="text-end">
+                            {{i.total_pallets}}
+                            {% if i.incompleto == True %}
+                                <i style = "color:red;" class="bi bi-file-earmark-x-fill"></i>
+                            {% endif %}
+                        </td>
 
-                        <td>
+                        <td class="text-center">
                             <a class="btn btn-primary btn-sm" href="{% url 'wms_importaciones_transito_detalle' i.CONTRATO_ID %}">
                                 <i class="bi bi-binoculars-fill"></i>  Ver 
                             </a>

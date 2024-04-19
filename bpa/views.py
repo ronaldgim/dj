@@ -65,56 +65,6 @@ from datos.views import doc_transferencia_odbc, importaciones_llegadas_odbc, pro
 from compras_publicas.views import de_dataframe_a_template
 
 
-
-# Conuslta tabla de importaciones en transito
-def odbc(mydb):
-# def actualizar_importaciones_transito(mydb):
-    # Using a DSN, but providing a password as well
-    cnxn = pyodbc.connect('DSN=mba3;PWD=API')
-    # Create a cursor from the connection
-    cursorOdbc = cnxn.cursor()
-    ####Cstock_lotes_ mba3O######
-    print ("odbc_execute")
-
-    #####Connect to MYSQL Database#####
-    mycursorMysql = mydb.cursor()
-
-
-    ##Imp Transito
-    cursorOdbc.execute(
-        "SELECT CLNT_Pedidos_Principal.CONTRATO_ID, PROV_Ficha_Principal.VENDOR_NAME, CLNT_Pedidos_Detalle.PRODUCT_ID, CLNT_Pedidos_Detalle.QUANTITY, CLNT_Pedidos_Principal.FECHA_ENTREGA, CLNT_Pedidos_Principal.MEMO "
-        "FROM CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, CLNT_Pedidos_Principal CLNT_Pedidos_Principal, PROV_Ficha_Principal PROV_Ficha_Principal "
-        "WHERE CLNT_Pedidos_Detalle.CONTRATO_ID_CORP = CLNT_Pedidos_Principal.CONTRATO_ID_CORP AND CLNT_Pedidos_Principal.CLIENT_ID_CORP = PROV_Ficha_Principal.CODIGO_PROVEEDOR_EMPRESA "
-        "AND ((CLNT_Pedidos_Principal.FECHA_PEDIDO>'01-01-2021') AND (CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND (CLNT_Pedidos_Detalle.EN_ORDEN=0) "
-        "AND (CLNT_Pedidos_Principal.CONFIRMED=false))"
-    )
-    transito = cursorOdbc.fetchall()
-    transito = [list(rows) for rows in transito]
-    #print(transito)
-
-    delete_sql = "DELETE FROM imp_transito"
-    mycursorMysql.execute(delete_sql)
-    mydb.commit()
-    print("Sucessful Deleted importaciones en transito")
-
-    sql_insert = """INSERT INTO imp_transito (CONTRATO_ID, VENDOR_NAME,PRODUCT_ID,QUANTITY,FECHA_ENTREGA,MEMO) VALUES (%s, %s, %s, %s, %s, %s)"""
-    data_transito = [list(rows) for rows in transito]
-    mycursorMysql.executemany(sql_insert, data_transito)
-
-    print("Sucessful importaciones en transito")
-    mydb.commit()
-
-
-def main_importaciones():
-    mydb = mysql.connector.connect(
-            host="172.16.28.102",
-            user="standard",
-            passwd="gimpromed",
-            database="warehouse"
-        )
-    odbc(mydb)
-
-
 # Consulta tabla de importaciones transito
 def productos(): #request
     ''' Colusta de clientes por ruc a la base de datos '''
@@ -578,9 +528,9 @@ def r_san_alerta_list_correo(request):
     
     email.attach_alternative(html_message, 'text/html')
     email.send()
-                    
-    return HttpResponse(status=200)
     
+    return HttpResponse(status=200)
+
 
 # Enviar correos individuales por registro sanitario
 def r_san_alert(request):
@@ -714,7 +664,6 @@ def reg_san_edit(request, id):
     else:
         disabled = 'disabled'
 
-
     if request.method == 'POST':
 
         form = RegistroSanitarioForm(request.POST, instance=r_san_instance)
@@ -727,7 +676,6 @@ def reg_san_edit(request, id):
             messages.error(request, f'Error al editar el registro sanitario {reg} !!!')
             return HttpResponseRedirect(f'/bpa/reg-san/edit/{id_edit}')
 
-
     context = {
         'form':form,
         'disabled':disabled
@@ -739,7 +687,6 @@ def reg_san_edit(request, id):
 # Carta de no registro
 @login_required(login_url='login')
 def carta_no_reg_list(request):
-
 
     r_san_list = CartaNoRegistro.objects.all()
 

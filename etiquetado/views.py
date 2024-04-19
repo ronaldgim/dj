@@ -118,7 +118,8 @@ from datos.views import (
     
     # Proformas
     lista_proformas_odbc,
-    proformas_por_contrato_id_odbc
+    proformas_por_contrato_id_odbc,
+    importaciones_en_transito_odbc_insert_warehouse
     )
 
 
@@ -2013,7 +2014,7 @@ def inventario_bodega(request):
 
 
 # Revisión de Reservas en importaciones
-from bpa.views import importaciones_transito, main_importaciones
+from bpa.views import importaciones_transito #, main_importaciones
 
 def revision_reservas(request):
 
@@ -2039,7 +2040,8 @@ def revision_reservas(request):
     }
 
     if request.method == 'POST':
-        main_importaciones()
+        #main_importaciones()
+        importaciones_en_transito_odbc_insert_warehouse()
 
         actualizado = str(datetime.now())
         TimeStamp.objects.create(actulization_importaciones=actualizado)

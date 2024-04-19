@@ -57,15 +57,15 @@
                         <td>{{i.Marca}}</td>
                         <td class="text-end">{{i.QUANTITY|floatformat:'0g'}}</td>
                         <td class="text-end">{{i.cartones|floatformat:'2g'}}</td>
-                        <td class="text-end">{{i.pallets|floatformat:'2g'|default:'N/A'}}</td>
+                        <td class="text-end">{{i.pallets|floatformat:'2g'|default:'-'}}</td>
                     </tr>
                     {% endfor %}
                     <tr>
                         <td class="fw-bold text-start">Total</td>
                         <td colspan=2></td>
-                        <td class="text-end">{{unidades_total|floatformat:'2g'|default:'N/A'}}</td>
-                        <td class="text-end">{{cartones_total|floatformat:'2g'|default:'N/A'}}</td>
-                        <td class="text-end">{{pallets_total|floatformat:'2g'|default:'N/A'}}</td>
+                        <td class="text-end">{{unidades_total|floatformat:'2g'|default:'-'}}</td>
+                        <td class="text-end">{{cartones_total|floatformat:'2g'|default:'-'}}</td>
+                        <td class="text-end">{{pallets_total|floatformat:'2g'|default:'-'}}</td>
                     </tr>
                 </tbody>
             </table>
