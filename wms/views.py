@@ -19,6 +19,8 @@ from datos.views import (
     wms_stock_lote_cerezos_by_product,
     wms_stock_lote_products,
     wms_datos_nota_entrega,
+    ventas_facturas_odbc,
+    # pedidos_cerrados_bct,
 
     # Trasnferencia
     doc_transferencia_odbc,
@@ -150,6 +152,143 @@ from datetime import timedelta
 #     # promedio = suma_total / len(lista_timedelta)
 #     return 
 
+
+# def kpi_cliclo_pedido():
+    
+#     # DataFrame Tiempo de picking
+#     picking = pd.DataFrame(Movimiento.objects.filter(referencia='Picking').values())
+    
+#     t_picking_picking = []
+#     t_picking_items = []
+#     t_picking_tiempo = []
+    
+#     for i in picking['n_referencia'].unique():
+#         picking_i = picking[picking['n_referencia' ]==i]
+#         picking_i = picking_i.sort_values(by='fecha_hora')
+        
+#         len_picking = len(picking_i)
+        
+#         if len_picking > 1:
+#             primero = picking_i['fecha_hora'].iloc[0]
+#             ultimo = picking_i['fecha_hora'].iloc[-1]    
+#             tiempo = ultimo - primero
+#             tiempo = tiempo.total_seconds()
+#         elif len_picking == 1:
+#             tiempo = pd.Timedelta(seconds=0).total_seconds()
+#             #tiempo = pd.Timedelta(days=0)
+        
+#         t_picking_picking.append(i)
+#         t_picking_items.append(len_picking)
+#         t_picking_tiempo.append(tiempo)
+        
+#     df_tiempo_picking = pd.DataFrame({
+#         't_picking_picking':t_picking_picking,
+#         't_picking_items':t_picking_items,
+#         't_picking_tiempo':t_picking_tiempo
+#         })
+#     df_tiempo_picking.to_excel('df_tiempo_picking.xlsx')
+#     #tiempo_promedio_picking = round((df_tiempo_picking['t_picking_tiempo'].dt.seconds).mean() / 3600, 1)
+#     print(df_tiempo_picking)
+    
+#     # # DataFrame Tiempo Facturado - Despachado    
+#     mov_facturas_list = Movimiento.objects.filter(referencia='Picking').filter(estado_picking='Despachado').exclude(n_factura='').values_list('n_factura', flat=True)
+    
+#     facturas = ventas_facturas_odbc()[['CODIGO_FACTURA','FECHA','HORA_FACTURA']]
+#     facturas = facturas[facturas.CODIGO_FACTURA.isin(mov_facturas_list)].drop_duplicates(subset='CODIGO_FACTURA')
+#     facturas = facturas.rename(columns={'CODIGO_FACTURA':'n_factura'})
+#     facturas['fecha_hora_factura'] = pd.to_datetime(facturas['FECHA'] + ' ' + facturas['HORA_FACTURA']);print(facturas)
+    
+#     movimientos = pd.DataFrame(Movimiento.objects.filter(referencia='Picking').filter(estado_picking='Despachado').exclude(n_factura='').values(
+#         'n_referencia','n_factura','fecha_hora','actualizado')).sort_values(by='fecha_hora')
+#     movimientos = movimientos[movimientos.n_factura.isin(mov_facturas_list)].drop_duplicates(subset='n_factura', keep='last')
+    
+#     df_tiempo_facturado_despacho = facturas.merge(movimientos, on="n_factura", how="left")
+#     df_tiempo_facturado_despacho['tiempo_pickingfinalizado_facturado'] = (df_tiempo_facturado_despacho['fecha_hora_factura'] - df_tiempo_facturado_despacho['fecha_hora']).dt.seconds
+#     df_tiempo_facturado_despacho['tiempo_facturado_despachado'] = (df_tiempo_facturado_despacho['fecha_hora_factura'] - df_tiempo_facturado_despacho['actualizado']).dt.seconds
+    
+#     tiempo_pickingfinalizado_facturado = round(df_tiempo_facturado_despacho['tiempo_pickingfinalizado_facturado'].mean() / 3600, 1)
+#     #tiempo_facturado_despachado = round(df_tiempo_facturado_despacho['tiempo_facturado_despachado'].mean() / 3600, 1)
+#     #print(tiempo_pickingfinalizado_facturado)
+    
+
+
+
+# def kpi_ciclo_pedido():
+    
+#     # 1 PICKING (desde inicio hasta fin de picking)
+#     t_picking = pd.DataFrame(Movimiento.objects
+#         .filter(referencia='Picking')
+#         .filter(estado_picking='Despachado')
+#         .values('referencia','n_referencia','fecha_hora','actualizado','n_factura')
+#     ).sort_values(by='fecha_hora').reset_index()
+    
+#     t_picking_list = []
+#     for i in t_picking['n_referencia'].unique():
+#         t_picking_i = t_picking[t_picking['n_referencia']==i]
+#         n_items = len(t_picking_i)
+#         inicio = t_picking_i.iloc[0]['fecha_hora']
+#         final  = t_picking_i.iloc[-1]['fecha_hora']
+#         despachado = t_picking_i.iloc[-1]['actualizado']
+#         factura =  t_picking_i.iloc[0]['n_factura']
+        
+#         row = (i, n_items, inicio, final, despachado, factura)
+#         t_picking_list.append(row)
+    
+#     df_t_picking = pd.DataFrame(t_picking_list, columns=['CONTRATO_ID','N_ITEMS','INICIO_PICKING','FIN_PICKING','DESPACHADO','CODIGO_FACTURA'])
+#     df_t_picking['TIEMPO_PICKING'] = df_t_picking['FIN_PICKING'] - df_t_picking['INICIO_PICKING']
+#     df_t_picking['TIEMPO_PICKING_s'] = df_t_picking['TIEMPO_PICKING'].dt.total_seconds()
+#     # df_t_picking['INICIO_PICKING'] = df_t_picking['INICIO_PICKING'].astype('str')
+#     # df_t_picking['FIN_PICKING'] = df_t_picking['FIN_PICKING'].astype('str')
+#     # df_t_picking['TIEMPO_PICKING'] = df_t_picking['TIEMPO_PICKING'].astype('str')
+#     # df_t_picking['DESPACHADO'] = df_t_picking['DESPACHADO'].astype('str')
+    
+#     # df_t_picking.to_excel('df_t_picking.xlsx')
+#     # print(df_t_picking)
+
+
+#     # 2 FACTURADO (desde fin de picking hasta facturado)
+#     facturas_wms_list = Movimiento.objects.exclude(n_factura='').values_list('n_factura', flat=True)
+#     facturas = ventas_facturas_odbc()[['CODIGO_CLIENTE', 'CODIGO_FACTURA', 'FECHA', 'HORA_FACTURA']]
+#     facturas = facturas[facturas.CODIGO_FACTURA.isin(facturas_wms_list)].drop_duplicates(subset='CODIGO_FACTURA')
+#     facturas['FACTURADO'] = pd.to_datetime(facturas['FECHA'] + ' ' + facturas['HORA_FACTURA']) 
+#     facturas = facturas[['CODIGO_CLIENTE','CODIGO_FACTURA','FACTURADO']]
+#     facturas = facturas.merge(df_t_picking[['CODIGO_FACTURA','FIN_PICKING','DESPACHADO']], on='CODIGO_FACTURA', how='left')
+#     facturas['TIEMPO_FACTURADO'] = facturas['FACTURADO'] - facturas['FIN_PICKING']
+#     facturas['TIEMPO_FACTURADO_s'] = facturas['TIEMPO_FACTURADO'].dt.total_seconds()
+#     facturas = facturas[facturas['TIEMPO_FACTURADO_s']>0]
+
+#     # 3 PEDIDOS (desde que recibe el pedido hasta que inicia el picking)
+#     p_cerrados = pedidos_cerrados_bct()[['CONTRATO_ID','FECHA_PEDIDO','HORA_LLEGADA']].drop_duplicates(subset='CONTRATO_ID')
+#     p_cerrados['FECHA_PEDIDO'] = p_cerrados['FECHA_PEDIDO'].astype('str')
+#     p_cerrados['HORA_LLEGADA'] = p_cerrados['HORA_LLEGADA'].astype('str')
+#     p_cerrados['CONTRATO_ID'] = p_cerrados['CONTRATO_ID'].astype('str')
+#     p_cerrados['PEDIDO'] = pd.to_datetime(p_cerrados['FECHA_PEDIDO'] + ' ' + p_cerrados['HORA_LLEGADA'])
+#     p_cerrados = p_cerrados.merge(df_t_picking[['CONTRATO_ID','INICIO_PICKING']], on='CONTRATO_ID', how='right')
+#     p_cerrados['TIEMPO_PEDIDO'] = p_cerrados['INICIO_PICKING'] - p_cerrados['PEDIDO']
+#     p_cerrados['TIEMPO_PEDIDO_s'] = p_cerrados['TIEMPO_PEDIDO'].dt.total_seconds()
+#     p_cerrados = p_cerrados[p_cerrados['TIEMPO_PEDIDO_s']>0]
+    
+    
+#     # PROMEDIOS PARA GRAFICO
+#     # 1 PICKING
+#     tiempo_promedio_picking = round(df_t_picking['TIEMPO_PICKING_s'].mean() / 3600, 1)
+#     # 2 FACTURADO
+#     tiempo_promedio_facturado = round(facturas['TIEMPO_FACTURADO_s'].mean() / 3600, 1 )
+#     # 3 PEDIDOS
+#     tiempo_promedio_pedido = round(p_cerrados['TIEMPO_PEDIDO_s'].mean() / 3600, 1)
+    
+#     t_ciclo = {
+#         'labels':['T.P.Pedido (h)','T.P.Picking (h)','T.P.Facturado (h)'],
+#         'data': [tiempo_promedio_pedido, tiempo_promedio_picking, tiempo_promedio_facturado],
+#         't_p_pedido':tiempo_promedio_pedido,
+#         't_p_picking':tiempo_promedio_picking,
+#         't_p_facturado':tiempo_promedio_facturado,
+#         't_p_total':sum([tiempo_promedio_pedido,tiempo_promedio_picking,tiempo_promedio_facturado])
+#     }
+
+#     return t_ciclo
+
+
 def kpi_capacidad():
     
     # capacidad_utilizada
@@ -186,7 +325,6 @@ def kpi_capacidad():
     capacidad = capacidad.to_dict('records')
     
     return capacidad
-
 
 
 def kpi_tiempo_de_almacenamiento():
@@ -238,11 +376,17 @@ def wms_home(request):
         bodegas_list.append(i['bodega'])
         utilizacion_list.append(i['porcentaje_utilizacion'])
     
+    # t_ciclo_labels = kpi_ciclo_pedido()['labels']
+    # t_ciclo_data = kpi_ciclo_pedido()['data']
+    
     context = {
         'bodegas':bodegas_list,
         'utilizacion':utilizacion_list,
         'capacidad':capacidad,
-        'tiempo_de_almacenamiento':tiempo_de_almacenamiento
+        'tiempo_de_almacenamiento':tiempo_de_almacenamiento,
+        # 't_cliclo':kpi_ciclo_pedido(),
+        # 't_cliclo_labels':t_ciclo_labels,
+        # 't_cliclo_data':t_ciclo_data,
     }
     
     return render(request, 'wms/home.html', context)
@@ -619,7 +763,7 @@ def wms_existencias_query(): #OK
         'ubicacion__modulo',
         'ubicacion__nivel',
     ).exclude(total_unidades = 0)
-
+    
     existencias_list = []
     for i in exitencias:
         prod = i['product_id']

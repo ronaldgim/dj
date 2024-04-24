@@ -101,7 +101,7 @@ class Movimiento(models.Model):
     estado_picking  = models.CharField(verbose_name='Estado Picking', choices=ESTADO_PICKING, max_length=20, blank=True)
     usuario         = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.CASCADE, blank=True, null=True)
     fecha_hora      = models.DateTimeField(verbose_name='Fecha Hora', auto_now_add=True)
-    actualizado     = models.DateTimeField(verbose_name='Fecha Hora', auto_now=True)
+    actualizado     = models.DateTimeField(verbose_name='Fecha Hora Actualización', auto_now=True)
 
     def __str__(self):
         return self.product_id
