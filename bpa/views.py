@@ -121,9 +121,8 @@ def importaciones_transito(): #request
 def importaciones_compras_df():
     
     imp_llegadas = importaciones_llegadas_odbc() 
-    prod = productos_odbc_and_django()[['product_id','Nombre','marca2','Marca','Unidad_Empaque','Procedencia']]
+    prod = productos_odbc_and_django()[['product_id', 'description','Nombre','marca2','Marca','Unidad_Empaque','Procedencia']]
     
-    #imp_llegadas = imp_llegadas.drop_duplicates(subset='DOC_ID_CORP')
     imp_llegadas['ENTRADA_FECHA'] = pd.to_datetime(imp_llegadas['ENTRADA_FECHA']).dt.strftime('%Y-%m-%d')
     imp_llegadas = imp_llegadas.sort_values(by='ENTRADA_FECHA', ascending=False)
     imp_llegadas['ENTRADA_FECHA'] = imp_llegadas['ENTRADA_FECHA'].astype('str')
@@ -141,7 +140,7 @@ def importaciones_compras_df():
 def importaciones(request):
 
     imp = importaciones_compras_df()
-    
+    imp = imp.drop_duplicates(subset=['DOC_ID_CORP'])
     filtro_1 = imp['Procedencia'].str.contains('NACIONAL')
     filtro_2 = imp['Procedencia'].str.contains('Nacional')
     
@@ -270,21 +269,12 @@ def muestreo(data, und):
 @login_required(login_url='login')
 def muestreo_unidades(request, memo):
 
-    #n = nacionales_odbc()
-    #data = importaciones_transito()
     data = importaciones_compras_df()
-    
-    #data = pd.concat([data, n])
-
-    #data = data[data['MEMO']==memo]
     data = data[data['DOC_ID_CORP']==memo].fillna('')
-    print(data[['Marca','marca2']])
-    #imp = muestreo(data, 'QUANTITY')
+    
     imp = muestreo(data, 'OH')
-    #imp = imp.sort_values(by='PRODUCT_ID')
     imp = imp.sort_values(by='product_id')
 
-    #proveedor = imp['VENDOR_NAME'].iloc[0]
     proveedor = imp['marca2'].iloc[0]
     proveedor2 = imp['Marca'].iloc[0]
     n_imp = imp['MEMO'].iloc[0]
