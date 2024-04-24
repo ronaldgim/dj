@@ -1210,8 +1210,8 @@ def clientes_warehouse():
 def ventas_facturas_odbc():
     with connections['gimpromed_sql'].cursor() as cursor:
         cursor.execute(
-            # "SELECT * FROM venta_facturas WHERE FECHA>'2023-04-01'"
-            "SELECT * FROM facturas"
+            "SELECT * FROM venta_facturas WHERE FECHA>'2023-04-01'"
+            #"SELECT * FROM facturas"
         )
 
         columns = [col[0] for col in cursor.description]
@@ -2447,5 +2447,38 @@ def actualizar_proformas_ajax(request):
         cursor_odbc_mba.close()
     
     
-
     
+    
+# def pedidos_cerrados_bct():
+    
+#     try:
+
+#         desde = '2024-01-01'
+        
+#         # MBA ODBC
+#         cnx_odbc_mba     = pyodbc.connect('DSN=mba3;PWD=API')
+#         cursor_odbc_mba  = cnx_odbc_mba.cursor()
+        
+        
+#         sql_query = cursor_odbc_mba.execute(                        
+#             "SELECT CLNT_Pedidos_Principal.FECHA_PEDIDO, CLNT_Pedidos_Principal.CONTRATO_ID, CLNT_Ficha_Principal.CODIGO_CLIENTE, "
+#             "CLNT_Pedidos_Detalle.PRODUCT_ID, CLNT_Pedidos_Detalle.QUANTITY, CLNT_Pedidos_Detalle.Despachados, CLNT_Pedidos_Principal.WARE_CODE, CLNT_Pedidos_Principal.CONFIRMED, CLNT_Pedidos_Principal.HORA_LLEGADA "
+#             "FROM CLNT_Ficha_Principal CLNT_Ficha_Principal, CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, CLNT_Pedidos_Principal CLNT_Pedidos_Principal "
+#             f"WHERE CLNT_Pedidos_Principal.FECHA_PEDIDO > '{desde}' AND CLNT_Pedidos_Principal.WARE_CODE ='BCT' AND CLNT_Pedidos_Principal.CONTRATO_ID_CORP = CLNT_Pedidos_Detalle.CONTRATO_ID_CORP AND CLNT_Ficha_Principal.CODIGO_CLIENTE = CLNT_Pedidos_Principal.CLIENT_ID "
+#             "AND ((CLNT_Pedidos_Principal.PEDIDO_CERRADO=true) AND (CLNT_Pedidos_Detalle.TIPO_DOCUMENTO='PE') AND (CLNT_Pedidos_Detalle.PRODUCT_ID<>'MANTEN')) ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID DESC"
+#         )
+        
+#         columns = [col[0] for col in sql_query.description]
+#         df = [dict(zip(columns, row)) for row in sql_query.fetchall()]
+#         df = pd.DataFrame(df)
+        
+#         return df
+    
+#     except Exception as e:
+#         return JsonResponse({
+#             'tipo':'danger',
+#             'msg': f'Error {e} !!!'
+#             })
+        
+#     finally:
+#         cursor_odbc_mba.close()

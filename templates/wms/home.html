@@ -44,24 +44,6 @@
 
 <h6 class="m-4 text-center">KPI(s) - WMS</h6>
 
-<!--
-<div class="row">
-    {% for i in capacidad %}
-    <div class="col mb-3">
-        <div class="card">
-            <h6 class="card-header text-center">Utilización de bodega {{i.bodega}}</h6>
-            <div class="card-body">
-                {{i.capacidad_disponible_m3}}<br>
-                {{i.capacidad_utilizada_m3}}<br>
-                {{i.utilizacion}}<br>
-                {{i.porcentaje_utilizacion}}
-                <canvas id="myChart1"></canvas>
-            </div>
-        </div>
-    </div>
-    {% endfor %}
-</div>
--->
 
 <div class="row">
     <div class="col mb-6">
@@ -94,6 +76,38 @@
             </div>
         </div>
     </div>
+
+    <!--div class="col mb-6">
+        <div class="card mb-2">
+            <h6 class="card-header text-center fw-bold">Tiempo de ciclo de un pedido</h6>
+            <div class="card-body">
+                <canvas id="CicloPedidoChart"></canvas><br>
+                <table class="table mb-0 pb-0" style="font-size: small;">
+                    <tr>
+                        <th>Ciclos</th>
+                        <th>Tiempo promedio</th>
+                    </tr>
+                    <tr>
+                        <td>Tiempo promedio entre toma de pedido e inicio de picking</td>
+                        <td class="text-end">{{t_cliclo.t_p_pedido}} (h)</td>
+                    </tr>
+                    <tr>
+                        <td>Tiempo promedio entre inicio y fin de picking</td>
+                        <td class="text-end">{{t_cliclo.t_p_picking}} (h)</td>
+                    </tr>
+                    <tr>
+                        <td>Tiempo promedio entre fin de picking y facturación</td>
+                        <td class="text-end">{{t_cliclo.t_p_facturado}} (h)</td>
+                    </tr>
+                    <tr>
+                        <td>Total</td>
+                        <td class="text-end">{{t_cliclo.t_p_total}} (h)</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div-->
+
     <div class="col mb-6">
         <div class="card">
             <h6 class="card-header text-center fw-bold">Tiempo de almacenamiento</h6>
@@ -127,6 +141,7 @@
             </div>
         </div>
     </div>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -188,6 +203,33 @@
             },
     });
 </script>
+
+<script>
+    const pie = document.getElementById('CicloPedidoChart') //.getContext('2d');
+    const myChartPie = new Chart(pie, {
+        type: 'pie',
+        data: {
+        //labels: ['Valor 1', 'Valor 2', 'Valor 3', 'Valor 4'],
+        labels: {% autoescape off %}{{t_cliclo_labels|safe}}{% endautoescape %},
+        //labels: ['T.Pedido','T.Picking','T.Facturación'],
+        datasets: [
+            {
+            //label: 'Valor',
+            data: {% autoescape off %}{{t_cliclo_data|safe}}{% endautoescape %},
+            //data: [75, 25, 50],
+            backgroundColor: [
+                'rgba(255, 99, 132, 1)',
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 206, 86, 1)',
+            ],
+            }
+        ]
+        },
+    });
+</script>
+
+
+
 <!--
 Grafico de velocimetro
 <script>

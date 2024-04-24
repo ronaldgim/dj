@@ -120,10 +120,10 @@ def importaciones_transito(): #request
 # DATOS DE COMPRAS
 def importaciones_compras_df():
     
-    imp_llegadas = importaciones_llegadas_odbc()
+    imp_llegadas = importaciones_llegadas_odbc() 
     prod = productos_odbc_and_django()[['product_id','Nombre','marca2','Marca','Unidad_Empaque','Procedencia']]
     
-    imp_llegadas = imp_llegadas.drop_duplicates(subset='DOC_ID_CORP')
+    #imp_llegadas = imp_llegadas.drop_duplicates(subset='DOC_ID_CORP')
     imp_llegadas['ENTRADA_FECHA'] = pd.to_datetime(imp_llegadas['ENTRADA_FECHA']).dt.strftime('%Y-%m-%d')
     imp_llegadas = imp_llegadas.sort_values(by='ENTRADA_FECHA', ascending=False)
     imp_llegadas['ENTRADA_FECHA'] = imp_llegadas['ENTRADA_FECHA'].astype('str')
@@ -159,7 +159,7 @@ def importaciones(request):
 
 def nacionales(request):
     
-    nac = importaciones_compras_df()    
+    nac = importaciones_compras_df() 
     nac = nac[(nac['Procedencia'].str.contains('NACIONAL')) | (nac['Procedencia'].str.contains('Nacional'))]
     nac = nac.drop_duplicates(subset=['DOC_ID_CORP'])
     nac = de_dataframe_a_template(nac)
