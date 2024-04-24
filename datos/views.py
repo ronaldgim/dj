@@ -1131,6 +1131,7 @@ def importaciones_llegadas_odbc():
 
         importaciones_llegadas = pd.DataFrame(importaciones_llegadas)
         importaciones_llegadas['product_id'] = list(map(lambda x:x[:-6], list(importaciones_llegadas['PRODUCT_ID_CORP'])))
+        #importaciones_llegadas['product_id'] = importaciones_llegadas['product_id'].str.replace('9P-1510', '9p-1510')
 
     return importaciones_llegadas
 

@@ -140,28 +140,23 @@
                 <th class="t_b">Defecto Mayor</th>
                 <th class="t_b">Defecto Menor</th>
             </tr>
+
             {% for i in imp %}
-            
-            <tr>
-                <!--td class="t_row">{{i.PRODUCT_ID}}</td-->
-                <td class="t_row">{{i.product_id}}</td>
-                <td class="t_row">{{i.Nombre}}</td>
-
-                <!--td class="t_row_cal">{{i.QUANTITY|floatformat:'0g'}}</td-->
-                <td class="t_row_cal">{{i.OH|floatformat:'0g'}}</td>
-                <td class="t_row_cal">{{i.Nivel}}</td>
-
-                <td class="t_row_cal">{{i.Muestra|floatformat:'0g'}}</td>
-
-                <td></td>
-                <td></td>
-                <td></td>
-
-                <td class="t_row_cal">{{i.Nivel_2}}</td>
-                <td class="t_row_cal">{{i.Muestra_2|floatformat:'0g'}}</td>
-                <td></td>
-                <td></td>
-            </tr>
+                <tr>
+                    <td class="t_row">{{i.product_id}}</td>
+                    <td>{{i.Nombre}}</td>
+                    <!--td class="t_row">{{i.description}}</td-->
+                    <td class="t_row_cal">{{i.OH|floatformat:'0g'}}</td>
+                    <td class="t_row_cal">{{i.Nivel}}</td>
+                    <td class="t_row_cal">{{i.Muestra|floatformat:'0g'}}</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td class="t_row_cal">{{i.Nivel_2}}</td>
+                    <td class="t_row_cal">{{i.Muestra_2|floatformat:'0g'}}</td>
+                    <td></td>
+                    <td></td>
+                </tr>
             {% endfor %}
         </table>
 
