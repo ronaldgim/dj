@@ -36,7 +36,13 @@ from django.contrib import messages
 from django.shortcuts import render, redirect
 
 # Clientes
-from datos.views import clientes_warehouse, productos_odbc_and_django
+from datos.views import (
+    clientes_warehouse, 
+    productos_odbc_and_django,
+    
+    # Permisos costum @decorador
+    permisos
+    )
 
 # http response
 from django.http import HttpResponse
@@ -183,6 +189,7 @@ def facturas_por_product_ajax(request):
 
 
 # precios historicos
+@permisos(['COMPRAS PUBLICAS'], '/', 'ingresar a Compras Públicas')
 def precios_historicos(request):
 
     hospitales = clientes_hospitales_publicos()
