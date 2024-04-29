@@ -2246,7 +2246,7 @@ def wms_datos_nota_entrega(nota_entrega):
     
     try:
         cnxn = pyodbc.connect('DSN=mba3;PWD=API')
-        ne = 'A-' + f'{nota_entrega:010d}' + '-gimpr'
+        ne = 'A-' + f'{nota_entrega:010d}' + '-GIMPR'
         
         query = (       
             "SELECT INVT_Lotes_Ubicacion.DOC_ID_CORP, INVT_Lotes_Ubicacion.PRODUCT_ID_CORP, "
@@ -2257,7 +2257,7 @@ def wms_datos_nota_entrega(nota_entrega):
             "WHERE INVT_Lotes_Ubicacion.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND "
             "INVT_Producto_Lotes.LOTE_ID = INVT_Lotes_Ubicacion.LOTE_ID AND "
             f"((INVT_Lotes_Ubicacion.DOC_ID_CORP='{ne}') "
-            #"((INVT_Lotes_Ubicacion.DOC_ID_CORP='A-0000045310-gimpr') "
+            #"((INVT_Lotes_Ubicacion.DOC_ID_CORP='A-0000062645-GIMPR') "
             "AND (INVT_Producto_Lotes.ENTRADA_TIPO='OC'))"
         )
         

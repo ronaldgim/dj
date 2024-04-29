@@ -13,7 +13,10 @@ from datos.views import (
     clientes_warehouse, 
     lotes_facturas_odbc,
     pedidos_cuenca_odbc,
-    ventas_desde_fecha
+    ventas_desde_fecha,
+    
+    # Permisos costum @decorador
+    permisos
     )
 
 
@@ -25,6 +28,7 @@ import json
 
 
 # Reporte de ventas
+@permisos(['VENTAS'], '/', 'ingresar a Ventas')
 def reporte_tipo_mba(request):
 
     desde = datetime.strptime('2023-01-01', '%Y-%m-%d')
