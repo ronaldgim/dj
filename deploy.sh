@@ -1,5 +1,8 @@
 #!/bin/bash
 
+echo "Desactivando SELinux..."
+sudo setenforce 0
+
 echo "Activando entorno virtual..."
 source /var/www/html/dj/operaciones-env/bin/activate
 
