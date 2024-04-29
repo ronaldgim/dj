@@ -58,7 +58,7 @@
 <div id="msg"></div>
 <div id="msg_ss"></div>
 
-<label class="fw-bold">Tipo:</label><span id='tipo'>{{tipo}}</span><br>
+<label class="fw-bold">Tipo:</label><span id='tipo'>{% if tipo == 'Liberación Acondicionamiento' %}Liberación Impresión{% else %} {{tipo}} {% endif %}</span><br>
 
 <form method='POST'>
     {% csrf_token %}
