@@ -35,6 +35,9 @@ from django.contrib import messages
 # Django shortcuts
 from django.shortcuts import render, redirect
 
+# Login
+from django.contrib.auth.decorators import login_required
+
 # Clientes
 from datos.views import (
     clientes_warehouse, 
@@ -189,6 +192,7 @@ def facturas_por_product_ajax(request):
 
 
 # precios historicos
+@login_required(login_url='login')
 @permisos(['COMPRAS PUBLICAS'], '/', 'ingresar a Compras Públicas')
 def precios_historicos(request):
 
