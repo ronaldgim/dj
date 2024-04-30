@@ -80,8 +80,10 @@ from functools import wraps
 
 
 # Chequear si el usuario tiene permiso
-def user_perm(user_id, permisos_function):
-    
+def user_perm(user_id, permiso_function):
+    """
+    Las funciones reciben como argumento el permiso (solo un texto o nombre del permiso)
+    """
     user = User.objects.get(id=user_id)
     superuser = user.is_superuser
 
@@ -90,13 +92,19 @@ def user_perm(user_id, permisos_function):
     
     else:
         permisos_user_list = list(UserPerfil.objects.get(user_id=user.id).permisos.values_list('permiso', flat=True))
-        # print('PERMISOS DE LA FUNCIÓN:',permisos_function)
-        # print('PERMISOS DEL USUARIO: ',permisos_user_list)        
-        for permiso in permisos_user_list:
-            if permiso in permisos_function:
-                return True
-            else:
-                return False
+        
+        perm_true_list = []
+        for permiso in permiso_function:
+            p = permiso in permisos_user_list
+            perm_true_list.append(p)
+        
+        if True in perm_true_list:
+            return True
+        else:
+            return False
+        
+        
+
 
 
 # Decorador de permiso de vista
