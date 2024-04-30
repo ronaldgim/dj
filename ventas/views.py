@@ -29,8 +29,12 @@ import json
 # Messages
 from django.contrib import messages
 
+# Login
+from django.contrib.auth.decorators import login_required
+
 
 # Reporte de ventas
+@login_required(login_url='login')
 @permisos(['VENTAS'], '/', 'ingresar a Ventas')
 def reporte_tipo_mba(request):
 
