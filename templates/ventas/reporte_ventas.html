@@ -56,10 +56,23 @@
 <h6 class="text-center"><strong>Desde:</strong> {{desde|date:'d F Y'}} <strong>Hasta:</strong> {{hasta|date:'d F Y'}}</strong></h6>
 {% endif %}
 
-<div class="col-4">
+<div class="col-4 mb-2">
     <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
 </div>
 
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
 
 <div class="text-center" id="spinner">
     <div class="spinner-border text-primary" role="status">
@@ -69,7 +82,7 @@
 </div>
 
 
-<div class="card mt-2 mb-2">
+<div class="card mb-2">
     <div class="card-body m-0 p-0">
         <div class="container table-responsive">
             <table class="table" id="myTable">

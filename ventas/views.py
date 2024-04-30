@@ -26,6 +26,9 @@ from django.http import HttpResponse
 # JSON
 import json
 
+# Messages
+from django.contrib import messages
+
 
 # Reporte de ventas
 @permisos(['VENTAS'], '/', 'ingresar a Ventas')
@@ -49,40 +52,55 @@ def reporte_tipo_mba(request):
         
         vent = ventas_odbc_facturas(desde, hasta, cli)
         
-        prod = productos_odbc_and_django()[['product_id', 'Unidad', 'Nombre', 'Marca']]
-        prod = prod.rename(columns={'product_id':'PRODUCT_ID'})
-        cliente_list = clientes_warehouse()[['CODIGO_CLIENTE', 'NOMBRE_CLIENTE']]
+        if not vent.empty:
+            
+            prod = productos_odbc_and_django()[['product_id', 'Unidad', 'Nombre', 'Marca']]
+            prod = prod.rename(columns={'product_id':'PRODUCT_ID'})
+            cliente_list = clientes_warehouse()[['CODIGO_CLIENTE', 'NOMBRE_CLIENTE']]
+            
+            vent = vent.merge(prod, on='PRODUCT_ID', how='left')
+            vent = vent.merge(cliente_list, on='CODIGO_CLIENTE', how='left')
+            
+            vent['UNIT_PRICE'] = vent['UNIT_PRICE'].round(2)
+            vent['COST_TOTAL'] = vent['COST_TOTAL'].round(2)
+
+            total_cantidad =  vent['QUANTITY'].sum()
+            total_unitario = vent['UNIT_PRICE'].sum()
+            total_ventas = vent['COST_TOTAL'].sum()
+            
+            vent = de_dataframe_a_template(vent)
+
+            cliente = cliente_list.set_index('CODIGO_CLIENTE')
+            cliente = cliente.to_dict()['NOMBRE_CLIENTE']
+            cliente = cliente[cli] 
+
+            context = {
+                'ventas':vent,
+                'total_cantidad':total_cantidad,
+                'total_unitario':total_unitario,
+                'total_ventas':total_ventas,
+
+                'clientes':de_dataframe_a_template(clientes),
+
+                'cliente':cliente,
+                'desde':d,
+                'hasta':h,
+            }
+
+            return render(request, 'ventas/reporte_ventas.html', context)
         
-        vent = vent.merge(prod, on='PRODUCT_ID', how='left')
-        vent = vent.merge(cliente_list, on='CODIGO_CLIENTE', how='left')
-        
-        vent['UNIT_PRICE'] = vent['UNIT_PRICE'].round(2)
-        vent['COST_TOTAL'] = vent['COST_TOTAL'].round(2)
-
-        total_cantidad =  vent['QUANTITY'].sum()
-        total_unitario = vent['UNIT_PRICE'].sum()
-        total_ventas = vent['COST_TOTAL'].sum()
-        
-        vent = de_dataframe_a_template(vent)
-
-        cliente = cliente_list.set_index('CODIGO_CLIENTE')
-        cliente = cliente.to_dict()['NOMBRE_CLIENTE']
-        cliente = cliente[cli] 
-
-        context = {
-            'ventas':vent,
-            'total_cantidad':total_cantidad,
-            'total_unitario':total_unitario,
-            'total_ventas':total_ventas,
-
-            'clientes':de_dataframe_a_template(clientes),
-
-            'cliente':cliente,
-            'desde':d,
-            'hasta':h,
-        }
-
-        return render(request, 'ventas/reporte_ventas.html', context)
+        elif vent.empty:
+            
+            messages.error(request, 'No hay ventas de este cliente en el periodo seleccionado !!!')
+            
+            context = {
+                'clientes':de_dataframe_a_template(clientes),
+                'desde':d,
+                'hasta':h
+            }
+            
+            return render(request, 'ventas/reporte_ventas.html', context)
+            
 
     context = {
         # 'ventas':ventas,

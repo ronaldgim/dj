@@ -81,9 +81,7 @@ from functools import wraps
 
 # Chequear si el usuario tiene permiso
 def user_perm(user_id, permiso_function):
-    """
-    Las funciones reciben como argumento el permiso (solo un texto o nombre del permiso)
-    """
+    
     user = User.objects.get(id=user_id)
     superuser = user.is_superuser
 
@@ -102,8 +100,6 @@ def user_perm(user_id, permiso_function):
             return True
         else:
             return False
-        
-        
 
 
 
