@@ -922,7 +922,6 @@ def wms_inventario(request): #OK
             'inv_detalle':inv_detalle,
             'inv_estado':inv_estado,
             'total':total,
-            'inv_detalle_len':len(inv_detalle),
         }
     
         return render(request, 'wms/inventario.html', context)
