@@ -868,10 +868,19 @@ def wms_inventario(request): #OK
     
     prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     
+    # productos = pd.DataFrame(Existencias.objects.all().values('product_id'))
+    # productos = productos.merge(prod, on='product_id', how='left')
+    # productos = de_dataframe_a_template(productos)
+    
     if request.method == 'POST':
         codigo = request.POST['codigo']
         inv = Existencias.objects.filter(product_id=codigo)
-
+        #inv_detalle = pd.DataFrame(inv.values()).groupby(by=['estado','product_id','lote_id','fecha_caducidad']).sum().reset_index().sort_values(by='fecha_caducidad');print(inv_detalle)
+        # total_detalle = inv_detalle['unidades'].sum()
+        # inv_detalle = de_dataframe_a_template(inv_detalle)
+        # inv_estado = pd.DataFrame(inv.values()).groupby(by=['estado','product_id']).sum().reset_index()
+        # inv_estado = de_dataframe_a_template(inv_estado)
+        #inv_detalle = inv_detalle.to_html();print(inv_detalle)
     else:
         codigo=None
         inv = Existencias.objects.all()
@@ -898,8 +907,11 @@ def wms_inventario(request): #OK
         inv = de_dataframe_a_template(inv)
 
     context = {
+        #'productos':productos,
         'inv':inv,
         'len_inv':len(inv),
+        #'inv_detalle':inv_detalle,
+        #'total_detalle':total_detalle,
         'codigo':codigo
     }
 
