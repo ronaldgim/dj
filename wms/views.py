@@ -193,6 +193,7 @@ from datetime import timedelta
 #     # # DataFrame Tiempo Facturado - Despachado    
 #     mov_facturas_list = Movimiento.objects.filter(referencia='Picking').filter(estado_picking='Despachado').exclude(n_factura='').values_list('n_factura', flat=True)
     
+    ###### CREAR UNA NUEVA QUERY CON LA TABLA CORRECTA ######
 #     facturas = ventas_facturas_odbc()[['CODIGO_FACTURA','FECHA','HORA_FACTURA']]
 #     facturas = facturas[facturas.CODIGO_FACTURA.isin(mov_facturas_list)].drop_duplicates(subset='CODIGO_FACTURA')
 #     facturas = facturas.rename(columns={'CODIGO_FACTURA':'n_factura'})
