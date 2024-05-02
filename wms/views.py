@@ -867,54 +867,111 @@ def wms_inventario(request): #OK
     """
     
     prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+    productos = pd.DataFrame(Existencias.objects.all().values('product_id'))
+    productos = productos.merge(prod, on='product_id', how='left').sort_values('product_id')
+    productos = productos.drop_duplicates('product_id')
+    productos = de_dataframe_a_template(productos)
     
-    # productos = pd.DataFrame(Existencias.objects.all().values('product_id'))
-    # productos = productos.merge(prod, on='product_id', how='left')
-    # productos = de_dataframe_a_template(productos)
+    # Todos los productos 
+    inv = pd.DataFrame(Existencias.objects.all().values(
+        'id',
+        'product_id', 'lote_id', 'fecha_caducidad', 'unidades', 'fecha_hora',
+        'ubicacion', 'ubicacion__bodega', 'ubicacion__pasillo', 'ubicacion__modulo', 'ubicacion__nivel',
+        'estado'
+    ))
+    inv = inv.merge(prod, on='product_id', how='left')
+    inv['fecha_caducidad'] = pd.to_datetime(inv['fecha_caducidad'])
+    inv = inv.sort_values(
+        by        = ['estado', 'product_id', 'fecha_caducidad', 'lote_id', 'ubicacion__bodega', 'ubicacion__nivel', 'unidades'],
+        ascending = [False,    True,         True,              True,      True,                True,               True]    
+    )
+    inv['fecha_caducidad'] = inv['fecha_caducidad'].dt.strftime('%d-%m-%Y')
+    
+    inv = de_dataframe_a_template(inv)
     
     if request.method == 'POST':
-        codigo = request.POST['codigo']
-        inv = Existencias.objects.filter(product_id=codigo)
-        #inv_detalle = pd.DataFrame(inv.values()).groupby(by=['estado','product_id','lote_id','fecha_caducidad']).sum().reset_index().sort_values(by='fecha_caducidad');print(inv_detalle)
-        # total_detalle = inv_detalle['unidades'].sum()
-        # inv_detalle = de_dataframe_a_template(inv_detalle)
-        # inv_estado = pd.DataFrame(inv.values()).groupby(by=['estado','product_id']).sum().reset_index()
-        # inv_estado = de_dataframe_a_template(inv_estado)
-        #inv_detalle = inv_detalle.to_html();print(inv_detalle)
-    else:
-        codigo=None
-        inv = Existencias.objects.all()
-
-    if inv:
-
-        inv = pd.DataFrame(inv.values(
-            'id',
+        
+        ex = Existencias.objects.filter(product_id=request.POST['codigo']).values('id',
             'product_id', 'lote_id', 'fecha_caducidad', 'unidades', 'fecha_hora',
             'ubicacion', 'ubicacion__bodega', 'ubicacion__pasillo', 'ubicacion__modulo', 'ubicacion__nivel',
-            'estado'
-        )) 
+            'estado')
         
-        inv = inv.merge(prod, on='product_id', how='left')
+        inv = pd.DataFrame(ex).merge(prod, on='product_id', how='left')
         inv['fecha_caducidad'] = pd.to_datetime(inv['fecha_caducidad'])
-        
-        # orden de inventario
         inv = inv.sort_values(
             by        = ['estado', 'product_id', 'fecha_caducidad', 'lote_id', 'ubicacion__bodega', 'ubicacion__nivel', 'unidades'],
-            ascending = [False,    True,         True,              True,      True,                True,               True]
+            ascending = [False,    True,         True,              True,      True,                True,               True]    
         )
-        
         inv['fecha_caducidad'] = inv['fecha_caducidad'].dt.strftime('%d-%m-%Y')
         inv = de_dataframe_a_template(inv)
+        
+        inv_detalle = pd.DataFrame(ex).groupby(by=['estado','product_id','lote_id','fecha_caducidad']).sum().reset_index().sort_values(by='fecha_caducidad')
+        inv_detalle['fecha_caducidad'] = pd.to_datetime(inv_detalle['fecha_caducidad']).dt.strftime('%d-%m-%Y')
+        inv_detalle = de_dataframe_a_template(inv_detalle)
+        
+        inv_estado = pd.DataFrame(ex).groupby(by="estado").sum().sort_values(by='estado',ascending=False).reset_index()
+        total = inv_estado['unidades'].sum()
+        inv_estado = de_dataframe_a_template(inv_estado)
+        
+        context = {
+            'productos':productos,
+            'inv':inv,
+            
+            'codigo':request.POST['codigo'],
+            'inv_detalle':inv_detalle,
+            'inv_estado':inv_estado,
+            'total':total,
+            'inv_detalle_len':len(inv_detalle),
+        }
+    
+        return render(request, 'wms/inventario.html', context)
+    
+    #inv = pd.DataFrame(existencias)
+    
+    
+    # if request.method == 'POST':
+    #     codigo = request.POST['codigo']
+    #     inv = Existencias.objects.filter(product_id=codigo)
+    #     #inv_detalle = pd.DataFrame(inv.values()).groupby(by=['estado','product_id','lote_id','fecha_caducidad']).sum().reset_index().sort_values(by='fecha_caducidad');print(inv_detalle)
+    #     # total_detalle = inv_detalle['unidades'].sum()
+    #     # inv_detalle = de_dataframe_a_template(inv_detalle)
+    #     # inv_estado = pd.DataFrame(inv.values()).groupby(by=['estado','product_id']).sum().reset_index()
+    #     # inv_estado = de_dataframe_a_template(inv_estado)
+    #     #inv_detalle = inv_detalle.to_html();print(inv_detalle)
+    # else:
+    #     codigo=None
+    #     inv = Existencias.objects.all()
+
+    # if inv:
+
+    #     inv = pd.DataFrame(inv.values(
+    #         'id',
+    #         'product_id', 'lote_id', 'fecha_caducidad', 'unidades', 'fecha_hora',
+    #         'ubicacion', 'ubicacion__bodega', 'ubicacion__pasillo', 'ubicacion__modulo', 'ubicacion__nivel',
+    #         'estado'
+    #     )) 
+        
+    #     inv = inv.merge(prod, on='product_id', how='left')
+    #     inv['fecha_caducidad'] = pd.to_datetime(inv['fecha_caducidad'])
+        
+    #     # orden de inventario
+    #     inv = inv.sort_values(
+    #         by        = ['estado', 'product_id', 'fecha_caducidad', 'lote_id', 'ubicacion__bodega', 'ubicacion__nivel', 'unidades'],
+    #         ascending = [False,    True,         True,              True,      True,                True,               True]
+    #     )
+        
+    #     inv['fecha_caducidad'] = inv['fecha_caducidad'].dt.strftime('%d-%m-%Y')
+    #     inv = de_dataframe_a_template(inv)
 
     context = {
-        #'productos':productos,
+        'productos':productos,
         'inv':inv,
-        'len_inv':len(inv),
+        # 'len_inv':len(inv),
         #'inv_detalle':inv_detalle,
         #'total_detalle':total_detalle,
-        'codigo':codigo
+        # 'codigo':codigo
     }
-
+    
     return render(request, 'wms/inventario.html', context)
 
 
