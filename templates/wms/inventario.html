@@ -9,6 +9,7 @@
 {% endblock %}
 
 {% block body %}
+
 <h5 class="m-4 text-center"><strong>INVENTARIO - EXISTENCIAS</strong></h5>
 
 <div id="msg"></div>
@@ -40,65 +41,85 @@
 
 <form method = 'POST'>
     {% csrf_token %}
-    <div class="input-group mb-3">
-        <input type="text" name="codigo" class="form-control" placeholder="Busqueda por código" required>
-        <button class="btn btn-primary" type="submit">Buscar</button>
-    </div>
+    <select class="form-select" name="codigo" id="chosen-select-product">
+        <option selected value='0'>Seleccione un producto...</option>
+        {% for i in productos %}
+            <option value="{{i.product_id}}">{{i.product_id}} - {{i.Nombre}} - {{i.Marca}}</option>
+        {% endfor %}
+    </select>
+    <div class=text-end><button class="btn btn-sm btn-primary mt-2" type="submit"><i class="bi bi-search"></i> Buscar</button></div>
 </form>
 
-{% if request.method == 'POST' %}
-<div class="card mt-2 mb-2">
-    <div class="card-body">
-        <label class="fw-bold">Código: </label> {{codigo}}<br>
-        <label class="fw-bold">Resultados: </label> {{len_inv}}<br>
 
-        <!--div class="container table-responsive">
-            <table class="table" style="font-size: small;">
-                <thead>
-                    <tr>
-                        <th scope="col">Item</th>
-                        <th scope="col">Ubicación</th>
-                    </tr>
-                </thead>
-                <tbody id="pedidosbuscar">
-                    {% for i in inv %}
-                    <tr>
-                        <td>
-                            <span class="fw-bold">Código:</span> <span id="prod">{{i.product_id}}</span><br>
-                            <span class="fw-bold">Nombre:</span> {{i.Nombre}}<br>
-                            <span class="fw-bold">Marca:</span> {{i.Marca}}<br>
-                            <span class="fw-bold">Lote:</span> <span id="lote">{{i.lote_id}}</span> <br>
-                            <span class="fw-bold">FExp:</span> {{i.fecha_caducidad}}
-                        </td>
-                        <td>
-                            <span class="fw-bold">Ubicación:</span><br>
-                                <span {% if i.estado == "Cuarentena" %} class="text-danger" {% endif %}>
-                                    {% if i.estado == "Cuarentena" %}CUC-{% endif %}{{i.ubicacion__bodega}}-{{i.ubicacion__pasillo}}-{{i.ubicacion__modulo}}{% if i.ubicacion__bodega == 'CN6' %}-{{i.ubicacion__nivel}}{% endif %}
-                                </span>
-                            <br>
-                            <span class="fw-bold">Unidades:</span> {{i.unidades|floatformat:"0g"}}<br>
-                            <span class="fw-bold">Acciones:</span><br>
-                                <a class="btn btn-primary btn-sm" href="{% url 'wms_mov_interno' i.id %}">
-                                    <i class="bi bi-arrows-move"></i> Mov.Int.
-                                </a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div-->
+{% if request.method == 'POST' and inv_detalle_len > 1 %}
 
+<h6 class="list-group-item mt-2 mb-2 active" type="button" name="detalle">Resumen inventario: {{codigo}}
+    <i class="bi bi-caret-down-fill" style="float: right"></i>
+</h6>
 
-        <a class="btn btn-sm btn-danger" href="{% url 'wms_inventario' %}">Borrar busqueda</a>
+<div class="card" id="detalle" style="display:none">
+    
+    <div class="container table-responsive">
+        <h6 class="text-center fw-bold mt-2">Detalle de lotes</h6>
+        <table class="table" style="font-size: small;">
+            <thead>
+                <tr>
+                    <th scope="col">Lote</th>
+                    <th scope="col">FExp</th>
+                    <th scope="col">Estado</th>
+                    <th scope="col">Unidades</th>
+                </tr>
+            </thead>
+            <tbody id="pedidosbuscar">
+                {% for i in inv_detalle %}
+                <tr {% if i.estado == "Cuarentena" %} class="text-danger" {% endif %}>
+                    <td>{{i.lote_id}}</td>
+                    <td>{{i.fecha_caducidad}}</td>
+                    <td>{{i.estado}}</td>
+                    <td class="text-end">{{i.unidades|floatformat:"0g"}}</td>
+                </tr>
+                {% endfor %}
+                <tr>
+                    <td class="fw-bold">Total</td>
+                    <td></td>
+                    <td></td>
+                    <td class="text-end">{{total|floatformat:"0g"}}</td>
+                </tr>
+            </tbody>
+        </table>
     </div>
+    
+    <div class="container table-responsive">
+        <h6 class="text-center fw-bold">Detalle Estado</h6>
+        <table class="table mb-0 pb-0" style="font-size: small;">
+            <thead>
+                <tr>
+                    <th scope="col">Estado</th>
+                    <th scope="col">Unidades</th>
+                </tr>
+            </thead>
+            <tbody id="pedidosbuscar">
+                {% for i in inv_estado %}
+                <tr {% if i.estado == "Cuarentena" %} class="text-danger" {% endif %}>
+                    <td>{{i.estado}}</td>
+                    <td class="text-end">{{i.unidades|floatformat:"0g"}}</td>
+                </tr>
+                {% endfor %}
+                <tr>
+                    <td class="fw-bold">Total</td>
+                    <td class="text-end">{{total|floatformat:"0g"}}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    
+</div>
+<div class="text-end">
+    <a class="btn btn-sm btn-danger" href="{% url 'wms_inventario' %}"><i class="bi bi-trash"></i> Borrar busqueda</a>
 </div>
 {% endif %}
 
-
-<hr>
-
-
-<div class="col-12">
+<div class="col-12 mt-2">
     <input id="inputbuscar" type="text" placeholder="Filtro" class="form-control">
 </div>
 
@@ -145,6 +166,11 @@
     </div>
 </div>
 
+<script>
+    $(document).ready(function() {
+        $('#chosen-select-product').select2();
+    });
+</script>
 
 <!--filtro buscar-->
 <script>
@@ -165,6 +191,16 @@ $("button[name='actualizar_get']").click(function(){
     window.location.reload();
     $('#msg').html('<div class="text-center alert alert-success" role="alert"> Inventario Actualizado !!! </div>')
 })
+</script>
+
+<!-- Detalle -->
+<script>
+    $(document).ready(function() {
+        $("h6[name='detalle']").click(function(){
+            $("#detalle").toggle();
+            $(this).find("i").toggleClass("bi-caret-down-fill bi-caret-up-fill");
+        })
+    })
 </script>
 
 {% endblock %}

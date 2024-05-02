@@ -1212,11 +1212,11 @@ def clientes_warehouse():
     return clientes
 
 
-def ventas_facturas_odbc():
+def ventas_facturas_odbc(): # PARA REGISTRO DE GUIAS
     with connections['gimpromed_sql'].cursor() as cursor:
         cursor.execute(
-            "SELECT * FROM venta_facturas WHERE FECHA>'2023-04-01'"
-            #"SELECT * FROM facturas"
+            #"SELECT * FROM venta_facturas WHERE FECHA>'2023-04-01'"
+            "SELECT * FROM facturas"
         )
 
         columns = [col[0] for col in cursor.description]

@@ -2738,7 +2738,9 @@ def reporte_revision_reservas(request):
     
 ## CONTROL DE GUIAS Y COUIER
 def control_guias_list(request):
+    
     ventas_fac = ventas_facturas_odbc()[['NOMBRE_CLIENTE', 'CODIGO_FACTURA', 'FECHA_FACTURA']]
+    
     perfil = pd.DataFrame(UserPerfil.objects.all().values())
     user = pd.DataFrame(User.objects.all().values())
     user = user.rename(columns={'id':'user_id'})
