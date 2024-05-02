@@ -51,6 +51,44 @@
     <div class="card-body">
         <label class="fw-bold">Código: </label> {{codigo}}<br>
         <label class="fw-bold">Resultados: </label> {{len_inv}}<br>
+
+        <!--div class="container table-responsive">
+            <table class="table" style="font-size: small;">
+                <thead>
+                    <tr>
+                        <th scope="col">Item</th>
+                        <th scope="col">Ubicación</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in inv %}
+                    <tr>
+                        <td>
+                            <span class="fw-bold">Código:</span> <span id="prod">{{i.product_id}}</span><br>
+                            <span class="fw-bold">Nombre:</span> {{i.Nombre}}<br>
+                            <span class="fw-bold">Marca:</span> {{i.Marca}}<br>
+                            <span class="fw-bold">Lote:</span> <span id="lote">{{i.lote_id}}</span> <br>
+                            <span class="fw-bold">FExp:</span> {{i.fecha_caducidad}}
+                        </td>
+                        <td>
+                            <span class="fw-bold">Ubicación:</span><br>
+                                <span {% if i.estado == "Cuarentena" %} class="text-danger" {% endif %}>
+                                    {% if i.estado == "Cuarentena" %}CUC-{% endif %}{{i.ubicacion__bodega}}-{{i.ubicacion__pasillo}}-{{i.ubicacion__modulo}}{% if i.ubicacion__bodega == 'CN6' %}-{{i.ubicacion__nivel}}{% endif %}
+                                </span>
+                            <br>
+                            <span class="fw-bold">Unidades:</span> {{i.unidades|floatformat:"0g"}}<br>
+                            <span class="fw-bold">Acciones:</span><br>
+                                <a class="btn btn-primary btn-sm" href="{% url 'wms_mov_interno' i.id %}">
+                                    <i class="bi bi-arrows-move"></i> Mov.Int.
+                                </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div-->
+
+
         <a class="btn btn-sm btn-danger" href="{% url 'wms_inventario' %}">Borrar busqueda</a>
     </div>
 </div>
