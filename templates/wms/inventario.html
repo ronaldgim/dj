@@ -41,7 +41,7 @@
 
 <form method = 'POST'>
     {% csrf_token %}
-    <select class="form-select" name="codigo" id="chosen-select-product">
+    <select class="form-select" name="codigo" id="chosen-select-product" required>
         <option selected value='0'>Seleccione un producto...</option>
         {% for i in productos %}
             <option value="{{i.product_id}}">{{i.product_id}} - {{i.Nombre}} - {{i.Marca}}</option>
