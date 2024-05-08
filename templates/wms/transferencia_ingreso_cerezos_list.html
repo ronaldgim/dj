@@ -38,7 +38,7 @@
         }
 </style>
 
-<h6 class="mt-2 text-center"><strong>Trasferencias ingresadas a Cerezos</strong></h6>
+<h5 class="m-4 fw-bold text-center">TRANSFERENCIAS INGRESADAS A CEREZOS</h5>
 
 
 {% if messages %}
@@ -73,7 +73,7 @@
 <div class="card mb-2">
     <div class="card-body m-0 p-0">
         <div class="container table-responsive">
-            <table class="table">
+            <table class="table" style="font-size:small">
                 <thead>
                     <tr>
                         <th scope="col"># Transferencia</th>
@@ -87,7 +87,7 @@
                         <td>{{i.n_transferencia}}</td>
                         <td>{{i.fecha_hora}}</td>
                         <td>
-                            <a class="btn btn-primary" href="{% url 'wms_transferencia_ingreso_cerezos_detalle' i.n_transferencia %}">
+                            <a class="btn btn-sm btn-primary" href="{% url 'wms_transferencia_ingreso_cerezos_detalle' i.n_transferencia %}">
                                 <i class="bi bi-truck"></i>
                             </a>
                         </td>
