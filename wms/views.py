@@ -3418,6 +3418,7 @@ def wms_ajuste_liberacion_detalle(request, n_liberacion):
     )
     
     tipo = ajuste.iloc[0]['tipo']
+    estado = ajuste.iloc[0]['estado']
     
     ajuste = de_dataframe_a_template(ajuste)
     
@@ -3462,7 +3463,8 @@ def wms_ajuste_liberacion_detalle(request, n_liberacion):
     context = {
         'ajuste':ajuste,
         'n_liberacion':n_liberacion,
-        'tipo':tipo
+        'tipo':tipo,
+        'estado':estado
     }
 
     return render(request, 'wms/ajuste_liberacion_detalle.html', context)
