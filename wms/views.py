@@ -914,6 +914,12 @@ def wms_inventario(request): #OK
         total = inv_estado['unidades'].sum()
         inv_estado = de_dataframe_a_template(inv_estado)
         
+        en_despacho = (Movimiento.objects
+            .filter(product_id=request.POST['codigo'])
+            .filter(referencia='Picking')
+            .filter(estado_picking='En Despacho')
+            .values('product_id','lote_id','fecha_caducidad','estado_picking','unidades'))
+        
         context = {
             'productos':productos,
             'inv':inv,
@@ -921,6 +927,7 @@ def wms_inventario(request): #OK
             'codigo':request.POST['codigo'],
             'inv_detalle':inv_detalle,
             'inv_estado':inv_estado,
+            'en_despacho':en_despacho,
             'total':total,
         }
     
