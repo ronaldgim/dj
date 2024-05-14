@@ -57,7 +57,7 @@
     <i class="bi bi-caret-down-fill" style="float: right"></i>
 </h6>
 
-<div class="card" id="detalle" style="display:none">
+<div class="card mb-2" id="detalle" style="display:none">
     
     <div class="container table-responsive">
         <h6 class="text-center fw-bold mt-2">Detalle de lotes</h6>
@@ -112,8 +112,36 @@
             </tbody>
         </table>
     </div>
+
+    {% if en_despacho %}
+    <div class="container table-responsive mt-4 mb-2">
+        <h6 class="text-center fw-bold">En Despacho</h6>
+        <table class="table mb-0 pb-0" style="font-size: small;">
+            <thead>
+                <tr>
+                    <th scope="col">Lote</th>
+                    <th scope="col">FExp</th>
+                    <th scope="col">Estado Picking</th>
+                    <th scope="col">Unidades</th>
+                </tr>
+            </thead>
+            <tbody id="pedidosbuscar">
+                {% for i in en_despacho %}
+                <tr>
+                    <td>{{i.lote_id}}</td>
+                    <td>{{i.fecha_caducidad|date:'d-m-Y'}}</td>
+                    <td>{{i.estado_picking}}</td>
+                    <td class="text-end">{{i.unidades|floatformat:"0g"}}</td>
+                </tr>
+                {% endfor %}
+                <tr></tr>
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
     
 </div>
+
 <div class="text-end">
     <a class="btn btn-sm btn-danger" href="{% url 'wms_inventario' %}"><i class="bi bi-trash"></i> Borrar busqueda</a>
 </div>
