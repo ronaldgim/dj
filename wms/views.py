@@ -412,7 +412,7 @@ def wms_importaciones_list(request): #OK
         'LOTE_ID':'lote_id',
         'OH':'unidades_ingresadas',
         })
-    
+    # print(imp)
     imp_wms = pd.DataFrame(InventarioIngresoBodega.objects.filter(referencia='Ingreso Importación').values(
         'product_id','lote_id','unidades_ingresadas','n_referencia'
     ))
@@ -764,7 +764,8 @@ def wms_existencias_query(): #OK
         'ubicacion__modulo',
         'ubicacion__nivel',
     ).exclude(total_unidades = 0)
-    
+
+        
     existencias_list = []
     for i in exitencias:
         prod = i['product_id']

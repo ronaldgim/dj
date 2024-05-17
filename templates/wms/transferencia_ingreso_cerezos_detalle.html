@@ -38,7 +38,7 @@
         }
 </style>
 
-<h5 class="fw-bold m-4 text-center">TRANSFERENCIAS <span id="n_trasf">{{n_transferencia}}</span></h5>
+<h5 class="fw-bold m-4 text-center">TRANSFERENCIA <span id="n_trasf">{{n_transferencia}}</span></h5>
 
 
 {% if messages %}
@@ -79,7 +79,6 @@
 <button class="btn btn-success mt-2 mb-2 {% if estado == 'Disponible' %} disabled {% endif %}"> <!--disabled-->
     <i class="bi bi-truck"></i> Liberar transferencia
 </button><br>
-
 
 {% elif estado == 'Sin estado' %}
 <button class="btn btn-primary mt-2 mb-2" name="ingresar_inventario">
