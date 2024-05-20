@@ -38,29 +38,29 @@ class UbicacionAdmin(admin.ModelAdmin):
 
 
 # MOVIMIENTO
-@admin.register(Movimiento)
-class MovimientoAdmin(admin.ModelAdmin):
+# @admin.register(Movimiento)
+# class MovimientoAdmin(admin.ModelAdmin):
 
-    list_display = (
-        'id',
-        'enum',
-        'product_id', 
-        'lote_id', 
-        'tipo', 
-        'estado',
-        'estado_picking',
-        'ubicacion', 
-        'n_referencia', 
-        'usuario',
-        'fecha_hora',
-        'n_factura',
-        'unidades'
-        )
+#     list_display = (
+#         'id',
+#         'enum',
+#         'product_id', 
+#         'lote_id', 
+#         'tipo', 
+#         'estado',
+#         'estado_picking',
+#         'ubicacion', 
+#         'n_referencia', 
+#         'usuario',
+#         'fecha_hora',
+#         'n_factura',
+#         'unidades'
+#         )
     
-    # list_filter = ('product_id',)
-    # list_display_links = []
-    search_fields = ['product_id','n_referencia']
-    # orderin = []
+#     # list_filter = ('product_id',)
+#     # list_display_links = []
+#     search_fields = ['product_id','n_referencia']
+#     # orderin = []
     
     
 @admin.register(Transferencia)

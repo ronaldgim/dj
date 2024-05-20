@@ -765,7 +765,15 @@ def wms_existencias_query(): #OK
         'ubicacion__nivel',
     ).exclude(total_unidades = 0)
 
-        
+    # e = pd.DataFrame(Movimiento.objects.all().values())
+    # e.to_excel('mm.xlsx')
+    
+
+    # for i in exitencias:
+    #     if i['total_unidades'] < 0:
+    #         print(i['product_id'], i['lote_id'], i['ubicacion'], i['total_unidades'] )
+    
+    
     existencias_list = []
     for i in exitencias:
         prod = i['product_id']
