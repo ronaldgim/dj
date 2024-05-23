@@ -1635,6 +1635,66 @@ def tramaco_function(pesototal, producto, trayecto):
     return costototal
 
 
+def nueva_tramaco_function(pesototal, producto, trayecto):
+
+    costos_fijos = {
+        'DOCUMENTOS': {
+            'PRINCIPAL': 2.90,
+            'SECUNDARIO': 4.1,
+            'T.ESPECIAL': 5.43,
+            'URBANO': 1.76,
+            'RURAL': 2.07
+        },
+        'CARGA': {
+            'PRINCIPAL': 2.90,
+            'SECUNDARIO': 4.1,
+            'T.ESPECIAL': 5.43,
+            'URBANO': 1.76,
+            'RURAL': 2.07
+        }
+    }
+
+    # Factores de multiplicación por trayecto
+    factores_multiplicacion = {
+        'PRINCIPAL': 0.44,
+        'SECUNDARIO': 0.61,
+        'T.ESPECIAL': 0.81,
+        'URBANO': 0.27,
+        'RURAL': 0.31
+    }
+    
+    # Inicializar costo total
+    costototal = 0
+    
+    # Si el peso total es 0, retornar costo 0
+    if pesototal == 0:
+        return costototal
+    
+    # Costos para documentos
+    if producto == 'DOCUMENTOS':
+        # Obtener costo fijo para el trayecto, si no existe usar 0
+        costo_base = costos_fijos['DOCUMENTOS'].get(trayecto, 0)
+        if pesototal <= 1:
+            costototal = costo_base
+        else:
+            peso_adicional = pesototal - 1
+            factor = factores_multiplicacion.get(trayecto, 0)
+            costototal = round(costo_base + (peso_adicional * factor), 2)
+    
+    # Costos para carga courier y carga liviana
+    elif producto in ['CARGA COURIER', 'CARGA LIVIANA']:
+        # Obtener costo fijo para el trayecto, si no existe usar 0
+        costo_base = costos_fijos['CARGA'].get(trayecto, 0)
+        if pesototal <= 9:
+            costototal = costo_base
+        else:
+            peso_adicional = pesototal - 9
+            factor = factores_multiplicacion.get(trayecto, 0)
+            costototal = round(costo_base + (peso_adicional * factor), 2)
+    
+    return costototal
+
+
 def tramaco_function_ajax(request):
 
     producto = request.POST['producto']
@@ -1644,7 +1704,8 @@ def tramaco_function_ajax(request):
     peso_total = peso_total.replace(',', '.')
     peso_total = float(peso_total)    
 
-    costo = tramaco_function(peso_total, producto, trayecto)
+    #costo = tramaco_function(peso_total, producto, trayecto)
+    costo = nueva_tramaco_function(peso_total, producto, trayecto)
 
     return HttpResponse(costo)
 

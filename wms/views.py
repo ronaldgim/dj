@@ -2092,7 +2092,7 @@ def wms_armar_codigo_factura(n_factura):
             picking['lote_wms'] = picking['lote_id']
             picking['lote_id'] = quitar_puntos(picking['lote_id'])
             picking = picking.groupby(by=['product_id','lote_id','estado_picking','lote_wms']).sum().reset_index()
-
+            
             factura = factura.merge(picking, on=['product_id','lote_id'], how='left').fillna(0)
             factura['unidades'] = factura['unidades'].abs()
             factura['diferencia'] = factura['unidades'] - factura['EGRESO_TEMP']
