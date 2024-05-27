@@ -2361,7 +2361,7 @@ def publico_dashboard_fun():
     reservas = reservas[reservas['PRODUCT_ID']!='MANTEN']
     
     # davimed #
-    davimed_list = ['77317.0','77318.0','77319.0','77320.0']
+    davimed_list = ['77317.0','77318.0','77319.0','77320.0', '78956.0']
     davimed = reservas[reservas.CONTRATO_ID.isin(davimed_list)]
     # davimed #
     
