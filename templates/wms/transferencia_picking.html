@@ -134,6 +134,7 @@
                                             <input type="hidden" value="{{j.fecha_caducidad|date:'Y-m-d'}}" id="fecha_caducidad">
                                             <input type="hidden" value="{{j.ubicacion__id}}" id="ubicacion_id">
                                             <input type="hidden" value="{{n_transf}}" id="n_transf">
+                                            <input type="hidden" value="{{j.estado}}" id="estado">
                                             <!-- -->
                                             <td>
                                                 {{j.lote_id}} <br>
@@ -144,10 +145,10 @@
                                             </td>
                                             <td>{{j.unidades|floatformat:"0g"}}</td>
                                             <td>
-                                                <input id="picking_cantidad" type="number" class="form-control form-control-sm" {% if j.estado == 'Cuarentena' %} disabled {% endif %}>
+                                                <input id="picking_cantidad" type="number" class="form-control form-control-sm"> <!-- {% if j.estado == 'Cuarentena' %} disabled {% endif %} -->
                                             </td>
                                             <td>
-                                                <button name="pick" type="button" class="btn btn-success btn-sm {% if j.estado == 'Cuarentena' %} disabled {% endif %}">
+                                                <button name="pick" type="button" class="btn btn-success btn-sm"> <!--{% if j.estado == 'Cuarentena' %} disabled {% endif %}-->
                                                     <i class="bi bi-arrow-bar-right"></i>
                                                 </button>
                                             </td>
@@ -221,7 +222,7 @@
         var picking_cantidad = $(this).closest("tr").find("#picking_cantidad").val();
         var n_transf         = $(this).closest("tr").find("#n_transf").val();
         var ubi              = $(this).closest("tr").find("#ubicacion_id").val();
-        
+        var estado           = $(this).closest("tr").find("#estado").val();
         
         $.ajax({
             type:"POST",
@@ -233,7 +234,8 @@
                 'caducidad':caducidad,
                 'unds'     :picking_cantidad,
                 'n_transf' :n_transf,
-                'ubi'      :ubi
+                'ubi'      :ubi,
+                'estado'   :estado
             },
 
             success: function(response) {

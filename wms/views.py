@@ -2321,7 +2321,7 @@ def wms_transferencia_input_ajax(request):
             
         Transferencia.objects.bulk_create(tr_list)
         
-        if len(tr_list) > 0 and tr.bodega_salida == 'BCT':
+        if len(tr_list) > 0 and tr.bodega_salida == 'BCT' or tr.bodega_salida == 'CUC':
             TransferenciaStatus.objects.create(
                 n_transferencia = n_trasf,
                 estado          = 'CREADO',
@@ -2348,7 +2348,8 @@ def wms_transferencia_input_ajax(request):
 def wms_transferencias_list(request):
     
     transf_wms = pd.DataFrame(Transferencia.objects.all().values()).drop_duplicates(subset='n_transferencia')
-    transf_wms = transf_wms[transf_wms['bodega_salida']=='BCT'] 
+    # transf_wms = transf_wms[transf_wms['bodega_salida']=='BCT']
+    transf_wms = transf_wms[(transf_wms['bodega_salida']=='BCT') | (transf_wms['bodega_salida']=='CUC')]
     
     transf_status = pd.DataFrame(TransferenciaStatus.objects.all().values())[['n_transferencia','estado','avance']]
     
@@ -2624,6 +2625,7 @@ def wms_movimiento_egreso_transferencia(request): #OK
     lote_id   = request.POST['lote_id']
     caducidad = request.POST['caducidad']
     ubi       = int(request.POST['ubi'])
+    est       = request.POST['estado']
 
     existencia = (Existencias.objects
         .filter(product_id=prod_id,)
@@ -2668,7 +2670,7 @@ def wms_movimiento_egreso_transferencia(request): #OK
                 n_referencia    = n_transf,
                 ubicacion_id    = ubi,
                 unidades        = unds_egreso*-1,
-                estado          = 'Disponible',
+                estado          = est, #'Disponible',
                 estado_picking  = 'Despachado',
                 usuario_id      = request.user.id,
             )
