@@ -2625,6 +2625,7 @@ def wms_movimiento_egreso_transferencia(request): #OK
     lote_id   = request.POST['lote_id']
     caducidad = request.POST['caducidad']
     ubi       = int(request.POST['ubi'])
+    est       = request.POST['estado']
 
     existencia = (Existencias.objects
         .filter(product_id=prod_id,)
@@ -2669,7 +2670,7 @@ def wms_movimiento_egreso_transferencia(request): #OK
                 n_referencia    = n_transf,
                 ubicacion_id    = ubi,
                 unidades        = unds_egreso*-1,
-                estado          = 'Disponible',
+                estado          = est, #'Disponible',
                 estado_picking  = 'Despachado',
                 usuario_id      = request.user.id,
             )
