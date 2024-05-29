@@ -2321,7 +2321,7 @@ def wms_transferencia_input_ajax(request):
             
         Transferencia.objects.bulk_create(tr_list)
         
-        if len(tr_list) > 0 and tr.bodega_salida == 'BCT':
+        if len(tr_list) > 0 and tr.bodega_salida == 'BCT' or tr.bodega_salida == 'CUC':
             TransferenciaStatus.objects.create(
                 n_transferencia = n_trasf,
                 estado          = 'CREADO',
@@ -2348,7 +2348,8 @@ def wms_transferencia_input_ajax(request):
 def wms_transferencias_list(request):
     
     transf_wms = pd.DataFrame(Transferencia.objects.all().values()).drop_duplicates(subset='n_transferencia')
-    transf_wms = transf_wms[transf_wms['bodega_salida']=='BCT'] 
+    # transf_wms = transf_wms[transf_wms['bodega_salida']=='BCT']
+    transf_wms = transf_wms[(transf_wms['bodega_salida']=='BCT') | (transf_wms['bodega_salida']=='CUC')]
     
     transf_status = pd.DataFrame(TransferenciaStatus.objects.all().values())[['n_transferencia','estado','avance']]
     
