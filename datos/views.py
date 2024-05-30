@@ -1140,6 +1140,29 @@ def importaciones_llegadas_odbc():
     return importaciones_llegadas
 
 
+def importaciones_llegadas_por_docid_odbc(doc_id):
+
+    prod = productos_odbc_and_django()[['product_id', 'description','Nombre','marca2','Marca','Unidad_Empaque','Procedencia']]
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute(
+            f"SELECT DOC_ID_CORP, PRODUCT_ID_CORP, OH, MEMO FROM imp_llegadas where DOC_ID_CORP ='{doc_id}'"
+            )
+        columns = [col[0] for col in cursor.description]
+        importaciones_llegadas = [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+
+        importaciones_llegadas = pd.DataFrame(importaciones_llegadas)
+        importaciones_llegadas['product_id'] = list(map(lambda x:x[:-6], list(importaciones_llegadas['PRODUCT_ID_CORP'])))
+        importaciones_llegadas = importaciones_llegadas.groupby(by=['DOC_ID_CORP','MEMO','product_id']).sum().reset_index()
+        
+        importaciones_llegadas = importaciones_llegadas.merge(prod, on='product_id', how='left')
+        importaciones_llegadas['CARTONES'] = importaciones_llegadas['OH']/importaciones_llegadas['Unidad_Empaque']
+        
+    return importaciones_llegadas
+
+
 def importaciones_llegadas_ocompra_odbc(o_compra):
 
     with connections['gimpromed_sql'].cursor() as cursor:
@@ -1757,8 +1780,8 @@ def actualizar_imp_llegadas_odbc(request):
         "INVT_Lotes_Trasabilidad.AVAILABLE, INVT_Lotes_Trasabilidad.EGRESO_TEMP, INVT_Lotes_Trasabilidad.OH, INVT_Lotes_Trasabilidad.WARE_COD_CORP, CLNT_Pedidos_Principal.MEMO "
         "FROM INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad "
         "LEFT JOIN CLNT_Pedidos_Principal ON INVT_Lotes_Trasabilidad.DOC_ID_CORP = CLNT_Pedidos_Principal.CONTRATO_ID_CORP "
-        #"WHERE (INVT_Lotes_Trasabilidad.ENTRADA_TIPO='OC') AND (INVT_Lotes_Trasabilidad.ENTRADA_FECHA>'01/01/2021') AND (INVT_Lotes_Trasabilidad.Tipo_Movimiento='RP')"
-        f"WHERE (INVT_Lotes_Trasabilidad.ENTRADA_TIPO='OC') AND (INVT_Lotes_Trasabilidad.ENTRADA_FECHA>'01/01/{anio}') AND (INVT_Lotes_Trasabilidad.Tipo_Movimiento='RP')"
+        "WHERE (INVT_Lotes_Trasabilidad.ENTRADA_TIPO='OC') AND (INVT_Lotes_Trasabilidad.ENTRADA_FECHA>'01/01/2022') AND (INVT_Lotes_Trasabilidad.Tipo_Movimiento='RP')"
+        #f"WHERE (INVT_Lotes_Trasabilidad.ENTRADA_TIPO='OC') AND (INVT_Lotes_Trasabilidad.ENTRADA_FECHA>'01/01/{anio}') AND (INVT_Lotes_Trasabilidad.Tipo_Movimiento='RP')"
     )
     llegada = cursorOdbc.fetchall()
     #llegada = [list(rows) for rows in llegada]
