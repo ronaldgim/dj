@@ -59,7 +59,11 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.urls import reverse
 
 # TRANSFERENCIA ODBC
-from datos.views import doc_transferencia_odbc, importaciones_llegadas_odbc, productos_odbc_and_django
+from datos.views import (
+    doc_transferencia_odbc, 
+    importaciones_llegadas_odbc, 
+    productos_odbc_and_django, 
+    importaciones_llegadas_por_docid_odbc)
 
 # de dataframe to template
 from compras_publicas.views import de_dataframe_a_template
@@ -131,6 +135,7 @@ def importaciones_compras_df():
     imp_llegadas['Procedencia'] = imp_llegadas['Procedencia'].astype('str')
     
     imp_llegadas['CARTONES'] = imp_llegadas['OH'] / imp_llegadas['Unidad_Empaque']
+    imp_llegadas = imp_llegadas.drop(['LOTE_ID'], axis=1)
     
     return imp_llegadas
     
@@ -269,9 +274,9 @@ def muestreo(data, und):
 @login_required(login_url='login')
 def muestreo_unidades(request, memo):
 
-    data = importaciones_compras_df()
-    data = data[data['DOC_ID_CORP']==memo].fillna('')
-    
+    #data = importaciones_compras_df()
+    #data = data[data['DOC_ID_CORP']==memo].fillna('')
+    data = importaciones_llegadas_por_docid_odbc(memo)
     imp = muestreo(data, 'OH')
     imp = imp.sort_values(by='product_id')
 
@@ -296,16 +301,12 @@ def muestreo_unidades(request, memo):
 @pdf_decorator(pdfname='muestreo_importacion_cartones.pdf')
 @login_required(login_url='login')
 def muestreo_cartones(request, memo):
-
-    # data = importaciones_transito()
-    data = importaciones_compras_df()
-    # data = data[data['MEMO']==memo]
-    data = data[data['DOC_ID_CORP']==memo].fillna('')
     
+    data = importaciones_llegadas_por_docid_odbc(memo)
+    print(data, data.keys())
     imp = muestreo(data, 'CARTONES')
     imp = imp.sort_values(by='product_id')
 
-    #proveedor = imp['VENDOR_NAME'].iloc[0]
     proveedor = imp['marca2'].iloc[0]
     proveedor2 = imp['Marca'].iloc[0]
     n_imp = imp['MEMO'].iloc[0]
