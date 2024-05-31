@@ -1163,6 +1163,49 @@ def importaciones_llegadas_por_docid_odbc(doc_id):
     return importaciones_llegadas
 
 
+def importaciones_tansito_list():
+
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute(
+            "SELECT * FROM imp_transito"
+            )
+        columns = [col[0] for col in cursor.description]
+        importaciones_transito = [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+
+        importaciones_transito = pd.DataFrame(importaciones_transito)
+    
+    return importaciones_transito
+
+
+def importaciones_tansito_por_contratoid(contrato_id):
+
+    prod = productos_odbc_and_django()[['product_id', 'description','Nombre','marca2','Marca','Unidad_Empaque','Procedencia']]
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute(
+            f"SELECT * FROM imp_transito WHERE CONTRATO_ID = '{contrato_id}'"
+            )
+        columns = [col[0] for col in cursor.description]
+        importaciones_transito = [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+
+        importaciones_transito = pd.DataFrame(importaciones_transito)
+        importaciones_transito = importaciones_transito.groupby(
+            ['CONTRATO_ID','VENDOR_NAME','PRODUCT_ID','MEMO']
+        ).sum()
+        importaciones_transito = importaciones_transito.reset_index()
+        importaciones_transito = importaciones_transito.rename(columns={'PRODUCT_ID':'product_id','QUANTITY':'OH'})
+        importaciones_transito = importaciones_transito.merge(prod, on='product_id', how='left')
+        importaciones_transito['CARTONES'] = importaciones_transito['OH']/importaciones_transito['Unidad_Empaque']
+    
+    return importaciones_transito
+
+
+
 def importaciones_llegadas_ocompra_odbc(o_compra):
 
     with connections['gimpromed_sql'].cursor() as cursor:

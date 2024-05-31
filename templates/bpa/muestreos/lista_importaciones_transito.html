@@ -1,7 +1,7 @@
 {%extends 'base.html' %}
 
 {% block title %}
-<title>Etiquetado por pedido</title>
+<title>Imp Trnasito</title>
 {% endblock%}
 
 {% block navbar %}
@@ -9,7 +9,7 @@
 {% endblock %}
 
 {% block body %}
-<h5 class="m-4 text-center"><strong>LISTADO DE IMPORTACIONES</strong></h5>
+<h5 class="m-4 text-center"><strong>LISTADO DE IMPORTACIONES EN TRANSITO</strong></h5>
 <!--h6 class="m-4 text-end"><strong>Actulizado: </strong>{{actualizado|slice:':-7'}}</h6-->
 
 <!--form method="POST">
@@ -42,17 +42,15 @@
                 <tbody id="pedidosbuscar">
                     {% for i in imp %}
                     <tr>
-                        <!--td>{{i.VENDOR_NAME}}</td-->
+                        <td>{{i.VENDOR_NAME}}</td>
                         <td>{{i.marca2|default:"-"}}</td>
-                        <td>{{i.Marca}}</td>
-                        <!--td>{{i.FECHA_ENTREGA}}</td-->
-                        <td>{{i.ENTRADA_FECHA}}</td>
+                        <td>{{i.FECHA_ENTREGA}}</td>
                         <td>{{i.MEMO|default:"-"}}</td>
-                        <td>{{i.DOC_ID_CORP}}</td>
+                        <td>{{i.CONTRATO_ID}}</td>
                         <td>
                             {#% if i.MEMO %#}
                             <!--a class="btn btn-primary btn-sm" href="{#% url 'muestreos_imp_unidades' i.MEMO %#}" target="_blank"-->
-                            <a class="btn btn-primary btn-sm" href="{% url 'muestreos_imp_unidades' i.DOC_ID_CORP %}" target="_blank">
+                            <a class="btn btn-primary btn-sm" href="{% url 'muestreos_imp_unidades_transito' i.CONTRATO_ID %}" target="_blank">
                                 <i class="bi bi-box"></i>
                             </a>
                             {#% endif %#}
@@ -60,7 +58,7 @@
                         <td>
                             {#% if i.MEMO %#}
                             <!--a class="btn btn-primary btn-sm" href="{#% url 'muestreos_imp_cartones' i.MEMO %#}" target="_blank"-->
-                            <a class="btn btn-primary btn-sm" href="{% url 'muestreos_imp_cartones' i.DOC_ID_CORP %}" target="_blank">
+                            <a class="btn btn-primary btn-sm" href="{% url 'muestreos_imp_cartones_transito' i.CONTRATO_ID %}" target="_blank">
                                 <i class="bi bi-boxes"></i>
                             </a>
                             {#% endif %#}

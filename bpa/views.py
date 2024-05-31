@@ -63,7 +63,10 @@ from datos.views import (
     doc_transferencia_odbc, 
     importaciones_llegadas_odbc, 
     productos_odbc_and_django, 
-    importaciones_llegadas_por_docid_odbc)
+    importaciones_llegadas_por_docid_odbc,
+    importaciones_tansito_list,
+    importaciones_tansito_por_contratoid
+    )
 
 # de dataframe to template
 from compras_publicas.views import de_dataframe_a_template
@@ -159,6 +162,21 @@ def importaciones(request):
     }
 
     return render(request, 'bpa/muestreos/lista_importaciones.html', context)
+
+@login_required(login_url='login')
+def importaciones_transito(request):
+    prod = productos_odbc_and_django()[['product_id', 'marca2']]
+    imp_transito = importaciones_tansito_list()
+    imp_transito = imp_transito.drop_duplicates(subset='CONTRATO_ID').sort_values(by='CONTRATO_ID', ascending=False)
+    imp_transito = imp_transito.rename(columns={'PRODUCT_ID':'product_id'})
+    imp_transito = imp_transito.merge(prod, on='product_id', how='left')
+    imp_transito['FECHA_ENTREGA'] = imp_transito['FECHA_ENTREGA'].astype('str')
+    imp_transito = de_dataframe_a_template(imp_transito)
+    context = {
+        'imp':imp_transito
+    }
+    return render(request, 'bpa/muestreos/lista_importaciones_transito.html', context)
+
 
 
 def nacionales(request):
@@ -303,7 +321,6 @@ def muestreo_unidades(request, memo):
 def muestreo_cartones(request, memo):
     
     data = importaciones_llegadas_por_docid_odbc(memo)
-    print(data, data.keys())
     imp = muestreo(data, 'CARTONES')
     imp = imp.sort_values(by='product_id')
 
@@ -314,6 +331,58 @@ def muestreo_cartones(request, memo):
     
     imp = de_dataframe_a_template(imp)
     
+    context = {
+        'imp':imp,
+        'proveedor':proveedor,
+        'proveedor2':proveedor2,
+        'n_imp':n_imp,
+        'n_doc':n_doc
+    }
+
+    return render(request, 'bpa/muestreos/muestreo_imp_cartones.html', context)
+
+
+@pdf_decorator(pdfname='muestreo_importacion_unidades.pdf')
+@login_required(login_url='login')
+def muestreo_unidades_transito(request, contrato_id):
+
+    data = importaciones_tansito_por_contratoid(contrato_id)
+    imp = muestreo(data, 'OH')
+    imp = imp.sort_values(by='product_id')
+
+    proveedor = imp['marca2'].iloc[0]
+    proveedor2 = imp['Marca'].iloc[0]
+    n_imp = imp['MEMO'].iloc[0]
+    n_doc = imp['CONTRATO_ID'].iloc[0]
+    
+    imp = de_dataframe_a_template(imp)
+
+    context = {
+        'imp':imp,
+        'proveedor':proveedor,
+        'proveedor2':proveedor2,
+        'n_imp':n_imp,
+        'n_doc':n_doc
+    }
+
+    return render(request, 'bpa/muestreos/muestreo_imp_unidades.html', context)
+
+
+@pdf_decorator(pdfname='muestreo_importacion_unidades.pdf')
+@login_required(login_url='login')
+def muestreo_cartones_transito(request, contrato_id):
+
+    data = importaciones_tansito_por_contratoid(contrato_id)
+    imp = muestreo(data, 'CARTONES')
+    imp = imp.sort_values(by='product_id')
+
+    proveedor = imp['marca2'].iloc[0]
+    proveedor2 = imp['Marca'].iloc[0]
+    n_imp = imp['MEMO'].iloc[0]
+    n_doc = imp['CONTRATO_ID'].iloc[0]
+    
+    imp = de_dataframe_a_template(imp)
+
     context = {
         'imp':imp,
         'proveedor':proveedor,

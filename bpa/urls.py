@@ -13,7 +13,13 @@ urlpatterns = [
         view = views.importaciones,
         name = 'bpa_importaciones_list'
     ),
-
+    
+    #importaciones_transito
+    path(
+        route='muestreos/importaciones/transito',
+        view = views.importaciones_transito,
+        name = 'bpa_importaciones_transito_list'
+    ),
     # Lista de nacionales
     path(
         route= 'nac_list',
@@ -35,6 +41,20 @@ urlpatterns = [
         name = 'muestreos_imp_cartones'
     ),
 
+    # Muestreo unidades transito
+    path(
+        route='muestreos/importaciones/transito/unidades/<str:contrato_id>',
+        view = views.muestreo_unidades_transito,
+        name = 'muestreos_imp_unidades_transito'
+    ),
+    
+    #muestreo_cartones_transito
+    path(
+        route='muestreos/importaciones/transito/cartones/<str:contrato_id>',
+        view = views.muestreo_cartones_transito,
+        name = 'muestreos_imp_cartones_transito'
+    ),
+    
     # Revisión tecnica
     path(
         route='muestreos/revisiontecnica/<str:memo>',
