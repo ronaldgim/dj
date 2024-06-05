@@ -6,8 +6,8 @@ from django.db import connections
 # Datetime
 from datetime import datetime, timedelta
 
-# Tabla productos DJANGO
-from datos.models import Product
+# # Tabla productos DJANGO
+# from datos.models import Product
 
 # Pandas
 import pandas as pd
@@ -24,10 +24,11 @@ import mysql.connector
 from django.core.paginator import Paginator
 
 # Model
-from compras_publicas.models import ProcesosSercop
+from compras_publicas.models import ProcesosSercop, Anexo, Producto
+from wms.models import Movimiento
 
 # Forms
-from compras_publicas.forms import ProcesosSercopForm
+from compras_publicas.forms import ProcesosSercopForm, ProductoForm
 
 # Messages
 from django.contrib import messages
@@ -44,11 +45,18 @@ from datos.views import (
     productos_odbc_and_django,
     
     # Permisos costum @decorador
-    permisos
+    permisos,
+    
+    # pedidos
+    #pedidos_cerrados_bct
+
     )
 
 # http response
 from django.http import HttpResponse
+from django.views.decorators.http import require_POST
+from django.shortcuts import get_object_or_404
+
 
 # Funcios para pasar de dataframe a registros para el template
 def de_dataframe_a_template(dataframe):
@@ -341,3 +349,199 @@ def procesos_sercop(request):
     }
 
     return render(request, 'compras_publicas/procesos_sercop.html', context)
+
+
+
+### ANEXOS
+def anexos_list(request):
+    
+    anexos = Anexo.objects.all()
+    
+    context = {
+        'anexos':anexos
+    }
+    
+    return render(request, 'compras_publicas/anexos_list.html', context)
+
+
+
+def anexo_detail(request, anexo_id):
+    
+    anexo = Anexo.objects.get(id=anexo_id)
+    
+    context = {
+        'anexo':anexo,
+    }
+    
+    return render(request, 'compras_publicas/anexo_detail.html', context)
+
+
+
+@require_POST
+def anexo_cabecera_edit_ajax(request):
+    anexo_id = int(request.POST.get('id', 0))
+    anexo_field = request.POST.get('name')
+    anexo_value = request.POST.get('value')
+    
+    # Validar entrada
+    if not anexo_id or not anexo_field or anexo_value is None:
+        return JsonResponse({'msg': 'fail', 'error': 'Invalid input'})
+
+    # Obtener el anexo o retornar 404
+    anexo = get_object_or_404(Anexo, id=anexo_id)
+    
+    # Diccionario para mapear campos
+    valid_fields = {
+        'fecha':'fecha',
+        'cliente': 'cliente',
+        'ruc': 'ruc',
+        'direccion': 'direccion',
+        'orden_compra': 'orden_compra',
+        'observaciones': 'observaciones'
+    }
+
+    # Verificar si el campo es válido
+    if anexo_field in valid_fields:
+        # Actualizar el campo del modelo dinámicamente
+        setattr(anexo, valid_fields[anexo_field], anexo_value)
+        anexo.save()
+        
+        # Verificar si el campo se actualizó correctamente
+        if getattr(anexo, valid_fields[anexo_field]) == anexo_value:
+            return JsonResponse({'msg': 'ok'})
+        else:
+            return JsonResponse({'msg': 'fail'})
+    
+    return JsonResponse({'msg': 'fail', 'error': 'Invalid field'})
+
+
+# @require_POST
+def anexo_edit_product_ajax(request):
+    
+    if request.method=='GET':
+        producto = Producto.objects.get(id=int(request.GET.get('product_id', 0)))    
+        return HttpResponse(
+        f"""
+            <input type="hidden" name="id_prod" value="{producto.id}">
+            <div class="modal-body">
+                <div class="row g-3 align-items-center">
+                    <div class="col-4">
+                        <label for="product_id" class="col-form-label fw-bold">Código:</label>
+                    </div>
+                    <div class="col-8">
+                        <input type="text" name="product_id" class="form-control" value="{producto.product_id}"  aria-describedby="passwordHelpInline">
+                    </div>
+                </div>
+            
+                <div class="row g-3 align-items-center">
+                    <div class="col-4">
+                        <label for="nombre" class="col-form-label fw-bold">Nombre:</label>
+                    </div>
+                    <div class="col-8">
+                        <input type="text" name="nombre" class="form-control" value="{producto.nombre}" aria-describedby="passwordHelpInline">
+                    </div>
+                </div>
+
+                <div class="row g-3 align-items-center">
+                    <div class="col-4">
+                        <label for="nombre_generico" class="col-form-label fw-bold">Nombre Generico:</label>
+                    </div>
+                    <div class="col-8">
+                        <input type="text" name="nombre_generico" value="{producto.nombre_generico}" class="form-control" aria-describedby="passwordHelpInline">
+                    </div>
+                </div>
+            
+                <div class="row g-3 align-items-center">
+                    <div class="col-4">
+                        <label for="presentacion" class="col-form-label fw-bold">Presentación:</label>
+                    </div>
+                    <div class="col-8">
+                        <input type="text" name="presentacion" class="form-control" value="{producto.presentacion}" aria-describedby="passwordHelpInline">
+                    </div>
+                </div>
+
+                <div class="row g-3 align-items-center">
+                    <div class="col-4">
+                        <label for="marca" class="col-form-label fw-bold">Marca:</label>
+                    </div>
+                    <div class="col-8">
+                        <input type="text" name="marca" class="form-control" value="{producto.marca}"  aria-describedby="passwordHelpInline">
+                    </div>
+                </div>
+            
+                <div class="row g-3 align-items-center">
+                    <div class="col-4">
+                        <label for="procedencia" class="col-form-label fw-bold">Procedencia:</label>
+                    </div>
+                    <div class="col-8">
+                        <input type="text" name="procedencia" class="form-control" value="{producto.procedencia}" aria-describedby="passwordHelpInline">
+                    </div>
+                </div>
+
+                <div class="row g-3 align-items-center">
+                    <div class="col-4">
+                        <label for="r_sanitario" class="col-form-label fw-bold">Registro Sanitario:</label>
+                    </div>
+                    <div class="col-8">
+                        <input type="text" name="r_sanitario" class="form-control" value="{producto.r_sanitario}" aria-describedby="passwordHelpInline">
+                    </div>
+                </div>
+
+                <div class="row g-3 align-items-center">
+                    <div class="col-4">
+                        <label for="lote" class="col-form-label fw-bold">Lote:</label>
+                    </div>
+                    <div class="col-8">
+                        <input type="text" name="lote_id" class="form-control" value="{producto.lote_id}" aria-describedby="passwordHelpInline">
+                    </div>
+                </div>
+
+                <div class="row g-3 align-items-center">
+                    <div class="col-4">
+                        <label for="f_elaboracion" class="col-form-label fw-bold">F.Elaboración:</label>
+                    </div>
+                    <div class="col-8">
+                        <input type="date" name="f_elaboracion" class="form-control" value="{producto.f_elaboracion}" aria-describedby="passwordHelpInline">
+                    </div>
+                </div>
+
+                <div class="row g-3 align-items-center">
+                    <div class="col-4">
+                        <label for="f_caducidad" class="col-form-label fw-bold">F.Caducidad:</label>
+                    </div>
+                    <div class="col-8">
+                        <input type="date" name="f_caducidad" class="form-control" value="{producto.f_caducidad}" aria-describedby="passwordHelpInline">
+                    </div>
+                </div>
+
+                <div class="row g-3 align-items-center">
+                    <div class="col-4">
+                        <label for="cantidad" class="col-form-label fw-bold">Cantidad:</label>
+                    </div>
+                    <div class="col-8">
+                        <input type="number" name="cantidad" class="form-control" value="{producto.cantidad}" aria-describedby="passwordHelpInline">
+                    </div>
+                </div>
+                
+                <div class="row g-3 align-items-center">
+                    <div class="col-4">
+                        <label for="cantidad_total" class="col-form-label fw-bold">Cantidad total:</label>
+                    </div>
+                    <div class="col-8">
+                        <input type="number" name="cantidad_total" class="form-control" value="{producto.cantidad_total}" aria-describedby="passwordHelpInline">
+                    </div>
+                </div>
+            </div>
+        """
+        )
+    
+    if request.method == 'POST':
+        
+        anexo = Anexo.objects.get(id=int(request.POST.get('id_anexo')))
+        
+        producto = Producto.objects.get(id=int(request.POST.get('id_prod')))
+        form = ProductoForm(request.POST, instance=producto)
+    
+        if form.is_valid():
+            form.save()
+            return redirect('anexo_detail', anexo.id)

@@ -36,4 +36,34 @@ urlpatterns = [
         view = views.procesos_sercop, 
         name='procesos_sercop'
     ),
+    
+    ## ANEXOS
+    # lista de anexos
+    path(
+        route='anexos/list', 
+        view = views.anexos_list, 
+        name='anexos_list'
+    ),
+    
+    # anexo detail
+    path(
+        route='anexos/<int:anexo_id>', 
+        view = views.anexo_detail, 
+        name='anexo_detail'
+    ),
+    
+    #anexo_cabecera_edit_ajax
+    path(
+        route='anexos/anexo_cabecera_edit_ajax', 
+        view = views.anexo_cabecera_edit_ajax, 
+        name='anexo_cabecera_edit_ajax'
+    ),
+    
+    #anexo_get_product_ajax
+    path(
+        route='anexos/anexo_edit_product_ajax', 
+        view = views.anexo_edit_product_ajax, 
+        name='anexo_edit_product_ajax'
+    ),
+    
 ]
