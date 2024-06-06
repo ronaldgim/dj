@@ -66,4 +66,10 @@ urlpatterns = [
         name='anexo_edit_product_ajax'
     ),
     
+    #anexo_get_product_ajax
+    path(
+        route='anexos/anexo_formato_general/<int:anexo_id>', 
+        view = views.anexo_formato_general, 
+        name='anexo_formato_general'
+    ),
 ]
