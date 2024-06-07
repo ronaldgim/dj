@@ -1600,7 +1600,7 @@ def wms_ajuste_fecha_ajax(request):
 def wms_movimientos_list(request): #OK
     """ Lista de movimientos """
 
-    mov = Movimiento.objects.all().order_by('-fecha_hora')
+    mov = Movimiento.objects.all().order_by('-fecha_hora', '-id')
     
     paginator = Paginator(mov, 50)
     page_number = request.GET.get('page')
@@ -1611,39 +1611,35 @@ def wms_movimientos_list(request): #OK
     
     if request.method == 'POST':
         
-        tipo = request.POST['tipo']
-        valor = request.POST['valor']
+        product_id = request.POST.get('product_id')
+        n_referencia = request.POST.get('n_referencia')
+        n_factura = request.POST.get('n_factura')
         
-        if tipo == 'Código':
-            mov = Movimiento.objects.filter(product_id=valor).order_by('-fecha_hora')
-            context = {
-                'mov':mov,
-                'len':len(mov),
-                'tipo':tipo,
-                'valor':valor
-                }
-            return render(request, 'wms/movimientos_list.html', context)
+        filtro = {}
+        if product_id:
+            tipo = 'Código'
+            valor= product_id
+            filtro['product_id'] = product_id
+        elif n_referencia:
+            tipo = 'Referencia'
+            valor=n_referencia
+            filtro['n_referencia__icontains'] = n_referencia
+        elif n_factura:
+            tipo = 'Factura'
+            valor= n_factura
+            filtro['n_factura__icontains'] = n_factura
         
-        elif tipo=='Número de referencia':
-            mov = Movimiento.objects.filter(n_referencia__icontains=valor).order_by('-fecha_hora')
-            context = {
-                'mov':mov,
-                'len':len(mov),
-                'tipo':tipo,
-                'valor':valor
-                }
-            return render(request, 'wms/movimientos_list.html', context)
+        mov = Movimiento.objects.filter(**filtro).order_by('-fecha_hora','-id')
         
-        elif tipo=='Número de factura':
-            mov = Movimiento.objects.filter(estado_picking='Despachado').filter(n_factura__icontains=valor).order_by('-fecha_hora')
-            context = {
-                'mov':mov,
-                'len':len(mov),
-                'tipo':tipo,
-                'valor':valor
-                }
-            return render(request, 'wms/movimientos_list.html', context)
-    
+        context = {
+            'mov':mov,
+            'len':len(mov),
+            'tipo':tipo,
+            'valor':valor
+        }
+        
+        return render(request, 'wms/movimientos_list.html', context)
+        
     context = {
         'mov':mov
     }
