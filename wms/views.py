@@ -363,6 +363,19 @@ def kpi_tiempo_de_almacenamiento():
     return df
 
 
+# UBICACIONES DISPONIBLES BODEGA 6
+def wms_ubicaciones_disponibles_cn6():
+    
+    ubicaciones_existencias = Existencias.objects.filter(ubicacion__bodega='CN6').values_list('ubicacion_id', flat=True)
+    ubicaciones = Ubicacion.objects.filter(bodega='CN6').values_list('id', flat=True)
+    
+    ubicaciones_existencias = set(ubicaciones_existencias)
+    ubicaciones = set(ubicaciones)
+    ubicaciones_disponibles = ubicaciones.difference(ubicaciones_existencias)
+    
+    ubi_list = Ubicacion.objects.filter(id__in=ubicaciones_disponibles)
+    
+    return sorted(ubi_list, key=lambda x: (x.pasillo, x.columna))
 
 
 # WMS HOME
@@ -385,6 +398,8 @@ def wms_home(request):
         'utilizacion':utilizacion_list,
         'capacidad':capacidad,
         'tiempo_de_almacenamiento':tiempo_de_almacenamiento,
+        'ubicaciones_disponibles':wms_ubicaciones_disponibles_cn6(),
+        'len_ubicaciones_disponibles':len(wms_ubicaciones_disponibles_cn6())
         # 't_cliclo':kpi_ciclo_pedido(),
         # 't_cliclo_labels':t_ciclo_labels,
         # 't_cliclo_data':t_ciclo_data,
@@ -1585,7 +1600,7 @@ def wms_ajuste_fecha_ajax(request):
 def wms_movimientos_list(request): #OK
     """ Lista de movimientos """
 
-    mov = Movimiento.objects.all().order_by('-fecha_hora')
+    mov = Movimiento.objects.all().order_by('-fecha_hora', '-id')
     
     paginator = Paginator(mov, 50)
     page_number = request.GET.get('page')
@@ -1596,39 +1611,35 @@ def wms_movimientos_list(request): #OK
     
     if request.method == 'POST':
         
-        tipo = request.POST['tipo']
-        valor = request.POST['valor']
+        product_id = request.POST.get('product_id')
+        n_referencia = request.POST.get('n_referencia')
+        n_factura = request.POST.get('n_factura')
         
-        if tipo == 'Código':
-            mov = Movimiento.objects.filter(product_id=valor).order_by('-fecha_hora')
-            context = {
-                'mov':mov,
-                'len':len(mov),
-                'tipo':tipo,
-                'valor':valor
-                }
-            return render(request, 'wms/movimientos_list.html', context)
+        filtro = {}
+        if product_id:
+            tipo = 'Código'
+            valor= product_id
+            filtro['product_id'] = product_id
+        elif n_referencia:
+            tipo = 'Referencia'
+            valor=n_referencia
+            filtro['n_referencia__icontains'] = n_referencia
+        elif n_factura:
+            tipo = 'Factura'
+            valor= n_factura
+            filtro['n_factura__icontains'] = n_factura
         
-        elif tipo=='Número de referencia':
-            mov = Movimiento.objects.filter(n_referencia__icontains=valor).order_by('-fecha_hora')
-            context = {
-                'mov':mov,
-                'len':len(mov),
-                'tipo':tipo,
-                'valor':valor
-                }
-            return render(request, 'wms/movimientos_list.html', context)
+        mov = Movimiento.objects.filter(**filtro).order_by('-fecha_hora','-id')
         
-        elif tipo=='Número de factura':
-            mov = Movimiento.objects.filter(estado_picking='Despachado').filter(n_factura__icontains=valor).order_by('-fecha_hora')
-            context = {
-                'mov':mov,
-                'len':len(mov),
-                'tipo':tipo,
-                'valor':valor
-                }
-            return render(request, 'wms/movimientos_list.html', context)
-    
+        context = {
+            'mov':mov,
+            'len':len(mov),
+            'tipo':tipo,
+            'valor':valor
+        }
+        
+        return render(request, 'wms/movimientos_list.html', context)
+        
     context = {
         'mov':mov
     }

@@ -39,7 +39,7 @@
             <label for="n_pedido" class="col-form-label fw-bold">N°.Picking:</label>
         </div>
         <div class="col-4">
-            <input type="text" id="n_pedido" class="form-control" value="{{anexo.n_pedido}}" aria-describedby="passwordHelpInline" readonly>
+            <input type="text" id="n_pedido" class="form-control form-control-sm" value="{{anexo.n_pedido}}" aria-describedby="passwordHelpInline" readonly>
         </div>
         <!--div class="col-auto">
             <button class="btn btn-sm btn-secondary"><i class="bi bi-pencil"></i></button>
@@ -51,7 +51,7 @@
             <label for="fecha" class="col-form-label fw-bold">Fecha:</label>
         </div>
         <div class="col-4">
-            <input type="date" name="fecha" class="form-control" value="{{anexo.fecha|date:'Y-m-d'}}" aria-describedby="passwordHelpInline" readonly>
+            <input type="date" name="fecha" class="form-control form-control-sm" value="{{anexo.fecha|date:'Y-m-d'}}" aria-describedby="passwordHelpInline" readonly>
         </div>
         <div class="col-auto">
             <button class="btn btn-sm btn-secondary" name="edit_anexo">
@@ -72,7 +72,7 @@
             <label for="cliente" class="col-form-label fw-bold">Cliente:</label>
         </div>
         <div class="col-4">
-            <input type="text" name="cliente" class="form-control" value="{{anexo.cliente}}" aria-describedby="passwordHelpInline" readonly>
+            <input type="text" name="cliente" class="form-control form-control-sm" value="{{anexo.cliente}}" aria-describedby="passwordHelpInline" readonly>
         </div>
         <div class="col-auto">
             <button class="btn btn-sm btn-secondary" name="edit_anexo">
@@ -93,7 +93,7 @@
             <label for="ruc" class="col-form-label fw-bold">Ruc:</label>
         </div>
         <div class="col-4">
-            <input type="text" maxlength="13" name="ruc" class="form-control" value="{{anexo.ruc}}" aria-describedby="passwordHelpInline" readonly>
+            <input type="text" maxlength="13" name="ruc" class="form-control form-control-sm" value="{{anexo.ruc}}" aria-describedby="passwordHelpInline" readonly>
         </div>
         <div class="col-auto">
             <button class="btn btn-sm btn-secondary" name="edit_anexo">
@@ -114,7 +114,7 @@
             <label for="direccion" class="col-form-label fw-bold">Dirección:</label>
         </div>
         <div class="col-4">
-            <input type="text" name="direccion" class="form-control" value="{{anexo.direccion}}" aria-describedby="passwordHelpInline" readonly>
+            <input type="text" name="direccion" class="form-control form-control-sm" value="{{anexo.direccion}}" aria-describedby="passwordHelpInline" readonly>
         </div>
         <div class="col-auto">
             <button class="btn btn-sm btn-secondary" name="edit_anexo">
@@ -135,7 +135,28 @@
             <label for="orden_compra" class="col-form-label fw-bold">Oreden de compra:</label>
         </div>
         <div class="col-4">
-            <input type="text" name="orden_compra" class="form-control" value="{{anexo.orden_compra}}"  aria-describedby="passwordHelpInline" readonly>
+            <input type="text" name="orden_compra" class="form-control form-control-sm" value="{{anexo.orden_compra}}"  aria-describedby="passwordHelpInline" readonly>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-sm btn-secondary" name="edit_anexo">
+                <i class="bi bi-pencil"></i>
+            </button>
+            <!--AJAX-->
+            <button class="btn btn-sm btn-success" name="edit_ajax" style="display:none">
+                <i class="bi bi-send"></i>
+            </button>
+            <!---->
+            <i class="bi bi-check-lg" style="color:green; display:none"></i>
+            <i class="bi bi-x-lg" style="color:red; display:none"></i>
+        </div>
+    </div>
+
+    <div class="row g-3 align-items-center">
+        <div class="col-2">
+            <label for="n_factura" class="col-form-label fw-bold">Factura:</label>
+        </div>
+        <div class="col-4">
+            <input type="text" name="n_factura" class="form-control form-control-sm" value="{{anexo.n_factura}}" aria-describedby="passwordHelpInline" readonly>
         </div>
         <div class="col-auto">
             <button class="btn btn-sm btn-secondary" name="edit_anexo">
@@ -156,8 +177,7 @@
             <label for="observaciones" class="col-form-label fw-bold">Observaciones:</label>
         </div>
         <div class="col-4">
-            <!--textarea type="text" name="observaciones" class="form-control" value="{{anexo.observaciones}}" rows="3"></textarea-->
-            <input type="text" name="observaciones" class="form-control" value="{{anexo.observaciones}}" aria-describedby="passwordHelpInline" readonly>
+            <input type="text" name="observaciones" class="form-control form-control-sm" value="{{anexo.observaciones}}" aria-describedby="passwordHelpInline" readonly>
         </div>
         <div class="col-auto">
             <button class="btn btn-sm btn-secondary" name="edit_anexo">
@@ -209,14 +229,14 @@
                             <td>{{i.procedencia}}</td>
                             <td>{{i.r_sanitario}}</td>
                             <td>{{i.lote_id}}</td>
-                            <td>{{i.f_elaboracion|date:"Y-m-d"}}</td>
-                            <td>{{i.f_caducidad|date:"Y-m-d"}}</td>
+                            <td>{{i.f_elaboracion|date:"d/m/Y"}}</td>
+                            <td>{{i.f_caducidad|date:"d/m/Y"}}</td>
                             <td>{{i.cantidad}}</td>
                             <td>{{i.cantidad_total}}</td>
                             <td class="text-end">$ {{i.precio_unitario|floatformat:"2g"}}</td>
                             <td class="text-end">$ {{i.precio_total|floatformat:"2g"}}</td>
                             <td class="text-end">
-                                <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop" name="edit_product_modal" id="{{i.id}}">
+                                <button type="button" class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#staticBackdrop" name="edit_product_modal" id="{{i.id}}">
                                     <i class="bi bi-pencil"></i>
                                 </button>
                             </td>
@@ -229,21 +249,39 @@
 </div>
 
 
+<div class="card mt-2 mb-2">
+    <div class="card-body">
+        <a class="btn btn-primary" href="{% url 'anexo_formato_general' anexo.id %}">
+            <i class="bi bi-file-earmark-post"></i> GENERAL
+        </a>
+        <button class="btn btn-warning">
+            <i class="bi bi-file-earmark-post"></i> HBO
+        </button>
+        <button class="btn btn-danger">
+            <i class="bi bi-file-earmark-post"></i> HCAM
+        </button>
+        <button class="btn btn-info">
+            <i class="bi bi-file-earmark-post"></i> HPAS
+        </button>
+
+    </div>
+</div>
+
+
 <!-- Modal -->
 <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title fw-bold text-center" id="staticBackdropLabel">Pedido {{anexo.n_pedido}}</h5>
+                <h5 class="modal-title fw-bold" id="staticBackdropLabel">N°.Picking: {{anexo.n_pedido}}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            
             <form method="post" action="{% url 'anexo_edit_product_ajax' %}">
                 {% csrf_token %}
                 <input type="hidden" name="id_anexo" value="{{anexo.id}}">
                 <div id="mymodal"></div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Guardar</button>
+                    <button type="submit" class="btn btn-success">Guardar</button>
                 </div>
             </form>
         </div>

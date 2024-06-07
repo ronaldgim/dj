@@ -83,6 +83,11 @@ class Ubicacion(models.Model):
     
     def __str__(self):
         return f"{self.bodega}-{self.pasillo}-{self.modulo}-{self.nivel}"
+    
+    @property
+    def columna(self):
+        columna = int(self.modulo)
+        return columna
 
 
 class Movimiento(models.Model):

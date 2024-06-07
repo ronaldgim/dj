@@ -26,12 +26,11 @@
 {% endif %}
 
 
-<button class="btn btn-primary" name="buscar">
+<!--button class="btn btn-primary" name="buscar">
     Busqueda
-</button>
+</button-->
 
-<div class="row mb-2 m-0 p-0" style="display:none" id="buscar">
-
+<!--div class="row mb-2 m-0 p-0" style="display:none" id="buscar">
     <div class="card mt-2 mb-2">
         <div class="card-body mt-2 mb-2 p-0">
             <form method="POST">
@@ -58,13 +57,45 @@
             </form>
         </div>
     </div>
+</div-->
+
+
+<div class="row mb-2 m-0 p-0" id="buscar">
+
+    <div class="card mt-2 mb-2">
+        <div class="card-body mt-2 mb-2 p-0">
+            <form method="POST">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-4">
+                        <label class="fw-bold">Código:</label>
+                        <input name="product_id" class="form-control" >
+                    </div>
+
+                    <div class="col-4">
+                        <label class="fw-bold">Número de referencia:</label>
+                        <input name="n_referencia" class="form-control" />
+                    </div>
+
+                    <div class="col-4">
+                        <label class="fw-bold">Número de factura:</label>
+                        <input name="n_factura" class="form-control" />
+                    </div>
+                </div>
+
+                <button class="btn btn-success mt-2">
+                    <i class="bi bi-search"></i> Buscar
+                </button>
+                
+            </form>
+        </div>
+    </div>
 </div>
 
 {% if tipo %}
 <div class="card mt-2 mb-2">
     <div class="card-body">
-        <label class="fw-bold">Tipo: </label> {{tipo}}<br>
-        <label class="fw-bold">Valor: </label> {{valor}}<br>
+        <label class="fw-bold">{{tipo}}: </label> {{valor}}<br>
         <label class="fw-bold">Resultados: </label> {{len}}<br>
         <a class="btn btn-sm btn-danger" href="{% url 'wms_movimientos_list' %}">Borrar busqueda</a>
     </div>

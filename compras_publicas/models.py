@@ -59,6 +59,11 @@ class Producto(models.Model):
     
     def __str__(self):
         return f'{self.id}-{self.product_id}'
+    
+    def save(self, *args, **kwargs):
+        self.precio_total = self.cantidad_total * self.precio_unitario
+        return super().save(*args, **kwargs)
+
 
 class Anexo(models.Model):
     
@@ -68,6 +73,7 @@ class Anexo(models.Model):
     ruc          = models.CharField(verbose_name='Ruc', max_length=13)
     direccion    = models.CharField(verbose_name='Dirección', max_length=150, blank=True)
     orden_compra = models.CharField(verbose_name='Orden de compra', max_length=50, blank=True)
+    n_factura    = models.CharField(verbose_name='Factura', default='001-001-0000', max_length=50, blank=True)
     observaciones = models.TextField(verbose_name='Observaciones', blank=True)
     
     product_list = models.ManyToManyField(Producto)

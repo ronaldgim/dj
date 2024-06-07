@@ -57,6 +57,12 @@ from django.http import HttpResponse
 from django.views.decorators.http import require_POST
 from django.shortcuts import get_object_or_404
 
+# PDF
+from django_xhtml2pdf.utils import pdf_decorator
+
+# Calculos
+from django.db.models import Sum, Count
+
 
 # Funcios para pasar de dataframe a registros para el template
 def de_dataframe_a_template(dataframe):
@@ -353,6 +359,7 @@ def procesos_sercop(request):
 
 
 ### ANEXOS
+@login_required(login_url='login')
 def anexos_list(request):
     
     anexos = Anexo.objects.all()
@@ -364,7 +371,7 @@ def anexos_list(request):
     return render(request, 'compras_publicas/anexos_list.html', context)
 
 
-
+@login_required(login_url='login')
 def anexo_detail(request, anexo_id):
     
     anexo = Anexo.objects.get(id=anexo_id)
@@ -376,7 +383,7 @@ def anexo_detail(request, anexo_id):
     return render(request, 'compras_publicas/anexo_detail.html', context)
 
 
-
+@login_required(login_url='login')
 @require_POST
 def anexo_cabecera_edit_ajax(request):
     anexo_id = int(request.POST.get('id', 0))
@@ -397,6 +404,7 @@ def anexo_cabecera_edit_ajax(request):
         'ruc': 'ruc',
         'direccion': 'direccion',
         'orden_compra': 'orden_compra',
+        'n_factura':'n_factura',
         'observaciones': 'observaciones'
     }
 
@@ -415,7 +423,7 @@ def anexo_cabecera_edit_ajax(request):
     return JsonResponse({'msg': 'fail', 'error': 'Invalid field'})
 
 
-# @require_POST
+@login_required(login_url='login')
 def anexo_edit_product_ajax(request):
     
     if request.method=='GET':
@@ -429,7 +437,7 @@ def anexo_edit_product_ajax(request):
                         <label for="product_id" class="col-form-label fw-bold">Código:</label>
                     </div>
                     <div class="col-8">
-                        <input type="text" name="product_id" class="form-control" value="{producto.product_id}"  aria-describedby="passwordHelpInline">
+                        <input type="text" name="product_id" class="form-control form-control-sm" value="{producto.product_id}"  aria-describedby="passwordHelpInline">
                     </div>
                 </div>
             
@@ -438,7 +446,7 @@ def anexo_edit_product_ajax(request):
                         <label for="nombre" class="col-form-label fw-bold">Nombre:</label>
                     </div>
                     <div class="col-8">
-                        <input type="text" name="nombre" class="form-control" value="{producto.nombre}" aria-describedby="passwordHelpInline">
+                        <input type="text" name="nombre" class="form-control form-control-sm" value="{producto.nombre}" aria-describedby="passwordHelpInline">
                     </div>
                 </div>
 
@@ -447,7 +455,7 @@ def anexo_edit_product_ajax(request):
                         <label for="nombre_generico" class="col-form-label fw-bold">Nombre Generico:</label>
                     </div>
                     <div class="col-8">
-                        <input type="text" name="nombre_generico" value="{producto.nombre_generico}" class="form-control" aria-describedby="passwordHelpInline">
+                        <input type="text" name="nombre_generico" class="form-control form-control-sm" value="{producto.nombre_generico}" aria-describedby="passwordHelpInline">
                     </div>
                 </div>
             
@@ -456,7 +464,7 @@ def anexo_edit_product_ajax(request):
                         <label for="presentacion" class="col-form-label fw-bold">Presentación:</label>
                     </div>
                     <div class="col-8">
-                        <input type="text" name="presentacion" class="form-control" value="{producto.presentacion}" aria-describedby="passwordHelpInline">
+                        <input type="text" name="presentacion" class="form-control form-control-sm" value="{producto.presentacion}" aria-describedby="passwordHelpInline">
                     </div>
                 </div>
 
@@ -465,7 +473,7 @@ def anexo_edit_product_ajax(request):
                         <label for="marca" class="col-form-label fw-bold">Marca:</label>
                     </div>
                     <div class="col-8">
-                        <input type="text" name="marca" class="form-control" value="{producto.marca}"  aria-describedby="passwordHelpInline">
+                        <input type="text" name="marca" class="form-control form-control-sm" value="{producto.marca}"  aria-describedby="passwordHelpInline">
                     </div>
                 </div>
             
@@ -474,7 +482,7 @@ def anexo_edit_product_ajax(request):
                         <label for="procedencia" class="col-form-label fw-bold">Procedencia:</label>
                     </div>
                     <div class="col-8">
-                        <input type="text" name="procedencia" class="form-control" value="{producto.procedencia}" aria-describedby="passwordHelpInline">
+                        <input type="text" name="procedencia" class="form-control form-control-sm" value="{producto.procedencia}" aria-describedby="passwordHelpInline">
                     </div>
                 </div>
 
@@ -483,7 +491,7 @@ def anexo_edit_product_ajax(request):
                         <label for="r_sanitario" class="col-form-label fw-bold">Registro Sanitario:</label>
                     </div>
                     <div class="col-8">
-                        <input type="text" name="r_sanitario" class="form-control" value="{producto.r_sanitario}" aria-describedby="passwordHelpInline">
+                        <input type="text" name="r_sanitario" class="form-control form-control-sm" value="{producto.r_sanitario}" aria-describedby="passwordHelpInline">
                     </div>
                 </div>
 
@@ -492,7 +500,7 @@ def anexo_edit_product_ajax(request):
                         <label for="lote" class="col-form-label fw-bold">Lote:</label>
                     </div>
                     <div class="col-8">
-                        <input type="text" name="lote_id" class="form-control" value="{producto.lote_id}" aria-describedby="passwordHelpInline">
+                        <input type="text" name="lote_id" class="form-control form-control-sm" value="{producto.lote_id}" aria-describedby="passwordHelpInline">
                     </div>
                 </div>
 
@@ -501,7 +509,7 @@ def anexo_edit_product_ajax(request):
                         <label for="f_elaboracion" class="col-form-label fw-bold">F.Elaboración:</label>
                     </div>
                     <div class="col-8">
-                        <input type="date" name="f_elaboracion" class="form-control" value="{producto.f_elaboracion}" aria-describedby="passwordHelpInline">
+                        <input type="date" name="f_elaboracion" class="form-control form-control-sm" value="{producto.f_elaboracion}" aria-describedby="passwordHelpInline">
                     </div>
                 </div>
 
@@ -510,7 +518,7 @@ def anexo_edit_product_ajax(request):
                         <label for="f_caducidad" class="col-form-label fw-bold">F.Caducidad:</label>
                     </div>
                     <div class="col-8">
-                        <input type="date" name="f_caducidad" class="form-control" value="{producto.f_caducidad}" aria-describedby="passwordHelpInline">
+                        <input type="date" name="f_caducidad" class="form-control form-control-sm" value="{producto.f_caducidad}" aria-describedby="passwordHelpInline">
                     </div>
                 </div>
 
@@ -519,7 +527,7 @@ def anexo_edit_product_ajax(request):
                         <label for="cantidad" class="col-form-label fw-bold">Cantidad:</label>
                     </div>
                     <div class="col-8">
-                        <input type="number" name="cantidad" class="form-control" value="{producto.cantidad}" aria-describedby="passwordHelpInline">
+                        <input type="number" name="cantidad" class="form-control form-control-sm" value="{producto.cantidad}" aria-describedby="passwordHelpInline">
                     </div>
                 </div>
                 
@@ -528,7 +536,16 @@ def anexo_edit_product_ajax(request):
                         <label for="cantidad_total" class="col-form-label fw-bold">Cantidad total:</label>
                     </div>
                     <div class="col-8">
-                        <input type="number" name="cantidad_total" class="form-control" value="{producto.cantidad_total}" aria-describedby="passwordHelpInline">
+                        <input type="number" name="cantidad_total" class="form-control form-control-sm" value="{producto.cantidad_total}" aria-describedby="passwordHelpInline">
+                    </div>
+                </div>
+                
+                <div class="row g-3 align-items-center">
+                    <div class="col-4">
+                        <label for="precio_unitario" class="col-form-label fw-bold">Precio Unitario:</label>
+                    </div>
+                    <div class="col-8">
+                        <input type="number" step="0.01" name="precio_unitario" class="form-control form-control-sm" value="{producto.precio_unitario}" aria-describedby="passwordHelpInline">
                     </div>
                 </div>
             </div>
@@ -545,3 +562,43 @@ def anexo_edit_product_ajax(request):
         if form.is_valid():
             form.save()
             return redirect('anexo_detail', anexo.id)
+
+
+@pdf_decorator(pdfname='anexo_formato_general.pdf')
+@login_required(login_url='login')
+def anexo_formato_general(request, anexo_id):
+    
+    anexo = Anexo.objects.get(id=anexo_id)
+    products = anexo.product_list.all()
+    subtotal = products.aggregate(p_total=Sum('precio_total'))['p_total']
+    mas_iva = subtotal * 1.12
+    total = subtotal + mas_iva
+    
+    context = {
+        'anexo':anexo,
+        'subtotal':subtotal,
+        'mas_iva':mas_iva,
+        'total':total
+    }
+
+    return render(request, 'compras_publicas/anexo_formato_general.html', context)
+
+
+@pdf_decorator(pdfname='anexo_formato_general.pdf')
+@login_required(login_url='login')
+def anexo_formato_general(request, anexo_id):
+    
+    anexo = Anexo.objects.get(id=anexo_id)
+    products = anexo.product_list.all()
+    subtotal = products.aggregate(p_total=Sum('precio_total'))['p_total']
+    mas_iva = subtotal * 1.12
+    total = subtotal + mas_iva
+    
+    context = {
+        'anexo':anexo,
+        'subtotal':subtotal,
+        'mas_iva':mas_iva,
+        'total':total
+    }
+
+    return render(request, 'compras_publicas/anexo_formato_general.html', context)
