@@ -20,7 +20,7 @@
     }
     
     .table-responsive-tiempo-almacenamiento {
-        height: 506px;
+        height: 520px;
         overflow-y: scroll;
     }
 </style>
@@ -64,7 +64,11 @@
                     <tbody>
                         {% for i in capacidad %}
                         <tr>
-                            <td>{{i.bodega}}</td>
+                            <td>
+                                <button data-bs-toggle="modal" data-bs-target="#staticBackdrop" class="btn btn-sm btn-light m-0 p-0 {% if i.bodega != 'CN6' %} disabled {% endif %}">
+                                    {{i.bodega}}
+                                </button>
+                            </td>
                             <td class="text-end">{{i.capacidad_disponible_m3|floatformat:"0g"}} m<sup>3</sup></td>
                             <td class="text-end">{{i.capacidad_utilizada_m3|floatformat:"0g"}} m<sup>3</sup></td>
                             <td class="text-end">{{i.capacidad_no_utilizada_m3|floatformat:"0g"}} m<sup>3</sup></td>
@@ -141,11 +145,66 @@
             </div>
         </div>
     </div>
+</div>
 
+
+<!-- Modal -->
+<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="staticBackdropLabel">Ubicaciones disponibles CN6 ({{len_ubicaciones_disponibles}})</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body mt-0 pt-0 mb-0 pb-0">
+                <table class="table mb-0 pb-0" style="font-size: small;">
+                    <thead>
+                        <tr>
+                            <th class="text-center">Bodega</th>
+                            <th class="text-center">Pasillo</th>
+                            <th class="text-center">Columna</th>
+                            <th class="text-center">Nivel</th>
+                            <th class="text-center">Capacidad</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for i in ubicaciones_disponibles %}
+                        <tr 
+                            {% if i.pasillo == 'A' %} 
+                                class="table-primary" 
+                            {% elif i.pasillo == 'B' %}
+                                class="table-secondary"
+                            {% elif i.pasillo == 'C' %}
+                                class="table-success"
+                            {% elif i.pasillo == 'D' %}
+                                class="table-danger"
+                            {% elif i.pasillo == 'E' %}
+                                class="table-warning"
+                            {% elif i.pasillo == 'F' %}
+                                class="table-info"
+                            {% endif %}
+                        >
+                            <td class="text-center">{{i.bodega}}</td>
+                            <td class="text-center">{{i.pasillo}}</td>
+                            <td class="text-center">{{i.modulo}}</td>
+                            <td class="text-center">{{i.nivel}}</td>
+                            <td class="text-center">{{i.capacidad_m3}} {% if i.capacidad_m3 == 0.96 %}<span style="color:red">E</span>{% endif %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+
+<!-- OCUPACIÓN BODEGA -->
 <script>
     const ctx = document.getElementById('OcupacionBodegaChart').getContext('2d');
     const myChart = new Chart(ctx, {
@@ -204,7 +263,13 @@
     });
 </script>
 
-<script>
+
+<!-- POSICIONES DISPONIBLES BODEGA 6 MODAL -->
+
+
+
+<!-- CICLO PEDIDO -->
+<!--script>
     const pie = document.getElementById('CicloPedidoChart') //.getContext('2d');
     const myChartPie = new Chart(pie, {
         type: 'pie',
@@ -226,8 +291,7 @@
         ]
         },
     });
-</script>
-
+</script-->
 
 
 <!--

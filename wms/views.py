@@ -363,6 +363,19 @@ def kpi_tiempo_de_almacenamiento():
     return df
 
 
+# UBICACIONES DISPONIBLES BODEGA 6
+def wms_ubicaciones_disponibles_cn6():
+    
+    ubicaciones_existencias = Existencias.objects.filter(ubicacion__bodega='CN6').values_list('ubicacion_id', flat=True)
+    ubicaciones = Ubicacion.objects.filter(bodega='CN6').values_list('id', flat=True)
+    
+    ubicaciones_existencias = set(ubicaciones_existencias)
+    ubicaciones = set(ubicaciones)
+    ubicaciones_disponibles = ubicaciones.difference(ubicaciones_existencias)
+    
+    ubi_list = Ubicacion.objects.filter(id__in=ubicaciones_disponibles)
+    
+    return sorted(ubi_list, key=lambda x: (x.pasillo, x.columna))
 
 
 # WMS HOME
@@ -385,6 +398,8 @@ def wms_home(request):
         'utilizacion':utilizacion_list,
         'capacidad':capacidad,
         'tiempo_de_almacenamiento':tiempo_de_almacenamiento,
+        'ubicaciones_disponibles':wms_ubicaciones_disponibles_cn6(),
+        'len_ubicaciones_disponibles':len(wms_ubicaciones_disponibles_cn6())
         # 't_cliclo':kpi_ciclo_pedido(),
         # 't_cliclo_labels':t_ciclo_labels,
         # 't_cliclo_data':t_ciclo_data,
