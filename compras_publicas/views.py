@@ -359,6 +359,7 @@ def procesos_sercop(request):
 
 
 ### ANEXOS
+@login_required(login_url='login')
 def anexos_list(request):
     
     anexos = Anexo.objects.all()
@@ -370,7 +371,7 @@ def anexos_list(request):
     return render(request, 'compras_publicas/anexos_list.html', context)
 
 
-
+@login_required(login_url='login')
 def anexo_detail(request, anexo_id):
     
     anexo = Anexo.objects.get(id=anexo_id)
@@ -382,7 +383,7 @@ def anexo_detail(request, anexo_id):
     return render(request, 'compras_publicas/anexo_detail.html', context)
 
 
-
+@login_required(login_url='login')
 @require_POST
 def anexo_cabecera_edit_ajax(request):
     anexo_id = int(request.POST.get('id', 0))
@@ -422,6 +423,7 @@ def anexo_cabecera_edit_ajax(request):
     return JsonResponse({'msg': 'fail', 'error': 'Invalid field'})
 
 
+@login_required(login_url='login')
 def anexo_edit_product_ajax(request):
     
     if request.method=='GET':
@@ -571,6 +573,27 @@ def anexo_formato_general(request, anexo_id):
     subtotal = products.aggregate(p_total=Sum('precio_total'))['p_total']
     mas_iva = subtotal * 1.12
     total = subtotal + mas_iva
+    
+    context = {
+        'anexo':anexo,
+        'subtotal':subtotal,
+        'mas_iva':mas_iva,
+        'total':total
+    }
+
+    return render(request, 'compras_publicas/anexo_formato_general.html', context)
+
+
+@pdf_decorator(pdfname='anexo_formato_general.pdf')
+@login_required(login_url='login')
+def anexo_formato_general(request, anexo_id):
+    
+    anexo = Anexo.objects.get(id=anexo_id)
+    products = anexo.product_list.all()
+    subtotal = products.aggregate(p_total=Sum('precio_total'))['p_total']
+    mas_iva = subtotal * 1.12
+    total = subtotal + mas_iva
+    
     context = {
         'anexo':anexo,
         'subtotal':subtotal,

@@ -251,10 +251,18 @@
 
 <div class="card mt-2 mb-2">
     <div class="card-body">
-        <a class="btn btn-primary" href="{% url 'anexo_formato_general' anexo.id %}">FORMATO GENERAL</a>
-        <button class="btn btn-warning">FORMATO HBO</button>
-        <button class="btn btn-danger">FORMATO HCAM</button>
-        <button class="btn btn-info">FORMATO HPAS</button>
+        <a class="btn btn-primary" href="{% url 'anexo_formato_general' anexo.id %}">
+            <i class="bi bi-file-earmark-post"></i> GENERAL
+        </a>
+        <button class="btn btn-warning">
+            <i class="bi bi-file-earmark-post"></i> HBO
+        </button>
+        <button class="btn btn-danger">
+            <i class="bi bi-file-earmark-post"></i> HCAM
+        </button>
+        <button class="btn btn-info">
+            <i class="bi bi-file-earmark-post"></i> HPAS
+        </button>
 
     </div>
 </div>
