@@ -65,9 +65,12 @@
                         {% for i in capacidad %}
                         <tr>
                             <td>
-                                <button data-bs-toggle="modal" data-bs-target="#staticBackdrop" class="btn btn-sm btn-light m-0 p-0 {% if i.bodega != 'CN6' %} disabled {% endif %}">
+                                <button name="modal" data-bs-toggle="modal" data-bs-target="#staticBackdrop" class="btn btn-sm btn-light m-0 p-0 {% if i.bodega != 'CN6' %} disabled {% endif %}">
                                     {{i.bodega}}
                                 </button>
+                                <!--button name="modal" class="btn btn-sm btn-light m-0 p-0 {% if i.bodega != 'CN6' %} disabled {% endif %}">
+                                    {{i.bodega}}
+                                </button-->
                             </td>
                             <td class="text-end">{{i.capacidad_disponible_m3|floatformat:"0g"}} m<sup>3</sup></td>
                             <td class="text-end">{{i.capacidad_utilizada_m3|floatformat:"0g"}} m<sup>3</sup></td>
@@ -152,48 +155,68 @@
 <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-scrollable">
         <div class="modal-content">
+
+
             <div class="modal-header">
                 <h5 class="modal-title fw-bold" id="staticBackdropLabel">Ubicaciones disponibles CN6 ({{len_ubicaciones_disponibles}})</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body mt-0 pt-0 mb-0 pb-0">
-                <table class="table mb-0 pb-0" style="font-size: small;">
-                    <thead>
-                        <tr>
-                            <th class="text-center">Bodega</th>
-                            <th class="text-center">Pasillo</th>
-                            <th class="text-center">Columna</th>
-                            <th class="text-center">Nivel</th>
-                            <th class="text-center">Capacidad</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for i in ubicaciones_disponibles %}
-                        <tr 
-                            {% if i.pasillo == 'A' %} 
-                                class="table-primary" 
-                            {% elif i.pasillo == 'B' %}
-                                class="table-secondary"
-                            {% elif i.pasillo == 'C' %}
-                                class="table-success"
-                            {% elif i.pasillo == 'D' %}
-                                class="table-danger"
-                            {% elif i.pasillo == 'E' %}
-                                class="table-warning"
-                            {% elif i.pasillo == 'F' %}
-                                class="table-info"
-                            {% endif %}
-                        >
-                            <td class="text-center">{{i.bodega}}</td>
-                            <td class="text-center">{{i.pasillo}}</td>
-                            <td class="text-center">{{i.modulo}}</td>
-                            <td class="text-center">{{i.nivel}}</td>
-                            <td class="text-center">{{i.capacidad_m3}} {% if i.capacidad_m3 == 0.96 %}<span style="color:red">E</span>{% endif %}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+
+            <div class="modal-body mt-2 pt-2 mb-2 pb-2">
+
+                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true">Resumen</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="false">Detalle</button>
+                    </li>
+                </ul>
+                <div class="tab-content" id="myTabContent">
+                    <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+                        {{ubicaciones_disponibles_row|safe}}
+                    </div>
+                    <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+                        <table class="table mb-0 pb-0" style="font-size: small;">
+                            <thead>
+                                <tr>
+                                    <th class="text-center">Bodega</th>
+                                    <th class="text-center">Pasillo</th>
+                                    <th class="text-center">Columna</th>
+                                    <th class="text-center">Nivel</th>
+                                    <th class="text-center">Capacidad</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for i in ubicaciones_disponibles %}
+                                <tr 
+                                    {% if i.pasillo == 'A' %} 
+                                        class="table-primary" 
+                                    {% elif i.pasillo == 'B' %}
+                                        class="table-secondary"
+                                    {% elif i.pasillo == 'C' %}
+                                        class="table-success"
+                                    {% elif i.pasillo == 'D' %}
+                                        class="table-danger"
+                                    {% elif i.pasillo == 'E' %}
+                                        class="table-warning"
+                                    {% elif i.pasillo == 'F' %}
+                                        class="table-info"
+                                    {% endif %}
+                                >
+                                    <td class="text-center">{{i.bodega}}</td>
+                                    <td class="text-center">{{i.pasillo}}</td>
+                                    <td class="text-center">{{i.modulo}}</td>
+                                    <td class="text-center">{{i.nivel}}</td>
+                                    <td class="text-center">{{i.capacidad_m3}} {% if i.capacidad_m3 == 0.96 %}<span style="color:red">E</span>{% endif %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
+
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
             </div>
@@ -264,7 +287,46 @@
 </script>
 
 
-<!-- POSICIONES DISPONIBLES BODEGA 6 MODAL -->
+<!-- BOD6 POSICIONES LIBRES -->
+
+<script>
+
+    $(document).ready(function() {
+        //$("button[name='modal']").click(function(){
+        
+            $("#ubicaciones_rows > thead > tr:first").remove();
+    
+            $("#ubicaciones_rows > thead > tr > th").each(function() {            
+                row_title = $(this);
+                row_title.addClass("text-center");
+                if (row_title.text() === "All") {
+                    row_title.text("TOTAL")
+                } else if (row_title.text() === "") {
+                    row_title.text("P-N")
+                } else if (row_title.text() === "pasillo") {
+                    row_title.remove()
+                }
+            });
+    
+            $("#ubicaciones_rows > tbody > tr > th").each(function() {
+                row_text = $(this);
+                if (row_text.text() === "") {
+                    row_text.remove()
+                }
+            });
+    
+            $("#ubicaciones_rows > tbody > tr > td").each(function() {
+                $(this).addClass("text-end")
+                if ($(this).text() === "All") {
+                    $(this).text("TOTAL")
+                }
+            });
+    
+            //$(this).append("asdf")
+        //})
+    })
+
+</script>
 
 
 

@@ -375,9 +375,11 @@ def anexos_list(request):
 def anexo_detail(request, anexo_id):
     
     anexo = Anexo.objects.get(id=anexo_id)
+    products = anexo.product_list.all().order_by('product_id')
     
     context = {
         'anexo':anexo,
+        'products':products
     }
     
     return render(request, 'compras_publicas/anexo_detail.html', context)
@@ -545,7 +547,7 @@ def anexo_edit_product_ajax(request):
                         <label for="precio_unitario" class="col-form-label fw-bold">Precio Unitario:</label>
                     </div>
                     <div class="col-8">
-                        <input type="number" step="0.01" name="precio_unitario" class="form-control form-control-sm" value="{producto.precio_unitario}" aria-describedby="passwordHelpInline">
+                        <input type="number" step="0.001" name="precio_unitario" class="form-control form-control-sm" value="{producto.precio_unitario}" aria-describedby="passwordHelpInline">
                     </div>
                 </div>
             </div>
@@ -569,13 +571,14 @@ def anexo_edit_product_ajax(request):
 def anexo_formato_general(request, anexo_id):
     
     anexo = Anexo.objects.get(id=anexo_id)
-    products = anexo.product_list.all()
+    products = anexo.product_list.all().order_by('product_id')
     subtotal = products.aggregate(p_total=Sum('precio_total'))['p_total']
-    mas_iva = subtotal * 1.12
+    mas_iva = subtotal * 0.15
     total = subtotal + mas_iva
     
     context = {
         'anexo':anexo,
+        'products':products,
         'subtotal':subtotal,
         'mas_iva':mas_iva,
         'total':total
@@ -584,21 +587,21 @@ def anexo_formato_general(request, anexo_id):
     return render(request, 'compras_publicas/anexo_formato_general.html', context)
 
 
-@pdf_decorator(pdfname='anexo_formato_general.pdf')
-@login_required(login_url='login')
-def anexo_formato_general(request, anexo_id):
+# @pdf_decorator(pdfname='anexo_formato_general.pdf')
+# @login_required(login_url='login')
+# def anexo_formato_general(request, anexo_id):
     
-    anexo = Anexo.objects.get(id=anexo_id)
-    products = anexo.product_list.all()
-    subtotal = products.aggregate(p_total=Sum('precio_total'))['p_total']
-    mas_iva = subtotal * 1.12
-    total = subtotal + mas_iva
+#     anexo = Anexo.objects.get(id=anexo_id)
+#     products = anexo.product_list.all()
+#     subtotal = products.aggregate(p_total=Sum('precio_total'))['p_total']
+#     mas_iva = subtotal * 1.12
+#     total = subtotal + mas_iva
     
-    context = {
-        'anexo':anexo,
-        'subtotal':subtotal,
-        'mas_iva':mas_iva,
-        'total':total
-    }
+#     context = {
+#         'anexo':anexo,
+#         'subtotal':subtotal,
+#         'mas_iva':mas_iva,
+#         'total':total
+#     }
 
-    return render(request, 'compras_publicas/anexo_formato_general.html', context)
+#     return render(request, 'compras_publicas/anexo_formato_general.html', context)

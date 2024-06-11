@@ -219,7 +219,8 @@
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
-                    {% for i in anexo.product_list.all %}
+                    {#% for i in anexo.product_list.all %#}
+                    {% for i in products %}
                         <tr>
                             <td>{{i.product_id}}</td>
                             <td>{{i.nombre}}</td>
@@ -231,9 +232,9 @@
                             <td>{{i.lote_id}}</td>
                             <td>{{i.f_elaboracion|date:"d/m/Y"}}</td>
                             <td>{{i.f_caducidad|date:"d/m/Y"}}</td>
-                            <td>{{i.cantidad}}</td>
-                            <td>{{i.cantidad_total}}</td>
-                            <td class="text-end">$ {{i.precio_unitario|floatformat:"2g"}}</td>
+                            <td class="text-end">{{i.cantidad|floatformat:"0g"}}</td>
+                            <td class="text-end">{{i.cantidad_total|floatformat:"0g"}}</td>
+                            <td class="text-end">$ {{i.precio_unitario|floatformat:"3g"}}</td>
                             <td class="text-end">$ {{i.precio_total|floatformat:"2g"}}</td>
                             <td class="text-end">
                                 <button type="button" class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#staticBackdrop" name="edit_product_modal" id="{{i.id}}">
