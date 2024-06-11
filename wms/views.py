@@ -378,10 +378,45 @@ def wms_ubicaciones_disponibles_cn6():
     return sorted(ubi_list, key=lambda x: (x.pasillo, x.columna))
 
 
+def wms_ubicaciones_disponibles_rows():
+    ubicaciones_existencias = Existencias.objects.filter(ubicacion__bodega='CN6').values_list('ubicacion_id', flat=True)
+    ubicaciones = Ubicacion.objects.filter(bodega='CN6').values_list('id', flat=True)
+    
+    ubicaciones_existencias = set(ubicaciones_existencias)
+    ubicaciones = set(ubicaciones)
+    ubicaciones_disponibles = ubicaciones.difference(ubicaciones_existencias)
+    
+    ubi_list = pd.DataFrame(Ubicacion.objects.filter(id__in=ubicaciones_disponibles).values())[['pasillo','modulo','nivel']]
+    
+    ubi_list = ubi_list.pivot_table(index='nivel', columns='pasillo', margins=True, aggfunc='count').reset_index()
+    
+    # print(ubi_list);print(ubi_list.keys())
+    # ubi_list = ubi_list.index.droplevel()
+    # print(ubi_list.index, ubi_list.columns)
+    # print(ubi_list.columns[0])
+    
+    # print(ubi_list.values.all())
+    
+    # for i in ubi_list.values:
+    #     for j in i:
+    #         print(i, j)
+    
+    ubi_list = ubi_list.to_html(
+        float_format='{:,.0f}'.format,
+        classes='table table-responsive table-bordered m-0 p-0', 
+        na_rep='0',
+        table_id='ubicaciones_rows',
+        index=False,
+        justify='end',
+    )
+    
+    return ubi_list
+
+
 # WMS HOME
 @login_required(login_url='login')
 def wms_home(request):
-    
+    #wms_ubicaciones_disponibles_rows()
     tiempo_de_almacenamiento = kpi_tiempo_de_almacenamiento()
     capacidad = kpi_capacidad()
     bodegas_list = []
@@ -399,7 +434,8 @@ def wms_home(request):
         'capacidad':capacidad,
         'tiempo_de_almacenamiento':tiempo_de_almacenamiento,
         'ubicaciones_disponibles':wms_ubicaciones_disponibles_cn6(),
-        'len_ubicaciones_disponibles':len(wms_ubicaciones_disponibles_cn6())
+        'len_ubicaciones_disponibles':len(wms_ubicaciones_disponibles_cn6()),
+        'ubicaciones_disponibles_row':wms_ubicaciones_disponibles_rows()
         # 't_cliclo':kpi_ciclo_pedido(),
         # 't_cliclo_labels':t_ciclo_labels,
         # 't_cliclo_data':t_ciclo_data,

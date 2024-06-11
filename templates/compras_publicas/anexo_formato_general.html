@@ -84,11 +84,10 @@
                 <th class="t_b" style="width:140px;">PRECIO UNIT.</th>
                 <th class="t_b" style="width:140px;">PRECIO TOTAL</th>
             </tr>
-            {% for i in anexo.product_list.all %}
+            {#% for i in anexo.product_list.all %#}
+            {% for i in products %}
             <tr>
-                <td class="t_b">
-                    <strong>{{i.product_id}}</strong>
-                </td>
+                <td class="t_b"><strong>{{i.product_id}}</strong></td>
                 <td class="t_b">
                     <strong>{{i.nombre}}</strong><br><br>
                     <strong>MARCA:</strong><br>{{i.marca}}<br>
@@ -102,7 +101,7 @@
                 <td class="t_b" style="text-align: center;">{{i.cantidad_total|floatformat:"0g"}}</td>
 
                 <td class="t_b" style="text-align: right">
-                    $ {{i.precio_unitario|floatformat:"2g"}}
+                    $ {{i.precio_unitario|floatformat:"3g"}}
                     </div>
                 </td>
                 <td class="t_b" style="text-align: right">
@@ -118,7 +117,7 @@
                 </td>
             </tr>
             <tr>
-                <td class="t_b" colspan="2" style="text-align:right;"><strong>12%IVA</strong></td>
+                <td class="t_b" colspan="2" style="text-align:right;"><strong>15%IVA</strong></td>
                 <td class="t_b" style="text-align: right">
                     $ {{mas_iva|floatformat:"2g"}}
                 </td>
