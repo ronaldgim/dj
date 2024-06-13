@@ -330,7 +330,7 @@ def etiquetado_pedidos(request, n_pedido):
 
     # Merge Dataframes
     pedido = pedido.merge(product, on='PRODUCT_ID', how='left').fillna(0.0)
-    print(pedido.keys())
+    
     # Calculos
     pedido['Cartones'] = (pedido['QUANTITY'] / pedido['Unidad_Empaque']).round(2)
     pedido = pedido.fillna(0.0).replace(np.inf, 0.0)
@@ -346,7 +346,7 @@ def etiquetado_pedidos(request, n_pedido):
     pedido['pes_total'] = pedido['Cartones'] * pedido['Peso']
     
     p_cero = 0 in list(pedido['pes_total']) 
-    # print(pedido)
+    
     pedido = pedido.fillna(0.0).replace(np.inf, 0.0) 
 
     # Mejor formato de tiempo
@@ -367,10 +367,11 @@ def etiquetado_pedidos(request, n_pedido):
     items = pedido['PRODUCT_ID'].unique()
     items = list(items) 
     bodega = pedido['WARE_CODE'].unique()[0] 
-    if bodega == 'BCT':
-        bod= 'Cerezos'
-    elif bodega == 'BAN':
-        bod='Andagoya'
+
+    # if bodega == 'BCT':
+    #     bod= 'Cerezos'
+    # elif bodega == 'BAN':
+    #     bod='Andagoya'
 
     # STOCK DISPONIBLE POR PEDIDO
     stock = stock_disponible(bodega=bodega, items_list=items)
