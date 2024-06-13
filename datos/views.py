@@ -614,12 +614,18 @@ def importaciones_en_transito_odbc_insert_warehouse():
         # )
         
         sql_query = cursor_odbc_mba.execute(
+            # "SELECT CLNT_Pedidos_Principal.CONTRATO_ID, PROV_Ficha_Principal.VENDOR_NAME, CLNT_Pedidos_Detalle.PRODUCT_ID, CLNT_Pedidos_Detalle.QUANTITY, CLNT_Pedidos_Principal.FECHA_ENTREGA, CLNT_Pedidos_Principal.MEMO "
+            # "FROM CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, CLNT_Pedidos_Principal CLNT_Pedidos_Principal, PROV_Ficha_Principal PROV_Ficha_Principal "
+            # "WHERE CLNT_Pedidos_Detalle.CONTRATO_ID_CORP = CLNT_Pedidos_Principal.CONTRATO_ID_CORP AND "
+            # "CLNT_Pedidos_Principal.CLIENT_ID_CORP = PROV_Ficha_Principal.CODIGO_PROVEEDOR_EMPRESA AND (CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND "
+            # "(CLNT_Pedidos_Principal.CONFIRMED=false) AND (CLNT_Pedidos_Principal.VOID=false)) "
+            # f"AND ((CLNT_Pedidos_Principal.FECHA_ENTREGA>'{TwoWeekTime}'))"
+            
             "SELECT CLNT_Pedidos_Principal.CONTRATO_ID, PROV_Ficha_Principal.VENDOR_NAME, CLNT_Pedidos_Detalle.PRODUCT_ID, CLNT_Pedidos_Detalle.QUANTITY, CLNT_Pedidos_Principal.FECHA_ENTREGA, CLNT_Pedidos_Principal.MEMO "
             "FROM CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, CLNT_Pedidos_Principal CLNT_Pedidos_Principal, PROV_Ficha_Principal PROV_Ficha_Principal "
             "WHERE CLNT_Pedidos_Detalle.CONTRATO_ID_CORP = CLNT_Pedidos_Principal.CONTRATO_ID_CORP AND "
             "CLNT_Pedidos_Principal.CLIENT_ID_CORP = PROV_Ficha_Principal.CODIGO_PROVEEDOR_EMPRESA AND (CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND "
-            "(CLNT_Pedidos_Principal.CONFIRMED=false) AND (CLNT_Pedidos_Principal.VOID=false)) "
-            f"AND ((CLNT_Pedidos_Principal.FECHA_ENTREGA>'{TwoWeekTime}'))"
+            "(CLNT_Pedidos_Principal.CONFIRMED=false) AND (CLNT_Pedidos_Principal.VOID=false))"
         )
         
         sql_query = sql_query.fetchall()
@@ -840,14 +846,25 @@ def stock_lote(request):
 
             # Reservas lotes
             cursorOdbc.execute(
+            # "SELECT CLNT_Pedidos_Principal.FECHA_PEDIDO, CLNT_Pedidos_Principal.CONTRATO_ID, CLNT_Ficha_Principal.CODIGO_CLIENTE, CLNT_Pedidos_Detalle.PRODUCT_ID, "
+            # "CLNT_Pedidos_Principal.WARE_CODE, INVT_Lotes_Trasabilidad.EGRESO_TEMP, INVT_Lotes_Trasabilidad.LOTE_ID, INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD, CLNT_Pedidos_Principal.CONFIRMED "
+            # "FROM CLNT_Ficha_Principal CLNT_Ficha_Principal, CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, CLNT_Pedidos_Principal CLNT_Pedidos_Principal, "
+            # "INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad "
+            # "WHERE CLNT_Pedidos_Principal.CONTRATO_ID_CORP = CLNT_Pedidos_Detalle.CONTRATO_ID_CORP AND CLNT_Ficha_Principal.CODIGO_CLIENTE = CLNT_Pedidos_Principal.CLIENT_ID "
+            # "AND CLNT_Pedidos_Detalle.CONTRATO_ID_CORP = INVT_Lotes_Trasabilidad.DOC_ID_CORP AND CLNT_Pedidos_Detalle.PRODUCT_ID_CORP = INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP "
+            # "AND ((CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND (CLNT_Pedidos_Detalle.TIPO_DOCUMENTO='PE')) "
+            # "ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID, CLNT_Pedidos_Detalle.PRODUCT_ID DESC"
+            
             "SELECT CLNT_Pedidos_Principal.FECHA_PEDIDO, CLNT_Pedidos_Principal.CONTRATO_ID, CLNT_Ficha_Principal.CODIGO_CLIENTE, CLNT_Pedidos_Detalle.PRODUCT_ID, "
-            "CLNT_Pedidos_Principal.WARE_CODE, INVT_Lotes_Trasabilidad.EGRESO_TEMP, INVT_Lotes_Trasabilidad.LOTE_ID, INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD, CLNT_Pedidos_Principal.CONFIRMED "
+            "CLNT_Pedidos_Principal.WARE_CODE, INVT_Lotes_Trasabilidad.EGRESO_TEMP, INVT_Lotes_Trasabilidad.LOTE_ID, INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD, "
+            "INVT_Producto_Lotes.Fecha_elaboracion_lote, CLNT_Pedidos_Principal.CONFIRMED, CLNT_Pedidos_Detalle.UNIT_COST "
             "FROM CLNT_Ficha_Principal CLNT_Ficha_Principal, CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, CLNT_Pedidos_Principal CLNT_Pedidos_Principal, "
-            "INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad "
+            "INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad, INVT_Producto_Lotes INVT_Producto_Lotes "
             "WHERE CLNT_Pedidos_Principal.CONTRATO_ID_CORP = CLNT_Pedidos_Detalle.CONTRATO_ID_CORP AND CLNT_Ficha_Principal.CODIGO_CLIENTE = CLNT_Pedidos_Principal.CLIENT_ID "
             "AND CLNT_Pedidos_Detalle.CONTRATO_ID_CORP = INVT_Lotes_Trasabilidad.DOC_ID_CORP AND CLNT_Pedidos_Detalle.PRODUCT_ID_CORP = INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP "
-            "AND ((CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND (CLNT_Pedidos_Detalle.TIPO_DOCUMENTO='PE')) "
+            "AND INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND INVT_Lotes_Trasabilidad.LOTE_ID = INVT_Producto_Lotes.LOTE_ID AND INVT_Lotes_Trasabilidad.WARE_COD_CORP = INVT_Producto_Lotes.WARE_CODE_CORP AND ((CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND (CLNT_Pedidos_Detalle.TIPO_DOCUMENTO='PE')) "
             "ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID, CLNT_Pedidos_Detalle.PRODUCT_ID DESC"
+            
             )
             reservas_lote = cursorOdbc.fetchall()
 
@@ -856,8 +873,10 @@ def stock_lote(request):
             mycursorMysql.execute(sql_delete)
             print("successfully deleted reservas con lote")
 
-            sql_insert_reservas_lote = """INSERT INTO reservas_lote (FECHA_PEDIDO, CONTRATO_ID, CODIGO_CLIENTE,
-            PRODUCT_ID, WARE_CODE, EGRESO_TEMP, LOTE_ID, FECHA_CADUCIDAD, CONFIRMED) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s);"""
+            # sql_insert_reservas_lote = """INSERT INTO reservas_lote (FECHA_PEDIDO, CONTRATO_ID, CODIGO_CLIENTE,
+            # PRODUCT_ID, WARE_CODE, EGRESO_TEMP, LOTE_ID, FECHA_CADUCIDAD, CONFIRMED) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s);"""
+            sql_insert_reservas_lote = """INSERT INTO reservas_lote (FECHA_PEDIDO, CONTRATO_ID, CODIGO_CLIENTE, 
+            PRODUCT_ID, WARE_CODE, EGRESO_TEMP, LOTE_ID, FECHA_CADUCIDAD, Fecha_elaboracion_lote, CONFIRMED, PRICE) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);"""
             data_reservas_lote = [list(rows) for rows in reservas_lote]
             mycursorMysql.executemany(sql_insert_reservas_lote, data_reservas_lote)
             print("Record inserted successfully into database_mysql - RESERVAS con LOTE")
@@ -2579,8 +2598,70 @@ def actualizar_proformas_ajax(request):
         cursor_odbc_mba.close()
     
     
+# Obtener una datos picking por contrato_id -PARA CABECERA DE ANEXO
+def datos_anexo(contrato_id): 
     
+    # Anexo
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute(
+            f"""
+            SELECT
+                reservas_lote.CONTRATO_ID,
+                reservas_lote.FECHA_PEDIDO,
+                clientes.IDENTIFICACION_FISCAL,
+                clientes.NOMBRE_CLIENTE,
+                clientes.DIRECCION
+            FROM
+                warehouse.reservas_lote
+            INNER JOIN
+                clientes ON reservas_lote.CODIGO_CLIENTE = clientes.CODIGO_CLIENTE
+            WHERE
+                reservas_lote.CONTRATO_ID = '{contrato_id}'
+            LIMIT 1;
+            """
+            )
+            
+        columns = [col[0] for col in cursor.description]
+        anexo = [dict(zip(columns, row)) for row in cursor.fetchall()][0]
+        
+    return anexo
+
+
+# Obtener una datos picking por contrato_id -PARA LISTA DE PRODUCTOS DE ANEXO
+def datos_anexo_product_list(contrato_id): 
     
+    # Anexo
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute(
+            f"""
+            SELECT                
+                reservas_lote.PRODUCT_ID,
+                productos.Nombre,
+                productos.Unidad,
+                productos.Marca,
+                productos.Procedencia,
+                productos.Reg_San,
+                reservas_lote.LOTE_ID,
+                reservas_lote.Fecha_elaboracion_lote,
+                reservas_lote.FECHA_CADUCIDAD,
+                reservas_lote.EGRESO_TEMP,
+                reservas_lote.Price                
+            FROM
+                warehouse.reservas_lote
+            INNER JOIN
+                productos ON reservas_lote.PRODUCT_ID = productos.Codigo
+            WHERE
+                reservas_lote.CONTRATO_ID = '{contrato_id}';
+            """
+            )
+        
+        columns = [col[0] for col in cursor.description]
+        anexo_product_list = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        
+    return anexo_product_list
+
+
+
 # def pedidos_cerrados_bct():
     
 #     try:

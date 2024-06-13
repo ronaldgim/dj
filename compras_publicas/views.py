@@ -49,6 +49,8 @@ from datos.views import (
     
     # pedidos
     #pedidos_cerrados_bct
+    datos_anexo,
+    datos_anexo_product_list
 
     )
 
@@ -358,9 +360,17 @@ def procesos_sercop(request):
 
 
 
+
+
 ### ANEXOS
 @login_required(login_url='login')
 def anexos_list(request):
+    
+    from datos.views import importaciones_en_transito_odbc_insert_warehouse
+    importaciones_en_transito_odbc_insert_warehouse()
+    
+    # anexo = datos_anexo('74980')
+    # anexo_p = datos_anexo_product_list('74980')
     
     anexos = Anexo.objects.all()
     
