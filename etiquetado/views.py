@@ -318,7 +318,7 @@ def fecha_entrega_ajax(request):
 # Lista de pickings
 def etiquetado_pedidos(request, n_pedido):
 
-    meta = request.META['REMOTE_ADDR']#REMOTE_ADDR
+    # meta = request.META['REMOTE_ADDR']#REMOTE_ADDR
     vehiculo = Vehiculos.objects.filter(activo=True).order_by('transportista')
     
     # Dataframes
@@ -330,7 +330,7 @@ def etiquetado_pedidos(request, n_pedido):
 
     # Merge Dataframes
     pedido = pedido.merge(product, on='PRODUCT_ID', how='left').fillna(0.0)
-    #print(pedido)
+    print(pedido.keys())
     # Calculos
     pedido['Cartones'] = (pedido['QUANTITY'] / pedido['Unidad_Empaque']).round(2)
     pedido = pedido.fillna(0.0).replace(np.inf, 0.0)
@@ -340,9 +340,11 @@ def etiquetado_pedidos(request, n_pedido):
     pedido['t_dos_p_hor'] = ((pedido['Cartones'] * pedido['t_etiq_2p']) / 60) / 60
     pedido['t_tre_p_hor'] = ((pedido['Cartones'] * pedido['t_etiq_3p']) / 60) / 60
 
-
-    pedido['vol_total'] = pedido['Cartones'] * pedido['volumen']
-    pedido['pes_total'] = pedido['peso'] * pedido['Cartones']
+    # pedido['vol_total'] = pedido['Cartones'] * pedido['volumen']
+    pedido['vol_total'] = pedido['Cartones'] * (pedido['Volumen'] / 1000000)
+    # pedido['pes_total'] = pedido['Cartones'] * pedido['peso']
+    pedido['pes_total'] = pedido['Cartones'] * pedido['Peso']
+    
     p_cero = 0 in list(pedido['pes_total']) 
     # print(pedido)
     pedido = pedido.fillna(0.0).replace(np.inf, 0.0) 
@@ -437,7 +439,7 @@ def etiquetado_pedidos(request, n_pedido):
         't_cartones':t_cartones,
         't_unidades':t_unidades,
 
-        'meta':meta,
+        # 'meta':meta,
         'vehiculos':vehiculo,
 
         'fecha_entrega':fecha_entrega,
