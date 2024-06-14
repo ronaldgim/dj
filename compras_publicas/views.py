@@ -1,7 +1,7 @@
 from django.shortcuts import render
 
 # BD
-from django.db import connections
+from django.db import connections, transaction
 
 # Datetime
 from datetime import datetime, timedelta
@@ -366,19 +366,68 @@ def procesos_sercop(request):
 @login_required(login_url='login')
 def anexos_list(request):
     
-    from datos.views import importaciones_en_transito_odbc_insert_warehouse
-    importaciones_en_transito_odbc_insert_warehouse()
-    
-    # anexo = datos_anexo('74980')
-    # anexo_p = datos_anexo_product_list('74980')
-    
     anexos = Anexo.objects.all()
-    
     context = {
         'anexos':anexos
     }
     
     return render(request, 'compras_publicas/anexos_list.html', context)
+
+
+@transaction.atomic
+def add_datos_anexo_ajax(request):
+    
+    try:
+        contrato_id = request.POST.get('contrato_id')
+        
+        anexo_data = datos_anexo(contrato_id)    
+        anexo_product_data = datos_anexo_product_list(contrato_id)
+        
+        anexo = Anexo(
+            n_pedido  = anexo_data['CONTRATO_ID'],
+            fecha     = anexo_data['FECHA_PEDIDO'],
+            cliente   = anexo_data['NOMBRE_CLIENTE'],
+            ruc       = anexo_data['IDENTIFICACION_FISCAL'],
+            direccion = anexo_data['DIRECCION'],
+        )
+        
+        anexo.save()
+        
+        if anexo.id:
+            
+            prod_list = []
+            for i in anexo_product_data:
+                product = Producto(
+                    product_id      = i['PRODUCT_ID'],
+                    nombre          = i['Nombre'],
+                    presentacion    = i['Unidad'],
+                    marca           = i['Marca'],
+                    procedencia     = i['Procedencia'],
+                    r_sanitario     = i['Reg_San'],
+                    lote_id         = i['LOTE_ID'],
+                    f_elaboracion   = i['Fecha_elaboracion_lote'],
+                    f_caducidad     = i['FECHA_CADUCIDAD'],
+                    cantidad        = i['EGRESO_TEMP'],
+                    cantidad_total  = i['EGRESO_TEMP'],
+                    precio_unitario = i['Price'],
+                ) 
+                
+                product.save()
+                prod_list.append(product)
+            
+            anexo.product_list.add(*prod_list)
+            
+            return JsonResponse({
+                'type':'ok',
+                'redirect_url':f'/compras-publicas/anexos/{anexo.id}'
+                })
+        
+    except Exception as e:    
+        
+        return JsonResponse({
+            'type':'error',
+            'msg':str(e)
+        })
 
 
 @login_required(login_url='login')

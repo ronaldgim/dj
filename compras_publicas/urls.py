@@ -72,4 +72,11 @@ urlpatterns = [
         view = views.anexo_formato_general, 
         name='anexo_formato_general'
     ),
+    
+    #add_datos_anexo_ajax
+    path(
+        route='anexos/add_datos_anexo_ajax', 
+        view = views.add_datos_anexo_ajax, 
+        name='add_datos_anexo_ajax'
+    ),
 ]
