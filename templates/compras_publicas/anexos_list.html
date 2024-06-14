@@ -10,39 +10,12 @@
 
 {% block body %}
 
-<!--style>
-    .btn.btn-warning.btn-sm.active {
-    background-color: blue;}
-
-    .mensaje-temporal {
-        display: none;
-        position: absolute;
-        background-color: #4CAF50;
-        color: white;
-        padding: 10px;
-        border-radius: 5px;
-    }
-
-    #msg_ss {
-        display: none;
-        position: fixed; /* Cambiado a fixed para que sea relativo a la ventana */
-        /*bottom: 10px; */ /* Distancia desde la parte inferior */
-        top:40%;
-        right: 10px; /* Distancia desde la derecha */
-        /*background-color: #4CAF50;*/
-        color: white;
-        padding: 10px;
-        border-radius: 5px;
-        width:auto;
-        z-index: 3;
-        }
-</style-->
 
 <h5 class="m-4 fw-bold text-center">LISTA DE ANEXOS</h5>
 
 <div class="input-group mb-3">
-    <input type="text" class="form-control" placeholder="Ingrese en número de picking" id="n_picking" required>
-    <button name="picking" class="btn btn-primary disabled" type="submit">Añadir Picking</button>
+    <input type="text" class="form-control" placeholder="Ingrese en número de picking" id="contrato_id" required>
+    <button name="contrato_id_btn" class="btn btn-primary" type="submit">Añadir Picking</button>
 </div>
 
 
@@ -102,22 +75,24 @@
 
 <script>
 
-    $("button[name='trasferencia']").click(function(){
-        var n_trasf  = $("#n_trasf").val();
+    $("button[name='contrato_id_btn']").click(function(){
+        var contrato_id = $("#contrato_id").val();
 
         $.ajax({
             type:"POST",
-            url:"{% url 'wms_transferencia_input_ajax' %}",
+            url:"{% url 'add_datos_anexo_ajax' %}",
             data:{
                 'csrfmiddlewaretoken': '{{ csrf_token }}',
-                'n_trasf':n_trasf,
+                'contrato_id':contrato_id,
             },
 
             success: function(response) {
                 
                 //$('#msg').fadeIn().html(`<div class="text-center alert alert-${response.tipo}" role="alert"> ${response.msg} !!! </div>`).fadeOut(6000)
-                if (response.msg) {
+                if (response.type === 'error') {
                     $('#msg').html(`<div class="text-center alert alert-${response.alert}" role="alert"> ${response.msg} !!! </div>`)
+                } else if (response.type === 'ok') {
+                    window.location.href = response.redirect_url
                 }
                 
                 setTimeout(function(){
