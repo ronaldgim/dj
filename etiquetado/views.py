@@ -119,7 +119,10 @@ from datos.views import (
     # Proformas
     lista_proformas_odbc,
     proformas_por_contrato_id_odbc,
-    importaciones_en_transito_odbc_insert_warehouse
+    importaciones_en_transito_odbc_insert_warehouse,
+    
+    # Extraer número de factura
+    extraer_numero_de_factura
     )
 
 
@@ -1269,12 +1272,14 @@ def correos_notificacion_factura(nombre_cliente):
 
 
 
+
+
 # Envio de correo con ajax
 def correo_facturado(request):
     
     # Numero de factura
     n_pedido = request.GET['ped']
-    n_factura = request.GET['fac']
+    n_factura = extraer_numero_de_factura(request.GET['fac'])
     id_picking = request.GET['id_button']
     
     # Objeto Django
