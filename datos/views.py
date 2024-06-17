@@ -65,6 +65,8 @@ from django.contrib.auth.models import User
 ### PERMISO PERSONALIZADO
 from functools import wraps
 
+# rexex
+import re
 
 # CONECIONES A MBA
 # cnx_odbc_mba     = pyodbc.connect('DSN=mba3;PWD=API')
@@ -2659,6 +2661,28 @@ def datos_anexo_product_list(contrato_id):
         anexo_product_list = [dict(zip(columns, row)) for row in cursor.fetchall()]
         
     return anexo_product_list
+
+
+
+# ESTRAER NÚMERO DE FACTURA
+def extraer_numero_de_factura(fac):
+    
+    try:
+        n_fac = fac.split('-')[1][6:]
+        n_fac = str(int(n_fac))
+        return n_fac
+    except:
+        return fac
+    
+
+    # # Utiliza una expresión regular para encontrar la secuencia numérica que queremos
+    # match = re.search(r'\d+-\d+(\d{7})-GIMPR$', fac)
+    # if match:
+    #     # Convertimos a entero para eliminar ceros iniciales y luego de vuelta a string
+    #     return str(int(match.group(1)))
+    # else:
+    #     return fac
+
 
 
 
