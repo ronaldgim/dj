@@ -65,6 +65,13 @@ urlpatterns = [
         view = views.anexo_edit_product_ajax, 
         name='anexo_edit_product_ajax'
     ),
+        
+    #add_datos_anexo_ajax
+    path(
+        route='anexos/add_datos_anexo_ajax', 
+        view = views.add_datos_anexo_ajax, 
+        name='add_datos_anexo_ajax'
+    ),
     
     #anexo_get_product_ajax
     path(
@@ -73,10 +80,10 @@ urlpatterns = [
         name='anexo_formato_general'
     ),
     
-    #add_datos_anexo_ajax
+    #anexo_get_product_ajax
     path(
-        route='anexos/add_datos_anexo_ajax', 
-        view = views.add_datos_anexo_ajax, 
-        name='add_datos_anexo_ajax'
+        route='anexos/anexo_formato_hbo/<int:anexo_id>', 
+        view = views.anexo_formato_hbo, 
+        name='anexo_formato_hbo'
     ),
 ]
