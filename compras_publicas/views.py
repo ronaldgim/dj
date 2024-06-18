@@ -651,7 +651,7 @@ def anexo_formato_general(request, anexo_id):
 def anexo_formato_hbo(request, anexo_id):
     
     anexo = Anexo.objects.get(id=anexo_id)
-    anexo_prod_list = anexo.product_list#.all()
+    anexo_prod_list = anexo.product_list.all()
     
     prods_list =[]
     

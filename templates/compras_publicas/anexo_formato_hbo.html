@@ -125,7 +125,9 @@
                 {% endfor %}
                 <tr>
                     <td class="t_b" colspan="9">
-                        <strong>{{anexo.orden_compra}} / {{anexo.observaciones}}<strong>
+                        {% if anexo.orden_compra %}
+                            <strong>{{anexo.orden_compra}} / {{anexo.observaciones}}<strong>
+                        {% endif %}
                     </td>
                 </tr>
             </tbody>
