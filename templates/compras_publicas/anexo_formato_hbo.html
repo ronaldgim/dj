@@ -1,0 +1,165 @@
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+</head>
+
+<title>Anexo</title>
+
+<style>
+    @page{
+        size: A4;
+        margin-top:4cm;
+        margin-left:2.5cm;
+        margin-right:2.5cm;
+        margin-bottom:2.5cm;
+
+        /* HEADER Static frame */
+        @frame header_frame {           
+            -pdf-frame-content: header_content;
+            left: 0pt; width: 595pt; top: 0pt; height: 140pt; margin: 0pt; padding:0pt
+        }
+        /* FOOTER Static frame */
+        @frame footer_frame {
+            -pdf-frame-content: footer_content;
+            left:0pt; width:595pt; top:727pt; height:150pt;
+        }
+        /* BODY */
+        /*@frame body_frame {}*/
+            
+    }
+    #gim {
+        background-size:100%;
+        background-repeat:no-repeat;
+    }
+    .t_b {
+        padding-top: 4px;
+        padding-left: 2px;
+        padding-right: 2px;
+        padding-bottom: 0px;
+    }
+
+</style>
+
+<img id="header_content" src="{% static 'encabezado.png' %}">
+
+<div class="gim" style="text-align:justify; font-size:10px">
+
+    <div class="body_frame">        
+
+        <!--table>
+            <tr>
+                <td></td>
+                <td></td>
+
+                <td>
+                    <table style="border:1px solid black;font-size:8px;">
+                        <tr>
+                            <th class="t_b" style="width:200px;" colspan="2">R.U.C.:1791355296001</th>
+                        </tr>
+                        <tr>
+                            <th class="t_b" style="width:100px;">Fecha de Emisión</th>
+                            <th class="t_b" style="width:100px;">{{anexo.fecha}}</th>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table-->
+
+
+        <p style="text-align: center; font-size:10px">
+            <strong>R.U.C.:1791355296001</strong>
+        </p>
+
+        <p style="text-align: center; font-size:15px">
+            <strong><u>ANEXO A FACTURA N° {{anexo.n_factura}}</u></strong>
+        </p>
+        <label><strong>SEÑORES:  </strong> {{anexo.cliente}}</label><br>
+        <label><strong>DIRECCIÓN:</strong> {{anexo.direccion}}</label><br>
+        <label><strong>FECHA:</strong> {{anexo.fecha | date:"d-m-Y"}}</label><br>
+
+        <table style="border:1px solid black;font-size:7px">
+            <thead>
+                <tr>
+                    <th class="t_b" style="width:190px;">CÓDIGO PROVEEDOR</th>
+                    <th class="t_b" style="width:400px;">DESCRIPCIÓN DEL INSUMO</th>
+                    <th class="t_b" style="width:250px;">ESPECIFICACIÓN TÉCNICA OFERTADA</th>
+                    <th class="t_b" style="width:110px;">PRESENT</th>
+                    <th class="t_b" style="width:150px;">LOTE</th>
+                    <th class="t_b" style="width:140px;">FECHA DE ELAB.</th>
+                    <th class="t_b" style="width:140px;">FECHA DE VENCIM.</th>
+                    <th class="t_b" style="width:140px;">CANTIDAD (Unidades)</th>
+                    <th class="t_b" style="width:140px;">TOTAL</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for i in prods_list %}
+                <tr>
+                    <td class="t_b" rowspan="{{ i.products.count }}">{{ i.product_id }}</td>
+                    <td class="t_b" rowspan="{{ i.products.count }}">
+                        {{ i.nombre }}<br>
+                        <strong>MARCA:{{i.marca}}</strong><br>
+                        <strong>REGISTRO SANITARIO:{{i.r_sanitario}}</strong>
+                    </td>
+                    <td class="t_b" rowspan="{{ i.products.count }}">{{ i.nombre_generico }}</td>
+                    {% if i.products.count > 0 %}
+                        {% with first_product=i.products.first %}
+                        <td class="t_b" style="text-align:center">{{ first_product.presentacion }}</td>
+                        <td class="t_b" style="text-align:center">{{ first_product.lote_id }}</td>
+                        <td class="t_b" style="text-align:center">{{ first_product.f_elaboracion |date:"Y-m"}}</td>
+                        <td class="t_b" style="text-align:center">{{ first_product.f_caducidad |date:"Y-m"}}</td>
+                        <td class="t_b" style="text-align:center">{{ first_product.cantidad }}</td>
+                        <td class="t_b" style="text-align:center" rowspan="{{ i.products.count }}">{{ i.cantidad_total_2 }}</td>
+                        {% endwith %}
+                    {% endif %}
+                </tr>
+                {% for j in i.products|slice:"1:" %}
+                <tr>
+                    <td class="t_b" style="text-align:center">{{ j.presentacion }}</td>
+                    <td class="t_b" style="text-align:center">{{ j.lote_id }}</td>
+                    <td class="t_b" style="text-align:center">{{ j.f_elaboracion |date:"Y-m"}}</td>
+                    <td class="t_b" style="text-align:center">{{ j.f_caducidad |date:"Y-m"}}</td>
+                    <td class="t_b" style="text-align:center">{{ j.cantidad }}</td>
+                </tr>
+                {% endfor %}
+                {% endfor %}
+                <tr>
+                    <td class="t_b" colspan="9">
+                        <strong>{{anexo.orden_compra}} / {{anexo.observaciones}}<strong>
+                    </td>
+                </tr>
+            </tbody>
+
+        </table>
+
+        <br><br>
+        <table>
+            <tr>
+                <td style="text-align:center">
+                    <p>
+                        Entregado por:
+                        <br><br><br><br><br>
+                        __________________<br>
+                        Gimpromed Cía. Ltda.
+                    </p>
+                </td>
+
+                <td></td>
+
+                <td style="text-align:center">
+                    <p>
+                        Recibido por:
+                        <br><br><br><br><br>
+                        _________________<br>
+                        Sello, firma y nombre:
+                    </p>
+                </td>
+            </tr>
+        </table>
+
+    </div>
+</div>
+
+<br>
+
+<img  id="footer_content" src="{% static 'pie_de_pag.png' %}">

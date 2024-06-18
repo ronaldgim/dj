@@ -646,21 +646,33 @@ def anexo_formato_general(request, anexo_id):
     return render(request, 'compras_publicas/anexo_formato_general.html', context)
 
 
-# @pdf_decorator(pdfname='anexo_formato_general.pdf')
-# @login_required(login_url='login')
-# def anexo_formato_general(request, anexo_id):
+@pdf_decorator(pdfname='anexo_formato_hbo.pdf')
+@login_required(login_url='login')
+def anexo_formato_hbo(request, anexo_id):
     
-#     anexo = Anexo.objects.get(id=anexo_id)
-#     products = anexo.product_list.all()
-#     subtotal = products.aggregate(p_total=Sum('precio_total'))['p_total']
-#     mas_iva = subtotal * 1.12
-#     total = subtotal + mas_iva
+    anexo = Anexo.objects.get(id=anexo_id)
+    anexo_prod_list = anexo.product_list#.all()
     
-#     context = {
-#         'anexo':anexo,
-#         'subtotal':subtotal,
-#         'mas_iva':mas_iva,
-#         'total':total
-#     }
+    prods_list =[]
+    
+    for i in anexo.product_list.all().values_list('product_id', flat=True).distinct():
+        prods = {}
+        prods['product_id'] = i
+        prods['products'] = anexo_prod_list.filter(product_id=i) #.first()
+        prods['nombre'] = anexo_prod_list.filter(product_id=i).first().nombre
+        prods['nombre_generico'] = anexo_prod_list.filter(product_id=i).first().nombre_generico
+        prods['marca'] = anexo_prod_list.filter(product_id=i).first().marca
+        prods['r_sanitario'] = anexo_prod_list.filter(product_id=i).first().r_sanitario
+        prods['prods_len'] = len(anexo_prod_list.filter(product_id=i))
+        prods['cantidad_total_2'] = anexo_prod_list.filter(product_id=i).aggregate(cantidad_total_2=Sum('cantidad'))['cantidad_total_2']
+        
+        prods_list.append(prods)
+    
+    context = {
+        'anexo':anexo,
+        'prods_list':prods_list,
+    }
 
-#     return render(request, 'compras_publicas/anexo_formato_general.html', context)
+    return render(request, 'compras_publicas/anexo_formato_hbo.html', context)
+
+
