@@ -86,4 +86,18 @@ urlpatterns = [
         view = views.anexo_formato_hbo, 
         name='anexo_formato_hbo'
     ),
+    
+    #anexo_get_product_ajax
+    path(
+        route='anexos/anexo_formato_hcam/<int:anexo_id>', 
+        view = views.anexo_formato_hcam, 
+        name='anexo_formato_hcam'
+    ),
+    
+    #anexo_formato_hpas
+    path(
+        route='anexos/anexo_formato_hpas/<int:anexo_id>', 
+        view = views.anexo_formato_hpas, 
+        name='anexo_formato_hpas'
+    ),
 ]

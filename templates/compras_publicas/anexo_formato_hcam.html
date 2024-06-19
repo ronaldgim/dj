@@ -1,0 +1,171 @@
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+</head>
+
+<title>Anexo</title>
+
+<style>
+    @page{
+        size: A4;
+        margin-top:4cm;
+        margin-left:2.5cm;
+        margin-right:2.5cm;
+        margin-bottom:2.5cm;
+
+        /* HEADER Static frame */
+        @frame header_frame {           
+            -pdf-frame-content: header_content;
+            left: 0pt; width: 595pt; top: 0pt; height: 140pt; margin: 0pt; padding:0pt
+        }
+        /* FOOTER Static frame */
+        @frame footer_frame {
+            -pdf-frame-content: footer_content;
+            left:0pt; width:595pt; top:727pt; height:150pt;
+        }
+        /* BODY */
+        /*@frame body_frame {}*/
+            
+    }
+    #gim {
+        background-size:100%;
+        background-repeat:no-repeat;
+    }
+    .t_b {
+        padding-top: 4px;
+        padding-left: 2px;
+        padding-right: 2px;
+        padding-bottom: 0px;
+    }
+
+</style>
+
+<img id="header_content" src="{% static 'encabezado.png' %}">
+
+<div class="gim" style="text-align:justify; font-size:10px">
+
+    <div class="body_frame">        
+
+        <table>
+            <tr>
+                <td></td>
+                <td></td>
+
+                <td>
+                    <table style="border:1px solid black;font-size:8px;">
+                        <tr>
+                            <th class="t_b" style="width:200px;" colspan="2">R.U.C.:1791355296001</th>
+                        </tr>
+                        <tr>
+                            <th class="t_b" style="width:100px;">Fecha de Emisión</th>
+                            <th class="t_b" style="width:100px;">{{anexo.fecha}}</th>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+
+        <p style="text-align: center; font-size:15px">
+            <strong><u>ANEXO A FACTURA N° {{anexo.n_factura}}</u></strong>
+        </p>
+        <label><strong>SEÑORES:  </strong> {{anexo.cliente}}</label><br>
+        <label><strong>RUC:  </strong> {{anexo.ruc}}</label><br>
+        <label><strong>DIRECCIÓN:</strong> {{anexo.direccion}}</label><br>
+
+        <table style="border:1px solid black;font-size:7px">
+            <tr>
+                <th class="t_b" style="width:200px;">CÓDIGO</th>
+                <th class="t_b" style="width:320px;">DESCRIPCIÓN DEL INSUMO</th>
+                <th class="t_b" style="width:110px;">PRES.</th>
+                <th class="t_b" style="width:150px;">LOTE</th>
+                <th class="t_b" style="width:140px;">FECHA DE ELAB.</th>
+                <th class="t_b" style="width:140px;">FECHA DE VENCIM.</th>
+                <th class="t_b" style="width:140px;">CANTIDAD</th>
+                <th class="t_b" style="width:140px;">TOTAL</th>
+                <th class="t_b" style="width:140px;">PRECIO UNIT.</th>
+                <th class="t_b" style="width:140px;">PRECIO TOTAL</th>
+            </tr>
+            {#% for i in anexo.product_list.all %#}
+            {% for i in products %}
+            <tr>
+                <td class="t_b"><strong>{{i.product_id}}</strong></td>
+                <td class="t_b">
+                    <strong><u>NOMBRE GENERICO</u></strong><br>
+                    {{i.nombre_generico}}<br><br>
+                    <strong><u>NOMBRE COMERCIAL</u></strong><br>
+                    {{i.nombre}}<br><br>
+                    <strong>MARCA:{{i.marca}}</strong><br>
+                    <strong>REG.SANITARIO:<br>{{i.r_sanitario}}</strong>
+                </td>
+                <td class="t_b" style="text-align: center;">{{i.presentacion}}</td>
+                <td class="t_b" style="text-align: center;">{{i.lote_id}}</td>
+                <td class="t_b" style="text-align: center;">{{i.f_elaboracion|date:"Y-m-d"}}</td>
+                <td class="t_b" style="text-align: center;">{{i.f_caducidad|date:"Y-m-d"}}</td>
+                <td class="t_b" style="text-align: center;">{{i.cantidad|floatformat:"0g"}}</td>
+                <td class="t_b" style="text-align: center;">{{i.cantidad_total|floatformat:"0g"}}</td>
+
+                <td class="t_b" style="text-align: right">
+                    {{i.precio_unitario|floatformat:"2g"}}
+                </td>
+                <td class="t_b" style="text-align: right">
+                    {{i.precio_total|floatformat:"2g"}}
+                </td>
+            </tr>
+            {% endfor %}
+            <tr>
+                <td class="t_b" colspan="7" rowspan="3">
+                    {% if anexo.orden_compra %}
+                        {{anexo.orden_compra}} / {{anexo.observaciones}}
+                    {% endif %}
+                </td>
+                <td class="t_b" colspan="2" style="text-align:right;"><strong>SUBTOTAL</strong></td>
+                <td class="t_b" style="text-align: right">
+                    {{subtotal|floatformat:"2g"}}
+                </td>
+            </tr>
+            <tr>
+                <td class="t_b" colspan="2" style="text-align:right;"><strong>15%IVA</strong></td>
+                <td class="t_b" style="text-align: right">
+                    {{mas_iva|floatformat:"2g"}}
+                </td>
+            </tr>
+            <tr>
+                <td class="t_b" colspan="2" style="text-align:right;"><strong>TOTAL</strong></td>
+                <td class="t_b" style="text-align: right">
+                    <strong>{{total|floatformat:"2g"}}</strong>
+                </td>
+            </tr>
+
+        </table>
+
+        <br><br>
+        <table>
+            <tr>
+                <td style="text-align:center">
+                    <p>
+                        Entregado por:
+                        <br><br><br><br><br>
+                        __________________<br>
+                        Gimpromed Cía. Ltda.
+                    </p>
+                </td>
+
+                <td></td>
+
+                <td style="text-align:center">
+                    <p>
+                        Recibido por:
+                        <br><br><br><br><br>
+                        _________________<br>
+                        Sello, firma y nombre:
+                    </p>
+                </td>
+            </tr>
+        </table>
+
+    </div>
+</div>
+
+<br>
+
+<img  id="footer_content" src="{% static 'pie_de_pag.png' %}">

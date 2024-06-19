@@ -75,8 +75,8 @@ class Anexo(models.Model):
     orden_compra = models.CharField(verbose_name='Orden de compra', max_length=50, blank=True)
     n_factura    = models.CharField(verbose_name='Factura', default='001-001-0000', max_length=50, blank=True)
     observaciones = models.TextField(verbose_name='Observaciones', blank=True)
-    
     product_list = models.ManyToManyField(Producto)
+    fecha_hora  = models.DateTimeField(verbose_name='Fecha Hora', auto_now_add=True)
     
     def __str__(self):
         return self.n_pedido
