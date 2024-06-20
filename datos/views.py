@@ -1056,54 +1056,44 @@ def doc_transferencia_odbc(n_transf):
             # "WHERE INVT_Lotes_Ubicacion.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND INVT_Producto_Lotes.LOTE_ID = INVT_Lotes_Ubicacion.LOTE_ID AND "
             # f"((INVT_Lotes_Ubicacion.DOC_ID_CORP='{n}') AND (INVT_Producto_Lotes.ENTRADA_TIPO='TR') AND (INVT_Lotes_Ubicacion.EGRESO_TEMP>0) AND (INVT_Producto_Lotes.WARE_CODE_CORP='BCT'))"
         
+            # "SELECT INVT_Lotes_Ubicacion.DOC_ID_CORP, INVT_Lotes_Ubicacion.PRODUCT_ID_CORP, INVT_Lotes_Ubicacion.LOTE_ID, INVT_Lotes_Ubicacion.EGRESO_TEMP, "
+            # "INVT_Lotes_Ubicacion.WARE_CODE_CORP, INVT_Producto_Lotes.ANIADIDO, INVT_Lotes_Ubicacion.UBICACION, INVT_Producto_Lotes.Fecha_elaboracion_lote, "
+            # "INVT_Producto_Lotes.FECHA_CADUCIDAD "
+            # "FROM INVT_Lotes_Ubicacion INVT_Lotes_Ubicacion, INVT_Producto_Lotes INVT_Producto_Lotes "
+            # "WHERE INVT_Lotes_Ubicacion.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND INVT_Producto_Lotes.LOTE_ID = INVT_Lotes_Ubicacion.LOTE_ID AND "
+            # f"((INVT_Lotes_Ubicacion.DOC_ID_CORP='{n}') AND (INVT_Lotes_Ubicacion.EGRESO_TEMP>0) AND (INVT_Producto_Lotes.ENTRADA_TIPO='TR' "
+            # "Or INVT_Producto_Lotes.ENTRADA_TIPO='AE') AND (INVT_Producto_Lotes.WARE_CODE_CORP='BCT'))"
+            
+            
             "SELECT INVT_Lotes_Ubicacion.DOC_ID_CORP, INVT_Lotes_Ubicacion.PRODUCT_ID_CORP, INVT_Lotes_Ubicacion.LOTE_ID, INVT_Lotes_Ubicacion.EGRESO_TEMP, "
-            "INVT_Lotes_Ubicacion.WARE_CODE_CORP, INVT_Producto_Lotes.ANIADIDO, INVT_Lotes_Ubicacion.UBICACION, INVT_Producto_Lotes.Fecha_elaboracion_lote, "
-            "INVT_Producto_Lotes.FECHA_CADUCIDAD "
+            "INVT_Producto_Lotes.WARE_CODE_CORP, INVT_Producto_Lotes.ANIADIDO, INVT_Lotes_Ubicacion.UBICACION, INVT_Producto_Lotes.Fecha_elaboracion_lote, "
+            "INVT_Producto_Lotes.FECHA_CADUCIDAD, INVT_Producto_Lotes.ENTRADA_TIPO, INVT_Lotes_Ubicacion.UBICACION, INVT_Lotes_Ubicacion.WARE_CODE_CORP "
             "FROM INVT_Lotes_Ubicacion INVT_Lotes_Ubicacion, INVT_Producto_Lotes INVT_Producto_Lotes "
             "WHERE INVT_Lotes_Ubicacion.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND INVT_Producto_Lotes.LOTE_ID = INVT_Lotes_Ubicacion.LOTE_ID AND "
-            f"((INVT_Lotes_Ubicacion.DOC_ID_CORP='{n}') AND (INVT_Lotes_Ubicacion.EGRESO_TEMP>0) AND (INVT_Producto_Lotes.ENTRADA_TIPO='TR' "
-            "Or INVT_Producto_Lotes.ENTRADA_TIPO='AE') AND (INVT_Producto_Lotes.WARE_CODE_CORP='BCT'))"
+            # "((INVT_Lotes_Ubicacion.DOC_ID_CORP='A-0000063572-GIMPR') AND (INVT_Lotes_Ubicacion.EGRESO_TEMP>0) AND (INVT_Producto_Lotes.WARE_CODE_CORP='BCT')) "
+            f"((INVT_Lotes_Ubicacion.DOC_ID_CORP='{n}') AND (INVT_Lotes_Ubicacion.EGRESO_TEMP>0) AND (INVT_Producto_Lotes.WARE_CODE_CORP='BCT'))"
+            
+            
         )
         
-        transferencia = cursorOdbc.fetchall()
-        transferencia = [list(rows) for rows in transferencia]
+        columns = [col[0] for col in cursorOdbc.description]
+        transferencia = [dict(zip(columns, row)) for row in cursorOdbc.fetchall()] 
         transferencia = pd.DataFrame(transferencia)
-        transferencia['product_id'] = list(map(lambda x:x[:-6], list(transferencia[1])))
+        transferencia['product_id'] = list(map(lambda x:x[:-6], list(transferencia['PRODUCT_ID_CORP'])))
         
         transferencia = transferencia.rename(columns={
-            # 0:'doc',
-            # 2:'lote_id',
-            # 3:'unidades',
-            # 4:'bodega_salida',
-            # 5:'boleano',
-            # 6:'bodega_entrada',
-            # 7:'f_elab',
-            # 8:'f_cadu'
-            
-            # 0:'doc',
-            # 2:'lote_id',
-            # 4:'unidades',
-            # 5:'bodega_salida',
-            # #5:'boleano',
-            # #6:'bodega_entrada',
-            # 7:'f_elab',
-            # 8:'f_cadu'
-            
-            0:'doc',
-            2:'lote_id',
-            3:'unidades',
-            4:'bodega_salida',
-            #5:'boleano',
-            #6:'bodega_entrada',
-            7:'f_elab',
-            8:'f_cadu'
+            'DOC_ID_CORP': 'doc',
+            'LOTE_ID':'lote_id',
+            'EGRESO_TEMP': 'unidades',
+            'WARE_CODE_CORP': 'bodega_salida',
+            'FECHA_CADUCIDAD': 'f_elab',
+            'FECHA_CADUCIDAD': 'f_cadu',
         })
-
-        transferencia = transferencia[['doc', 'product_id', 'lote_id', 'unidades', 'bodega_salida', 'f_elab', 'f_cadu']]
         
     except:
         transferencia = pd.DataFrame()
 
+    """
     try:
         cursorOdbc.execute(
             "SELECT INVT_Lotes_Ubicacion.DOC_ID_CORP, INVT_Lotes_Ubicacion.PRODUCT_ID_CORP, INVT_Lotes_Ubicacion.LOTE_ID, "
@@ -1133,6 +1123,7 @@ def doc_transferencia_odbc(n_transf):
         transferencia2 = transferencia2[['doc', 'product_id', 'lote_id', 'unidades', 'bodega_salida', 'f_elab', 'f_cadu']]
     except:
         transferencia2 = pd.DataFrame()
+    """
     
     #t = pd.concat([transferencia, transferencia2])
     t = transferencia

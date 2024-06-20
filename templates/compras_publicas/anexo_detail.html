@@ -258,12 +258,12 @@
         <a class="btn btn-warning" href="{% url 'anexo_formato_hbo' anexo.id %}">
             <i class="bi bi-file-earmark-post"></i> HBO
         </a>
-        <button class="btn btn-danger disabled">
+        <a class="btn btn-danger" href="{% url 'anexo_formato_hcam' anexo.id %}">
             <i class="bi bi-file-earmark-post"></i> HCAM
-        </button>
-        <button class="btn btn-info disabled">
+        </a>
+        <a class="btn btn-info" href="{% url 'anexo_formato_hpas' anexo.id %}">
             <i class="bi bi-file-earmark-post"></i> HPAS
-        </button>
+        </a>
 
     </div>
 </div>

@@ -366,7 +366,7 @@ def procesos_sercop(request):
 @login_required(login_url='login')
 def anexos_list(request):
     
-    anexos = Anexo.objects.all()
+    anexos = Anexo.objects.all().order_by('-id')   
     context = {
         'anexos':anexos
     }
@@ -658,7 +658,7 @@ def anexo_formato_hbo(request, anexo_id):
     for i in anexo.product_list.all().values_list('product_id', flat=True).distinct():
         prods = {}
         prods['product_id'] = i
-        prods['products'] = anexo_prod_list.filter(product_id=i) #.first()
+        prods['products'] = anexo_prod_list.filter(product_id=i) 
         prods['nombre'] = anexo_prod_list.filter(product_id=i).first().nombre
         prods['nombre_generico'] = anexo_prod_list.filter(product_id=i).first().nombre_generico
         prods['marca'] = anexo_prod_list.filter(product_id=i).first().marca
@@ -676,3 +676,50 @@ def anexo_formato_hbo(request, anexo_id):
     return render(request, 'compras_publicas/anexo_formato_hbo.html', context)
 
 
+@pdf_decorator(pdfname='anexo_formato_hcam.pdf')
+@login_required(login_url='login')
+def anexo_formato_hcam(request, anexo_id):
+    
+    anexo = Anexo.objects.get(id=anexo_id)
+    products = anexo.product_list.all().order_by('product_id')
+    subtotal = products.aggregate(p_total=Sum('precio_total'))['p_total']
+    mas_iva = subtotal * 0.15
+    total = subtotal + mas_iva
+    
+    context = {
+        'anexo':anexo,
+        'products':products,
+        'subtotal':subtotal,
+        'mas_iva':mas_iva,
+        'total':total
+    }
+
+    return render(request, 'compras_publicas/anexo_formato_hcam.html', context)
+
+
+from num2words import num2words
+
+@pdf_decorator(pdfname='anexo_formato_hpas.pdf')
+@login_required(login_url='login')
+def anexo_formato_hpas(request, anexo_id):
+    
+    anexo = Anexo.objects.get(id=anexo_id)
+    products = anexo.product_list.all().order_by('product_id')
+    subtotal = products.aggregate(p_total=Sum('precio_total'))['p_total']
+    mas_iva = subtotal * 0.15
+    total = subtotal + mas_iva
+    
+    total_str = num2words(total, lang='es', to='currency')
+    total_str = total_str.replace('euros', 'dolares')
+    total_str = total_str.replace('céntimos', 'centavos')
+    
+    context = {
+        'anexo':anexo,
+        'products':products,
+        'subtotal':subtotal,
+        'mas_iva':mas_iva,
+        'total':total,
+        'total_str':total_str
+    }
+
+    return render(request, 'compras_publicas/anexo_formato_hpas.html', context)
