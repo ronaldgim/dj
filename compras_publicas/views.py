@@ -435,10 +435,47 @@ def anexo_detail(request, anexo_id):
     
     anexo = Anexo.objects.get(id=anexo_id)
     products = anexo.product_list.all().order_by('product_id')
+    ff = [
+        ## -
+        {
+            'key':'aaaa-mm-dd',
+            'value':'Y-m-d'
+        },
+        {
+            'key':'aaaa-mm',
+            'value':'Y-m'
+        },
+        {
+            'key':'dd-mm-aaaa',
+            'value':'d-m-Y'
+        },
+        {
+            'key':'mm-aaaa',
+            'value':'m-Y'
+        },
+        ## /
+        {
+            'key':'aaaa/mm/dd',
+            'value':'Y/m/d'
+        },
+        {
+            'key':'aaaa/mm',
+            'value':'Y/m'
+        },
+        {
+            'key':'dd/mm/aaaa',
+            'value':'d/m/Y'
+        },
+        {
+            'key':'mm/aaaa',
+            'value':'m/Y'
+        }
+    ]
     
     context = {
         'anexo':anexo,
-        'products':products
+        'products':products,
+        'ff':ff
     }
     
     return render(request, 'compras_publicas/anexo_detail.html', context)
@@ -466,6 +503,7 @@ def anexo_cabecera_edit_ajax(request):
         'direccion': 'direccion',
         'orden_compra': 'orden_compra',
         'n_factura':'n_factura',
+        'n_autorizacion':'n_autorizacion',
         'observaciones': 'observaciones'
     }
 
@@ -483,6 +521,28 @@ def anexo_cabecera_edit_ajax(request):
     
     return JsonResponse({'msg': 'fail', 'error': 'Invalid field'})
 
+
+@transaction.atomic
+@require_POST
+def anexo_ff_edit_ajax(request):
+    
+    try:
+        anexo_id = int(request.POST.get('id', 0))
+        anexo_ff_value = request.POST.get('value')
+        anexo_ff_key = request.POST.get('key') 
+        
+        anexo = get_object_or_404(Anexo, id=anexo_id)
+        anexo.ff_key = anexo_ff_key
+        anexo.ff_value = anexo_ff_value
+        
+        anexo.save()
+        
+        prods = anexo.product_list.all()
+        prods.update(fecha_formato=anexo.ff_value)
+        
+        return JsonResponse({'msg': 'ok'})
+    except:
+        return JsonResponse({'msg': 'fail'})
 
 @login_required(login_url='login')
 def anexo_edit_product_ajax(request):

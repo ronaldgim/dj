@@ -9,6 +9,7 @@ RESULTADO = [
     ('NO PARTICIPADO', 'NO PARTICIPADO'),
 ]
 
+
 # Create your models here.
 class EvaluacionProcesos(models.Model):
 
@@ -56,6 +57,8 @@ class Producto(models.Model):
     cantidad_total  = models.IntegerField(verbose_name='Cantidad total', blank=True, default=0)
     precio_unitario = models.FloatField(verbose_name='Precio unitario', blank=True, default=0)
     precio_total    = models.FloatField(verbose_name='Precio total', blank=True, default=0)
+    fecha_formato   = models.CharField(verbose_name='Formato de Fecha', max_length=20, blank=True, default='Y-m-d')
+    
     
     def __str__(self):
         return f'{self.id}-{self.product_id}'
@@ -74,9 +77,13 @@ class Anexo(models.Model):
     direccion    = models.CharField(verbose_name='Dirección', max_length=150, blank=True)
     orden_compra = models.CharField(verbose_name='Orden de compra', max_length=50, blank=True)
     n_factura    = models.CharField(verbose_name='Factura', default='001-001-0000', max_length=50, blank=True)
+    n_autorizacion = models.CharField(verbose_name='N autorización', max_length=150, blank=True)
     observaciones = models.TextField(verbose_name='Observaciones', blank=True)
     product_list = models.ManyToManyField(Producto)
     fecha_hora  = models.DateTimeField(verbose_name='Fecha Hora', auto_now_add=True)
+    
+    ff_key = models.CharField(verbose_name='Formato de fecha', max_length=50, blank=True, default='aaaa-mm-dd')
+    ff_value = models.CharField(verbose_name='Formato de fecha', max_length=50, blank=True, default='Y-m-d')
     
     def __str__(self):
         return self.n_pedido

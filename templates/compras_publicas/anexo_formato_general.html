@@ -96,8 +96,8 @@
                 </td>
                 <td class="t_b" style="text-align: center;">{{i.presentacion}}</td>
                 <td class="t_b" style="text-align: center;">{{i.lote_id}}</td>
-                <td class="t_b" style="text-align: center;">{{i.f_elaboracion|date:"Y-m"}}</td>
-                <td class="t_b" style="text-align: center;">{{i.f_caducidad|date:"Y-m"}}</td>
+                <td class="t_b" style="text-align: center;">{{i.f_elaboracion|date:i.fecha_formato}}</td>
+                <td class="t_b" style="text-align: center;">{{i.f_caducidad|date:i.fecha_formato}}</td>
                 <td class="t_b" style="text-align: center;">{{i.cantidad|floatformat:"0g"}}</td>
                 <td class="t_b" style="text-align: center;">{{i.cantidad_total|floatformat:"0g"}}</td>
 
