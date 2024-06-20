@@ -438,7 +438,7 @@ def revision_tecnica(request, memo):
 
 @login_required(login_url='login')
 def transferencias(request):
-
+    
     trans = pd.DataFrame(Trasferencia.objects.all().values())
     trans = trans.sort_values('documento', ascending=False)
     trans['proveedor'] = 'Gimpromed Cía. Ltda.'
