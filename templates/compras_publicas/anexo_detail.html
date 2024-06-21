@@ -263,7 +263,7 @@
                         <th scope="col">C.Total</th>
                         <th scope="col">P.Unitario</th>
                         <th scope="col">P.Total</th>
-                        <th scope="col">Editar</th>
+                        <th scope="col">Acciones</th>
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
@@ -278,25 +278,32 @@
                             <td>{{i.procedencia}}</td>
                             <td>{{i.r_sanitario}}</td>
                             <td>{{i.lote_id}}</td>
-                            <td>{{i.f_elaboracion|date:"d/m/Y"}}</td>
-                            <td>{{i.f_caducidad|date:"d/m/Y"}}</td>
+                            <!--td>{{i.f_elaboracion|date:"d/m/Y"}}</td>
+                            <td>{{i.f_caducidad|date:"d/m/Y"}}</td-->
+                            <td>{{i.f_elaboracion|date:i.fecha_formato}}</td>
+                            <td>{{i.f_caducidad|date:i.fecha_formato}}</td>
                             <td class="text-end">{{i.cantidad|floatformat:"0g"}}</td>
                             <td class="text-end">{{i.cantidad_total|floatformat:"0g"}}</td>
                             <td class="text-end">$ {{i.precio_unitario|floatformat:"3g"}}</td>
                             <td class="text-end">$ {{i.precio_total|floatformat:"2g"}}</td>
                             <td class="text-end">
-                                <button type="button" class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#staticBackdrop" name="edit_product_modal" id="{{i.id}}">
-                                    <i class="bi bi-pencil"></i>
-                                </button>
+                                <div class="btn-group" role="group" aria-label="Basic mixed styles example">
+                                    <button type="button" class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#staticBackdrop" name="edit_product_modal" id="{{i.id}}">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-danger" name="delete_product" id="{{i.id}}">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                         {% endfor %}
                 </tbody>
             </table>
+
         </div>
     </div>
 </div>
-
 
 <div class="card mt-2 mb-2">
     <div class="card-body">
@@ -313,11 +320,15 @@
             <i class="bi bi-file-earmark-post"></i> HPAS
         </a>
 
+        <button class="btn btn-success float-end" data-bs-toggle="modal" data-bs-target="#add-product">
+            <i class="bi bi-plus-circle-fill"></i>
+            Añadir producto
+        </button>
+
     </div>
 </div>
 
-
-<!-- Modal -->
+<!-- Modal EDITAR PRODUCTO -->
 <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -337,16 +348,152 @@
     </div>
 </div>
 
+<!-- Modal AÑADIR PRODUCTO -->
+<div class="modal fade" id="add-product" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="staticBackdropLabel">N°.Picking: {{anexo.n_pedido}}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'anexo_add_product_ajax' %}">
+                {% csrf_token %}
+                <input type="hidden" name="id_anexo" value="{{anexo.id}}">
+                
+                <div class="modal-body">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-4">
+                            <label for="product_id" class="col-form-label fw-bold">Código:</label>
+                        </div>
+                        <div class="col-8">
+                            <input type="text" name="product_id" class="form-control form-control-sm" required>
+                        </div>
+                    </div>
+                
+                    <div class="row g-3 align-items-center">
+                        <div class="col-4">
+                            <label for="nombre" class="col-form-label fw-bold">Nombre:</label>
+                        </div>
+                        <div class="col-8">
+                            <input type="text" name="nombre" class="form-control form-control-sm" required>
+                        </div>
+                    </div>
 
+                    <div class="row g-3 align-items-center">
+                        <div class="col-4">
+                            <label for="nombre_generico" class="col-form-label fw-bold">Nombre Generico:</label>
+                        </div>
+                        <div class="col-8">
+                            <input type="text" name="nombre_generico" class="form-control form-control-sm" required>
+                        </div>
+                    </div>
+                
+                    <div class="row g-3 align-items-center">
+                        <div class="col-4">
+                            <label for="presentacion" class="col-form-label fw-bold">Presentación:</label>
+                        </div>
+                        <div class="col-8">
+                            <input type="text" name="presentacion" class="form-control form-control-sm" required>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 align-items-center">
+                        <div class="col-4">
+                            <label for="marca" class="col-form-label fw-bold">Marca:</label>
+                        </div>
+                        <div class="col-8">
+                            <input type="text" name="marca" class="form-control form-control-sm" required>
+                        </div>
+                    </div>
+                
+                    <div class="row g-3 align-items-center">
+                        <div class="col-4">
+                            <label for="procedencia" class="col-form-label fw-bold">Procedencia:</label>
+                        </div>
+                        <div class="col-8">
+                            <input type="text" name="procedencia" class="form-control form-control-sm" required>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 align-items-center">
+                        <div class="col-4">
+                            <label for="r_sanitario" class="col-form-label fw-bold">Registro Sanitario:</label>
+                        </div>
+                        <div class="col-8">
+                            <input type="text" name="r_sanitario" class="form-control form-control-sm" required>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 align-items-center">
+                        <div class="col-4">
+                            <label for="lote" class="col-form-label fw-bold">Lote:</label>
+                        </div>
+                        <div class="col-8">
+                            <input type="text" name="lote_id" class="form-control form-control-sm" required>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 align-items-center">
+                        <div class="col-4">
+                            <label for="f_elaboracion" class="col-form-label fw-bold">F.Elaboración:</label>
+                        </div>
+                        <div class="col-8">
+                            <input type="date" name="f_elaboracion" class="form-control form-control-sm" required>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 align-items-center">
+                        <div class="col-4">
+                            <label for="f_caducidad" class="col-form-label fw-bold">F.Caducidad:</label>
+                        </div>
+                        <div class="col-8">
+                            <input type="date" name="f_caducidad" class="form-control form-control-sm" required>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 align-items-center">
+                        <div class="col-4">
+                            <label for="cantidad" class="col-form-label fw-bold">Cantidad:</label>
+                        </div>
+                        <div class="col-8">
+                            <input type="number" name="cantidad" class="form-control form-control-sm" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row g-3 align-items-center">
+                        <div class="col-4">
+                            <label for="cantidad_total" class="col-form-label fw-bold">Cantidad total:</label>
+                        </div>
+                        <div class="col-8">
+                            <input type="number" name="cantidad_total" class="form-control form-control-sm" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row g-3 align-items-center">
+                        <div class="col-4">
+                            <label for="precio_unitario" class="col-form-label fw-bold">Precio Unitario:</label>
+                        </div>
+                        <div class="col-8">
+                            <input type="number" step="0.001" name="precio_unitario" class="form-control form-control-sm" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- EDITAR CABECERA DE ANEXO -->
 <script>
     $("button[name='edit_anexo']").click(function(){
         $(this).closest('.row').find('input').removeAttr('readonly');
         $(this).closest('.row').find('button').css('display', 'inline-block');
         $(this).css('display', 'none');
     })
-</script>
 
-<script>
     $("button[name='edit_ajax']").click(function(){
         var input = $(this).closest(".row").find('input');
         var value = input.val();
@@ -387,6 +534,7 @@
     })
 </script>
 
+<!-- EDITAR FORMATO DE FECHA -->
 <script>
     $("button[name='edit_anexo_ff']").click(function(){
         $(this).css('display', 'none')
@@ -394,9 +542,7 @@
         var select = $(this).closest(".row").find('select').css('display', 'inline-block');
         var edit_btn = $(this).closest(".row").find('#edit_ajax_ff').css('display','inline-block');
     })  
-</script>
 
-<script>
     $("button[name='edit_ajax_ff']").click(function(){
         var select = $(this).closest(".row").find('select option:selected');
         var value  = select.val()
@@ -445,6 +591,7 @@
     })
 </script>
 
+<!-- EDITAR PRODUCTO MODAL -->
 <script>
     $("button[name='edit_product_modal']").click(function(){
         var product_id = $(this).attr('id');
@@ -469,6 +616,32 @@
         })
 
     })
+</script>
+
+<!-- ELIMINAR PRODUCTO -->
+<script>
+    $("button[name='delete_product']").click(function(){
+        var product = $(this).attr('id');
+        var row = $(this).closest("tr")
+
+        $.ajax({
+            type:"POST",
+            url:"{% url 'anexo_delete_product_ajax' %}",
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'id':product,
+            },
+
+            success: function(response) {
+                row.remove();
+            },
+            error: function() {
+                alert("Error al eliminar el producto");
+            }
+        })
+
+    })
+
 </script>
 
 {% endblock %}

@@ -544,6 +544,35 @@ def anexo_ff_edit_ajax(request):
     except:
         return JsonResponse({'msg': 'fail'})
 
+
+@require_POST
+def anexo_delete_product_ajax(request):
+    try:
+        anexo_id = int(request.POST.get('id', 0))
+        product = Producto.objects.get(id=anexo_id)
+        product.delete()
+        return JsonResponse({'msg': 'ok'})
+    except:
+        return JsonResponse({'msg': 'fail'})
+
+
+@transaction.atomic
+@require_POST
+def anexo_add_product_ajax(request):
+    anexo = request.POST.get('id_anexo')
+    
+    form = ProductoForm(request.POST)
+    if form.is_valid():
+        prod = form.save()
+        a = Anexo.objects.get(id=int(anexo))
+        a.product_list.add(prod)
+        a.product_list.update(fecha_formato=a.ff_value)
+        
+        return redirect('anexo_detail', anexo)
+    else:
+        return redirect('anexo_detail', anexo)
+
+
 @login_required(login_url='login')
 def anexo_edit_product_ajax(request):
     
@@ -703,6 +732,7 @@ def anexo_formato_general(request, anexo_id):
         'total':total
     }
 
+    # return render(request, 'compras_publicas/afg.html', context)
     return render(request, 'compras_publicas/anexo_formato_general.html', context)
 
 
