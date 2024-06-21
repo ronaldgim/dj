@@ -57,7 +57,7 @@
         <label><strong>DIRECCIÓN:</strong> {{anexo.direccion}}</label><br>
         <label><strong>FECHA:</strong> {{anexo.fecha | date:"d-m-Y"}}</label><br>
 
-        <table style="border:1px solid black;font-size:7px">
+        <table repeat="1" style="border:1px solid black;font-size:7px">
             <thead>
                 <tr>
                     <th class="t_b" style="width:190px;">CÓDIGO PROVEEDOR</th>
@@ -81,25 +81,25 @@
                         <strong>MARCA:{{i.marca}}</strong><br>
                         <strong>REGISTRO SANITARIO:{{i.r_sanitario}}</strong>
                     </td>
-                    <td class="t_b" rowspan="{{ i.products.count }}">{{ i.nombre_generico }}</td>
+                    <td class="t_b" rowspan="{{ i.products.count }}">{{i.nombre_generico }}</td>
                     {% if i.products.count > 0 %}
                         {% with first_product=i.products.first %}
-                        <td class="t_b" style="text-align:center">{{ first_product.presentacion }}</td>
-                        <td class="t_b" style="text-align:center">{{ first_product.lote_id }}</td>
-                        <td class="t_b" style="text-align:center">{{ first_product.f_elaboracion |date:"Y-m"}}</td>
-                        <td class="t_b" style="text-align:center">{{ first_product.f_caducidad |date:"Y-m"}}</td>
-                        <td class="t_b" style="text-align:center">{{ first_product.cantidad }}</td>
+                        <td class="t_b" style="text-align:center">{{first_product.presentacion }}</td>
+                        <td class="t_b" style="text-align:center">{{first_product.lote_id }}</td>
+                        <td class="t_b" style="text-align:center">{{first_product.f_elaboracion|date:first_product.fecha_formato}}</td>
+                        <td class="t_b" style="text-align:center">{{first_product.f_caducidad|date:first_product.fecha_formato}}</td>
+                        <td class="t_b" style="text-align:center">{{first_product.cantidad }}</td>
                         <td class="t_b" style="text-align:center" rowspan="{{ i.products.count }}">{{ i.cantidad_total_2 }}</td>
                         {% endwith %}
                     {% endif %}
                 </tr>
                 {% for j in i.products|slice:"1:" %}
                 <tr>
-                    <td class="t_b" style="text-align:center">{{ j.presentacion }}</td>
-                    <td class="t_b" style="text-align:center">{{ j.lote_id }}</td>
-                    <td class="t_b" style="text-align:center">{{ j.f_elaboracion |date:"Y-m"}}</td>
-                    <td class="t_b" style="text-align:center">{{ j.f_caducidad |date:"Y-m"}}</td>
-                    <td class="t_b" style="text-align:center">{{ j.cantidad }}</td>
+                    <td class="t_b" style="text-align:center">{{j.presentacion }}</td>
+                    <td class="t_b" style="text-align:center">{{j.lote_id }}</td>
+                    <td class="t_b" style="text-align:center">{{j.f_elaboracion|date:j.fecha_formato}}</td>
+                    <td class="t_b" style="text-align:center">{{j.f_caducidad|date:j.fecha_formato}}</td>
+                    <td class="t_b" style="text-align:center">{{j.cantidad }}</td>
                 </tr>
                 {% endfor %}
                 {% endfor %}
