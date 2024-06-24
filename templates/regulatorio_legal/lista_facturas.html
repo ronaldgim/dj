@@ -19,12 +19,13 @@
     <form method="POST">
         <div class="input-group mb-3">
             {% csrf_token %}
-            <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control" name="n_factura">
+            <input type="text" placeholder="Buscar" class="form-control" name="n_factura">
             <button class="btn btn-primary" type="submit">Buscar</button>
         </div>
     </form>
 </div>
 
+<input id="inputbuscar" type="text" placeholder="Filtro" class="form-control" name="n_factura">
 
 {% if messages %}
 {% for message in messages %}
