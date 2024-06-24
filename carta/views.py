@@ -99,6 +99,7 @@ def carta_general(request):
                 
                 if form.is_valid():
                     form.save()
+                    
                     return redirect('general_list')
                 
             else:
@@ -120,13 +121,13 @@ class CartaGeneralPDF(PermissionRequiredMixin, LoginRequiredMixin, PdfMixin ,Det
     template_name = 'cartas/carta_general/detail.html'
 
     permission_required = 'carta.add_cartageneral'
- 
+
     def handle_no_permission(self):
         if self.raise_exception:
             raise PermissionDenied(self.get_permission_denied_message())
         messages.error(self.request, 'No tienes los permisos necesarios !!!')
         return HttpResponseRedirect(reverse_lazy('general_list'))
- 
+
 
 class CartaGeneralList(PermissionRequiredMixin, LoginRequiredMixin, ListView):
     ''' Lista de cartas generales creadas '''
@@ -136,13 +137,13 @@ class CartaGeneralList(PermissionRequiredMixin, LoginRequiredMixin, ListView):
     ordering = ['-pk']
 
     permission_required = 'carta.view_cartageneral'
- 
+
     def handle_no_permission(self):
         if self.raise_exception:
             raise PermissionDenied(self.get_permission_denied_message())
         messages.error(self.request, 'No tienes los permisos necesarios !!!')
         return HttpResponseRedirect(reverse_lazy('inicio'))
- 
+
 
 @login_required(login_url='login')
 def anular_cartageneral(request, slug):
@@ -183,20 +184,20 @@ class CartaGeneralAnuladasList(PermissionRequiredMixin, LoginRequiredMixin, List
     ordering = ['-pk']
 
     permission_required = 'carta.view_anularcartageneral'
- 
+
     def handle_no_permission(self):
         if self.raise_exception:
             raise PermissionDenied(self.get_permission_denied_message())
         messages.error(self.request, 'No tienes los permisos necesarios !!!')
         return HttpResponseRedirect(reverse_lazy('general_list'))
- 
- 
+
+
 class CartaGeneralAnuladaDetailView(PermissionRequiredMixin, LoginRequiredMixin, DetailView):
     model = AnularCartaGeneral
     template_name = 'cartas/carta_general/anular_cartageneral_detail.html'
 
     permission_required = 'carta.view_anularcartageneral'
- 
+
     def handle_no_permission(self):
         if self.raise_exception:
             raise PermissionDenied(self.get_permission_denied_message())
