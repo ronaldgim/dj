@@ -85,8 +85,23 @@
                     <label class="form-label">Autorización a terceros:</label>
                     <textarea class="form-control" name="autorizacion" rows="3"></textarea>
                 </div>
+
+                <div class="col-md-3 mb-2">
+                    {% if request.user.userperfil.id != 11 or request.user.userperfil.id != 14 %}
+                    <label class="form-label">Firma:</label>
+                    <select class="form-select" name="usuario" required>
+                        <option>--------</option>
+                        <option value="11">Carlos Arcos</option>
+                        <option value="14">Nikole Caisapanta</option>
+                    </select>
+                    {% else %}
+                    <input type="hidden" name="usuario" value="{{request.user.userperfil.id}}">
+                    {% endif %}
+                </div>
+
             </div>
-            <button class="btn btn-primary" type="submit" >
+
+            <button class="btn btn-primary mb-4" type="submit" >
                 <i class="bi bi-send"></i> Guardar
             </button>
         </form>
