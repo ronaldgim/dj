@@ -1,4 +1,5 @@
 {% load static %}
+{% load tags %}
 <head>
     <meta charset="UTF-8">
 </head>
@@ -9,8 +10,8 @@
     @page{
         size: A4;
         margin-top:4cm;
-        margin-left:2.5cm;
-        margin-right:2.5cm;
+        margin-left:2cm;
+        margin-right:2cm;
         margin-bottom:2.5cm;
 
         /* HEADER Static frame */
@@ -46,31 +47,16 @@
 
     <div class="body_frame">        
 
-        <!--table>
-            <tr>
-                <td></td>
-                <td></td>
-
-                <td>
-                    <table style="border:1px solid black;font-size:8px;">
-                        <tr>
-                            <th class="t_b" style="width:200px;" colspan="2">R.U.C.:1791355296001</th>
-                        </tr>
-                        <tr>
-                            <th class="t_b" style="width:100px;">Fecha de Emisión</th>
-                            <th class="t_b" style="width:100px;">{{anexo.fecha}}</th>
-                        </tr>
-                    </table>
-                </td>
-            </tr>
-        </table-->
-
-        <p style="text-align: right; font-size:12px">
+        <p style="text-align: right; font-size:12px; margin-bottom:0 padding-bottom:0;">
             <strong>R.U.C.: 1791355296001</strong>
         </p>
 
-        <p style="text-align: right; font-size:15px">
+        <p style="text-align: right; font-size:15px; margin-bottom:0 padding-bottom:0; margin-top:0 padding-top:0;">
             <strong><u>ANEXO A FACTURA N° {{anexo.n_factura}}</u></strong>
+        </p>
+
+        <p style="text-align: right; font-size:10px; margin-top:0; padding-top:0">
+            Autorización No. {{anexo.n_autorizacion}}
         </p>
 
         <label><strong>CLIENTE:  </strong> {{anexo.cliente}}</label><br>
@@ -104,10 +90,10 @@
                 <td class="t_b" style="text-align: center;">{{i.lote_id}}</td>
                 <td class="t_b" style="text-align: center;">{{i.f_elaboracion|date:i.fecha_formato}}</td>
                 <td class="t_b" style="text-align: center;">{{i.f_caducidad|date:i.fecha_formato}}</td>
-                <td class="t_b" style="text-align: center;">{{i.cantidad|floatformat:"0g"}}</td>
-                <td class="t_b" style="text-align: center;">{{i.cantidad_total|floatformat:"0g"}}</td>
-                <td class="t_b" style="text-align: right">$ {{i.precio_unitario|floatformat:"2g"}}</td>
-                <td class="t_b" style="text-align: right">$ {{i.precio_total|floatformat:"2g"}}</td>
+                <td class="t_b" style="text-align: center;">{{i.cantidad|formato_numero_miles}}</td>
+                <td class="t_b" style="text-align: center;">{{i.cantidad_total|formato_numero_miles}}</td>
+                <td class="t_b" style="text-align: right">$ {{i.precio_unitario|formato_numero_miles}}</td>
+                <td class="t_b" style="text-align: right">$ {{i.precio_total|formato_numero_miles}}</td>
             </tr>
             {% endfor %}
             <tr>
@@ -118,19 +104,19 @@
                 </td>
                 <td class="t_b" colspan="2" style="text-align:right;"><strong>SUBTOTAL</strong></td>
                 <td class="t_b" style="text-align: right">
-                    {{subtotal|floatformat:"2g"}}
+                    {{subtotal|formato_numero_miles}}
                 </td>
             </tr>
             <tr>
                 <td class="t_b" colspan="2" style="text-align:right;"><strong>15%IVA</strong></td>
                 <td class="t_b" style="text-align: right">
-                    {{mas_iva|floatformat:"2g"}}
+                    {{mas_iva|formato_numero_miles}}
                 </td>
             </tr>
             <tr>
                 <td class="t_b" colspan="2" style="text-align:right;"><strong>TOTAL</strong></td>
                 <td class="t_b" style="text-align: right">
-                    <strong>{{total|floatformat:"2g"}}</strong>
+                    <strong>{{total|formato_numero_miles}}</strong>
                 </td>
             </tr>
 

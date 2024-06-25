@@ -101,6 +101,15 @@ urlpatterns = [
         name='anexo_formato_general'
     ),
     
+    
+    #anexo_get_product_ajax
+    path(
+        route='anexos/anexo_formato_general_class/<int:pk>', 
+        view = views.PdfFormatoGeneral.as_view(), 
+        name='anexo_formato_general_class'
+    ),
+    
+    
     #anexo_get_product_ajax
     path(
         route='anexos/anexo_formato_hbo/<int:anexo_id>', 

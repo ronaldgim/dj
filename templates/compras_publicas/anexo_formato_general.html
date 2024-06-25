@@ -1,4 +1,5 @@
 {% load static %}
+{% load tags %}
 <head>
     <meta charset="UTF-8">
 
@@ -9,8 +10,8 @@
             /*size: A4;*/
             size: a4;
             margin-top:4cm;
-            margin-left: 2.5cm;
-            margin-right: 2.5cm;
+            margin-left: 2cm;
+            margin-right: 2cm;
             margin-bottom:2.5cm;
 
             /* HEADER Static frame */
@@ -19,23 +20,10 @@
                 left: 0pt; width: 595pt; top: 0pt; height: 140pt; margin: 0pt; padding:0pt;
             }
 
-            /* CONTENIDO */
-            /*@frame content_frame {  
-                -pdf-frame-content: content_frame;     
-                left: 50pt; width: 512pt; top: 90pt; height: 632pt;
-            }*/
-
             /* FOOTER Static frame */
-            /*@frame footer_frame {
-                -pdf-frame-content: footer_content;
-                left: 0pt; width: 595pt; top: 727pt; height:150pt; margin: 0pt; padding: 0pt ;
-            }*/
             @frame footer_frame {
                 -pdf-frame-content: footer_content;
-                left: 50pt;
-                width: 512pt;
-                top: 800pt;
-                height: 20pt;
+                left: 0pt; width: 595pt; top: 727pt; height:150pt; margin: 0pt; padding: 0pt ;
             }
 
             /* BODY */
@@ -119,35 +107,38 @@
                     <td class="t_b" style="text-align: center;">{{i.lote_id}}</td>
                     <td class="t_b" style="text-align: center;">{{i.f_elaboracion|date:i.fecha_formato}}</td>
                     <td class="t_b" style="text-align: center;">{{i.f_caducidad|date:i.fecha_formato}}</td>
-                    <td class="t_b" style="text-align: center;">{{i.cantidad|floatformat:"0g"}}</td>
-                    <td class="t_b" style="text-align: center;">{{i.cantidad_total|floatformat:"0g"}}</td>
+                    <td class="t_b" style="text-align: center;">{{i.cantidad|formato_numero_miles}}</td>
+                    <td class="t_b" style="text-align: center;">{{i.cantidad_total|formato_numero_miles}}</td>
 
                     <td class="t_b" style="text-align: right">
-                        $ {{i.precio_unitario|floatformat:"3g"}}
+                        $ {{i.precio_unitario|formato_numero_miles}}
                         </div>
                     </td>
                     <td class="t_b" style="text-align: right">
-                        $ {{i.precio_total|floatformat:"2g"}}
+                        $ {{i.precio_total|formato_numero_miles}}
                     </td>
                 </tr>
                 {% endfor %}
                 <tr>
-                    <td class="t_b" colspan="7" rowspan="3">{{anexo.orden_compra}}</td>
+                    <td class="t_b" colspan="7" rowspan="3">
+                        {{anexo.orden_compra}}<br>
+                        {{anexo.observaciones}}
+                    </td>
                     <td class="t_b" colspan="2" style="text-align:right;"><strong>SUBTOTAL</strong></td>
                     <td class="t_b" style="text-align: right">
-                        $ {{subtotal|floatformat:"2g"}}
+                        $ {{subtotal|formato_numero_miles}}
                     </td>
                 </tr>
                 <tr>
                     <td class="t_b" colspan="2" style="text-align:right;"><strong>15%IVA</strong></td>
                     <td class="t_b" style="text-align: right">
-                        $ {{mas_iva|floatformat:"2g"}}
+                        $ {{mas_iva|formato_numero_miles}}
                     </td>
                 </tr>
                 <tr>
                     <td class="t_b" colspan="2" style="text-align:right;"><strong>TOTAL</strong></td>
                     <td class="t_b" style="text-align: right">
-                        <strong>$ {{total|floatformat:"2g"}}</strong>
+                        <strong>$ {{total|formato_numero_miles}}</strong>
                     </td>
                 </tr>
 
@@ -177,9 +168,14 @@
                     </td>
                 </tr>
             </table>
-
         </div>
-        Página: <pdf:pagenumber> de: <pdf:pagecount>&nbsp;
+        Página: <pdf:pagenumber example="51"> de: <pdf:pagecount>&nbsp;
+        
+        <div>
+            <pdf:pagenumber &nbsp;> <br>
+            <pdf:pagecount>
+            <pdf:pagecount/>
+        </div>
     </div>
 
     <br>
