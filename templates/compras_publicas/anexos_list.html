@@ -46,8 +46,10 @@
                         <th scope="col">Cliente</th>
                         <th scope="col">Ruc</th>
                         <th scope="col"># Picking</th>
-                        <th scope="col">Fecha</th>
+                        <th scope="col">Fecha Pedido</th>
                         <th scope="col">Orden de compra</th>
+                        <th scope="col">Creado en</th>
+                        <th scope="col">Creado por</th>
                         <th scope="col">Detalle</th>
                     </tr>
                 </thead>
@@ -57,8 +59,10 @@
                         <td>{{i.cliente}}</td>
                         <td>{{i.ruc}}</td>
                         <td>{{i.n_pedido}}</td>
-                        <td>{{i.fecha}}</td>
+                        <td>{{i.fecha|date:"Y-m-d"}}</td>
                         <td>{{i.orden_compra}}</td>
+                        <td>{{i.fecha_hora|date:"Y-m-d"}}</td>
+                        <td>{{i.usuario.first_name}}  {{i.usuario.last_name}}</td>
                         <td>
                             <a class="btn btn-primary btn-sm" href="{% url 'anexo_detail' i.id %}">
                                 <i class="bi bi-eye-fill"></i>

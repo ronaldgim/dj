@@ -401,6 +401,7 @@ def add_datos_anexo_ajax(request):
             cliente   = anexo_data['NOMBRE_CLIENTE'],
             ruc       = anexo_data['IDENTIFICACION_FISCAL'],
             direccion = anexo_data['DIRECCION'],
+            usuario_id= request.user.id
         )
         
         anexo.save()
