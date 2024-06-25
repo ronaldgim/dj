@@ -451,9 +451,11 @@ def wms_home(request):
 def wms_importaciones_list(request): #OK
     """ Lista de importaciones llegadas """
 
-    imp = importaciones_llegadas_odbc()
+    imp = importaciones_llegadas_odbc();print(imp)
     imp = imp[imp['WARE_COD_CORP']=='CUC']
-    imp = imp[imp['ENTRADA_FECHA']>'2023-12-31']
+    imp['ENTRADA_FECHA'] = pd.to_datetime(imp['ENTRADA_FECHA'])
+    imp = imp[imp['ENTRADA_FECHA']<datetime(year=2023, month=12, day=31)]
+    imp['ENTRADA_FECHA'] = imp['ENTRADA_FECHA'].astype('str')
     imp = imp.sort_values(by=['ENTRADA_FECHA'], ascending=[False])
     
     pro = productos_odbc_and_django()[['product_id', 'Marca']]
