@@ -1,4 +1,5 @@
 {% load static %}
+{% load tags %}
 <head>
     <meta charset="UTF-8">
 </head>
@@ -9,8 +10,8 @@
     @page{
         size: A4;
         margin-top:4cm;
-        margin-left:2.5cm;
-        margin-right:2.5cm;
+        margin-left:2cm;
+        margin-right:2cm;
         margin-bottom:2.5cm;
 
         /* HEADER Static frame */
@@ -46,9 +47,24 @@
 
     <div class="body_frame">        
 
-        <p style="text-align: center; font-size:10px">
-            <strong>R.U.C.:1791355296001</strong>
-        </p>
+        <table>
+            <tr>
+                <td></td>
+                <td></td>
+
+                <td>
+                    <table style="border:1px solid black;font-size:8px;">
+                        <tr>
+                            <th class="t_b" style="width:200px;" colspan="2">R.U.C.:1791355296001</th>
+                        </tr>
+                        <tr>
+                            <th class="t_b" style="width:100px;">Fecha de Emisión</th>
+                            <th class="t_b" style="width:100px;">{{anexo.fecha}}</th>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
 
         <p style="text-align: center; font-size:15px">
             <strong><u>ANEXO A FACTURA N° {{anexo.n_factura}}</u></strong>
@@ -88,8 +104,8 @@
                         <td class="t_b" style="text-align:center">{{first_product.lote_id }}</td>
                         <td class="t_b" style="text-align:center">{{first_product.f_elaboracion|date:first_product.fecha_formato}}</td>
                         <td class="t_b" style="text-align:center">{{first_product.f_caducidad|date:first_product.fecha_formato}}</td>
-                        <td class="t_b" style="text-align:center">{{first_product.cantidad }}</td>
-                        <td class="t_b" style="text-align:center" rowspan="{{ i.products.count }}">{{ i.cantidad_total_2 }}</td>
+                        <td class="t_b" style="text-align:center">{{first_product.cantidad|formato_numero_miles }}</td>
+                        <td class="t_b" style="text-align:center" rowspan="{{ i.products.count }}">{{ i.cantidad_total_2|formato_numero_miles }}</td>
                         {% endwith %}
                     {% endif %}
                 </tr>
@@ -99,7 +115,7 @@
                     <td class="t_b" style="text-align:center">{{j.lote_id }}</td>
                     <td class="t_b" style="text-align:center">{{j.f_elaboracion|date:j.fecha_formato}}</td>
                     <td class="t_b" style="text-align:center">{{j.f_caducidad|date:j.fecha_formato}}</td>
-                    <td class="t_b" style="text-align:center">{{j.cantidad }}</td>
+                    <td class="t_b" style="text-align:center">{{j.cantidad|formato_numero_miles}}</td>
                 </tr>
                 {% endfor %}
                 {% endfor %}

@@ -63,7 +63,10 @@ from django.shortcuts import get_object_or_404
 from django_xhtml2pdf.utils import pdf_decorator
 
 # Calculos
-from django.db.models import Sum, Count
+from django.db.models import Sum
+
+# Num to words
+from num2words import num2words
 
 
 # Funcios para pasar de dataframe a registros para el template
@@ -374,6 +377,15 @@ def anexos_list(request):
     return render(request, 'compras_publicas/anexos_list.html', context)
 
 
+# Quitar Prefijo de texto -reg sanitario, -procedencia 
+def quitar_prefijo(texto):
+    if ':' in texto:
+        texto = texto.split(':')[1]
+        return texto
+    else:
+        return texto
+
+
 @transaction.atomic
 def add_datos_anexo_ajax(request):
     
@@ -402,8 +414,8 @@ def add_datos_anexo_ajax(request):
                     nombre          = i['Nombre'],
                     presentacion    = i['Unidad'],
                     marca           = i['Marca'],
-                    procedencia     = i['Procedencia'],
-                    r_sanitario     = i['Reg_San'],
+                    procedencia     = quitar_prefijo(i['Procedencia']),
+                    r_sanitario     = quitar_prefijo(i['Reg_San']),
                     lote_id         = i['LOTE_ID'],
                     f_elaboracion   = i['Fecha_elaboracion_lote'],
                     f_caducidad     = i['FECHA_CADUCIDAD'],
@@ -436,7 +448,6 @@ def anexo_detail(request, anexo_id):
     anexo = Anexo.objects.get(id=anexo_id)
     products = anexo.product_list.all().order_by('product_id')
     ff = [
-        ## -
         {
             'key':'aaaa-mm-dd',
             'value':'Y-m-d'
@@ -732,8 +743,19 @@ def anexo_formato_general(request, anexo_id):
         'total':total
     }
 
-    # return render(request, 'compras_publicas/afg.html', context)
-    return render(request, 'compras_publicas/anexo_formato_general.html', context)
+    return render(request, 'compras_publicas/afg.html', context)
+    # return render(request, 'compras_publicas/anexo_formato_general.html', context)
+
+
+from django.views.generic.detail import DetailView
+from django_xhtml2pdf.views import PdfMixin
+
+
+class PdfFormatoGeneral(DetailView, PdfMixin):
+    model = Anexo
+    template_name = 'compras_publicas/anexo_formato_general.html'
+    
+
 
 
 @pdf_decorator(pdfname='anexo_formato_hbo.pdf')
@@ -786,8 +808,6 @@ def anexo_formato_hcam(request, anexo_id):
 
     return render(request, 'compras_publicas/anexo_formato_hcam.html', context)
 
-
-from num2words import num2words
 
 @pdf_decorator(pdfname='anexo_formato_hpas.pdf')
 @login_required(login_url='login')
