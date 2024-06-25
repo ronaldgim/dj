@@ -1,5 +1,5 @@
 from django.db import models
-
+from users.models import User
 
 # Choices resultado_proceso
 RESULTADO = [
@@ -78,12 +78,12 @@ class Anexo(models.Model):
     orden_compra = models.CharField(verbose_name='Orden de compra', max_length=50, blank=True)
     n_factura    = models.CharField(verbose_name='Factura', default='001-001-0000', max_length=50, blank=True)
     n_autorizacion = models.CharField(verbose_name='N autorización', max_length=150, blank=True)
-    observaciones = models.TextField(verbose_name='Observaciones', blank=True)
-    product_list = models.ManyToManyField(Producto)
-    fecha_hora  = models.DateTimeField(verbose_name='Fecha Hora', auto_now_add=True)
-    
-    ff_key = models.CharField(verbose_name='Formato de fecha', max_length=50, blank=True, default='aaaa-mm-dd')
-    ff_value = models.CharField(verbose_name='Formato de fecha', max_length=50, blank=True, default='Y-m-d')
+    observaciones  = models.TextField(verbose_name='Observaciones', blank=True)
+    product_list   = models.ManyToManyField(Producto)
+    fecha_hora     = models.DateTimeField(verbose_name='Fecha Hora', auto_now_add=True)
+    ff_key         = models.CharField(verbose_name='Formato de fecha', max_length=50, blank=True, default='aaaa-mm-dd')
+    ff_value       = models.CharField(verbose_name='Formato de fecha', max_length=50, blank=True, default='Y-m-d')
+    usuario        = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.CASCADE, null=True)
     
     def __str__(self):
         return self.n_pedido
