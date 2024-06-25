@@ -454,7 +454,7 @@ def wms_importaciones_list(request): #OK
     imp = importaciones_llegadas_odbc();print(imp)
     imp = imp[imp['WARE_COD_CORP']=='CUC']
     imp['ENTRADA_FECHA'] = pd.to_datetime(imp['ENTRADA_FECHA'])
-    imp = imp[imp['ENTRADA_FECHA']<datetime(year=2023, month=12, day=31)]
+    imp = imp[imp['ENTRADA_FECHA']>datetime(year=2023, month=12, day=31)]
     imp['ENTRADA_FECHA'] = imp['ENTRADA_FECHA'].astype('str')
     imp = imp.sort_values(by=['ENTRADA_FECHA'], ascending=[False])
     
