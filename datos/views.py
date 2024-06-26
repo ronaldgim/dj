@@ -1126,7 +1126,7 @@ def doc_transferencia_odbc(n_transf):
     """
     
     #t = pd.concat([transferencia, transferencia2])
-    t = transferencia
+    t = transferencia.sort_values('UBICACION')
     t = t.reset_index(drop=True) 
 
     return t

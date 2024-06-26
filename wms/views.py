@@ -2351,7 +2351,7 @@ def wms_transferencia_input_ajax(request):
     if not new_transf.exists():
 
         trans_mba['n_transferencia'] = n_trasf
-        trans_mba = trans_mba.groupby(by=['doc','n_transferencia','product_id','lote_id','f_cadu','bodega_salida']).sum().reset_index()
+        trans_mba = trans_mba.groupby(by=['doc','n_transferencia','product_id','lote_id','f_cadu','bodega_salida','UBICACION']).sum().reset_index()
         trans_mba['f_cadu'] = trans_mba['f_cadu'].astype(str)
         trans_mba = de_dataframe_a_template(trans_mba)
 
@@ -2364,7 +2364,8 @@ def wms_transferencia_input_ajax(request):
                 lote_id         = i['lote_id'],
                 fecha_caducidad = i['f_cadu'],
                 bodega_salida   = i['bodega_salida'],
-                unidades        = i['unidades']
+                unidades        = i['unidades'],
+                ubicacion       = i['UBICACION']
             )
 
             tr_list.append(tr)
@@ -2424,12 +2425,15 @@ def wms_transferencia_picking(request, n_transf):
     
     estado = TransferenciaStatus.objects.get(n_transferencia=n_transf)
     
-    prod   = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+    prod   = productos_odbc_and_django()[['product_id','Nombre','Marca','Unidad_Empaque','Volumen']]
     
     # Trasferencia
     transf = pd.DataFrame(Transferencia.objects.filter(n_transferencia=n_transf).values())
     transf = transf.merge(prod, on='product_id', how='left')
     transf['fecha_caducidad'] = pd.to_datetime(transf['fecha_caducidad']).dt.strftime('%d-%m-%Y').astype(str)
+    transf['cartones'] = transf['unidades'] / transf['Unidad_Empaque']
+    transf['vol'] = transf['cartones'] * (transf['Volumen']/1000000)
+    transf = transf.sort_values('ubicacion')
 
     # Productos y cantidades egresados de WMS por Picking Transferencia
     mov = pd.DataFrame(Movimiento.objects.filter(n_referencia=n_transf).values(
@@ -2460,13 +2464,13 @@ def wms_transferencia_picking(request, n_transf):
             'ubicacion__id',
             'ubicacion__bodega','ubicacion__pasillo','ubicacion__modulo','ubicacion__nivel',
             'ubicacion__distancia_puerta'
-        )
+        ).order_by('ubicacion__bodega')
         if ext.exists():
             for j in ext:
                 ext_id.append(j)
 
     transf_template = de_dataframe_a_template(transf)
-
+    
     prod = list(transf['product_id'].unique())
     for i in prod:
         for j in transf_template:
@@ -2479,12 +2483,11 @@ def wms_transferencia_picking(request, n_transf):
                 for m in mov_list:
                     if m['product_id'] == i:
                         pik_list.append(m)
-
-    try:
-        transf_template = sorted(transf_template, key=lambda x: (x['ubi'][0]['ubicacion__bodega'], x['ubi'][0]['ubicacion__distancia_puerta']))
-    except Exception as e:
-        pass
     
+    # try:
+    #     transf_template = sorted(transf_template, key=lambda x: (x['ubi'][0]['ubicacion__bodega'], x['ubi'][0]['ubicacion__distancia_puerta']))
+    # except Exception as e:
+    #     pass
     
     context = {
         'transf':transf_template,

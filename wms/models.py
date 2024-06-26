@@ -142,6 +142,7 @@ class Transferencia(models.Model):
     bodega_salida   = models.CharField(verbose_name='Bodega de salida', max_length=10)
     unidades        = models.PositiveIntegerField(verbose_name='Unidades ingresadas')
     fecha_hora      = models.DateTimeField(verbose_name='Fecha Hora', auto_now_add=True)
+    ubicacion       = models.CharField(verbose_name='Ubicacion', max_length=10, blank=True)
     
     def __str__(self):
         return self.n_transferencia
