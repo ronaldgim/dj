@@ -270,6 +270,13 @@ urlpatterns = [
         name  = 'etiquetado_stock_detalle'
     ),
     
+    # etiquetado_stock_wms_ajax
+    path(
+        route = 'etiquetado_stock_wms_ajax',
+        view  = views.etiquetado_stock_wms_ajax,
+        name  = 'etiquetado_stock_wms_ajax'
+    ),
+    
     ## INSTUCTIVO DE ETIQUETADO
     # Lista Instructivo de etiquetado
     path(

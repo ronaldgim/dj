@@ -49,16 +49,17 @@
                         <th scope="col">T.P. 3P (h:m:s)</th>
                         <th scope="col">Volumen m<sup>3</sup></th>
                         <th scope="col">Peso kg</th>
+                        <th scope="col">Ubicación</th>
                     </tr>
                     </thead>
                     
                     <tbody>
                     {% for i in stock %}
                     <tr {% if i.i == 1 %} style="background-color:#BAF690 ;" {% endif %} >
-                        <th scope="row">{{i.PRODUCT_ID}}</th>
+                        <th scope="row" id="product_id">{{i.PRODUCT_ID}}</th>
                         <td class="text-start">{{i.PRODUCT_NAME}}</td>
                         <td class="text-start">{{i.GROUP_CODE}}</td>
-                        <td class="text-start">{{i.LOTE_ID}}</td>
+                        <td class="text-start" id="lote_id">{{i.LOTE_ID}}</td>
                         <td class="text-start">{{i.FECHA_CADUCIDAD}}</td>
 
                         <td class="text-end">{{i.QUANTITY|floatformat:"0g"}}</td>
@@ -70,6 +71,11 @@
 
                         <td class="text-end" {% if i.vol == 0 %} style="background-color:#ffffcf" {% endif %}>{{i.vol|floatformat:'4g'}}</td>
                         <td class="text-end" {% if i.pes == 0 %} style="background-color:#ffffcf" {% endif %}>{{i.pes|floatformat:'4g'}}</td>
+                        <td class="text-center">
+                            <button name="ubicacion" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+                                <i class="bi bi-geo-fill"></i>
+                            </button>
+                        </td>
                     </tr>
                     {% endfor %}
                     </tbody>
@@ -96,7 +102,25 @@
     </div>
 </div>
 
+
+<!-- Modal -->
+<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+<div class="modal-dialog">
+    <div class="modal-content">
+    <div class="modal-header">
+        <h5 class="modal-title" id="staticBackdropLabel">Ubicación</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-title ms-4 mt-2" id="title_1"></div>
+    <div class="modal-title ms-4" id="title_2"></div>
+    <div class="modal-body"></div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+    </div>
+    </div>
 </div>
+</div>
+
 
 <script>
     $("button[name='estado']").click(function() {
@@ -128,6 +152,36 @@
 
             error: function(response) {
                 var msg = $("#msg").html(`<div class="alert alert-danger text-center" role="alert">Error intenta nuevamente !!! </div>`)
+            }
+        })
+    })
+</script>
+
+<script>
+    $("button[name='ubicacion']").click(function() {
+        var product_id = $(this).closest("tr").find("#product_id").text();
+        var lote_id = $(this).closest("tr").find("#lote_id").text();
+        var modal_title_1 = $("#title_1");
+        var modal_title_2 = $("#title_2");
+        var modal_body = $(".modal-body");
+
+        $.ajax({
+            type:"POST",
+            url:"{% url 'etiquetado_stock_wms_ajax' %}",
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'product_id':product_id,
+                'lote_id':lote_id
+            },
+        
+            success: function(response) {
+                modal_title_1.html('Código: '+ product_id);
+                modal_title_2.html('Lote: '+ lote_id);
+                modal_body.html(response);
+            },
+
+            error: function() {
+                modal_body.html(response)
             }
         })
     })

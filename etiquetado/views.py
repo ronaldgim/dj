@@ -87,6 +87,9 @@ from django.views.decorators.csrf import csrf_exempt
 # Requests
 import requests
 
+# Existencias
+from wms.models import Existencias
+from django.db.models import Q
 
 # Datos
 from datos.views import (
@@ -2924,9 +2927,9 @@ def etiquetado_stock_detalle(request, product_id):
 
     stock = stock_lote_cuc_etiquetado_detalle_odbc()
     product = productos_odbc_and_django()
-    ventas = frecuancia_ventas()[frecuancia_ventas()['PRODUCT_ID']==product_id]
-    ventas['MENSUAL'] = round(ventas['ANUAL'] / 12, 0)
-    ventas = ventas.to_dict(orient='records')[0]
+    # ventas = frecuancia_ventas()[frecuancia_ventas()['PRODUCT_ID']==product_id]
+    # ventas['MENSUAL'] = round(ventas['ANUAL'] / 12, 0)
+    # ventas = ventas.to_dict(orient='records')[0]
     product = product.rename(columns={'product_id':'PRODUCT_ID'})[[
         'PRODUCT_ID', 'Unidad_Empaque', 'volumen', 'peso', 't_etiq_1p', 't_etiq_2p', 't_etiq_3p'
     ]]
@@ -2973,7 +2976,7 @@ def etiquetado_stock_detalle(request, product_id):
         'codigo':codigo,
         'nombre':nombre,
         'marca':marca,
-        'ventas':ventas,
+        #'ventas':ventas,
 
         'tt_str_1p':tt_str_1p,
         'tt_str_2p':tt_str_2p,
@@ -2986,6 +2989,43 @@ def etiquetado_stock_detalle(request, product_id):
     }
 
     return render(request, 'etiquetado/pedidos/etiquetado_cuarentena.html', context)
+    
+
+# BUSCAR UBICACIÓN EN WMS DE PRODUCTO EN CUARENTENA
+def etiquetado_stock_wms_ajax(request):
+    
+    try:
+        existencia = Existencias.objects.filter(
+            Q(product_id=request.POST.get('product_id'))&Q(lote_id=request.POST.get('lote_id'))
+        ).values(
+            'unidades',
+            'estado',
+            'ubicacion__bodega',
+            'ubicacion__pasillo',
+            'ubicacion__modulo',
+            'ubicacion__nivel'
+            )
+        existencia = pd.DataFrame(existencia)
+        existencia['ubicación'] = (
+            existencia['ubicacion__bodega'] + '-' +
+            existencia['ubicacion__pasillo'] + '-' +
+            existencia['ubicacion__modulo'] + '-' +
+            existencia['ubicacion__nivel']
+            )
+        existencia['unidades'] = existencia['unidades'].apply(lambda x:'{:,.0f}'.format(x))
+        existencia = existencia[['estado','ubicación','unidades']]
+        existencia = existencia.to_html(
+            float_format='{:,.0f}'.format,
+            classes='table table-responsive table-bordered m-0 p-0',
+            table_id= 'reservas_table',
+            index=False,
+            justify='start'
+        )
+        
+        return HttpResponse(existencia)
+    except:
+        return HttpResponse('Error !!!')
+    
     
 
 ### INSTRUCTIVO ETIQUETADO

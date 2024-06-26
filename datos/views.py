@@ -2037,7 +2037,7 @@ def revision_reservas_fun():
             r_marca           = j[2]   
             r_lote_id         = j[3]
             r_fecha_caducidad = j[4]
-            r_fecha_caducidad = datetime.strptime(r_fecha_caducidad, '%Y-%m-%d')
+            #r_fecha_caducidad = datetime.strptime(r_fecha_caducidad, '%Y-%m-%d')
             r_ware_code       = j[5]
             r_egreso_temp     = j[6]
             r_contrato_id     = j[7]     
@@ -2060,10 +2060,14 @@ def revision_reservas_fun():
             inv_res = inventario[inventario['PRODUCT_ID']==prod]
             inv_res = inv_res.merge(r_agg, on=['PRODUCT_ID','LOTE_ID','WARE_CODE'], how='left').fillna(0)
             inv_res = inv_res.sort_values('FECHA_CADUCIDAD')
-
+            
+            #r_fecha_caducidad = pd.to_datetime
+            
             # Filtros y restricciónes 
             # Mostrar inventario mayor a la fecha de caducidad del lote reservado
-            inv_res = inv_res[inv_res['FECHA_CADUCIDAD']>r_fecha_caducidad]
+            # inv_res = inv_res[inv_res['FECHA_CADUCIDAD']>r_fecha_caducidad]
+            inv_res['FECHA_CADUCIDAD'] = pd.to_datetime(inv_res['FECHA_CADUCIDAD'])
+            inv_res = inv_res[inv_res['FECHA_CADUCIDAD']>pd.to_datetime(r_fecha_caducidad)]
             
             # Quitar stock en cuarentena
             inv_res = inv_res[inv_res['WARE_CODE']!='CUA']
