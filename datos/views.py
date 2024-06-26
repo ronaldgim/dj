@@ -1815,8 +1815,8 @@ def stock_faltante_contrato(contratos, bodega):
 
 def actualizar_imp_llegadas_odbc(request):
 
-    anio = str(datetime.now().year)
-    anio_sql = '%' + anio + '%'
+    # anio = str(datetime.now().year)
+    # anio_sql = '%' + anio + '%'
     
     cnxn = pyodbc.connect('DSN=mba3;PWD=API')
     cursorOdbc = cnxn.cursor()
@@ -1830,22 +1830,28 @@ def actualizar_imp_llegadas_odbc(request):
 
     ##Imp Llegada
     cursorOdbc.execute(
+        # "SELECT INVT_Lotes_Trasabilidad.DOC_ID_CORP, INVT_Lotes_Trasabilidad.ENTRADA_FECHA, "
+        # "INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP, INVT_Lotes_Trasabilidad.LOTE_ID, INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD, "
+        # "INVT_Lotes_Trasabilidad.AVAILABLE, INVT_Lotes_Trasabilidad.EGRESO_TEMP, INVT_Lotes_Trasabilidad.OH, INVT_Lotes_Trasabilidad.WARE_COD_CORP, CLNT_Pedidos_Principal.MEMO "
+        # "FROM INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad "
+        # "LEFT JOIN CLNT_Pedidos_Principal ON INVT_Lotes_Trasabilidad.DOC_ID_CORP = CLNT_Pedidos_Principal.CONTRATO_ID_CORP "
+        # #"WHERE (INVT_Lotes_Trasabilidad.ENTRADA_TIPO='OC') AND (INVT_Lotes_Trasabilidad.ENTRADA_FECHA>'01/01/2022') AND (INVT_Lotes_Trasabilidad.Tipo_Movimiento='RP')"
+        # f"WHERE (INVT_Lotes_Trasabilidad.ENTRADA_TIPO='OC') AND (INVT_Lotes_Trasabilidad.ENTRADA_FECHA>'01/01/{anio}') AND (INVT_Lotes_Trasabilidad.Tipo_Movimiento='RP')"
+        
         "SELECT INVT_Lotes_Trasabilidad.DOC_ID_CORP, INVT_Lotes_Trasabilidad.ENTRADA_FECHA, "
         "INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP, INVT_Lotes_Trasabilidad.LOTE_ID, INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD, "
         "INVT_Lotes_Trasabilidad.AVAILABLE, INVT_Lotes_Trasabilidad.EGRESO_TEMP, INVT_Lotes_Trasabilidad.OH, INVT_Lotes_Trasabilidad.WARE_COD_CORP, CLNT_Pedidos_Principal.MEMO "
         "FROM INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad "
         "LEFT JOIN CLNT_Pedidos_Principal ON INVT_Lotes_Trasabilidad.DOC_ID_CORP = CLNT_Pedidos_Principal.CONTRATO_ID_CORP "
-        #"WHERE (INVT_Lotes_Trasabilidad.ENTRADA_TIPO='OC') AND (INVT_Lotes_Trasabilidad.ENTRADA_FECHA>'01/01/2022') AND (INVT_Lotes_Trasabilidad.Tipo_Movimiento='RP')"
-        f"WHERE (INVT_Lotes_Trasabilidad.ENTRADA_TIPO='OC') AND (INVT_Lotes_Trasabilidad.ENTRADA_FECHA>'01/01/{anio}') AND (INVT_Lotes_Trasabilidad.Tipo_Movimiento='RP')"
+        "WHERE (INVT_Lotes_Trasabilidad.ENTRADA_TIPO='OC') AND (INVT_Lotes_Trasabilidad.ENTRADA_FECHA>'2023-01-01') AND (INVT_Lotes_Trasabilidad.Tipo_Movimiento='RP')"
     )
     llegada = cursorOdbc.fetchall()
-    #llegada = [list(rows) for rows in llegada]
+    llegada = [list(rows) for rows in llegada]
     
-    # delete_sql = "DELETE FROM imp_llegadas WHERE ENTRADA_FECHA LIKE '%2023%' OR ENTRADA_FECHA LIKE '%2024%'"
-    # delete_sql = f"DELETE FROM imp_llegadas WHERE ENTRADA_FECHA LIKE '{anio_sql}'"
-    delete_sql = "DELETE FROM imp_llegadas"
+    # delete_sql = "DELETE FROM imp_llegadas"
+    delete_sql = "DELETE FROM imp_llegadas WHERE ENTRADA_FECHA>'2023-01-01'"
     mycursorMysql.execute(delete_sql)
-    #mydb.commit()
+    mydb.commit()
     print("Sucessful Deleted importaciones arrived")
 
 
