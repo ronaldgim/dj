@@ -86,9 +86,11 @@
                 <tbody id="pedidosbuscar">
                     {% for i in transf %}
                     <tr>
-                        <td><span id="product_id">{{i.product_id}}</span><br>{{i.Nombre}} - {{i.Marca}}
+                        <td>
+                            <span id="product_id">{{i.product_id}}</span><br>{{i.Nombre}}<br>{{i.Marca}}
                         </td>
-                        <td><span id="lote_id">{{i.lote_id}}</span><br>{{i.fecha_caducidad}}</td>
+                        <td>
+                            <span id="lote_id">{{i.lote_id}}</span><br>{{i.fecha_caducidad}}<br>V: {{i.vol|floatformat:"4g"}}m<sup>3</sup></td>
                         <td
                             {% if i.unidades == i.unidades_wms %}
                             style="background-color: #e3fde6;"
@@ -105,14 +107,18 @@
                             <button class="btn btn-primary btn-sm" name="boton_ubicaciones"> 
                                 <i class="bi bi-geo-fill"></i>
                             </button>
+                                <br>
+                            <span class="mt-2">
+                                {{i.ubicacion}}
+                            </span>
                         </td>
                     </tr>
                     
                     {# FILA OCULA CON INVENTARIO Y MOVIMIENTOS #}
-                    <tr id="detalle_ubicaciones" style="display:none;" class="m-0 p-0">
-                        <td colspan="4" class="mb-0 pb-0">
+                    <tr id="detalle_ubicaciones" style="display:none;" > <!--class="m-0 p-0"-->
+                        <td colspan="4"> <!--class="mb-0 pb-0"-->
                             <h6 class="fw-bold" style="font-size: small;">Inventario</h6>
-                            <table class="table" style="font-size: small;">
+                            <table class="table m-0 p-0" style="font-size: small;">
                                 <thead>
                                     <tr style="background-color: #e6e6e6;">
                                         <th scope="col">Lote</th>
@@ -147,7 +153,7 @@
                                             <td>
                                                 <input id="picking_cantidad" type="number" class="form-control form-control-sm"> <!-- {% if j.estado == 'Cuarentena' %} disabled {% endif %} -->
                                             </td>
-                                            <td>
+                                            <td class="text-center">
                                                 <button name="pick" type="button" class="btn btn-success btn-sm"> <!--{% if j.estado == 'Cuarentena' %} disabled {% endif %}-->
                                                     <i class="bi bi-arrow-bar-right"></i>
                                                 </button>
@@ -159,7 +165,7 @@
                                     {# TABLA DE ELEMENTOS PICKEADOS #}
                                     {% if i.pik %}
                                     <tr>
-                                        <td colspan="4" class="m-0 p-0">
+                                        <td colspan="5"> <!--class="m-0 p-0"-->
                                             <h6 class="fw-bold" style="font-size: small;">Picking</h6>
                                             <table class="table m-0 p-0" style="background-color: #edfdff;">
                                                 <thead>
@@ -179,7 +185,7 @@
                                                         </td>
                                                         <td>{{k.ubicacion__bodega}}-{{k.ubicacion__pasillo}}-{{k.ubicacion__modulo}}{% if k.ubicacion__bodega == 'CN6' %}-{{k.ubicacion__nivel}}{% else %}{% endif %}</td>
                                                         <td>{{k.unidades|floatformat:"0g"}}</td>
-                                                        <td>
+                                                        <td class="text-center">
                                                             <button class="btn btn-sm btn-danger" name="eliminar_picking" id="{{k.id}}">
                                                                 <i class="bi bi-arrow-bar-left"></i>
                                                             </button>
