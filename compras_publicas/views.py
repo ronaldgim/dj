@@ -748,17 +748,6 @@ def anexo_formato_general(request, anexo_id):
     return render(request, 'compras_publicas/anexo_formato_general.html', context)
 
 
-from django.views.generic.detail import DetailView
-from django_xhtml2pdf.views import PdfMixin
-
-
-class PdfFormatoGeneral(DetailView, PdfMixin):
-    model = Anexo
-    template_name = 'compras_publicas/anexo_formato_general.html'
-    
-
-
-
 @pdf_decorator(pdfname='anexo_formato_hbo.pdf')
 @login_required(login_url='login')
 def anexo_formato_hbo(request, anexo_id):

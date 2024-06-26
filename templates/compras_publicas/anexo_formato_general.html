@@ -1,8 +1,12 @@
-{% load static %}
-{% load tags %}
-<head>
-    <meta charset="UTF-8">
+<!DOCTYPE html>
+<html lang="en">
 
+<head>
+    {% load static %}
+    {% load tags %}
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Anexo</title>
 
     <style>
@@ -169,16 +173,10 @@
                 </tr>
             </table>
         </div>
-        Página: <pdf:pagenumber example="51"> de: <pdf:pagecount>&nbsp;
         
-        <div>
-            <pdf:pagenumber &nbsp;> <br>
-            <pdf:pagecount>
-            <pdf:pagecount/>
-        </div>
+        
     </div>
 
-    <br>
-
+    <!--div id="footer_content"><pdf:pagenumber> de: <pdf:pagecount>&nbsp;</div-->
     <img id="footer_content" src="{% static 'pie_de_pag.png' %}">
 </body>
