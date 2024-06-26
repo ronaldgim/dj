@@ -97,7 +97,7 @@
                         <strong>MARCA:{{i.marca}}</strong><br>
                         <strong>REGISTRO SANITARIO:{{i.r_sanitario}}</strong>
                     </td>
-                    <td class="t_b" rowspan="{{ i.products.count }}">{{i.nombre_generico }}</td>
+                    <td class="t_b" rowspan="{{ i.products.count }}">{{i.nombre_generico|default:"-"}}</td>
                     {% if i.products.count > 0 %}
                         {% with first_product=i.products.first %}
                         <td class="t_b" style="text-align:center">{{first_product.presentacion }}</td>

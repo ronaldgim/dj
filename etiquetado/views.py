@@ -2927,9 +2927,9 @@ def etiquetado_stock_detalle(request, product_id):
 
     stock = stock_lote_cuc_etiquetado_detalle_odbc()
     product = productos_odbc_and_django()
-    # ventas = frecuancia_ventas()[frecuancia_ventas()['PRODUCT_ID']==product_id]
-    # ventas['MENSUAL'] = round(ventas['ANUAL'] / 12, 0)
-    # ventas = ventas.to_dict(orient='records')[0]
+    ventas = frecuancia_ventas()[frecuancia_ventas()['PRODUCT_ID']==product_id]
+    ventas['MENSUAL'] = round(ventas['ANUAL'] / 12, 0)
+    ventas = ventas.to_dict(orient='records')[0]
     product = product.rename(columns={'product_id':'PRODUCT_ID'})[[
         'PRODUCT_ID', 'Unidad_Empaque', 'volumen', 'peso', 't_etiq_1p', 't_etiq_2p', 't_etiq_3p'
     ]]
@@ -2976,7 +2976,7 @@ def etiquetado_stock_detalle(request, product_id):
         'codigo':codigo,
         'nombre':nombre,
         'marca':marca,
-        #'ventas':ventas,
+        'ventas':ventas,
 
         'tt_str_1p':tt_str_1p,
         'tt_str_2p':tt_str_2p,
