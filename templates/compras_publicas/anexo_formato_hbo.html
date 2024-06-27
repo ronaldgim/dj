@@ -1,45 +1,50 @@
-{% load static %}
-{% load tags %}
+<!DOCTYPE html>
+<html lang="en">
+
 <head>
+    {% load static %}
+    {% load tags %}
     <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anexo HBO</title>
+
+    <style>
+        @page{
+            size: A4;
+            margin-top:4cm;
+            margin-left:1.5cm;
+            margin-right:1.5cm;
+            margin-bottom:2.5cm;
+
+            /* HEADER Static frame */
+            @frame header_frame {           
+                -pdf-frame-content: header_content;
+                left: 0pt; width: 595pt; top: 0pt; height: 140pt; margin: 0pt; padding:0pt
+            }
+            /* FOOTER Static frame */
+            @frame footer_frame {
+                -pdf-frame-content: footer_content;
+                left:0pt; width:595pt; top:727pt; height:150pt;
+            }
+            /* BODY */
+            /*@frame body_frame {}*/
+                
+        }
+        #gim {
+            background-size:100%;
+            background-repeat:no-repeat;
+        }
+        .t_b {
+            padding-top: 4px;
+            padding-left: 2px;
+            padding-right: 2px;
+            padding-bottom: 0px;
+        }
+
+    </style>
+
 </head>
-
-<title>Anexo</title>
-
-<style>
-    @page{
-        size: A4;
-        margin-top:4cm;
-        margin-left:2cm;
-        margin-right:2cm;
-        margin-bottom:2.5cm;
-
-        /* HEADER Static frame */
-        @frame header_frame {           
-            -pdf-frame-content: header_content;
-            left: 0pt; width: 595pt; top: 0pt; height: 140pt; margin: 0pt; padding:0pt
-        }
-        /* FOOTER Static frame */
-        @frame footer_frame {
-            -pdf-frame-content: footer_content;
-            left:0pt; width:595pt; top:727pt; height:150pt;
-        }
-        /* BODY */
-        /*@frame body_frame {}*/
-            
-    }
-    #gim {
-        background-size:100%;
-        background-repeat:no-repeat;
-    }
-    .t_b {
-        padding-top: 4px;
-        padding-left: 2px;
-        padding-right: 2px;
-        padding-bottom: 0px;
-    }
-
-</style>
 
 <img id="header_content" src="{% static 'encabezado.png' %}">
 
@@ -73,7 +78,7 @@
         <label><strong>DIRECCIÓN:</strong> {{anexo.direccion}}</label><br>
         <label><strong>FECHA:</strong> {{anexo.fecha | date:"d-m-Y"}}</label><br>
 
-        <table repeat="1" style="border:1px solid black;font-size:7px">
+        <table repeat="1" style="border:1px solid black;font-size:9px">
             <thead>
                 <tr>
                     <th class="t_b" style="width:190px;">CÓDIGO PROVEEDOR</th>
@@ -92,20 +97,20 @@
                 {% for i in prods_list %}
                 <tr>
                     <td class="t_b" rowspan="{{ i.products.count }}">{{ i.product_id }}</td>
-                    <td class="t_b" rowspan="{{ i.products.count }}">
+                    <td class="t_b" rowspan="{{ i.products.count }}" style="font-size:7px">
                         {{ i.nombre }}<br>
                         <strong>MARCA:{{i.marca}}</strong><br>
                         <strong>REGISTRO SANITARIO:{{i.r_sanitario}}</strong>
                     </td>
-                    <td class="t_b" rowspan="{{ i.products.count }}">{{i.nombre_generico|default:"-"}}</td>
+                    <td class="t_b" rowspan="{{ i.products.count }}" style="font-size:7px">{{i.nombre_generico|default:"-"}}</td>
                     {% if i.products.count > 0 %}
                         {% with first_product=i.products.first %}
                         <td class="t_b" style="text-align:center">{{first_product.presentacion }}</td>
                         <td class="t_b" style="text-align:center">{{first_product.lote_id }}</td>
                         <td class="t_b" style="text-align:center">{{first_product.f_elaboracion|date:first_product.fecha_formato}}</td>
                         <td class="t_b" style="text-align:center">{{first_product.f_caducidad|date:first_product.fecha_formato}}</td>
-                        <td class="t_b" style="text-align:center">{{first_product.cantidad|formato_numero_miles }}</td>
-                        <td class="t_b" style="text-align:center" rowspan="{{ i.products.count }}">{{ i.cantidad_total_2|formato_numero_miles }}</td>
+                        <td class="t_b" style="text-align:center">{{first_product.cantidad|formato_numero_miles_cantidad }}</td>
+                        <td class="t_b" style="text-align:center" rowspan="{{ i.products.count }}">{{ i.cantidad_total_2|formato_numero_miles_cantidad }}</td>
                         {% endwith %}
                     {% endif %}
                 </tr>
@@ -115,7 +120,7 @@
                     <td class="t_b" style="text-align:center">{{j.lote_id }}</td>
                     <td class="t_b" style="text-align:center">{{j.f_elaboracion|date:j.fecha_formato}}</td>
                     <td class="t_b" style="text-align:center">{{j.f_caducidad|date:j.fecha_formato}}</td>
-                    <td class="t_b" style="text-align:center">{{j.cantidad|formato_numero_miles}}</td>
+                    <td class="t_b" style="text-align:center">{{j.cantidad|formato_numero_miles_cantidad}}</td>
                 </tr>
                 {% endfor %}
                 {% endfor %}
@@ -156,6 +161,7 @@
         </table>
 
     </div>
+
 </div>
 
 <br>

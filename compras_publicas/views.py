@@ -744,7 +744,6 @@ def anexo_formato_general(request, anexo_id):
         'total':total
     }
 
-    # return render(request, 'compras_publicas/afg.html', context)
     return render(request, 'compras_publicas/anexo_formato_general.html', context)
 
 

@@ -10,3 +10,12 @@ def formato_numero_miles(numero):
         return formato_miles
     except:
         return numero
+    
+    
+@register.filter
+def formato_numero_miles_cantidad(numero):
+    try:
+        formato_miles = f'{numero:,.0f}'
+        return formato_miles
+    except:
+        return numero

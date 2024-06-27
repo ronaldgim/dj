@@ -1,44 +1,48 @@
-{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
 <head>
+    {% load static %}
     <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anexo HCAM</title>
+
+    <style>
+        @page{
+            size: A4;
+            margin-top:4cm;
+            margin-left:1.5cm;
+            margin-right:1.5cm;
+            margin-bottom:2.5cm;
+
+            /* HEADER Static frame */
+            @frame header_frame {           
+                -pdf-frame-content: header_content;
+                left: 0pt; width: 595pt; top: 0pt; height: 140pt; margin: 0pt; padding:0pt
+            }
+            /* FOOTER Static frame */
+            @frame footer_frame {
+                -pdf-frame-content: footer_content;
+                left:0pt; width:595pt; top:727pt; height:150pt;
+            }
+            /* BODY */
+            /*@frame body_frame {}*/
+                
+        }
+        #gim {
+            background-size:100%;
+            background-repeat:no-repeat;
+        }
+        .t_b {
+            padding-top: 4px;
+            padding-left: 2px;
+            padding-right: 2px;
+            padding-bottom: 0px;
+        }
+
+    </style>
 </head>
-
-<title>Anexo</title>
-
-<style>
-    @page{
-        size: A4;
-        margin-top:4cm;
-        margin-left:2cm;
-        margin-right:2cm;
-        margin-bottom:2.5cm;
-
-        /* HEADER Static frame */
-        @frame header_frame {           
-            -pdf-frame-content: header_content;
-            left: 0pt; width: 595pt; top: 0pt; height: 140pt; margin: 0pt; padding:0pt
-        }
-        /* FOOTER Static frame */
-        @frame footer_frame {
-            -pdf-frame-content: footer_content;
-            left:0pt; width:595pt; top:727pt; height:150pt;
-        }
-        /* BODY */
-        /*@frame body_frame {}*/
-            
-    }
-    #gim {
-        background-size:100%;
-        background-repeat:no-repeat;
-    }
-    .t_b {
-        padding-top: 4px;
-        padding-left: 2px;
-        padding-right: 2px;
-        padding-bottom: 0px;
-    }
-
-</style>
 
 <img id="header_content" src="{% static 'encabezado.png' %}">
 
@@ -72,7 +76,7 @@
         <label><strong>RUC:  </strong> {{anexo.ruc}}</label><br>
         <label><strong>DIRECCIÓN:</strong> {{anexo.direccion}}</label><br>
 
-        <table repeat="1" style="border:1px solid black;font-size:7px">
+        <table repeat="1" style="border:1px solid black;font-size:9px">
             <tr>
                 <th class="t_b" style="width:200px;">CÓDIGO</th>
                 <th class="t_b" style="width:320px;">DESCRIPCIÓN DEL INSUMO</th>
@@ -89,7 +93,7 @@
             {% for i in products %}
             <tr>
                 <td class="t_b"><strong>{{i.product_id}}</strong></td>
-                <td class="t_b">
+                <td class="t_b" style="font-size:7px">
                     <strong><u>NOMBRE GENERICO</u></strong><br>
                     {{i.nombre_generico}}<br><br>
                     <strong><u>NOMBRE COMERCIAL</u></strong><br>
