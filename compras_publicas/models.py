@@ -84,6 +84,7 @@ class Anexo(models.Model):
     ff_key         = models.CharField(verbose_name='Formato de fecha', max_length=50, blank=True, default='aaaa-mm-dd')
     ff_value       = models.CharField(verbose_name='Formato de fecha', max_length=50, blank=True, default='Y-m-d')
     usuario        = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.CASCADE, null=True)
+    iva            = models.FloatField(verbose_name='IVA', blank=True, default=15)
     
     def __str__(self):
         return self.n_pedido

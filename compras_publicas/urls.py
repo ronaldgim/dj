@@ -95,10 +95,17 @@ urlpatterns = [
     ),
     
     #anexo_get_product_ajax
+    # path(
+    #     route='anexos/anexo_formato_general/<int:anexo_id>', 
+    #     view = views.anexo_formato_general, 
+    #     name='anexo_formato_general'
+    # ),
+    
+    #anexo_get_product_ajax
     path(
-        route='anexos/anexo_formato_general/<int:anexo_id>', 
-        view = views.anexo_formato_general, 
-        name='anexo_formato_general'
+        route='anexos/anexo_formato_general_agrupado/<int:anexo_id>', 
+        view = views.anexo_formato_general_agrupado, 
+        name='anexo_formato_general_agrupado'
     ),
     
     

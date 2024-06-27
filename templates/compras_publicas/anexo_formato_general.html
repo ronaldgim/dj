@@ -102,7 +102,7 @@
                 <td class="t_b"><strong>{{i.product_id}}</strong></td>
                 <td class="t_b" style="font-size:7px">
                     <strong>{{i.nombre}}</strong><br><br>
-                    <strong>MARCA:</strong><br>{{i.marca}}<br>
+                    <strong>MARCA:</strong><br>{{i.marca}} - {{i.procedencia|upper}}<br>
                     <strong>REG.SANITARIO:</strong><br>{{i.r_sanitario}}
                 </td>
                 <td class="t_b" style="text-align: center;">{{i.presentacion}}</td>
@@ -113,7 +113,7 @@
                 <td class="t_b" style="text-align: center;">{{i.cantidad_total|formato_numero_miles_cantidad}}</td>
 
                 <td class="t_b" style="text-align: right">
-                    $ {{i.precio_unitario|formato_numero_miles}}
+                    $ {{i.precio_unitario|formato_numero_precio_unitario}}
                     </div>
                 </td>
                 <td class="t_b" style="text-align: right">

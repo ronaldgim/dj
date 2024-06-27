@@ -284,7 +284,7 @@
                             <td>{{i.f_caducidad|date:i.fecha_formato}}</td>
                             <td class="text-end">{{i.cantidad|floatformat:"0g"}}</td>
                             <td class="text-end">{{i.cantidad_total|floatformat:"0g"}}</td>
-                            <td class="text-end">$ {{i.precio_unitario|floatformat:"3g"}}</td>
+                            <td class="text-end">$ {{i.precio_unitario}}</td>
                             <td class="text-end">$ {{i.precio_total|floatformat:"2g"}}</td>
                             <td class="text-end">
                                 <div class="btn-group" role="group" aria-label="Basic mixed styles example">
@@ -307,7 +307,10 @@
 
 <div class="card mt-2 mb-2">
     <div class="card-body">
-        <a class="btn btn-primary" href="{% url 'anexo_formato_general' anexo.id %}">
+        <!--a class="btn btn-primary" href="{#% url 'anexo_formato_general' anexo.id %#}">
+            <i class="bi bi-file-earmark-post"></i> GENERAL
+        </a-->
+        <a class="btn btn-primary" href="{% url 'anexo_formato_general_agrupado' anexo.id %}">
             <i class="bi bi-file-earmark-post"></i> GENERAL
         </a>
         <a class="btn btn-warning" href="{% url 'anexo_formato_hbo' anexo.id %}">
