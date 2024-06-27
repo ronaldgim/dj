@@ -4,7 +4,6 @@
 <head>
     {% load static %}
     {% load tags %}
-
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -97,7 +96,7 @@
                 <td class="t_b" style="text-align: center;">{{i.f_caducidad|date:i.fecha_formato}}</td>
                 <td class="t_b" style="text-align: center;">{{i.cantidad|formato_numero_miles_cantidad}}</td>
                 <td class="t_b" style="text-align: center;">{{i.cantidad_total|formato_numero_miles_cantidad}}</td>
-                <td class="t_b" style="text-align: right">$ {{i.precio_unitario|formato_numero_miles}}</td>
+                <td class="t_b" style="text-align: right">$ {{i.precio_unitario|formato_numero_precio_unitario}}</td>
                 <td class="t_b" style="text-align: right">$ {{i.precio_total|formato_numero_miles}}</td>
             </tr>
             {% endfor %}
@@ -113,7 +112,7 @@
                 </td>
             </tr>
             <tr>
-                <td class="t_b" colspan="2" style="text-align:right;"><strong>15%IVA</strong></td>
+                <td class="t_b" colspan="2" style="text-align:right;"><strong>{{anexo.iva|floatformat:"0g"}}%IVA</strong></td>
                 <td class="t_b" style="text-align: right">
                     $ {{mas_iva|formato_numero_miles}}
                 </td>

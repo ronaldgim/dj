@@ -109,7 +109,7 @@
                 <td class="t_b" style="text-align: center;">{{i.cantidad_total|floatformat:"0g"}}</td>
 
                 <td class="t_b" style="text-align: right">
-                    {{i.precio_unitario|floatformat:"2g"}}
+                    {{i.precio_unitario}}
                 </td>
                 <td class="t_b" style="text-align: right">
                     {{i.precio_total|floatformat:"2g"}}
@@ -128,7 +128,7 @@
                 </td>
             </tr>
             <tr>
-                <td class="t_b" colspan="2" style="text-align:right;"><strong>15%IVA</strong></td>
+                <td class="t_b" colspan="2" style="text-align:right;"><strong>{{anexo.iva|floatformat:"0g"}}%IVA</strong></td>
                 <td class="t_b" style="text-align: right">
                     {{mas_iva|floatformat:"2g"}}
                 </td>
