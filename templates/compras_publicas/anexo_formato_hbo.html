@@ -104,8 +104,8 @@
                         <td class="t_b" style="text-align:center">{{first_product.lote_id }}</td>
                         <td class="t_b" style="text-align:center">{{first_product.f_elaboracion|date:first_product.fecha_formato}}</td>
                         <td class="t_b" style="text-align:center">{{first_product.f_caducidad|date:first_product.fecha_formato}}</td>
-                        <td class="t_b" style="text-align:center">{{first_product.cantidad|formato_numero_miles }}</td>
-                        <td class="t_b" style="text-align:center" rowspan="{{ i.products.count }}">{{ i.cantidad_total_2|formato_numero_miles }}</td>
+                        <td class="t_b" style="text-align:center">{{first_product.cantidad|floatformat:"0g" }}</td>
+                        <td class="t_b" style="text-align:center" rowspan="{{ i.products.count }}">{{ i.cantidad_total_2|floatformat:"0g" }}</td>
                         {% endwith %}
                     {% endif %}
                 </tr>
@@ -115,7 +115,7 @@
                     <td class="t_b" style="text-align:center">{{j.lote_id }}</td>
                     <td class="t_b" style="text-align:center">{{j.f_elaboracion|date:j.fecha_formato}}</td>
                     <td class="t_b" style="text-align:center">{{j.f_caducidad|date:j.fecha_formato}}</td>
-                    <td class="t_b" style="text-align:center">{{j.cantidad|formato_numero_miles}}</td>
+                    <td class="t_b" style="text-align:center">{{j.cantidad|floatformat:"0g"}}</td>
                 </tr>
                 {% endfor %}
                 {% endfor %}

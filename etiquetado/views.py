@@ -778,13 +778,14 @@ def facturas(request, n_factura):
     factura = factura[factura['PRODUCT_ID']!='MANTEN']
     
     product = productos_odbc_and_django()
+    product['vol'] = product['Volumen'] / 1000000
     product = product.rename(columns={'product_id':'PRODUCT_ID'})
     
     # Merge
     factura = factura.merge(product, on='PRODUCT_ID', how='left')
 
     # Calculos
-    factura['Cartones'] = factura['QUANTITY'] / factura['unidad_empaque']
+    factura['Cartones'] = factura['QUANTITY'] / factura['Unidad_Empaque']
 
     factura['t_1p'] = (factura['Cartones'] * factura['t_etiq_1p']).round(0)
     factura['t_2p'] = (factura['Cartones'] * factura['t_etiq_2p']).round(0)
@@ -794,8 +795,8 @@ def facturas(request, n_factura):
     factura['t_str_2p'] = [str(timedelta(seconds=i)) for i in factura['t_2p']]
     factura['t_str_3p'] = [str(timedelta(seconds=i)) for i in factura['t_3p']]
 
-    factura['vol_total'] = factura['Cartones'] * factura['volumen']
-    factura['pes_total'] = factura['peso'] * factura['Cartones']
+    factura['vol_total'] = factura['Cartones'] * factura['vol']
+    factura['pes_total'] = factura['Peso'] * factura['Cartones']
 
     t_total_1p = str(timedelta(seconds=factura['t_1p'].sum()))
     t_total_2p = str(timedelta(seconds=factura['t_2p'].sum()))

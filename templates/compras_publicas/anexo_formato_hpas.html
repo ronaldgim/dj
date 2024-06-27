@@ -90,8 +90,8 @@
                 <td class="t_b" style="text-align: center;">{{i.lote_id}}</td>
                 <td class="t_b" style="text-align: center;">{{i.f_elaboracion|date:i.fecha_formato}}</td>
                 <td class="t_b" style="text-align: center;">{{i.f_caducidad|date:i.fecha_formato}}</td>
-                <td class="t_b" style="text-align: center;">{{i.cantidad|formato_numero_miles}}</td>
-                <td class="t_b" style="text-align: center;">{{i.cantidad_total|formato_numero_miles}}</td>
+                <td class="t_b" style="text-align: center;">{{i.cantidad|floatformat:"0g"}}</td>
+                <td class="t_b" style="text-align: center;">{{i.cantidad_total|floatformat:"0g"}}</td>
                 <td class="t_b" style="text-align: right">$ {{i.precio_unitario|formato_numero_miles}}</td>
                 <td class="t_b" style="text-align: right">$ {{i.precio_total|formato_numero_miles}}</td>
             </tr>
@@ -119,7 +119,6 @@
                     <strong>{{total|formato_numero_miles}}</strong>
                 </td>
             </tr>
-
         </table>
 
         <br><br>
