@@ -99,13 +99,14 @@
                     <td class="t_b" rowspan="{{ i.products.count }}">{{ i.product_id }}</td>
                     <td class="t_b" rowspan="{{ i.products.count }}" style="font-size:7px">
                         {{ i.nombre }}<br>
-                        <strong>MARCA:{{i.marca}}</strong><br>
+                        <strong>MARCA:{{i.marca}} - {{i.procedencia|upper}}</strong><br>
                         <strong>REGISTRO SANITARIO:{{i.r_sanitario}}</strong>
                     </td>
                     <td class="t_b" rowspan="{{ i.products.count }}" style="font-size:7px">{{i.nombre_generico|default:"-"}}</td>
+                    <td class="t_b" rowspan="{{ i.products.count }}" style="text-align:center">{{i.presentacion}}</td>
                     {% if i.products.count > 0 %}
                         {% with first_product=i.products.first %}
-                        <td class="t_b" style="text-align:center">{{first_product.presentacion }}</td>
+                        <!--td class="t_b" style="text-align:center">{{first_product.presentacion }}</td-->
                         <td class="t_b" style="text-align:center">{{first_product.lote_id }}</td>
                         <td class="t_b" style="text-align:center">{{first_product.f_elaboracion|date:first_product.fecha_formato}}</td>
                         <td class="t_b" style="text-align:center">{{first_product.f_caducidad|date:first_product.fecha_formato}}</td>
@@ -116,7 +117,7 @@
                 </tr>
                 {% for j in i.products|slice:"1:" %}
                 <tr>
-                    <td class="t_b" style="text-align:center">{{j.presentacion }}</td>
+                    <!--td class="t_b" style="text-align:center">{{j.presentacion }}</td-->
                     <td class="t_b" style="text-align:center">{{j.lote_id }}</td>
                     <td class="t_b" style="text-align:center">{{j.f_elaboracion|date:j.fecha_formato}}</td>
                     <td class="t_b" style="text-align:center">{{j.f_caducidad|date:j.fecha_formato}}</td>

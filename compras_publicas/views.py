@@ -755,7 +755,6 @@ def anexo_formato_general_agrupado(request, anexo_id):
     anexo_prod_list = anexo.product_list.all()
     
     prods_list =[]
-    
     for i in anexo.product_list.all().values_list('product_id', flat=True).distinct():
         prods = {}
         prods['product_id'] = i
@@ -771,7 +770,6 @@ def anexo_formato_general_agrupado(request, anexo_id):
         prods['precio_total'] = anexo_prod_list.filter(product_id=i).aggregate(precio_total=Sum('precio_total'))['precio_total']
         
         prods_list.append(prods)
-    
     
     products = anexo.product_list.all().order_by('product_id')
     subtotal = products.aggregate(p_total=Sum('precio_total'))['p_total']
@@ -803,7 +801,9 @@ def anexo_formato_hbo(request, anexo_id):
         prods['products'] = anexo_prod_list.filter(product_id=i) 
         prods['nombre'] = anexo_prod_list.filter(product_id=i).first().nombre
         prods['nombre_generico'] = anexo_prod_list.filter(product_id=i).first().nombre_generico
+        prods['presentacion'] = anexo_prod_list.filter(product_id=i).first().presentacion
         prods['marca'] = anexo_prod_list.filter(product_id=i).first().marca
+        prods['procedencia'] = anexo_prod_list.filter(product_id=i).first().procedencia
         prods['r_sanitario'] = anexo_prod_list.filter(product_id=i).first().r_sanitario
         prods['prods_len'] = len(anexo_prod_list.filter(product_id=i))
         prods['cantidad_total_2'] = anexo_prod_list.filter(product_id=i).aggregate(cantidad_total_2=Sum('cantidad'))['cantidad_total_2']
@@ -818,25 +818,88 @@ def anexo_formato_hbo(request, anexo_id):
     return render(request, 'compras_publicas/anexo_formato_hbo.html', context)
 
 
-@pdf_decorator(pdfname='anexo_formato_hcam.pdf')
-@login_required(login_url='login')
-def anexo_formato_hcam(request, anexo_id):
+# @pdf_decorator(pdfname='anexo_formato_hcam.pdf')
+# @login_required(login_url='login')
+# def anexo_formato_hcam(request, anexo_id):
     
+#     anexo = Anexo.objects.get(id=anexo_id)
+#     products = anexo.product_list.all().order_by('product_id')
+#     subtotal = products.aggregate(p_total=Sum('precio_total'))['p_total']
+#     mas_iva = subtotal * (anexo.iva / 100)
+#     total = subtotal + mas_iva
+    
+#     context = {
+#         'anexo':anexo,
+#         'products':products,
+#         'subtotal':subtotal,
+#         'mas_iva':mas_iva,
+#         'total':total
+#     }
+
+#     return render(request, 'compras_publicas/anexo_formato_hcam.html', context)
+
+
+@pdf_decorator(pdfname='anexo_formato_hcam.pdf')
+def anexo_formato_hcam(request, anexo_id):
     anexo = Anexo.objects.get(id=anexo_id)
+    anexo_prod_list = anexo.product_list.all()
+    
+    prods_list =[]
+    for i in anexo.product_list.all().values_list('product_id', flat=True).distinct():
+        prods = {}
+        prods['product_id'] = i
+        prods['products'] = anexo_prod_list.filter(product_id=i) 
+        prods['nombre'] = anexo_prod_list.filter(product_id=i).first().nombre
+        prods['nombre_generico'] = anexo_prod_list.filter(product_id=i).first().nombre_generico
+        prods['presentacion'] = anexo_prod_list.filter(product_id=i).first().presentacion
+        prods['marca'] = anexo_prod_list.filter(product_id=i).first().marca
+        prods['procedencia'] = anexo_prod_list.filter(product_id=i).first().procedencia
+        prods['r_sanitario'] = anexo_prod_list.filter(product_id=i).first().r_sanitario
+        prods['precio_unitario'] = anexo_prod_list.filter(product_id=i).first().precio_unitario
+        prods['cantidad_total_2'] = anexo_prod_list.filter(product_id=i).aggregate(cantidad_total_2=Sum('cantidad'))['cantidad_total_2']
+        prods['precio_total'] = anexo_prod_list.filter(product_id=i).aggregate(precio_total=Sum('precio_total'))['precio_total']
+        
+        prods_list.append(prods)
+    
     products = anexo.product_list.all().order_by('product_id')
     subtotal = products.aggregate(p_total=Sum('precio_total'))['p_total']
     mas_iva = subtotal * (anexo.iva / 100)
     total = subtotal + mas_iva
-    
     context = {
         'anexo':anexo,
-        'products':products,
+        'prods_list':prods_list,
         'subtotal':subtotal,
         'mas_iva':mas_iva,
         'total':total
     }
+    
+    return render(request, 'compras_publicas/anexo_formato_hcam_agrupado.html', context)
 
-    return render(request, 'compras_publicas/anexo_formato_hcam.html', context)
+
+# @pdf_decorator(pdfname='anexo_formato_hpas.pdf')
+# @login_required(login_url='login')
+# def anexo_formato_hpas(request, anexo_id):
+    
+#     anexo = Anexo.objects.get(id=anexo_id)
+#     products = anexo.product_list.all().order_by('product_id')
+#     subtotal = products.aggregate(p_total=Sum('precio_total'))['p_total']
+#     mas_iva = subtotal * (anexo.iva / 100)
+#     total = subtotal + mas_iva
+    
+#     total_str = num2words(total, lang='es', to='currency')
+#     total_str = total_str.replace('euros', 'dolares')
+#     total_str = total_str.replace('céntimos', 'centavos')
+    
+#     context = {
+#         'anexo':anexo,
+#         'products':products,
+#         'subtotal':subtotal,
+#         'mas_iva':mas_iva,
+#         'total':total,
+#         'total_str':total_str
+#     }
+
+#     return render(request, 'compras_publicas/anexo_formato_hpas.html', context)
 
 
 @pdf_decorator(pdfname='anexo_formato_hpas.pdf')
@@ -844,6 +907,25 @@ def anexo_formato_hcam(request, anexo_id):
 def anexo_formato_hpas(request, anexo_id):
     
     anexo = Anexo.objects.get(id=anexo_id)
+    anexo_prod_list = anexo.product_list.all()
+    
+    prods_list =[]
+    for i in anexo.product_list.all().values_list('product_id', flat=True).distinct():
+        prods = {}
+        prods['product_id'] = i
+        prods['products'] = anexo_prod_list.filter(product_id=i) 
+        prods['nombre'] = anexo_prod_list.filter(product_id=i).first().nombre
+        prods['nombre_generico'] = anexo_prod_list.filter(product_id=i).first().nombre_generico
+        prods['presentacion'] = anexo_prod_list.filter(product_id=i).first().presentacion
+        prods['marca'] = anexo_prod_list.filter(product_id=i).first().marca
+        prods['procedencia'] = anexo_prod_list.filter(product_id=i).first().procedencia
+        prods['r_sanitario'] = anexo_prod_list.filter(product_id=i).first().r_sanitario
+        prods['precio_unitario'] = anexo_prod_list.filter(product_id=i).first().precio_unitario
+        prods['cantidad_total_2'] = anexo_prod_list.filter(product_id=i).aggregate(cantidad_total_2=Sum('cantidad'))['cantidad_total_2']
+        prods['precio_total'] = anexo_prod_list.filter(product_id=i).aggregate(precio_total=Sum('precio_total'))['precio_total']
+        
+        prods_list.append(prods)
+    
     products = anexo.product_list.all().order_by('product_id')
     subtotal = products.aggregate(p_total=Sum('precio_total'))['p_total']
     mas_iva = subtotal * (anexo.iva / 100)
@@ -852,14 +934,14 @@ def anexo_formato_hpas(request, anexo_id):
     total_str = num2words(total, lang='es', to='currency')
     total_str = total_str.replace('euros', 'dolares')
     total_str = total_str.replace('céntimos', 'centavos')
-    
+
     context = {
         'anexo':anexo,
-        'products':products,
+        'prods_list':prods_list,
         'subtotal':subtotal,
         'mas_iva':mas_iva,
         'total':total,
         'total_str':total_str
     }
 
-    return render(request, 'compras_publicas/anexo_formato_hpas.html', context)
+    return render(request, 'compras_publicas/anexo_formato_hpas_agrupado.html', context)

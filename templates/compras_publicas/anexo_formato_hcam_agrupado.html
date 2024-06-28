@@ -83,12 +83,12 @@
                 <tr>
                     <th class="t_b" style="width:190px;">CÓDIGO</th>
                     <th class="t_b" style="width:400px;">DESCRIPCIÓN DEL INSUMO</th>
-                    <th class="t_b" style="width:110px;">PRES</th>
+                    <th class="t_b" style="width:110px;">PRES.</th>
                     <th class="t_b" style="width:150px;">LOTE</th>
                     <th class="t_b" style="width:140px;">FECHA DE ELAB.</th>
                     <th class="t_b" style="width:140px;">FECHA DE VENCIM.</th>
-                    <th class="t_b" style="width:140px;">CANTIDAD (Unidades)</th>
-                    <th class="t_b" style="width:140px;">TOTAL (Unidades)</th>
+                    <th class="t_b" style="width:140px;">CANTIDAD</th>
+                    <th class="t_b" style="width:140px;">TOTAL</th>
                     <th class="t_b" style="width:140px;">PRECIO UNIT.</th>
                     <th class="t_b" style="width:140px;">PRECIO TOTAL</th>
                 </tr>
@@ -99,7 +99,10 @@
                 <tr>
                     <td class="t_b" rowspan="{{ i.products.count }}">{{ i.product_id }}</td>
                     <td class="t_b" rowspan="{{ i.products.count }}" style="font-size:7px">
-                        {{ i.nombre }}<br>
+                        <strong><u>NOMBRE GENERICO</u></strong><br>
+                        {{ i.nombre_generico }}<br><br>
+                        <strong><u>NOMBRE COMERCIAL</u></strong><br>
+                        {{ i.nombre }}<br><br>
                         <strong>MARCA:{{i.marca}} - {{i.procedencia|upper}}</strong><br>
                         <strong>REGISTRO SANITARIO:{{i.r_sanitario}}</strong>
                     </td>
@@ -109,10 +112,10 @@
                         <td class="t_b" style="text-align:center">{{first_product.lote_id }}</td>
                         <td class="t_b" style="text-align:center">{{first_product.f_elaboracion|date:first_product.fecha_formato}}</td>
                         <td class="t_b" style="text-align:center">{{first_product.f_caducidad|date:first_product.fecha_formato}}</td>
-                        <td class="t_b" style="text-align:center">{{first_product.cantidad|formato_numero_miles_cantidad }}</td>
-                        <td class="t_b" style="text-align:center" rowspan="{{ i.products.count }}">{{i.cantidad_total_2|formato_numero_miles_cantidad}}</td>
-                        <td class="t_b" style="text-align:center" rowspan="{{ i.products.count }}">$ {{i.precio_unitario|formato_numero_precio_unitario}}</td>
-                        <td class="t_b" style="text-align:center" rowspan="{{ i.products.count }}">$ {{i.precio_total|formato_numero_miles}}</td>
+                        <td class="t_b" style="text-align:center">{{first_product.cantidad|floatformat:"0g"}}</td>
+                        <td class="t_b" style="text-align:center" rowspan="{{ i.products.count }}">{{i.cantidad_total_2|floatformat:"0g"}}</td>
+                        <td class="t_b" style="text-align:center" rowspan="{{ i.products.count }}">$ {{i.precio_unitario}}</td>
+                        <td class="t_b" style="text-align:center" rowspan="{{ i.products.count }}">$ {{i.precio_total|floatformat:"2g"}}</td>
                         {% endwith %}
                     {% endif %}
                 </tr>
@@ -121,7 +124,7 @@
                     <td class="t_b" style="text-align:center">{{j.lote_id }}</td>
                     <td class="t_b" style="text-align:center">{{j.f_elaboracion|date:j.fecha_formato}}</td>
                     <td class="t_b" style="text-align:center">{{j.f_caducidad|date:j.fecha_formato}}</td>
-                    <td class="t_b" style="text-align:center">{{j.cantidad|formato_numero_miles_cantidad}}</td>
+                    <td class="t_b" style="text-align:center">{{j.cantidad|floatformat:"0g"}}</td>
                 </tr>
                 {% endfor %}
                 {% endfor %}
@@ -133,19 +136,19 @@
                     </td>
                     <td class="t_b" colspan="2" style="text-align:right;"><strong>SUBTOTAL</strong></td>
                     <td class="t_b" style="text-align: right">
-                        $ {{subtotal|formato_numero_miles}}
+                        $ {{subtotal|floatformat:"2g"}}
                     </td>
                 </tr>
                 <tr>
                     <td class="t_b" colspan="2" style="text-align:right;"><strong>{{anexo.iva|floatformat:"0g"}}%IVA</strong></td>
                     <td class="t_b" style="text-align: right">
-                        $ {{mas_iva|formato_numero_miles}}
+                        $ {{mas_iva|floatformat:"2g"}}
                     </td>
                 </tr>
                 <tr>
                     <td class="t_b" colspan="2" style="text-align:right;"><strong>TOTAL</strong></td>
                     <td class="t_b" style="text-align: right">
-                        <strong>$ {{total|formato_numero_miles}}</strong>
+                        <strong>$ {{total|floatformat:"2g"}}</strong>
                     </td>
                 </tr>
             </tbody>
