@@ -585,6 +585,11 @@ def anexo_add_product_ajax(request):
         return redirect('anexo_detail', anexo)
 
 
+def round_cinco_al_siguiente(n, decimals=0):
+    multiplier = 10 ** decimals
+    return int(n * multiplier + 0.5001) / multiplier
+
+
 @login_required(login_url='login')
 def anexo_edit_product_ajax(request):
     
@@ -747,7 +752,7 @@ def anexo_edit_product_ajax(request):
 #     return render(request, 'compras_publicas/anexo_formato_general.html', context)
 
 
-@pdf_decorator(pdfname='anexo_formato_hbo.pdf')
+@pdf_decorator(pdfname='anexo_formato_general.pdf')
 @login_required(login_url='login')
 def anexo_formato_general_agrupado(request, anexo_id):
     
@@ -773,8 +778,10 @@ def anexo_formato_general_agrupado(request, anexo_id):
     
     products = anexo.product_list.all().order_by('product_id')
     subtotal = products.aggregate(p_total=Sum('precio_total'))['p_total']
-    mas_iva = subtotal * (anexo.iva / 100)
-    total = subtotal + mas_iva
+    mas_iva  = subtotal * (anexo.iva / 100)
+    mas_iva  = round_cinco_al_siguiente(mas_iva, decimals=2)
+    total    = round_cinco_al_siguiente(subtotal + mas_iva, decimals=2)
+    
     context = {
         'anexo':anexo,
         'prods_list':prods_list,
@@ -863,8 +870,9 @@ def anexo_formato_hcam(request, anexo_id):
     
     products = anexo.product_list.all().order_by('product_id')
     subtotal = products.aggregate(p_total=Sum('precio_total'))['p_total']
-    mas_iva = subtotal * (anexo.iva / 100)
-    total = subtotal + mas_iva
+    mas_iva  = subtotal * (anexo.iva / 100)
+    mas_iva  = round_cinco_al_siguiente(mas_iva, decimals=2)
+    total    = round_cinco_al_siguiente(subtotal + mas_iva, decimals=2)
     context = {
         'anexo':anexo,
         'prods_list':prods_list,
@@ -928,8 +936,9 @@ def anexo_formato_hpas(request, anexo_id):
     
     products = anexo.product_list.all().order_by('product_id')
     subtotal = products.aggregate(p_total=Sum('precio_total'))['p_total']
-    mas_iva = subtotal * (anexo.iva / 100)
-    total = subtotal + mas_iva
+    mas_iva  = subtotal * (anexo.iva / 100)
+    mas_iva  = round_cinco_al_siguiente(mas_iva, decimals=2)
+    total    = round_cinco_al_siguiente(subtotal + mas_iva, 2)
     
     total_str = num2words(total, lang='es', to='currency')
     total_str = total_str.replace('euros', 'dolares')
