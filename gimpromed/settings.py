@@ -38,6 +38,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
+    # API
+    'rest_framework',
+    'rest_framework.authtoken',
+    
+    # JWT
+    # 'rest_framework_simplejwt',
+    
     # My apps
     'users',
     'datos',
@@ -53,6 +60,24 @@ INSTALLED_APPS = [
     # WMS
     'wms'
 ]
+
+
+REST_FRAMEWORK = {
+
+    # JWT
+    # 'DEFAULT_AUTHENTICATION_CLASSES': (
+    #     'rest_framework_simplejwt.authentication.JWTAuthentication',
+    # ),
+    
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    
+}
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

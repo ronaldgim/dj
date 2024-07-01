@@ -163,6 +163,7 @@ def importaciones(request):
 
     return render(request, 'bpa/muestreos/lista_importaciones.html', context)
 
+
 @login_required(login_url='login')
 def importaciones_transito(request):
     prod = productos_odbc_and_django()[['product_id', 'marca2']]
@@ -176,7 +177,6 @@ def importaciones_transito(request):
         'imp':imp_transito
     }
     return render(request, 'bpa/muestreos/lista_importaciones_transito.html', context)
-
 
 
 def nacionales(request):
@@ -566,118 +566,123 @@ def reg_san_list(request):
     return render(request, 'bpa/registro_sanitario/list.html', context)
 
 
-# Envio de alertas de Caducidad de R.Sanitario por EMAIL.
-def r_san_alerta_list_correo(request):
+# # Envio de alertas de Caducidad de R.Sanitario por EMAIL.
+# def r_san_alerta_list_correo(request):
     
-    tabla_query = RegistroSanitario.objects.filter(activo=True).order_by('fecha_expiracion')
-    rs_list = [i for i in tabla_query if i.estado == 'Próximo a caducar']
+#     tabla_query = RegistroSanitario.objects.filter(activo=True).order_by('fecha_expiracion')
+#     rs_list = [i for i in tabla_query if i.estado == 'Próximo a caducar']
     
-    context = {
-        'lista':rs_list
-    }
+#     context = {
+#         'lista':rs_list
+#     }
     
-    html_message  = render_to_string('emails/r_san_list.html', context)
-    plain_message = strip_tags(html_message)
+#     html_message  = render_to_string('emails/r_san_list.html', context)
+#     plain_message = strip_tags(html_message)
     
-    email = EmailMultiAlternatives(
-        subject    = 'Alerta - Documentos próximos a caducar.',
-        from_email = settings.EMAIL_HOST_USER,
-        to         = ['ronaldm@gimpromed.com','pespinosa@gimpromed.com','ncaisapanta@gimpromed.com'],
-        body       = plain_message,
-    )
+#     email = EmailMultiAlternatives(
+#         subject    = 'Alerta - Documentos próximos a caducar.',
+#         from_email = settings.EMAIL_HOST_USER,
+#         # to         = ['ronaldm@gimpromed.com','pespinosa@gimpromed.com','ncaisapanta@gimpromed.com'],
+#         to         = ['egarces@gimpromed.com'],
+#         body       = plain_message,
+#     )
     
-    email.attach_alternative(html_message, 'text/html')
-    email.send()
+#     email.attach_alternative(html_message, 'text/html')
+#     email.send()
     
-    return HttpResponse(status=200)
+#     return HttpResponse(status=200)
 
 
-# Enviar correos individuales por registro sanitario
-def r_san_alert(request):
+# # Enviar correos individuales por registro sanitario
+# def r_san_alert(request):
     
-    tabla_query = RegistroSanitario.objects.filter(activo=True).order_by('fecha_expiracion')
+#     tabla_query = RegistroSanitario.objects.filter(activo=True).order_by('fecha_expiracion')
     
-    # Avisos
-    a1=120
-    a2=100
-    a3=90
-    a4=40
+#     # Avisos
+#     a1=120
+#     a2=100
+#     a3=90 ; a4=9
+#     #a4=40
     
-    ### PARA MEJORAR EFICIENCIA APLICAR BUSQUEDA BINARIA
-    for i in tabla_query:
-        if i.dias_caducar == a1:  
-            # 1er Aviso
-            rs_list = [i for i in tabla_query if i.dias_caducar==a1]
-            context = {'lista':rs_list}
+#     # lista de correos 
+#     #lista_correos = ['pespinosa@gimpromed.com', 'ncaisapanta@gimpromed.com']
+#     lista_correos = ['egarces@gimpromed.com']
+#     ### PARA MEJORAR EFICIENCIA APLICAR BUSQUEDA BINARIA
+#     for i in tabla_query:
+#         if i.dias_caducar == a1:  
+#             # 1er Aviso
+#             rs_list = [i for i in tabla_query if i.dias_caducar==a1]
+#             context = {'lista':rs_list}
             
-            html_message  = render_to_string('emails/r_san.html', context)
-            plain_message = strip_tags(html_message)
+#             html_message  = render_to_string('emails/r_san.html', context)
+#             plain_message = strip_tags(html_message)
             
-            email = EmailMultiAlternatives(
-                subject    = f'1er Aviso Próximo a Caducar - {i.registro} - {i.marca} - ({i.dias_caducar} días)',
-                from_email = settings.EMAIL_HOST_USER,
-                to         = ['pespinosa@gimpromed.com', 'ncaisapanta@gimpromed.com'],
-                body       = plain_message,
-            )
+#             email = EmailMultiAlternatives(
+#                 subject    = f'1er Aviso Próximo a Caducar - {i.registro} - {i.marca} - ({i.dias_caducar} días)',
+#                 from_email = settings.EMAIL_HOST_USER,
+#                 to         = lista_correos,
+#                 body       = plain_message,
+#             )
             
-            email.attach_alternative(html_message, 'text/html')
-            email.send()
+#             email.attach_alternative(html_message, 'text/html')
+#             email.send()
             
-        elif i.dias_caducar == a2:  
-            # 2do Aviso
-            rs_list = [i for i in tabla_query if i.dias_caducar==a2]
-            context = {'lista':rs_list}
+#         elif i.dias_caducar == a2:  
+#             # 2do Aviso
+#             rs_list = [i for i in tabla_query if i.dias_caducar==a2]
+#             context = {'lista':rs_list}
             
-            html_message  = render_to_string('emails/r_san.html', context)
-            plain_message = strip_tags(html_message)
+#             html_message  = render_to_string('emails/r_san.html', context)
+#             plain_message = strip_tags(html_message)
             
-            email = EmailMultiAlternatives(
-                subject    = f'2do Aviso Próximo a Caducar - {i.registro} - {i.marca} - ({i.dias_caducar} días)',
-                from_email = settings.EMAIL_HOST_USER,
-                to         = ['pespinosa@gimpromed.com', 'ncaisapanta@gimpromed.com'],
-                body       = plain_message,
-            )
+#             email = EmailMultiAlternatives(
+#                 subject    = f'2do Aviso Próximo a Caducar - {i.registro} - {i.marca} - ({i.dias_caducar} días)',
+#                 from_email = settings.EMAIL_HOST_USER,
+#                 to         = lista_correos,
+#                 body       = plain_message,
+#             )
             
-            email.attach_alternative(html_message, 'text/html')
-            email.send()
+#             email.attach_alternative(html_message, 'text/html')
+#             email.send()
             
-        elif i.dias_caducar == a3:  
-            # 3er Aviso
-            rs_list = [i for i in tabla_query if i.dias_caducar==a3]
-            context = {'lista':rs_list}
+#         elif i.dias_caducar == a3:  
+#             # 3er Aviso
+#             rs_list = [i for i in tabla_query if i.dias_caducar==a3]
+#             context = {'lista':rs_list}
             
-            html_message  = render_to_string('emails/r_san.html', context)
-            plain_message = strip_tags(html_message)
+#             html_message  = render_to_string('emails/r_san.html', context)
+#             plain_message = strip_tags(html_message)
             
-            email = EmailMultiAlternatives(
-                subject    = f'3er Aviso Próximo a Caducar - {i.registro} - {i.marca} - ({i.dias_caducar} días)',
-                from_email = settings.EMAIL_HOST_USER,
-                to         = ['pespinosa@gimpromed.com', 'ncaisapanta@gimpromed.com'],
-                body       = plain_message,
-            )
+#             email = EmailMultiAlternatives(
+#                 subject    = f'3er Aviso Próximo a Caducar - {i.registro} - {i.marca} - ({i.dias_caducar} días)',
+#                 from_email = settings.EMAIL_HOST_USER,
+#                 to         = lista_correos,
+#                 body       = plain_message,
+#             )
             
-            email.attach_alternative(html_message, 'text/html')
-            email.send()
+#             email.attach_alternative(html_message, 'text/html')
+#             email.send()
             
-        elif i.dias_caducar == a4: 
-            # 4to Aviso
-            rs_list = [i for i in tabla_query if i.dias_caducar==a4]
-            context = {'lista':rs_list}
+#         elif i.dias_caducar == a4: 
+#             # 4to Aviso
+#             rs_list = [i for i in tabla_query if i.dias_caducar==a4]
+#             context = {'lista':rs_list}
             
-            html_message  = render_to_string('emails/r_san.html', context)
-            plain_message = strip_tags(html_message)
+#             html_message  = render_to_string('emails/r_san.html', context)
+#             plain_message = strip_tags(html_message)
             
-            email = EmailMultiAlternatives(
-                subject    = f'4to Aviso Próximo a Caducar - {i.registro} - {i.marca} - ({i.dias_caducar} días)',
-                from_email = settings.EMAIL_HOST_USER,
-                to         = ['ronaldm@gimpromed.com','pespinosa@gimpromed.com','ncaisapanta@gimpromed.com'],
-                body       = plain_message,
-            )
+#             email = EmailMultiAlternatives(
+#                 subject    = f'4to Aviso Próximo a Caducar - {i.registro} - {i.marca} - ({i.dias_caducar} días)',
+#                 from_email = settings.EMAIL_HOST_USER,
+#                 to         = lista_correos,
+#                 #to         = lista_correos + ['ronaldm@gimpromed.com'],
+#                 body       = plain_message,
+#             )
             
-            email.attach_alternative(html_message, 'text/html')
-            email.send()
+#             email.attach_alternative(html_message, 'text/html')
+#             email.send()
             
-    return HttpResponse(status=200)
+#     return HttpResponse(status=200)
 
 
 
