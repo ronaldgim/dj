@@ -93,7 +93,6 @@
                         <th scope="col">Código</th>
                         <th scope="col">Nombre</th>
                         <th scope="col">Marca</th>
-                        <!--th scope="col">Cliente</th-->
                         <th scope="col">Fecha</th>
                         <th scope="col">Cantidad</th>
                         <th scope="col">Precio Unitario</th>
@@ -101,7 +100,7 @@
                 </thead>
                 <tbody id="pedidosbuscar">
                     {% for i in precios_filtrado %}
-                    <tr> <!--style="font-size: small;"-->
+                    <tr> 
                         <td>
                             <button class="btn btn-sm btn-primary" name="producto">
                                 <span id="product_id">{{i.PRODUCT_ID}}</span>
@@ -109,7 +108,6 @@
                         </td>
                         <td>{{i.Nombre}}</td>
                         <td>{{i.Marca}}</td>
-                        <!--td class="hos" data-hos="{{i.NOMBRE_CLIENTE}}">{{i.NOMBRE_CLIENTE}}</td-->
                         <td>{{i.FECHA}}</td>
                         <td class="text-end">{{i.QUANTITY|floatformat:"0g"}}</td>
                         <td class="text-end"><strong>$ {{i.UNIT_PRICE|floatformat:2}}</strong></td>
@@ -196,7 +194,7 @@
     $('.filter').change(function(){
         filter_function(); //calling filter function each select box value change
     });
-      
+    
     function filter_function(){
 
         $('table tbody tr').hide();

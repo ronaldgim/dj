@@ -170,10 +170,12 @@ def facturas_por_product(producto):
         producto = pd.DataFrame(producto)
         prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
         prod = prod.rename(columns={'product_id':'PRODUCT_ID'})
-        cli  = clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE']]
+        cli  = clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE', 'CLIENT_TYPE']]       
         
         producto = producto.merge(prod, on='PRODUCT_ID', how='left')
         producto = producto.merge(cli, on='CODIGO_CLIENTE', how='left')
+        
+        producto = producto[producto['CLIENT_TYPE']=='HOSPU']
         
         producto = producto.rename(columns={
             'PRODUCT_ID':'Código',
@@ -235,6 +237,7 @@ def precios_historicos(request):
             precios_filtrado = facturas.merge(clientes, on='CODIGO_CLIENTE', how='left')
             precios_filtrado = precios_filtrado.merge(prod, on='PRODUCT_ID', how='left')
             precios_filtrado = precios_filtrado.sort_values(by=['FECHA'], ascending=[False])
+            precios_filtrado['FECHA'] = precios_filtrado['FECHA'].astype('str')
             
             h = precios_filtrado['NOMBRE_CLIENTE'].iloc[0]
             
