@@ -54,7 +54,7 @@ def reporte_tipo_mba(request):
         d=datetime.strptime(desde, '%Y-%m-%d')
         h=datetime.strptime(hasta, '%Y-%m-%d')
         
-        vent = ventas_odbc_facturas(desde, hasta, cli)
+        vent = ventas_odbc_facturas(desde, hasta, cli).sort_values(by='FECHA', ascending=False)
         vent['FECHA'] = vent['FECHA'].astype('str')
         
         if not vent.empty:

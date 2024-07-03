@@ -108,21 +108,21 @@
                         <td>{{i.Unidad}}</td>
                         <td>{{i.FECHA}}</td>
                         <td>{{i.CODIGO_FACTURA|slice:'6:19'}}
-                            <button id="{{i.CODIGO_FACTURA}}" name="n_factura" class="btn btn-outline-primary btn-sm" ><!--class="btn btn-sm btn-primary" -->
+                            <button id="{{i.CODIGO_FACTURA}}" name="n_factura" class="btn btn-outline-primary btn-sm" >
                                 <i class="bi bi-list-ol"></i>
                             </button>
                         </td>
-                        <td class="text-end">{{i.QUANTITY}}</td> <!-- |floatformat:'0g' -->
-                        <td class="text-end">$ {{i.UNIT_PRICE|floatformat:2}}</td> <!-- |floatformat:'2g' -->
-                        <td class="text-end">$ {{i.COST_TOTAL|floatformat:2}}</td> <!-- |floatformat:'2g' -->
+                        <td class="text-end">{{i.QUANTITY|floatformat:"0g"}}</td> 
+                        <td class="text-end">$ {{i.UNIT_PRICE|floatformat:"2g"}}</td> 
+                        <td class="text-end">$ {{i.COST_TOTAL|floatformat:"2g"}}</td> 
                     </tr>
                     {% endfor %}
                 </tbody>
                     <tr>
                         <td colspan="6" class="text-start fw-bold">Totales:</td>
-                        <td class="text-end">{{total_cantidad|floatformat:'0g'}}</td>
-                        <td class="text-end">$ {{total_unitario|floatformat:'2g'}}</td>
-                        <td class="text-end">$ {{total_ventas|floatformat:'2g'}}</td>
+                        <td class="text-end">{{total_cantidad|floatformat:"0g"}}</td>
+                        <td class="text-end">$ {{total_unitario|floatformat:"2g"}}</td>
+                        <td class="text-end">$ {{total_ventas|floatformat:"2g"}}</td>
                     </tr>
             </table>
         </div>
@@ -242,16 +242,16 @@
 
 <script>
     $(document).ready(function(){
-       $('#myTable').DataTable({
-        //#ordering:false,
-        "searching":false,
-        "show":false,
-        "paging":false,
-        "info":false,
-        columnDefs:[
-            {type:'signed-num',targets:0}
-        ]
-       })
+        $('#myTable').DataTable({
+            //#ordering:false,
+            "searching":false,
+            "show":false,
+            "paging":false,
+            "info":false,
+            columnDefs:[
+                {type:'signed-num',targets:0}
+            ]
+    })
     })
 </script>
 
