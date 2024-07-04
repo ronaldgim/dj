@@ -55,7 +55,7 @@ from datos.views import (
     )
 
 # http response
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_POST
 from django.shortcuts import get_object_or_404
 
@@ -209,7 +209,6 @@ def facturas_por_product_ajax(request):
     
     return HttpResponse(ventas)
 
-    
 
 
 # precios historicos
@@ -254,23 +253,6 @@ def precios_historicos(request):
         return render(request, 'compras_publicas/precios.html', context)
 
     return render(request, 'compras_publicas/precios.html', context)
-
-
-
-from django.http import JsonResponse
-
-def my_ajax_view(request):
-    data = {
-        "key1": "value1",
-        "key2": "value2",
-    }
-
-    # data = tabla_infimas()
-    # data = data.to_json(orient='table')
-    # data = json.loads(data)
-
-    # print(data)
-    return JsonResponse(data)
 
 
 # Infimas
