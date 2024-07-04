@@ -24,11 +24,6 @@ urlpatterns = [
         name = 'infimas'
     ),
 
-    path(
-        route='ajax/my_view/', 
-        view = views.my_ajax_view, 
-        name='my_ajax_view'
-    ),
     
     # Procesos SERPCOP
     path(
