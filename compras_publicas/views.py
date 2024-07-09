@@ -197,7 +197,7 @@ def facturas_por_product_ajax(request):
     ventas = facturas_por_product(product_id)
     ventas['Precio Unitario'] = ventas['Precio Unitario'].astype(float)
     ventas['Cantidad'] = ventas['Cantidad'].apply(lambda x:'{:,.0f}'.format(x))
-    ventas['Precio Unitario'] = ventas['Precio Unitario'].apply(lambda x:'$ {:,.2f}'.format(x))
+    #ventas['Precio Unitario'] = ventas['Precio Unitario'].apply(lambda x:'$ {:,.4f}'.format(x))
     ventas = ventas.sort_values(by='Fecha', ascending=False)
     
     ventas = ventas.to_html(

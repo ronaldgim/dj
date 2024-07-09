@@ -11,23 +11,22 @@
 {% block body %}
 
 <style>
-  table {
-    -webkit-user-select: none; /* Safari */
-    -moz-user-select: none; /* Firefox */
-    -ms-user-select: none; /* Internet Explorer/Edge */
-    user-select: none; /* Standard */
-  }
-  thead {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background-color: #ffffff;
-  }
-  
-  .table-responsive {
-    height: 300px;
-    overflow-y: scroll;
-  }
+    table {
+        -webkit-user-select: none; /* Safari */
+        -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+        user-select: none; /* Standard */
+    }
+    thead {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background-color: #ffffff;
+    }  
+    .table-responsive {
+        height: 300px;
+        overflow-y: scroll;
+    }
 </style>
 
 <h5 class="m-4 text-center"><strong>PRECIOS HISTORICOS <span class="text-sm">(desde 2021)</span></strong></h5>
@@ -110,7 +109,7 @@
                         <td>{{i.Marca}}</td>
                         <td>{{i.FECHA}}</td>
                         <td class="text-end">{{i.QUANTITY|floatformat:"0g"}}</td>
-                        <td class="text-end"><strong>$ {{i.UNIT_PRICE|floatformat:2}}</strong></td>
+                        <td class="text-end"><strong>$ {{i.UNIT_PRICE}}</strong></td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -121,8 +120,6 @@
 {% endif %}
 
 
-
-<!--h5 class="text-center"><strong>VENTAS</strong></h5-->
 <div id="ventas"></div>
 
 
@@ -161,8 +158,20 @@
                         row.find("td:eq(5)").addClass("text-end");
                         row.find("td:eq(6)").addClass("text-end");
                     })
+                });
+
+                $(document).ready(function(){
+                    $("#v_table").DataTable({
+                        //#ordering:false,
+                        "searching":false,
+                        "show":false,
+                        "paging":false,
+                        "info":false,
+                        columnDefs:[
+                            {type:'signed-num',targets:0}
+                        ]
+                    })
                 })
-                
             },
 
             error: function() {
@@ -266,12 +275,51 @@
     })
 </script>
 
+<!-- DataTable -->
+<!-- datatable -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.css" />  
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.js"></script>
+
+<script>
+    $(document).ready(function(){
+        $('#inv_table').DataTable({
+            //#ordering:false,
+            "searching":false,
+            "show":false,
+            "paging":false,
+            "info":false,
+            columnDefs:[
+                {type:'signed-num',targets:0}
+            ]
+    })
+    })
+</script>
+
+<!-- DataTable -->
+<!-- datatable -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.css" />  
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.js"></script>
+<script>
+    $(document).ready(function(){
+        $('#v_table').DataTable({
+            //#ordering:false,
+            "searching":false,
+            "show":false,
+            "paging":false,
+            "info":false,
+            columnDefs:[
+                {type:'signed-num',targets:0}
+            ]
+    })
+    })
+</script>
+
 
 <!-- No abrir menu copy JS -->
 <!---script type="text/javascript">
-  document.querySelector('.table').addEventListener('contextmenu', function(e) {
+document.querySelector('.table').addEventListener('contextmenu', function(e) {
     e.preventDefault();
-  });
+});
 </script-->
 
 {% endblock %}
