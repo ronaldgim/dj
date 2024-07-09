@@ -132,9 +132,6 @@ def lote_factura_ajax(request):
         float_format='{:.0f}'.format,
         index=False,
         justify='start')
-
-    # response = json.dumps(lote_factura) ;print(response)
-    # return HttpResponse(response, content_type='appliation/json')
     
     return HttpResponse(df)
 
@@ -193,9 +190,3 @@ def pedidos_cuenca(request):
             return render(request, 'ventas/pedidos_cuenca.html', context)
             
     return render(request, 'ventas/pedidos_cuenca.html', context={})
-
-
-# Procesos Guantes
-def procesos_guantes(request):
-    print('procesos_gunates')
-    

@@ -50,8 +50,9 @@ from datos.views import (
     # pedidos
     #pedidos_cerrados_bct
     datos_anexo,
-    datos_anexo_product_list
-
+    datos_anexo_product_list,
+    datos_factura_compras_publicas_cabecera_odbc,
+    datos_factura_compras_publicas_productos_odbc
     )
 
 # http response
@@ -196,7 +197,7 @@ def facturas_por_product_ajax(request):
     ventas = facturas_por_product(product_id)
     ventas['Precio Unitario'] = ventas['Precio Unitario'].astype(float)
     ventas['Cantidad'] = ventas['Cantidad'].apply(lambda x:'{:,.0f}'.format(x))
-    ventas['Precio Unitario'] = ventas['Precio Unitario'].apply(lambda x:'$ {:,.2f}'.format(x))
+    #ventas['Precio Unitario'] = ventas['Precio Unitario'].apply(lambda x:'$ {:,.4f}'.format(x))
     ventas = ventas.sort_values(by='Fecha', ascending=False)
     
     ventas = ventas.to_html(
@@ -347,7 +348,18 @@ def procesos_sercop(request):
     return render(request, 'compras_publicas/procesos_sercop.html', context)
 
 
-
+def formato_n_factura_input(factura):
+    
+    text_1 = 'FCSRI-'
+    text_2 = '1001'
+    text_3 = '-GIMPR'
+    n_fac = f'{int(factura):09d}'
+    
+    try:
+        fac = text_1 + text_2 + n_fac + text_3
+        return fac
+    except:
+        return factura
 
 
 ### ANEXOS
@@ -426,6 +438,36 @@ def add_datos_anexo_ajax(request):
             'type':'error',
             'msg':str(e)
         })
+
+
+def add_datos_anexo_from_factura_ajax(request):
+
+    n_factura = request.POST.get('factura')
+    factura = formato_n_factura_input(n_factura)
+    
+    factura_cabecera = datos_factura_compras_publicas_cabecera_odbc(factura)
+    #print(factura_cabecera)
+    n_fac = int(n_factura)
+    n_fac = '001-001-' + f'{n_fac:09d}'
+    
+    ## Add cabecera anexo    
+    # anexo = Anexo(
+    #     n_pedido  = factura_cabecera['NUMERO_PEDIDO_SISTEMA'],
+    #     fecha     = factura_cabecera['FECHA_FACTURA'],
+    #     cliente   = factura_cabecera['NOMBRE_CLIENTE'],
+    #     ruc       = factura_cabecera['IDENTIFICACION_FISCAL'],
+    #     direccion = factura_cabecera['DIRECCION_PRINCIPAL_1'],
+    #     n_factura = n_fac,
+    #     usuario_id= request.user.id
+    # )
+    
+    ## Add productos anexo
+    
+    factura_productos = datos_factura_compras_publicas_productos_odbc(factura)
+    print(factura_productos)
+    
+    return HttpResponse(factura_cabecera)
+    
 
 
 @login_required(login_url='login')
