@@ -18,6 +18,10 @@
     <button name="contrato_id_btn" class="btn btn-primary" type="submit">Añadir Picking</button>
 </div>
 
+<div class="input-group mb-3">
+    <input type="text" class="form-control" placeholder="Ingrese en número de factura" id="factura" required>
+    <button name="factura_btn" class="btn btn-success" type="submit">Añadir Factura</button>
+</div>
 
 {% if messages %}
     {% for message in messages %}
@@ -35,7 +39,6 @@
 
 
 <div id="msg"></div>
-<!--div id="msg_ss"></div-->
 
 <div class="card mb-2">
     <div class="card-body m-0 p-0">
@@ -76,7 +79,7 @@
     </div>
 </div>
 
-
+<!-- AÑADIR DATOS CON NUMERO DE PICKING -->
 <script>
 
     $("button[name='contrato_id_btn']").click(function(){
@@ -88,6 +91,46 @@
             data:{
                 'csrfmiddlewaretoken': '{{ csrf_token }}',
                 'contrato_id':contrato_id,
+            },
+
+            success: function(response) {
+                
+                //$('#msg').fadeIn().html(`<div class="text-center alert alert-${response.tipo}" role="alert"> ${response.msg} !!! </div>`).fadeOut(6000)
+                if (response.type === 'error') {
+                    $('#msg').html(`<div class="text-center alert alert-${response.alert}" role="alert"> ${response.msg} !!! </div>`)
+                } else if (response.type === 'ok') {
+                    window.location.href = response.redirect_url
+                }
+                
+                setTimeout(function(){
+                    window.location.reload();
+                }, 2000)
+            },
+            
+            error: function() {
+                //$('#msg').fadeIn().html('<div class="text-center alert alert-danger" role="alert"> Error !!! </div>').fadeOut(6000)
+                $('#msg').html('<div class="text-center alert alert-danger" role="alert"> Error !!! </div>')
+                //setTimeout(function(){
+                //    window.location.reload();
+                //},1000)
+            }
+            
+        })
+    })
+</script>
+
+<!-- AÑADIR DATOS CON NUMERO DE FACTURA -->
+<script>
+
+    $("button[name='factura_btn']").click(function(){
+        var factura = $("#factura").val();
+
+        $.ajax({
+            type:"POST",
+            url:"{% url 'add_datos_anexo_from_factura_ajax' %}",
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'factura':factura,
             },
 
             success: function(response) {

@@ -1355,7 +1355,6 @@ def lotes_facturas_odbc(n_factura, product_id):
 
     cursorOdbc.execute(
 
-        # f"""SELECT CLNT_Factura_Principal.CODIGO_FACTURA, INVT_Ficha_Principal.PRODUCT_ID, INVT_Producto_Movimientos.QUANTITY, INVT_Lotes_Trasabilidad.LOTE_ID, INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD
         f"""SELECT CLNT_Factura_Principal.CODIGO_FACTURA, INVT_Ficha_Principal.PRODUCT_ID, INVT_Lotes_Trasabilidad.EGRESO_TEMP, INVT_Lotes_Trasabilidad.LOTE_ID, INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD
         FROM CLNT_Factura_Principal CLNT_Factura_Principal, INVT_Ficha_Principal INVT_Ficha_Principal, INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad, INVT_Producto_Movimientos INVT_Producto_Movimientos
         WHERE INVT_Ficha_Principal.PRODUCT_ID_CORP = INVT_Producto_Movimientos.PRODUCT_ID_CORP AND
@@ -2674,49 +2673,83 @@ def extraer_numero_de_factura(fac):
         return n_fac
     except:
         return fac
+
+
+## DATOS ANEXOS FACTURA
+def datos_factura_compras_publicas_cabecera_odbc(n_factura):
+
+    cnxn = pyodbc.connect('DSN=mba3;PWD=API')
+    cursorOdbc = cnxn.cursor()
+
+    cursorOdbc.execute(       
+        
+        "SELECT "
+        "CLNT_Factura_Principal.CODIGO_FACTURA, "
+        "CLNT_Factura_Principal.FECHA_FACTURA, "
+        "CLNT_Factura_Principal.NUMERO_PEDIDO_SISTEMA, "
+        "CLNT_Factura_Principal.CODIGO_CLIENTE, "
+        "CLNT_Ficha_Principal.NOMBRE_CLIENTE, "
+        "CLNT_Ficha_Principal.IDENTIFICACION_FISCAL, "
+        "CLNT_Ficha_Principal.DIRECCION_PRINCIPAL_1 "
+        
+        "FROM "
+        "CLNT_Factura_Principal "
+        "INNER JOIN CLNT_Ficha_Principal ON CLNT_Factura_Principal.CODIGO_CLIENTE = CLNT_Ficha_Principal.CODIGO_CLIENTE "
+        
+        "WHERE "
+        f"CLNT_Factura_Principal.CODIGO_FACTURA = '{n_factura}'"
     
+    )
 
-    # # Utiliza una expresión regular para encontrar la secuencia numérica que queremos
-    # match = re.search(r'\d+-\d+(\d{7})-GIMPR$', fac)
-    # if match:
-    #     # Convertimos a entero para eliminar ceros iniciales y luego de vuelta a string
-    #     return str(int(match.group(1)))
-    # else:
-    #     return fac
+    columns = [col[0] for col in cursorOdbc.description]
+    datos   = [dict(zip(columns, row)) for row in cursorOdbc.fetchall()][0]
+
+    return datos
 
 
+def datos_factura_compras_publicas_productos_odbc(n_factura):
 
+    cnxn = pyodbc.connect('DSN=mba3;PWD=API')
+    cursorOdbc = cnxn.cursor()
 
-# def pedidos_cerrados_bct():
-    
-#     try:
+    cursorOdbc.execute(
 
-#         desde = '2024-01-01'
+        "SELECT "
+        "CLNT_Factura_Principal.CODIGO_FACTURA, "
+        "INVT_Ficha_Principal.PRODUCT_ID, "
+        "INVT_Lotes_Trasabilidad.EGRESO_TEMP, "
+        "INVT_Lotes_Trasabilidad.LOTE_ID, "
+        "INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD "
         
-#         # MBA ODBC
-#         cnx_odbc_mba     = pyodbc.connect('DSN=mba3;PWD=API')
-#         cursor_odbc_mba  = cnx_odbc_mba.cursor()
+        "FROM "
+        "CLNT_Factura_Principal, "
+        "INVT_Ficha_Principal, "
+        "INVT_Lotes_Trasabilidad, "
+        "INVT_Producto_Movimientos "
         
+        "WHERE "
+        "INVT_Ficha_Principal.PRODUCT_ID_CORP = INVT_Producto_Movimientos.PRODUCT_ID_CORP "
+        "AND "
+        "CLNT_Factura_Principal.CODIGO_FACTURA = INVT_Producto_Movimientos.DOC_ID_CORP2 "
+        "AND "
+        "INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP = INVT_Ficha_Principal.PRODUCT_ID_CORP "
+        "AND "
+        "CLNT_Factura_Principal.CODIGO_FACTURA = INVT_Lotes_Trasabilidad.DOC_ID_CORP "
+        "AND "
+        "((INVT_Producto_Movimientos.CONFIRM=TRUE) "
+        "AND "
+        f"(CLNT_Factura_Principal.CODIGO_FACTURA='{n_factura}') "
+        "AND "
+        "(INVT_Producto_Movimientos.I_E_SIGN='-') "
+        "AND (INVT_Producto_Movimientos.ADJUSTMENT_TYPE='FT') "
+        "AND "
+        "(CLNT_Factura_Principal.ANULADA=FALSE)) "
         
-#         sql_query = cursor_odbc_mba.execute(                        
-#             "SELECT CLNT_Pedidos_Principal.FECHA_PEDIDO, CLNT_Pedidos_Principal.CONTRATO_ID, CLNT_Ficha_Principal.CODIGO_CLIENTE, "
-#             "CLNT_Pedidos_Detalle.PRODUCT_ID, CLNT_Pedidos_Detalle.QUANTITY, CLNT_Pedidos_Detalle.Despachados, CLNT_Pedidos_Principal.WARE_CODE, CLNT_Pedidos_Principal.CONFIRMED, CLNT_Pedidos_Principal.HORA_LLEGADA "
-#             "FROM CLNT_Ficha_Principal CLNT_Ficha_Principal, CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, CLNT_Pedidos_Principal CLNT_Pedidos_Principal "
-#             f"WHERE CLNT_Pedidos_Principal.FECHA_PEDIDO > '{desde}' AND CLNT_Pedidos_Principal.WARE_CODE ='BCT' AND CLNT_Pedidos_Principal.CONTRATO_ID_CORP = CLNT_Pedidos_Detalle.CONTRATO_ID_CORP AND CLNT_Ficha_Principal.CODIGO_CLIENTE = CLNT_Pedidos_Principal.CLIENT_ID "
-#             "AND ((CLNT_Pedidos_Principal.PEDIDO_CERRADO=true) AND (CLNT_Pedidos_Detalle.TIPO_DOCUMENTO='PE') AND (CLNT_Pedidos_Detalle.PRODUCT_ID<>'MANTEN')) ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID DESC"
-#         )
-        
-#         columns = [col[0] for col in sql_query.description]
-#         df = [dict(zip(columns, row)) for row in sql_query.fetchall()]
-#         df = pd.DataFrame(df)
-        
-#         return df
-    
-#     except Exception as e:
-#         return JsonResponse({
-#             'tipo':'danger',
-#             'msg': f'Error {e} !!!'
-#             })
-        
-#     finally:
-#         cursor_odbc_mba.close()
+    )
+
+    columns = [col[0] for col in cursorOdbc.description]
+    datos   = [dict(zip(columns, row)) for row in cursorOdbc.fetchall()]
+
+    datos   = pd.DataFrame(datos)
+
+    return datos
