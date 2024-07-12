@@ -43,6 +43,7 @@ from django.contrib.auth.decorators import login_required
 from datos.views import (
     clientes_warehouse, 
     productos_odbc_and_django,
+    quitar_prefijo,
     
     # Permisos costum @decorador
     permisos,
@@ -54,6 +55,7 @@ from datos.views import (
     datos_factura_compras_publicas_cabecera_odbc,
     datos_factura_compras_publicas_productos_odbc
     )
+
 
 # http response
 from django.http import HttpResponse, JsonResponse
@@ -374,15 +376,6 @@ def anexos_list(request):
     return render(request, 'compras_publicas/anexos_list.html', context)
 
 
-# Quitar Prefijo de texto -reg sanitario, -procedencia 
-def quitar_prefijo(texto):
-    if ':' in texto:
-        texto = texto.split(':')[1]
-        return texto
-    else:
-        return texto
-
-
 @transaction.atomic
 def add_datos_anexo_ajax(request):
     
@@ -445,7 +438,7 @@ def add_datos_anexo_from_factura_ajax(request):
     n_factura = request.POST.get('factura')
     factura = formato_n_factura_input(n_factura)
     
-    factura_cabecera = datos_factura_compras_publicas_cabecera_odbc(factura)
+    #factura_cabecera = datos_factura_compras_publicas_cabecera_odbc(factura)
     #print(factura_cabecera)
     n_fac = int(n_factura)
     n_fac = '001-001-' + f'{n_fac:09d}'
@@ -462,11 +455,12 @@ def add_datos_anexo_from_factura_ajax(request):
     # )
     
     ## Add productos anexo
-    
+    print(n_factura)
     factura_productos = datos_factura_compras_publicas_productos_odbc(factura)
+    print(factura)
     print(factura_productos)
     
-    return HttpResponse(factura_cabecera)
+    return HttpResponse('oko')
     
 
 

@@ -124,7 +124,7 @@
 
     $("button[name='factura_btn']").click(function(){
         var factura = $("#factura").val();
-
+        console.log(factura)
         $.ajax({
             type:"POST",
             url:"{% url 'add_datos_anexo_from_factura_ajax' %}",

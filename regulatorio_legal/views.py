@@ -27,7 +27,7 @@ from users.models import User
 from django.views.decorators.csrf import csrf_exempt
 from regulatorio_legal.forms import DocumentoLoteForm, NewDocumentoLoteForm, DocumentoEnviadoForm
 from django.shortcuts import redirect
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 
 from django.core.mail import EmailMessage
 from django.conf import settings
@@ -41,6 +41,9 @@ from django.contrib import messages
 import json
 
 from smtplib import SMTPException 
+
+# Pyodbc
+import pyodbc
 
 # Lista de importaciones
 def importaciones_llegadas_list(request):
@@ -158,6 +161,63 @@ def doc_importacion_por_lote_ajax(request):
         else:
             i = imp[0]
     return HttpResponse(i)
+
+
+def doc_importacion_por_codigo_ajax(request):
+
+    codigo = request.POST.get('codigo')
+    codigo_corp = codigo + '-GIMPR'
+    
+    try:
+        cnxn = pyodbc.connect('DSN=mba3;PWD=API')
+        cursorOdbc = cnxn.cursor()
+
+        cursorOdbc.execute(
+            "SELECT INVT_Lotes_Trasabilidad.DOC_ID_CORP, INVT_Lotes_Trasabilidad.ENTRADA_FECHA, "
+            "INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP, INVT_Lotes_Trasabilidad.LOTE_ID, INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD, "
+            "INVT_Lotes_Trasabilidad.AVAILABLE, INVT_Lotes_Trasabilidad.EGRESO_TEMP, INVT_Lotes_Trasabilidad.OH, INVT_Lotes_Trasabilidad.WARE_COD_CORP, CLNT_Pedidos_Principal.MEMO "
+            "FROM INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad "
+            "LEFT JOIN CLNT_Pedidos_Principal ON INVT_Lotes_Trasabilidad.DOC_ID_CORP = CLNT_Pedidos_Principal.CONTRATO_ID_CORP "
+            f"WHERE (INVT_Lotes_Trasabilidad.ENTRADA_TIPO='OC') AND (INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP = '{codigo_corp}') AND (INVT_Lotes_Trasabilidad.Tipo_Movimiento='RP')"
+        )
+        
+        columns = [col[0] for col in cursorOdbc.description]
+        data = [dict(zip(columns, row)) for row in cursorOdbc.fetchall()]
+        data = pd.DataFrame(data).drop_duplicates(subset='DOC_ID_CORP').fillna('-').sort_values(by='ENTRADA_FECHA', ascending=False)
+        
+        data = data.rename(columns={
+            'DOC_ID_CORP':'O.Compra',
+            'ENTRADA_FECHA':'Fecha-Llegada',
+            'PRODUCT_ID_CORP':'Código',
+            'LOTE_ID':'Lote',
+            'FECHA_CADUCIDAD':'Fecha-Caducidad',
+            'AVAILABLE':'Unidades',
+            'EGRESO_TEMP':'Egreso-Temporal',
+            'OH':'OH',
+            'WARE_COD_CORP':'Bodega',
+            'MEMO':'Memo'
+        })
+        
+        data['Código'] = data['Código'].str.replace('-GIMPR', '')
+        data = data[['O.Compra','Memo','Fecha-Llegada','Código','Lote','Fecha-Caducidad','Unidades']]
+        
+        html_tabla = data.to_html(
+            float_format='{:,.0f}'.format,
+            classes='table table-responsive table-bordered m-0 p-0',
+            index=False,
+            justify='start',
+            na_rep=''
+        )
+
+        return JsonResponse({
+            'msg_data':f'Importaciones encontradas = {len(data)}, código {codigo}',
+            'data':html_tabla
+        })
+    
+    except Exception as e:
+        return JsonResponse({
+            'msg_data':e,
+        })
 
 
 
