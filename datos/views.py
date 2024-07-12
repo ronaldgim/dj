@@ -120,7 +120,7 @@ def permisos(permiso, redirect_url, modulo):
     return decorador
     
 
-
+# DE DATAFRAME A LISTA DE DICCIONARIOS PARA PASAR A UN TEMPLATE
 def de_dataframe_a_template(dataframe):
 
     json_records = dataframe.reset_index().to_json(orient='records') # reset_index().
@@ -129,6 +129,13 @@ def de_dataframe_a_template(dataframe):
     return dataframe
 
 
+# QUITAR PREFIJOS EN REG SAN, PROCEDENCIA
+def quitar_prefijo(texto):
+    if ':' in texto:
+        texto = texto.split(':')[1]
+        return texto
+    else:
+        return texto
 
 class Inicio(LoginRequiredMixin, TemplateView):
     template_name = 'inicio.html'
@@ -635,7 +642,7 @@ def importaciones_en_transito_odbc_insert_warehouse():
         # Delete
         cursor_db_warehouse.execute("DELETE FROM imp_transito")
         
-        sql_insert = """INSERT INTO imp_transito (CONTRATO_ID, VENDOR_NAME,PRODUCT_ID,QUANTITY,FECHA_ENTREGA,MEMO) VALUES (%s, %s, %s, %s, %s, %s)"""
+        sql_insert = """INSERT INTO imp_transito (CONTRATO_ID, VENDOR_NAME, PRODUCT_ID, QUANTITY, FECHA_ENTREGA, MEMO) VALUES (%s, %s, %s, %s, %s, %s)"""
         data_transito = [list(rows) for rows in sql_query]
         cursor_db_warehouse.executemany(sql_insert, data_transito)
         
@@ -2698,58 +2705,62 @@ def datos_factura_compras_publicas_cabecera_odbc(n_factura):
         
         "WHERE "
         f"CLNT_Factura_Principal.CODIGO_FACTURA = '{n_factura}'"
-    
+        
     )
 
     columns = [col[0] for col in cursorOdbc.description]
     datos   = [dict(zip(columns, row)) for row in cursorOdbc.fetchall()][0]
-
+    
     return datos
 
 
 def datos_factura_compras_publicas_productos_odbc(n_factura):
-
+    print('asdf')
     cnxn = pyodbc.connect('DSN=mba3;PWD=API')
     cursorOdbc = cnxn.cursor()
 
     cursorOdbc.execute(
-
+        
         "SELECT "
         "CLNT_Factura_Principal.CODIGO_FACTURA, "
+        "CLNT_Factura_Principal.FECHA_FACTURA, "
         "INVT_Ficha_Principal.PRODUCT_ID, "
-        "INVT_Lotes_Trasabilidad.EGRESO_TEMP, "
+        "INVT_Ficha_Principal.PRODUCT_NAME, "
+        "INVT_Ficha_Principal.GROUP_CODE, "
+        "INVT_Producto_Movimientos.QUANTITY, "
+        "INVT_Ficha_Principal.`Custom Field 1`, "
+        "INVT_Ficha_Principal.`Custom Field 2`, "
         "INVT_Lotes_Trasabilidad.LOTE_ID, "
-        "INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD "
+        "INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD, "
+        "INVT_Producto_Lotes.Fecha_elaboracion_lote, "
+        "INVT_Lotes_Trasabilidad.Precio_venta "
         
         "FROM "
-        "CLNT_Factura_Principal, "
-        "INVT_Ficha_Principal, "
-        "INVT_Lotes_Trasabilidad, "
-        "INVT_Producto_Movimientos "
+        "CLNT_Factura_Principal CLNT_Factura_Principal, "
+        "INVT_Ficha_Principal INVT_Ficha_Principal, "
+        "INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad, "
+        "INVT_Producto_Lotes INVT_Producto_Lotes, "
+        "INVT_Producto_Movimientos INVT_Producto_Movimientos "
         
         "WHERE "
-        "INVT_Ficha_Principal.PRODUCT_ID_CORP = INVT_Producto_Movimientos.PRODUCT_ID_CORP "
-        "AND "
         "CLNT_Factura_Principal.CODIGO_FACTURA = INVT_Producto_Movimientos.DOC_ID_CORP2 "
-        "AND "
-        "INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP = INVT_Ficha_Principal.PRODUCT_ID_CORP "
-        "AND "
-        "CLNT_Factura_Principal.CODIGO_FACTURA = INVT_Lotes_Trasabilidad.DOC_ID_CORP "
-        "AND "
-        "((INVT_Producto_Movimientos.CONFIRM=TRUE) "
-        "AND "
-        f"(CLNT_Factura_Principal.CODIGO_FACTURA='{n_factura}') "
-        "AND "
-        "(INVT_Producto_Movimientos.I_E_SIGN='-') "
-        "AND (INVT_Producto_Movimientos.ADJUSTMENT_TYPE='FT') "
-        "AND "
-        "(CLNT_Factura_Principal.ANULADA=FALSE)) "
-        
+        "AND INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP = INVT_Ficha_Principal.PRODUCT_ID_CORP "
+        "AND CLNT_Factura_Principal.CODIGO_FACTURA = INVT_Lotes_Trasabilidad.DOC_ID_CORP AND "
+        "INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND "
+        "INVT_Lotes_Trasabilidad.LOTE_ID = INVT_Producto_Lotes.LOTE_ID AND "
+        "INVT_Producto_Movimientos.PRODUCT_ID_CORP = INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP AND "
+        "INVT_Lotes_Trasabilidad.WARE_COD_CORP = INVT_Producto_Lotes.WARE_CODE_CORP AND "
+        "INVT_Producto_Movimientos.UNIT_COST = INVT_Lotes_Trasabilidad.Precio_venta AND "
+        "((INVT_Producto_Movimientos.CONFIRM=TRUE) AND (CLNT_Factura_Principal.CODIGO_FACTURA='FCSRI-1001000090896-GIMPR') AND "
+        #"((INVT_Producto_Movimientos.CONFIRM=TRUE) AND (CLNT_Factura_Principal.CODIGO_FACTURA='{n_factura}') AND "
+        "(INVT_Producto_Movimientos.I_E_SIGN='-') AND (INVT_Producto_Movimientos.ADJUSTMENT_TYPE='FT') AND "
+        "(CLNT_Factura_Principal.ANULADA=FALSE))"
+    
     )
 
     columns = [col[0] for col in cursorOdbc.description]
     datos   = [dict(zip(columns, row)) for row in cursorOdbc.fetchall()]
 
     datos   = pd.DataFrame(datos)
-
+    print(datos)
     return datos

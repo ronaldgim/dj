@@ -26,23 +26,14 @@ from datos.models import TimeStamp
 from bpa.models import Trasferencia
 
 # PDF
-from django_xhtml2pdf.utils import pdf_decorator, generate_pdf
+from django_xhtml2pdf.utils import pdf_decorator
 
 # Login
-from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth.decorators import login_required
 
-# Templeate loader
-from django.template.loader import get_template, render_to_string
-from django.template import Context
 
 # Html
 from django.utils.html import strip_tags
-
-# MUESTREOS
-# Función Ronald - actualizar tabla transito importaciones
-# def actualizar_importaciones_transito():
-import pyodbc
-import mysql.connector
 
 
 # Tabla Registro Sanitario
@@ -55,8 +46,8 @@ from bpa.forms import RegistroSanitarioForm, CartaNoRegistroForm
 from django.contrib import messages
 
 # Url
-from django.http import HttpResponseRedirect, HttpResponse
-from django.urls import reverse
+from django.http import HttpResponseRedirect
+
 
 # TRANSFERENCIA ODBC
 from datos.views import (
@@ -102,7 +93,7 @@ def productos(): #request
 
 
 # Consulta tabla de importaciones transito
-def importaciones_transito(): #request
+def importaciones_transito_data(): #request
     ''' Colusta de clientes por ruc a la base de datos '''
     with connections['gimpromed_sql'].cursor() as cursor:
         cursor.execute("SELECT * FROM imp_transito")
@@ -292,8 +283,6 @@ def muestreo(data, und):
 @login_required(login_url='login')
 def muestreo_unidades(request, memo):
 
-    #data = importaciones_compras_df()
-    #data = data[data['DOC_ID_CORP']==memo].fillna('')
     data = importaciones_llegadas_por_docid_odbc(memo)
     imp = muestreo(data, 'OH')
     imp = imp.sort_values(by='product_id')
@@ -398,8 +387,9 @@ def muestreo_cartones_transito(request, contrato_id):
 @login_required(login_url='login')
 def revision_tecnica(request, memo):
 
+    print('asdf')
     #n = nacionales_odbc()
-    data = importaciones_transito()
+    data = importaciones_transito_data()
     #data = pd.concat([data,n])
 
     data = data[data['MEMO']==memo]   

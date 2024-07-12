@@ -19,6 +19,13 @@ urlpatterns = [
         view = views.doc_importacion_por_lote_ajax,
         name = 'doc_importacion_por_lote_ajax'
     ),
+    
+    # doc_importacion_por_codigo_ajax
+    path(
+        route='importacion/doc_importacion_por_codigo_ajax',
+        view = views.doc_importacion_por_codigo_ajax,
+        name = 'doc_importacion_por_codigo_ajax'
+    ),
 
 
     # Lista de productos en importación

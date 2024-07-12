@@ -32,10 +32,16 @@
     <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
 </div>
 
-
 <div class="col-4 mt-2 mb-2 btn-group">
     <input id="lote_id" type="text" placeholder="Ingrese Lote" class="form-control">
     <button name="buscar_lote" class="btn btn-primary">Buscar</button>
+</div>
+
+<br>
+
+<div class="col-4 mb-2 btn-group">
+    <input id="codigo" type="text" placeholder="Ingrese Código" class="form-control">
+    <button name="buscar_codigo" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#staticBackdrop">Buscar</button>
 </div>
 
 <br>
@@ -102,6 +108,28 @@
         </div>
     </div>
 </div>
+
+
+<!-- Modal -->
+<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="staticBackdropLabel">Busqueda por código</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="msg_data"></div>
+                <div id="data"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <!--filtro buscar-->
 <script>
     $(document).ready(function() {
@@ -165,16 +193,12 @@
             success: function(response) {
                 var imp = response
                 $('#msg').html(`<div class="text-center mb-2 alert alert-success" role="alert">El lote ${lote_id} está en la importación(es): <strong>${imp}</strong> !!! </div>`);
-                // setTimeout(function(){
-                //     window.location.reload();
-                // }, 10000)
-                
             },
 
             error: function() {
                 $('#msg').html(`<div class="text-center mb-2 alert alert-danger" role="alert"> Error vuelva en la busqueda !!! </div>`)
                 setTimeout(function(){
-                   window.location.reload();
+                    window.location.reload();
                 }, 2000)
             }
 
@@ -184,71 +208,32 @@
 </script>
 
 
+<!-- buscar importación por código -->
+<script>
+    $("button[name='buscar_codigo']").click(function() {        
+        var codigo = $("#codigo").val();
 
-<!-- Filtro de columna -->
-<!--script>
-    $('.filter').change(function(){
-        filter_function(); //calling filter function each select box value change
-    });
-      
-    $('table tbody tr').show(); //intially all rows will be shown
-      
-    function filter_function(){
-        $('table tbody tr').hide(); //hide all rows
-        
-        var tipoFlag = 'TODOS';
-        var tipoValue = $('#filter-tipo').val();
-        
-       //traversing each row one by one
-        $('table tr').each(function() {  
-          if(tipoValue == 'TODOS'){
-            tipoFlag = 1;
-          }
-          else if(tipoValue == $(this).find('td.tipo').data('tipo')){
-            tipoFlag = 1;
-          }
-          else{
-            tipoFlag = 0;
-          }
+        $.ajax({
+            type: "POST",
+            url : "{% url 'doc_importacion_por_codigo_ajax' %}",
+            data : {
+                "csrfmiddlewaretoken": "{{csrf_token}}",
+                "codigo":codigo
+            },
 
-         if(tipoFlag){
-            $(this).show();
-         }
-      
-      });
-    }
-</script-->
-<!-- Filtro estado de etiquetado -->
-<!--script>
-    $('.filter-est').change(function(){
-        filter_function_estado(); //calling filter function each select box value change
-    });
-      
-    $('table tbody tr').show(); //intially all rows will be shown
-      
-    function filter_function_estado(){
-        $('table tbody tr').hide(); //hide all rows
-        
-        var tipoFlag = 'ESTADO';
-        var tipoValue = $('#filter-estado').val();
-        
-       //traversing each row one by one
-        $('table tr').each(function() {  
-          if(tipoValue == 'ESTADO'){
-            tipoFlag = 1;
-          }
-          else if(tipoValue == $(this).find('td.estado').data('estado')){
-            tipoFlag = 1;
-          }
-          else{
-            tipoFlag = 0;
-          }
+            success: function(response) {
+                $('#msg_data').html(`<div class="text-center mb-2 alert alert-success" role="alert">${response.msg_data} !!! </div>`);
+                $("#data").html(response.data, 'asdf')
+            },
 
-         if(tipoFlag){
-            $(this).show();
-         }
-      
-      });
-    }
-</script-->
+            error: function() {
+                $('#msg').html(`<div class="text-center mb-2 alert alert-danger" role="alert"> Error vuelva en la busqueda !!! </div>`)
+                setTimeout(function(){
+                    window.location.reload();
+                }, 2000)
+            }
+
+        })
+    })
+</script>
 {% endblock %}

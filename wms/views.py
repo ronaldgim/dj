@@ -906,7 +906,11 @@ def wms_existencias_query_product_lote(product_id, lote_id):
         )
 
         existencias_list.append(ex)
-
+    
+    for i in existencias_list:
+        print(i.product_id, i.lote_id, i.unidades)
+    
+    
     Existencias.objects.filter(product_id=product_id, lote_id=lote_id).delete()
     Existencias.objects.bulk_create(existencias_list)
 
@@ -928,7 +932,7 @@ def wms_inventario(request): #OK
     """ Inventario
         Suma de ingresos y egresos que dan el total de todo el inventario
     """
-    # wms_existencias_query_product_lote("2015/1215","421616")
+    # wms_existencias_query_product_lote("010065","23110665")
     
     prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     productos = pd.DataFrame(Existencias.objects.all().values('product_id'))
