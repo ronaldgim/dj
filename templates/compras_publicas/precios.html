@@ -49,37 +49,41 @@
 <form method="POST"> 
     {% csrf_token %}
     <div class="row">
-        <div class="form-group">
-            <div class="input-group">
-                <!--div class="col-2"-->
-                    <label class="pe-2"><strong>HOSPITALES:</strong></label>
-                <!--/div-->
-                <div class="col-6 pe-2">
-                    <select class="form-select" id="filter-hos-select2" name="hospital" required> <!-- filter id="filter-hos"-->
-                        <option value="0">TODOS LOS HOSPITALES</option>
-                        {% for i in hospitales %}
-                        <option value="{{i.CODIGO_CLIENTE}}">{{i.NOMBRE_CLIENTE}}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-auto">
-                    <button class="btn btn-primary btn-sm" type="submit">
-                        Consultar
-                    </button>
-                </div>
+        <div class="input-group mb-2">
+            <label class="fw-bold">HOSPITALES:</label>
+            <div class="col-6 ps-2">
+                <select class="form-select" id="filter-hos-select2" name="hospital" required> <!-- filter id="filter-hos"-->
+                    <option value="0">TODOS LOS HOSPITALES</option>
+                    {% for i in hospitales %}
+                    <option value="{{i.CODIGO_CLIENTE}}">{{i.NOMBRE_CLIENTE}}</option>
+                    {% endfor %}
+                </select>
             </div>
-        </div>
-        
-        <div class="col-6 mt-2 mb-2">
-            <input id="inputbuscar" type="text" placeholder="Buscar..." class="form-control">
+            <div class="col-auto">
+                <button class="btn btn-primary btn-sm" type="submit">
+                    Consultar
+                </button>
+            </div>
         </div>
     </div>
 </form>
 
-<!--div class="col-6">
-    <label><strong>Buscar:</strong></label>
+
+<div class="row mb-3">
+    <div class="col-md-3">
+        <div class="input-group mb-2">
+            <label class="fw-bold pt-2">CÓDIGO:</label>
+            <input class="form-control form-control-sm ps-2" id="codigo" type="text">
+            <button class="btn btn-primary" type="button" name="codigo">
+                <i class="bi bi-search"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="col-6 mt-2 mb-2">
     <input id="inputbuscar" type="text" placeholder="Buscar..." class="form-control">
-</div-->
+</div>
 
 {% if precios_filtrado %}
 <h5 class="text-center"><strong>{{h}}</strong></h5>
@@ -122,7 +126,7 @@
 
 <div id="ventas"></div>
 
-
+<!-- busqueda por código por boton -->
 <script>
     $("button[name='producto']").click(function(){
         var producto = $(this).closest("tr").find("#product_id").html();
@@ -185,6 +189,69 @@
 
 </script>
 
+<!-- busqueda por código por input -->
+<script>
+    $("button[name='codigo']").click(function(){
+        var codigo = $("#codigo").val();
+
+        $.ajax({
+            type:"POST",
+            url:"{% url 'facturas_busqueda_solo_por_product_ajax' %}",
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'codigo':codigo,
+            },
+
+            success: function(response) {
+                console.log(response)
+                $('#ventas').html(
+                    `<h5 class="text-center"><strong>VENTAS ${codigo}</strong></h5>
+                    <div class="card mt-2 mb-2">
+                        <div class="card-body m-0 p-0">
+                            <div class="container table-responsive">
+                                ${response}
+                            </div>
+                        </div>
+                    </div>`
+                );
+
+                $("#v_table").removeClass('dataframe');
+                $("#v_table").addClass('table');
+                $("#v_table tbody").attr('id', 'pedidosbuscar');
+
+                $(document).ready(function(){
+                    $("#v_table tr").each(function(){
+                        var row = $(this);
+                        row.find("td:eq(5)").addClass("text-end");
+                        row.find("td:eq(6)").addClass("text-end");
+                    })
+                });
+
+                $(document).ready(function(){
+                    $("#v_table").DataTable({
+                        //#ordering:false,
+                        "searching":false,
+                        "show":false,
+                        "paging":false,
+                        "info":false,
+                        columnDefs:[
+                            {type:'signed-num',targets:0}
+                        ]
+                    })
+                })
+            },
+
+            error: function() {
+                $('#ventas').html('<div class="text-center alert alert-danger mt-2" role="alert"> Error intenta nuevamente !!! </div>')
+                setTimeout(function(){
+                    window.location.reload();
+                }, 4000)
+            } 
+        })
+
+    })
+
+</script>
 <script>
     $(document).ready(function() {
         $("#inputbuscar").on("keyup", function() {
@@ -195,76 +262,6 @@
             });
         });
     });
-</script>
-
-
-<!-- Filtro de columna -->
-<script>
-    $('.filter').change(function(){
-        filter_function(); //calling filter function each select box value change
-    });
-    
-    function filter_function(){
-
-        $('table tbody tr').hide();
-
-        // Bodega
-        var hosFlag = 0;
-        var hosValue = $('#filter-hos').val();
-
-        // Ubicación
-        //var locFlag = 0;
-        //var locValue = $('#filter-loc').val();
-
-        // Llenado
-        //var lleFlag = 0;
-        //var lleValue = $('#filter-lle').val();
-        
-        // $('table tr').each(function() {
-        $('table tr').each(function() {
-            
-            // Bodega
-            if(hosValue == 0){
-                hosFlag = 1;
-            }
-            else if(hosValue == $(this).find('td.hos').data('hos')){
-                hosFlag = 1;
-            }
-            else{
-                hosFlag = 0;
-            }
-
-            // Ubicación
-            //if(locValue == 0){
-            //    locFlag = 1;
-            //}
-            //else if(locValue == $(this).find('td.loc').data('loc')){
-            //    locFlag = 1;
-            //}
-            //else{
-            //    locFlag = 0;
-            //}
-
-            // Llenado
-            //if(lleValue == 0){
-            //    lleFlag = 1;
-            //}
-            //else if(lleValue == $(this).find('td.lle').data('lle')){
-            //    lleFlag = 1;
-            //}
-            //else{
-            //    lleFlag = 0;
-            //}
-
-            //if(bodFlag && locFlag && lleFlag){
-            //    $(this).show();
-            //}
-
-            if(hosFlag) // && locFlag && lleFlag){
-                $(this).show();
-            }
-        );
-    }
 </script>
 
 
@@ -313,13 +310,5 @@
     })
     })
 </script>
-
-
-<!-- No abrir menu copy JS -->
-<!---script type="text/javascript">
-document.querySelector('.table').addEventListener('contextmenu', function(e) {
-    e.preventDefault();
-});
-</script-->
 
 {% endblock %}
