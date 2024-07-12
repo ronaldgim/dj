@@ -18,6 +18,13 @@ urlpatterns = [
         name = 'facturas_por_product_ajax'
     ),
 
+    #facturas_busqueda_solo_por_product_ajax 
+    path(
+        route='facturas_busqueda_solo_por_product_ajax',
+        view = views.facturas_busqueda_solo_por_product_ajax,
+        name = 'facturas_busqueda_solo_por_product_ajax'
+    ),
+        
     path(
         route='infimas', #?page=1
         view = views.infimas,

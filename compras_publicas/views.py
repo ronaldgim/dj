@@ -213,6 +213,26 @@ def facturas_por_product_ajax(request):
     return HttpResponse(ventas)
 
 
+def facturas_busqueda_solo_por_product_ajax(request):
+    
+    product_id = request.POST.get('codigo')
+    ventas = facturas_por_product(product_id)
+    ventas['Precio Unitario'] = ventas['Precio Unitario'].astype(float)
+    ventas['Cantidad'] = ventas['Cantidad'].apply(lambda x:'{:,.0f}'.format(x))
+    #ventas['Precio Unitario'] = ventas['Precio Unitario'].apply(lambda x:'$ {:,.4f}'.format(x))
+    ventas = ventas.sort_values(by='Fecha', ascending=False)
+    
+    ventas = ventas.to_html(
+        #classes='table', 
+        table_id='v_table',
+        index=False,
+        justify='start',
+        border=0
+    )
+    
+    return HttpResponse(ventas)
+
+
 
 # precios historicos
 @login_required(login_url='login')
