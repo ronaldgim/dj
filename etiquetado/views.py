@@ -56,7 +56,7 @@ from django.views.generic.list import ListView
 
 # LoginRequired
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth.decorators import login_required
 
 # Permisos
 from django.contrib.auth.mixins import PermissionRequiredMixin
@@ -2749,6 +2749,7 @@ def reporte_revision_reservas(request):
 
     
 ## CONTROL DE GUIAS Y COUIER
+login_required(login_url='login')
 def control_guias_list(request):
     
     ventas_fac = ventas_facturas_odbc()[['NOMBRE_CLIENTE', 'CODIGO_FACTURA', 'FECHA_FACTURA']]
@@ -2865,7 +2866,7 @@ def control_guias_list(request):
 
     return render(request, 'guias/facturas_lista.html', context)
 
-
+login_required(login_url='login')
 def control_guias_registro(request, n_fac):
 
     form = RegistroGuiaForm()
@@ -2892,7 +2893,7 @@ def control_guias_registro(request, n_fac):
 
     return render(request, 'guias/facturas_registro.html', context)
 
-
+login_required(login_url='login')
 def control_guias_editar(request, id):
 
     reg = RegistoGuia.objects.get(id=id);print(reg)
