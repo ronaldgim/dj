@@ -78,7 +78,7 @@
         <label><strong>R.U.C.:</strong> {{anexo.ruc}}</label><br>
         <label><strong>DIRECCIÓN:</strong> {{anexo.direccion}}</label><br>
 
-        <table repeat="1" style="border:1px solid black;font-size:9px">
+        <table repeat="1" style="border:1px solid black;font-size:9px; width:100%;">
             <thead>
                 <tr>
                     <th class="t_b" style="width:190px;">CÓDIGO PROVEEDOR</th>
@@ -97,7 +97,7 @@
                 {% for i in prods_list %}
                 <tr>
                     <td class="t_b" rowspan="{{ i.products.count }}">{{ i.product_id }}</td>
-                    <td class="t_b" rowspan="{{ i.products.count }}" style="font-size:7px">
+                    <td class="t_b" rowspan="{{ i.products.count }}" style="font-size:8px">
                         {{ i.nombre }}<br>
                         <strong>MARCA:{{i.marca}} - {{i.procedencia|upper}}</strong><br>
                         <strong>REGISTRO SANITARIO:{{i.r_sanitario}}</strong>
@@ -125,10 +125,10 @@
                 </tr>
                 {% endfor %}
                 {% endfor %}
-                <tr>
+                <tr style="border-bottom: 3px solid black;">
                     <td class="t_b" colspan="9">
                         {% if anexo.orden_compra %}
-                            <strong>{{anexo.orden_compra}} / {{anexo.observaciones}}<strong>
+                            <strong>{{anexo.orden_compra}} {% if anexo.observaciones %}  / {{anexo.observaciones}} {% endif %}<strong>
                         {% endif %}
                     </td>
                 </tr>

@@ -1,5 +1,5 @@
 {%extends 'base.html' %}
-
+{% load tags %}
 {% block title %}
 <title>Anexo {{anexo.n_pedido}}</title>
 {% endblock%}
@@ -180,6 +180,33 @@
 
     <div class="row g-3 align-items-center">
         <div class="col-2">
+            <label for="orden_compra" class="col-form-label fw-bold">Formato decimales:</label>
+        </div>
+        <div class="col-4">
+            <input type="text" name="fecha_formato_input" class="form-control form-control-sm" value="{{anexo.dd_key}}" readonly>
+            <select name="fecha_formato_select" class="form-select form-select-sm" style="display:none">
+                <option value="" selected>------</option>
+                {% for i in dd %}
+                <option value="{{i.value}}">{{i.key}}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-sm btn-secondary" name="edit_anexo_dd">
+                <i class="bi bi-pencil"></i>
+            </button>
+            <!--AJAX-->
+            <button class="btn btn-sm btn-success" id="edit_ajax_dd" name="edit_ajax_dd" style="display:none">
+                <i class="bi bi-send"></i>
+            </button>
+            <!---->
+            <i class="bi bi-check-lg" style="color:green; display:none"></i>
+            <i class="bi bi-x-lg" style="color:red; display:none"></i>
+        </div>
+    </div>
+
+    <div class="row g-3 align-items-center">
+        <div class="col-2">
             <label for="n_factura" class="col-form-label fw-bold">Factura:</label>
         </div>
         <div class="col-4">
@@ -284,7 +311,7 @@
                             <td>{{i.f_caducidad|date:i.fecha_formato}}</td>
                             <td class="text-end">{{i.cantidad|floatformat:"0g"}}</td>
                             <td class="text-end">{{i.cantidad_total|floatformat:"0g"}}</td>
-                            <td class="text-end">$ {{i.precio_unitario}}</td>
+                            <td class="text-end">$ {{i.precio_unitario|formato_numero_precio_unitario:i.decimal_formato}}</td>
                             <td class="text-end">$ {{i.precio_total|floatformat:"2g"}}</td>
                             <td class="text-end">
                                 <div class="btn-group" role="group" aria-label="Basic mixed styles example">
@@ -589,6 +616,64 @@
                 row.find("button[name='edit_anexo_ff']").show();
                 row.find(".bi-x-lg").show();
             }
+        })
+        
+    })
+</script>
+
+<!-- EDITAR FORMATO DE DECIMALES -->
+<script>
+    $("button[name='edit_anexo_dd']").click(function(){
+        $(this).css('display', 'none')
+        var input = $(this).closest(".row").find('input').css('display','none');
+        var select = $(this).closest(".row").find('select').css('display', 'inline-block');
+        var edit_btn = $(this).closest(".row").find('#edit_ajax_dd').css('display','inline-block');
+    })  
+
+    $("button[name='edit_ajax_dd']").click(function(){
+        var select = $(this).closest(".row").find('select option:selected');
+        var value  = select.val()
+        var key   = select.text()
+        var input = $(this).closest(".row").find('input');
+        var row   = $(this).closest(".row")
+
+        $.ajax({
+            type:"POST",
+            url:"{% url 'anexo_dd_edit_ajax' %}",
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'id':{{anexo.id}},
+                'value':value,
+                'key':key
+            },
+
+            success: function(response) {
+                //console.log(response)
+                if (response.msg=='ok') {
+                    input.val(key);
+                    input.show();
+                    row.find('select').hide();
+                    row.find("button[name='edit_ajax_dd']").hide();
+                    row.find("button[name='edit_anexo_dd']").show();
+                    row.find(".bi-check-lg").show();
+
+                } else if(response.msg=='fail') {
+                    input.show();
+                    row.find('select').hide();
+                    row.find("button[name='edit_ajax_dd']").hide();
+                    row.find("button[name='edit_anexo_dd']").show();
+                    row.find(".bi-x-lg").show();
+                }
+            },
+
+            error: function() {
+                input.show();
+                row.find('select').hide();
+                row.find("button[name='edit_ajax_dd']").hide();
+                row.find("button[name='edit_anexo_dd']").show();
+                row.find(".bi-x-lg").show();
+            }
+
         })
         
     })

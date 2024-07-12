@@ -11,21 +11,35 @@ def formato_numero_miles(numero):
     except:
         return numero
     
+
+@register.filter
+def formato_numero_precio_unitario(numero, decimales=2):
+    try:
+        # Convertir el número a float para formatearlo
+        numero_float = float(numero)
+        
+        # Formatear el número con la cantidad especificada de decimales
+        formato = f'{{:,.{decimales}f}}'
+        numero_formateado = formato.format(numero_float)
+        
+        return numero_formateado
+    except (ValueError, TypeError):
+        return numero
     
 @register.filter
-def formato_numero_precio_unitario(numero):
+def formato_numero_precio_unitario_hcam(numero, decimales=2):
     try:
-        # Convertir el número a cadena
-        numero_str = str(numero)
+        # Convertir el número a float para formatearlo
+        numero_float = float(numero)
         
-        # Dividir en parte entera y parte decimal
-        if '.' in numero_str:
-            parte_entera, parte_decimal = numero_str.split('.')
-            formato_entero = f'{int(parte_entera):,}'
-            return f'{formato_entero}.{parte_decimal}'
-        else:
-            # Si no tiene parte decimal
-            return f'{int(numero):,}'
+        # Formatear el número con la cantidad especificada de decimales
+        formato = f'{{:,.{decimales}f}}'
+        numero_formateado = formato.format(numero_float)
+        
+        # Reemplazar la coma con un punto para separar los miles y el punto con una coma para separar los decimales
+        numero_formateado = numero_formateado.replace(',', 'X').replace('.', ',').replace('X', '.')
+        
+        return numero_formateado
     except (ValueError, TypeError):
         return numero
     

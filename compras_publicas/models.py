@@ -58,6 +58,7 @@ class Producto(models.Model):
     precio_unitario = models.FloatField(verbose_name='Precio unitario', blank=True, default=0)
     precio_total    = models.FloatField(verbose_name='Precio total', blank=True, default=0)
     fecha_formato   = models.CharField(verbose_name='Formato de Fecha', max_length=20, blank=True, default='Y-m-d')
+    decimal_formato = models.IntegerField(verbose_name='Formato de decimal', blank=True, default=2)
     
     
     def __str__(self):
@@ -83,6 +84,8 @@ class Anexo(models.Model):
     fecha_hora     = models.DateTimeField(verbose_name='Fecha Hora', auto_now_add=True)
     ff_key         = models.CharField(verbose_name='Formato de fecha', max_length=50, blank=True, default='aaaa-mm-dd')
     ff_value       = models.CharField(verbose_name='Formato de fecha', max_length=50, blank=True, default='Y-m-d')
+    dd_key         = models.CharField(verbose_name='Formato de decimal', max_length=50, blank=True, default='0.00')
+    dd_value       = models.IntegerField(verbose_name='Formato de decimal', blank=True, default=2)
     usuario        = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.CASCADE, null=True)
     iva            = models.FloatField(verbose_name='IVA', blank=True, default=15)
     

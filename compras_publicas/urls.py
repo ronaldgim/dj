@@ -75,6 +75,12 @@ urlpatterns = [
         name='anexo_ff_edit_ajax'
     ),
     
+    #anexo_dd_edit_ajax
+    path(
+        route='anexos/anexo_dd_edit_ajax', 
+        view = views.anexo_dd_edit_ajax, 
+        name='anexo_dd_edit_ajax'
+    ),
     #anexo_delete_product_ajax
     path(
         route='anexos/anexo_delete_product_ajax', 
