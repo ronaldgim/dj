@@ -455,32 +455,38 @@ def add_datos_anexo_ajax(request):
 
 def add_datos_anexo_from_factura_ajax(request):
 
-    n_factura = request.POST.get('factura')
-    factura = formato_n_factura_input(n_factura)
+    try:
+        n_factura = request.POST.get('factura')
+        
+        n_fac = int(n_factura)
+        n_fac = '001-001-' + f'{n_fac:09d}'
+        
+        n_factura = formato_n_factura_input(n_factura)
+        
+        factura_cabecera = datos_factura_compras_publicas_cabecera_odbc(n_factura)
+        print(factura_cabecera)
+        
+        
+        ## Add cabecera anexo    
+        # anexo = Anexo(
+        #     n_pedido  = factura_cabecera['NUMERO_PEDIDO_SISTEMA'],
+        #     fecha     = factura_cabecera['FECHA_FACTURA'],
+        #     cliente   = factura_cabecera['NOMBRE_CLIENTE'],
+        #     ruc       = factura_cabecera['IDENTIFICACION_FISCAL'],
+        #     direccion = factura_cabecera['DIRECCION_PRINCIPAL_1'],
+        #     n_factura = n_fac,
+        #     usuario_id= request.user.id
+        # )
+        
+        ## Add productos anexo
+        print(n_factura)
+        factura_productos = datos_factura_compras_publicas_productos_odbc(n_factura)
+        print(factura_productos)
     
-    #factura_cabecera = datos_factura_compras_publicas_cabecera_odbc(factura)
-    #print(factura_cabecera)
-    n_fac = int(n_factura)
-    n_fac = '001-001-' + f'{n_fac:09d}'
-    
-    ## Add cabecera anexo    
-    # anexo = Anexo(
-    #     n_pedido  = factura_cabecera['NUMERO_PEDIDO_SISTEMA'],
-    #     fecha     = factura_cabecera['FECHA_FACTURA'],
-    #     cliente   = factura_cabecera['NOMBRE_CLIENTE'],
-    #     ruc       = factura_cabecera['IDENTIFICACION_FISCAL'],
-    #     direccion = factura_cabecera['DIRECCION_PRINCIPAL_1'],
-    #     n_factura = n_fac,
-    #     usuario_id= request.user.id
-    # )
-    
-    ## Add productos anexo
-    print(n_factura)
-    factura_productos = datos_factura_compras_publicas_productos_odbc(factura)
-    print(factura)
-    print(factura_productos)
-    
-    return HttpResponse('oko')
+        return HttpResponse('oko')
+    except Exception as e:
+        raise e
+
     
 
 
