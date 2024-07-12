@@ -490,45 +490,65 @@ def anexo_detail(request, anexo_id):
     anexo = Anexo.objects.get(id=anexo_id)
     products = anexo.product_list.all().order_by('product_id')
     ff = [
-        {
-            'key':'aaaa-mm-dd',
-            'value':'Y-m-d'
-        },
-        {
-            'key':'aaaa-mm',
-            'value':'Y-m'
-        },
-        {
-            'key':'dd-mm-aaaa',
-            'value':'d-m-Y'
-        },
-        {
-            'key':'mm-aaaa',
-            'value':'m-Y'
-        },
-        ## /
-        {
-            'key':'aaaa/mm/dd',
-            'value':'Y/m/d'
-        },
-        {
-            'key':'aaaa/mm',
-            'value':'Y/m'
-        },
-        {
-            'key':'dd/mm/aaaa',
-            'value':'d/m/Y'
-        },
-        {
-            'key':'mm/aaaa',
-            'value':'m/Y'
-        }
+            {
+                'key':'aaaa-mm-dd',
+                'value':'Y-m-d'
+            },
+            {
+                'key':'aaaa-mm',
+                'value':'Y-m'
+            },
+            {
+                'key':'dd-mm-aaaa',
+                'value':'d-m-Y'
+            },
+            {
+                'key':'mm-aaaa',
+                'value':'m-Y'
+            },
+            ## /
+            {
+                'key':'aaaa/mm/dd',
+                'value':'Y/m/d'
+            },
+            {
+                'key':'aaaa/mm',
+                'value':'Y/m'
+            },
+            {
+                'key':'dd/mm/aaaa',
+                'value':'d/m/Y'
+            },
+            {
+                'key':'mm/aaaa',
+                'value':'m/Y'
+            }
+    ]
+    
+    dd = [
+            {
+                'key':'0.00',
+                'value':2
+            },
+            {
+                'key':'0.000',
+                'value':3
+            },
+            {
+                'key':'0.0000',
+                'value':4
+            },
+            {
+                'key':'0.00000',
+                'value':5
+            },
     ]
     
     context = {
         'anexo':anexo,
         'products':products,
-        'ff':ff
+        'ff':ff,
+        'dd':dd
     }
     
     return render(request, 'compras_publicas/anexo_detail.html', context)
@@ -592,6 +612,29 @@ def anexo_ff_edit_ajax(request):
         
         prods = anexo.product_list.all()
         prods.update(fecha_formato=anexo.ff_value)
+        
+        return JsonResponse({'msg': 'ok'})
+    except:
+        return JsonResponse({'msg': 'fail'})
+    
+
+@transaction.atomic
+@require_POST
+def anexo_dd_edit_ajax(request):
+    
+    try:
+        anexo_id = int(request.POST.get('id', 0))
+        anexo_dd_value = request.POST.get('value')
+        anexo_dd_key = request.POST.get('key') 
+        
+        anexo = get_object_or_404(Anexo, id=anexo_id)
+        anexo.dd_key = anexo_dd_key
+        anexo.dd_value = anexo_dd_value
+        
+        anexo.save()
+        
+        prods = anexo.product_list.all()
+        prods.update(decimal_formato=anexo.dd_value)
         
         return JsonResponse({'msg': 'ok'})
     except:
@@ -812,6 +855,7 @@ def anexo_formato_general_agrupado(request, anexo_id):
         prods['procedencia'] = anexo_prod_list.filter(product_id=i).first().procedencia
         prods['r_sanitario'] = anexo_prod_list.filter(product_id=i).first().r_sanitario
         prods['precio_unitario'] = anexo_prod_list.filter(product_id=i).first().precio_unitario
+        prods['decimal_formato'] = anexo_prod_list.filter(product_id=i).first().decimal_formato
         prods['cantidad_total_2'] = anexo_prod_list.filter(product_id=i).aggregate(cantidad_total_2=Sum('cantidad'))['cantidad_total_2']
         prods['precio_total'] = anexo_prod_list.filter(product_id=i).aggregate(precio_total=Sum('precio_total'))['precio_total']
         
@@ -904,6 +948,7 @@ def anexo_formato_hcam(request, anexo_id):
         prods['procedencia'] = anexo_prod_list.filter(product_id=i).first().procedencia
         prods['r_sanitario'] = anexo_prod_list.filter(product_id=i).first().r_sanitario
         prods['precio_unitario'] = anexo_prod_list.filter(product_id=i).first().precio_unitario
+        prods['decimal_formato'] = anexo_prod_list.filter(product_id=i).first().decimal_formato
         prods['cantidad_total_2'] = anexo_prod_list.filter(product_id=i).aggregate(cantidad_total_2=Sum('cantidad'))['cantidad_total_2']
         prods['precio_total'] = anexo_prod_list.filter(product_id=i).aggregate(precio_total=Sum('precio_total'))['precio_total']
         
@@ -970,6 +1015,7 @@ def anexo_formato_hpas(request, anexo_id):
         prods['procedencia'] = anexo_prod_list.filter(product_id=i).first().procedencia
         prods['r_sanitario'] = anexo_prod_list.filter(product_id=i).first().r_sanitario
         prods['precio_unitario'] = anexo_prod_list.filter(product_id=i).first().precio_unitario
+        prods['decimal_formato'] = anexo_prod_list.filter(product_id=i).first().decimal_formato
         prods['cantidad_total_2'] = anexo_prod_list.filter(product_id=i).aggregate(cantidad_total_2=Sum('cantidad'))['cantidad_total_2']
         prods['precio_total'] = anexo_prod_list.filter(product_id=i).aggregate(precio_total=Sum('precio_total'))['precio_total']
         

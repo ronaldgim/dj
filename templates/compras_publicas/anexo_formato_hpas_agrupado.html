@@ -68,7 +68,7 @@
         <label><strong>DIRECCIÓN:</strong> {{anexo.direccion}}</label><br>
         <label><strong>FECHA:</strong> {{anexo.fecha}}</label><br>
 
-        <table repeat="1" style="border:1px solid black;font-size:9px">
+        <table repeat="1" style="border:1px solid black;font-size:9px;width:100%;">
             <thead>
                 <tr>
                     <th class="t_b" style="width:200px;">CÓDIGO</th>
@@ -88,7 +88,7 @@
                 {% for i in prods_list %}
                 <tr>
                     <td class="t_b" rowspan="{{ i.products.count }}">{{ i.product_id }}</td>
-                    <td class="t_b" rowspan="{{ i.products.count }}" style="font-size:7px">
+                    <td class="t_b" rowspan="{{ i.products.count }}" style="font-size:8px">
                         <p>{{ i.nombre }}</p>
                         <p>MARCA:{{i.marca}} - {{i.procedencia|upper}}</p>
                         <p>REGISTRO SANITARIO:{{i.r_sanitario}}</p>
@@ -101,7 +101,7 @@
                         <td class="t_b" style="text-align:center">{{first_product.f_caducidad|date:first_product.fecha_formato}}</td>
                         <td class="t_b" style="text-align:center">{{first_product.cantidad|formato_numero_miles_cantidad }}</td>
                         <td class="t_b" style="text-align:center" rowspan="{{ i.products.count }}">{{i.cantidad_total_2|formato_numero_miles_cantidad}}</td>
-                        <td class="t_b" style="text-align:center" rowspan="{{ i.products.count }}">$ {{i.precio_unitario|formato_numero_precio_unitario}}</td>
+                        <td class="t_b" style="text-align:center" rowspan="{{ i.products.count }}">$ {{i.precio_unitario|formato_numero_precio_unitario:i.decimal_formato}}</td>
                         <td class="t_b" style="text-align:center" rowspan="{{ i.products.count }}">$ {{i.precio_total|formato_numero_miles}}</td>
                         {% endwith %}
                     {% endif %}
@@ -132,7 +132,7 @@
                         $ {{mas_iva|formato_numero_miles}}
                     </td>
                 </tr>
-                <tr>
+                <tr style="border-bottom: 3px solid black;">
                     <td class="t_b" colspan="2" style="text-align:right;"><strong>TOTAL</strong></td>
                     <td class="t_b" style="text-align: right">
                         <strong>$ {{total|formato_numero_miles}}</strong>

@@ -78,7 +78,7 @@
         <label><strong>R.UC.:</strong> {{anexo.ruc}}</label><br>
         <label><strong>DIRECCIÓN:</strong> {{anexo.direccion}}</label><br>
 
-        <table repeat="1" style="border:1px solid black;font-size:9px">
+        <table repeat="1" style="border:1px solid black; font-size:9px; width:100%;">
             <thead>
                 <tr>
                     <th class="t_b" style="width:190px;">CÓDIGO</th>
@@ -98,7 +98,7 @@
                 {% for i in prods_list %}
                 <tr>
                     <td class="t_b" rowspan="{{ i.products.count }}">{{ i.product_id }}</td>
-                    <td class="t_b" rowspan="{{ i.products.count }}" style="font-size:7px">
+                    <td class="t_b" rowspan="{{ i.products.count }}" style="font-size:8px">
                         <strong><u>NOMBRE GENERICO</u></strong><br>
                         {{ i.nombre_generico }}<br><br>
                         <strong><u>NOMBRE COMERCIAL</u></strong><br>
@@ -114,7 +114,7 @@
                         <td class="t_b" style="text-align:center">{{first_product.f_caducidad|date:first_product.fecha_formato}}</td>
                         <td class="t_b" style="text-align:center">{{first_product.cantidad|floatformat:"0g"}}</td>
                         <td class="t_b" style="text-align:center" rowspan="{{ i.products.count }}">{{i.cantidad_total_2|floatformat:"0g"}}</td>
-                        <td class="t_b" style="text-align:center" rowspan="{{ i.products.count }}">$ {{i.precio_unitario}}</td>
+                        <td class="t_b" style="text-align:center" rowspan="{{ i.products.count }}">$ {{i.precio_unitario|formato_numero_precio_unitario_hcam:i.decimal_formato}}</td>
                         <td class="t_b" style="text-align:center" rowspan="{{ i.products.count }}">$ {{i.precio_total|floatformat:"2g"}}</td>
                         {% endwith %}
                     {% endif %}
@@ -145,7 +145,7 @@
                         $ {{mas_iva|floatformat:"2g"}}
                     </td>
                 </tr>
-                <tr>
+                <tr style="border-bottom: 3px solid black;">
                     <td class="t_b" colspan="2" style="text-align:right;"><strong>TOTAL</strong></td>
                     <td class="t_b" style="text-align: right">
                         <strong>$ {{total|floatformat:"2g"}}</strong>
