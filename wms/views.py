@@ -1734,15 +1734,19 @@ def wms_egreso_picking(request, n_pedido): #OK
 
     prod   = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     prod   = prod.rename(columns={'product_id':'PRODUCT_ID'})
-
+    
     pedido = pedido_por_cliente(n_pedido).sort_values('PRODUCT_ID')
-    pedido = pedido.groupby(by=['CONTRATO_ID','NOMBRE_CLIENTE','FECHA_PEDIDO','HORA_LLEGADA','PRODUCT_ID','PRODUCT_NAME']).sum().reset_index()
+    pedido = pedido.groupby(by=['CONTRATO_ID','CODIGO_CLIENTE','NOMBRE_CLIENTE','FECHA_PEDIDO','HORA_LLEGADA','PRODUCT_ID','PRODUCT_NAME']).sum().reset_index()
     pedido = pedido.merge(prod, on='PRODUCT_ID',how='left')
+    
+    cli    = clientes_warehouse()[['CODIGO_CLIENTE','CIUDAD_PRINCIPAL']]
+    pedido = pedido.merge(cli, on='CODIGO_CLIENTE', how='left')
 
     prod_list = list(pedido['PRODUCT_ID'].unique())
 
     n_ped = pedido['CONTRATO_ID'].iloc[0]
     cli   = pedido['NOMBRE_CLIENTE'].iloc[0]
+    ciu   = pedido['CIUDAD_PRINCIPAL'].iloc[0]
     fecha = pedido['FECHA_PEDIDO'].iloc[0]
     hora  = pedido['HORA_LLEGADA'].iloc[0]
 
@@ -1811,6 +1815,7 @@ def wms_egreso_picking(request, n_pedido): #OK
         'pedido':ped,
         'n_ped':n_ped,
         'cli':cli,
+        'ciu':ciu,
         'fecha': fecha ,
         'hora':hora,
         'estado':estado,
