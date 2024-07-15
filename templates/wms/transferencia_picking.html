@@ -90,7 +90,9 @@
                             <span id="product_id">{{i.product_id}}</span><br>{{i.Nombre}}<br>{{i.Marca}}
                         </td>
                         <td>
-                            <span id="lote_id">{{i.lote_id}}</span><br>{{i.fecha_caducidad}}<br>V: {{i.vol|floatformat:"1g"}}m<sup>3</sup></td>
+                            <span id="lote_id">{{i.lote_id}}</span><br>{{i.fecha_caducidad}}<br>
+                            <span {% if i.id_max %} class="bg-success text-white" {% endif %}> V: {{i.vol|floatformat:"1g"}}m<sup>3</sup></span>
+                        </td>
                         <td
                             {% if i.unidades == i.unidades_wms %}
                             style="background-color: #e3fde6;"
