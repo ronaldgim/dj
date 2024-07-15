@@ -2437,8 +2437,10 @@ def wms_transferencia_picking(request, n_transf):
     transf['fecha_caducidad'] = pd.to_datetime(transf['fecha_caducidad']).dt.strftime('%d-%m-%Y').astype(str)
     transf['cartones'] = transf['unidades'] / transf['Unidad_Empaque']
     transf['vol'] = transf['cartones'] * (transf['Volumen']/1000000)
+    transf['id_max'] = ''
+    transf.at[transf['vol'].idxmax(), 'id_max'] = 'max'
     transf = transf.sort_values('ubicacion')
-
+    
     # Productos y cantidades egresados de WMS por Picking Transferencia
     mov = pd.DataFrame(Movimiento.objects.filter(n_referencia=n_transf).values(
         'id',
@@ -2497,7 +2499,8 @@ def wms_transferencia_picking(request, n_transf):
         'transf':transf_template,
         'n_transf':n_transf,
         'estado':estado.estado,
-        'avance':estado.avance
+        'avance':estado.avance,
+        'vol_max':transf['vol'].max()
     }
     return render(request, 'wms/transferencia_picking.html', context)
 
