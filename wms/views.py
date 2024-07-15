@@ -1804,11 +1804,11 @@ def wms_egreso_picking(request, n_pedido): #OK
                     if m['product_id'] == i:
                         pik_list.append(m)
                         
-    # Ordenar listado de picking
-    try:
-        ped = sorted(ped, key=lambda x: (x['ubi'][0]['ubicacion__bodega'], x['ubi'][0]['ubicacion__distancia_puerta']))
-    except Exception as e:
-        pass
+    # # Ordenar listado de picking
+    # try:
+    #     ped = sorted(ped, key=lambda x: (x['ubi'][0]['ubicacion__bodega'], x['ubi'][0]['ubicacion__distancia_puerta']))
+    # except Exception as e:
+    #     pass
     
     
     context = {
