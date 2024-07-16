@@ -42,7 +42,7 @@
     </div>
 </div>
 
-<formsss method="POST">
+<form method="POST">
     {% csrf_token %}
     <div class="card mt-2">
         <div class="card-body m-2 p-2">
@@ -72,7 +72,7 @@
                     </select>
                 </div>
                 <div class="col-3 mt-4 pt-1">
-                    <button name="calcular" id="tramaco_button_id" class="btn btn-success">
+                    <button name="calcular" id="tramaco_button_id" class="btn btn-success" type="button">
                         <i class="bi bi-currency-dollar"></i> Calcular 
                     </button>
                 </div>
@@ -140,7 +140,7 @@
                     <tr>
                         <th scope="row">{{i.PRODUCT_ID}}</th>
                         <td class="text-start">{{i.PRODUCT_NAME}}</td>
-                        <td class="text-start">{{i.marca}}</td>
+                        <td class="text-start">{{i.GROUP_CODE}}</td>
                         <td class="text-end">{{i.QUANTITY|floatformat:"0g"}}</td>
                         <td class="text-end">{{i.Cartones|floatformat:"2g"}}</td>
                         <!--td class="text-center">{{i.t_una_p_min|floatformat:"2g"}}</td-->

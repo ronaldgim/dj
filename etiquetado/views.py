@@ -786,7 +786,8 @@ def facturas(request, n_factura):
 
     # Calculos
     factura['Cartones'] = factura['QUANTITY'] / factura['Unidad_Empaque']
-
+    factura = factura.fillna(0).replace(np.inf, 0)
+    
     factura['t_1p'] = (factura['Cartones'] * factura['t_etiq_1p']).round(0)
     factura['t_2p'] = (factura['Cartones'] * factura['t_etiq_2p']).round(0)
     factura['t_3p'] = (factura['Cartones'] * factura['t_etiq_3p']).round(0)
