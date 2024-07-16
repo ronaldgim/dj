@@ -10,7 +10,7 @@ from sqlite3 import Error
 currentTimeDate = datetime.now() - relativedelta(days=10)
 #currentTimeDate = datetime.now() - datetime.timedelta(15)
 OneMonthTime = currentTimeDate.strftime('%d-%m-%Y')
-print(OneMonthTime)
+#print(OneMonthTime)
         
 def odbc(mydb):
             # Using a DSN, but providing a password as well
