@@ -739,7 +739,7 @@ def actualizar_facturas_odbc():
         database="warehouse"
     )
     
-    currentTimeDate = datetime.now() - relativedelta(days=60)
+    currentTimeDate = datetime.now() - relativedelta(days=90)
     OneMonthTime = currentTimeDate.strftime('%d-%m-%Y')
     
     try:
