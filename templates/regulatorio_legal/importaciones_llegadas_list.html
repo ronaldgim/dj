@@ -115,7 +115,7 @@
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="staticBackdropLabel">Busqueda por código</h5>
+                <h5 class="modal-title" id="staticBackdropLabel"></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -222,6 +222,7 @@
             },
 
             success: function(response) {
+                $(".modal-title").html(`Busqueda por código ${codigo}`)
                 $('#msg_data').html(`<div class="text-center mb-2 alert alert-success" role="alert">${response.msg_data} !!! </div>`);
                 $("#data").html(response.data, 'asdf')
             },
