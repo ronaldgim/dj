@@ -169,11 +169,23 @@ def doc_importacion_por_codigo_ajax(request):
     codigo_corp = codigo + '-GIMPR'
     
     try:
-        cnxn = pyodbc.connect('DSN=mba3;PWD=API')
-        cursorOdbc = cnxn.cursor()
+        # cnxn = pyodbc.connect('DSN=mba3;PWD=API')
+        # cursorOdbc = cnxn.cursor()
 
-        cursorOdbc.execute(
-            "SELECT INVT_Lotes_Trasabilidad.DOC_ID_CORP, INVT_Lotes_Trasabilidad.ENTRADA_FECHA, "
+        # cursorOdbc.execute(
+        #     "SELECT INVT_Lotes_Trasabilidad.DOC_ID_CORP, INVT_Lotes_Trasabilidad.ENTRADA_FECHA, "
+        #     "INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP, INVT_Lotes_Trasabilidad.LOTE_ID, INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD, "
+        #     "INVT_Lotes_Trasabilidad.AVAILABLE, INVT_Lotes_Trasabilidad.EGRESO_TEMP, INVT_Lotes_Trasabilidad.OH, INVT_Lotes_Trasabilidad.WARE_COD_CORP, CLNT_Pedidos_Principal.MEMO "
+        #     "FROM INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad "
+        #     "LEFT JOIN CLNT_Pedidos_Principal ON INVT_Lotes_Trasabilidad.DOC_ID_CORP = CLNT_Pedidos_Principal.CONTRATO_ID_CORP "
+        #     f"WHERE (INVT_Lotes_Trasabilidad.ENTRADA_TIPO='OC') AND (INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP = '{codigo_corp}') AND (INVT_Lotes_Trasabilidad.Tipo_Movimiento='RP')"
+        # )
+        
+        # columns = [col[0] for col in cursorOdbc.description]
+        # data = [dict(zip(columns, row)) for row in cursorOdbc.fetchall()]
+        
+        from api_mba.mba import api_mba_sql
+        request = api_mba_sql("SELECT INVT_Lotes_Trasabilidad.DOC_ID_CORP, INVT_Lotes_Trasabilidad.ENTRADA_FECHA, "
             "INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP, INVT_Lotes_Trasabilidad.LOTE_ID, INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD, "
             "INVT_Lotes_Trasabilidad.AVAILABLE, INVT_Lotes_Trasabilidad.EGRESO_TEMP, INVT_Lotes_Trasabilidad.OH, INVT_Lotes_Trasabilidad.WARE_COD_CORP, CLNT_Pedidos_Principal.MEMO "
             "FROM INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad "
@@ -181,8 +193,9 @@ def doc_importacion_por_codigo_ajax(request):
             f"WHERE (INVT_Lotes_Trasabilidad.ENTRADA_TIPO='OC') AND (INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP = '{codigo_corp}') AND (INVT_Lotes_Trasabilidad.Tipo_Movimiento='RP')"
         )
         
-        columns = [col[0] for col in cursorOdbc.description]
-        data = [dict(zip(columns, row)) for row in cursorOdbc.fetchall()]
+        status = request['status']
+        data = request['json']
+        
         data = pd.DataFrame(data).drop_duplicates(subset='DOC_ID_CORP').fillna('-').sort_values(by='ENTRADA_FECHA', ascending=False)
         
         data = data.rename(columns={
