@@ -2755,13 +2755,11 @@ def datos_factura_compras_publicas_productos_odbc(n_factura):
         f"((INVT_Producto_Movimientos.CONFIRM=TRUE) AND (CLNT_Factura_Principal.CODIGO_FACTURA='{n_factura}') AND "
         #"(INVT_Producto_Movimientos.I_E_SIGN='-') AND (INVT_Producto_Movimientos.ADJUSTMENT_TYPE='FT') AND "
         "(CLNT_Factura_Principal.ANULADA=FALSE))"
-        
-    
     )
 
     columns = [col[0] for col in cursorOdbc.description]
     datos   = [dict(zip(columns, row)) for row in cursorOdbc.fetchall()]
 
     datos   = pd.DataFrame(datos)
-    print(datos)
+    # print(datos)
     return datos

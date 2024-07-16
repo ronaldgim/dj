@@ -464,7 +464,7 @@ def add_datos_anexo_from_factura_ajax(request):
         n_factura = formato_n_factura_input(n_factura)
         
         factura_cabecera = datos_factura_compras_publicas_cabecera_odbc(n_factura)
-        print(factura_cabecera)
+        #print(factura_cabecera)
         
         
         ## Add cabecera anexo    
@@ -479,7 +479,7 @@ def add_datos_anexo_from_factura_ajax(request):
         # )
         
         ## Add productos anexo
-        print(n_factura)
+        #print(n_factura)
         factura_productos = datos_factura_compras_publicas_productos_odbc(n_factura)
         print(factura_productos)
     
@@ -487,7 +487,6 @@ def add_datos_anexo_from_factura_ajax(request):
     except Exception as e:
         raise e
 
-    
 
 
 @login_required(login_url='login')
