@@ -2130,35 +2130,24 @@ def revision_imp_llegadas_list(request):
     imp = importaciones_llegadas_odbc()
     pro = productos_odbc_and_django()
 
-    # r_lote = reservas_lote()
-    # clientes = clientes_table()[['CODIGO_CLIENTE', 'CLIENT_TYPE']]
-    # r_lote = r_lote.merge(clientes, on='CODIGO_CLIENTE', how='left')
-    # r_lote = r_lote[r_lote['CLIENT_TYPE']=='HOSPU'];print(r_lote)
-
-    imp = imp.merge(pro, on='product_id', how='left') #;print(imp)
-    #print(imp);print(imp.keys())
+    imp = imp.merge(pro, on='product_id', how='left').fillna('')
 
     imp = imp[[
         'DOC_ID_CORP',
         'ENTRADA_FECHA',
-        # 'LOTE_ID',
-        # 'FECHA_CADUCIDAD',
-        # 'AVAILABLE',
-        # 'EGRESO_TEMP',
-        # 'OH',
         'WARE_COD_CORP',
-
-        # 'product_id',
-        # 'Nombre',
-        'marca2'
+        'Marca',
+        'marca2',
     ]]
+    
+    imp['MARCA'] = imp.apply(lambda row: row['Marca'] if not row['marca2'] else row['marca2'], axis=1)
+    
+    imp['ENTRADA_FECHA'] = imp['ENTRADA_FECHA'].astype('str')
 
     imp = imp.drop_duplicates(subset=['DOC_ID_CORP'])
     imp = imp.sort_values(['ENTRADA_FECHA'], ascending=[False])[:50]
-
-    #print(imp);print(imp.keys())
     imp_list = de_dataframe_a_template(imp)
-
+    
     actualizado = ultima_actualizacion('actualization_reserva_lote')
 
     context = {
