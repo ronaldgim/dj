@@ -2024,7 +2024,7 @@ def revision_reservas_fun():
 
     # Filtrar inventario por lista de productos en contratos
     inventario = inventario[inventario.PRODUCT_ID.isin(lista_productos)]
-    inventario['FECHA_CADUCIDAD'] = pd.to_datetime(inventario['FECHA_CADUCIDAD'])
+    #inventario['FECHA_CADUCIDAD'] = pd.to_datetime(inventario['FECHA_CADUCIDAD'])
     
     # Agrupar reservas por producto, lote y bodega - todas las reservas de la tabla "reservas_lote"
     r_agg = df_reservas_lote.pivot_table(index=['PRODUCT_ID', 'LOTE_ID', 'WARE_CODE'], values='EGRESO_TEMP', aggfunc='sum').reset_index()
@@ -2073,13 +2073,12 @@ def revision_reservas_fun():
             inv_res = inv_res.merge(r_agg, on=['PRODUCT_ID','LOTE_ID','WARE_CODE'], how='left').fillna(0)
             inv_res = inv_res.sort_values('FECHA_CADUCIDAD')
             
-            #r_fecha_caducidad = pd.to_datetime
-            
             # Filtros y restricciónes 
             # Mostrar inventario mayor a la fecha de caducidad del lote reservado
             # inv_res = inv_res[inv_res['FECHA_CADUCIDAD']>r_fecha_caducidad]
-            inv_res['FECHA_CADUCIDAD'] = pd.to_datetime(inv_res['FECHA_CADUCIDAD'])
-            inv_res = inv_res[inv_res['FECHA_CADUCIDAD']>pd.to_datetime(r_fecha_caducidad)]
+            
+            #inv_res['FECHA_CADUCIDAD'] = pd.to_datetime(inv_res['FECHA_CADUCIDAD'])
+            #inv_res = inv_res[inv_res['FECHA_CADUCIDAD']>pd.to_datetime(r_fecha_caducidad)]
             
             # Quitar stock en cuarentena
             inv_res = inv_res[inv_res['WARE_CODE']!='CUA']
