@@ -1143,8 +1143,7 @@ def importaciones_llegadas_odbc():
 
     with connections['gimpromed_sql'].cursor() as cursor:
         cursor.execute(
-            "SELECT DOC_ID_CORP, ENTRADA_FECHA, PRODUCT_ID_CORP, LOTE_ID, FECHA_CADUCIDAD, AVAILABLE, EGRESO_TEMP, OH, WARE_COD_CORP, MEMO FROM imp_llegadas"
-            #"SELECT * FROM imp_llegadas"
+            "SELECT * FROM imp_llegadas"
             )
         columns = [col[0] for col in cursor.description]
         importaciones_llegadas = [

@@ -57,9 +57,9 @@ urlpatterns = [
     
     # Revisión tecnica
     path(
-        route='muestreos/revisiontecnica/<str:memo>',
+        route='muestreos/revisiontecnica/<str:doc_id>',
         view = views.revision_tecnica,
-        name = 'revision_tencnica'
+        name = 'revision_tecnica'
     ),
 
     ### TRANSFERENCIAS ###

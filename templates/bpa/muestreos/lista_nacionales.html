@@ -10,14 +10,6 @@
 
 {% block body %}
 <h5 class="m-4 text-center"><strong>LISTADO DE COMPRAS NACIONALES</strong></h5>
-<!--h6 class="m-4 text-end"><strong>Actulizado: </strong>{{actualizado|slice:':-7'}}</h6-->
-
-<!--form method="POST">
-    {% csrf_token %} 
-    <button type="submit" class="btn btn-primary mb-2">
-        <i class="bi bi-arrow-clockwise"></i> Actulizar Tabla
-    </button>
-</form-->
 
 <div class="col-4">
     <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
@@ -34,9 +26,8 @@
                         <th scope="col">Fecha de llegada</th>
                         <th scope="col">Memo</th>
                         <th scope="col">Orden de compra</th>
-                        <th scope="col">M. Unidades.</th>
-                        <!--th scope="col">M. Cartones.</th-->
-                        <th scope="col">R. Técnica.</th>
+                        <th scope="col">M.Unidades.</th>
+                        <th scope="col">R.Técnica.</th>
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
@@ -55,19 +46,10 @@
                             </a>
                             {% endif %}
                         </td>
-                        <!--td>
-                            {% if i.MEMO %}
-                            <a class="btn btn-primary btn-sm" href="{% url 'muestreos_imp_cartones' i.MEMO %}" target="_blank">
+                        <td>
+                            <a class="btn btn-primary btn-sm" href="{% url 'revision_tecnica' i.DOC_ID_CORP %}" target="_blank">
                                 <i class="bi bi-boxes"></i>
                             </a>
-                            {% endif %}
-                        </td-->
-                        <td>
-                            {% if i.DOC_ID_CORP %}
-                            <a class="btn btn-primary btn-sm" href="{% url 'revision_tencnica' i.DOC_ID_CORP %}" target="_blank">
-                                <i class="bi bi-list-check"></i>
-                            </a>
-                            {% endif %}
                         </td>
                     </tr>
                     {% endfor %}
@@ -87,71 +69,5 @@
             });
         });
     });
-</script>
-<!-- Filtro de columna -->
-<script>
-    $('.filter').change(function(){
-        filter_function(); //calling filter function each select box value change
-    });
-      
-    $('table tbody tr').show(); //intially all rows will be shown
-      
-    function filter_function(){
-        $('table tbody tr').hide(); //hide all rows
-        
-        var tipoFlag = 'TODOS';
-        var tipoValue = $('#filter-tipo').val();
-        
-       //traversing each row one by one
-        $('table tr').each(function() {  
-          if(tipoValue == 'TODOS'){
-            tipoFlag = 1;
-          }
-          else if(tipoValue == $(this).find('td.tipo').data('tipo')){
-            tipoFlag = 1;
-          }
-          else{
-            tipoFlag = 0;
-          }
-
-         if(tipoFlag){
-            $(this).show();
-         }
-      
-      });
-    }
-</script>
-<!-- Filtro estado de etiquetado -->
-<script>
-    $('.filter-est').change(function(){
-        filter_function_estado(); //calling filter function each select box value change
-    });
-      
-    $('table tbody tr').show(); //intially all rows will be shown
-      
-    function filter_function_estado(){
-        $('table tbody tr').hide(); //hide all rows
-        
-        var tipoFlag = 'ESTADO';
-        var tipoValue = $('#filter-estado').val();
-        
-       //traversing each row one by one
-        $('table tr').each(function() {  
-          if(tipoValue == 'ESTADO'){
-            tipoFlag = 1;
-          }
-          else if(tipoValue == $(this).find('td.estado').data('estado')){
-            tipoFlag = 1;
-          }
-          else{
-            tipoFlag = 0;
-          }
-
-         if(tipoFlag){
-            $(this).show();
-         }
-      
-      });
-    }
 </script>
 {% endblock %}
