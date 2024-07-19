@@ -244,7 +244,7 @@ def carta_procesos(request):
                     form.save()
                     return redirect('procesos_list')
             else:
-                print(form.errors)
+
                 context = {
                     'form':form,
                     'errors':form.errors                        
