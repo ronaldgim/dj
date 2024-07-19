@@ -56,7 +56,8 @@ from datos.views import (
     productos_odbc_and_django, 
     importaciones_llegadas_por_docid_odbc,
     importaciones_tansito_list,
-    importaciones_tansito_por_contratoid
+    importaciones_tansito_por_contratoid,
+    quitar_prefijo
     )
 
 # de dataframe to template
@@ -500,10 +501,10 @@ def muestreo_transferencia(request, doc):
 def revision_tecnica_transferencia(request, doc):
     
     trans = pd.DataFrame(Trasferencia.objects.filter(documento=doc).values())
+    trans_odbc = doc_transferencia_odbc(doc)[['product_id','bodega_salida']]
     prod = productos_odbc_and_django()[[
         'product_id',
         'Nombre',
-        'Marca',
         'Reg_San',
         'emp_primario', 
         'emp_secundario', 
@@ -512,16 +513,29 @@ def revision_tecnica_transferencia(request, doc):
     trans = trans.groupby(['product_id', 'documento']).sum()
     trans = trans.reset_index()
 
-    docum = trans['documento'].iloc[0]
-
     muest = muestreo(trans, 'unidades')
     muest = muest.merge(prod, on='product_id', how='left')
+    muest = muest.merge(trans_odbc, on='product_id', how='left')
+    muest['Reg_San'] = muest['Reg_San'].apply(quitar_prefijo)
+    
+    docum = muest['documento'].iloc[0]
+    b_salida = muest['bodega_salida'].iloc[0]
+    
+    if b_salida == 'BCT':
+        bodega_salida = 'Cerezos'
+        bodega_entrada = 'Andagoya'
+    elif b_salida == 'CUC':
+        bodega_salida = 'Cuarentena Cerezos'
+        bodega_entrada = 'Cuarentena Andagoya'
     
     muest = de_dataframe_a_template(muest)
 
     context = {
+        'muestreo':muest,
         'documento':docum,
-        'muestreo':muest
+        'bodega_salida':bodega_salida,
+        'bodega_entrada':bodega_entrada,
+        'n_lineas':range(5)
     }
 
     return render(request, 'bpa/muestreos/revision_tecnica_transferencias.html', context)

@@ -57,7 +57,7 @@
     }
 
     .t_codigo {
-        width: 85px;
+        width: 100px;
         font-size: small;
     }
 
@@ -167,28 +167,28 @@
 
         <table>
             <tr>
-                <td class="t_title_2">Tipo de Ingreso de Mercaderia:</td>
+                <td class="t_title_2"><strong>Tipo de Ingreso de Mercaderia:</strong></td>
                 <td class="t_title_2">Transferencia</td>
-                <td class="t_title_3">Bodega</td>
+                <td class="t_title_3"><strong>Bodega</strong></td>
                 <td class="t_title_2"></td>
             </tr>
             <tr>
-                <td class="t_title_2">Número:</td>
+                <td class="t_title_2"><strong>Número:</strong></td>
                 <td class="t_title_2">{{documento}}</td>
-                <td class="t_title_3">Andagoya</td>
-                <td class="t_title_2">__________</td>
+                <td class="t_title_3"><strong>Andagoya</strong></td>
+                <td class="t_title_2">{% if bodega_entrada == 'Andagoya' %} {{bodega_entrada}} {% endif %}</td>
             </tr>
             <tr>
-                <td class="t_title_2">Proveedor/Fabricante:</td>
-                <td class="t_title_2">__________</td>
+                <td class="t_title_2"><strong>Proveedor/Fabricante:</strong></td>
+                <td class="t_title_2">{{bodega_salida}}</td>
                 <!--td class="t_title_2">Andagoya</td-->
-                <td class="t_title_3">Cerezos</td>
-                <td class="t_title_2">__________</td>
+                <td class="t_title_3"><strong>Cerezos</strong></td>
+                <td class="t_title_2">{% if bodega_entrada == 'Cerezos' %} {{bodega_entrada}} {% endif %}</td>
                 <!--td class="t_title_2">  x   </td-->
             </tr>
             <tr>
-                <td class="t_title_2">Fecha</td>
-                <td class="t_title_2">{{fecha}}</td>
+                <td class="t_title_2"><strong>Fecha</strong></td>
+                <td class="t_title_2">{% now 'Y-m-d' %}</td>
                 <!--td class="t_title_3">25/9/2023</td-->
                 <td class="t_title_3"></td>
                 <td class="t_title_2"></td>
@@ -255,9 +255,9 @@
             {% for i in muestreo %}
             
             <tr>
-                <td class="t_row">{{i.product_id}}</td>
-                <td class="t_row">{{i.Nombre}}</td>
-                <td class="t_row">{{i.Reg_San}}</td>
+                <td class="t_row" style="font-size: 7px">{{i.product_id}}</td>
+                <td class="t_row" style="font-size: 7px">{{i.Nombre}}</td>
+                <td class="t_row" style="font-size: 6px">{{i.Reg_San}}</td>
                 
                 <!-- Empaque terciario -->
                 {% if i.emp_terciario %}
@@ -349,67 +349,64 @@
         <table>
             <tr>
                 <th>
-                    <img whidth="20" height="20" src="{% static 'ok.png' %}"> : Cumple
+                    <img whidth="12" height="12" src="{% static 'ok.png' %}"> <span style="font-size: 10px">: Cumple</span>
                 </th> 
                 <th>
-                    <img whidth="20" height="20" src="{% static 'no.png' %}"> : No Cumple
+                    <img whidth="12" height="12" src="{% static 'no.png' %}"> <span style="font-size: 10px">: No Cumple</span>
                 </th>
                 <th>
-                    <span style="font-size: 20px;">
+                    <span style="font-size: 12px;">
                         <strong>A :</strong>
-                    </span> Requiere Acondicionamiento
+                    </span> <span style="font-size: 10px">Requiere Acondicionamiento</span>
                 </th>
             </tr>
         </table>
 
         <br>
 
-        <label><strong>Informe/Conclusiones:</strong></label>
+        <label style="font-size: 12px;"><strong>Informe/Conclusiones:</strong></label>
         <table style="border:1px solid black;">
+            {% for i in n_lineas %}
             <tr>
-                <td>
-                    <p>
-                        <br>
-                        <br>
-                        <br>
-                    </p>
+                <td style="border:1px solid black;"> .
                 </td>
             </tr>
+            {% endfor %}
         </table>
         <br>
         <table>
             <tr>
                 <th>
-                    <label style="text-align:justify; font-size:14px">
+                    <label style="text-align:justify; font-size:10px">
                         <strong>_______________________</strong>
                     </label><br>
-                    <label style="text-align:justify; font-size:14px">
+                    <label style="text-align:justify; font-size:10px">
                         <strong>Elaborado por:</strong>
                     </label><br>
-                    <label style="text-align:justify; font-size:14px">
+                    <label style="text-align:justify; font-size:10px">
                         <strong>Asistente de Calidad</strong>
                     </label>
                 </th> 
                 <th>
-                    <label style="text-align:justify; font-size:14px">
+                    <label style="text-align:justify; font-size:10px">
                         <strong>_______________________</strong>
                     </label><br>
-                    <label style="text-align:justify; font-size:14px">
+                    <label style="text-align:justify; font-size:10px">
                         <strong>Aprobado por:</strong>
                     </label><br>
-                    <label style="text-align:justify; font-size:14px">
+                    <label style="text-align:justify; font-size:10px">
                         <strong>Responsable Técnico</strong>
                     </label>
                 </th>
                 <th>
-                    <label style="text-align:justify; font-size:14px">
+                    <label style="text-align:justify; font-size:10px">
                         <strong>_______________________</strong>
                     </label><br>
-                    <label style="text-align:justify; font-size:14px">
+                    <label style="text-align:justify; font-size:10px">
                         <strong>Revisado por:</strong>
                     </label><br>
-                    <label style="text-align:justify; font-size:14px">
-                        <strong>Genernte de Operaciones</strong>
+                    <label style="text-align:justify; font-size:10px">
+                        <strong>Gerente de Operaciones</strong>
                     </label>
                 </th>
             </tr>

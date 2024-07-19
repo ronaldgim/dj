@@ -268,7 +268,7 @@
         html2canvas($('#capture')[0], {
             width: 1300,
             height: 1200
-          }).then(function(canvas) {
+            }).then(function(canvas) {
             var a = document.createElement('a');
             a.href = canvas.toDataURL("image/png");
             a.download = 'Factrura {{n_factura}}.png';
