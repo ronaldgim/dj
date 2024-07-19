@@ -79,17 +79,6 @@ def productos(): #request
         prod = prod[['Codigo', 'Nombre', 'Reg_San']]
         prod = prod.rename(columns={'Codigo':'product_id'})
 
-        # r_s =[]
-
-        # for i in prod['Reg_San'].to_list():
-        #     for j in i:
-        #         if j.find(':'):
-        #             x =+ 1
-        #             p = i[x::]
-        #             r_s.append(p)
-
-        # print(r_s)
-
     return prod
 
 
@@ -111,6 +100,7 @@ def importaciones_transito_data(): #request
 
         imp = importaciones.merge(pro, on='PRODUCT_ID')
         imp['CARTONES'] = (imp['QUANTITY']/imp['Unidad_Empaque']).round(0)
+        imp['tipo'] = 'importaciones_transito'
         
     return imp
 
@@ -141,9 +131,10 @@ def importaciones(request):
 
     imp = importaciones_compras_df()
     imp = imp.drop_duplicates(subset=['DOC_ID_CORP'])
+    imp['tipo'] = 'importaciones_llegadas'
     filtro_1 = imp['Procedencia'].str.contains('NACIONAL')
     filtro_2 = imp['Procedencia'].str.contains('Nacional')
-    
+
     imp = imp[~filtro_1]
     imp = imp[~filtro_2]
     
@@ -164,7 +155,9 @@ def importaciones_transito(request):
     imp_transito = imp_transito.rename(columns={'PRODUCT_ID':'product_id'})
     imp_transito = imp_transito.merge(prod, on='product_id', how='left')
     imp_transito['FECHA_ENTREGA'] = imp_transito['FECHA_ENTREGA'].astype('str')
+    imp_transito['tipo'] = 'importaciones_transito'
     imp_transito = de_dataframe_a_template(imp_transito)
+    
     context = {
         'imp':imp_transito
     }
@@ -386,42 +379,49 @@ def muestreo_cartones_transito(request, contrato_id):
 
 @pdf_decorator(pdfname='revision_tecnica.pdf')
 @login_required(login_url='login')
-def revision_tecnica(request, memo):
-
-    print('asdf')
-    #n = nacionales_odbc()
-    data = importaciones_transito_data()
-    #data = pd.concat([data,n])
-
-    data = data[data['MEMO']==memo]   
+def revision_tecnica(request, doc_id):
     
     prod = productos_odbc_and_django()[[
         'product_id',
-        #'Nombre',
+        'Nombre',
+        'Marca',
+        'marca2',
         'Reg_San',
         'emp_primario', 
         'emp_secundario', 
         'emp_terciario'
     ]]
-    
-    prod = prod.rename(columns={'product_id':'PRODUCT_ID'})
 
-    imp = muestreo(data, 'CARTONES')
-    imp = imp.merge(prod, on='PRODUCT_ID', how='left')
+
+    data = importaciones_compras_df()
+    data = data[data['DOC_ID_CORP']==doc_id]
     
-    imp = imp.sort_values(by='PRODUCT_ID')
+    data = data.groupby([
+        'product_id',
+        'DOC_ID_CORP',
+        'ENTRADA_FECHA',
+        'OH',
+        'WARE_COD_CORP',
+        'MEMO'
+        ]).sum().reset_index()
     
-    proveedor = imp['VENDOR_NAME'].iloc[0]
-    n_imp = imp['MEMO'].iloc[0]
-    fecha = imp['FECHA_ENTREGA'].iloc[0]
+    data = data.merge(prod, on='product_id', how='left')
+    data['Reg_San'] = data['Reg_San'].apply(quitar_prefijo)      
     
-    imp = de_dataframe_a_template(imp)
+    fecha_entrada = data['ENTRADA_FECHA'].iloc[0]
+    bodega_llegada = data['WARE_COD_CORP'].iloc[0]
+    proveedor = data['marca2'].iloc[0]
+    n_imp = data['MEMO'].iloc[0]
+    
+    data = de_dataframe_a_template(data)
     
     context = {
-        'imp':imp,
+        'imp':data,
+        'fecha':fecha_entrada,
+        'bodega_llegada':bodega_llegada,
         'proveedor':proveedor,
         'n_imp':n_imp,
-        'fecha':fecha,
+        'n_lineas':range(5)
     }
 
     return render(request, 'bpa/muestreos/revision_tecnica_importaciones.html', context)
@@ -568,126 +568,6 @@ def reg_san_list(request):
     }
 
     return render(request, 'bpa/registro_sanitario/list.html', context)
-
-
-# # Envio de alertas de Caducidad de R.Sanitario por EMAIL.
-# def r_san_alerta_list_correo(request):
-    
-#     tabla_query = RegistroSanitario.objects.filter(activo=True).order_by('fecha_expiracion')
-#     rs_list = [i for i in tabla_query if i.estado == 'Próximo a caducar']
-    
-#     context = {
-#         'lista':rs_list
-#     }
-    
-#     html_message  = render_to_string('emails/r_san_list.html', context)
-#     plain_message = strip_tags(html_message)
-    
-#     email = EmailMultiAlternatives(
-#         subject    = 'Alerta - Documentos próximos a caducar.',
-#         from_email = settings.EMAIL_HOST_USER,
-#         # to         = ['ronaldm@gimpromed.com','pespinosa@gimpromed.com','ncaisapanta@gimpromed.com'],
-#         to         = ['egarces@gimpromed.com'],
-#         body       = plain_message,
-#     )
-    
-#     email.attach_alternative(html_message, 'text/html')
-#     email.send()
-    
-#     return HttpResponse(status=200)
-
-
-# # Enviar correos individuales por registro sanitario
-# def r_san_alert(request):
-    
-#     tabla_query = RegistroSanitario.objects.filter(activo=True).order_by('fecha_expiracion')
-    
-#     # Avisos
-#     a1=120
-#     a2=100
-#     a3=90 ; a4=9
-#     #a4=40
-    
-#     # lista de correos 
-#     #lista_correos = ['pespinosa@gimpromed.com', 'ncaisapanta@gimpromed.com']
-#     lista_correos = ['egarces@gimpromed.com']
-#     ### PARA MEJORAR EFICIENCIA APLICAR BUSQUEDA BINARIA
-#     for i in tabla_query:
-#         if i.dias_caducar == a1:  
-#             # 1er Aviso
-#             rs_list = [i for i in tabla_query if i.dias_caducar==a1]
-#             context = {'lista':rs_list}
-            
-#             html_message  = render_to_string('emails/r_san.html', context)
-#             plain_message = strip_tags(html_message)
-            
-#             email = EmailMultiAlternatives(
-#                 subject    = f'1er Aviso Próximo a Caducar - {i.registro} - {i.marca} - ({i.dias_caducar} días)',
-#                 from_email = settings.EMAIL_HOST_USER,
-#                 to         = lista_correos,
-#                 body       = plain_message,
-#             )
-            
-#             email.attach_alternative(html_message, 'text/html')
-#             email.send()
-            
-#         elif i.dias_caducar == a2:  
-#             # 2do Aviso
-#             rs_list = [i for i in tabla_query if i.dias_caducar==a2]
-#             context = {'lista':rs_list}
-            
-#             html_message  = render_to_string('emails/r_san.html', context)
-#             plain_message = strip_tags(html_message)
-            
-#             email = EmailMultiAlternatives(
-#                 subject    = f'2do Aviso Próximo a Caducar - {i.registro} - {i.marca} - ({i.dias_caducar} días)',
-#                 from_email = settings.EMAIL_HOST_USER,
-#                 to         = lista_correos,
-#                 body       = plain_message,
-#             )
-            
-#             email.attach_alternative(html_message, 'text/html')
-#             email.send()
-            
-#         elif i.dias_caducar == a3:  
-#             # 3er Aviso
-#             rs_list = [i for i in tabla_query if i.dias_caducar==a3]
-#             context = {'lista':rs_list}
-            
-#             html_message  = render_to_string('emails/r_san.html', context)
-#             plain_message = strip_tags(html_message)
-            
-#             email = EmailMultiAlternatives(
-#                 subject    = f'3er Aviso Próximo a Caducar - {i.registro} - {i.marca} - ({i.dias_caducar} días)',
-#                 from_email = settings.EMAIL_HOST_USER,
-#                 to         = lista_correos,
-#                 body       = plain_message,
-#             )
-            
-#             email.attach_alternative(html_message, 'text/html')
-#             email.send()
-            
-#         elif i.dias_caducar == a4: 
-#             # 4to Aviso
-#             rs_list = [i for i in tabla_query if i.dias_caducar==a4]
-#             context = {'lista':rs_list}
-            
-#             html_message  = render_to_string('emails/r_san.html', context)
-#             plain_message = strip_tags(html_message)
-            
-#             email = EmailMultiAlternatives(
-#                 subject    = f'4to Aviso Próximo a Caducar - {i.registro} - {i.marca} - ({i.dias_caducar} días)',
-#                 from_email = settings.EMAIL_HOST_USER,
-#                 to         = lista_correos,
-#                 #to         = lista_correos + ['ronaldm@gimpromed.com'],
-#                 body       = plain_message,
-#             )
-            
-#             email.attach_alternative(html_message, 'text/html')
-#             email.send()
-            
-#     return HttpResponse(status=200)
-
 
 
 # Nuevo Registro Sanitario
@@ -839,7 +719,6 @@ def carta_no_reg_edit(request, id):
     }
 
     return render(request, 'bpa/carta_no_reg/carta_no_r_san_edit.html', context)
-
 
 
 def reservas_lote(): #request
