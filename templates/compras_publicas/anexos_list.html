@@ -18,10 +18,10 @@
     <button name="contrato_id_btn" class="btn btn-primary" type="submit">Añadir Picking</button>
 </div>
 
-<!--div class="input-group mb-3">
+<div class="input-group mb-3">
     <input type="text" class="form-control" placeholder="Ingrese en número de factura" id="factura" required>
     <button name="factura_btn" class="btn btn-success" type="submit">Añadir Factura</button>
-</div-->
+</div>
 
 {% if messages %}
     {% for message in messages %}
@@ -137,7 +137,7 @@
                 
                 //$('#msg').fadeIn().html(`<div class="text-center alert alert-${response.tipo}" role="alert"> ${response.msg} !!! </div>`).fadeOut(6000)
                 if (response.type === 'error') {
-                    $('#msg').html(`<div class="text-center alert alert-${response.alert}" role="alert"> ${response.msg} !!! </div>`)
+                    $('#msg').html(`<div  class="text-center alert alert-danger" role="alert"> ${response.msg} !!! </div>`)
                 } else if (response.type === 'ok') {
                     window.location.href = response.redirect_url
                 }

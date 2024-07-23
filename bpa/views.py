@@ -57,7 +57,8 @@ from datos.views import (
     importaciones_llegadas_por_docid_odbc,
     importaciones_tansito_list,
     importaciones_tansito_por_contratoid,
-    quitar_prefijo
+    quitar_prefijo,
+    extraer_fecha
     )
 
 # de dataframe to template

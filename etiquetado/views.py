@@ -285,7 +285,7 @@ def fecha_entrega_ajax(request):
 
     if request.POST['fecha'] == '':
         respuesta = {'msg_error':
-                     '<div class="text-center alert alert-danger mt-3" role="alert">Ingrese una fecha y una hora !!!</div>'
+                    '<div class="text-center alert alert-danger mt-3" role="alert">Ingrese una fecha y una hora !!!</div>'
                     }
         respuesta = json.dumps(respuesta)
         return HttpResponse(respuesta, content_type='appliation/json')
