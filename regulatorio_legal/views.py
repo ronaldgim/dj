@@ -14,6 +14,9 @@ from datos.views import (
     ultima_actualizacion,
     quitar_puntos)
 
+# API MBA
+from api_mba.mba import api_mba_sql
+
 # Models
 from regulatorio_legal.models import DocumentoLote, DocumentoEnviado
 
@@ -184,7 +187,7 @@ def doc_importacion_por_codigo_ajax(request):
         # columns = [col[0] for col in cursorOdbc.description]
         # data = [dict(zip(columns, row)) for row in cursorOdbc.fetchall()]
         
-        from api_mba.mba import api_mba_sql
+        
         request = api_mba_sql("SELECT INVT_Lotes_Trasabilidad.DOC_ID_CORP, INVT_Lotes_Trasabilidad.ENTRADA_FECHA, "
             "INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP, INVT_Lotes_Trasabilidad.LOTE_ID, INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD, "
             "INVT_Lotes_Trasabilidad.AVAILABLE, INVT_Lotes_Trasabilidad.EGRESO_TEMP, INVT_Lotes_Trasabilidad.OH, INVT_Lotes_Trasabilidad.WARE_COD_CORP, CLNT_Pedidos_Principal.MEMO "

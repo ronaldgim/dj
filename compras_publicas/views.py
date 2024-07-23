@@ -52,8 +52,9 @@ from datos.views import (
     #pedidos_cerrados_bct
     datos_anexo,
     datos_anexo_product_list,
-    datos_factura_compras_publicas_cabecera_odbc,
-    datos_factura_compras_publicas_productos_odbc
+    extraer_fecha
+    #datos_factura_compras_publicas_cabecera_odbc,
+    #datos_factura_compras_publicas_productos_odbc
     )
 
 
@@ -70,6 +71,9 @@ from django.db.models import Sum
 
 # Num to words
 from num2words import num2words
+
+# API MBA
+from api_mba.mba import api_mba_sql
 
 
 # Funcios para pasar de dataframe a registros para el template
@@ -455,39 +459,117 @@ def add_datos_anexo_ajax(request):
         })
 
 
+@transaction.atomic
 def add_datos_anexo_from_factura_ajax(request):
 
     try:
         n_factura = request.POST.get('factura')
         
-        n_fac = int(n_factura)
-        n_fac = '001-001-' + f'{n_fac:09d}'
+        n_fac         = int(n_factura)
+        factura_sql   = 'FCSRI-1001' + f'{n_fac:09d}' + '-GIMPR'
+        factura_input = '001-001-' + f'{n_fac:09d}'
         
-        n_factura = formato_n_factura_input(n_factura)
+        factura = api_mba_sql(
+            "SELECT CLNT_Factura_Principal.CODIGO_FACTURA, CLNT_Factura_Principal.FECHA_FACTURA, INVT_Ficha_Principal.PRODUCT_ID, INVT_Ficha_Principal.PRODUCT_NAME, INVT_Ficha_Principal.GROUP_CODE, INVT_Ficha_Principal.`Custom Field 1`, INVT_Ficha_Principal.`Custom Field 2`, INVT_Lotes_Trasabilidad.LOTE_ID, INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD, INVT_Lotes_Trasabilidad.EGRESO_TEMP, INVT_Lotes_Trasabilidad.Precio_venta "
+            "FROM CLNT_Factura_Principal CLNT_Factura_Principal, INVT_Ficha_Principal INVT_Ficha_Principal, INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad "
+            "WHERE INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP = INVT_Ficha_Principal.PRODUCT_ID_CORP AND CLNT_Factura_Principal.CODIGO_FACTURA = INVT_Lotes_Trasabilidad.DOC_ID_CORP AND "
+            # "((CLNT_Factura_Principal.CODIGO_FACTURA='FCSRI-1001000091278-GIMPR') AND (CLNT_Factura_Principal.ANULADA=FALSE))"
+            f"((CLNT_Factura_Principal.CODIGO_FACTURA='{factura_sql}') AND (CLNT_Factura_Principal.ANULADA=FALSE))"
+        )
+        factura_df = pd.DataFrame(factura['json']) 
         
-        factura_cabecera = datos_factura_compras_publicas_cabecera_odbc(n_factura)
-        #print(factura_cabecera)
+        hoy = datetime.now().strftime("%d/%m/%Y") 
+        extra_data = api_mba_sql(
+            "SELECT INVT_Producto_Lotes.PRODUCT_ID_CORP, INVT_Producto_Lotes.LOTE_ID, INVT_Producto_Lotes.FECHA_CADUCIDAD, INVT_Producto_Lotes.Fecha_elaboracion_lote, INVT_Producto_Lotes.WARE_CODE_CORP "
+            "FROM INVT_Producto_Lotes INVT_Producto_Lotes "
+            #"WHERE (INVT_Producto_Lotes.WARE_CODE_CORP='CUC') AND (INVT_Producto_Lotes.FECHA_CADUCIDAD>'01/08/2024')"
+            f"WHERE (INVT_Producto_Lotes.FECHA_CADUCIDAD>'{hoy}')"
+            #f"WHERE (INVT_Producto_Lotes.WARE_CODE_CORP='CUA') AND (INVT_Producto_Lotes.FECHA_CADUCIDAD>'{hoy}')"
+        )
+        extra_data_df = pd.DataFrame(extra_data['json'])
+        extra_data_df['PRODUCT_ID'] = extra_data_df['PRODUCT_ID_CORP'].str.replace('-GIMPR', '')
+        extra_data_df = extra_data_df[['PRODUCT_ID_CORP','LOTE_ID','FECHA_ELABORACION_LOTE','PRODUCT_ID']]
         
+        data = factura_df.merge(extra_data_df, on=['PRODUCT_ID', 'LOTE_ID'], how='left')
+        data = data.drop_duplicates(subset=['PRODUCT_ID','LOTE_ID','PRECIO_VENTA'])
         
-        ## Add cabecera anexo    
-        # anexo = Anexo(
-        #     n_pedido  = factura_cabecera['NUMERO_PEDIDO_SISTEMA'],
-        #     fecha     = factura_cabecera['FECHA_FACTURA'],
-        #     cliente   = factura_cabecera['NOMBRE_CLIENTE'],
-        #     ruc       = factura_cabecera['IDENTIFICACION_FISCAL'],
-        #     direccion = factura_cabecera['DIRECCION_PRINCIPAL_1'],
-        #     n_factura = n_fac,
-        #     usuario_id= request.user.id
-        # )
+        productos = productos_odbc_and_django()[['product_id','Procedencia','Unidad']]
+        productos = productos.rename(columns={'product_id':'PRODUCT_ID'})
         
-        ## Add productos anexo
-        #print(n_factura)
-        factura_productos = datos_factura_compras_publicas_productos_odbc(n_factura)
-        print(factura_productos)
+        data = data.merge(productos, on='PRODUCT_ID', how='left')
+        
+        factura_cabecera = api_mba_sql(
+            "SELECT "
+            "CLNT_Factura_Principal.CODIGO_FACTURA, "
+            "CLNT_Factura_Principal.FECHA_FACTURA, "
+            "CLNT_Factura_Principal.NUMERO_PEDIDO_SISTEMA, "
+            "CLNT_Factura_Principal.CODIGO_CLIENTE, "
+            "CLNT_Ficha_Principal.NOMBRE_CLIENTE, "
+            "CLNT_Ficha_Principal.IDENTIFICACION_FISCAL, "
+            "CLNT_Ficha_Principal.DIRECCION_PRINCIPAL_1 "
+            
+            "FROM "
+            "CLNT_Factura_Principal "
+            "INNER JOIN CLNT_Ficha_Principal ON CLNT_Factura_Principal.CODIGO_CLIENTE = CLNT_Ficha_Principal.CODIGO_CLIENTE "
+            
+            "WHERE "
+            f"CLNT_Factura_Principal.CODIGO_FACTURA = '{factura_sql}'"
+            "LIMIT 1"
+        )['json'][0]
+        
+        # Add cabecera anexo    
+        anexo = Anexo(
+            n_pedido   = factura_cabecera['NUMERO_PEDIDO_SISTEMA'],
+            fecha      = extraer_fecha(factura_cabecera['FECHA_FACTURA']),
+            cliente    = factura_cabecera['NOMBRE_CLIENTE'],
+            ruc        = factura_cabecera['IDENTIFICACION_FISCAL'],
+            direccion  = factura_cabecera['DIRECCION_PRINCIPAL_1'],
+            n_factura  = factura_input,
+            usuario_id = request.user.id
+        )
+        
+        anexo.save()
+        
+        if anexo.id:
+
+            prod_list = []
+            for i in data.to_dict('records'):
+                product = Producto(
+                    product_id      = i['PRODUCT_ID'],
+                    nombre          = i['PRODUCT_NAME'],
+                    presentacion    = i['Unidad'],
+                    marca           = i['GROUP_CODE'],
+                    procedencia     = quitar_prefijo(i['Procedencia']),
+                    r_sanitario     = quitar_prefijo(i['CUSTOM FIELD 1']),
+                    lote_id         = i['LOTE_ID'],
+                    f_elaboracion   = extraer_fecha(i['FECHA_ELABORACION_LOTE']),
+                    f_caducidad     = extraer_fecha(i['FECHA_CADUCIDAD']),
+                    cantidad        = int(i['EGRESO_TEMP']),
+                    cantidad_total  = int(i['EGRESO_TEMP']),
+                    precio_unitario = float(i['PRECIO_VENTA']),
+                ) 
+            
+                product.save()
+                prod_list.append(product)
+            
+            anexo.product_list.add(*prod_list)
+            
+            return JsonResponse({
+                'type':'ok',
+                'redirect_url':f'/compras-publicas/anexos/{anexo.id}'
+                })
+        
+        return JsonResponse({
+            'type':'error',
+            'msg':str(e)
+        })
     
-        return HttpResponse('oko')
-    except Exception as e:
-        raise e
+    except Exception as e:    
+        
+        return JsonResponse({
+            'type':'error',
+            'msg':str(e)
+        })
 
 
 

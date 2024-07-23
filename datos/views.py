@@ -136,6 +136,25 @@ def quitar_prefijo(texto):
         return texto
     else:
         return texto
+    
+    
+def extraer_fecha(texto):
+    # Buscar una fecha en formato dd/mm/yyyy en el texto
+    match = re.search(r'\b\d{2}/\d{2}/\d{4}\b', texto)
+    
+    if match:
+        fecha_str = match.group(0)
+        try:
+            # Convertir la cadena a un objeto datetime
+            fecha = datetime.strptime(fecha_str, '%d/%m/%Y')
+            return fecha
+        except ValueError:
+            print("Formato de fecha inválido")
+            return None
+    else:
+        print("No se encontró una fecha en el texto")
+        return None
+    
 
 class Inicio(LoginRequiredMixin, TemplateView):
     template_name = 'inicio.html'
