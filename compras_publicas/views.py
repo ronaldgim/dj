@@ -165,7 +165,7 @@ def facturas_por_product(producto):
 
     with connections['gimpromed_sql'].cursor() as cursor:
         cursor.execute(
-        f"SELECT * FROM warehouse.venta_facturas WHERE PRODUCT_ID = '{producto}' AND FECHA > '2021-01-01'"
+        f"SELECT * FROM warehouse.venta_facturas WHERE PRODUCT_ID LIKE '%{producto}%' AND FECHA > '2021-01-01'"
     )
 
         columns = [col[0] for col in cursor.description]
@@ -254,7 +254,7 @@ def precios_historicos(request):
     if request.method == 'POST':
         try:        
             hospitales = clientes_hospitales_publicos()
-            prod = productos_odbc_and_django()
+            prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
             prod = prod.rename(columns={'product_id':'PRODUCT_ID'})
             
             hospital = request.POST['hospital']
