@@ -116,3 +116,12 @@ class StockConsulta(models.Model):
 
     def __str__(self):
         return self.product_id
+    
+    
+class EmailApiLog(models.Model):
+    
+    nombre      = models.CharField(max_length=50, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
+    error       = models.CharField(max_length=250, blank=True, null=True)
+    enviado     = models.BooleanField(blank=True, null=True)
+    fecha       = models.DateTimeField(auto_now_add=True)
