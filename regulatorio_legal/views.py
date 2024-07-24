@@ -12,7 +12,8 @@ from datos.views import (
     factura_lote_odbc, 
     cliente_detalle_odbc,
     ultima_actualizacion,
-    quitar_puntos)
+    quitar_puntos,
+    clientes_warehouse)
 
 # API MBA
 from api_mba.mba import api_mba_sql
@@ -357,6 +358,19 @@ def new_document(request):
             HttpResponse('error')
 
 
+def venta_facturas_query(n_factura):
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute(f"SELECT * FROM warehouse.venta_facturas WHERE CODIGO_FACTURA = '{n_factura}'")
+        columns = [col[0] for col in cursor.description]
+        facturas = [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+        
+        facturas = pd.DataFrame(facturas)
+        
+        return facturas
+
 
 def lista_facturas(request):
     
@@ -392,9 +406,24 @@ def lista_facturas(request):
     if request.method == 'POST':
         n_factura = request.POST['n_factura']
         doc_enviados = DocumentoEnviado.objects.filter(n_factura__icontains=n_factura)
+        facturas = pd.DataFrame(doc_enviados.values())
+        
+        nf = int(n_factura)
+        nf = 'FCSRI-1001' + f'{nf:09d}' + '-GIMPR'
+        query_facturas = venta_facturas_query(nf)[['CODIGO_FACTURA','CODIGO_CLIENTE']]
+        cli = clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE']]
+        query_facturas = query_facturas.merge(cli, on='CODIGO_CLIENTE', how='left').drop_duplicates(subset='CODIGO_FACTURA')
+        query_facturas = query_facturas.rename(columns={
+            'CODIGO_FACTURA':'n_factura',
+            'CODIGO_CLIENTE':'codigo_cliente',
+            'NOMBRE_CLIENTE':'nombre_cliente'})
+        
+        facturas_list = pd.concat([facturas, query_facturas]).drop_duplicates(subset='n_factura').fillna('')
+        facturas_list['fecha_hora'] = facturas_list['fecha_hora'].dt.strftime('%Y-%m-%d') 
+        facturas_list = de_dataframe_a_template(facturas_list)        
         
         context = {
-            'facturas':doc_enviados,
+            'facturas': facturas_list, #doc_enviados,
             'act':actualizacion
         }
         return render(request, 'regulatorio_legal/lista_facturas_enviadas.html', context)
