@@ -302,7 +302,7 @@ def kpi_capacidad():
     
     existencias['adicional'] = round(existencias['capacidad_utilizada_m3'] * 0.025, 0)
     existencias['capacidad_utilizada_m3'] = existencias['adicional'] + existencias['capacidad_utilizada_m3']
-    
+
     existencias = existencias.replace(np.inf, 0)
     existencias = existencias.replace(np.nan, 0)
     #existencias = existencias[['ubicacion__bodega','capacidad_utilizada_m3']]
@@ -321,8 +321,8 @@ def kpi_capacidad():
     capacidad['utilizacion'] = capacidad['capacidad_utilizada_m3'] / capacidad['capacidad_disponible_m3']
     capacidad['porcentaje_utilizacion'] = round(capacidad['utilizacion'] * 100, 1)
     capacidad['capacidad_no_utilizada_m3'] = round(capacidad['capacidad_disponible_m3'] - capacidad['capacidad_utilizada_m3'], 0)
-    
-    capacidad = capacidad.sort_values(by='bodega')
+
+    capacidad = capacidad.sort_values(by='bodega') #;print(capacidad)
     capacidad = capacidad.to_dict('records')
     
     return capacidad
