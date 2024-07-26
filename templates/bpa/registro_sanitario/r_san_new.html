@@ -42,7 +42,7 @@
 
         <div class="col-md-3">
             <label class="form-label">{{form.registro.label}}:</label>
-            <input type="text" class="form-control" name="registro" {{disabled}}>    
+            <input type="text" class="form-control" name="registro" required>    
         </div>
 
         <div class="col-md-12">
@@ -77,12 +77,12 @@
 
         <div class="col-md-3">
             <label class="form-label">{{form.cn_recomen.label}}:</label>
-            <input type="number" class="form-control" name="cn_recomen" {{disabled}}>    
+            <input type="number" class="form-control" name="cn_recomen" value={{form.cn_recomen.value}} required>    
         </div>
 
         <div class="col-md-3">
             <label class="form-label">{{form.cn_carpeta.label}}:</label>
-            <input type="number" class="form-control" name="cn_carpeta" {{disabled}}>    
+            <input type="number" class="form-control" name="cn_carpeta" value={{form.cn_carpeta.value}} required>    
         </div>
     
         <div class="col-md-3">
