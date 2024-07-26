@@ -26,7 +26,7 @@ class RegistroSanitario(admin.ModelAdmin):
         #'cn_carpeta',
         'fecha_notaria',
         'estado',
-        'obs_doc',
+        #'obs_doc',
         'dias_caducar',
         'notaria'
     )
