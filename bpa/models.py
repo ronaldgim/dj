@@ -29,15 +29,15 @@ class RegistroSanitario(models.Model):
     marca            = models.CharField(verbose_name='Marca', max_length=50, blank=True)
     propietario      = models.CharField(verbose_name='Propietario', default='Gimpromed. Cia. Ltda.', max_length=50, blank=True)
     documento       = models.CharField(verbose_name='Documento', choices=DOC, default=DOC[0][0] ,max_length=50)
-    registro         = models.CharField(verbose_name='Reg. Sanitario', max_length=50) #, unique=True)
+    registro         = models.CharField(verbose_name='Reg. Sanitario', max_length=50)
     producto         = models.TextField(verbose_name='Producto Denominado', blank=True)
     origen           = models.CharField(verbose_name='Origen Fabricante', max_length=50, blank=True)
     imp_desde        = models.CharField(verbose_name='Importado desde', max_length=50, blank=True)
     fecha_expedicion = models.DateField(verbose_name='Fecha de expedición', blank=True, null=True)
     fecha_expiracion = models.DateField(verbose_name='Fecha de expiración', blank=True, null=True)
     lugar_archivo    = models.CharField(verbose_name='Importado desde', max_length=50, blank=True)
-    cn_recomen       = models.IntegerField(verbose_name='Copias Notariadas Recomendadas', default=0, blank=True, null=True)
-    cn_carpeta       = models.IntegerField(verbose_name='Copias Notariadas Carpeta', default=0, blank=True, null=True)
+    cn_recomen       = models.IntegerField(verbose_name='Copias Notariadas Recomendadas', default=0)
+    cn_carpeta       = models.IntegerField(verbose_name='Copias Notariadas Carpeta', default=0)
     fecha_notaria    = models.DateField(verbose_name='Fecha de envio a notaria', blank=True, null=True)
     notaria          = models.CharField(verbose_name='Notaria', max_length=50, blank=True)
     codigo           = models.CharField(verbose_name='Código', max_length=50, blank=True)
@@ -70,10 +70,10 @@ class RegistroSanitario(models.Model):
 
         if self.cn_carpeta < self.cn_recomen:
             obs_doc = 'Enviar a notaria'
+            return obs_doc
         else:
             obs_doc = 'Docs ok'
-
-        return obs_doc
+            return obs_doc
 
 
     @property
