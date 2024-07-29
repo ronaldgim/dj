@@ -202,9 +202,9 @@ def facturas_por_product_ajax(request):
     product_id = request.POST['producto']
     ventas = facturas_por_product(product_id)
     ventas['Precio Unitario'] = ventas['Precio Unitario'].astype(float)
-    ventas['Cantidad'] = ventas['Cantidad'].apply(lambda x:'{:,.0f}'.format(x)) #.apply(lambda x: f'${x}')
+    ventas['Cantidad'] = ventas['Cantidad'].apply(lambda x:'{:,.0f}'.format(x)) 
     ventas['Precio Unitario'] = ventas['Precio Unitario'].apply(lambda x:f'$ {x}')
-    #ventas['Precio Unitario'] = ventas['Precio Unitario'].apply(lambda x:'$ {:,.4f}'.format(x))
+    ventas['Fecha'] = ventas['Fecha'].astype('str')
     ventas = ventas.sort_values(by='Fecha', ascending=False)
     
     ventas = ventas.to_html(
@@ -224,8 +224,8 @@ def facturas_busqueda_solo_por_product_ajax(request):
     ventas = facturas_por_product(product_id)
     ventas['Precio Unitario'] = ventas['Precio Unitario'].astype(float)
     ventas['Cantidad'] = ventas['Cantidad'].apply(lambda x:'{:,.0f}'.format(x))
-    ventas['Precio Unitario'] = ventas['Precio Unitario'].apply(lambda x:f'$ {x}')
-    #ventas['Precio Unitario'] = ventas['Precio Unitario'].apply(lambda x:'$ {:,.4f}'.format(x))
+    ventas['Precio Unitario'] = ventas['Precio Unitario'].apply(lambda x:f'$ {x}');print(ventas)
+    ventas['Fecha'] = ventas['Fecha'].astype('str')
     ventas = ventas.sort_values(by='Fecha', ascending=False)
     
     ventas = ventas.to_html(
