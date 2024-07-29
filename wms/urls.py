@@ -419,4 +419,11 @@ urlpatterns = [
         view = views.wms_retiro_producto_despacho_ajax,
         name = 'wms_retiro_producto_despacho_ajax'
     ),
+    
+    # Ubicaciones
+    path(
+        route='ubicaciones/list',
+        view = views.wms_ubicaciones_list,
+        name = 'wms_ubicaciones_list'
+    ),
 ]

@@ -3635,3 +3635,43 @@ def wms_retiro_producto_despacho_ajax(request):
         'tipo':'success',
         'msg':f'Las {(mov.unidades*-1)} unidades del producto {mov.product_id} - {mov.lote_id} regreso a la ubicación CN6-G-1'
         })
+    
+    
+# MODULO UBICACIÓNES DISPONIBLES Y NO DISPONIBLES
+@permisos(['ADMINISTRADOR','OPERACIONES', 'BODEGA'],'/wms/home', 'ingresar a ubicaciones')
+def wms_ubicaciones_list(request):
+    
+    # Data
+    ubicaciones = pd.DataFrame(Ubicacion.objects.all().values()).rename(columns={'id':'ubicacion_id'})
+    existencias = pd.DataFrame(Existencias.objects.all().values())
+    productos   = productos_odbc_and_django()[['product_id', 'Unidad_Empaque','Volumen']]
+    
+    # Calculos
+    existencias = existencias.merge(productos, on='product_id', how='left')
+    existencias['cartones'] = existencias['unidades'] / existencias['Unidad_Empaque']
+    existencias['vol'] = existencias['cartones'] * (existencias['Volumen'] / 1000000)
+    existencias = existencias.groupby(by=['ubicacion_id']).sum().reset_index()    
+    
+    # MERGE CALCULO CON UBICACIÓN
+    ubicaciones = ubicaciones.merge(existencias, on='ubicacion_id', how='left').fillna(0)
+    
+    # SORT LIST BY UBICAION
+    ubicaciones = ubicaciones.sort_values(by=['bodega','pasillo','modulo','nivel'])
+    
+    # VOLUMEN IGUAL A CAPACIDAD SI DISPONIBLE FALSO
+    ubicaciones['vol'] = ubicaciones.apply(lambda x: x['capacidad_m3'] if x['disponible']==False else x['vol'], axis=1)
+    ubicaciones['ocupacion'] = (ubicaciones['vol'] / ubicaciones['capacidad_m3']) * 100
+    ubicaciones['disponible_m3'] = ubicaciones['capacidad_m3'] - ubicaciones['vol']
+    
+    
+    # CALCULO RESUMEN
+    # resumen = ubicaciones.groupby(by=['bodega']).sum().reset_index()[['bodega','capacidad_m3','disponible_m3','vol']] 
+    
+    # A TEMPLATE
+    ubicaciones = de_dataframe_a_template(ubicaciones)
+    
+    context = {
+        'ubicaciones':ubicaciones
+    }
+    
+    return render(request, 'wms/ubicaciones_list.html', context)

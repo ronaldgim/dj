@@ -80,7 +80,7 @@ class Ubicacion(models.Model):
     nivel            = models.CharField(verbose_name='Nivel', max_length=10)
     capacidad_m3     = models.FloatField(verbose_name='Capacidad m3')
     distancia_puerta = models.FloatField(verbose_name='Distancia a puerta', blank=True, null=True)
-    #disponible       = models.BooleanField(default=True)
+    disponible       = models.BooleanField(default=True)
     
     def __str__(self):
         return f"{self.bodega}-{self.pasillo}-{self.modulo}-{self.nivel}"
