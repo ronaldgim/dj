@@ -165,7 +165,7 @@ def facturas_por_product(producto):
 
     with connections['gimpromed_sql'].cursor() as cursor:
         cursor.execute(
-        f"SELECT * FROM warehouse.venta_facturas WHERE PRODUCT_ID LIKE '%{producto}%' AND FECHA > '2021-01-01'"
+        f"SELECT * FROM warehouse.venta_facturas WHERE PRODUCT_ID LIKE '%{producto}%' AND FECHA > '2021-01-01' ORDER BY FECHA DESC"
     )
 
         columns = [col[0] for col in cursor.description]
@@ -204,8 +204,8 @@ def facturas_por_product_ajax(request):
     ventas['Precio Unitario'] = ventas['Precio Unitario'].astype(float)
     ventas['Cantidad'] = ventas['Cantidad'].apply(lambda x:'{:,.0f}'.format(x)) 
     ventas['Precio Unitario'] = ventas['Precio Unitario'].apply(lambda x:f'$ {x}')
-    ventas['Fecha'] = ventas['Fecha'].astype('str')
-    ventas = ventas.sort_values(by='Fecha', ascending=False)
+    #ventas['Fecha'] = ventas['Fecha'].astype('str')
+    #ventas = ventas.sort_values(by='Fecha', ascending=False)
     
     ventas = ventas.to_html(
         #classes='table', 
@@ -224,9 +224,9 @@ def facturas_busqueda_solo_por_product_ajax(request):
     ventas = facturas_por_product(product_id)
     ventas['Precio Unitario'] = ventas['Precio Unitario'].astype(float)
     ventas['Cantidad'] = ventas['Cantidad'].apply(lambda x:'{:,.0f}'.format(x))
-    ventas['Precio Unitario'] = ventas['Precio Unitario'].apply(lambda x:f'$ {x}');print(ventas)
-    ventas['Fecha'] = ventas['Fecha'].astype('str')
-    ventas = ventas.sort_values(by='Fecha', ascending=False)
+    ventas['Precio Unitario'] = ventas['Precio Unitario'].apply(lambda x:f'$ {x}')
+    #ventas['Fecha'] = ventas['Fecha'].astype('str')
+    #ventas = ventas.sort_values(by='Fecha', ascending=False)
     
     ventas = ventas.to_html(
         #classes='table', 
