@@ -2092,18 +2092,17 @@ def wms_productos_en_despacho_list(request): #OK
 @permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'], '/wms/home', 'ingresar a picking en despacho')
 def wms_picking_en_despacho_list(request): #OK
     
-    anulados = pd.DataFrame(AnulacionPicking.objects.filter(estado=True).values(
-        'picking_nuevo','picking_anulado'))
+    anulados = pd.DataFrame(AnulacionPicking.objects.filter(estado=True).values('picking_nuevo','picking_anulado'))
     anulados = anulados.rename(columns={'picking_nuevo':'n_referencia'})
     anulados['n_referencia'] = anulados['n_referencia'].astype('float')
-    anulados['n_referencia'] = anulados['n_referencia'].astype('int')
+    anulados['n_referencia'] = anulados['n_referencia'].astype('int') 
 
     mov      = Movimiento.objects.filter(estado_picking='En Despacho')
     mov_list = mov.values_list('n_referencia', flat=True).distinct()
-    pik      = EstadoPicking.objects.filter(n_pedido__in=mov_list)
+    pik      = EstadoPicking.objects.filter(n_pedido__in=mov_list) 
 
-    en_despacho = pd.DataFrame(mov.values('product_id','referencia','n_referencia','fecha_hora'))
-    contexto_picking = pd.DataFrame(pik.values())[['n_pedido','cliente']]
+    en_despacho = pd.DataFrame(mov.values('product_id','referencia','n_referencia','fecha_hora')) 
+    contexto_picking = pd.DataFrame(pik.values())[['n_pedido','cliente']] 
     contexto_picking = contexto_picking.rename(columns={'n_pedido':'n_referencia'})
 
     en_despacho = en_despacho.merge(contexto_picking, on='n_referencia', how='left')
@@ -2112,8 +2111,9 @@ def wms_picking_en_despacho_list(request): #OK
     en_despacho['fecha_hora'] = pd.to_datetime(en_despacho['fecha_hora']).dt.strftime('%Y-%m-%d %H:%M')
     
     en_despacho = en_despacho.sort_values(by='fecha_hora', ascending=True)
-    en_despacho = en_despacho.drop_duplicates(subset='n_referencia', keep='last')
+    en_despacho = en_despacho.drop_duplicates(subset='n_referencia', keep='last') #; print(en_despacho)
     en_despacho = en_despacho.merge(anulados, on='n_referencia', how='left')
+    
     en_despacho = de_dataframe_a_template(en_despacho)
 
     context = {
@@ -3331,7 +3331,11 @@ def wms_anulacion_picking_detalle(request, id_anulacion):
     
     prod      = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     anulacion = AnulacionPicking.objects.get(id=id_anulacion)
-    cabecera  = EstadoPicking.objects.get(n_pedido=anulacion.picking_anulado)
+    
+    try:
+        cabecera  = EstadoPicking.objects.get(n_pedido=anulacion.picking_anulado)
+    except:
+        cabecera = EstadoPicking.objects.get(n_pedido=anulacion.picking_nuevo)
     
     if anulacion.estado == True:
         picking = anulacion.picking_nuevo
@@ -3362,11 +3366,17 @@ def wms_anulacion_picking_ajax(request):
     
     id_anulacion = int(request.POST['id_anulacion'])
     anulacion = AnulacionPicking.objects.get(id=id_anulacion)
-        
+    
     movs = Movimiento.objects.filter(n_referencia=anulacion.picking_anulado)
     
     if movs.exists():
         
+        # ACTUALIZAR NÚMERO DE PICKING EN TABLA ESTADO PICKING ETIQUETADO
+        estado_picking = EstadoPicking.objects.get(n_pedido=anulacion.picking_anulado) 
+        estado_picking.n_pedido = anulacion.picking_nuevo
+        estado_picking.save()
+        
+        # ACTUALIZAR NÚMERO DE PICKING TABLA MOVIMIENTOS WMS
         movs.update(n_referencia=anulacion.picking_nuevo)
         anulacion.estado = True
         anulacion.save()
@@ -3559,7 +3569,7 @@ def wms_ajuste_liberacion_detalle(request, n_liberacion):
 def wms_retiro_producto_despacho(request):
 
     if request.method == 'POST':
-        n_picking = request.POST['n_picking'] + '.0'
+        n_picking = request.POST['n_picking'] + '.0' 
         estado_picking = EstadoPicking.objects.filter(n_pedido=n_picking)
         
         if not estado_picking.exists():
