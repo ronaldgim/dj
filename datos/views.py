@@ -13,7 +13,6 @@ from django.contrib import messages
 # Generic View
 from django.views.generic.list import ListView
 from django.views.generic.edit import CreateView
-from django.views.generic.edit import CreateView
 from django.views.generic import TemplateView
 
 # Models
@@ -420,9 +419,11 @@ def frecuancia_ventas():
     open_ssh_tunnel()
     mysql_connect()
     
-    df = run_query("SELECT T.PRODUCT_ID, T.ANUAL, R.rpm, A.F_ACUMULADA FROM (SELECT PRODUCT_ID, SUM(QUANTITY) as ANUAL FROM consumo_anual GROUP BY PRODUCT_ID) AS T "
-                    "LEFT JOIN alertas_reservas R ON T.PRODUCT_ID = R.PRODUCT_ID LEFT JOIN analisis_abc A on R.PRODUCT_ID = A.PRODUCT_ID;")
+    #df = run_query("SELECT T.PRODUCT_ID, T.ANUAL, R.rpm, A.F_ACUMULADA FROM (SELECT PRODUCT_ID, SUM(QUANTITY) as ANUAL FROM consumo_anual GROUP BY PRODUCT_ID) AS T "
+    #                "LEFT JOIN alertas_reservas R ON T.PRODUCT_ID = R.PRODUCT_ID LEFT JOIN analisis_abc A on R.PRODUCT_ID = A.PRODUCT_ID;")
 
+    df = run_query("SELECT product_id, sum(quantity) as anual FROM gimpromed_api.consumo_anual group by product_id;")
+    
     mysql_disconnect()
     close_ssh_tunnel()
 
