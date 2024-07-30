@@ -418,10 +418,6 @@ def wms_ubicaciones_disponibles_rows():
 def wms_home(request):
     #wms_ubicaciones_disponibles_rows()
     
-    from datos.views import etiquetado_fun
-    a = etiquetado_fun()
-    print(a)
-    
     tiempo_de_almacenamiento = kpi_tiempo_de_almacenamiento()
     capacidad = kpi_capacidad()
     bodegas_list = []
@@ -3644,6 +3640,11 @@ def wms_retiro_producto_despacho_ajax(request):
 # MODULO UBICACIÓNES DISPONIBLES Y NO DISPONIBLES
 @permisos(['ADMINISTRADOR','OPERACIONES', 'BODEGA'],'/wms/home', 'ingresar a ubicaciones')
 def wms_ubicaciones_list(request):
+    
+    from datos.views import etiquetado_fun
+    a = etiquetado_fun()
+    print(a)
+    
     
     # Data
     ubicaciones = pd.DataFrame(Ubicacion.objects.all().values()).rename(columns={'id':'ubicacion_id'})
