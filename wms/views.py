@@ -3639,12 +3639,7 @@ def wms_retiro_producto_despacho_ajax(request):
     
 # MODULO UBICACIÓNES DISPONIBLES Y NO DISPONIBLES
 @permisos(['ADMINISTRADOR','OPERACIONES', 'BODEGA'],'/wms/home', 'ingresar a ubicaciones')
-def wms_ubicaciones_list(request):
-    
-    from datos.views import etiquetado_fun
-    a = etiquetado_fun()
-    print(a)
-    
+def wms_ubicaciones_list(request):    
     
     # Data
     ubicaciones = pd.DataFrame(Ubicacion.objects.all().values()).rename(columns={'id':'ubicacion_id'})
