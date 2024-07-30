@@ -506,8 +506,8 @@ def etiquetado_fun():
 
     ### STOCK SEGURIDAD MENSUAL
     stock_mensual = frecuancia_ventas() ;print(stock_mensual)
-    # stock_mensual['Mensual'] = (stock_mensual['ANUAL'] / 12).round(0)
-    stock_mensual['Mensual'] = (stock_mensual['anual'] / 12).round(0)
+    stock_mensual['Mensual'] = (stock_mensual['ANUAL'] / 12).round(0)
+    #stock_mensual['Mensual'] = (stock_mensual['anual'] / 12).round(0)
     stock_mensual['Cat'] = stock_mensual.apply(lambda x: 'A' if x['F_ACUMULADA'] <= 80 else 'B' if x['F_ACUMULADA'] <=90 else 'C', axis=1)
 
     ### RESERVAS
@@ -830,7 +830,7 @@ def stock_lote(request):
                 #Productos
                 cursorOdbc.execute(
                     "SELECT INVT_Ficha_Principal.PRODUCT_ID, INVT_Ficha_Principal.PRODUCT_NAME, "
-                    "INVT_Ficha_Principal.UM, INVT_Ficha_Principal.GROUP_CODE, INVT_Ficha_Principal.UNIDADES_EMPAQUE, INVT_Ficha_Principal.`Custom Field 1`,INVT_Ficha_Principal.`Custom Field 2`, INVT_Ficha_Principal.`Custom Field 4`, "
+                    "INVT_Ficha_Principal.UM, INVT_Ficha_Principal.GROUP_CODE, INVT_Ficha_Principal.UNIDADES_EMPAQUE, INVT_Ficha_Principal.Custom_Field_1,INVT_Ficha_Principal.Custom_Field_2, INVT_Ficha_Principal.Custom_Field_4, "
                     "INVT_Ficha_Principal.INACTIVE, INVT_Ficha_Principal.LARGO, INVT_Ficha_Principal.ANCHO, INVT_Ficha_Principal.ALTURA, INVT_Ficha_Principal.VOLUMEN, INVT_Ficha_Principal.WEIGHT, INVT_Ficha_Principal.AVAILABLE, INVT_Ficha_Principal.UnidadesPorPallet "
                     "FROM INVT_Ficha_Principal INVT_Ficha_Principal"
                 )
@@ -2747,8 +2747,8 @@ def datos_factura_compras_publicas_productos_odbc(n_factura):
         "INVT_Ficha_Principal.PRODUCT_NAME, "
         "INVT_Ficha_Principal.GROUP_CODE, "
         "INVT_Producto_Movimientos.QUANTITY, "
-        "INVT_Ficha_Principal.`Custom Field 1`, "
-        "INVT_Ficha_Principal.`Custom Field 2`, "
+        "INVT_Ficha_Principal.Custom_Field_1, "
+        "INVT_Ficha_Principal.Custom_Field_2, "
         "INVT_Lotes_Trasabilidad.LOTE_ID, "
         "INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD, "
         "INVT_Producto_Lotes.Fecha_elaboracion_lote, "
