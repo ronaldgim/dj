@@ -505,7 +505,7 @@ def etiquetado_fun():
     stock = stock.sort_values(by=['GROUP_CODE'], ascending=[True])
 
     ### STOCK SEGURIDAD MENSUAL
-    stock_mensual = frecuancia_ventas()
+    stock_mensual = frecuancia_ventas() ;print(stock_mensual)
     stock_mensual['Mensual'] = (stock_mensual['ANUAL'] / 12).round(0)
     stock_mensual['Cat'] = stock_mensual.apply(lambda x: 'A' if x['F_ACUMULADA'] <= 80 else 'B' if x['F_ACUMULADA'] <=90 else 'C', axis=1)
 

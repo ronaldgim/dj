@@ -417,6 +417,11 @@ def wms_ubicaciones_disponibles_rows():
 @login_required(login_url='login')
 def wms_home(request):
     #wms_ubicaciones_disponibles_rows()
+    
+    from datos.views import etiquetado_fun
+    a = etiquetado_fun()
+    print(a)
+    
     tiempo_de_almacenamiento = kpi_tiempo_de_almacenamiento()
     capacidad = kpi_capacidad()
     bodegas_list = []
