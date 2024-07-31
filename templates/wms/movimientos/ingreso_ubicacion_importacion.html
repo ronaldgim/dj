@@ -77,7 +77,6 @@
 
 <div class="card mt-2 mb-2" {% if item.unidades_ingresadas == total_ubicaciones %} style="display: none;" {% endif %}>
     <div class="card-body ps-2 pe-2">
-
         <form method="POST">
             {% csrf_token %}
             <!--input type="hidden" name="item" value="{{item.id}}"-->

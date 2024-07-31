@@ -27,63 +27,58 @@
 
 
 
-<!--div class="row mb-2 m-0 p-0" id="buscar">
-
-    <div class="card mt-2 mb-2">
-        <div class="card-body mt-2 mb-2 p-0">
-            <form method="POST">
-                {% csrf_token %}
-                <div class="row">
-                    <div class="col-4">
-                        <label class="fw-bold">Código:</label>
-                        <input name="product_id" class="form-control" >
-                    </div>
-
-                    <div class="col-4">
-                        <label class="fw-bold">Número de referencia:</label>
-                        <input name="n_referencia" class="form-control" />
-                    </div>
-
-                    <div class="col-4">
-                        <label class="fw-bold">Número de factura:</label>
-                        <input name="n_factura" class="form-control" />
-                    </div>
-                </div>
-
-                <button class="btn btn-success mt-2">
-                    <i class="bi bi-search"></i> Buscar
-                </button>
-                
-            </form>
-        </div>
-    </div>
-</div>
-
-<hr-->
-
 <div class="col-12">
     <input id="inputbuscar" type="text" placeholder="Filtro" class="form-control">
 </div>
 
 <div id="msg"></div>
 
+<div class="col-4">
+    <div class="card mt-2 mb-2">
+        <div class="card-body m-0 p-0">
+            <div class="container table-responsive">
+                <h6 class="card-title fw-bold text-center mt-2">Volumen en despacho</h6>
+                <table class="table" style="font-size: small;">
+                    <thead>
+                        <tr>
+                            <th scope="col">Tipo de cliente</th>
+                            <th scope="col">Ocupación</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pedidosbuscar">
+                        {% for i in en_despacho %}
+                        <tr>
+                            <td>{{i.tipo_cliente}}</td>
+                            <td>{{i.ocupacion_m3|floatformat:"2g"}} m<sup>3</sup></td>                        
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <div class="card mt-2 mb-2">
     <div class="card-body m-0 p-0">
         <div class="container table-responsive">
+            <h6 class="card-title fw-bold text-center mt-2">Volumen por posición</h6>
             <table class="table" style="font-size: small;">
                 <thead>
                     <tr>
                         <th scope="col">Ubicación</th>
                         <th scope="col">Distancia a puerta</th>
                         <th scope="col">Disponible</th>
-                        <th scope="col">Capacidad m<sup>3</sup></th>
-                        <th scope="col">Disponible m<sup>3</sup></th>
-                        <th scope="col">Ocupado m<sup>3</sup></th>
+                        <th scope="col">Capacidad</sup></th>
+                        <th scope="col">Disponible</sup></th>
+                        <th scope="col">Ocupado</sup></th>
                         <th scope="col">% Ocupación</th>
+                        <th scope="col">Habilitar</th>
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
-                    {% for i in ubicaciones %}
+                    {% for i in capacidad %}
                     <tr>
                         <td>{{i.bodega}}-{{i.pasillo}}-{{i.modulo}}-{{i.nivel}}</td>
                         <td>{{i.distancia_puerta|floatformat:"2g"}} m</td>
@@ -96,13 +91,17 @@
                             {% endif %}
                         </td>
 
-                        <td class="text-center">{{i.capacidad_m3|floatformat:"2g"}}</td>
-                        <td class="text-center {% if i.disponible_m3 < 0 %} text-danger {% endif %} ">{{i.disponible_m3|floatformat:"2g"}}</td>
-                        <td class="text-center">{{i.vol|floatformat:"2g"}}</td>
-                        <td class="text-center"> {{i.ocupacion|floatformat:'0g'}} %
-                            <progress value="{{i.ocupacion|floatformat:'0g'}}" max="100"></progress> 
+                        <td class="text-center">{{i.capacidad_posicion_m3|floatformat:"2g"}} m<sup>3</td>
+                        <td class="text-center {% if i.disponible_posicion_m3 < 0 %} text-danger {% endif %} ">{{i.disponible_posicion_m3|floatformat:"2g"}} m<sup>3</td>
+                        <td class="text-center">{{i.ocupacion_posicion_m3|floatformat:"2g"}} m<sup>3</td>
+                        <td class="text-center"> {{i.ocupacion_porcentaje|floatformat:'0g'}} %
+                            <progress value="{{i.ocupacion_porcentaje|floatformat:'0g'}}" max="100"></progress> 
                         </td>
-                        
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-primary {% if i.ocupacion_posicion_m3 != 0 %} disabled {% endif %}">
+                                <i class="bi bi-inbox"></i>
+                            </button>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -111,36 +110,6 @@
     </div>
 </div>
 
-<div class="pagination mt-2 mb-2">
-    <span class="step-links">
-        {% if mov.has_previous %}
-            <a class="btn btn-outline-secondary btn-sm" href="?page=1">
-                <span aria-hidden="true"> &laquo; Primera </span>
-            </a>
-            <a class="btn btn-outline-secondary btn-sm" href="?page={{ mov.previous_page_number }}">Anterior</a>
-        {% endif %}
-
-        <!--span class="current btn btn-outline-primary btn-sm"-->
-        <span class="current btn btn-secondary btn-sm disabled">
-            Pagina {{ mov.number }} de {{ mov.paginator.num_pages }}
-        </span>
-
-        {% if mov.has_next %}
-            <a class="btn btn-outline-secondary btn-sm" href="?page={{ mov.next_page_number }}">Siguiente</a>
-            <a class="btn btn-outline-secondary btn-sm" href="?page={{ mov.paginator.num_pages }}">
-                <span aria-hidden="true"> Última &raquo; </span>
-            </a>
-        {% endif %}
-    </span>
-</div>
-
-<script>
-    $(document).ready(function() {
-        $("button[name='buscar']").click(function(){
-            $("#buscar").toggle()
-        })
-    })
-</script>
 
 <!--filtro buscar-->
 <script>
