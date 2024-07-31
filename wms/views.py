@@ -111,6 +111,8 @@ from datetime import timedelta
     - LISTA DE IMPORTACIONES
     - LISTA DE BODEGA DE INVENTARIO INICIAL
 """
+
+"""
 # def kpi_tiempo():
     
 #     list_picking = Movimiento.objects.filter(referencia='Picking').values_list('n_referencia', flat=True).distinct()
@@ -289,43 +291,138 @@ from datetime import timedelta
 
 #     return t_ciclo
 
+"""
+
+
+def capacidad_de_bodegas_df():
+    
+    # DATA
+    ubicaciones = pd.DataFrame(Ubicacion.objects.all().values()).rename(columns={'id':'ubicacion_id'})
+    existencias = pd.DataFrame(Existencias.objects.all().values())
+    productos   = productos_odbc_and_django()[['product_id', 'Unidad_Empaque','Volumen']]
+    
+    # CALCULOS EXISTENCIAS
+    existencias = existencias.merge(productos, on='product_id', how='left')
+    existencias['cartones'] = existencias['unidades'] / existencias['Unidad_Empaque']
+    existencias['ocupacion_posicion_m3'] = existencias['cartones'] * (existencias['Volumen'] / 1000000)
+    existencias = existencias.groupby(by=['ubicacion_id']).sum().reset_index()    
+    
+    # MERGE CALCULO CON UBICACIÓN
+    capacidad = ubicaciones.merge(existencias, on='ubicacion_id', how='left').fillna(0)
+    capacidad = capacidad.rename(columns={'capacidad_m3':'capacidad_posicion_m3'})
+    
+    # SORT LIST BY UBICAION
+    capacidad = capacidad.sort_values(by=['bodega','pasillo','modulo','nivel'])[[
+        'ubicacion_id','bodega','pasillo','modulo','nivel','distancia_puerta','disponible','capacidad_posicion_m3','ocupacion_posicion_m3'
+    ]]
+    
+    # CAPACIDAD TOMANDO EN CUENTA UBICACIONES DISPONIBLES
+    capacidad['ocupacion_posicion_m3'] = capacidad.apply(lambda x: x['capacidad_posicion_m3'] if x['disponible']==False else x['ocupacion_posicion_m3'], axis=1)
+    
+    # DISPONIBLE m3
+    capacidad['disponible_posicion_m3'] = capacidad['capacidad_posicion_m3'] - capacidad['ocupacion_posicion_m3']
+    
+    # % OCUPACIÓN
+    capacidad['ocupacion_porcentaje'] = (capacidad['ocupacion_posicion_m3'] / capacidad['capacidad_posicion_m3']) * 100
+    
+    return capacidad
+
+
+def en_despacho_df():
+    
+    mov_en_despacho = Movimiento.objects.filter(estado_picking='En Despacho')
+    picking_list = mov_en_despacho.values_list('n_referencia', flat=True)
+
+    en_despacho = pd.DataFrame(mov_en_despacho.values())
+    pickings    = pd.DataFrame(EstadoPicking.objects.filter(n_pedido__in=picking_list).values())[[
+        'n_pedido','tipo_cliente','cliente'
+        ]]
+    pickings = pickings.rename(columns={'n_pedido':'n_referencia'})
+    
+    if not en_despacho.empty:
+        en_despacho = en_despacho[['product_id','n_referencia','unidades','ubicacion_id']]
+        en_despacho['unidades'] = en_despacho['unidades'] * -1
+        
+        # Merge products
+        productos   = productos_odbc_and_django()[['product_id','Unidad_Empaque','Volumen']]
+        en_despacho = en_despacho.merge(productos, on='product_id',how='left')
+        en_despacho = en_despacho.merge(pickings, on='n_referencia', how='left')
+        
+        # Calculo
+        en_despacho['cartones'] = en_despacho['unidades'] / en_despacho['Unidad_Empaque']
+        en_despacho['ocupacion_m3']  = en_despacho['cartones'] * (en_despacho['Volumen'] / 1000000)
+        
+        en_despacho = en_despacho.groupby(by='tipo_cliente').sum().reset_index()
+
+        return en_despacho
+    
+    else:
+        return None
+    
 
 def kpi_capacidad():
     
-    # capacidad_utilizada
-    existencias = pd.DataFrame(Existencias.objects.all().values('product_id', 'unidades','ubicacion__bodega'))
-    prod = productos_odbc_and_django()[['product_id','Unidad_Empaque','Volumen']]
-    existencias = existencias.groupby(by=['product_id','ubicacion__bodega']).sum().reset_index()   
-    existencias = existencias.merge(prod, on='product_id', how='left').fillna(0)
-    existencias['cartones'] = existencias['unidades'] / existencias['Unidad_Empaque']    
-    existencias['capacidad_utilizada_m3'] = round(existencias['cartones'] * (existencias['Volumen']/1000000), 0)
+    capacidad = capacidad_de_bodegas_df()
     
-    existencias['adicional'] = round(existencias['capacidad_utilizada_m3'] * 0.025, 0)
-    existencias['capacidad_utilizada_m3'] = existencias['adicional'] + existencias['capacidad_utilizada_m3']
+    # QUITAR UBICACIÓN 607 - JAULA
+    capacidad = capacidad[capacidad['ubicacion_id']!=607]
+    
+    # SI DISPONIBLE FALSO 
+    
+    # AGRUPAR POR BODEGA
+    capacidad = capacidad.groupby(by='bodega').sum().reset_index()[[
+        'bodega','capacidad_posicion_m3','ocupacion_posicion_m3','disponible_posicion_m3'
+        ]]
+    # capacidad['ocupacion_posicion_m3_dif'] = capacidad['ocupacion_posicion_m3'] * 0.025
+    
+    # PORCENTAJE DE OCUPACIÓN
+    capacidad['porcentaje_ocupacion'] = round((capacidad['ocupacion_posicion_m3'] / capacidad['capacidad_posicion_m3'])*100, 1)
+    
+    # CALCULO DE PRODUCTOS EN DESPACHO
+    en_despacho = en_despacho_df()[['tipo_cliente','ocupacion_m3']]
+    en_despacho = en_despacho[en_despacho['tipo_cliente']=='HOSPU']
+    
+    if not en_despacho.empty:
+        en_despacho['bodega'] = 'CN7'
+        capacidad = capacidad.merge(en_despacho, on='bodega', how='left').fillna(0)
+        capacidad['ocupacion_posicion_m3'] = capacidad['ocupacion_posicion_m3'] + capacidad['ocupacion_m3']
+        capacidad['disponible_posicion_m3'] = capacidad['capacidad_posicion_m3'] - capacidad['ocupacion_posicion_m3']
+        capacidad['porcentaje_ocupacion'] = round((capacidad['ocupacion_posicion_m3'] / capacidad['capacidad_posicion_m3'])*100, 0)
+    
+        return capacidad
 
-    existencias = existencias.replace(np.inf, 0)
-    existencias = existencias.replace(np.nan, 0)
-    #existencias = existencias[['ubicacion__bodega','capacidad_utilizada_m3']]
-    existencias = existencias.groupby(by=['ubicacion__bodega']).sum().reset_index()
-    existencias = existencias.rename(columns={'ubicacion__bodega':'bodega'})
-    
-    # capacidad disponible
-    capacidad_disponible = pd.DataFrame(Ubicacion.objects.all().values('bodega','capacidad_m3'))
-    #print(capacidad_disponible[capacidad_disponible['bodega']=='CN5'])
-    capacidad_disponible = capacidad_disponible.groupby(by='bodega').sum().reset_index()
-    capacidad_disponible = capacidad_disponible.rename(columns={'capacidad_m3':'capacidad_disponible_m3'})
-    capacidad_disponible['capacidad_disponible_m3'] = capacidad_disponible.apply(lambda x: x['capacidad_disponible_m3'] - 40 if x['bodega'] == 'CN4' else x['capacidad_disponible_m3'], axis = 1)
-    
-    # capacidad
-    capacidad = capacidad_disponible.merge(existencias, on='bodega', how='left')
-    capacidad['utilizacion'] = capacidad['capacidad_utilizada_m3'] / capacidad['capacidad_disponible_m3']
-    capacidad['porcentaje_utilizacion'] = round(capacidad['utilizacion'] * 100, 1)
-    capacidad['capacidad_no_utilizada_m3'] = round(capacidad['capacidad_disponible_m3'] - capacidad['capacidad_utilizada_m3'], 0)
+    else:
+        return capacidad
 
-    capacidad = capacidad.sort_values(by='bodega') #;print(capacidad)
-    capacidad = capacidad.to_dict('records')
+
+def capacidad_data_grafico():
     
-    return capacidad
+    data = kpi_capacidad()[['bodega','capacidad_posicion_m3','ocupacion_posicion_m3','ocupacion_m3']]
+    data = data.rename(columns={
+        'capacidad_posicion_m3':'capacidad_total',
+        'ocupacion_posicion_m3':'ocupacion_alamacenamiento',
+        'ocupacion_m3':'ocupacion_despacho'
+        })
+    data['ocupacion_alamacenamiento'] = data['ocupacion_alamacenamiento'] - data['ocupacion_despacho']
+    
+    # Porcentajes
+    data['porcentaje_ocupacion'] = round((data['ocupacion_alamacenamiento'] / data['capacidad_total'])*100, 0)
+    data['porcentaje_despacho']  = round((data['ocupacion_despacho'] / data['capacidad_total'])*100, 0)
+    data['porcentaje_disponible'] = 100 - data['porcentaje_ocupacion'] 
+    
+    bodegas    = list(data['bodega'])
+    ocupacion  = list(data['porcentaje_ocupacion'])
+    despacho   = list(data['porcentaje_despacho'])
+    disponible = list(data['porcentaje_disponible'])
+
+    d = {
+        'bodega': bodegas,
+        'ocupacion': ocupacion,
+        'despacho': despacho,
+        'disponible': disponible
+    }
+    
+    return  d
 
 
 def kpi_tiempo_de_almacenamiento():
@@ -416,30 +513,26 @@ def wms_ubicaciones_disponibles_rows():
 # WMS HOME
 @login_required(login_url='login')
 def wms_home(request):
-    #wms_ubicaciones_disponibles_rows()
     
     tiempo_de_almacenamiento = kpi_tiempo_de_almacenamiento()
-    capacidad = kpi_capacidad()
-    bodegas_list = []
-    utilizacion_list = []
-    for i in capacidad:
-        bodegas_list.append(i['bodega'])
-        utilizacion_list.append(i['porcentaje_utilizacion'])
-    
-    # t_ciclo_labels = kpi_ciclo_pedido()['labels']
-    # t_ciclo_data = kpi_ciclo_pedido()['data']
+    capacidad_tabla = de_dataframe_a_template(kpi_capacidad()) 
+    data_grafico = capacidad_data_grafico()
     
     context = {
-        'bodegas':bodegas_list,
-        'utilizacion':utilizacion_list,
-        'capacidad':capacidad,
+        # DATA GRAFICO
+        'bodegas': data_grafico['bodega'],
+        'ocupacion': data_grafico['ocupacion'],
+        'despacho': data_grafico['despacho'],
+        'disponible': data_grafico['disponible'],
+        
+        # DATA TABLAS
+        'capacidad':capacidad_tabla,
         'tiempo_de_almacenamiento':tiempo_de_almacenamiento,
+        
+        # DATA MODALES
         'ubicaciones_disponibles':wms_ubicaciones_disponibles_cn6(),
         'len_ubicaciones_disponibles':len(wms_ubicaciones_disponibles_cn6()),
         'ubicaciones_disponibles_row':wms_ubicaciones_disponibles_rows()
-        # 't_cliclo':kpi_ciclo_pedido(),
-        # 't_cliclo_labels':t_ciclo_labels,
-        # 't_cliclo_data':t_ciclo_data,
     }
     
     return render(request, 'wms/home.html', context)
@@ -452,7 +545,7 @@ def wms_home(request):
 def wms_importaciones_list(request): #OK
     """ Lista de importaciones llegadas """
 
-    imp = importaciones_llegadas_odbc();print(imp)
+    imp = importaciones_llegadas_odbc()
     imp = imp[imp['WARE_COD_CORP']=='CUC']
     imp['ENTRADA_FECHA'] = pd.to_datetime(imp['ENTRADA_FECHA'])
     imp = imp[imp['ENTRADA_FECHA']>datetime(year=2023, month=12, day=31)]
@@ -857,6 +950,7 @@ def wms_existencias_query(): #OK
 
 
 # Actualizar existencias por item y lote
+@transaction.atomic
 def wms_existencias_query_product_lote(product_id, lote_id):
 
     exitencias = Movimiento.objects.filter(
@@ -1035,11 +1129,10 @@ def wms_movimientos_ingreso(request, id): #OK
 
 
     # Lista de ubicaciones por bodega para seleccionar
-    ubi_list = Ubicacion.objects.filter(bodega=item.bodega)
+    ubi_list = Ubicacion.objects.filter(bodega=item.bodega).filter(disponible=True)
 
     # Movimientos ingresado
     mov_list = (Movimiento.objects
-        #.filter(item=item.id)
         .filter(product_id=item.product_id)
         .filter(lote_id=item.lote_id)
         .filter(referencia=item.referencia)
@@ -1061,17 +1154,13 @@ def wms_movimientos_ingreso(request, id): #OK
         ubicaciones_und = und + total_ubicaciones
 
         form = MovimientosForm(request.POST)
-        #if form.is_valid():
+
         if und == total_ingresado:
             # guardar
             if form.is_valid():
                 form.save()
                 wms_existencias_query_product_lote(product_id=request.POST['product_id'], lote_id=request.POST['lote_id'])
-                #wms_existencias_query()
-                # regresar a la lista de productos en importacion
-                url_redirect
-                #return redirect(f'/wms/importacion/bodega/{item.n_referencia}')
-                #return redirect(f'/wms/importacion/bodega/{url_redirect}')
+                
                 return redirect(url_redirect)
             else:
                 messages.error(request, form.errors)
@@ -1087,8 +1176,7 @@ def wms_movimientos_ingreso(request, id): #OK
             if form.is_valid():
                 form.save()
                 wms_existencias_query_product_lote(product_id=request.POST['product_id'], lote_id=request.POST['lote_id'])
-                #wms_existencias_query()
-                # retornar a la misma view
+                
                 return redirect(f'/wms/ingreso/{item.id}')
             else:
                 messages.error(request, form.errors)
@@ -1098,7 +1186,7 @@ def wms_movimientos_ingreso(request, id): #OK
             if form.is_valid():
                 form.save()
                 wms_existencias_query_product_lote(product_id=request.POST['product_id'], lote_id=request.POST['lote_id'])
-                #wms_existencias_query()
+                
                 return redirect(url_redirect)
             else:
                 messages.error(request, form.errors)
@@ -1149,7 +1237,7 @@ Realizado por: {user.first_name} {user.last_name}\n
 @login_required(login_url='login')
 @permisos(['BODEGA'], '/wms/inventario', 'ingrear a Movimiento interno')
 def wms_movimiento_interno(request, id): #OK
-
+    
     item = Existencias.objects.get(id=id)
     und_existentes = item.unidades
 
@@ -1232,6 +1320,7 @@ def wms_movimiento_interno_get_ubi_list_ajax(request):
     ubi_salida = int(request.POST['ubi_salida'])
 
     ubi_list = pd.DataFrame(Ubicacion.objects
+        .filter(disponible=True)
         .filter(bodega=bodega)
         .filter(pasillo=pasillo)
         .exclude(id=ubi_salida)
@@ -1458,8 +1547,8 @@ def wms_ajuste_fecha_ajax(request):
         ubi = de_dataframe_a_template(existencias)[0]
         ubi = ubi['LOCATION']
         ubicaciones = pd.DataFrame(Ubicacion.objects
-            #.filter(bodega=ubi)
-            .all()
+            .filter(disponible=True)
+            #.all()
             .values(
             'id',
             'bodega',
@@ -1558,8 +1647,8 @@ def wms_ajuste_fecha_ajax(request):
         ubi = de_dataframe_a_template(existencias)[0]
         ubi = ubi['LOCATION']
         ubicaciones = pd.DataFrame(Ubicacion.objects
-            #.filter(bodega=ubi)
-            .all()
+            .filter(disponible=True)
+            #.all()
             .values(
             'id',
             'bodega',
@@ -3490,7 +3579,7 @@ def wms_ajuste_liberacion_input_ajax(request):
 def wms_ajuste_liberacion_detalle(request, n_liberacion):
     
     prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
-    ubi  = pd.DataFrame(Ubicacion.objects.all().values())
+    ubi  = pd.DataFrame(Ubicacion.objects.filter(disponible=True).values())
     ubi  = ubi.rename(columns={'id':'ubicacion_id'})
     
     ajuste = pd.DataFrame(AjusteLiberacion.objects.filter(doc_id=n_liberacion).values())
@@ -3641,37 +3730,12 @@ def wms_retiro_producto_despacho_ajax(request):
 @permisos(['ADMINISTRADOR','OPERACIONES', 'BODEGA'],'/wms/home', 'ingresar a ubicaciones')
 def wms_ubicaciones_list(request):    
     
-    # Data
-    ubicaciones = pd.DataFrame(Ubicacion.objects.all().values()).rename(columns={'id':'ubicacion_id'})
-    existencias = pd.DataFrame(Existencias.objects.all().values())
-    productos   = productos_odbc_and_django()[['product_id', 'Unidad_Empaque','Volumen']]
-    
-    # Calculos
-    existencias = existencias.merge(productos, on='product_id', how='left')
-    existencias['cartones'] = existencias['unidades'] / existencias['Unidad_Empaque']
-    existencias['vol'] = existencias['cartones'] * (existencias['Volumen'] / 1000000)
-    existencias = existencias.groupby(by=['ubicacion_id']).sum().reset_index()    
-    
-    # MERGE CALCULO CON UBICACIÓN
-    ubicaciones = ubicaciones.merge(existencias, on='ubicacion_id', how='left').fillna(0)
-    
-    # SORT LIST BY UBICAION
-    ubicaciones = ubicaciones.sort_values(by=['bodega','pasillo','modulo','nivel'])
-    
-    # VOLUMEN IGUAL A CAPACIDAD SI DISPONIBLE FALSO
-    ubicaciones['vol'] = ubicaciones.apply(lambda x: x['capacidad_m3'] if x['disponible']==False else x['vol'], axis=1)
-    ubicaciones['ocupacion'] = (ubicaciones['vol'] / ubicaciones['capacidad_m3']) * 100
-    ubicaciones['disponible_m3'] = ubicaciones['capacidad_m3'] - ubicaciones['vol']
-    
-    
-    # CALCULO RESUMEN
-    # resumen = ubicaciones.groupby(by=['bodega']).sum().reset_index()[['bodega','capacidad_m3','disponible_m3','vol']] 
-    
-    # A TEMPLATE
-    ubicaciones = de_dataframe_a_template(ubicaciones)
+    capacidad = de_dataframe_a_template(capacidad_de_bodegas_df())
+    en_despacho = de_dataframe_a_template(en_despacho_df())
     
     context = {
-        'ubicaciones':ubicaciones
+        'capacidad':capacidad,
+        'en_despacho':en_despacho
     }
     
     return render(request, 'wms/ubicaciones_list.html', context)

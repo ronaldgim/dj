@@ -72,10 +72,10 @@
                                     {{i.bodega}}
                                 </button-->
                             </td>
-                            <td class="text-end">{{i.capacidad_disponible_m3|floatformat:"0g"}} m<sup>3</sup></td>
-                            <td class="text-end">{{i.capacidad_utilizada_m3|floatformat:"0g"}} m<sup>3</sup></td>
-                            <td class="text-end">{{i.capacidad_no_utilizada_m3|floatformat:"0g"}} m<sup>3</sup></td>
-                            <td class="text-end">{{i.porcentaje_utilizacion}}%</td>
+                            <td class="text-end">{{i.capacidad_posicion_m3|floatformat:"0g"}} m<sup>3</sup></td>
+                            <td class="text-end">{{i.ocupacion_posicion_m3|floatformat:"0g"}} m<sup>3</sup></td>
+                            <td class="text-end">{{i.disponible_posicion_m3|floatformat:"0g"}} m<sup>3</sup></td>
+                            <td class="text-end">{{i.porcentaje_ocupacion|floatformat:"0g"}} %</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -237,31 +237,19 @@
         labels: {% autoescape off %}{{bodegas|safe}}{% endautoescape %},
         datasets: [
             {
-            //label: 'Valor',
-            data: {% autoescape off %}{{utilizacion|safe}}{% endautoescape %},
-            //data: [75, 25, 50, 90],
-            backgroundColor: [
-                //'rgba(255, 99, 132, 1)',
-                //'rgba(54, 162, 235, 1)',
-                //'rgba(255, 206, 86, 1)',
-                //'rgba(75, 192, 192, 1)'
-                '#BAF690'
-            ],
-            //borderColor: 'rgba(0, 0, 0, 1)',
-            //borderWidth: 1,
-            borderRadius: 10,
-            barPercentage: 0.9,
-            categoryPercentage: 0.8
+                label: '% Ocupado',
+                data: {% autoescape off %}{{ocupacion|safe}}{% endautoescape %},
+                backgroundColor: ['#BAF690'],
             },
             {
-            //label: 'Fondo',
-            data: [100, 100, 100, 100],
-            //backgroundColor: 'rgba(128, 128, 128, 0.5)',
-            //borderColor: 'rgba(128, 128, 128, 1)',
-            //borderWidth: 1,
-            borderRadius: 10,
-            barPercentage: 0.9,
-            categoryPercentage: 0.8
+                label: '% En Despacho',
+                data: {% autoescape off %}{{despacho|safe}}{% endautoescape %},
+                backgroundColor: ['#53aefe'],
+            },
+            {
+                label: '% Disponible',
+                data: {% autoescape off %}{{disponible|safe}}{% endautoescape %},
+                backgroundColor: ['#e4e4e4'],
             }
         ]
         },
