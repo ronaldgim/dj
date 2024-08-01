@@ -33,7 +33,7 @@
 
 <div id="msg"></div>
 
-<div class="col-4">
+<div class="col-6">
     <div class="card mt-2 mb-2">
         <div class="card-body m-0 p-0">
             <div class="container table-responsive">
@@ -223,35 +223,4 @@
     })
 </script>
 
-{% comment %}
-<script>
-    $("button[name='change_disponible']").click(function(){
-        var ubicacion_id = $("#ubicacion_get_id").val();
-        var disponible_check = $("#disponible").val();
-        var observaciones = $("#observaciones").val();
-        console.log(ubicacion_id, disponible_check, observaciones)
-
-        $.ajax({
-            type:"POST",
-            url:"{% url 'wms_habilitar_deshabilitar_ubicacion_ajax' %}",
-            data:{
-                'csrfmiddlewaretoken': '{{ csrf_token }}',
-                'ubicacion':ubicacion_id,
-                'disponible':disponible_check,
-                'observaciones':observaciones
-            },
-
-            success: function(response) {
-                console.log(response);
-                console.log(response.msg);
-                $("#msg").html('html');
-            }, 
-
-            error: function() {
-                console.log("Error");
-            }
-        }) 
-    })
-</script>
-{% endcomment %}
 {% endblock %}
