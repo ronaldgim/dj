@@ -81,6 +81,7 @@ class Ubicacion(models.Model):
     capacidad_m3     = models.FloatField(verbose_name='Capacidad m3')
     distancia_puerta = models.FloatField(verbose_name='Distancia a puerta', blank=True, null=True)
     disponible       = models.BooleanField(default=True)
+    observaciones    = models.TextField(blank=True)
     
     def __str__(self):
         return f"{self.bodega}-{self.pasillo}-{self.modulo}-{self.nivel}"

@@ -3729,7 +3729,7 @@ def wms_retiro_producto_despacho_ajax(request):
 # MODULO UBICACIÓNES DISPONIBLES Y NO DISPONIBLES
 @permisos(['ADMINISTRADOR','OPERACIONES', 'BODEGA'],'/wms/home', 'ingresar a ubicaciones')
 def wms_ubicaciones_list(request):    
-    
+
     capacidad = de_dataframe_a_template(capacidad_de_bodegas_df())
     en_despacho = de_dataframe_a_template(en_despacho_df())
     
@@ -3739,3 +3739,57 @@ def wms_ubicaciones_list(request):
     }
     
     return render(request, 'wms/ubicaciones_list.html', context)
+
+
+# HABILITAR O DESHABILITAR UBICACIÓN
+@permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'],'/wms/home', 'ingresar a ubicaciones')
+def wms_habilitar_deshabilitar_ubicacion_ajax(request):
+    
+    if request.method == 'GET':
+        ubicacion_get_id = request.GET.get('ubicacion')
+        ubicacion = Ubicacion.objects.get(id=int(ubicacion_get_id))
+        existencias = Existencias.objects.filter(ubicacion_id=ubicacion_get_id)
+        
+        if existencias.exists():
+            existencias_list = existencias.values_list('product_id', flat=True)
+            existencias_list = ' - '.join([str(i) for i in existencias_list])
+        else:
+            existencias_list = ''
+        
+        return JsonResponse({
+            'tipo':'success', 
+            #'msg':'No se puede realizar esta acción por medio de',
+            'ubicacion':ubicacion.__str__(),
+            'disponible':ubicacion.disponible,
+            'observaciones':ubicacion.observaciones,
+            'existencias':existencias.exists(),
+            'existencias_list':existencias_list,
+            })
+        
+    if request.method == 'POST':
+        ubicacion_post_id = request.POST.get('ubicacion_get_id')
+        ubicacion = Ubicacion.objects.get(id=int(ubicacion_post_id))
+        #existencias = Existencias.objects.filter(ubicacion_id=ubicacion_post_id)
+        
+        # Data POST
+        disponible = request.POST.get('disponible')
+        observaciones = request.POST.get('observaciones')
+        
+        # SI NO HAY EXISTENCIAS SI SE PUEDE DESHABILITAR
+        if disponible:
+            # Habilitar 
+            time = datetime.now().strftime('%Y-%m-%d %H:%M')
+            ubicacion.disponible = True
+            ubicacion.observaciones = f"""---------------------\nHABILITADA\n{request.user.first_name} {request.user.last_name} - {time}\n{observaciones}"""
+            ubicacion.save()
+            messages.success(request, f'Habilito exitosamente la ubicación: {ubicacion}!!!')
+            return redirect('wms_ubicaciones_list')
+        
+        else:
+            # Deshabilitar
+            time = datetime.now().strftime('%Y-%m-%d %H:%M')
+            ubicacion.disponible = False
+            ubicacion.observaciones = f"""---------------------\nDESHABILITADA\n{request.user.first_name} {request.user.last_name} - {time}\n{observaciones}"""
+            ubicacion.save()
+            messages.success(request, f'Deshabilito exitosamente la ubicación: {ubicacion}!!!')
+            return redirect('wms_ubicaciones_list')
