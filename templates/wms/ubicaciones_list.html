@@ -98,7 +98,7 @@
                             <progress value="{{i.ocupacion_porcentaje|floatformat:'0g'}}" max="100"></progress> 
                         </td>
                         <td class="text-center">
-                            <button class="btn btn-sm btn-primary {% if i.ocupacion_posicion_m3 != 0 %} disabled {% endif %}">
+                            <button class="btn btn-sm btn-primary" name="ubicacion" id="{{i.ubicacion_id}}" data-bs-toggle="modal" data-bs-target="#exampleModal">
                                 <i class="bi bi-inbox"></i>
                             </button>
                         </td>
@@ -106,6 +106,41 @@
                     {% endfor %}
                 </tbody>
             </table>
+        </div>
+    </div>
+</div>
+
+<!-- Button trigger modal -->
+<!--button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+    Launch demo modal
+</button-->
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{% url 'wms_habilitar_deshabilitar_ubicacion_ajax' %}">{% csrf_token %}
+                <div class="modal-body">
+
+                    <div id="msg"></div>
+                    <input id="ubicacion_get_id" type="hidden" name="ubicacion_get_id">
+                    <div id="existencias_list_id"></div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="disponible" name="disponible">
+                        <label class="form-check-label" for="flexCheckDefault">
+                            Disponible
+                        </label>
+                    </div>
+                    <textarea class="form-control" id="observaciones" style="height: 150px" name="observaciones"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" id="guardar_btn">Guardar</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -124,4 +159,99 @@
     });
 </script>
 
+<script>
+    $("button[name='ubicacion']").click(function(){
+        var ubicacion = $(this).attr('id');
+
+        $.ajax({
+            type:"GET",
+            url:"{% url 'wms_habilitar_deshabilitar_ubicacion_ajax' %}",
+            data:{'ubicacion':ubicacion},
+
+            success: function(response) {
+
+                $(".modal-title").html(response.ubicacion);
+                $("#ubicacion_get_id").val(ubicacion);
+                $("#observaciones").html(response.observaciones);
+
+                if (response.existencias) {
+                    $('#existencias_list_id').html(`<div class="alert alert-danger" role="alert">
+                        No puede deshabilitar esta ubicación ya que tiene los siguientes productos: ${response.existencias_list}</div>`);
+                    // Chequed
+                        if (response.disponible) {
+                        $("#disponible").prop("checked", true);
+                    } else {
+                        $("#disponible").prop("checked", false);
+                    }
+                    // Disabled all
+                    $('#disponible').prop("disabled", true);
+                    $('#observaciones').prop("readonly", true);
+                    $('#guardar_btn').prop("disabled", true);
+                } else {
+                    $('#existencias_list_id').html(`<div class="alert alert-success" role="alert">
+                        Esta ubicación esta vacia, puede deshabilitarla</div>`)
+                    // Chequed
+                    if (response.disponible) {
+                        $("#disponible").prop("checked", true);
+                    } else {
+                        $("#disponible").prop("checked", false);
+                    }
+                    // Habled all
+                    $('#disponible').prop("disabled", false);
+                    $('#observaciones').prop("readonly", false);
+                    $('#guardar_btn').prop("disabled", false);
+                }
+
+            },
+
+            error: function() {
+                console.log("Error");
+            }
+        })
+    })
+</script>
+
+<script>
+    $(document).ready(function(){
+        $("#disponible").change(function(){
+            if ($(this).is(":checked")) {
+                $("#observaciones").attr("required", false);
+            } else {
+                $("#observaciones").attr("required", true);
+            }
+        })
+    })
+</script>
+
+{% comment %}
+<script>
+    $("button[name='change_disponible']").click(function(){
+        var ubicacion_id = $("#ubicacion_get_id").val();
+        var disponible_check = $("#disponible").val();
+        var observaciones = $("#observaciones").val();
+        console.log(ubicacion_id, disponible_check, observaciones)
+
+        $.ajax({
+            type:"POST",
+            url:"{% url 'wms_habilitar_deshabilitar_ubicacion_ajax' %}",
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'ubicacion':ubicacion_id,
+                'disponible':disponible_check,
+                'observaciones':observaciones
+            },
+
+            success: function(response) {
+                console.log(response);
+                console.log(response.msg);
+                $("#msg").html('html');
+            }, 
+
+            error: function() {
+                console.log("Error");
+            }
+        }) 
+    })
+</script>
+{% endcomment %}
 {% endblock %}

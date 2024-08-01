@@ -426,4 +426,10 @@ urlpatterns = [
         view = views.wms_ubicaciones_list,
         name = 'wms_ubicaciones_list'
     ),
+    
+    path(
+        route='wms_habilitar_deshabilitar_ubicacion_ajax',
+        view = views.wms_habilitar_deshabilitar_ubicacion_ajax,
+        name = 'wms_habilitar_deshabilitar_ubicacion_ajax'
+    ),
 ]
