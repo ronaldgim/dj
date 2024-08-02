@@ -185,7 +185,6 @@
                                     <th class="text-center">Columna</th>
                                     <th class="text-center">Nivel</th>
                                     <th class="text-center">Capacidad</th>
-                                    <th class="text-center">Disponible</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -210,7 +209,6 @@
                                     <td class="text-center">{{i.modulo}}</td>
                                     <td class="text-center">{{i.nivel}}</td>
                                     <td class="text-center">{{i.capacidad_m3}} {% if i.capacidad_m3 == 0.96 %}<span style="color:red">E</span>{% endif %}</td>
-                                    <td class="text-center">{% if i.disponible %} <i class="bi bi-check-circle" style="color:green"></i> {% else %} <i class="bi bi-x-circle" style="color:red"></i> {% endif%}</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
