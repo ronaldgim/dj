@@ -477,7 +477,7 @@ def wms_ubicaciones_disponibles_cn6():
 
 def wms_ubicaciones_disponibles_rows():
     ubicaciones_existencias = Existencias.objects.filter(ubicacion__bodega='CN6').values_list('ubicacion_id', flat=True)
-    ubicaciones = Ubicacion.objects.filter(bodega='CN6').values_list('id', flat=True)
+    ubicaciones = Ubicacion.objects.filter(disponible=True).filter(bodega='CN6').values_list('id', flat=True)
     
     ubicaciones_existencias = set(ubicaciones_existencias)
     ubicaciones = set(ubicaciones)
