@@ -487,17 +487,6 @@ def wms_ubicaciones_disponibles_rows():
     
     ubi_list = ubi_list.pivot_table(index='nivel', columns='pasillo', margins=True, aggfunc='count').reset_index()
     
-    # print(ubi_list);print(ubi_list.keys())
-    # ubi_list = ubi_list.index.droplevel()
-    # print(ubi_list.index, ubi_list.columns)
-    # print(ubi_list.columns[0])
-    
-    # print(ubi_list.values.all())
-    
-    # for i in ubi_list.values:
-    #     for j in i:
-    #         print(i, j)
-    
     ubi_list = ubi_list.to_html(
         float_format='{:,.0f}'.format,
         classes='table table-responsive table-bordered m-0 p-0', 
