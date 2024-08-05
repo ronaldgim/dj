@@ -45,7 +45,7 @@
                             <th scope="col">Ocupación</th>
                         </tr>
                     </thead>
-                    <tbody id="pedidosbuscar">
+                    <tbody>
                         {% for i in en_despacho %}
                         <tr>
                             <td>{{i.tipo_cliente}}</td>
@@ -69,10 +69,16 @@
                     <tr>
                         <th scope="col">Ubicación</th>
                         <th scope="col">Distancia a puerta</th>
+                        <th scope="col">
+                            <select class="form-select filter-estado" style="font-size:small;">
+                                <option value="">Estado</option>
+                                <option value="Disponible">Disponible</option>
+                                <option value="No disponible">No disponible</option>
+                            </select>
+                        </th>
+                        <th scope="col">Capacidad</th>
                         <th scope="col">Disponible</th>
-                        <th scope="col">Capacidad</sup></th>
-                        <th scope="col">Disponible</sup></th>
-                        <th scope="col">Ocupado</sup></th>
+                        <th scope="col">Ocupado</th>
                         <th scope="col">% Ocupación</th>
                         <th scope="col">Habilitar</th>
                     </tr>
@@ -83,11 +89,11 @@
                         <td>{{i.bodega}}-{{i.pasillo}}-{{i.modulo}}-{{i.nivel}}</td>
                         <td>{{i.distancia_puerta|floatformat:"2g"}} m</td>
                         
-                        <td>
+                        <td data-estado="{% if i.disponible %} Si {% else %} No {% endif %}">
                             {% if i.disponible %}
-                            <i class="bi bi-check-circle" style="color:green"></i>
+                            <i class="bi bi-check-circle" style="color:green"></i> Disponible
                             {% else %}
-                            <i class="bi bi-x-circle" style="color:red"></i>
+                            <i class="bi bi-x-circle" style="color:red"></i> No disponible
                             {% endif %}
                         </td>
 
@@ -109,11 +115,6 @@
         </div>
     </div>
 </div>
-
-<!-- Button trigger modal -->
-<!--button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
-    Launch demo modal
-</button-->
 
 <!-- Modal -->
 <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -159,6 +160,20 @@
     });
 </script>
 
+<!--filtro diponible-->
+<script>
+    $(document).ready(function(){
+        $('.filter-estado').on('change', function(){
+            var estado = $(this).val();
+            $("#pedidosbuscar tr").filter(function(){
+                $(this).toggle($(this).text().indexOf(estado)>-1)
+            })
+        })
+    })
+</script>
+
+
+<!--get ubicación-->
 <script>
     $("button[name='ubicacion']").click(function(){
         var ubicacion = $(this).attr('id');
@@ -211,6 +226,7 @@
     })
 </script>
 
+<!--observaciones required-->
 <script>
     $(document).ready(function(){
         $("#disponible").change(function(){
