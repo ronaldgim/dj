@@ -617,15 +617,26 @@ def etiquetado_ajax(request):
 
 
 def importaciones_en_transito_odbc_insert_warehouse():
-
-    currentTimeDate = datetime.now() - relativedelta(days=15)
-    TwoWeekTime = currentTimeDate.strftime('%d-%m-%Y')
     
     try:
+        # currentTimeDate = datetime.now() - relativedelta(days=15)
+        # TwoWeekTime = currentTimeDate.strftime('%d-%m-%Y')
+    
         # MBA ODBC
         cnx_odbc_mba     = pyodbc.connect('DSN=mba3;PWD=API')
         cursor_odbc_mba  = cnx_odbc_mba.cursor()
         
+        cursor_odbc_mba.execute(
+            "SELECT CLNT_Pedidos_Principal.CONTRATO_ID, PROV_Ficha_Principal.VENDOR_NAME, CLNT_Pedidos_Detalle.PRODUCT_ID, CLNT_Pedidos_Detalle.QUANTITY, CLNT_Pedidos_Principal.FECHA_ENTREGA, CLNT_Pedidos_Principal.MEMO "
+            "FROM CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, CLNT_Pedidos_Principal CLNT_Pedidos_Principal, PROV_Ficha_Principal PROV_Ficha_Principal "
+            "WHERE CLNT_Pedidos_Detalle.CONTRATO_ID_CORP = CLNT_Pedidos_Principal.CONTRATO_ID_CORP AND "
+            "CLNT_Pedidos_Principal.CLIENT_ID_CORP = PROV_Ficha_Principal.CODIGO_PROVEEDOR_EMPRESA AND (CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND "
+            "(CLNT_Pedidos_Principal.CONFIRMED=false) AND (CLNT_Pedidos_Principal.VOID=false))"
+        )
+        
+        imp_transito = cursor_odbc_mba.fetchall()
+        
+        # Delete
         # DB WAREHOUSE
         cnx_db_warehouse = mysql.connector.connect(
             host="172.16.28.102",
@@ -635,37 +646,13 @@ def importaciones_en_transito_odbc_insert_warehouse():
         )
         
         cursor_db_warehouse = cnx_db_warehouse.cursor()
-        
-        # sql_query = cursor_odbc_mba.execute(            
-        #     "SELECT CLNT_Pedidos_Principal.CONTRATO_ID, PROV_Ficha_Principal.VENDOR_NAME, CLNT_Pedidos_Detalle.PRODUCT_ID, CLNT_Pedidos_Detalle.QUANTITY, CLNT_Pedidos_Principal.FECHA_ENTREGA, CLNT_Pedidos_Principal.MEMO "
-        #     "FROM CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, CLNT_Pedidos_Principal CLNT_Pedidos_Principal, PROV_Ficha_Principal PROV_Ficha_Principal "
-        #     "WHERE CLNT_Pedidos_Detalle.CONTRATO_ID_CORP = CLNT_Pedidos_Principal.CONTRATO_ID_CORP AND CLNT_Pedidos_Principal.CLIENT_ID_CORP = PROV_Ficha_Principal.CODIGO_PROVEEDOR_EMPRESA "
-        #     f"AND ((CLNT_Pedidos_Principal.FECHA_ENTREGA>'{TwoWeekTime}'))"
-        # )
-        
-        sql_query = cursor_odbc_mba.execute(
-            # "SELECT CLNT_Pedidos_Principal.CONTRATO_ID, PROV_Ficha_Principal.VENDOR_NAME, CLNT_Pedidos_Detalle.PRODUCT_ID, CLNT_Pedidos_Detalle.QUANTITY, CLNT_Pedidos_Principal.FECHA_ENTREGA, CLNT_Pedidos_Principal.MEMO "
-            # "FROM CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, CLNT_Pedidos_Principal CLNT_Pedidos_Principal, PROV_Ficha_Principal PROV_Ficha_Principal "
-            # "WHERE CLNT_Pedidos_Detalle.CONTRATO_ID_CORP = CLNT_Pedidos_Principal.CONTRATO_ID_CORP AND "
-            # "CLNT_Pedidos_Principal.CLIENT_ID_CORP = PROV_Ficha_Principal.CODIGO_PROVEEDOR_EMPRESA AND (CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND "
-            # "(CLNT_Pedidos_Principal.CONFIRMED=false) AND (CLNT_Pedidos_Principal.VOID=false)) "
-            # f"AND ((CLNT_Pedidos_Principal.FECHA_ENTREGA>'{TwoWeekTime}'))"
-            
-            "SELECT CLNT_Pedidos_Principal.CONTRATO_ID, PROV_Ficha_Principal.VENDOR_NAME, CLNT_Pedidos_Detalle.PRODUCT_ID, CLNT_Pedidos_Detalle.QUANTITY, CLNT_Pedidos_Principal.FECHA_ENTREGA, CLNT_Pedidos_Principal.MEMO "
-            "FROM CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, CLNT_Pedidos_Principal CLNT_Pedidos_Principal, PROV_Ficha_Principal PROV_Ficha_Principal "
-            "WHERE CLNT_Pedidos_Detalle.CONTRATO_ID_CORP = CLNT_Pedidos_Principal.CONTRATO_ID_CORP AND "
-            "CLNT_Pedidos_Principal.CLIENT_ID_CORP = PROV_Ficha_Principal.CODIGO_PROVEEDOR_EMPRESA AND (CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND "
-            "(CLNT_Pedidos_Principal.CONFIRMED=false) AND (CLNT_Pedidos_Principal.VOID=false))"
-        )
-        
-        sql_query = sql_query.fetchall()
-        
-        # Delete
         cursor_db_warehouse.execute("DELETE FROM imp_transito")
+        cnx_db_warehouse.commit()
         
         sql_insert = """INSERT INTO imp_transito (CONTRATO_ID, VENDOR_NAME, PRODUCT_ID, QUANTITY, FECHA_ENTREGA, MEMO) VALUES (%s, %s, %s, %s, %s, %s)"""
-        data_transito = [list(rows) for rows in sql_query]
+        data_transito = [list(rows) for rows in imp_transito]
         cursor_db_warehouse.executemany(sql_insert, data_transito)
+        cnx_db_warehouse.commit()
         
         print('Importaciones Warehouse Actualizados')
     except Exception as e:

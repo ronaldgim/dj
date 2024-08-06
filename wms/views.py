@@ -19,8 +19,7 @@ from datos.views import (
     wms_stock_lote_cerezos_by_product,
     wms_stock_lote_products,
     wms_datos_nota_entrega,
-    ventas_facturas_odbc,
-    # pedidos_cerrados_bct,
+    importaciones_en_transito_odbc_insert_warehouse,
 
     # Trasnferencia
     doc_transferencia_odbc,
@@ -705,6 +704,10 @@ def wms_importaciones_transito_list(request):
     
     imp_transito = de_dataframe_a_template(imp_transito)
     
+    if request.method == 'POST':
+        importaciones_en_transito_odbc_insert_warehouse()
+        return redirect('wms_importaciones_transito_list')
+        
     context = {
         'imp_transito':imp_transito
     }
