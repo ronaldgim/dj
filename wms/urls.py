@@ -432,4 +432,10 @@ urlpatterns = [
         view = views.wms_habilitar_deshabilitar_ubicacion_ajax,
         name = 'wms_habilitar_deshabilitar_ubicacion_ajax'
     ),
+    
+    path(
+        route='reporte-reposicion-bod6',
+        view = views.wms_reporte_reposicion,
+        name = 'wms_reporte_reposicion'
+    ),
 ]

@@ -3716,12 +3716,12 @@ def wms_retiro_producto_despacho_ajax(request):
         'tipo':'success',
         'msg':f'Las {(mov.unidades*-1)} unidades del producto {mov.product_id} - {mov.lote_id} regreso a la ubicación CN6-G-1'
         })
-    
-    
+
+
 # MODULO UBICACIÓNES DISPONIBLES Y NO DISPONIBLES
 @permisos(['ADMINISTRADOR','OPERACIONES', 'BODEGA'],'/wms/home', 'ingresar a ubicaciones')
 def wms_ubicaciones_list(request):    
-
+    wms_reporte_reposicion()
     capacidad = de_dataframe_a_template(capacidad_de_bodegas_df())
     en_despacho = de_dataframe_a_template(en_despacho_df())
     
@@ -3731,6 +3731,9 @@ def wms_ubicaciones_list(request):
     }
     
     return render(request, 'wms/ubicaciones_list.html', context)
+
+
+
 
 
 # HABILITAR O DESHABILITAR UBICACIÓN
@@ -3785,3 +3788,24 @@ def wms_habilitar_deshabilitar_ubicacion_ajax(request):
             ubicacion.save()
             messages.success(request, f'Deshabilito exitosamente la ubicación: {ubicacion}!!!')
             return redirect('wms_ubicaciones_list')
+        
+        
+@permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'],'/wms/home', 'ingresar a ubicaciones')
+def wms_reporte_reposicion(request):
+    
+    existencias_query = Existencias.objects.filter(ubicacion__bodega='CN6')
+    products = existencias_query.values_list('product_id', flat=True).distinct()
+    
+    productos_reporte = []
+    for i in products:
+        existencia = existencias_query.filter(product_id=i).order_by('fecha_caducidad', 'ubicacion__nivel')
+        existencia_mas_proxima = existencia.first()
+        
+        if existencia_mas_proxima.ubicacion.nivel != '1':
+            productos_reporte.append(existencia_mas_proxima)
+
+    context = {
+        'productos_reporte':productos_reporte,
+    }
+    
+    return render(request, 'wms/reporte_reposicion.html', context)
