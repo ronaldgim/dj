@@ -3793,7 +3793,7 @@ def wms_habilitar_deshabilitar_ubicacion_ajax(request):
 @permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'],'/wms/home', 'ingresar a ubicaciones')
 def wms_reporte_reposicion(request):
     
-    existencias_query = Existencias.objects.filter(ubicacion__bodega='CN6')
+    existencias_query = Existencias.objects.all()
     products = existencias_query.values_list('product_id', flat=True).distinct()
     
     productos_reporte = []
