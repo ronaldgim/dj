@@ -59,7 +59,6 @@
     </div>
 </div>
 
-
 <div class="card mt-2 mb-2">
     <div class="card-body m-0 p-0">
         <div class="container table-responsive">
@@ -73,12 +72,21 @@
                             <select class="form-select filter-estado" style="font-size:small;">
                                 <option value="">Estado</option>
                                 <option value="Disponible">Disponible</option>
-                                <option value="No disponible">No disponible</option>
+                                <option value="Deshabilitado">Deshabilitado</option>
                             </select>
                         </th>
-                        <th scope="col">Capacidad</th>
-                        <th scope="col">Disponible</th>
-                        <th scope="col">Ocupado</th>
+                        <th scope="col">
+                            Capacidad <br>
+                            <span class="capacidad_total"></span> m<sup>3</sup>
+                        </th>
+                        <th scope="col">
+                            Disponible <br>
+                            <span class="disponible_total"></span> m<sup>3</sup>
+                        </th>
+                        <th scope="col">
+                            Ocupado <br>
+                            <span class="ocupacion_total"></span> m<sup>3</sup>
+                        </th>
                         <th scope="col">% Ocupación</th>
                         <th scope="col">Habilitar</th>
                     </tr>
@@ -89,17 +97,17 @@
                         <td>{{i.bodega}}-{{i.pasillo}}-{{i.modulo}}-{{i.nivel}}</td>
                         <td>{{i.distancia_puerta|floatformat:"2g"}} m</td>
                         
-                        <td data-estado="{% if i.disponible %} Si {% else %} No {% endif %}">
+                        <td data-estado="{% if i.disponible %} Si {% else %} No {% endif %}" class="estado">
                             {% if i.disponible %}
                             <i class="bi bi-check-circle" style="color:green"></i> Disponible
                             {% else %}
-                            <i class="bi bi-x-circle" style="color:red"></i> No disponible
+                            <i class="bi bi-x-circle" style="color:red"></i> Deshabilitado
                             {% endif %}
                         </td>
 
-                        <td class="text-center">{{i.capacidad_posicion_m3|floatformat:"2g"}} m<sup>3</td>
-                        <td class="text-center {% if i.disponible_posicion_m3 < 0 %} text-danger {% endif %} ">{{i.disponible_posicion_m3|floatformat:"2g"}} m<sup>3</td>
-                        <td class="text-center">{{i.ocupacion_posicion_m3|floatformat:"2g"}} m<sup>3</td>
+                        <td class="text-center capacidad">{{i.capacidad_posicion_m3|floatformat:"2g"}}</td>
+                        <td class="text-center disponible {% if i.disponible_posicion_m3 < 0 %} text-danger {% endif %} ">{{i.disponible_posicion_m3|floatformat:"2g"}} m<sup>3</td>
+                        <td class="text-center ocupado">{{i.ocupacion_posicion_m3|floatformat:"2g"}} m<sup>3</td>
                         <td class="text-center"> {{i.ocupacion_porcentaje|floatformat:'0g'}} %
                             <progress value="{{i.ocupacion_porcentaje|floatformat:'0g'}}" max="100"></progress> 
                         </td>
@@ -110,6 +118,13 @@
                         </td>
                     </tr>
                     {% endfor %}
+                    <tr>
+                        <td class="fw-bold text-start" colspan="3">Totales:</td>
+                        <td class="text-center"><span class="capacidad_total"></span> m<sup>3</sup></td>
+                        <td class="text-center"><span class="disponible_total"></span> m<sup>3</sup></td>
+                        <td class="text-center"><span class="ocupacion_total"></span> m<sup>3</sup></td>
+                        <td colspan="2"></td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -147,31 +162,132 @@
 </div>
 
 
-<!--filtro buscar-->
 <script>
     $(document).ready(function() {
-        $("#inputbuscar").on("keyup", function() {
-            var value = $(this).val().toLowerCase();
-            $("#pedidosbuscar tr").filter(function() {
-                $(this).toggle($(this).text()
-                .toLowerCase().indexOf(value) > -1)
+        function filtrarYCalcularTotales() {
+            var inputValue = $("#inputbuscar").val().toLowerCase();
+            var selectValue = $('.filter-estado').val().toLowerCase();  // Convertir a minúsculas para comparación
+    
+            let capacidadTotal = 0;
+            let disponibleTotal = 0;
+            let ocupacionTotal = 0;
+    
+            $("#pedidosbuscar tr").each(function() {
+                var rowText = $(this).text().toLowerCase();
+                var matchInput = rowText.indexOf(inputValue) > -1;
+    
+                // Verifica si el estado de la fila coincide con el valor seleccionado
+                var estadoTexto = $(this).find(".estado").text().toLowerCase();
+                var matchSelect = (selectValue === "" || estadoTexto.indexOf(selectValue) > -1);
+                
+                // Mostrar la fila si coincide con ambos filtros
+                var isVisible = matchInput && matchSelect;
+                $(this).toggle(isVisible);
+    
+                // Si la fila es visible, agregar sus valores a los totales
+                if (isVisible) {
+                    let capacidad = parseFloat($(this).find(".capacidad").text().replace(",", "."));
+                    capacidadTotal += isNaN(capacidad) ? 0 : capacidad;
+    
+                    let disponible = parseFloat($(this).find(".disponible").text().replace(",", "."));
+                    disponibleTotal += isNaN(disponible) ? 0 : disponible;
+    
+                    let ocupacion = parseFloat($(this).find(".ocupado").text().replace(",", "."));
+                    ocupacionTotal += isNaN(ocupacion) ? 0 : ocupacion;
+                }
             });
+    
+            // Mostrar los totales en los elementos correspondientes
+            $(".capacidad_total").text(capacidadTotal.toFixed(2));
+            $(".disponible_total").text(disponibleTotal.toFixed(2));
+            $(".ocupacion_total").text(ocupacionTotal.toFixed(2));
+        }
+    
+        // Filtrar la tabla y calcular los totales cuando el usuario escribe en el input o cambia el select
+        $("#inputbuscar, .filter-estado").on("keyup change", function() {
+            filtrarYCalcularTotales();
+        });
+    
+        // Inicializar el filtrado y cálculo cuando la página se carga
+        filtrarYCalcularTotales();
+    });
+    
+</script>
+
+
+{% comment %}
+<script>
+    $(document).ready(function(){
+
+        function calculoTotales() {
+            
+            let capacidadTotal = 0;
+            let disponibleTotal = 0;
+            let ocupacionTotal = 0;
+    
+            $(".table tbody tr:visible").each(function() {
+                
+                // CAPACIDAD
+                let capacidad = parseFloat($(this).find(".capacidad").text().replace(",", "."));
+                capacidadTotal += isNaN(capacidad) ? 0 : capacidad;
+    
+                // DISPONIBLE 
+                let disponible = parseFloat($(this).find(".disponible").text().replace(",", "."));
+                disponibleTotal += isNaN(disponible) ? 0 : disponible;
+    
+                // OCUPACIÓN
+                let ocupacion = parseFloat($(this).find(".ocupacion").text().replace(",", "."));
+                ocupacionTotal += isNaN(ocupacion) ? 0 : ocupacion;
+            });
+            
+            // Mostrar los totales en los elementos correspondientes
+            $("#capacidad_total").text(capacidadTotal.toFixed(2));
+            $("#disponible_total").text(disponibleTotal.toFixed(2));
+            $("#ocupacion_total").text(ocupacionTotal.toFixed(2));            
+        }
+    
+        // Ejecutar el cálculo al cargar la página
+        calculoTotales();
+    
+        // Ejecutar el cálculo cuando cambian los filtros o el input de búsqueda
+        $(".filter-estado, #inputbuscar").on("change input", function() {
+            calculoTotales();
         });
     });
 </script>
 
-<!--filtro diponible-->
 <script>
-    $(document).ready(function(){
-        $('.filter-estado').on('change', function(){
-            var estado = $(this).val();
-            $("#pedidosbuscar tr").filter(function(){
-                $(this).toggle($(this).text().indexOf(estado)>-1)
-            })
-        })
-    })
+    $(document).ready(function() {
+        function filtrarTabla() {
+            var inputValue = $("#inputbuscar").val().toLowerCase();
+            var selectValue = $('.filter-estado').val();
+    
+            $("#pedidosbuscar tr").filter(function() {
+                var rowText = $(this).text().toLowerCase();
+                var matchInput = rowText.indexOf(inputValue) > -1;
+                var matchSelect = rowText.indexOf(selectValue.toLowerCase()) > -1 || selectValue === "";
+    
+                // Mostrar la fila si coincide con ambos filtros
+                $(this).toggle(matchInput && matchSelect);
+            });
+        }
+    
+        // Filtrar la tabla cuando el usuario escribe en el input
+        $("#inputbuscar").on("keyup", function() {
+            filtrarTabla();
+        });
+    
+        // Filtrar la tabla cuando el usuario selecciona un valor en el select
+        $('.filter-estado').on('change', function() {
+            filtrarTabla();
+        });
+    
+        // Inicializar el filtrado para asegurarse de que las filas se muestren correctamente cuando la página se carga
+        filtrarTabla();
+    });
+    
 </script>
-
+{% endcomment %}
 
 <!--get ubicación-->
 <script>
