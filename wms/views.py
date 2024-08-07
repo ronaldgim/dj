@@ -3721,7 +3721,7 @@ def wms_retiro_producto_despacho_ajax(request):
 # MODULO UBICACIÓNES DISPONIBLES Y NO DISPONIBLES
 @permisos(['ADMINISTRADOR','OPERACIONES', 'BODEGA'],'/wms/home', 'ingresar a ubicaciones')
 def wms_ubicaciones_list(request):    
-    wms_reporte_reposicion()
+    
     capacidad = de_dataframe_a_template(capacidad_de_bodegas_df())
     en_despacho = de_dataframe_a_template(en_despacho_df())
     
