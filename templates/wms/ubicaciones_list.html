@@ -108,7 +108,7 @@
                             {% endif %}
                         </td>
 
-                        <td class="text-center capacidad">{{i.capacidad_posicion_m3|floatformat:"2g"}}</td>
+                        <td class="text-center capacidad">{{i.capacidad_posicion_m3|floatformat:"2g"}} m<sup>3</sup></td>
                         <td class="text-center disponible {% if i.disponible_posicion_m3 < 0 %} text-danger {% endif %} ">{{i.disponible_posicion_m3|floatformat:"2g"}} m<sup>3</td>
                         <td class="text-center ocupado">{{i.ocupacion_posicion_m3|floatformat:"2g"}} m<sup>3</td>
                         <td class="text-center"> {{i.ocupacion_porcentaje|floatformat:'0g'}} %
