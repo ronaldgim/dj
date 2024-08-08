@@ -31,9 +31,9 @@
     }
 
     .t_title {
-        padding-top: 4px;
-        padding-left: 4px;
-        padding-right: 4px;
+        padding-top: 2px;
+        padding-left: 2px;
+        padding-right: 2px;
         padding-bottom: 0px;
         font-size: large;
     }
@@ -62,74 +62,81 @@
     }
 
     .t_nombre {
-        width: 170px;
-
+        width: 190px;
         font-size: small;
     }
 
     .t_r_san {
         width: 110px;
-
         font-size: small;
     }
 
     .t_col_1 {
-        padding-top: 4px;
-        padding-left: 4px;
-        padding-right: 4px;
+        padding-top: 2px;
+        padding-left: 1px;
+        padding-right: 1px;
         padding-bottom: 0px;
-        width: 100px;
+        width: 110px;
         font-size: small;
     }
 
     .t_col_2_1 {
-        padding-top: 4px;
-        padding-left: 4px;
-        padding-right: 4px;
+        padding-top: 2px;
+        padding-left: 1px;
+        padding-right: 1px;
         padding-bottom: 0px;
         width: 30px;
         font-size: xx-small;
     }
 
     .t_col_2_2 {
-        padding-top: 4px;
-        padding-left: 4px;
-        padding-right: 4px;
+        padding-top: 2px;
+        padding-left: 1px;
+        padding-right: 1px;
         padding-bottom: 0px;
         width: 45px;
         font-size: xx-small;
     }
 
     .t_col_2_3 {
-        padding-top: 4px;
-        padding-left: 4px;
-        padding-right: 4px;
+        padding-top: 2px;
+        padding-left: 1px;
+        padding-right: 1px;
         padding-bottom: 0px;
-        width: 60px;
+        width: 35px;
+        font-size: xx-small;
+    }
+
+    .t_col_2_4 {
+        padding-top: 2px;
+        padding-left: 1px;
+        padding-right: 1px;
+        padding-bottom: 0px;
+        width: 58px;
         font-size: xx-small;
     }
 
     .t_col_3 {
-        padding-top: 4px;
-        padding-left: 4px;
-        padding-right: 4px;
+        padding-top: 2px;
+        padding-left: 1px;
+        padding-right: 1px;
         padding-bottom: 0px;
-        width: 95px;
+        width: 155px;
         font-size: small;
     }
 
     .t_row {
-        padding-top: 4px;
-        padding-left: 4px;
-        padding-right: 4px;
+        padding-top: 2px;
+        padding-left: 1px;
+        padding-right: 1px;
         padding-bottom: 0px;
         font-size: xx-small;
     }
 
     .t_row_na {
-        padding-top: 4px;
-        padding-left: 4px;
-        padding-right: 4px;
+        padding-top: 2px;
+        padding-left: 1px;
+        padding-right: 1px;
         padding-bottom: 0px;
         text-align: center;
         font-size: xx-small;
@@ -169,23 +176,23 @@
             <tr>
                 <td class="t_title_2"><strong>Tipo de Ingreso de Mercaderia:</strong></td>
                 <td class="t_title_2">Transferencia</td>
-                <td class="t_title_3"><strong>Bodega</strong></td>
+                <td class="t_title_3"><strong>Bodega:</strong></td>
                 <td class="t_title_2"></td>
             </tr>
             <tr>
                 <td class="t_title_2"><strong>Número:</strong></td>
                 <td class="t_title_2">{{documento}}</td>
                 <td class="t_title_3"><strong>Andagoya</strong></td>
-                <td class="t_title_2">{% if bodega_entrada == 'Andagoya' %} {{bodega_entrada}} {% endif %}</td>
+                <td class="t_title_2">{% if bodega_entrada == 'Andagoya' %} X {% endif %}</td>
             </tr>
             <tr>
                 <td class="t_title_2"><strong>Proveedor/Fabricante:</strong></td>
                 <td class="t_title_2">{{bodega_salida}}</td>
                 <td class="t_title_3"><strong>Cerezos</strong></td>
-                <td class="t_title_2">{% if bodega_entrada == 'Cerezos' %} {{bodega_entrada}} {% endif %}</td>
+                <td class="t_title_2">{% if bodega_entrada == 'Cerezos' %} X {% endif %}</td>
             </tr>
             <tr>
-                <td class="t_title_2"><strong>Fecha</strong></td>
+                <td class="t_title_2"><strong>Fecha:</strong></td>
                 <td class="t_title_2">{% now 'Y-m-d' %}</td>
                 <td class="t_title_3"></td>
                 <td class="t_title_2"></td>
@@ -208,53 +215,52 @@
                 <th class="t_col_2_1" rowspan="2">Fecha Fabr. y Exp.</th>
                 <th class="t_col_2_1" rowspan="2">Reg. San.</th>
                 <th class="t_col_2_1" rowspan="2">Lote</th>
-                <th class="t_col_2_3" rowspan="2">-Presentación<br>-Advertencias</th>
-                <th class="t_col_2_3" rowspan="2">Condiciones almacenaje</th>
-                <th class="t_col_2_1" colspan="2">Emabalaje</th>
-                <th class="t_col_2_1">Etiquetas</th>
+                <th class="t_col_2_4" rowspan="2">-Presentación<br>-Advertencias</th>
+                <th class="t_col_2_4" rowspan="2">Condiciones almacenaje</th>
+                <th class="t_col_2_4" colspan="2">Emabalaje</th>
+                <th class="t_col_2_4">Etiquetas</th>
 
                 <th class="t_col_2_1" rowspan="2">No. Ref.</th>
                 <th class="t_col_2_2" rowspan="2">Nombre Producto</th>
                 <th class="t_col_2_1" rowspan="2">Fecha Fabr. y Exp.</th>
                 <th class="t_col_2_1" rowspan="2">Reg. San.</th>
                 <th class="t_col_2_1" rowspan="2">Lote</th>
-                <th class="t_col_2_3" rowspan="2">-Presentación<br>-Advertencias</th>
-                <th class="t_col_2_3" rowspan="2">Condiciones almacenaje</th>
-                <th class="t_col_2_1" colspan="2">Emabalaje</th>
-                <th class="t_col_2_1">Etiquetas</th>
+                <th class="t_col_2_4" rowspan="2">-Presentación<br>-Advertencias</th>
+                <th class="t_col_2_4" rowspan="2">Condiciones almacenaje</th>
+                <th class="t_col_2_4" colspan="2">Emabalaje</th>
+                <th class="t_col_2_4">Etiquetas</th>
 
                 <th class="t_col_2_1" rowspan="2">No. Ref.</th>
                 <th class="t_col_2_2" rowspan="2">Nombre Producto</th>
                 <th class="t_col_2_1" rowspan="2">Fecha Fabr. y Exp.</th>
                 <th class="t_col_2_1" rowspan="2">Reg. San.</th>
                 <th class="t_col_2_1" rowspan="2">Lote</th>
-                <th class="t_col_2_3" rowspan="2">-Presentación<br>-Advertencias</th>
-                <th class="t_col_2_3" rowspan="2">Condiciones almacenaje</th>
+                <th class="t_col_2_4" rowspan="2">-Presentación<br>-Advertencias</th>
+                <th class="t_col_2_4" rowspan="2">Condiciones almacenaje</th>
                 <th class="t_col_2_3" rowspan="2">No material extraño</th>
-                <th class="t_col_2_3" rowspan="2">No deformado</th>
+                <th class="t_col_2_4" rowspan="2">No deformado</th>
                 <th class="t_col_2_3" rowspan="2">Sellado</th>
-                <th class="t_col_2_3" rowspan="2">-No Roto<br>-No Húmedo<br>-Intacto</th>
-                <th class="t_col_2_1">Etiquetas</th>
+                <th class="t_col_2_4" rowspan="2">-No Roto<br>-No Húmedo<br>-Intacto</th>
+                <th class="t_col_2_4">Etiquetas</th>
             </tr>
 
             <tr>
                 <th class="t_col_2_3">Sellado</th>
-                <th class="t_col_2_3">-No Roto<br>-No Húmedo<br>-Intacto</th>
-                <th class="t_col_2_3">-Legibles<br>-Indelebles<br>-Bien Adheridas</th>
+                <th class="t_col_2_4">-No Roto<br>-No Húmedo<br>-Intacto</th>
+                <th class="t_col_2_4">-Legibles<br>-Indelebles<br>-Bien Adheridas</th>
 
                 <th class="t_col_2_3">Sellado</th>
-                <th class="t_col_2_3">-No Roto<br>-No Húmedo<br>-Intacto</th>
-                <th class="t_col_2_3">-Legibles<br>-Indelebles<br>-Bien Adheridas</th>
-
-                <th class="t_col_2_3">-Legibles<br>-Indelebles<br>-Bien Adheridas</th>
+                <th class="t_col_2_4">-No Roto<br>-No Húmedo<br>-Intacto</th>
+                <th class="t_col_2_4">-Legibles<br>-Indelebles<br>-Bien Adheridas</th>
+                <th class="t_col_2_4">-Legibles<br>-Indelebles<br>-Bien Adheridas</th>
             </tr>
 
             {% for i in muestreo %}
             
             <tr>
-                <td class="t_row" style="font-size: 7px">{{i.product_id}}</td>
-                <td class="t_row" style="font-size: 7px">{{i.Nombre}}</td>
-                <td class="t_row" style="font-size: 6px">{{i.Reg_San}}</td>
+                <td class="t_row" style="font-size: 6px">{{i.product_id}}</td>
+                <td class="t_row" style="font-size: 5px; text-aling:start">{{i.Nombre}}</td>
+                <td class="t_row" style="font-size: 5px">{{i.Reg_San|default:"NO REQUIERE"}}</td>
                 
                 <!-- Empaque terciario -->
                 {% if i.emp_terciario %}
