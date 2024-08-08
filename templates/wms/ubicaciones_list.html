@@ -66,29 +66,32 @@
             <table class="table" style="font-size: small;">
                 <thead>
                     <tr>
-                        <th scope="col">Ubicación</th>
-                        <th scope="col">Distancia a puerta</th>
-                        <th scope="col">
+                        <th class="text-center" scope="col">Ubicación</th>
+                        <th class="text-center" scope="col">Distancia a puerta</th>
+                        <th class="text-center" scope="col">
                             <select class="form-select filter-estado" style="font-size:small;">
                                 <option value="">Estado</option>
                                 <option value="Disponible">Disponible</option>
                                 <option value="Deshabilitado">Deshabilitado</option>
                             </select>
                         </th>
-                        <th scope="col">
+                        <th class="text-center" scope="col">
                             Capacidad <br>
                             <span class="capacidad_total"></span> m<sup>3</sup>
                         </th>
-                        <th scope="col">
+                        <th class="text-center" scope="col">
                             Disponible <br>
                             <span class="disponible_total"></span> m<sup>3</sup>
                         </th>
-                        <th scope="col">
+                        <th class="text-center" scope="col">
                             Ocupado <br>
                             <span class="ocupacion_total"></span> m<sup>3</sup>
                         </th>
-                        <th scope="col">% Ocupación</th>
-                        <th scope="col">Habilitar</th>
+                        <th class="text-center" scope="col">
+                            % Ocupación <br>
+                            <span class="porcentaje_ocupacion"></span> %
+                        </th>
+                        <th class="text-center" scope="col">Habilitar</th>
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
@@ -123,6 +126,7 @@
                         <td class="text-center"><span class="capacidad_total"></span> m<sup>3</sup></td>
                         <td class="text-center"><span class="disponible_total"></span> m<sup>3</sup></td>
                         <td class="text-center"><span class="ocupacion_total"></span> m<sup>3</sup></td>
+                        <td class="text-center"><span class="porcentaje_ocupacion"></span></td>
                         <td colspan="2"></td>
                     </tr>
                 </tbody>
@@ -196,11 +200,14 @@
                     ocupacionTotal += isNaN(ocupacion) ? 0 : ocupacion;
                 }
             });
+
+            let porcentaje_ocupacion = (ocupacionTotal / capacidadTotal) * 100;
     
             // Mostrar los totales en los elementos correspondientes
             $(".capacidad_total").text(capacidadTotal.toFixed(2));
             $(".disponible_total").text(disponibleTotal.toFixed(2));
             $(".ocupacion_total").text(ocupacionTotal.toFixed(2));
+            $(".porcentaje_ocupacion").text(porcentaje_ocupacion.toFixed(2));
         }
     
         // Filtrar la tabla y calcular los totales cuando el usuario escribe en el input o cambia el select
