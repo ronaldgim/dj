@@ -3809,3 +3809,32 @@ def wms_reporte_reposicion(request):
     }
     
     return render(request, 'wms/reporte_reposicion.html', context)
+
+
+@permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'],'/wms/home', 'ingresar a ubicaciones')
+def wms_reporte_bodegas457(request):
+    
+    products = Existencias.objects.all().values_list('product_id', flat=True).distinct()
+    
+    products_list_final = []    
+    for i in products:
+        existencia = Existencias.objects.filter(product_id=i).order_by('fecha_caducidad')
+
+        if existencia.first().ubicacion.bodega != "CN6":
+            products_list_final.append(existencia.first().id)
+    
+    df = pd.DataFrame(Existencias.objects.filter(id__in = products_list_final).values(
+        'product_id','lote_id','fecha_caducidad','ubicacion__bodega', 'unidades',
+        'ubicacion__pasillo','ubicacion__modulo','ubicacion__nivel'
+    ))
+    
+    products = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+    df = pd.merge(df, products, on='product_id', how='left')
+    df['fecha_caducidad'] = df['fecha_caducidad'].astype('str')
+    productos_reporte = de_dataframe_a_template(df)
+
+    context = {
+        'productos_reporte':productos_reporte,
+    }
+    
+    return render(request, 'wms/reporte_bod457.html', context)
