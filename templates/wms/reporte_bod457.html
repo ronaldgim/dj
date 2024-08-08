@@ -1,0 +1,117 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Movimientos</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'wms/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+<h5 class="m-4 text-center fw-bold">REPORTE BODEGAS 4 - 5 - 7</h5>
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
+
+
+<div class="col-12">
+    <input id="inputbuscar" type="text" placeholder="Filtro" class="form-control">
+</div>
+
+<div id="msg"></div>
+
+<div class="card mt-2 mb-2">
+    <div class="card-body">
+        <div class="container">
+            Producto mas proximo segun fecha de caducidad de bodegas 4 - 5 - 7...
+        </div>
+    </div>
+</div>
+
+
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table" style="font-size: small;" id="myTable">
+                <thead>
+                    <tr>
+                        <th scope="col">Bodega</th>
+                        <th scope="col">Código</th>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Marca</th>
+                        <th scope="col">Lote</th>
+                        <th scope="col">Fecha</th>
+                        <th scope="col">Ubicación</th>
+                        <th scope="col">Unidades</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in productos_reporte %}
+                    <tr>
+                        <td>{{i.ubicacion__bodega}}</td>
+                        <td>
+                            <form method="POST" action="/wms/inventario">
+                                {% csrf_token %}
+                                <input type="hidden" name="codigo" value="{{i.product_id}}">
+                                <button class="btn btn-outline-primary btn-sm">{{i.product_id}}</button>
+                            </form>
+                        </td>
+                        <td>{{i.Nombre}}</td>
+                        <td>{{i.Marca}}</td>
+                        <td>{{i.lote_id}}</td>
+                        <td class="text-center">{{i.fecha_caducidad}}</td>
+                        <td class="text-center">{{i.ubicacion__bodega}}-{{i.ubicacion__pasillo}}-{{i.ubicacion__modulo}}-{{i.ubicacion__nivel}}</td>
+                        <td class="text-center">{{i.unidades|floatformat:"0g"}}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.css" />  
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.js"></script>
+<script>
+    $(document).ready(function(){
+        $('#myTable').DataTable({
+            //#ordering:false,
+            "searching":false,
+            "show":false,
+            "paging":false,
+            "info":false,
+            columnDefs:[
+                {type:'signed-num',targets:0}
+            ]
+    })
+    })
+</script>
+
+<!--filtro buscar-->
+<script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+
+
+{% endblock %}
