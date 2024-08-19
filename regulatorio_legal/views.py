@@ -360,7 +360,7 @@ def new_document(request):
 
 def venta_facturas_query(n_factura):
     with connections['gimpromed_sql'].cursor() as cursor:
-        cursor.execute(f"SELECT * FROM warehouse.venta_facturas WHERE CODIGO_FACTURA = '{n_factura}'")
+        cursor.execute(f"SELECT * FROM warehouse.venta_facturas WHERE CODIGO_FACTURA LIKE '%{n_factura}%'")
         columns = [col[0] for col in cursor.description]
         facturas = [
             dict(zip(columns, row))
@@ -374,7 +374,7 @@ def venta_facturas_query(n_factura):
 
 def lista_facturas(request):
     
-    facturas = facturas_odbc()
+    facturas = facturas_odbc() ; print(facturas)
     facturas = facturas.drop_duplicates(subset='CODIGO_FACTURA')
     
     lista_codigos_factura = list(facturas['CODIGO_FACTURA'])
@@ -389,9 +389,6 @@ def lista_facturas(request):
         'fecha_hora'
         ))
     
-    envios_documentos['fecha_hora'] = envios_documentos['fecha_hora'].astype(str)
-    envios_documentos['fecha_hora'] = envios_documentos['fecha_hora'].str.slice(0,-7)
-    
     envios_documentos = envios_documentos.drop_duplicates(subset=['n_factura'], keep='last')
     
     if not envios_documentos.empty:
@@ -405,25 +402,27 @@ def lista_facturas(request):
     
     if request.method == 'POST':
         n_factura = request.POST['n_factura']
-        doc_enviados = DocumentoEnviado.objects.filter(n_factura__icontains=n_factura)
-        facturas = pd.DataFrame(doc_enviados.values())
+        facturas = pd.DataFrame(DocumentoEnviado.objects.filter(n_factura__icontains=n_factura).values())
         
         nf = int(n_factura)
         nf = 'FCSRI-1001' + f'{nf:09d}' + '-GIMPR'
-        query_facturas = venta_facturas_query(nf)[['CODIGO_FACTURA','CODIGO_CLIENTE']]
-        cli = clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE']]
-        query_facturas = query_facturas.merge(cli, on='CODIGO_CLIENTE', how='left').drop_duplicates(subset='CODIGO_FACTURA')
-        query_facturas = query_facturas.rename(columns={
+        query_facturas = venta_facturas_query(nf)
+        
+        if not query_facturas.empty:
+            query_facturas = query_facturas[['CODIGO_FACTURA','CODIGO_CLIENTE']]
+            cli = clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE']]
+            query_facturas = query_facturas.merge(cli, on='CODIGO_CLIENTE', how='left').drop_duplicates(subset='CODIGO_FACTURA')
+            query_facturas = query_facturas.rename(columns={
             'CODIGO_FACTURA':'n_factura',
             'CODIGO_CLIENTE':'codigo_cliente',
             'NOMBRE_CLIENTE':'nombre_cliente'})
         
-        facturas_list = pd.concat([facturas, query_facturas]).drop_duplicates(subset='n_factura').fillna('')
-        facturas_list['fecha_hora'] = facturas_list['fecha_hora'].dt.strftime('%Y-%m-%d') 
-        facturas_list = de_dataframe_a_template(facturas_list)        
+        facturas_list = pd.concat([facturas, query_facturas]).drop_duplicates(subset='n_factura').fillna('')    
+        facturas_list['fecha_hora'] = facturas_list['fecha_hora'].astype('str')
+        facturas_list = de_dataframe_a_template(facturas_list)
         
         context = {
-            'facturas': facturas_list, #doc_enviados,
+            'facturas': facturas_list, 
             'act':actualizacion
         }
         return render(request, 'regulatorio_legal/lista_facturas_enviadas.html', context)
