@@ -1,22 +1,12 @@
 # Shorcuts
 from django.shortcuts import render, redirect
 
-# Datetime
-from datetime import datetime, date, timedelta
-
 # BD Connection
 from django.db import connections
 
 # Pandas
 import pandas as pd
 import numpy as np
-
-# Json
-import json
-
-# Correo
-from django.core.mail import send_mail, EmailMultiAlternatives
-from django.conf import settings
 
 # Productos
 from datos.models import Product
@@ -30,11 +20,6 @@ from django_xhtml2pdf.utils import pdf_decorator
 
 # Login
 from django.contrib.auth.decorators import login_required
-
-
-# Html
-from django.utils.html import strip_tags
-
 
 # Tabla Registro Sanitario
 from bpa.models import RegistroSanitario, CartaNoRegistro
@@ -58,7 +43,6 @@ from datos.views import (
     importaciones_tansito_list,
     importaciones_tansito_por_contratoid,
     quitar_prefijo,
-    extraer_fecha
     )
 
 # de dataframe to template
@@ -528,6 +512,12 @@ def revision_tecnica_transferencia(request, doc):
     elif b_salida == 'CUC':
         bodega_salida = 'Cuarentena Cerezos'
         bodega_entrada = 'Cuarentena Andagoya'
+    elif b_salida == 'BAN':
+        bodega_salida = 'Andagoya'
+        bodega_entrada = 'Cerezos'
+    elif b_salida == 'CUA':
+        bodega_salida = 'Cuarentena Andagoya'
+        bodega_entrada = 'Cuarentena Cerezos'
     
     muest = de_dataframe_a_template(muest)
 
