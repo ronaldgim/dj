@@ -1059,12 +1059,27 @@ def wms_inventario(request): #OK
         inv['fecha_caducidad'] = inv['fecha_caducidad'].dt.strftime('%d-%m-%Y')
         inv = de_dataframe_a_template(inv)
         
-        inv_detalle = pd.DataFrame(ex).groupby(by=['estado','product_id','lote_id','fecha_caducidad']).sum().reset_index().sort_values(by='fecha_caducidad')
-        inv_detalle['fecha_caducidad'] = pd.to_datetime(inv_detalle['fecha_caducidad']).dt.strftime('%d-%m-%Y')
-        inv_detalle = de_dataframe_a_template(inv_detalle)
+        # INV DETALLE
+        products = productos_odbc_and_django()[['product_id','Unidad_Empaque','UnidadesPorPallet','Volumen']]
         
-        inv_estado = pd.DataFrame(ex).groupby(by="estado").sum().sort_values(by='estado',ascending=False).reset_index()
-        total = inv_estado['unidades'].sum()
+        inv_detalle = pd.DataFrame(ex).groupby(by=['estado','product_id','lote_id','fecha_caducidad']).sum().reset_index().sort_values(by='fecha_caducidad')
+        inv_detalle = inv_detalle.merge(products, on='product_id', how='left')
+        inv_detalle['cartones'] = inv_detalle['unidades'] / inv_detalle['Unidad_Empaque']
+        inv_detalle['volumen']  = inv_detalle['cartones'] * (inv_detalle['Volumen'] / 1000000)
+        inv_detalle['pallets']  = inv_detalle['unidades'] / inv_detalle['UnidadesPorPallet'] 
+        inv_detalle['fecha_caducidad'] = pd.to_datetime(inv_detalle['fecha_caducidad']).dt.strftime('%d-%m-%Y')
+        inv_detalle = inv_detalle.replace(to_replace=np.inf, value=0)
+        
+        # INV ESTADO
+        inv_estado = pd.DataFrame(inv_detalle).groupby(by="estado").sum().sort_values(by='estado',ascending=False).reset_index()
+        
+        # TOTALES
+        total_unidades = inv_detalle['unidades'].sum()
+        total_cartones = inv_detalle['cartones'].sum()
+        total_volumen  = inv_detalle['volumen'].sum()
+        total_pallets  = inv_detalle['pallets'].sum()
+        
+        inv_detalle = de_dataframe_a_template(inv_detalle)
         inv_estado = de_dataframe_a_template(inv_estado)
         
         en_despacho = (Movimiento.objects
@@ -1072,6 +1087,32 @@ def wms_inventario(request): #OK
             .filter(referencia='Picking')
             .filter(estado_picking='En Despacho')
             .values('product_id','lote_id','fecha_caducidad','estado_picking','unidades'))
+        
+        en_despacho_df = pd.DataFrame(en_despacho)
+        
+        if not en_despacho_df.empty:
+            en_despacho_df['unidades'] = en_despacho_df['unidades'] * -1
+            en_despacho_df = en_despacho_df.merge(products, on='product_id', how='left')
+            en_despacho_df['cartones'] = en_despacho_df['unidades'] / en_despacho_df['Unidad_Empaque']
+            en_despacho_df['volumen']  = en_despacho_df['cartones'] * (en_despacho_df['Volumen'] / 1000000)
+            en_despacho_df['pallets']  = en_despacho_df['unidades'] / en_despacho_df['UnidadesPorPallet'] 
+            en_despacho_df['fecha_caducidad'] = pd.to_datetime(en_despacho_df['fecha_caducidad']).dt.strftime('%d-%m-%Y')
+            en_despacho_df = en_despacho_df.replace(to_replace=np.inf, value=0)
+            
+            total_unidades_despacho = en_despacho_df['unidades'].sum()
+            total_cartones_despacho = en_despacho_df['cartones'].sum()
+            total_volumen_despacho  = en_despacho_df['volumen'].sum()
+            total_pallets_despacho  = en_despacho_df['pallets'].sum()
+            
+            en_despacho = de_dataframe_a_template(en_despacho_df)
+        else:
+            
+            total_unidades_despacho = 0
+            total_cartones_despacho = 0
+            total_volumen_despacho  = 0
+            total_pallets_despacho  = 0
+            
+            en_despacho = de_dataframe_a_template(en_despacho_df)
         
         context = {
             'productos':productos,
@@ -1081,7 +1122,16 @@ def wms_inventario(request): #OK
             'inv_detalle':inv_detalle,
             'inv_estado':inv_estado,
             'en_despacho':en_despacho,
-            'total':total,
+            
+            'total_unidades':total_unidades,
+            'total_cartones':total_cartones,
+            'total_volumen':total_volumen,
+            'total_pallets':total_pallets,
+            
+            'total_unidades_despacho':total_unidades_despacho,
+            'total_cartones_despacho':total_cartones_despacho,
+            'total_volumen_despacho':total_volumen_despacho,
+            'total_pallets_despacho':total_pallets_despacho,
         }
     
         return render(request, 'wms/inventario.html', context)
@@ -3811,7 +3861,7 @@ def wms_reporte_reposicion(request):
     return render(request, 'wms/reporte_reposicion.html', context)
 
 
-@permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'],'/wms/home', 'ingresar a ubicaciones')
+@permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'],'/wms/home', 'ingresar a reporte')
 def wms_reporte_bodegas457(request):
     
     products = Existencias.objects.all().values_list('product_id', flat=True).distinct()
