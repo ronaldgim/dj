@@ -47,6 +47,16 @@
         width: 130px;
     }
 
+    .t_bodega {
+        padding-top: 2px;
+        padding-left: 2px;
+        padding-right: 2px;
+        padding-bottom: 0px;
+        font-size: small;
+        width: 13px;
+        border: 1px solid black;
+    }
+    
     .t_title_3 {
         padding-top: 2px;
         padding-left: 2px;
@@ -177,25 +187,25 @@
                 <td class="t_title_2"><strong>Tipo de Ingreso de Mercaderia:</strong></td>
                 <td class="t_title_2">Transferencia</td>
                 <td class="t_title_3"><strong>Bodega:</strong></td>
-                <td class="t_title_2"></td>
+                <td></td>
             </tr>
             <tr>
                 <td class="t_title_2"><strong>Número:</strong></td>
                 <td class="t_title_2">{{documento}}</td>
                 <td class="t_title_3"><strong>Andagoya</strong></td>
-                <td class="t_title_2">{% if bodega_entrada == 'Andagoya' %} X {% endif %}</td>
+                <td class="t_bodega">{% if bodega_entrada == 'Andagoya' %} X {% endif %}</td>
             </tr>
             <tr>
                 <td class="t_title_2"><strong>Proveedor/Fabricante:</strong></td>
                 <td class="t_title_2">{{bodega_salida}}</td>
                 <td class="t_title_3"><strong>Cerezos</strong></td>
-                <td class="t_title_2">{% if bodega_entrada == 'Cerezos' %} X {% endif %}</td>
+                <td class="t_bodega">{% if bodega_entrada == 'Cerezos' %} X {% endif %}</td>
             </tr>
             <tr>
                 <td class="t_title_2"><strong>Fecha:</strong></td>
                 <td class="t_title_2">{% now 'Y-m-d' %}</td>
                 <td class="t_title_3"></td>
-                <td class="t_title_2"></td>
+                <td></td>
             </tr>
         </table>
 
