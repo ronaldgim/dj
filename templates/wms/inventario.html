@@ -68,6 +68,9 @@
                     <th scope="col">FExp</th>
                     <th scope="col">Estado</th>
                     <th scope="col">Unidades</th>
+                    <th scope="col">Cartones</th>
+                    <th scope="col">Volumen</th>
+                    <th scope="col">Pallets</th>
                 </tr>
             </thead>
             <tbody id="pedidosbuscar">
@@ -77,13 +80,19 @@
                     <td>{{i.fecha_caducidad}}</td>
                     <td>{{i.estado}}</td>
                     <td class="text-end">{{i.unidades|floatformat:"0g"}}</td>
+                    <td class="text-end">{{i.cartones|floatformat:"2g"}}</td>
+                    <td class="text-end">{{i.volumen|floatformat:"2g"}}</td>
+                    <td class="text-end">{{i.pallets|floatformat:"2g"}}</td>
                 </tr>
                 {% endfor %}
                 <tr>
                     <td class="fw-bold">Total</td>
                     <td></td>
                     <td></td>
-                    <td class="text-end">{{total|floatformat:"0g"}}</td>
+                    <td class="text-end">{{total_unidades|floatformat:"0g"}}</td>
+                    <td class="text-end">{{total_cartones|floatformat:"2g"}}</td>
+                    <td class="text-end">{{total_volumen|floatformat:"2g"}}</td>
+                    <td class="text-end">{{total_pallets|floatformat:"2g"}}</td>
                 </tr>
             </tbody>
         </table>
@@ -96,6 +105,9 @@
                 <tr>
                     <th scope="col">Estado</th>
                     <th scope="col">Unidades</th>
+                    <th scope="col">Cartones</th>
+                    <th scope="col">Volumen</th>
+                    <th scope="col">Pallets</th>
                 </tr>
             </thead>
             <tbody id="pedidosbuscar">
@@ -103,11 +115,17 @@
                 <tr {% if i.estado == "Cuarentena" %} class="text-danger" {% endif %}>
                     <td>{{i.estado}}</td>
                     <td class="text-end">{{i.unidades|floatformat:"0g"}}</td>
+                    <td class="text-end">{{i.cartones|floatformat:"2g"}}</td>
+                    <td class="text-end">{{i.volumen|floatformat:"2g"}}</td>
+                    <td class="text-end">{{i.pallets|floatformat:"2g"}}</td>
                 </tr>
                 {% endfor %}
                 <tr>
                     <td class="fw-bold">Total</td>
-                    <td class="text-end">{{total|floatformat:"0g"}}</td>
+                    <td class="text-end">{{total_unidades|floatformat:"0g"}}</td>
+                    <td class="text-end">{{total_cartones|floatformat:"2g"}}</td>
+                    <td class="text-end">{{total_volumen|floatformat:"2g"}}</td>
+                    <td class="text-end">{{total_pallets|floatformat:"2g"}}</td>
                 </tr>
             </tbody>
         </table>
@@ -123,18 +141,32 @@
                     <th scope="col">FExp</th>
                     <th scope="col">Estado Picking</th>
                     <th scope="col">Unidades</th>
+                    <th scope="col">Cartones</th>
+                    <th scope="col">Volumen</th>
+                    <th scope="col">Pallets</th>
                 </tr>
             </thead>
             <tbody id="pedidosbuscar">
                 {% for i in en_despacho %}
                 <tr>
                     <td>{{i.lote_id}}</td>
-                    <td>{{i.fecha_caducidad|date:'d-m-Y'}}</td>
+                    <td>{{i.fecha_caducidad}}</td>
                     <td>{{i.estado_picking}}</td>
                     <td class="text-end">{{i.unidades|floatformat:"0g"}}</td>
+                    <td class="text-end">{{i.cartones|floatformat:"2g"}}</td>
+                    <td class="text-end">{{i.volumen|floatformat:"2g"}}</td>
+                    <td class="text-end">{{i.pallets|floatformat:"2g"}}</td>
                 </tr>
                 {% endfor %}
-                <tr></tr>
+                <tr>
+                    <td class="fw-bold">Total</td>
+                    <td></td>
+                    <td></td>
+                    <td class="text-end">{{total_unidades_despacho|floatformat:"0g"}}</td>
+                    <td class="text-end">{{total_cartones_despacho|floatformat:"2g"}}</td>
+                    <td class="text-end">{{total_volumen_despacho|floatformat:"2g"}}</td>
+                    <td class="text-end">{{total_pallets_despacho|floatformat:"2g"}}</td>
+                </tr>
             </tbody>
         </table>
     </div>
