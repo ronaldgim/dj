@@ -488,7 +488,16 @@ def etiquetado_fun():
     stock = pd.DataFrame(stock)
 
     stock = stock.pivot_table(index=['PRODUCT_ID', 'PRODUCT_NAME', 'GROUP_CODE'], values='OH2', columns='WARE_CODE', aggfunc='sum').fillna(0)
-    stock['Cuarentena'] = stock['CUA'] + stock['CUC']
+    
+    if 'CUA' in stock.columns and 'CUC' in stock.columns:
+        stock['Cuarentena'] = stock['CUA'] + stock['CUC']
+        
+    elif 'CUA' in stock.columns:
+        stock['Cuarentena'] = stock['CUA'] 
+    
+    elif 'CUC' in stock.columns:
+        stock['Cuarentena'] = stock['CUC']
+        
     stock['Disponible Total'] = stock['BAN'] + stock['BCT']
     stock = stock[['Disponible Total', 'Cuarentena']]
     stock = stock.reset_index()
