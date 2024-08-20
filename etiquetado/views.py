@@ -1350,7 +1350,8 @@ GIMPROMED Cia. Ltda.\n
         # Send whatsapp
         whatsapp_json = {
             'senores': picking_estado.cliente,
-            'recipient': n_whatsapp,
+            # 'recipient': n_whatsapp,
+            'recipient': '+593999922603',
             'factura':n_factura,
             'bodega':b,
             'n_cartones':str(car)
