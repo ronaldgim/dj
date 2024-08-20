@@ -2538,7 +2538,7 @@ def dashboard_completo(request):
     if len(pedidos_cerezos) > 0:
         pedidos_cerezos['fecha_estado'] = pedidos_cerezos.apply(lambda x: 'hoy' if x['FECHA_PEDIDO']==hoy else 'ayer' if x['FECHA_PEDIDO']==ayer else 'mas3' if x['FECHA_PEDIDO']<ayer else 'mas3', axis=1)
 
-    pedidos_cerezos['FECHA_PEDIDO'] = pedidos_cerezos['FECHA_PEDIDO'].astype(str)#;print(pedidos_cerezos)
+    pedidos_cerezos['FECHA_PEDIDO'] = pedidos_cerezos['FECHA_PEDIDO'].astype(str)
     pedidos_cerezos = de_dataframe_a_template(pedidos_cerezos)
 
 
