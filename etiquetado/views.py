@@ -1345,7 +1345,7 @@ GIMPROMED Cia. Ltda.\n
     # ENVIAR WHATSAPP
     n_whatsapp = whastapp_cliente_por_codigo(picking_estado.codigo_cliente)
     
-    if n_whatsapp and n_whatsapp.startswith('+593'):
+    if n_whatsapp and n_whatsapp.startswith('+593') and len(n_whatsapp) == 13:
 
         # Send whatsapp
         whatsapp_json = {
