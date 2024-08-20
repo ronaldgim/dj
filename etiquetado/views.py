@@ -1346,8 +1346,8 @@ GIMPROMED Cia. Ltda.\n
     n_whatsapp = whastapp_cliente_por_codigo(picking_estado.codigo_cliente)
     
     if n_whatsapp and n_whatsapp.startswith('+593'):
+
         # Send whatsapp
-        
         whatsapp_json = {
             'senores': picking_estado.cliente,
             'recipient': n_whatsapp,
@@ -1360,11 +1360,13 @@ GIMPROMED Cia. Ltda.\n
             url='http://gimpromed.com/app/api/send-whatsapp',
             data= whatsapp_json
         )
-    
+
+        # si se envia whatsapp set value
         if response.status_code == 200: 
             picking_estado.whatsapp = True
     
-    elif not n_whatsapp:
+        # si no hay número o el numero el incorrecto
+    elif not n_whatsapp or not n_whatsapp.startswith('+593'):
         picking_estado.wh_fail_number = True
     
     picking_estado.save()
