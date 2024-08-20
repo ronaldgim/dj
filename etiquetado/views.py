@@ -387,8 +387,8 @@ def etiquetado_pedidos(request, n_pedido):
     pedido['disp'] = pedido['stock_disp']>pedido['QUANTITY']
     
     pedido = pedido.sort_values(by=['PRODUCT_NAME']) 
-    cli_ruc = clientes_table()[['NOMBRE_CLIENTE','IDENTIFICACION_FISCAL']]
-    pedido = pedido.merge(cli_ruc,on='NOMBRE_CLIENTE', how='left') 
+    cli_ruc = clientes_table()[['IDENTIFICACION_FISCAL','CODIGO_CLIENTE']]
+    pedido = pedido.merge(cli_ruc,on='CODIGO_CLIENTE', how='left') 
     
     # Avance
     avance = etiquetado_avance_pedido(n_pedido) 

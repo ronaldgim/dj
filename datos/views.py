@@ -1639,7 +1639,7 @@ def pedido_por_cliente(n_pedido):
         ]
 
         r = pd.DataFrame(reservas)
-
+        
     return r
 
 
