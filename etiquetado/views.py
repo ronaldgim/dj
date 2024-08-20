@@ -519,7 +519,7 @@ def etiquetado_fun():
         prod = productos_odbc_and_django()[['product_id','Unidad_Empaque','t_etiq_1p','t_etiq_2p','t_etiq_3p','n_personas']]
         prod = prod.rename(columns={'product_id':'PRODUCT_ID'})
         
-        etiquetado = pd.DataFrame(etiquetado)
+        etiquetado = pd.DataFrame(etiquetado) 
         etiquetado = etiquetado.merge(prod, on='PRODUCT_ID',how='left')
         etiquetado['Cartones_Cuarentena'] = (etiquetado['Cuarentena'] / etiquetado['Unidad_Empaque']).round(2)
 
@@ -555,7 +555,6 @@ def etiquetado_fun():
         etiquetado = etiquetado[etiquetado['Cat']!='0']
         etiquetado = etiquetado[etiquetado['PRODUCT_ID']!='1113']
         etiquetado = etiquetado[etiquetado['PRODUCT_ID']!='1100']
-        
         
     return etiquetado
 
@@ -2396,9 +2395,6 @@ def publico_dashboard_fun():
     reservas['t_2p'] = (reservas['cartones'] * reservas['t_etiq_2p']).round(0)
     reservas['t_3p'] = (reservas['cartones'] * reservas['t_etiq_3p']).round(0)
     
-
-
-    
     ### CONF TIEMPOS
     contratos = reservas['CONTRATO_ID'].unique()
     
@@ -2542,12 +2538,12 @@ def dashboard_completo(request):
     if len(pedidos_cerezos) > 0:
         pedidos_cerezos['fecha_estado'] = pedidos_cerezos.apply(lambda x: 'hoy' if x['FECHA_PEDIDO']==hoy else 'ayer' if x['FECHA_PEDIDO']==ayer else 'mas3' if x['FECHA_PEDIDO']<ayer else 'mas3', axis=1)
 
-    pedidos_cerezos['FECHA_PEDIDO'] = pedidos_cerezos['FECHA_PEDIDO'].astype(str)#;print(pedidos_cerezos)
+    pedidos_cerezos['FECHA_PEDIDO'] = pedidos_cerezos['FECHA_PEDIDO'].astype(str)
     pedidos_cerezos = de_dataframe_a_template(pedidos_cerezos)
 
 
     # ETIQUETADO STOCK
-    etiquetado = etiquetado_fun()
+    etiquetado = etiquetado_fun() 
     urgente = 0.75
     correcto = 2
     rojo = len(etiquetado[etiquetado['Meses']<urgente])
