@@ -94,13 +94,8 @@ class OrdenEtiquetadoStock(models.Model):
 class EstadoPicking(models.Model):
     
     user     = models.ForeignKey(UserPerfil, verbose_name='User', on_delete=models.CASCADE)
-    
     n_pedido = models.CharField(verbose_name='Pedido', max_length=50, unique=True)
-
-    # estado   = models.CharField(verbose_name='Estado', max_length=50, choices=ESTADO_PICKING)
-
     estado   = models.CharField(verbose_name='Estado', max_length=50)
-
     fecha_pedido = models.CharField(verbose_name='Fecha pedido', max_length=50, blank=True)
     tipo_cliente = models.CharField(verbose_name='Tipo cliente', max_length=50, blank=True)
     cliente = models.CharField(verbose_name='Cliente', max_length=100, blank=True)
@@ -109,9 +104,7 @@ class EstadoPicking(models.Model):
     bodega = models.CharField(verbose_name='Bodega', max_length=50, blank=True)
     
     fecha_creado = models.DateTimeField(auto_now_add=True)
-    # fecha_actualizado = models.DateTimeField(auto_now=True)
     fecha_actualizado = models.DateTimeField(verbose_name='Hora actualizado', blank=True, null=True)
-
     facturado_por  = models.ForeignKey(User, verbose_name='Vendedor', on_delete=models.PROTECT ,blank=True, null=True)
     hora_facturado = models.DateTimeField(verbose_name='Hora de facturación', blank=True, null=True)
     facturado      = models.BooleanField(verbose_name='Facturado', default=False)

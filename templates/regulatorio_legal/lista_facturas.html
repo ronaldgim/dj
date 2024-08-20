@@ -21,6 +21,9 @@
             {% csrf_token %}
             <input type="text" placeholder="Buscar" class="form-control" name="n_factura">
             <button class="btn btn-primary" type="submit">Buscar</button>
+            {% if len_facturas %}
+                <a class="btn btn-danger" href="{% url 'r_l_facturas' %}">Borrar busqueda</a>
+            {% endif %}
         </div>
     </form>
 </div>

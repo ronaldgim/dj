@@ -24,18 +24,9 @@ from regulatorio_legal.models import DocumentoLote, DocumentoEnviado
 # Pandas
 import pandas as pd
 
-# models
-from users.models import User
-
 # Utilities
-from django.views.decorators.csrf import csrf_exempt
 from regulatorio_legal.forms import DocumentoLoteForm, NewDocumentoLoteForm, DocumentoEnviadoForm
-from django.shortcuts import redirect
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
-
-from django.core.mail import EmailMessage
-from django.conf import settings
-
 from etiquetado.views import correos_notificacion_factura
 
 # Messages
@@ -44,10 +35,10 @@ from django.contrib import messages
 # Json
 import json
 
+# Email
+from django.core.mail import EmailMessage
+from django.conf import settings
 from smtplib import SMTPException 
-
-# Pyodbc
-import pyodbc
 
 # Lista de importaciones
 def importaciones_llegadas_list(request):
@@ -373,67 +364,102 @@ def venta_facturas_query(n_factura):
 
 
 def lista_facturas(request):
-    
-    facturas = facturas_odbc() ; print(facturas)
+    # FACTURAS ODBC
+    facturas = facturas_odbc()[['CODIGO_FACTURA', 'FECHA_FACTURA', 'NOMBRE_CLIENTE']]
     facturas = facturas.drop_duplicates(subset='CODIGO_FACTURA')
     
-    lista_codigos_factura = list(facturas['CODIGO_FACTURA'])
-    
-    facturas['codigo_factura'] = list(map(lambda x: x.split(('-'))[1], lista_codigos_factura))
-    facturas = facturas.sort_values(by=['codigo_factura'], ascending=[False])
+    # Extraer y ordenar el código de factura
+    facturas['codigo_factura'] = facturas['CODIGO_FACTURA'].apply(lambda x: x.split('-')[1])
+    facturas = facturas.sort_values(by='codigo_factura', ascending=False)
 
+    # FACTURAS DOCUMENTOS ENVIADOS
     envios_documentos = pd.DataFrame(DocumentoEnviado.objects.all().values(
-        'n_factura',
-        'usuario__first_name',
-        'usuario__last_name',
-        'fecha_hora'
-        ))
+        'n_factura', 'usuario__first_name', 'usuario__last_name', 'fecha_hora'
+    ))
     
+    # Obtener registros únicos basados en n_factura
     envios_documentos = envios_documentos.drop_duplicates(subset=['n_factura'], keep='last')
     
     if not envios_documentos.empty:
         envios_documentos['user'] = envios_documentos['usuario__first_name'] + ' ' + envios_documentos['usuario__last_name']
-        envios_documentos = envios_documentos.rename(columns={'n_factura':'CODIGO_FACTURA'})
+        envios_documentos = envios_documentos.rename(columns={'n_factura': 'CODIGO_FACTURA'})
         facturas = facturas.merge(envios_documentos, on='CODIGO_FACTURA', how='left')
+        facturas['fecha_hora'] = facturas['fecha_hora'].dt.strftime('%Y/%m/%d')
 
     facturas = de_dataframe_a_template(facturas)
-
     actualizacion = ultima_actualizacion('actulization_stoklote')
     
     if request.method == 'POST':
-        n_factura = request.POST['n_factura']
-        facturas = pd.DataFrame(DocumentoEnviado.objects.filter(n_factura__icontains=n_factura).values())
+        # FACTURA BUSCADA
+        n_factura = request.POST.get('n_factura', '').zfill(9)
+        n_factura_completo = f'FCSRI-1001{n_factura}-GIMPR'
         
-        nf = int(n_factura)
-        nf = 'FCSRI-1001' + f'{nf:09d}' + '-GIMPR'
-        query_facturas = venta_facturas_query(nf)
+        # Obtener la factura buscada
+        facturas = facturas_odbc()[['CODIGO_FACTURA', 'FECHA_FACTURA', 'NOMBRE_CLIENTE']]
+        facturas = facturas[facturas['CODIGO_FACTURA'] == n_factura_completo]
+        
+        if not facturas.empty:
+            facturas = facturas.drop_duplicates(subset='CODIGO_FACTURA')
+            facturas['codigo_factura'] = facturas['CODIGO_FACTURA'].apply(lambda x: x.split('-')[1])
+            facturas = facturas.sort_values(by='codigo_factura', ascending=False)
+        else:
+            facturas = pd.DataFrame(columns=['CODIGO_FACTURA', 'FECHA_FACTURA', 'NOMBRE_CLIENTE', 'codigo_factura'])
+        
+        # DOCUMENTOS ENVIADOS
+        envios_documentos = pd.DataFrame(DocumentoEnviado.objects.filter(n_factura__icontains=n_factura_completo).values(
+            'n_factura', 'usuario__first_name', 'usuario__last_name', 'fecha_hora'
+        ))
+        
+        # Obtener registros únicos basados en n_factura
+        envios_documentos = envios_documentos.drop_duplicates(subset=['n_factura'], keep='last')
+        
+        if not envios_documentos.empty:
+            envios_documentos['user'] = envios_documentos['usuario__first_name'] + ' ' + envios_documentos['usuario__last_name']
+            envios_documentos = envios_documentos.rename(columns={'n_factura': 'CODIGO_FACTURA'})
+            facturas = facturas.merge(envios_documentos, on='CODIGO_FACTURA', how='left')
+            facturas['fecha_hora'] = facturas['fecha_hora'].dt.strftime('%Y/%m/%d')
+
+
+        query_facturas = venta_facturas_query(n_factura_completo)
         
         if not query_facturas.empty:
             query_facturas = query_facturas[['CODIGO_FACTURA','CODIGO_CLIENTE']]
             cli = clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE']]
             query_facturas = query_facturas.merge(cli, on='CODIGO_CLIENTE', how='left').drop_duplicates(subset='CODIGO_FACTURA')
             query_facturas = query_facturas.rename(columns={
-            'CODIGO_FACTURA':'n_factura',
-            'CODIGO_CLIENTE':'codigo_cliente',
-            'NOMBRE_CLIENTE':'nombre_cliente'})
+                'CODIGO_FACTURA':'n_factura',
+                'CODIGO_CLIENTE':'codigo_cliente',
+                'NOMBRE_CLIENTE':'nombre_cliente'})
+            
+        else:
+            query_facturas = pd.DataFrame(columns=['n_factura', 'codigo_cliente', 'nombre_cliente'])
         
-        facturas_list = pd.concat([facturas, query_facturas]).drop_duplicates(subset='n_factura').fillna('')    
-        facturas_list['fecha_hora'] = facturas_list['fecha_hora'].astype('str')
+        facturas_list = pd.concat([facturas, query_facturas]).drop_duplicates(subset='n_factura').fillna('-')
+        
+        if 'fecha_hora' in facturas_list.columns:
+            facturas_list['fecha_hora'] = facturas_list['fecha_hora'].astype(str)
+            
         facturas_list = de_dataframe_a_template(facturas_list)
         
         context = {
             'facturas': facturas_list, 
+            'len_facturas':len(facturas_list),
             'act':actualizacion
         }
-        return render(request, 'regulatorio_legal/lista_facturas_enviadas.html', context)
         
+        return render(request, 'regulatorio_legal/lista_facturas.html', context)
         
+    # Contexto para la vista inicial (GET request)
     context = {
-        'facturas':facturas,
-        'act':actualizacion
+        'facturas': facturas,
+        'act': actualizacion
     }
 
     return render(request, 'regulatorio_legal/lista_facturas.html', context)
+
+
+
+
 
 
 # Detallar factura, enviar correo y guardar envio
