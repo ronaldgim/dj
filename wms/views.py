@@ -760,7 +760,6 @@ def wms_importaciones_transito_detalle(request, contrato_id):
 
 
 @login_required(login_url='login')
-@permisos(['ADMINISTRADOR','OPERACIONES'], '/wms/home', 'descargar en tránsito')
 def wms_excel_importacion_transito(request, contrato_id):
     
     prod = productos_odbc_and_django()[['product_id','Nombre','Marca','Unidad_Empaque','UnidadesPorPallet']]
