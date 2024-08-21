@@ -66,6 +66,11 @@ from wms.models import (
 
 from django.core.exceptions import ObjectDoesNotExist
 
+# excel 
+from openpyxl import Workbook
+from openpyxl.utils.dataframe import dataframe_to_rows
+from openpyxl.styles import Font, Alignment, Border, Side
+
 
 # Pandas y Numpy
 import pandas as pd
@@ -752,6 +757,84 @@ def wms_importaciones_transito_detalle(request, contrato_id):
     }
     
     return render(request, 'wms/importaciones_transito_detalle.html', context)
+
+
+@login_required(login_url='login')
+@permisos(['ADMINISTRADOR','OPERACIONES'], '/wms/home', 'descargar en tránsito')
+def wms_excel_importacion_transito(request, contrato_id):
+    
+    prod = productos_odbc_and_django()[['product_id','Nombre','Marca','Unidad_Empaque','UnidadesPorPallet']]
+    prod = prod.fillna(0)
+    
+    imp_transito = importaciones_en_transito_detalle_odbc(contrato_id)   
+    imp_transito = imp_transito.rename(columns={'PRODUCT_ID':'product_id'})
+    imp_transito =  imp_transito.merge(prod, on='product_id', how='left')
+    imp_transito['Cartones'] = imp_transito['QUANTITY'] / imp_transito['Unidad_Empaque']
+    imp_transito = imp_transito.replace(np.inf, 0)
+    
+    # CABECERA
+    proveedor = imp_transito.loc[0]['VENDOR_NAME']
+    fecha_entrega = str(imp_transito.loc[0]['FECHA_ENTREGA'])
+    memo = imp_transito.loc[0]['MEMO']
+    
+    imp_transito = imp_transito[['product_id','Nombre','Marca','Unidad_Empaque','QUANTITY','Cartones']]
+    imp_transito = imp_transito.rename(columns={
+        'product_id':'Código',
+        'Unidad_Empaque':'Unidades por empaque',
+        'QUANTITY':'Unidades',
+    })
+
+    # TOTALES
+    totales = imp_transito[['Unidades','Cartones']].sum()
+    totals_row = pd.DataFrame(totales).T
+    totals_row['Código'] = 'Totales'
+
+    # DF FINAL
+    imp_transito = pd.concat([imp_transito, totals_row], ignore_index=True).fillna('')
+    
+    # Generar respuesta HTTP
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = f'attachment; filename="{proveedor} - {memo}.xlsx"'
+    
+    with pd.ExcelWriter(response, engine='openpyxl') as writer:
+        # Añadir el DataFrame al archivo Excel
+        imp_transito.to_excel(writer, sheet_name=f'{memo}', startrow=5, index=False)
+
+        # Acceder al workbook y worksheet
+        workbook = writer.book
+        worksheet = writer.sheets[f'{memo}']
+
+        # Insertar el título en la fila 1, combinando 6 columnas
+        worksheet.merge_cells('A1:F1')
+        title_cell = worksheet['A1']
+        title_cell.value = proveedor
+        title_cell.font = Font(size=14, bold=True)
+        title_cell.alignment = Alignment(horizontal='center')
+
+        # Fila 2: Vacía
+
+        # Fila 3: Subtítulo 2 (Importación)
+        worksheet['A3'] = 'Importación'
+        worksheet['A3'].font = Font(bold=True)
+        worksheet['B3'] = memo
+
+        # Fila 4: Subtítulo 3 (Fecha entrega)
+        worksheet['A4'] = 'Fecha entrega'
+        worksheet['A4'].font = Font(bold=True)
+        worksheet['B4'] = fecha_entrega
+        
+        # Ajustar el ancho de las columnas con openpyxl
+        worksheet.column_dimensions['A'].width = 20
+        worksheet.column_dimensions['B'].width = 35
+        worksheet.column_dimensions['C'].width = 15
+        worksheet.column_dimensions['D'].width = 25
+        worksheet.column_dimensions['E'].width = 15
+        worksheet.column_dimensions['F'].width = 15
+        
+        response
+    
+    return response
+
 
 
 # Lista de productos de importación

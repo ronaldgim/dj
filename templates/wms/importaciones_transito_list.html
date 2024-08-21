@@ -52,6 +52,7 @@
                         <th scope="col">Fecha entrega</th>
                         <th scope="col">Número de pallets</th>
                         <th scope="col">Detalle</th>
+                        <th scope="col">Excel</th>
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
@@ -72,7 +73,12 @@
                                 <i class="bi bi-binoculars-fill"></i>  Ver 
                             </a>
                         </td>
-
+                            
+                        <td class="text-center">
+                            <a class="btn btn-success btn-sm" href="{% url 'wms_excel_importacion_transito' i.CONTRATO_ID %}">
+                                <i class="bi bi-file-earmark-spreadsheet"></i>
+                            </a>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
