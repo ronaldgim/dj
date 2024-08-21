@@ -51,6 +51,13 @@ urlpatterns = [
         name = 'wms_importaciones_transito_detalle'
     ),
     
+    # Importaciones en transito detalle
+    path(
+        route='importaciones/transito/excel/<str:contrato_id>',
+        view = views.wms_excel_importacion_transito, #OK
+        name = 'wms_excel_importacion_transito'
+    ),
+    
     # Ver detalle ya en tabla local y pedir ubicaciones
     path(
         route='importacion/bodega/<str:o_compra>',
