@@ -31,12 +31,10 @@
 <form method="POST"> 
     {% csrf_token %}
     <div class="row">
-        <div class="form-group col-6">
+        <div class="col-auto">
             <h6 class="fw-bold">Añadir un proceso:</h6>
-            <div class="input-group">
-                <input type="text" class="form-control" name="proceso">
-                <button class="btn btn-primary btn-sm" type="submit">Añadir</button>
-            </div>
+            {{form.as_p}}
+            <button class="btn btn-primary btn-sm" type="submit">Añadir</button>        
         </div>
     </div>
 </form>
@@ -56,7 +54,10 @@
                 <thead>
                     <tr>
                         <th scope="col">Proceso</th>
-                        <th scope="col">Estado</th>
+                        <th scope="col">Estado Proceso</th>
+                        <th scope="col">Participa GIM</th>
+                        <th scope="col">Estado Paticipación</th>
+                        <th scope="col">Observaciones</th>
                         <th scope="col">Entidad</th>
                         <th scope="col">Objeto</th>
                         <th scope="col">Publicación</th>
@@ -69,6 +70,9 @@
                     <tr>
                         <td>{{i.proceso}}</td>
                         <td>{{i.Estado|default:"-"}}</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
                         <td>{{i.Entidad|default:"-"}}</td>
                         <td>{{i.Objeto|default:"-"}}</td>
                         <td>{{i.Fecha_Publicacion|default:"-"}}</td>
@@ -104,5 +108,65 @@
         });
     });
 </script>
+
+
+<script>
+    $(document).ready(function(){
+
+        // ADD CLASES AN ATRIBUTOS
+        var proceso_input = $("#id_proceso").addClass('form-control')
+        var participa_input = $("#id_participa").addClass('form-select').attr('required', true);
+        var estado_participacion_input = $("#id_estado_participacion").addClass('form-select')
+        var observaciones_input = $("#id_observaciones").addClass('form-control').attr('rows', 2);
+
+        // REMOVE NO PARTICIPADO DE INITIAL OPTIONS
+        $('#id_estado_participacion option').filter(function() {
+            return $(this).text() === 'NO PARTICIPADO';
+        }).remove();
+
+
+        $("#id_participa").on('change', function(){
+            var participa = $(this).val();
+            var estado = $("#id_estado_participacion")
+
+            if (participa==='NO') {
+                // Quitar el select de estado
+                estado.attr('name', '').hide() //.remove();
+                // Agregar un input de texto
+                $("label[for='id_estado_participacion']").after('<input type="text" id="input_estado" name="estado_participacion" class="form-control" value="NO PARTICIPADO" readonly >')
+
+                // Hacer obligatorias las observaciones
+                $("#id_observaciones").attr('required', true);
+
+
+            } else if (participa==='SI') {
+                // Mostrar select de estado
+                estado.attr('name', 'estado_participacion').show()
+                // Quitar input text
+                $("#input_estado").remove()
+                // Hacer obligatorio el select estado
+                $("#id_estado_participacion").attr('required', true);
+
+            } else {
+                $("#id_observaciones").attr('required', false);
+                $("#input_estado").remove()
+                estado.attr('name', 'estado_participacion').show()
+            }
+        });
+
+        $("#id_estado_participacion").on('change', function() {
+            var estado = $(this).val();
+            if (estado === 'GANADO') {
+                $("#id_observaciones").attr('required', false);
+            } else {
+                $("#id_observaciones").attr('required', true);
+            }
+        })
+    })
+</script>
+
+
+
+
 
 {% endblock %}

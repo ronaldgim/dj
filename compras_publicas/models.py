@@ -9,6 +9,18 @@ RESULTADO = [
     ('NO PARTICIPADO', 'NO PARTICIPADO'),
 ]
 
+PARTICIPA_GIM = [
+    ('SI', 'SI'),
+    ('NO', 'NO')
+]
+
+ESTDO_PARTICIPACION = [
+    ('GANADO', 'GANADO'),
+    ('PERDIDO', 'PERDIDO'),
+    ('NO CALIFICADO', 'NO CALIFICADO'),
+    ('OTRO', 'OTRO'),
+    ('NO PARTICIPADO', 'NO PARTICIPADO')
+]
 
 # Create your models here.
 class EvaluacionProcesos(models.Model):
@@ -34,6 +46,9 @@ class EvaluacionProcesos(models.Model):
 class ProcesosSercop(models.Model):
     
     proceso     = models.CharField(verbose_name='Poroceso', unique=True, max_length=100)
+    participa   = models.CharField(max_length=10, choices=PARTICIPA_GIM, blank=True)
+    estado_participacion = models.CharField(max_length=20, choices=ESTDO_PARTICIPACION, blank=True)
+    observaciones = models.TextField(blank=True)
     fecha_hora  = models.DateTimeField(verbose_name='Fecha Hora', auto_now_add=True)
     
     def __str__(self):
