@@ -194,7 +194,7 @@ class CartaItem(models.Model):
     n_ofocio            = models.IntegerField(verbose_name='N° Oficio', null=True)
     oficio              = models.CharField(verbose_name='Oficio', max_length=30)
     ruc                 = models.CharField(verbose_name='Ruc', max_length=13)
-    cliente             = models.CharField(verbose_name='Cliente', max_length=50)
+    cliente             = models.CharField(verbose_name='Cliente', max_length=150)
     items               = models.ManyToManyField(Product, verbose_name='Productos')
     hospital            = models.CharField(verbose_name='Hospital', max_length=100)
     proceso             = models.CharField(verbose_name='N° Proceso', max_length=50)

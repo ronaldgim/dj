@@ -62,15 +62,15 @@
                 </div>
                 <div class="col-md-9">
                     <label class="form-label">Cliente:</label>
-                    <input class="form-control" name="cliente" type="text" value="{{nombre_cliente}}" required><br>
+                    <input class="form-control" name="cliente" type="text" value="{{nombre_cliente}}" maxlength="150" required><br>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Hospital:</label>
-                    <input class="form-control" id="hospital" name="hospital" type="text"required>
+                    <input class="form-control" id="hospital" name="hospital" type="text" maxlength="100" required>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Proceso:</label>
-                    <input class="form-control" id="proceso" name="proceso" type="text" required>
+                    <input class="form-control" id="proceso" name="proceso" type="text" maxlength="50" required>
                 </div>
                 <div class="col-12 mt-4">
                     <label class="form-label">Marcas:</label>
@@ -82,7 +82,7 @@
                 </div>
                 <div class="col-12 mt-4">
                     <label class="form-label">Autorización a terceros:</label>
-                    <textarea class="form-control" name="autorizacion" rows="3"></textarea>
+                    <textarea class="form-control" name="autorizacion" rows="3" maxlength="450"></textarea>
                 </div>
 
                 <div class="col-md-3 mb-2">
