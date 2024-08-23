@@ -67,12 +67,12 @@
                 </thead>
                 <tbody id="pedidosbuscar">
                     {% for i in procesos %}
-                    <tr>
+                    <tr {% if i.participa == 'SI' %} style="background-color: #BAF690;" {% endif %}>
                         <td>{{i.proceso}}</td>
                         <td>{{i.Estado|default:"-"}}</td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
+                        <td>{{i.participa}}</td>
+                        <td>{{i.estado_participacion}}</td>
+                        <td>{{i.observaciones}}</td>
                         <td>{{i.Entidad|default:"-"}}</td>
                         <td>{{i.Objeto|default:"-"}}</td>
                         <td>{{i.Fecha_Publicacion|default:"-"}}</td>
