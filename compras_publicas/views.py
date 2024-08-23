@@ -360,8 +360,7 @@ def procesos_sercop(request):
     if request.method == 'POST':
         form = ProcesosSercopForm(request.POST)
         if form.is_valid():
-            #form.save()
-            print(form.cleaned_data)
+            form.save()
             messages.success(request, 'El proceso se agrego correctamente !!!')
             return redirect('/compras-publicas/procesos-sercop')
 
