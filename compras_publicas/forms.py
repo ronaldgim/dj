@@ -12,6 +12,13 @@ class ProcesosSercopForm(forms.ModelForm):
     
     class Meta:
         model = ProcesosSercop
+        fields = ['proceso']
+        
+        
+class ProcesosSercopFormUpdate(forms.ModelForm):
+    
+    class Meta:
+        model = ProcesosSercop
         fields = '__all__'
         
 class ProductoForm(forms.ModelForm):

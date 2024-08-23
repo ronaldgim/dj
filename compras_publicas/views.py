@@ -28,7 +28,7 @@ from compras_publicas.models import ProcesosSercop, Anexo, Producto
 from wms.models import Movimiento
 
 # Forms
-from compras_publicas.forms import ProcesosSercopForm, ProductoForm
+from compras_publicas.forms import ProcesosSercopForm, ProcesosSercopFormUpdate, ProductoForm
 
 # Messages
 from django.contrib import messages
@@ -374,6 +374,28 @@ def procesos_sercop(request):
     }
 
     return render(request, 'compras_publicas/procesos_sercop.html', context)
+
+
+def procesos_sercop_update(request):
+    if request.method == 'GET':
+        id_proceso = int(request.GET.get('id_proceso'))
+        proceso = ProcesosSercop.objects.get(id=id_proceso)
+        form = ProcesosSercopFormUpdate(instance=proceso)
+        
+        return HttpResponse(form.as_p())
+
+    if request.method == 'POST':
+        id_proceso = request.POST.get('proceso')
+        proceso = ProcesosSercop.objects.get(proceso=id_proceso)
+        
+        form  = ProcesosSercopFormUpdate(request.POST, instance=proceso)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Proceso {proceso} editado exitosamente !!!')
+            return redirect('/compras-publicas/procesos-sercop')
+        else:
+            messages.error(request, f'Error al editar el {proceso} !!!')
+            return redirect('/compras-publicas/procesos-sercop')
 
 
 def formato_n_factura_input(factura):
