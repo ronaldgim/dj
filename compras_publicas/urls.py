@@ -39,6 +39,12 @@ urlpatterns = [
         name='procesos_sercop'
     ),
     
+    path(
+        route='procesos_sercop_update', 
+        view = views.procesos_sercop_update, 
+        name='procesos_sercop_update'
+    ),
+    
     ## ANEXOS
     # lista de anexos
     path(

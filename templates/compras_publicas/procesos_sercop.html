@@ -63,6 +63,7 @@
                         <th scope="col">Publicación</th>
                         <th scope="col">Fecha Puja</th>
                         <th scope="col">Link</th>
+                        <th scope="col">Editar</th>
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
@@ -70,9 +71,9 @@
                     <tr {% if i.participa == 'SI' %} style="background-color: #BAF690;" {% endif %}>
                         <td>{{i.proceso}}</td>
                         <td>{{i.Estado|default:"-"}}</td>
-                        <td>{{i.participa}}</td>
-                        <td>{{i.estado_participacion}}</td>
-                        <td>{{i.observaciones}}</td>
+                        <td>{{i.participa|default:"-"}}</td>
+                        <td>{{i.estado_participacion|default:"-"}}</td>
+                        <td>{{i.observaciones|default:"-"}}</td>
                         <td>{{i.Entidad|default:"-"}}</td>
                         <td>{{i.Objeto|default:"-"}}</td>
                         <td>{{i.Fecha_Publicacion|default:"-"}}</td>
@@ -88,6 +89,11 @@
                             href="{{i.Html}}" 
                             target="_blank"><i class="bi bi-link"></i></a>
                         </td>
+                        <td>
+                            <button class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#staticBackdrop" name="proceso" id="{{i.id}}">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -95,6 +101,29 @@
         </div>
     </div>
 </div>
+
+<!-- Modal -->
+<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="staticBackdropLabel">Actualizar proceso</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'procesos_sercop_update' %}" method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
 
 <!--filtro buscar-->
 <script>
@@ -109,64 +138,94 @@
     });
 </script>
 
-
+<!-- css in form procesos -->
 <script>
     $(document).ready(function(){
-
         // ADD CLASES AN ATRIBUTOS
         var proceso_input = $("#id_proceso").addClass('form-control')
-        var participa_input = $("#id_participa").addClass('form-select').attr('required', true);
-        var estado_participacion_input = $("#id_estado_participacion").addClass('form-select')
-        var observaciones_input = $("#id_observaciones").addClass('form-control').attr('rows', 2);
-
-        // REMOVE NO PARTICIPADO DE INITIAL OPTIONS
-        $('#id_estado_participacion option').filter(function() {
-            return $(this).text() === 'NO PARTICIPADO';
-        }).remove();
-
-
-        $("#id_participa").on('change', function(){
-            var participa = $(this).val();
-            var estado = $("#id_estado_participacion")
-
-            if (participa==='NO') {
-                // Quitar el select de estado
-                estado.attr('name', '').hide() //.remove();
-                // Agregar un input de texto
-                $("label[for='id_estado_participacion']").after('<input type="text" id="input_estado" name="estado_participacion" class="form-control" value="NO PARTICIPADO" readonly >')
-
-                // Hacer obligatorias las observaciones
-                $("#id_observaciones").attr('required', true);
-
-
-            } else if (participa==='SI') {
-                // Mostrar select de estado
-                estado.attr('name', 'estado_participacion').show()
-                // Quitar input text
-                $("#input_estado").remove()
-                // Hacer obligatorio el select estado
-                $("#id_estado_participacion").attr('required', true);
-
-            } else {
-                $("#id_observaciones").attr('required', false);
-                $("#input_estado").remove()
-                estado.attr('name', 'estado_participacion').show()
-            }
-        });
-
-        $("#id_estado_participacion").on('change', function() {
-            var estado = $(this).val();
-            if (estado === 'GANADO') {
-                $("#id_observaciones").attr('required', false);
-            } else {
-                $("#id_observaciones").attr('required', true);
-            }
-        })
     })
 </script>
 
+<!-- form update -->
+<script>
+    $("button[name='proceso']").click(function() {
+        var id_proceso = $(this).attr('id');
+        
+        $.ajax({
+            type: "GET",
+            url: "{% url 'procesos_sercop_update' %}",
+            data: {
+                'id_proceso':id_proceso
+            },
+
+            success: function(response) {
+                $('#staticBackdrop').modal('show');
+                $('#staticBackdrop .modal-body').html(response);
+
+                // ADD CLASES AN ATRIBUTOS
+                var proceso_input = $("input[name='proceso']").addClass('form-control').attr('required', true);
+                var participa_input = $("#id_participa").addClass('form-select').attr('required', true);
+                var estado_participacion_input = $("#id_estado_participacion").addClass('form-select')
+                var observaciones_input = $("#id_observaciones").addClass('form-control').attr('rows', 2);
+
+                // REMOVE NO PARTICIPADO DE INITIAL OPTIONS
+                $('#id_estado_participacion option').filter(function() {
+                    return $(this).text() === 'NO PARTICIPADO';
+                }).remove();
 
 
+                $("#id_participa").on('change', function(){
+                    var participa = $(this).val();
+                    var estado = $("#id_estado_participacion")
 
+                    if (participa==='NO') {
+                        // Quitar el select de estado
+                        estado.attr('name', '').hide() //.remove();
+                        // Agregar un input de texto
+                        $("label[for='id_estado_participacion']").after('<input type="text" id="input_estado" name="estado_participacion" class="form-control" value="NO PARTICIPADO" readonly >')
+
+                        // Hacer obligatorias las observaciones
+                        $("#id_observaciones").attr('required', true);
+
+
+                    } else if (participa==='SI') {
+                        // Mostrar select de estado
+                        estado.attr('name', 'estado_participacion').show()
+                        // Quitar input text
+                        $("#input_estado").remove()
+                        // Hacer obligatorio el select estado
+                        $("#id_estado_participacion").attr('required', true);
+
+                    } else {
+                        $("#id_observaciones").attr('required', false);
+                        $("#input_estado").remove()
+                        estado.attr('name', 'estado_participacion').show()
+                    }
+                });
+
+                $("#id_estado_participacion").on('change', function() {
+                    var estado = $(this).val();
+                    if (estado === 'GANADO') {
+                        $("#id_observaciones").attr('required', false);
+                    } else {
+                        $("#id_observaciones").attr('required', true);
+                    }
+                })
+
+            },
+
+            error: function() {
+                $('#staticBackdrop').modal('show');
+                $('#staticBackdrop .modal-body').html(
+                    '<div class="alert alert-danger" role="alert">'+
+                        '<strong>Error!</strong> No se pudo editar el proceso !!!' +
+                    '</div>'
+                );
+            }
+            
+        })
+        
+    })
+</script>
 
 {% endblock %}
