@@ -924,6 +924,9 @@ def anexo_edit_product_ajax(request):
         if form.is_valid():
             form.save()
             return redirect('anexo_detail', anexo.id)
+        else:
+            messages.error(request, form.errors)
+            return redirect('anexo_detail', anexo.id)        
 
 
 # @pdf_decorator(pdfname='anexo_formato_general.pdf')
