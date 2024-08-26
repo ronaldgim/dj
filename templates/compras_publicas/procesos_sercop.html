@@ -50,13 +50,19 @@
 <div class="card mt-2 mb-2">
     <div class="card-body m-0 p-0">
         <div class="table-responsive">
-            <table class="table" style="font-size: small;">
+            <table class="table" style="font-size: small; width: 100%" id="id_table">
                 <thead>
                     <tr>
                         <th scope="col">Proceso</th>
                         <th scope="col">Estado Proceso</th>
-                        <th scope="col">Participa GIM</th>
-                        <th scope="col">Estado Paticipación</th>
+                        <th scope="col">
+                            <select class="form-select" style="font-size:small; width: 125px;" id="filter-estado">
+                                <option value="">Participa GIM</option> 
+                                <option value="SI">SI</option>
+                                <option value="NO">NO</option>
+                            </select>
+                        </th>
+                        <th scope="col">Estado Participación</th>
                         <th scope="col">Observaciones</th>
                         <th scope="col">Entidad</th>
                         <th scope="col">Objeto</th>
@@ -71,23 +77,18 @@
                     <tr {% if i.participa == 'SI' %} style="background-color: #BAF690;" {% endif %}>
                         <td>{{i.proceso}}</td>
                         <td>{{i.Estado|default:"-"}}</td>
-                        <td>{{i.participa|default:"-"}}</td>
+                        <td style="width: 125px;" class="estado">{{i.participa|default:"-"}}</td>
                         <td>{{i.estado_participacion|default:"-"}}</td>
                         <td>{{i.observaciones|default:"-"}}</td>
                         <td>{{i.Entidad|default:"-"}}</td>
-                        <td>{{i.Objeto|default:"-"}}</td>
+                        <td>{{i.Objeto|default:"-"|truncatechars:80}}</td>
                         <td>{{i.Fecha_Publicacion|default:"-"}}</td>
                         <td>{{i.Fecha_Puja|default:"-"}}<br>{% if i.Hora_Puja %}{{i.Hora_Puja}}{% endif %}</td>
                         <td>
-                            <a 
-                            {% if not i.Html %}
-                            class="btn btn-sm btn-primary disabled"
-                            {% else %}
-                            class="btn btn-sm btn-primary"
-                            {% endif %}
-                            
-                            href="{{i.Html}}" 
-                            target="_blank"><i class="bi bi-link"></i></a>
+                            <a class="btn btn-sm btn-primary {% if not i.Html %} disabled {% endif %}"                           
+                                href="{{i.Html}}" 
+                                target="_blank"><i class="bi bi-link"></i>
+                            </a>
                         </td>
                         <td>
                             <button class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#staticBackdrop" name="proceso" id="{{i.id}}">
@@ -123,19 +124,32 @@
     </div>
 </div>
 
-
-
 <!--filtro buscar-->
 <script>
     $(document).ready(function() {
-        $("#inputbuscar").on("keyup", function() {
-            var value = $(this).val().toLowerCase();
-            $("#pedidosbuscar tr").filter(function() {
-                $(this).toggle($(this).text()
-                .toLowerCase().indexOf(value) > -1)
+        function filterCombinado() {
+            var inputValue = $("#inputbuscar").val().toLowerCase();
+            var selectValue = $("#filter-estado").val().toLowerCase();
+    
+            $("#pedidosbuscar tr").each(function() {
+                var rowText = $(this).text().toLowerCase();
+                var estadoText = $(this).find('.estado').text().toLowerCase();
+    
+                // Validar si la fila coincide con la búsqueda de texto y el valor del select
+                var matchInput = rowText.includes(inputValue);
+                var matchSelect = selectValue === "" || estadoText.includes(selectValue);
+    
+                $(this).toggle(matchInput && matchSelect);
             });
+        }
+    
+        // Cambia 'keyup' y 'change' para manejar los eventos correctamente en ambos inputs
+        $("#inputbuscar, #filter-estado").on("input change", filterCombinado);
+    
+            // Ejecuta el filtro al cargar la página para aplicar filtros predeterminados
+            filterCombinado();
         });
-    });
+    
 </script>
 
 <!-- css in form procesos -->
@@ -205,7 +219,7 @@
 
                 $("#id_estado_participacion").on('change', function() {
                     var estado = $(this).val();
-                    if (estado === 'GANADO') {
+                    if (estado === '') {
                         $("#id_observaciones").attr('required', false);
                     } else {
                         $("#id_observaciones").attr('required', true);
@@ -227,5 +241,30 @@
         
     })
 </script>
+
+<!-- DataTable -->
+<!-- datatable -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.css" />  
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.js"></script>
+<script>
+    $(document).ready(function(){
+        $('#id_table').DataTable({
+            //"ordering":false,
+            "order":[],
+            "searching":false,
+            "show":false,
+            "paging":false,
+            "info":false,
+            columnDefs:[
+                {
+                    "orderable": false,  // Desactiva el ordenamiento
+                    "targets": [2, 9, 10]       // Especifica el índice de la columna
+                }
+            ]
+    })
+    })
+</script>
+
+
 
 {% endblock %}

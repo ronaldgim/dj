@@ -45,7 +45,7 @@ class EvaluacionProcesos(models.Model):
 
 class ProcesosSercop(models.Model):
     
-    proceso     = models.CharField(verbose_name='Poroceso', unique=True, max_length=100)
+    proceso     = models.CharField(verbose_name='Procesos', unique=True, max_length=100)
     participa   = models.CharField(max_length=10, choices=PARTICIPA_GIM, blank=True)
     estado_participacion = models.CharField(max_length=20, choices=ESTDO_PARTICIPACION, blank=True)
     observaciones = models.TextField(blank=True)
