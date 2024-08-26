@@ -495,19 +495,16 @@ def add_datos_anexo_from_factura_ajax(request):
             "SELECT CLNT_Factura_Principal.CODIGO_FACTURA, CLNT_Factura_Principal.FECHA_FACTURA, INVT_Ficha_Principal.PRODUCT_ID, INVT_Ficha_Principal.PRODUCT_NAME, INVT_Ficha_Principal.GROUP_CODE, INVT_Ficha_Principal.Custom_Field_1, INVT_Ficha_Principal.Custom_Field_2, INVT_Lotes_Trasabilidad.LOTE_ID, INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD, INVT_Lotes_Trasabilidad.EGRESO_TEMP, INVT_Lotes_Trasabilidad.Precio_venta "
             "FROM CLNT_Factura_Principal CLNT_Factura_Principal, INVT_Ficha_Principal INVT_Ficha_Principal, INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad "
             "WHERE INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP = INVT_Ficha_Principal.PRODUCT_ID_CORP AND CLNT_Factura_Principal.CODIGO_FACTURA = INVT_Lotes_Trasabilidad.DOC_ID_CORP AND "
-            # "((CLNT_Factura_Principal.CODIGO_FACTURA='FCSRI-1001000091278-GIMPR') AND (CLNT_Factura_Principal.ANULADA=FALSE))"
             f"((CLNT_Factura_Principal.CODIGO_FACTURA='{factura_sql}') AND (CLNT_Factura_Principal.ANULADA=FALSE))"
-        )
+        ) 
         factura_df = pd.DataFrame(factura['json']) 
         
         hoy = datetime.now().strftime("%d/%m/%Y") 
         extra_data = api_mba_sql(
             "SELECT INVT_Producto_Lotes.PRODUCT_ID_CORP, INVT_Producto_Lotes.LOTE_ID, INVT_Producto_Lotes.FECHA_CADUCIDAD, INVT_Producto_Lotes.Fecha_elaboracion_lote, INVT_Producto_Lotes.WARE_CODE_CORP "
             "FROM INVT_Producto_Lotes INVT_Producto_Lotes "
-            #"WHERE (INVT_Producto_Lotes.WARE_CODE_CORP='CUC') AND (INVT_Producto_Lotes.FECHA_CADUCIDAD>'01/08/2024')"
             f"WHERE (INVT_Producto_Lotes.FECHA_CADUCIDAD>'{hoy}')"
-            #f"WHERE (INVT_Producto_Lotes.WARE_CODE_CORP='CUA') AND (INVT_Producto_Lotes.FECHA_CADUCIDAD>'{hoy}')"
-        )
+        ) 
         extra_data_df = pd.DataFrame(extra_data['json'])
         extra_data_df['PRODUCT_ID'] = extra_data_df['PRODUCT_ID_CORP'].str.replace('-GIMPR', '')
         extra_data_df = extra_data_df[['PRODUCT_ID_CORP','LOTE_ID','FECHA_ELABORACION_LOTE','PRODUCT_ID']]
@@ -556,16 +553,17 @@ def add_datos_anexo_from_factura_ajax(request):
 
             prod_list = []
             for i in data.to_dict('records'):
+                
                 product = Producto(
                     product_id      = i['PRODUCT_ID'],
                     nombre          = i['PRODUCT_NAME'],
                     presentacion    = i['Unidad'],
                     marca           = i['GROUP_CODE'],
                     procedencia     = quitar_prefijo(i['Procedencia']),
-                    r_sanitario     = quitar_prefijo(i['CUSTOM FIELD 1']),
+                    r_sanitario     = quitar_prefijo(i['CUSTOM_FIELD_1']),
                     lote_id         = i['LOTE_ID'],
-                    f_elaboracion   = extraer_fecha(i['FECHA_ELABORACION_LOTE']),
-                    f_caducidad     = extraer_fecha(i['FECHA_CADUCIDAD']),
+                    f_elaboracion   = extraer_fecha(i['FECHA_ELABORACION_LOTE'][0:10]),
+                    f_caducidad     = extraer_fecha(i['FECHA_CADUCIDAD'][0:10]),
                     cantidad        = int(i['EGRESO_TEMP']),
                     cantidad_total  = int(i['EGRESO_TEMP']),
                     precio_unitario = float(i['PRECIO_VENTA']),
@@ -580,11 +578,12 @@ def add_datos_anexo_from_factura_ajax(request):
                 'type':'ok',
                 'redirect_url':f'/compras-publicas/anexos/{anexo.id}'
                 })
-        
-        return JsonResponse({
-            'type':'error',
-            'msg':str(e)
-        })
+        else:
+
+            return JsonResponse({
+                'type':'error',
+                'msg':'Error !!!'
+            })
     
     except Exception as e:    
         
@@ -592,7 +591,6 @@ def add_datos_anexo_from_factura_ajax(request):
             'type':'error',
             'msg':str(e)
         })
-
 
 
 @login_required(login_url='login')
