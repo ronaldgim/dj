@@ -790,6 +790,7 @@ def anexo_edit_product_ajax(request):
     
     if request.method=='GET':
         producto = Producto.objects.get(id=int(request.GET.get('product_id', 0)))    
+        
         return HttpResponse(
         f"""
             <input type="hidden" name="id_prod" value="{producto.id}">
@@ -799,7 +800,7 @@ def anexo_edit_product_ajax(request):
                         <label for="product_id" class="col-form-label fw-bold">Código:</label>
                     </div>
                     <div class="col-8">
-                        <input type="text" name="product_id" class="form-control form-control-sm" value="{producto.product_id}">
+                        <input type="text" name="product_id" class="form-control form-control-sm" maxlength="15" value="{producto.product_id}">
                     </div>
                 </div>
             
@@ -808,7 +809,7 @@ def anexo_edit_product_ajax(request):
                         <label for="nombre" class="col-form-label fw-bold">Nombre:</label>
                     </div>
                     <div class="col-8">
-                        <input type="text" name="nombre" class="form-control form-control-sm" value="{producto.nombre}">
+                        <input type="text" name="nombre" class="form-control form-control-sm" maxlength="150" value="{producto.nombre}">
                     </div>
                 </div>
 
@@ -817,7 +818,7 @@ def anexo_edit_product_ajax(request):
                         <label for="nombre_generico" class="col-form-label fw-bold">Nombre Generico:</label>
                     </div>
                     <div class="col-8">
-                        <input type="text" name="nombre_generico" class="form-control form-control-sm" value="{producto.nombre_generico}">
+                        <input type="text" name="nombre_generico" class="form-control form-control-sm" maxlength="150" value="{producto.nombre_generico}">
                     </div>
                 </div>
             
@@ -826,7 +827,7 @@ def anexo_edit_product_ajax(request):
                         <label for="presentacion" class="col-form-label fw-bold">Presentación:</label>
                     </div>
                     <div class="col-8">
-                        <input type="text" name="presentacion" class="form-control form-control-sm" value="{producto.presentacion}">
+                        <input type="text" name="presentacion" class="form-control form-control-sm" maxlength="40" value="{producto.presentacion}">
                     </div>
                 </div>
 
@@ -835,7 +836,7 @@ def anexo_edit_product_ajax(request):
                         <label for="marca" class="col-form-label fw-bold">Marca:</label>
                     </div>
                     <div class="col-8">
-                        <input type="text" name="marca" class="form-control form-control-sm" value="{producto.marca}" >
+                        <input type="text" name="marca" class="form-control form-control-sm" maxlength="50" value="{producto.marca}" >
                     </div>
                 </div>
             
@@ -844,7 +845,7 @@ def anexo_edit_product_ajax(request):
                         <label for="procedencia" class="col-form-label fw-bold">Procedencia:</label>
                     </div>
                     <div class="col-8">
-                        <input type="text" name="procedencia" class="form-control form-control-sm" value="{producto.procedencia}">
+                        <input type="text" name="procedencia" class="form-control form-control-sm" maxlength="50" value="{producto.procedencia}">
                     </div>
                 </div>
 
@@ -853,7 +854,7 @@ def anexo_edit_product_ajax(request):
                         <label for="r_sanitario" class="col-form-label fw-bold">Registro Sanitario:</label>
                     </div>
                     <div class="col-8">
-                        <input type="text" name="r_sanitario" class="form-control form-control-sm" value="{producto.r_sanitario}">
+                        <input type="text" name="r_sanitario" class="form-control form-control-sm" maxlength="50" value="{producto.r_sanitario}">
                     </div>
                 </div>
 
@@ -862,7 +863,7 @@ def anexo_edit_product_ajax(request):
                         <label for="lote" class="col-form-label fw-bold">Lote:</label>
                     </div>
                     <div class="col-8">
-                        <input type="text" name="lote_id" class="form-control form-control-sm" value="{producto.lote_id}">
+                        <input type="text" name="lote_id" class="form-control form-control-sm" maxlength="15" value="{producto.lote_id}">
                     </div>
                 </div>
 
