@@ -61,7 +61,7 @@ class Producto(models.Model):
     product_id      = models.CharField(verbose_name='Código', max_length=15)
     nombre          = models.CharField(verbose_name='Nombre', max_length=150)
     nombre_generico = models.CharField(verbose_name='Nombre generico', max_length=150, blank=True)
-    presentacion    = models.CharField(verbose_name='Presentación', max_length=15, blank=True)
+    presentacion    = models.CharField(verbose_name='Presentación', max_length=40, blank=True)
     marca           = models.CharField(verbose_name='Marca', max_length=50, blank=True)
     procedencia     = models.CharField(verbose_name='Procedencia', max_length=50, blank=True)
     r_sanitario     = models.CharField(verbose_name='Registro Sanitario', max_length=50, blank=True)
