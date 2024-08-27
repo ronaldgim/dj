@@ -362,6 +362,39 @@ def muestreo_cartones_transito(request, contrato_id):
     return render(request, 'bpa/muestreos/muestreo_imp_cartones.html', context)
 
 
+def empaque(data):
+    # Itera sobre cada fila del DataFrame
+    for index, row in data.iterrows():
+        # Evaluar si 'Unidad' tiene un valor o está vacío
+        emp_primario = bool(row['Unidad'])
+        
+        # Verificar y convertir los valores de 'Unidad_Box' y 'Unidad_Empaque' a enteros si no están vacíos
+        box = int(row['Unidad_Box']) if pd.notna(row['Unidad_Box']) and str(row['Unidad_Box']).strip() else 0
+        carton = int(row['Unidad_Empaque']) if pd.notna(row['Unidad_Empaque']) and str(row['Unidad_Empaque']).strip() else 0
+        
+        # Determinar emp_secundario y emp_terciario basado en las condiciones
+        if box > 0 and carton > 0:
+            emp_secundario = True
+            emp_terciario = True
+        elif box == 0 and carton == 0:
+            emp_secundario = False
+            emp_terciario = False
+        elif box == 0 and carton > 0:
+            emp_secundario = True
+            emp_terciario = False
+        else:
+            emp_secundario = False
+            emp_terciario = False
+        
+        # Asignar los valores calculados de vuelta al DataFrame
+        data.at[index, 'emp_primario'] = emp_primario
+        data.at[index, 'emp_secundario'] = emp_secundario
+        data.at[index, 'emp_terciario'] = emp_terciario
+    
+    return data
+
+
+
 @pdf_decorator(pdfname='revision_tecnica.pdf')
 @login_required(login_url='login')
 def revision_tecnica(request, doc_id):
@@ -372,12 +405,10 @@ def revision_tecnica(request, doc_id):
         'Marca',
         'marca2',
         'Reg_San',
-        'emp_primario', 
-        'emp_secundario', 
-        'emp_terciario'
+        'Unidad',
+        'Unidad_Box',
     ]]
-
-
+    
     data = importaciones_compras_df()
     data = data[data['DOC_ID_CORP']==doc_id]
     
@@ -397,6 +428,8 @@ def revision_tecnica(request, doc_id):
     bodega_llegada = data['WARE_COD_CORP'].iloc[0]
     proveedor = data['marca2'].iloc[0]
     n_imp = data['MEMO'].iloc[0]
+
+    data = empaque(data)
     
     data = de_dataframe_a_template(data)
     
@@ -491,9 +524,10 @@ def revision_tecnica_transferencia(request, doc):
         'product_id',
         'Nombre',
         'Reg_San',
-        'emp_primario', 
-        'emp_secundario', 
-        'emp_terciario']]
+        'Unidad',
+        'Unidad_Box',
+        'Unidad_Empaque'
+        ]]
 
     trans = trans.groupby(['product_id', 'documento']).sum()
     trans = trans.reset_index()
@@ -519,6 +553,7 @@ def revision_tecnica_transferencia(request, doc):
         bodega_salida = 'Cuarentena Andagoya'
         bodega_entrada = 'Cuarentena Cerezos'
     
+    muest = empaque(muest)
     muest = de_dataframe_a_template(muest)
 
     context = {
