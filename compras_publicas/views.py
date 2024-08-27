@@ -431,7 +431,6 @@ def add_datos_anexo_ajax(request):
         contrato_id = request.POST.get('contrato_id')
         
         anexo_data = datos_anexo(contrato_id)    
-        anexo_product_data = datos_anexo_product_list(contrato_id)
         
         anexo = Anexo(
             n_pedido  = anexo_data['CONTRATO_ID'],
@@ -447,6 +446,7 @@ def add_datos_anexo_ajax(request):
         if anexo.id:
             
             prod_list = []
+            anexo_product_data = datos_anexo_product_list(contrato_id)
             for i in anexo_product_data:
                 product = Producto(
                     product_id      = i['PRODUCT_ID'],
