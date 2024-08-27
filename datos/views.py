@@ -2680,7 +2680,7 @@ def datos_anexo_product_list(contrato_id):
         
         columns = [col[0] for col in cursor.description]
         anexo_product_list = [dict(zip(columns, row)) for row in cursor.fetchall()]
-        print(anexo_product_list)
+        
     return anexo_product_list
 
 
