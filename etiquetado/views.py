@@ -845,7 +845,7 @@ def facturas(request, n_factura):
 # Lista de actulización BODEGA
 def pedidos_estado_list(request):
 
-    davimed_list = ['77317.0','77318.0','77319.0','77320.0','78956.0', '80514.0']
+    davimed_list = ['77317.0','77318.0','77319.0','77320.0','78956.0', '80514.0', '81846.0']
 
     if request.user.has_perm('etiquetado.view_pedidosestadoetiquetado'):
 
