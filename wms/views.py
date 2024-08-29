@@ -3954,9 +3954,6 @@ def wms_reporte_bodegas457(request):
             product_id=i,
             ubicacion__bodega__in = ['CN4','CN5','CN7']
         ).order_by('fecha_caducidad')
-
-        # if existencia.first().ubicacion.bodega != "CN6":
-        #     products_list_final.append(existencia.first().id)
         
         if existencia.exists():
             products_list_final.append(existencia.first().id)
