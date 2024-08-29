@@ -207,7 +207,13 @@ def doc_importacion_por_codigo_ajax(request):
         })
         
         data['Código'] = data['Código'].str.replace('-GIMPR', '')
+        data['Fecha-Llegada'] = data['Fecha-Llegada'].apply(lambda x: x[0:10])
+        data['Fecha-Caducidad'] = data['Fecha-Caducidad'].apply(lambda x: x[0:10])
+        data['Fecha-Llegada'] = pd.to_datetime(data['Fecha-Llegada'])
+        data['Fecha-Caducidad'] = pd.to_datetime(data['Fecha-Caducidad'])
+        
         data = data[['O.Compra','Memo','Fecha-Llegada','Código','Lote','Fecha-Caducidad','Unidades']]
+        data = data.sort_values(by=['Fecha-Llegada'], ascending=False)
         
         html_tabla = data.to_html(
             float_format='{:,.0f}'.format,
@@ -218,7 +224,7 @@ def doc_importacion_por_codigo_ajax(request):
         )
 
         return JsonResponse({
-            'msg_data':f'Importaciones encontradas = {len(data)}, código {codigo}',
+            'msg_data':f'{len(data)} Importaciones encontradas',
             'data':html_tabla
         })
     
