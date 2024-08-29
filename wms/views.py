@@ -3950,9 +3950,15 @@ def wms_reporte_bodegas457(request):
     
     products_list_final = []    
     for i in products:
-        existencia = Existencias.objects.filter(product_id=i).order_by('fecha_caducidad')
+        existencia = Existencias.objects.filter(
+            product_id=i,
+            ubicacion__bodega__in = ['CN4','CN5','CN7']
+        ).order_by('fecha_caducidad')
 
-        if existencia.first().ubicacion.bodega != "CN6":
+        # if existencia.first().ubicacion.bodega != "CN6":
+        #     products_list_final.append(existencia.first().id)
+        
+        if existencia.exists():
             products_list_final.append(existencia.first().id)
     
     df = pd.DataFrame(Existencias.objects.filter(id__in = products_list_final).values(
