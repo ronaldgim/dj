@@ -2749,7 +2749,7 @@ def control_guias_list(request):
     user = pd.DataFrame(User.objects.all().values())
     user = user.rename(columns={'id':'user_id'})
     perfil = perfil.merge(user, on='user_id', how='left')[['id', 'first_name', 'last_name']]
-    perfil = perfil.rename(columns={'id':'user_id'}) #;print(perfil)
+    perfil = perfil.rename(columns={'id':'user_id'}) 
 
     reg_guia = pd.DataFrame(RegistoGuia.objects.all().values())[['id','factura_c', 'user_id','transporte']]
     reg_guia['user_id'] = reg_guia['user_id'].astype(int)
@@ -2857,6 +2857,7 @@ def control_guias_list(request):
 
     return render(request, 'guias/facturas_lista.html', context)
 
+
 login_required(login_url='login')
 def control_guias_registro(request, n_fac):
 
@@ -2872,6 +2873,13 @@ def control_guias_registro(request, n_fac):
     fac = fac[['NOMBRE_CLIENTE', 'CIUDAD_PRINCIPAL', 'CODIGO_FACTURA', 'FECHA_FACTURA']]
     fac = fac.to_dict(orient='records')[0]
 
+    try:
+        fac_slice = int(fac['CODIGO_FACTURA'].split('-')[1][4:])
+        fac['fac_slice'] = str(fac_slice)
+    except:
+        fac['fac_slice'] = fac['CODIGO_FACTURA']
+
+
     if request.method == 'POST':
         form = RegistroGuiaForm(request.POST)
         if form.is_valid():
@@ -2884,10 +2892,11 @@ def control_guias_registro(request, n_fac):
 
     return render(request, 'guias/facturas_registro.html', context)
 
+
 login_required(login_url='login')
 def control_guias_editar(request, id):
 
-    reg = RegistoGuia.objects.get(id=id);print(reg)
+    reg = RegistoGuia.objects.get(id=id)
 
     if request.method == 'POST':
         form = RegistroGuiaForm(request.POST, instance=reg)

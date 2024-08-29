@@ -26,7 +26,7 @@
                             </div>
                             <div>
                                 <label class="fw-bold mt-2">Factura:</label>
-                                <input class="form-control" type="text" name="factura" value="{{fac.CODIGO_FACTURA|slice:'14:-6'}}" required>
+                                <input class="form-control" type="text" name="factura" value="{{fac.fac_slice}}" required>
                                 <input class="form-control" type="hidden" name="factura_c" value="{{fac.CODIGO_FACTURA}}">
                             </div>
                             <div>

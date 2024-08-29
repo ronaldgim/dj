@@ -137,6 +137,9 @@ class RegistoGuia(models.Model):
         return self.cliente + ' ' + self.factura_c
     
 
+class AnexoGuia(models.Model):
+    pass
+
 
 class FechaEntrega(models.Model):
     user          = models.ForeignKey(UserPerfil, verbose_name='User', on_delete=models.CASCADE)
