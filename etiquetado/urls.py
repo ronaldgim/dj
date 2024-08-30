@@ -255,6 +255,32 @@ urlpatterns = [
         view  = views.control_guias_editar,
         name  = 'guias_editar'
     ),
+    
+    # lista de anexos
+    path(
+        route = 'anexo/list',
+        view  = views.anexos_lista,
+        name  = 'anexos_lista'
+    ),
+    
+    # lista de anexos
+    path(
+        route = 'anexo/<int:id_anexo>',
+        view  = views.anexo_detalle,
+        name  = 'anexo_detalle'
+    ),
+
+    path(
+        route = 'anexo_doc_editar_ajax',
+        view  = views.anexo_doc_editar_ajax,
+        name  = 'anexo_doc_editar_ajax'
+    ),
+    
+    path(
+        route = 'anexo_doc_elimiar_ajax',
+        view  = views.anexo_doc_elimiar_ajax,
+        name  = 'anexo_doc_elimiar_ajax'
+    ),
 
     # entrega_estado_ajax
     path(

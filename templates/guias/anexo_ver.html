@@ -1,0 +1,165 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>{{anexo.numero_anexo}}</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'etiquetado/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+
+<h5 class="m-4 text-center fw-bold">ANEXO DE TRANSPORTE A PROVINCIA</h5>
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
+<div id="msg"></div>
+
+<input type="hidden" value="{{anexo.id}}" id="anexo">
+<label class="fw-bold">N°:</label> {{anexo.numero_anexo}} <br>
+<label class="fw-bold">Fecha:</label> {{anexo.creado}} <br>
+<label class="fw-bold">Bodega:</label> {{anexo.bodega_nombre}} <br>
+<label class="fw-bold">Estado:</label> {{anexo.estado}} <br>
+<label class="fw-bold">Creado por:</label> {{anexo.user.first_name}} {{anexo.user.last_name}} <br>
+
+<a href="" class="btn btn-primary mt-2">
+    <i class="bi bi-printer"></i>
+</a>
+
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Transporte</th>
+                        <th scope="col">Número de guía</th>
+                        <th scope="col">Contenido</th>
+                        <th scope="col">Acciones</th>
+                    </tr>
+                </thead>
+                
+                <tbody id="pedidosbuscar">
+                    {% for i in anexo.contenido.all %}    
+                    <tr>
+                        <td>{{i.transporte}}</td>
+                        <td>{{i.n_guia}}</td>
+                        <td>{{i.tipo_contenido}} - {{i.contenido}}</td>
+                        
+                        <td>
+                            <button class="btn btn-sm btn-secondary" name="editar-contenido" id="{{i.id}}" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" name="eliminar-contenido" id="{{i.id}}">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                            <button class="btn btn-sm btn-primary" name="actualizar-contenido" id="{{i.id}}">
+                                <i class="bi bi-arrow-clockwise"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<button class="btn btn-primary" name="editar-contenido" data-bs-toggle="modal" data-bs-target="#exampleModal">
+    <i class="bi bi-pencil"></i> Añadir contenido
+</button>
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Editar contendido</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form method="POST" action="{% url 'anexo_doc_editar_ajax' %}">
+            {% csrf_token %}
+            <div class="modal-body">    
+                
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-primary">Guardar</button>
+            </div>
+        </form>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    $("button[name='editar-contenido']").on('click', function() {
+        id_anexo_fila = $(this).attr('id')
+        id_anexo = $("#anexo").val();
+        
+        $.ajax({
+            type: "GET",
+            url: "{% url 'anexo_doc_editar_ajax' %}",
+            data: {
+                'id_anexo_fila': id_anexo_fila
+            },
+            success: function(response) {
+                $(".modal-body").html(response);
+                $("#id_transporte").addClass('form-control');
+                $("label[for='id_n_guia']").html('N° Guía:');
+                $("#id_n_guia").addClass('form-control');
+                $("label[for='id_tipo_contenido']").html('Tipo de documento:');
+                $("#id_tipo_contenido").addClass('form-control');
+                $("label[for='id_contenido']").html('N° Documento:');
+                $("#id_contenido").addClass('form-control');
+
+                $("#id_contenido").after(`<input name='id_anexo_fila' type="text" value='${id_anexo_fila}'>`)
+                $("#id_contenido").after(`<input name='anexo' type="text" value='${id_anexo}'>`)
+            },
+            error: function() {
+                console.log('Error')
+            }
+        })
+    })
+</script>
+
+
+<script>
+    $("button[name='eliminar-contenido']").on('click', function() {
+        id_anexo_fila = $(this).attr('id')
+        fila = $(this).closest('tr');
+        
+        $.ajax({
+            type: "POST",
+            url: "{% url 'anexo_doc_elimiar_ajax' %}",
+            data: {
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'id_anexo_fila': id_anexo_fila
+            },
+            success: function(response) {
+                console.log(response.msg)
+                $("#msg").html(`<div class="alert text-center alert-success" role="alert">${response.msg}</div>`)
+                fila.remove();
+            },
+            error: function() {
+                console.log('Error')
+            }
+        })
+    })
+</script>
+
+{% endblock %}

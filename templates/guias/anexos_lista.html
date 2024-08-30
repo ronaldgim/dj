@@ -1,0 +1,143 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Listo de registro de guias</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'etiquetado/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+
+<h5 class="m-4 text-center"><strong>LISTADO DE ANEXOS</strong></h5>
+
+<div class="col-4">
+    <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+</div>
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
+<button class="btn btn-primary mt-2" name="anexo-nuevo" data-bs-toggle="modal" data-bs-target="#exampleModal">
+    Nuevo Anexo
+</button>
+
+
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Anexo</th>
+                        <th scope="col">Fecha anexo</th>
+                        <th scope="col">Estado</th>
+                        <th scope="col">Creado por</th>
+                        <th scope="col">Bodega</th>
+                        <th scope="col">Acciones</th>
+                    </tr>
+                </thead>
+                
+                <tbody id="pedidosbuscar">
+                    {% for i in anexos %}    
+                    <tr>
+                        <td>{{i.numero_anexo}}</td>
+                        <td>{{i.creado}}</td>
+                        <td>{{i.estado}}</td>
+                        <td>{{i.user}}</td>
+                        <td>{{i.bodega_nombre}}</td>
+                        <td>
+                            <a class="btn btn-sm btn-primary" href="{% url 'anexo_detalle' i.id %}">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a class="btn btn-sm btn-secondary">
+                                <i class="bi bi-printer"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Nuevo anexo</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+            <div class="modal-body">    
+                {{form.as_p}}
+                <div class="col-12">
+                    <label>Facturas:</label>
+                    <select name="facturas" id="id_facturas" data-placeholder="Busque número de facturas" style="width: 100%;" multiple required>
+                        {% for i in facturas_list %}
+                            <option value="{{i}}">{{i}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <input type="hidden" name="user" value="{{request.user.id}}">
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-primary">Guardar</button>
+            </div>
+        </form>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#id_facturas').addClass('form-select').select2({
+            dropdownCssClass: 'select2-dropdown-custom'
+        });
+        $("label[for='id_bodega_nombre']").html('Bodega');
+        $("#id_bodega_nombre").addClass('form-select');
+        $("#id_estado").addClass('form-select');
+    })
+</script>
+
+<style>
+    .select2-dropdown-custom {
+        z-index: 9999 !important; /* Asegura que el dropdown tenga el z-index más alto */
+    }
+</style>
+
+<!--filtro buscar-->
+<script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+
+
+{% endblock %}

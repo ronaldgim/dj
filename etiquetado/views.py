@@ -24,7 +24,9 @@ from etiquetado.models import (
     ProductArmado,
     InstructivoEtiquetado,
     EtiquetadoAvance,
-    EstadoEtiquetadoStock
+    EstadoEtiquetadoStock,
+    AnexoDoc, 
+    AnexoGuia
     )
 
 from datos.models import StockConsulta
@@ -34,12 +36,10 @@ from users.models import UserPerfil, User
 # Forms
 from etiquetado.forms import (
     RowItemForm,
-    CalculadoraForm,
     PedidosEstadoEtiquetadoForm,
-    EstadoPickingForm,
     RegistroGuiaForm,
-    FechaEntregaForm,
-    InstructivoEtiquetadoForm
+    AnexoGuiaForm, 
+    AnexoDocForm
 )
 
 # Json
@@ -47,9 +47,6 @@ import json
 
 # Messages
 from django.contrib import messages
-
-# Models
-from etiquetado.models import EtiquetadoStock
 
 # Generic Views
 from django.views.generic.list import ListView
@@ -2885,6 +2882,9 @@ def control_guias_registro(request, n_fac):
         if form.is_valid():
             form.save()
             return redirect('/etiquetado/guias/list')
+        else:
+            messages.error(request, f'Error {form.errors}')
+            return redirect('/etiquetado/guias/list')
 
     context = {
         'fac':fac
@@ -2903,12 +2903,139 @@ def control_guias_editar(request, id):
         if form.is_valid():
             form.save()
             return redirect('/etiquetado/guias/list')
+        else:
+            messages.error(request, f'Error {form.errors}')
+            return redirect('/etiquetado/guias/list')
 
     context = {
         'fac':reg
     }
 
     return render(request, 'guias/editar.html', context)
+
+
+def anexos_lista(request):
+    
+    anexos = AnexoGuia.objects.all()
+    form   = AnexoGuiaForm()
+    
+    facturas_registradas = list(RegistoGuia.objects.values_list('factura', flat=True))
+    facturas_warehouse = ventas_facturas_odbc()['CODIGO_FACTURA'].unique()
+    facturas_warehouse = list(map(lambda x: str(int(x.split('-')[1][4:])), facturas_warehouse))
+    facturas_list = set(facturas_registradas + facturas_warehouse)
+    
+    if request.method == 'POST':
+        form = dict(request.POST)
+        if form: 
+            
+            f_bodega_nombre = form.get('bodega_nombre')[0]
+            f_bodega_codigo = '01' if f_bodega_nombre == 'Andagoya' else '02'
+            f_estado        = form.get('estado')[0]
+            f_user          = form.get('user')[0]
+            f_facturas_list = form.get('facturas')
+            
+            # Guardar Anexo
+            anexo = AnexoGuia(
+                bodega_nombre = f_bodega_nombre,
+                bodega_codigo = f_bodega_codigo,
+                estado        = f_estado,
+                user_id       = int(f_user),
+            )
+            
+            anexo.save()
+            
+            if anexo.id:
+            
+                for i in f_facturas_list:
+                    guia = RegistoGuia.objects.get(factura=i)
+                    
+                    if guia:
+                        anexo_doc = AnexoDoc(
+                            transporte     = guia.transporte,
+                            n_guia         = guia.n_guia,
+                            tipo_contenido = 'Factura' if guia.factura_c.startswith('FCSRI-') else '',
+                            contenido      = i
+                        )
+                        anexo_doc.save()
+                        
+                    else:
+                        anexo_doc = AnexoDoc(
+                            contenido = i
+                        )
+                        
+                        anexo_doc.save()
+                        
+                    anexo.contenido.add(anexo_doc)
+                    
+                messages.success(request, 'Anexo agregado exitosamente')
+            
+        else:
+            messages.error(request, f'Error intente nuevamente')
+            return redirect('anexos_lista')
+    
+    context = {
+        'anexos':anexos,
+        'form':form,
+        'facturas_list':facturas_list
+    }
+    return render(request, 'guias/anexos_lista.html', context)
+
+
+def anexo_detalle(request, id_anexo):
+    
+    anexo = AnexoGuia.objects.get(id=id_anexo)
+    context = {
+        'anexo':anexo,
+    }
+    
+    return render(request, 'guias/anexo_ver.html', context)
+
+
+def anexo_doc_editar_ajax(request):
+    if request.method == 'GET':
+        id_anexo_fila = request.GET.get('id_anexo_fila')
+        if id_anexo_fila:
+            anexo_doc = AnexoDoc.objects.get(id=int(id_anexo_fila))
+            form = AnexoDocForm(instance=anexo_doc)
+            return HttpResponse(form.as_p())
+        else:
+            form  = AnexoDocForm()
+            return HttpResponse(form.as_p())
+    
+    elif request.method == 'POST':
+        id_anexo_fila = request.POST.get('id_anexo_fila') 
+        id_anexo = request.POST.get('anexo')
+        if id_anexo_fila != 'undefined':
+            anexo_doc = AnexoDoc.objects.get(id=int(id_anexo_fila))
+            form = AnexoDocForm(request.POST, instance=anexo_doc)
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'Fila editada exitosamente')
+                return redirect(f'/etiquetado/anexo/{id_anexo}')
+            else:
+                messages.error(request, f'Error: {form.errors}')
+                return redirect(f'/etiquetado/anexo/{id_anexo}')
+        
+        else:
+            anexo = AnexoGuia.objects.get(id=int(id_anexo))
+            form = AnexoDocForm(request.POST)
+            if form.is_valid():
+                form = form.save()
+                anexo.contenido.add(form)
+                messages.success(request, 'Fila agregada exitosamente')
+                return redirect(f'/etiquetado/anexo/{id_anexo}')
+            else:
+                messages.error(request, f'Error: {form.errors}')
+                return redirect(f'/etiquetado/anexo/{id_anexo}')
+            
+
+def anexo_doc_elimiar_ajax(request):
+    if request.method == 'POST':
+        id_anexo_fila = request.POST.get('id_anexo_fila')
+        anexo_doc = AnexoDoc.objects.get(id=int(id_anexo_fila))
+        anexo_doc.delete()
+        return JsonResponse({'msg':'Elimado exitosamente'})
+        
 
 
 def entrega_estado_ajax(request):

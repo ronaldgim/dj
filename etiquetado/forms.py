@@ -2,11 +2,36 @@
 from django import forms 
 
 # Models
-from etiquetado.models import Calculadora, RowItem, PedidosEstadoEtiquetado, EstadoPicking, RegistoGuia, FechaEntrega, InstructivoEtiquetado
+from etiquetado.models import (
+    Calculadora, 
+    RowItem, 
+    PedidosEstadoEtiquetado, 
+    EstadoPicking, 
+    RegistoGuia, 
+    FechaEntrega, 
+    InstructivoEtiquetado,
+    AnexoGuia,
+    AnexoDoc
+    )
 
 # MyForms
-
 # Equipo Form
+
+class AnexoGuiaForm(forms.ModelForm):
+    
+    class Meta:
+        model = AnexoGuia
+        fields = [
+                'bodega_nombre',
+                'estado',
+            ]
+        
+        
+class AnexoDocForm(forms.ModelForm):
+    class Meta:
+        model = AnexoDoc
+        fields = '__all__'
+
 
 class RowItemForm(forms.ModelForm):
     
@@ -33,7 +58,6 @@ class EstadoPickingForm(forms.ModelForm):
     class Meta:
         model = EstadoPicking
         fields = '__all__'
-
 
 
 class RegistroGuiaForm(forms.ModelForm):
