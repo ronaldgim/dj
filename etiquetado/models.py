@@ -14,6 +14,18 @@ ESTADO_PICKING = [
     ('FINALIZADO', 'FINALIZADO'),
 ]
 
+
+BODEGA_NOMBRE = [
+    ('Andagoya', 'Andagoya'),
+    ('Cerezos', 'Cerezos'),
+]
+
+ESTADO_ANEXO = [
+    ('Completo', 'Completo'),
+    ('Incompleto', 'Incompleto'),
+]
+
+
 # Create your models here.
 class EtiquetadoStock(models.Model):
     
@@ -115,7 +127,6 @@ class EstadoPicking(models.Model):
         return self.n_pedido
 
 
-
 class RegistoGuia(models.Model):
 
     user          = models.ForeignKey(UserPerfil, verbose_name='User', on_delete=models.CASCADE)
@@ -136,6 +147,33 @@ class RegistoGuia(models.Model):
     def __str__(self):
         return self.cliente + ' ' + self.factura_c
     
+    
+class AnexoDoc(models.Model):
+
+    transporte     = models.CharField(max_length=20, blank=True)
+    n_guia         = models.CharField(max_length=120, blank=True)
+    tipo_contenido = models.CharField(max_length=20, blank=True)
+    contenido      = models.CharField(max_length=10)
+    
+    def __str__(self):
+        return self.n_guia
+    
+class AnexoGuia(models.Model):
+    
+    version_documento = models.CharField(max_length=3, default='02')
+    bodega_nombre     = models.CharField(max_length=20, choices=BODEGA_NOMBRE)
+    bodega_codigo     = models.CharField(max_length=2)
+    estado            = models.CharField(max_length=20, choices=ESTADO_ANEXO)
+    user              = models.ForeignKey(User, verbose_name='User', on_delete=models.CASCADE)
+    contenido         = models.ManyToManyField(AnexoDoc)
+    creado            = models.DateField(auto_now_add=True)
+    
+    @property
+    def numero_anexo(self):
+        n = int(self.id)
+        bodega = self.bodega_codigo
+        anio   = self.creado.year - 2000
+        return f'{bodega}-{anio}-{n:03d}'
 
 
 class FechaEntrega(models.Model):
@@ -143,8 +181,7 @@ class FechaEntrega(models.Model):
     fecha_hora    = models.DateTimeField(verbose_name='Fecha Hora de Entrega')
     estado        = models.CharField(verbose_name='Esatdo fecha', max_length=30)
     pedido        = models.CharField(verbose_name='pedido', max_length=15, unique=True)
-
-    est_entrega       = models.CharField(verbose_name='Esatdo entrega', blank=True, max_length=30)
+    est_entrega   = models.CharField(verbose_name='Esatdo entrega', blank=True, max_length=30)
     reg_entrega   = models.ForeignKey(UserPerfil, verbose_name='User entrega', blank=True, null=True, on_delete=models.CASCADE, related_name='usuario_entrega')
 
     def __str__(self):

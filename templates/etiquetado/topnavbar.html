@@ -59,19 +59,19 @@
               <li><a class="dropdown-item" href="{% url 'preventivo__por_realizar_list' %}">Realizar M. Preventivo</a></li>
           </ul>
         </li>
+
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Control de guias 
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+              <li><a class="dropdown-item" href="{% url 'guias_list' %}">Registro de guías</a></li>
+              <li><a class="dropdown-item" href="{% url 'anexos_lista' %}">Anexos de guías</a></li> 
+          </ul>
+        </li>
         <li class="nav-item dropdown">
           <a class="nav-link" id="navbarDropdownMenuLink" href="{% url 'revision_imp_llegadas_list' %}">
             Revisión Reservas
-          </a>
-          <!--ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-              <li><a class="dropdown-item" href="{% url 'revision_reservas' %}">Revision Reservas</a></li>
-              <li><a class="dropdown-item" href="{% url 'picking_estado' %}">Estado de Picking</a></li> 
-              <li><a class="dropdown-item" href="{% url 'inventario_bodega' %}">Inventario</a></li> 
-          </ul-->
-        </li>
-        <li class="nav-item dropdown">
-          <a class="nav-link" id="navbarDropdownMenuLink" href="{% url 'guias_list' %}">
-            Control de guias 
           </a>
           <!--ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
               <li><a class="dropdown-item" href="{% url 'revision_reservas' %}">Revision Reservas</a></li>
