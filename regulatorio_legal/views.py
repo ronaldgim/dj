@@ -373,7 +373,8 @@ def obtener_facturas():
     """Función para obtener y procesar las facturas de la base de datos ODBC."""
     facturas = facturas_odbc()[['CODIGO_FACTURA', 'FECHA_FACTURA', 'NOMBRE_CLIENTE']]
     facturas = facturas.drop_duplicates(subset='CODIGO_FACTURA')
-    facturas['codigo_factura'] = facturas['CODIGO_FACTURA'].apply(lambda x: x.split('-')[1])
+    facturas['codigo_factura'] = facturas['CODIGO_FACTURA'].apply(lambda x: int(x.split('-')[1][4:]))
+    facturas['FECHA_FACTURA'] = facturas['FECHA_FACTURA'].astype('str')
     return facturas.sort_values(by='codigo_factura', ascending=False)
 
 
