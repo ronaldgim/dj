@@ -58,7 +58,7 @@
                     <tr>
                         <td>{{i.transporte}}</td>
                         <td>{{i.n_guia}}</td>
-                        <td>{{i.tipo_contenido}} - {{i.contenido}}</td>
+                        <td>{% if i.tipo_contenido %} {{i.tipo_contenido}}: {% endif %} {{i.contenido}}</td>
                         
                         <td>
                             <button class="btn btn-sm btn-secondary" name="editar-contenido" id="{{i.id}}" data-bs-toggle="modal" data-bs-target="#exampleModal">
