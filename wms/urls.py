@@ -248,6 +248,13 @@ urlpatterns = [
         name = 'wms_cruce_picking_factura'
     ),
     
+    # wms_despacho_cartones
+    path(
+        route='wms_despacho_cartones', 
+        view = views.wms_despacho_cartones,
+        name = 'wms_despacho_cartones'
+    ),
+    
     # wms_cruce_check_despacho
     path(
         route='cruce/check/despacho',

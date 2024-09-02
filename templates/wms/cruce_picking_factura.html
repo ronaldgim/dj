@@ -81,7 +81,7 @@
 <label class="fw-bold">RUC: </label> {{factura.cabecera.IDENTIFICACION_FISCAL}}<br>
 <!--label class="fw-bold">Factura: </label> <span id="n_factura">{{factura.cabecera.CODIGO_FACTURA}}</span> <br-->
 <label class="fw-bold">Factura: </label> <span id="n_factura">{{factura.cabecera.n_factura_format}}</span> <br>
-<mark><label class="fw-bold">Picking:</label> {{factura.cabecera.NUMERO_PEDIDO_SISTEMA|slice:"-2"}}</mark> <br>
+<label class="fw-bold"><mark>Picking:</mark></label><mark>{{factura.cabecera.NUMERO_PEDIDO_SISTEMA|slice:"-2"}}</mark> <br>
 <label class="fw-bold">Fecha: </label> {{factura.cabecera.FECHA_FACTURA}}
 
 <input id="n_picking" type="hidden" value="{{factura.cabecera.NUMERO_PEDIDO_SISTEMA}}">
@@ -102,11 +102,15 @@
     </tr>
     <tr>
         <td class="fw-bold">Cartones físicos:</td>
-        <td class="text-end">00,0</td>
+        <td class="text-end"><span id="cartones_fisicos_save">{{cartones}}</span></td>
     </tr>
     <tr>
-        <td><input type="text" class="form-control form-control-sm"></td>
-        <td><button class="btn btn-sm btn-primary"><i class="bi bi-send"></i></button></td>
+        <input type="hidden" id="cc_picking" value="{{factura.cabecera.NUMERO_PEDIDO_SISTEMA}}"> 
+        <input type="hidden" id="cc_factura" value="{{factura.cabecera.CODIGO_FACTURA}}">
+        <input type="hidden" id="cc_cartones_calculados" value="{{factura.total_cartones}}">
+        <input type="hidden" id="cc_usuario" value="{{request.user.id}}">
+        <td><input type="number" class="form-control form-control-sm" id="cc_cartones_fisicos" required></td>
+        <td><button type="button" name="cartones" class="btn btn-sm btn-primary"><i class="bi bi-send"></i></button></td>
     </tr>
 </table>
 
@@ -242,6 +246,39 @@
             }
             
         })
+    })
+</script>
+
+<!-- Cartones -->
+<script>
+    $("button[name='cartones']").click(function(){
+        var picking = $("#cc_picking").val();
+        var factura = $("#cc_factura").val();
+        var c_calcu = $("#cc_cartones_calculados").val();
+        var c_fisic = $("#cc_cartones_fisicos").val();
+        var usuario = "{{request.user.id}}"
+        console.log(picking, factura,c_calcu, c_fisic)
+
+        $.ajax({
+            type:"POST",
+            url:"{% url 'wms_despacho_cartones' %}",
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'picking':picking,
+                'factura':factura,
+                'cartones_calculados':parseFloat(c_calcu),
+                'cartones_fisicos':parseFloat(c_fisic),
+                'usuario':usuario
+                },
+                success: function(response) {
+                    $("#msg").html(`<div class="text-center alert alert-${response.tipo}" role="alert">${response.msg} !!! </div>`);
+                    $("#cartones_fisicos_save").html(c_fisic);
+                },
+                error: function(){
+                    $("#msg").html(`<div class="text-center alert alert-danger" role="alert"> Error !!!</div>`)
+                }
+        })
+
     })
 </script>
 
