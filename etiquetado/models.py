@@ -20,11 +20,6 @@ BODEGA_NOMBRE = [
     ('Cerezos', 'Cerezos'),
 ]
 
-ESTADO_ANEXO = [
-    ('Completo', 'Completo'),
-    ('Incompleto', 'Incompleto'),
-]
-
 
 # Create your models here.
 class EtiquetadoStock(models.Model):
@@ -163,7 +158,7 @@ class AnexoGuia(models.Model):
     version_documento = models.CharField(max_length=3, default='02')
     bodega_nombre     = models.CharField(max_length=20, choices=BODEGA_NOMBRE)
     bodega_codigo     = models.CharField(max_length=2)
-    estado            = models.CharField(max_length=20, choices=ESTADO_ANEXO)
+    estado            = models.CharField(max_length=20, default='Incompleto')
     user              = models.ForeignKey(User, verbose_name='User', on_delete=models.CASCADE)
     contenido         = models.ManyToManyField(AnexoDoc)
     creado            = models.DateField(auto_now_add=True)
@@ -225,7 +220,6 @@ class EstadoEtiquetadoStock(models.Model):
     
     product_id = models.CharField(verbose_name='Código', max_length=15, blank=True)
     estado     = models.CharField(verbose_name='Estado', max_length=15, blank=True)
-    
     creado     = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
