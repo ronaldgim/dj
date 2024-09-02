@@ -2358,7 +2358,13 @@ def wms_armar_codigo_factura(n_factura):
         'NOMBRE_CLIENTE','IDENTIFICACION_FISCAL']).sum().reset_index()
 
     if not factura.empty:
-
+        # calculo cartones
+        productos = productos_odbc_and_django()[['product_id','Unidad_Empaque']]
+        factura = factura.merge(productos, on='product_id', how='left')
+        factura['cartones'] = factura['EGRESO_TEMP'] / factura['Unidad_Empaque']
+        
+        total_cartones = round(factura['cartones'].sum(), 2)
+        
         fn_pedido = de_dataframe_a_template(factura)[0]['NUMERO_PEDIDO_SISTEMA']
 
         try:
@@ -2370,10 +2376,12 @@ def wms_armar_codigo_factura(n_factura):
             factura = factura.merge(picking, on=['product_id','lote_id'], how='left').fillna(0)
             factura['unidades'] = factura['unidades'].abs()
             factura['diferencia'] = factura['unidades'] - factura['EGRESO_TEMP']
+            factura['n_factura_format'] = factura['CODIGO_FACTURA'].apply(lambda x: int(x.split('-')[1][4:]))
 
             factura = {
                 'factura':de_dataframe_a_template(factura),
-                'cabecera':de_dataframe_a_template(factura)[0]
+                'cabecera':de_dataframe_a_template(factura)[0],
+                'total_cartones':total_cartones
             }
         except:
             factura = {
@@ -2395,7 +2403,7 @@ def wms_cruce_picking_factura(request):
     if request.method=="POST":
         n_factura = request.POST['n_factura']
         factura = wms_armar_codigo_factura(n_factura)
-        
+        #print(factura)
         context={
             'factura':factura,
         }
