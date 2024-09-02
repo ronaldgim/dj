@@ -127,8 +127,8 @@
                 $("label[for='id_contenido']").html('N° Documento:');
                 $("#id_contenido").addClass('form-control');
 
-                $("#id_contenido").after(`<input name='id_anexo_fila' type="text" value='${id_anexo_fila}'>`)
-                $("#id_contenido").after(`<input name='anexo' type="text" value='${id_anexo}'>`)
+                $("#id_contenido").after(`<input name='id_anexo_fila' type="hidden" value='${id_anexo_fila}'>`)
+                $("#id_contenido").after(`<input name='anexo' type="hidden" value='${id_anexo}'>`)
             },
             error: function() {
                 console.log('Error')

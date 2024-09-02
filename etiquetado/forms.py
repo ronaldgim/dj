@@ -23,7 +23,7 @@ class AnexoGuiaForm(forms.ModelForm):
         model = AnexoGuia
         fields = [
                 'bodega_nombre',
-                'estado',
+                #'estado',
             ]
         
         

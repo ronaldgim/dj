@@ -2931,7 +2931,6 @@ def anexos_lista(request):
             
             f_bodega_nombre = form.get('bodega_nombre')[0]
             f_bodega_codigo = '01' if f_bodega_nombre == 'Andagoya' else '02'
-            f_estado        = form.get('estado')[0]
             f_user          = form.get('user')[0]
             f_facturas_list = form.get('facturas')
             
@@ -2939,7 +2938,6 @@ def anexos_lista(request):
             anexo = AnexoGuia(
                 bodega_nombre = f_bodega_nombre,
                 bodega_codigo = f_bodega_codigo,
-                estado        = f_estado,
                 user_id       = int(f_user),
             )
             
@@ -2948,18 +2946,18 @@ def anexos_lista(request):
             if anexo.id:
             
                 for i in f_facturas_list:
-                    guia = RegistoGuia.objects.get(factura=i)
+                    guia = RegistoGuia.objects.filter(factura=i)
                     
-                    if guia:
+                    if guia.exists():
                         anexo_doc = AnexoDoc(
-                            transporte     = guia.transporte,
-                            n_guia         = guia.n_guia,
-                            tipo_contenido = 'Factura' if guia.factura_c.startswith('FCSRI-') else '',
+                            transporte     = guia.first().transporte,
+                            n_guia         = guia.first().n_guia,
+                            tipo_contenido = 'Factura' if guia.first().factura_c.startswith('FCSRI-') else '',
                             contenido      = i
                         )
                         anexo_doc.save()
                         
-                    else:
+                    elif not guia.exists():
                         anexo_doc = AnexoDoc(
                             contenido = i
                         )
@@ -2967,6 +2965,10 @@ def anexos_lista(request):
                         anexo_doc.save()
                         
                     anexo.contenido.add(anexo_doc)
+                    
+                    if all(doc.n_guia for doc in anexo.contenido.all()):
+                        anexo.estado = 'Completo'
+                        anexo.save()
                     
                 messages.success(request, 'Anexo agregado exitosamente')
             
