@@ -79,7 +79,8 @@
 {% if factura %}
 <h6 class="fw-bold text-center">{{factura.cabecera.NOMBRE_CLIENTE}}</h6>
 <label class="fw-bold">RUC: </label> {{factura.cabecera.IDENTIFICACION_FISCAL}}<br>
-<label class="fw-bold">Factura: </label> <span id="n_factura">{{factura.cabecera.CODIGO_FACTURA}}</span> <br>
+<!--label class="fw-bold">Factura: </label> <span id="n_factura">{{factura.cabecera.CODIGO_FACTURA}}</span> <br-->
+<label class="fw-bold">Factura: </label> <span id="n_factura">{{factura.cabecera.n_factura_format}}</span> <br>
 <mark><label class="fw-bold">Picking:</label> {{factura.cabecera.NUMERO_PEDIDO_SISTEMA|slice:"-2"}}</mark> <br>
 <label class="fw-bold">Fecha: </label> {{factura.cabecera.FECHA_FACTURA}}
 
@@ -91,6 +92,23 @@
     Confirme el número de factura o verifique que el picking se haya realizado correctamente !!!
 </div>
 {% endif %}
+
+
+
+<table class="mt-4 mb-4">
+    <tr>
+        <td class="fw-bold">Cartones calculados:</td>
+        <td class="text-end">{{factura.total_cartones}}</td>
+    </tr>
+    <tr>
+        <td class="fw-bold">Cartones físicos:</td>
+        <td>00,0</td>
+    </tr>
+    <tr>
+        <td><input type="text" class="form-control form-control-sm"></td>
+        <td><button class="btn btn-sm btn-primary"><i class="bi bi-send"></i></button></td>
+    </tr>
+</table>
 
 
 <div class="card mb-2">
