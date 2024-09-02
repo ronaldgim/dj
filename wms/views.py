@@ -1945,7 +1945,7 @@ def wms_egreso_picking(request, n_pedido): #OK
         estado = 'SIN ESTADO'
         estado_id = ''
 
-    prod   = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+    prod   = productos_odbc_and_django()[['product_id','Nombre','Marca','Unidad_Empaque']]
     prod   = prod.rename(columns={'product_id':'PRODUCT_ID'})
     
     pedido = pedido_por_cliente(n_pedido).sort_values('PRODUCT_ID')
@@ -2003,6 +2003,8 @@ def wms_egreso_picking(request, n_pedido): #OK
     else:
         inv = {}
 
+    # Calculo Cartones
+    pedido['cartones'] = pedido['QUANTITY'] / pedido['Unidad_Empaque']
     ped = de_dataframe_a_template(pedido)
 
     for i in prod_list:
