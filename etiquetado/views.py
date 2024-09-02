@@ -737,9 +737,10 @@ def facturas_list(request):
         ]
 
         facturas = pd.DataFrame(facturas)
+        facturas['FECHA_FACTURA'] = facturas['FECHA_FACTURA'].astype('str')
+        facturas['CODIGO_FACTURA'] = facturas['CODIGO_FACTURA'].apply(lambda x: int(x.split('-')[1][4:]))
         facturas = facturas.groupby(by=['CODIGO_FACTURA', 'FECHA_FACTURA', 'NOMBRE_CLIENTE']).sum()
         facturas = facturas.sort_values(by='FECHA_FACTURA', ascending=False)
-
         json_recods = facturas.reset_index().to_json(orient='records')
         facturas = json.loads(json_recods)
         context = {
