@@ -2,7 +2,7 @@
 from django import forms 
 
 # Models
-from wms.models import Movimiento, Ubicacion
+from wms.models import Movimiento, Ubicacion, DespachoCarton
 
 # MyForms
 
@@ -17,4 +17,11 @@ class MovimientosForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['ubicacion'].queryset = Ubicacion.objects.filter(disponible=True)
+
+
+class DespachoCartonForm(forms.ModelForm):
+    
+    class Meta:
+        model = DespachoCarton
+        fields = '__all__'
         

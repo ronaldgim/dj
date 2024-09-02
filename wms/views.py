@@ -61,15 +61,14 @@ from wms.models import (
     AnulacionPicking,
     TransferenciaStatus,
     AjusteLiberacion,
-    NotaEntregaStatus
+    NotaEntregaStatus,
+    DespachoCarton
     )
 
 from django.core.exceptions import ObjectDoesNotExist
 
 # excel 
-from openpyxl import Workbook
-from openpyxl.utils.dataframe import dataframe_to_rows
-from openpyxl.styles import Font, Alignment, Border, Side
+from openpyxl.styles import Font, Alignment
 
 
 # Pandas y Numpy
@@ -77,7 +76,7 @@ import pandas as pd
 import numpy as np
 
 # Forms
-from wms.forms import MovimientosForm
+from wms.forms import MovimientosForm, DespachoCartonForm
 
 # Messages
 from django.contrib import messages
@@ -91,7 +90,6 @@ from etiquetado.models import EstadoPicking
 
 # Transactions INTEGRITY OF DATA
 from django.db import transaction
-from django.db.utils import IntegrityError
 
 # Login
 from django.contrib.auth.decorators import login_required, permission_required
@@ -107,8 +105,6 @@ import pyodbc
 # Paginado
 from django.core.paginator import Paginator
 
-# Time
-from datetime import timedelta
 
 """
     LISTAS DE INGRESOS
@@ -2403,13 +2399,48 @@ def wms_cruce_picking_factura(request):
     if request.method=="POST":
         n_factura = request.POST['n_factura']
         factura = wms_armar_codigo_factura(n_factura)
-        #print(factura)
+        try:
+            cartones = DespachoCarton.objects.get(picking=factura.get('cabecera').get('NUMERO_PEDIDO_SISTEMA')).cartones_fisicos
+        except:
+            cartones = 00.0
+        
         context={
             'factura':factura,
+            'cartones':cartones
         }
         return render(request, 'wms/cruce_picking_factura.html', context)
     context = {}
     return render(request, 'wms/cruce_picking_factura.html', context)
+
+
+# Cartones despacho
+def wms_despacho_cartones(request):
+    if request.method == "POST":
+        picking = request.POST.get('picking')
+        registro = DespachoCarton.objects.filter(picking=picking)
+        if not registro.exists():
+            form = DespachoCartonForm(request.POST)
+            if form.is_valid():
+                form.save()
+                return JsonResponse({
+                    'tipo':'success',
+                    'msg':'Registro de cartones exitoso !!!'})
+            else:
+                return JsonResponse({
+                    'tipo':'danger',
+                    'msg':f'{form.errors}'})
+        elif registro.exists():
+            form = DespachoCartonForm(request.POST, instance=registro.first())
+            if form.is_valid():
+                form.save()
+                return JsonResponse({
+                    'tipo':'success',
+                    'msg':'Actulización de registro de cartones exitoso !!!'})
+            else:
+                return JsonResponse({
+                    'tipo':'danger',
+                    'msg':f'{form.errors}'})
+
 
 
 @permisos(['BODEGA'], '/wms/home/', 'ingresar a cruce de picking-factura')

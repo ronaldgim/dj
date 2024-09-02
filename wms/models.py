@@ -231,10 +231,22 @@ class AjusteLiberacion(models.Model):
     egreso_temp     = models.PositiveIntegerField(verbose_name='Egreso temp')
     commited        = models.PositiveIntegerField(verbose_name='Commited')
     fecha_caducidad = models.DateField(verbose_name='Fecha caducidad')
-    
     unidades_cuc    = models.PositiveIntegerField(verbose_name='Unidades cuarentena', null=True, blank=True)
     ubicacion       = models.ForeignKey(Ubicacion, verbose_name='Ubicación', max_length=5, on_delete=models.CASCADE, related_name='ubicacion_cuc_liberacion', blank=True, null=True)
     estado          = models.CharField(verbose_name='Estado', max_length=50, null=True, blank=True)
     
     def __str__(self):
         return self.product_id
+    
+
+class DespachoCarton(models.Model):
+    
+    picking             = models.CharField(max_length=10, unique=True)
+    factura             = models.CharField(max_length=30)
+    cartones_calculados = models.FloatField()
+    cartones_fisicos    = models.FloatField()
+    usuario             = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.CASCADE)
+    fecha_hora          = models.DateTimeField(verbose_name='Fecha Hora', auto_now_add=True)
+    
+    def __str__(self):
+        return f'Picking: {self.picking} - Factura: {self.factura}'
