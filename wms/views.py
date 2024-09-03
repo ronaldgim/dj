@@ -3994,7 +3994,7 @@ def wms_reporte_bodegas457(request):
         existencia = Existencias.objects.filter(
             product_id=i,
             ubicacion__bodega__in = ['CN4','CN5','CN7']
-        ).order_by('fecha_caducidad')
+        ).order_by('fecha_caducidad', 'lote_id')
         
         if existencia.exists():
             products_list_final.append(existencia.first().id)
@@ -4005,9 +4005,11 @@ def wms_reporte_bodegas457(request):
     ))
     
     products = productos_odbc_and_django()[['product_id','Nombre','Marca']]
-    df = pd.merge(df, products, on='product_id', how='left')
-    df['fecha_caducidad'] = df['fecha_caducidad'].astype('str')
-    productos_reporte = de_dataframe_a_template(df)
+    
+    if not df.empty:
+        df = pd.merge(df, products, on='product_id', how='left')
+        df['fecha_caducidad'] = df['fecha_caducidad'].astype('str')
+        productos_reporte = de_dataframe_a_template(df)
 
     context = {
         'productos_reporte':productos_reporte,
