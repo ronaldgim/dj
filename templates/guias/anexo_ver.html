@@ -58,7 +58,7 @@
                     <tr>
                         <td>{{i.transporte}}</td>
                         <td>{{i.n_guia}}</td>
-                        <td>{% if i.tipo_contenido %} {{i.tipo_contenido}}: {% endif %} {{i.contenido}}</td>
+                        <td>{% if i.tipo_contenido %} {{i.tipo_contenido}}: {% endif %} <span id="n_factura">{{i.contenido}}</span></td>
                         
                         <td>
                             <button class="btn btn-sm btn-secondary" name="editar-contenido" id="{{i.id}}" data-bs-toggle="modal" data-bs-target="#exampleModal">
@@ -126,7 +126,6 @@
                 $("#id_tipo_contenido").addClass('form-control');
                 $("label[for='id_contenido']").html('N° Documento:');
                 $("#id_contenido").addClass('form-control');
-
                 $("#id_contenido").after(`<input name='id_anexo_fila' type="hidden" value='${id_anexo_fila}'>`)
                 $("#id_contenido").after(`<input name='anexo' type="hidden" value='${id_anexo}'>`)
             },
@@ -162,4 +161,28 @@
     })
 </script>
 
+
+<script>
+    $("button[name='actualizar-contenido']").on('click', function() {
+        id_anexo_doc = $(this).attr('id')
+        
+        $.ajax({
+            type: "POST",
+            url: "{% url 'anexo_doc_actualizar_contenido_ajax' %}",
+            data: {
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'id_anexo_doc': id_anexo_doc
+            },
+            success: function(response) {
+                $("#msg").html(`<div class="alert text-center alert-${response.tipo}" role="alert">${response.msg}</div>`)
+                if (response.tipo === 'success') {
+                    location.reload(true)
+                }
+            },
+            error: function() {
+                console.log('Error')
+            }
+        })
+    })
+</script>
 {% endblock %}
