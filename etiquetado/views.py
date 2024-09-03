@@ -3055,7 +3055,10 @@ def anexo_doc_editar_ajax(request):
 def anexo_doc_actualizar_contenido_ajax(request):
     
     if request.method == 'POST':
+        
         id_anexo_doc = request.POST.get('id_anexo_doc')
+        id_anexo = request.POST.get('id_anexo')
+        
         anexo_doc = AnexoDoc.objects.get(id=int(id_anexo_doc))        
         registro_guia = RegistoGuia.objects.filter(factura=anexo_doc.contenido)
         
@@ -3066,6 +3069,14 @@ def anexo_doc_actualizar_contenido_ajax(request):
             anexo_doc.n_guia = rg.n_guia
             anexo_doc.tipo_contenido = 'Factura' if rg.factura_c.startswith('FCSRI') else ''
             anexo_doc.save()
+            
+            anexo = AnexoGuia.objects.get(id=int(id_anexo))
+            if all(doc.n_guia for doc in anexo.contenido.all()):
+                anexo.estado = 'Completo'
+                anexo.save()
+            else:
+                anexo.estado = 'Incompleto'
+                anexo.save()
             
             return JsonResponse({
                 'tipo':'success',

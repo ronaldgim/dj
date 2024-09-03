@@ -164,14 +164,16 @@
 
 <script>
     $("button[name='actualizar-contenido']").on('click', function() {
-        id_anexo_doc = $(this).attr('id')
+        id_anexo_doc = $(this).attr('id');
+        id_anexo = $("#anexo").val();
         
         $.ajax({
             type: "POST",
             url: "{% url 'anexo_doc_actualizar_contenido_ajax' %}",
             data: {
                 'csrfmiddlewaretoken': '{{ csrf_token }}',
-                'id_anexo_doc': id_anexo_doc
+                'id_anexo_doc': id_anexo_doc,
+                'id_anexo': id_anexo
             },
             success: function(response) {
                 $("#msg").html(`<div class="alert text-center alert-${response.tipo}" role="alert">${response.msg}</div>`)
