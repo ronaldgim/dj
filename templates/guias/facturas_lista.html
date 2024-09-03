@@ -62,6 +62,7 @@
                         <th scope="col">Ciudad</th>
                         <th scope="col">Transporte</th>
                         <th scope="col">Registrado por</th>
+                        <th scope="col">Anexo</th>
                         <th scope="col">Registrar</th>
                     </tr>
                 </thead>
@@ -80,13 +81,6 @@
                                 {{i.transporte}}
                             {% endif %}
                         </td>
-                        <!--td>
-                            {% if i.id == 0 %}
-                                -
-                            {% elif i.id != 0 %}
-                                {{i.first_name}} {{i.last_name}}
-                            {% endif %}
-                        </td-->
                         <td class="reg" data-reg="{{i.user_reg}}">
                             {% if i.user_reg == 'Sin Registrar' %}
                             -
@@ -94,6 +88,9 @@
                             {{i.user_reg}}
                             {% endif %}
                         </td>
+
+                        <td>{{i.anexo_num}}</td>
+
                         <td>
                             {% if i.id == 0 %}
                             <a  class="btn btn-primary btn-sm" href="{% url 'guias_registro' i.CODIGO_FACTURA %}">

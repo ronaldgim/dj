@@ -2736,49 +2736,52 @@ login_required(login_url='login')
 def control_guias_list(request):
     
     ventas_fac = ventas_facturas_odbc()[['NOMBRE_CLIENTE', 'CODIGO_FACTURA', 'FECHA_FACTURA']]
+    clientes = clientes_warehouse()[['NOMBRE_CLIENTE','CIUDAD_PRINCIPAL', 'CLIENT_TYPE']]
     
-    perfil = pd.DataFrame(UserPerfil.objects.all().values())
-    user = pd.DataFrame(User.objects.all().values())
-    user = user.rename(columns={'id':'user_id'})
-    perfil = perfil.merge(user, on='user_id', how='left')[['id', 'first_name', 'last_name']]
-    perfil = perfil.rename(columns={'id':'user_id'}) 
-
-    reg_guia = pd.DataFrame(RegistoGuia.objects.all().values())[['id','factura_c', 'user_id','transporte']]
-    reg_guia['user_id'] = reg_guia['user_id'].astype(int)
+    # Ventas factura
     ventas_fac = ventas_fac.drop_duplicates(subset=['CODIGO_FACTURA'])
     ventas_fac['FECHA'] = pd.to_datetime(ventas_fac['FECHA_FACTURA'])
-    ventas_fac = ventas_fac.sort_values(by=['FECHA'], ascending=[False])
-
-    desde = '01-04-2023 00:00:01';desde = datetime.strptime(desde, '%d-%m-%Y %H:%M:%S')
-    # meses_3 = datetime.today() - timedelta(days=90);print(meses_3)
-    ventas_fac = ventas_fac[ventas_fac['FECHA']>desde]
-
-    clientes = clientes_warehouse()[['NOMBRE_CLIENTE','CIUDAD_PRINCIPAL', 'CLIENT_TYPE']]
-
+    ventas_fac = ventas_fac.sort_values(by=['FECHA'], ascending=[False])    
     ventas_fac = ventas_fac.merge(clientes, on='NOMBRE_CLIENTE', how='left')
     ventas_fac = ventas_fac[ventas_fac['CIUDAD_PRINCIPAL']!='QUITO']
     ventas_fac = ventas_fac[ventas_fac['CIUDAD_PRINCIPAL']!='SANGOLQUI']
-
-    # junta = ventas_fac[ventas_fac['NOMBRE_CLIENTE']=='JUNTA DE BENEFICENCIA DE GUAYA']
-    # solca = ventas_fac[ventas_fac['NOMBRE_CLIENTE']=='SOLCA MATRIZ GUAYAQUIL']
-    # solca_tungurahua = ventas_fac[ventas_fac['NOMBRE_CLIENTE']=='SOLCA TUNGURAHUA']
-
-    # ventas_fac = ventas_fac[ventas_fac['CLIENT_TYPE']!='HOSPU']
-    # ventas_fac = pd.concat([ventas_fac, junta, solca, solca_tungurahua])
     ventas_fac['FECHA'] = ventas_fac['FECHA'].astype(str)
-
-    #ventas_fac = ventas_fac[~ventas_fac.CODIGO_FACTURA.isin(reg_guia)]
+    
+    # Guias Registradas
+    reg_guia = pd.DataFrame(RegistoGuia.objects.all().values(
+        'id',
+        'factura',
+        'factura_c', 
+        'user__user__first_name',
+        'user__user__last_name',
+        'transporte'
+        ))    
+    reg_guia['user_reg'] = reg_guia['user__user__first_name'] + ' ' + reg_guia['user__user__last_name']
     reg_guia = reg_guia.rename(columns={'factura_c':'CODIGO_FACTURA'})
-    ventas_fac = ventas_fac.merge(reg_guia, on='CODIGO_FACTURA', how='left').fillna(0)
-    ventas_fac = ventas_fac.merge(perfil, on='user_id', how='left')
-    ventas_fac['id'] = ventas_fac['id'].astype(int)
-    # print(ventas_fac)
-
-    ventas_fac['user_reg'] = ventas_fac['first_name'] + ' ' + ventas_fac['last_name']
+    
+    # Merge
+    ventas_fac = ventas_fac.merge(reg_guia, on='CODIGO_FACTURA', how='left')#.fillna(0)
+    ventas_fac['id'] = ventas_fac['id'].fillna(0).astype('int')
     ventas_fac = ventas_fac.sort_values(by=['CODIGO_FACTURA'], ascending=False).fillna('Sin Registrar')
     
-    reg = list(ventas_fac['user_reg'].unique())
+    # Anexos
+    anexos = AnexoGuia.objects.all()
+    anexo_num = []
+    anexo_factura = []
     
+    for i in anexos:
+        for j in i.contenido.all():
+            anexo_num.append(i.numero_anexo)
+            anexo_factura.append(j.contenido)
+    
+    if anexos.exists():
+        anexos_df = pd.DataFrame({
+            'anexo_num':anexo_num,
+            'factura':anexo_factura
+        })
+        ventas_fac = ventas_fac.merge(anexos_df, on='factura', how='left').fillna('-')
+    
+    reg = list(ventas_fac['user_reg'].unique())
     ventas_fac = de_dataframe_a_template(ventas_fac)
     
     if request.method=='POST':

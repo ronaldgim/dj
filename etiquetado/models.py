@@ -169,6 +169,9 @@ class AnexoGuia(models.Model):
         bodega = self.bodega_codigo
         anio   = self.creado.year - 2000
         return f'{bodega}-{anio}-{n:03d}'
+    
+    def __str__(self):
+        return self.numero_anexo
 
 
 class FechaEntrega(models.Model):
