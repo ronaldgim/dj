@@ -126,7 +126,6 @@
                 $("#id_tipo_contenido").addClass('form-control');
                 $("label[for='id_contenido']").html('N° Documento:');
                 $("#id_contenido").addClass('form-control');
-
                 $("#id_contenido").after(`<input name='id_anexo_fila' type="hidden" value='${id_anexo_fila}'>`)
                 $("#id_contenido").after(`<input name='anexo' type="hidden" value='${id_anexo}'>`)
             },
@@ -166,7 +165,6 @@
 <script>
     $("button[name='actualizar-contenido']").on('click', function() {
         id_anexo_doc = $(this).attr('id')
-        // fila = $(this).closest('tr');
         
         $.ajax({
             type: "POST",
@@ -176,7 +174,6 @@
                 'id_anexo_doc': id_anexo_doc
             },
             success: function(response) {
-                console.log(response.msg)
                 $("#msg").html(`<div class="alert text-center alert-${response.tipo}" role="alert">${response.msg}</div>`)
                 if (response.tipo === 'success') {
                     location.reload(true)
