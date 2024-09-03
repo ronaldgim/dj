@@ -752,7 +752,7 @@ def facturas_list(request):
 
 def factura_por_cliente(n_factura):
     with connections['gimpromed_sql'].cursor() as cursor:
-
+        
         cursor.execute("SELECT * FROM facturas WHERE CODIGO_FACTURA = %s", [n_factura])
         columns = [col[0] for col in cursor.description]
 
@@ -761,7 +761,7 @@ def factura_por_cliente(n_factura):
             for row in cursor.fetchall()
         ]
 
-        f = pd.DataFrame(facturas)
+        f = pd.DataFrame(facturas);print(f)
 
     return f
 
@@ -771,6 +771,9 @@ def facturas(request, n_factura):
     vehiculo = Vehiculos.objects.filter(activo=True).order_by('transportista')
 
     # Dataframes
+    n_factura = int(n_factura)
+    n_factura = 'FCSRI-1001' + f'{n_factura:09d}' + '-GIMPR'
+    
     factura = factura_por_cliente(n_factura)
     factura = factura[factura['PRODUCT_ID']!='MANTEN']
     
@@ -802,7 +805,6 @@ def facturas(request, n_factura):
 
     p_cero = 0  in list(factura['pes_total'])
 
-    
     # Totales de tabla
     cliente = factura['NOMBRE_CLIENTE'].iloc[0]
     fecha_factura = factura['FECHA_FACTURA'].iloc[0]
@@ -814,24 +816,19 @@ def facturas(request, n_factura):
 
     factura = de_dataframe_a_template(factura)
 
-
     context = {
         'factura':factura,
         'n_factura':n_factura,
         'cliente':cliente,
         'fecha_factura':fecha_factura,
-        
         't_total_1p':t_total_1p,
         't_total_2p':t_total_2p,
         't_total_3p':t_total_3p,
-
         't_total_vol':t_total_vol,
         't_total_pes':t_total_pes,
         't_cartones':t_cartones,
         't_unidades':t_unidades,
-
         'vehiculos':vehiculo,
-
         'p_cero':p_cero
     }
 
