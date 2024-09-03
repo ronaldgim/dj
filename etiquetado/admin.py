@@ -8,13 +8,13 @@ from etiquetado.models import (
     PedidosEstadoEtiquetado, 
     OrdenEtiquetadoStock,
     EstadoPicking,
-
-    EtiquetadoStock,
     RegistoGuia,
     FechaEntrega,
     ProductArmado,
     InstructivoEtiquetado,
-    EtiquetadoAvance
+    EtiquetadoAvance,
+    AnexoDoc,
+    AnexoGuia
 )
 
 # Register your models here.
@@ -66,3 +66,13 @@ class InstructivoEtiquetadoAdmin(admin.ModelAdmin):
 @admin.register(EtiquetadoAvance)
 class EtiquetadoAvanceAdmin(admin.ModelAdmin):
     list_display = ('id', 'n_pedido', 'product_id', 'unidades')
+    
+    
+@admin.register(AnexoGuia)
+class AnexoGuiaAdmin(admin.ModelAdmin):
+    list_display = ('id', 'bodega_nombre', 'numero_anexo','user','estado')
+    
+
+@admin.register(AnexoDoc)
+class AnexoDocAdmin(admin.ModelAdmin):
+    list_display = ('id', 'tipo_contenido', 'contenido', 'n_guia')
