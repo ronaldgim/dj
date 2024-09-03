@@ -58,7 +58,7 @@
                     <tr>
                         <td>{{i.transporte}}</td>
                         <td>{{i.n_guia}}</td>
-                        <td>{% if i.tipo_contenido %} {{i.tipo_contenido}}: {% endif %} {{i.contenido}}</td>
+                        <td>{% if i.tipo_contenido %} {{i.tipo_contenido}}: {% endif %} <span id="n_factura">{{i.contenido}}</span></td>
                         
                         <td>
                             <button class="btn btn-sm btn-secondary" name="editar-contenido" id="{{i.id}}" data-bs-toggle="modal" data-bs-target="#exampleModal">
@@ -162,4 +162,30 @@
     })
 </script>
 
+
+<script>
+    $("button[name='actualizar-contenido']").on('click', function() {
+        id_anexo_doc = $(this).attr('id')
+        // fila = $(this).closest('tr');
+        
+        $.ajax({
+            type: "POST",
+            url: "{% url 'anexo_doc_actualizar_contenido_ajax' %}",
+            data: {
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'id_anexo_doc': id_anexo_doc
+            },
+            success: function(response) {
+                console.log(response.msg)
+                $("#msg").html(`<div class="alert text-center alert-${response.tipo}" role="alert">${response.msg}</div>`)
+                if (response.tipo === 'success') {
+                    location.reload(true)
+                }
+            },
+            error: function() {
+                console.log('Error')
+            }
+        })
+    })
+</script>
 {% endblock %}

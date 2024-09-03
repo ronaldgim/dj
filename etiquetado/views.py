@@ -3050,7 +3050,36 @@ def anexo_doc_editar_ajax(request):
             else:
                 messages.error(request, f'Error: {form.errors}')
                 return redirect(f'/etiquetado/anexo/{id_anexo}')
+
+
+def anexo_doc_actualizar_contenido_ajax(request):
+    
+    if request.method == 'POST':
+        id_anexo_doc = request.POST.get('id_anexo_doc')
+        anexo_doc = AnexoDoc.objects.get(id=int(id_anexo_doc))        
+        registro_guia = RegistoGuia.objects.filter(factura=anexo_doc.contenido)
+        
+        if registro_guia.exists():
+    
+            rg = registro_guia.first()
+            anexo_doc.transporte = rg.transporte
+            anexo_doc.n_guia = rg.n_guia
+            anexo_doc.tipo_contenido = 'Factura' if rg.factura_c.startswith('FCSRI') else ''
+            anexo_doc.save()
             
+            return JsonResponse({
+                'tipo':'success',
+                'msg':'Registro actualizado correctamente !!!'
+                })
+            
+        else:
+            return JsonResponse({
+                'tipo':'danger',
+                'msg':'Aún no hay registro de anexo creado !!!'
+                })
+
+
+
 
 def anexo_doc_elimiar_ajax(request):
     if request.method == 'POST':
@@ -3058,7 +3087,7 @@ def anexo_doc_elimiar_ajax(request):
         anexo_doc = AnexoDoc.objects.get(id=int(id_anexo_fila))
         anexo_doc.delete()
         return JsonResponse({'msg':'Elimado exitosamente'})
-        
+
 
 
 def entrega_estado_ajax(request):

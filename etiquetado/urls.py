@@ -277,6 +277,12 @@ urlpatterns = [
     ),
     
     path(
+        route = 'anexo_doc_actualizar_contenido_ajax',
+        view  = views.anexo_doc_actualizar_contenido_ajax,
+        name  = 'anexo_doc_actualizar_contenido_ajax'
+    ),
+    
+    path(
         route = 'anexo_doc_elimiar_ajax',
         view  = views.anexo_doc_elimiar_ajax,
         name  = 'anexo_doc_elimiar_ajax'
