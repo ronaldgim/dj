@@ -3013,6 +3013,12 @@ def anexo_doc_editar_ajax(request):
             form = AnexoDocForm(request.POST, instance=anexo_doc)
             if form.is_valid():
                 form.save()
+                
+                anexo = AnexoGuia.objects.get(id=int(id_anexo))
+                if all(doc.n_guia for doc in anexo.contenido.all()):
+                        anexo.estado = 'Completo'
+                        anexo.save()
+                
                 messages.success(request, 'Fila editada exitosamente')
                 return redirect(f'/etiquetado/anexo/{id_anexo}')
             else:
@@ -3025,6 +3031,11 @@ def anexo_doc_editar_ajax(request):
             if form.is_valid():
                 form = form.save()
                 anexo.contenido.add(form)
+                
+                if all(doc.n_guia for doc in anexo.contenido.all()):
+                        anexo.estado = 'Completo'
+                        anexo.save()
+                        
                 messages.success(request, 'Fila agregada exitosamente')
                 return redirect(f'/etiquetado/anexo/{id_anexo}')
             else:
