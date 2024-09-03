@@ -458,4 +458,10 @@ urlpatterns = [
         view = views.wms_reporte_bodegas457,
         name = 'wms_reporte_bodegas457'
     ),
+    
+    path(
+        route='reporte-reposicion-alertas',
+        view = views.wms_reporte_reposicion_alertas,
+        name = 'wms_reporte_reposicion_alertas'
+    ),
 ]
