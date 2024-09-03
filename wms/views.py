@@ -3906,9 +3906,6 @@ def wms_ubicaciones_list(request):
     return render(request, 'wms/ubicaciones_list.html', context)
 
 
-
-
-
 # HABILITAR O DESHABILITAR UBICACIÓN
 @permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'],'/wms/home', 'ingresar a ubicaciones')
 def wms_habilitar_deshabilitar_ubicacion_ajax(request):
@@ -3961,8 +3958,8 @@ def wms_habilitar_deshabilitar_ubicacion_ajax(request):
             ubicacion.save()
             messages.success(request, f'Deshabilito exitosamente la ubicación: {ubicacion}!!!')
             return redirect('wms_ubicaciones_list')
-        
-        
+
+
 @permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'],'/wms/home', 'ingresar a ubicaciones')
 def wms_reporte_reposicion(request):
     
@@ -4016,3 +4013,50 @@ def wms_reporte_bodegas457(request):
     }
     
     return render(request, 'wms/reporte_bod457.html', context)
+
+
+from datos.views import frecuancia_ventas
+@permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'],'/wms/home', 'ingresar a ubicaciones')
+def wms_reporte_reposicion_alertas(request):    
+    
+    # REPORTE BODEGA Y PRODUCTOS
+    query_bod_seis = Existencias.objects.filter(estado='Disponible').filter(ubicacion__bodega='CN6')
+    
+    productos_bodega_seis_nivel_uno = query_bod_seis.values_list('product_id', flat=True).distinct()
+    
+    products_list = []
+    for i in productos_bodega_seis_nivel_uno:
+        existencia_nivel_uno = query_bod_seis.filter(product_id=i).filter(ubicacion__nivel='1').order_by('fecha_caducidad')
+        existencia_dif_nivel_uno = query_bod_seis.filter(product_id=i).exclude(ubicacion__nivel='1').order_by('fecha_caducidad').first()
+
+        if len(existencia_nivel_uno) == 1 and existencia_nivel_uno.first() and existencia_dif_nivel_uno:
+            products_list.append(existencia_nivel_uno.first().id)
+
+    reporte_existencias_df = pd.DataFrame(Existencias.objects.filter(id__in=products_list).values(
+        'product_id','lote_id','fecha_caducidad', 'unidades',
+        'ubicacion__bodega','ubicacion__pasillo','ubicacion__modulo','ubicacion__nivel'
+    ))
+    
+    # DF CONSUMO
+    ventas = frecuancia_ventas()
+    ventas['mensual'] = ventas['ANUAL'] / 12
+    ventas = ventas.rename(columns={'PRODUCT_ID':'product_id'})
+    
+    # REPORTE FINAL
+    if not reporte_existencias_df.empty:
+        reporte_existencias_df = reporte_existencias_df.merge(ventas, on='product_id', how='left').fillna(0)
+        reporte_existencias_df['meses'] = round(reporte_existencias_df['unidades'] / reporte_existencias_df['mensual'], 2)
+        reporte_existencias_df['fecha_caducidad'] = reporte_existencias_df['fecha_caducidad'].astype('str')
+        reporte_existencias_df = reporte_existencias_df[reporte_existencias_df['meses'] < 1.5]
+        
+        productos = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+        reporte_existencias_df = reporte_existencias_df.merge(productos, on='product_id', how='left')
+        reporte_existencias_df = reporte_existencias_df.sort_values(by='meses')
+    
+    reporte_existencias_df = de_dataframe_a_template(reporte_existencias_df)
+
+    context = {
+        'reporte_existencias_df':reporte_existencias_df,
+    }
+    
+    return render(request, 'wms/reporte_reposicion_alertas.html', context)
