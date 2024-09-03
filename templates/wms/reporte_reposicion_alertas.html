@@ -54,8 +54,8 @@
                         <th scope="col">Lote</th>
                         <th scope="col">Fecha</th>
                         <th scope="col">Ubicación</th>
-                        <th scope="col">Meses</th>
                         <th scope="col">Unidades</th>
+                        <th scope="col">Meses</th>
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
@@ -73,6 +73,7 @@
                         <td>{{i.lote_id}}</td>
                         <td class="text-center">{{i.fecha_caducidad}}</td>
                         <td class="text-center">{{i.ubicacion__bodega}}-{{i.ubicacion__pasillo}}-{{i.ubicacion__modulo}}-{{i.ubicacion__nivel}}</td>
+                        <td class="text-center">{{i.unidades|floatformat:"0g"}}</td>
                         <td class="text-center"
                         {% if i.meses < 0.5 %}
                             style="background-color: #F6B690;"
@@ -84,7 +85,6 @@
                         >
                             {{i.meses}}
                         </td>
-                        <td class="text-center">{{i.unidades|floatformat:"0g"}}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
