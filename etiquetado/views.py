@@ -755,15 +755,12 @@ def factura_por_cliente(n_factura):
         
         cursor.execute("SELECT * FROM facturas WHERE CODIGO_FACTURA = %s", [n_factura])
         columns = [col[0] for col in cursor.description]
-
         facturas = [
             dict(zip(columns, row))
             for row in cursor.fetchall()
         ]
+    return pd.DataFrame(facturas)
 
-        f = pd.DataFrame(facturas);print(f)
-
-    return f
 
 
 def facturas(request, n_factura):
