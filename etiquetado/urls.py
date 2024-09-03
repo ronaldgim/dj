@@ -269,6 +269,12 @@ urlpatterns = [
         view  = views.anexo_detalle,
         name  = 'anexo_detalle'
     ),
+    
+    path(
+        route = 'anexo/pdf/<int:id_anexo>',
+        view  = views.anexo_detalle_pdf,
+        name  = 'anexo_detalle_pdf'
+    ),
 
     path(
         route = 'anexo_doc_editar_ajax',

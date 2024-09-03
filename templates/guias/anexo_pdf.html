@@ -1,0 +1,147 @@
+{% load static %}
+<title>{{anexo.numero_anexo}}
+</title>
+
+<style>
+    @page{
+        /*size: A4;*/
+        size: letter landscape;
+        margin-top:1cm;
+        margin-left:1.5cm;
+        margin-right:1.5cm;
+        margin-bottom:1cm;
+
+        /* HEADER Static frame */
+        /*@frame header_frame {           
+            -pdf-frame-content: header_content;
+            left: 0pt; width: 595pt; top: 0pt; height: 140pt;
+        }*/
+        /* FOOTER Static frame */
+        /*@frame footer_frame {
+            -pdf-frame-content: footer_content;
+            left:0pt; width:595pt; top:727pt; height:150pt;
+        }*/
+        /* BODY */
+        /*@frame body_frame {}*/
+            
+    }
+    #gim {
+        background-size:100%;
+        background-repeat:no-repeat;
+    }
+
+    .t_b {
+        padding-top: 4px;
+        padding-left: 4px;
+        padding-right: 4px;
+        padding-bottom: 0px;
+
+        font-size: large;
+    } 
+
+    .t_codigo {
+        width: 120px;
+        font-size: large;
+    }
+
+    .t_nombre {
+        width: 230px;
+        font-size: large;
+    }
+
+    .t_u_c {
+        width: 90px;
+        font-size: large;
+    }
+
+    .t_row {
+        padding-top: 4px;
+        padding-left: 4px;
+        padding-right: 4px;
+        padding-bottom: 0px;
+
+        font-size: large;
+    }
+
+    .t_row_cal {
+        padding-top: 4px;
+        padding-left: 4px;
+        padding-right: 4px;
+        padding-bottom: 0px;
+        text-align: right;
+
+        font-size: large;
+    }
+</style>
+
+<meta charset="UTF-8">
+
+<!--img id="header_content" src="{% static 'encabezado.png' %}"-->
+
+<div class="gim" style="text-align:justify; font-size:14px">
+
+    <div class="body_frame">
+
+        <table style="border:1px solid black;">
+            <tr>
+                <th  class="t_b" rowspan="2">
+                    <img src="{% static 'gim_muestreo.png' %}" alt="">
+                </th> 
+                <th class="t_b" rowspan="2">
+                    ANEXO DE TRANSPORTE A PROVINCIA
+                </th>
+                <th class="t_b">
+                    BOD-RG-012
+                </th>
+            </tr>
+            <tr>
+                <th class="t_b">
+                    Versión {{anexo.version_documento}}
+                </th>
+            </tr>
+        </table>
+
+        <br>
+
+        <table>
+            <tr>
+                <td><strong>Fecha:</strong></td>
+                <td>{{anexo.creado|date:'d/m/Y'}}</td>
+                <td></td>
+                <td style="text-align: right;"><strong>N°: </strong></td>
+                <td style="text-align: right;">{{anexo.numero_anexo}}</td>
+            </tr>
+            <tr>
+                <td><strong>Bodega:</strong></td>
+                <td>{{anexo.bodega_nombre}}</td>
+            </tr>
+        </table>
+
+        <br>
+
+        <table style="border:1px solid black;">
+            <tr>
+                <th class="t_b">Transporte</th>
+                <th class="t_b">N° Guía</th>
+                <th class="t_b">Descripción / Contenido</th>
+            </tr>
+            {% for i in anexo.contenido.all %}
+            <tr>
+                <td class="t_row">{{i.transporte}}</td>
+                <td class="t_row">{{i.n_guia}}</td>
+                <td class="t_row">
+                    {% if i.tipo_contenido %}
+                        {{i.tipo_contenido}}:
+                        {{i.contenido}}
+                    {% else %}
+                        {{i.contenido}}
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+
+    </div>
+</div>
+
+<br>

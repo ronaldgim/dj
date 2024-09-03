@@ -63,7 +63,7 @@
                             <a class="btn btn-sm btn-primary" href="{% url 'anexo_detalle' i.id %}">
                                 <i class="bi bi-eye"></i>
                             </a>
-                            <a class="btn btn-sm btn-secondary">
+                            <a href="{% url 'anexo_detalle_pdf' i.id %}" class="btn btn-secondary btn-sm">
                                 <i class="bi bi-printer"></i>
                             </a>
                         </td>
