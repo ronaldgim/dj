@@ -2969,6 +2969,9 @@ def anexos_lista(request):
                     if all(doc.n_guia for doc in anexo.contenido.all()):
                         anexo.estado = 'Completo'
                         anexo.save()
+                    else:
+                        anexo.estado = 'Incompleto'
+                        anexo.save()
                     
                 messages.success(request, 'Anexo agregado exitosamente')
             
@@ -3018,6 +3021,9 @@ def anexo_doc_editar_ajax(request):
                 if all(doc.n_guia for doc in anexo.contenido.all()):
                         anexo.estado = 'Completo'
                         anexo.save()
+                else:
+                    anexo.estado = 'Incompleto'
+                    anexo.save()
                 
                 messages.success(request, 'Fila editada exitosamente')
                 return redirect(f'/etiquetado/anexo/{id_anexo}')
@@ -3035,6 +3041,9 @@ def anexo_doc_editar_ajax(request):
                 if all(doc.n_guia for doc in anexo.contenido.all()):
                         anexo.estado = 'Completo'
                         anexo.save()
+                else:
+                    anexo.estado = 'Incompleto'
+                    anexo.save()
                         
                 messages.success(request, 'Fila agregada exitosamente')
                 return redirect(f'/etiquetado/anexo/{id_anexo}')
