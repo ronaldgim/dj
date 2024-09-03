@@ -2730,7 +2730,6 @@ def reporte_revision_reservas(request):
 
 
 
-    
 ## CONTROL DE GUIAS Y COUIER
 login_required(login_url='login')
 def control_guias_list(request):
@@ -2993,6 +2992,17 @@ def anexo_detalle(request, id_anexo):
     
     return render(request, 'guias/anexo_ver.html', context)
 
+#from django_xhtml2pdf.utils import pdf_decorator
+@pdf_decorator(pdfname='anexo.pdf')
+def anexo_detalle_pdf(request, id_anexo):
+    
+    anexo = AnexoGuia.objects.get(id=id_anexo)
+    context = {
+        'anexo':anexo,
+    }
+    
+    return render(request, 'guias/anexo_pdf.html', context)
+
 
 def anexo_doc_editar_ajax(request):
     if request.method == 'GET':
@@ -3085,8 +3095,6 @@ def anexo_doc_actualizar_contenido_ajax(request):
                 'tipo':'danger',
                 'msg':'Aún no hay registro de anexo creado !!!'
                 })
-
-
 
 
 def anexo_doc_elimiar_ajax(request):
