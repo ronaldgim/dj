@@ -9,6 +9,21 @@
 {% endblock %}
 
 {% block body %}
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
 <h5 class="m-4 text-center"><strong>REGISTRO DE {{fac.NOMBRE_CLIENTE}}</strong></h5>
 
 <div class="card mt-2 mb-2">
