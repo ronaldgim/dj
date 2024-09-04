@@ -51,7 +51,7 @@
 
                             <div>
                                 <label class="fw-bold mt-2">Fecha factura:</label>
-                                <input class="form-control" type="text" name="fecha_factura" value="{{fac.FECHA_FACTURA}}" required>
+                                <input class="form-control" type="text" name="fecha_factura" value="{{fac.FECHA_FACTURA|date:'d/m/Y'}}" required>
                             </div>
                         </div>
                         <div class="col-6">
