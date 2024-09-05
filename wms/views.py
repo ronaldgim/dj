@@ -4020,12 +4020,12 @@ from datos.views import frecuancia_ventas
 def wms_reporte_reposicion_alertas(request):    
     
     # REPORTE BODEGA Y PRODUCTOS
-    query_bod_seis = Existencias.objects.filter(estado='Disponible').filter(ubicacion__bodega='CN6')
+    query_bod_seis = Existencias.objects.filter(estado='Disponible')#.filter(ubicacion__bodega='CN6')
     
-    productos_bodega_seis_nivel_uno = query_bod_seis.values_list('product_id', flat=True).distinct()
+    productos_bodegas = query_bod_seis.values_list('product_id', flat=True).distinct()
     
     products_list = []
-    for i in productos_bodega_seis_nivel_uno:
+    for i in productos_bodegas:
         existencia_nivel_uno = query_bod_seis.filter(product_id=i).filter(ubicacion__nivel='1').order_by('fecha_caducidad')
         existencia_dif_nivel_uno = query_bod_seis.filter(product_id=i).exclude(ubicacion__nivel='1').order_by('fecha_caducidad').first()
 
