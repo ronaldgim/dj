@@ -1,4 +1,4 @@
-{% load static %}
+|default:"-"{% load static %}
 <title>{{anexo.numero_anexo}}
 </title>
 
@@ -127,14 +127,14 @@
             </tr>
             {% for i in anexo.contenido.all %}
             <tr>
-                <td class="t_row">{{i.transporte}}</td>
-                <td class="t_row">{{i.n_guia}}</td>
+                <td class="t_row">{{i.transporte|default:"-"}}</td>
+                <td class="t_row">{{i.n_guia|default:"-"}}</td>
                 <td class="t_row">
                     {% if i.tipo_contenido %}
                         {{i.tipo_contenido}}:
-                        {{i.contenido}}
+                        {{i.contenido|default:"-"}}
                     {% else %}
-                        {{i.contenido}}
+                        {{i.contenido|default:"-"}}
                     {% endif %}
                 </td>
             </tr>
