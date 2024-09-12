@@ -102,7 +102,7 @@
                             </td>    
                             <td class="text-end">
                                 <span id="prod_und">{{i.QUANTITY|floatformat:"0g"}}</span> <br>
-                                <span style="font-size:smaller">{{i.cartones|floatformat:"2g"}}</span> <br>
+                                <span style="font-size:smaller">{{i.cartones|floatformat:"1g"}}</span> <br>
                             </td>
 
                             <td class="text-end" 
@@ -120,6 +120,8 @@
                                 <button class="btn btn-primary btn-sm {% if estado == 'SIN ESTADO' %} disabled {% endif %} " id="{{i.PRODUCT_ID}}" name="boton_ubicaciones"> 
                                     <i class="bi bi-geo-fill"></i>
                                 </button>
+                                <br>
+                                <span style="font-size:smaller">{#% if not i.unidades %#}  {{i.primera_bodega}} {#% else %} - {% endif %#}</span>
                             </td>
                         </tr>
 
