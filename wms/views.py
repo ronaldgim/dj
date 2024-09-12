@@ -2001,8 +2001,8 @@ def wms_egreso_picking(request, n_pedido): #OK
     else:
         bodega_df = exi_bodega_df    
     
-    bodega_df['bodega'] = bodega_df.apply(lambda x: x['bodega_exi'] if not x['bodega_mov'] else x['bodega_mov'], axis=1)       
-
+    bodega_df['primera_bodega'] = bodega_df.apply(lambda x: x['bodega_exi'] if not x['bodega_mov'] else x['bodega_mov'], axis=1)       
+    bodega_df = bodega_df.rename(columns={'product_id':'PRODUCT_ID'})
 
     if inv.exists():
         inv = pd.DataFrame(inv).sort_values(by=['lote_id','fecha_caducidad','ubicacion__distancia_puerta'], ascending=[True,True,True])
@@ -2017,6 +2017,8 @@ def wms_egreso_picking(request, n_pedido): #OK
 
     # Calculo Cartones
     pedido['cartones'] = pedido['QUANTITY'] / pedido['Unidad_Empaque']
+    pedido = pedido.merge(bodega_df, on='PRODUCT_ID', how='left').sort_values(by='primera_bodega')
+    
     ped = de_dataframe_a_template(pedido)
 
     for i in prod_list:
