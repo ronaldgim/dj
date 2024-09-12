@@ -363,4 +363,16 @@ urlpatterns = [
         view  = views.detalle_proforma,
         name  = 'detalle_proforma'
     ),
+    
+    path(
+        route='mov_prueba',
+        view = views.mov_prueba,
+        name = 'mov_prueba'
+    ),
+    
+    path(
+        route='sleep_prueba',
+        view = views.sleep_prueba,
+        name = 'sleep_prueba'
+    ),
 ]
