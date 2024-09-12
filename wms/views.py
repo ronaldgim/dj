@@ -1973,7 +1973,7 @@ def wms_egreso_picking(request, n_pedido): #OK
         unds_pickeadas = mov[['product_id','unidades']].groupby(by='product_id').sum().reset_index()
         unds_pickeadas = unds_pickeadas.rename(columns={'product_id':'PRODUCT_ID'})
         pedido = pedido.merge(unds_pickeadas, on='PRODUCT_ID', how='left')
-
+        
         mov = de_dataframe_a_template(mov)
 
     else:
@@ -1988,24 +1988,21 @@ def wms_egreso_picking(request, n_pedido): #OK
         'estado'
     )
 
-    # df inventario primera ubicación
-    primera_bodega_product_id_list = []
-    primera_bodega_list = []
-    for i in prod_list:
-        prod = Existencias.objects.filter(product_id=i).order_by('fecha_caducidad').first()
-        if prod:
-            primera_bodega_product_id_list.append(prod.product_id)
-            primera_bodega_list.append(prod.ubicacion.bodega)
+    mov_bodega_df = pd.DataFrame(movimientos.order_by('fecha_caducidad').values('product_id', 'ubicacion__bodega'))
+    mov_bodega_df = mov_bodega_df.rename(columns={'ubicacion__bodega':'bodega_mov'})
+    mov_bodega_df = mov_bodega_df.drop_duplicates(subset='product_id', keep='first').fillna('')
     
-    primera_ubicacion_df = pd.DataFrame({
-        'PRODUCT_ID':primera_bodega_product_id_list,
-        'primera_bodega':primera_bodega_list
-        })
+    exi_bodega_df = pd.DataFrame(inv.order_by('fecha_caducidad'))[['product_id','ubicacion__bodega']]
+    exi_bodega_df = exi_bodega_df.rename(columns={'ubicacion__bodega':'bodega_exi'})
+    exi_bodega_df = exi_bodega_df.drop_duplicates(subset='product_id', keep='first').fillna('')
     
-    # Merge pedido mba3 con bodega primea ubicación
-    if not primera_ubicacion_df.empty:
-        pedido = pedido.merge(primera_ubicacion_df, on='PRODUCT_ID', how='left').sort_values(by='primera_bodega')
+    if not mov_bodega_df.empty and not exi_bodega_df.empty:
+        bodega_df = exi_bodega_df.merge(mov_bodega_df, on='product_id', how='left').fillna('')
+    else:
+        bodega_df = exi_bodega_df    
     
+    bodega_df['bodega'] = bodega_df.apply(lambda x: x['bodega_exi'] if not x['bodega_mov'] else x['bodega_mov'], axis=1)       
+
 
     if inv.exists():
         inv = pd.DataFrame(inv).sort_values(by=['lote_id','fecha_caducidad','ubicacion__distancia_puerta'], ascending=[True,True,True])
@@ -2756,13 +2753,13 @@ def wms_transferencia_picking(request, n_transf):
     # Merge transf
     if not transf.empty and not mov.empty and not existencias_bodega_df.empty:
         existencias_bodega_df = existencias_bodega_df.rename(columns={'ubicacion__bodega':'bodega_exi'})        
-        transf = transf.merge(existencias_bodega_df, on=['product_id','lote_id'], how='left')
+        transf = transf.merge(existencias_bodega_df, on=['product_id','lote_id'], how='left').fillna('')
         
         mov_bodega_df = mov[['product_id','lote_id','ubicacion__bodega']].rename(columns={'ubicacion__bodega':'bodega_mov'})
-        transf = transf.merge(mov_bodega_df, on=['product_id','lote_id'], how='left').fillna('-')
+        transf = transf.merge(mov_bodega_df, on=['product_id','lote_id'], how='left').fillna('')
         
-        transf['bodega'] = transf.apply(lambda x: x['bodega_exi'] if not x['bodega_mov'] else x['bodega_mov'], axis=1)
-        transf = transf.sort_values(by='bodega')
+        transf['primera_bodega'] = transf.apply(lambda x: x['bodega_exi'] if not x['bodega_mov'] else x['bodega_mov'], axis=1)
+        transf = transf.sort_values(by='primera_bodega')
         
     transf_template = de_dataframe_a_template(transf)
     
