@@ -1999,7 +1999,8 @@ def wms_egreso_picking(request, n_pedido): #OK
     if not mov_bodega_df.empty and not exi_bodega_df.empty:
         bodega_df = exi_bodega_df.merge(mov_bodega_df, on='product_id', how='left').fillna('')
     else:
-        bodega_df = exi_bodega_df    
+        bodega_df = exi_bodega_df
+        bodega_df['bodega_mov'] = ''
     
     bodega_df['primera_bodega'] = bodega_df.apply(lambda x: x['bodega_exi'] if not x['bodega_mov'] else x['bodega_mov'], axis=1)       
     bodega_df = bodega_df.rename(columns={'product_id':'PRODUCT_ID'})
