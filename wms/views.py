@@ -1096,7 +1096,7 @@ def wms_inventario(request): #OK
     """ Inventario
         Suma de ingresos y egresos que dan el total de todo el inventario
     """
-    # wms_existencias_query_product_lote("1110/70229","470133")
+    # wms_existencias_query_product_lote("A3065F","260624")
     
     prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     productos = pd.DataFrame(Existencias.objects.all().values('product_id'))
@@ -4020,16 +4020,23 @@ from datos.views import frecuancia_ventas
 def wms_reporte_reposicion_alertas(request):    
     
     # REPORTE BODEGA Y PRODUCTOS
-    query_bod_seis = Existencias.objects.filter(estado='Disponible')#.filter(ubicacion__bodega='CN6')
+    query_disp = Existencias.objects.filter(estado='Disponible')
     
-    productos_bodegas = query_bod_seis.values_list('product_id', flat=True).distinct()
+    productos_bodegas = query_disp.values_list('product_id', flat=True).distinct()
     
     products_list = []
     for i in productos_bodegas:
-        existencia_nivel_uno = query_bod_seis.filter(product_id=i).filter(ubicacion__nivel='1').order_by('fecha_caducidad')
-        existencia_dif_nivel_uno = query_bod_seis.filter(product_id=i).exclude(ubicacion__nivel='1').order_by('fecha_caducidad').first()
-
-        if len(existencia_nivel_uno) == 1 and existencia_nivel_uno.first() and existencia_dif_nivel_uno:
+        
+        existencia_nivel_uno = query_disp.filter(product_id=i).filter(
+                Q(ubicacion__nivel='1') & Q(ubicacion__bodega='CN6')
+            ).order_by('fecha_caducidad')
+        
+        existencia_dif_nivel_uno = query_disp.filter(
+                product_id=i).exclude(
+                ubicacion__nivel='1'
+            ).order_by('fecha_caducidad')
+        
+        if len(existencia_nivel_uno) == 1 and existencia_nivel_uno.first() and existencia_dif_nivel_uno.first():
             products_list.append(existencia_nivel_uno.first().id)
 
     reporte_existencias_df = pd.DataFrame(Existencias.objects.filter(id__in=products_list).values(
@@ -4047,7 +4054,7 @@ def wms_reporte_reposicion_alertas(request):
         reporte_existencias_df = reporte_existencias_df.merge(ventas, on='product_id', how='left').fillna(0)
         reporte_existencias_df['meses'] = round(reporte_existencias_df['unidades'] / reporte_existencias_df['mensual'], 2)
         reporte_existencias_df['fecha_caducidad'] = reporte_existencias_df['fecha_caducidad'].astype('str')
-        reporte_existencias_df = reporte_existencias_df[reporte_existencias_df['meses'] < 1.5]
+        reporte_existencias_df = reporte_existencias_df[reporte_existencias_df['meses'] < 1.51]
         
         productos = productos_odbc_and_django()[['product_id','Nombre','Marca']]
         reporte_existencias_df = reporte_existencias_df.merge(productos, on='product_id', how='left')

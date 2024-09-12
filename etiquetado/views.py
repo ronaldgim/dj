@@ -3354,3 +3354,22 @@ def detalle_proforma(request, contrato_id):
     }
     
     return render(request, 'etiquetado/proformas/proforma.html', context)
+
+
+
+
+from .tasks import enviar_correos_prueba, prueba_sleep
+def mov_prueba(request):
+
+    result = enviar_correos_prueba.delay(email='egarces@gimpromed.com')
+
+    
+    return HttpResponse(f'{request.user} - {result}')
+
+
+def sleep_prueba(request):
+
+    result = prueba_sleep.delay()
+
+    
+    return HttpResponse(f'{request.user} - {result}')
