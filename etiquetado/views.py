@@ -2742,9 +2742,17 @@ def control_guias_list(request):
     ventas_fac['FECHA'] = pd.to_datetime(ventas_fac['FECHA_FACTURA'])
     ventas_fac = ventas_fac.sort_values(by=['FECHA'], ascending=[False])    
     ventas_fac = ventas_fac.merge(clientes, on='NOMBRE_CLIENTE', how='left')
+    ventas_fac['FECHA'] = ventas_fac['FECHA'].astype(str)
+    
+    # Solca
+    solca_quito = ventas_fac[ventas_fac['NOMBRE_CLIENTE']=='SOLCA QUITO']   
+    
+    # Filtros
     ventas_fac = ventas_fac[ventas_fac['CIUDAD_PRINCIPAL']!='QUITO']
     ventas_fac = ventas_fac[ventas_fac['CIUDAD_PRINCIPAL']!='SANGOLQUI']
-    ventas_fac['FECHA'] = ventas_fac['FECHA'].astype(str)
+    
+    # Concat
+    ventas_fac = pd.concat([ventas_fac, solca_quito], ignore_index=True)    
     
     # Guias Registradas
     reg_guia = pd.DataFrame(RegistoGuia.objects.all().values(
