@@ -1952,7 +1952,7 @@ def wms_egreso_picking(request, n_pedido): #OK
     pedido = pedido.merge(cli, on='CODIGO_CLIENTE', how='left')
 
     prod_list = list(pedido['PRODUCT_ID'].unique())
-
+    
     n_ped = pedido['CONTRATO_ID'].iloc[0]
     cli   = pedido['NOMBRE_CLIENTE'].iloc[0]
     ciu   = pedido['CIUDAD_PRINCIPAL'].iloc[0]
@@ -1979,7 +1979,7 @@ def wms_egreso_picking(request, n_pedido): #OK
     else:
         mov = {}
 
-
+    # Inventario
     inv = Existencias.objects.filter(product_id__in=prod_list).values(
         'product_id','lote_id','fecha_caducidad','unidades',
         'ubicacion_id','ubicacion__bodega','ubicacion__pasillo','ubicacion__modulo','ubicacion__nivel',
@@ -1987,6 +1987,25 @@ def wms_egreso_picking(request, n_pedido): #OK
         'unidades',
         'estado'
     )
+
+    # df inventario primera ubicación
+    primera_bodega_product_id_list = []
+    primera_bodega_list = []
+    for i in prod_list:
+        prod = Existencias.objects.filter(product_id=i).order_by('fecha_caducidad').first()
+        if prod:
+            primera_bodega_product_id_list.append(prod.product_id)
+            primera_bodega_list.append(prod.ubicacion.bodega)
+    
+    primera_ubicacion_df = pd.DataFrame({
+        'PRODUCT_ID':primera_bodega_product_id_list,
+        'primera_bodega':primera_bodega_list
+        })
+    
+    # Merge pedido mba3 con bodega primea ubicación
+    if not primera_ubicacion_df.empty:
+        pedido = pedido.merge(primera_ubicacion_df, on='PRODUCT_ID', how='left').sort_values(by='primera_bodega')
+    
 
     if inv.exists():
         inv = pd.DataFrame(inv).sort_values(by=['lote_id','fecha_caducidad','ubicacion__distancia_puerta'], ascending=[True,True,True])
@@ -2015,6 +2034,8 @@ def wms_egreso_picking(request, n_pedido): #OK
                     if m['product_id'] == i:
                         pik_list.append(m)
                         
+    #print(ped)
+    
     # # Ordenar listado de picking
     # try:
     #     ped = sorted(ped, key=lambda x: (x['ubi'][0]['ubicacion__bodega'], x['ubi'][0]['ubicacion__distancia_puerta']))
