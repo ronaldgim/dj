@@ -59,7 +59,7 @@
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
-                    {% for i in reporte_existencias_df %}
+                    {% for i in reporte %}
                     <tr>
                         <td>
                             <form method="POST" action="/wms/inventario">
@@ -72,14 +72,15 @@
                         <td>{{i.Marca}}</td>
                         <td>{{i.lote_id}}</td>
                         <td class="text-center">{{i.fecha_caducidad}}</td>
-                        <td class="text-center">{{i.ubicacion__bodega}}-{{i.ubicacion__pasillo}}-{{i.ubicacion__modulo}}-{{i.ubicacion__nivel}}</td>
+                        <!--td class="text-center">{{i.ubicacion__bodega}}-{{i.ubicacion__pasillo}}-{{i.ubicacion__modulo}}-{{i.ubicacion__nivel}}</td-->
+                        <td class="text-center">{{i.ubicacion}}</td>
                         <td class="text-center">{{i.unidades|floatformat:"0g"}}</td>
                         <td class="text-center"
-                        {% if i.meses < 0.5 %}
+                        {% if i.meses <= 0.49 %}
                             style="background-color: #F6B690;"
-                        {% elif i.meses < 1 and i.meses > 0.5 %}
+                        {% elif i.meses <= 0.9 and i.meses >= 0.49 %}
                             style="background-color: #F6F490;"
-                        {% elif i.meses > 1 %}
+                        {% elif i.meses > 0.9 %}
                             style="background-color: #BAF690;"
                         {% endif %}
                         >
