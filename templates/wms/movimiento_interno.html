@@ -53,7 +53,6 @@
 {#% comment %#}
 {% if request.user.is_superuser %}
 <!-- Scan QR -->
-<div id="reader" width="600px"></div>
 <div>
     <video id="video" width="100%" height="auto" style="display: none; border: 2px solid black"></video>
     <button id="startScan" class="btn btn-light"><i class="bi bi-qr-code"></i></button>
@@ -97,7 +96,6 @@
 
 <!-- QR SCAN -->
 <script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
-
 <script>
     let stream;
 
@@ -159,16 +157,15 @@
                 
             }).catch(error => {
                 console.error("Error accessing camera:", error);
-                alert("Unable to access the camera. Please check permissions and make sure you're using HTTPS.");
+                alert("Camara inaccesible. Asegurate de utilizar https.");
             });
         } else {
-            alert("Sorry, your browser doesn't support accessing the camera.");
+            alert("Lo siento, tu navegador no soporta acceso a camara.");
         }
     }
 
     document.getElementById('startScan').addEventListener('click', startScanner);
 </script>
-
 
 
 <script src="{% static 'js/select_items_form.js' %}"></script>
