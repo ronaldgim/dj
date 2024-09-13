@@ -11,6 +11,7 @@
 
 {% block body %}
 
+
 <h5 class="m-4 text-center fw-bold">MOVIMIENTO INTERNO DE PRODUCTO</h5>
 
 
@@ -49,12 +50,21 @@
     </div>
 </div>
 
+{% if request.user.is_superuser %}
+<!-- Scan QR -->
+<div id="reader" width="600px"></div>
+<div>
+    <video id="video" width="100%" height="auto" style="display: none; border: 2px solid black"></video>
+    <button id="startScan">Start Scan</button>
+    <p>QR Code Data: <span id="result"></span></p>
+</div>
+{% endif %}
 
 <form method="POST">
     {% csrf_token %} 
     
     <input type="hidden" value="{{request.user.username}}" name="usuario">
-    <label><strong>Seleccione Bodega:</strong></label>
+    <label class="fw-bold">Seleccione Bodega:</label>
     <br>
     <div class="btn-group mt-2 mb-2" role="group" aria-label="Basic example">
         <button name="bod-filter" id="CN4" type="button" class="btn btn-primary">CN4</button>
@@ -82,6 +92,128 @@
             </button>
         </div>
 </form>
+
+<!-- QR SCAN -->
+<script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
+<script>
+
+    function startScanner() {
+        const video = document.getElementById('video');
+        const resultDisplay = document.getElementById('result');
+    
+        navigator.mediaDevices.getUserMedia({video: true })
+        .then(stream => {
+            video.srcObject = stream;
+            video.play();
+            
+            video.addEventListener('loadedmetadata', function() {
+                
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                video.style.display = 'block';
+                
+                function captureFrame() {
+                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+    
+                    const qrCode = jsQR(imageData.data, canvas.width, canvas.height);
+    
+                    if (qrCode) {
+                        resultDisplay.textContent = qrCode.data;
+    
+                        // Draw a bounding box around the QR code
+                        context.beginPath();
+                        context.moveTo(qrCode.location.topLeftCorner.x, qrCode.location.topLeftCorner.y);
+                        context.lineTo(qrCode.location.topRightCorner.x, qrCode.location.topRightCorner.y);
+                        context.lineTo(qrCode.location.bottomRightCorner.x, qrCode.location.bottomRightCorner.y);
+                        context.lineTo(qrCode.location.bottomLeftCorner.x, qrCode.location.bottomLeftCorner.y);
+                        context.closePath();
+                        context.lineWidth = 4;
+                        context.strokeStyle = 'green'; // Change color to green for detected QR code
+                        context.stroke();
+                    } else {
+                        resultDisplay.textContent = "No QR code detected";
+                    }
+    
+                    // Keep scanning the next frame
+                    requestAnimationFrame(captureFrame);
+                }
+                requestAnimationFrame(captureFrame);
+            }); 
+            
+
+        }).catch(error => {
+            console.error("Error accessing camera:", error);
+            alert("Unable to access the camera. Please check permissions.");
+        });
+    }
+    
+    document.getElementById('startScan').addEventListener('click', startScanner);
+
+</script>
+
+
+<!--script>
+
+    function startScanner() {
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+        const resultDisplay = document.getElementById('result');
+    
+        navigator.mediaDevices.getUserMedia({
+            video: { facingMode: {ideal:'environment'} } // Use the back camera
+        }).then(stream => {
+            video.srcObject = stream;
+            video.play();
+    
+            video.addEventListener('loadedmetadata', function() {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+    
+                function captureFrame() {
+                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+    
+                    const qrCode = jsQR(imageData.data, canvas.width, canvas.height);
+    
+                    if (qrCode) {
+                        resultDisplay.textContent = qrCode.data;
+    
+                        // Draw a bounding box around the QR code
+                        context.beginPath();
+                        context.moveTo(qrCode.location.topLeftCorner.x, qrCode.location.topLeftCorner.y);
+                        context.lineTo(qrCode.location.topRightCorner.x, qrCode.location.topRightCorner.y);
+                        context.lineTo(qrCode.location.bottomRightCorner.x, qrCode.location.bottomRightCorner.y);
+                        context.lineTo(qrCode.location.bottomLeftCorner.x, qrCode.location.bottomLeftCorner.y);
+                        context.closePath();
+                        context.lineWidth = 4;
+                        context.strokeStyle = 'green'; // Change color to green for detected QR code
+                        context.stroke();
+                    } else {
+                        resultDisplay.textContent = "No QR code detected";
+                    }
+    
+                    // Keep scanning the next frame
+                    requestAnimationFrame(captureFrame);
+                }
+    
+                requestAnimationFrame(captureFrame);
+            });
+        }).catch(error => {
+            console.error("Error accessing camera:", error);
+            alert("Unable to access the camera. Please check permissions.");
+        });
+    }
+    
+    document.getElementById('startScan').addEventListener('click', startScanner);
+
+</script-->
+
+
 
 <script src="{% static 'js/select_items_form.js' %}"></script>
 
