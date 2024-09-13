@@ -50,15 +50,17 @@
     </div>
 </div>
 
+{#% comment %#}
 {% if request.user.is_superuser %}
 <!-- Scan QR -->
 <div id="reader" width="600px"></div>
 <div>
     <video id="video" width="100%" height="auto" style="display: none; border: 2px solid black"></video>
-    <button id="startScan">Start Scan</button>
-    <p>QR Code Data: <span id="result"></span></p>
+    <button id="startScan" class="btn btn-light"><i class="bi bi-qr-code"></i></button>
+    <p>QR Ubicación: <span id="result"></span></p>
 </div>
 {% endif %}
+{#% endcomment %#}
 
 <form method="POST">
     {% csrf_token %} 
@@ -96,6 +98,68 @@
 <!-- QR SCAN -->
 <script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
 <script>
+    
+let stream;
+
+function startScanner() {
+    const video = document.getElementById('video');
+    const resultDisplay = document.getElementById('result');
+    
+    // Si ya hay un stream activo, deténgalo
+    if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+    }
+
+    // Reinicia el contenido del span
+    resultDisplay.textContent = "";
+    
+    navigator.mediaDevices.getUserMedia({video: true})
+    .then(newStream => {
+        stream = newStream;
+        video.srcObject = stream;
+        video.play();
+        
+        video.addEventListener('loadedmetadata', function() {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            video.style.display = 'block';
+            
+            function captureFrame() {
+                if (video.style.display === 'none') return; // Detener el escaneo si el video está oculto
+
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+
+                const qrCode = jsQR(imageData.data, canvas.width, canvas.height);
+
+                if (qrCode) {
+                    resultDisplay.textContent = qrCode.data;
+                    video.style.display = 'none';
+                    video.pause();
+                    stream.getTracks().forEach(track => track.stop());
+                } else {
+                    // Continuar escaneando el siguiente frame
+                    requestAnimationFrame(captureFrame);
+                }
+            }
+            requestAnimationFrame(captureFrame);
+        });
+        
+    }).catch(error => {
+        console.error("Error accessing camera:", error);
+        alert("Unable to access the camera. Please check permissions.");
+    });
+}
+
+document.getElementById('startScan').addEventListener('click', startScanner);
+</script>
+
+
+
+<!--script>
 
     function startScanner() {
         const video = document.getElementById('video');
@@ -123,19 +187,11 @@
     
                     if (qrCode) {
                         resultDisplay.textContent = qrCode.data;
-    
-                        // Draw a bounding box around the QR code
-                        context.beginPath();
-                        context.moveTo(qrCode.location.topLeftCorner.x, qrCode.location.topLeftCorner.y);
-                        context.lineTo(qrCode.location.topRightCorner.x, qrCode.location.topRightCorner.y);
-                        context.lineTo(qrCode.location.bottomRightCorner.x, qrCode.location.bottomRightCorner.y);
-                        context.lineTo(qrCode.location.bottomLeftCorner.x, qrCode.location.bottomLeftCorner.y);
-                        context.closePath();
-                        context.lineWidth = 4;
-                        context.strokeStyle = 'green'; // Change color to green for detected QR code
-                        context.stroke();
+                        video.style.display = 'none';
+                        video.pause();
+                        
                     } else {
-                        resultDisplay.textContent = "No QR code detected";
+                        resultDisplay.textContent = "";
                     }
     
                     // Keep scanning the next frame
@@ -153,7 +209,7 @@
     
     document.getElementById('startScan').addEventListener('click', startScanner);
 
-</script>
+</script-->
 
 
 <!--script>
