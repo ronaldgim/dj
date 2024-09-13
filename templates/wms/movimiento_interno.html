@@ -97,8 +97,80 @@
 
 <!-- QR SCAN -->
 <script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
+
 <script>
+    let stream;
+
+function startScanner() {
+    const video = document.getElementById('video');
+    const resultDisplay = document.getElementById('result');
     
+    // Si ya hay un stream activo, deténgalo
+    if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+    }
+
+    // Reinicia el contenido del span
+    resultDisplay.textContent = "";
+    
+    // Configuración específica para dispositivos móviles
+    const constraints = {
+        video: {
+            facingMode: 'environment' // Usa la cámara trasera en móviles
+        }
+    };
+
+    // Verifica si el navegador soporta getUserMedia
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia(constraints)
+        .then(newStream => {
+            stream = newStream;
+            video.srcObject = stream;
+            video.setAttribute('playsinline', true); // Importante para iOS
+            video.play();
+            
+            video.addEventListener('loadedmetadata', function() {
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                video.style.display = 'block';
+                
+                function captureFrame() {
+                    if (video.style.display === 'none') return;
+
+                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+
+                    const qrCode = jsQR(imageData.data, canvas.width, canvas.height);
+
+                    if (qrCode) {
+                        resultDisplay.textContent = qrCode.data;
+                        video.style.display = 'none';
+                        video.pause();
+                        stream.getTracks().forEach(track => track.stop());
+                    } else {
+                        requestAnimationFrame(captureFrame);
+                    }
+                }
+                requestAnimationFrame(captureFrame);
+            });
+            
+        }).catch(error => {
+            console.error("Error accessing camera:", error);
+            alert("Unable to access the camera. Please check permissions and make sure you're using HTTPS.");
+        });
+    } else {
+        alert("Sorry, your browser doesn't support accessing the camera.");
+    }
+}
+
+document.getElementById('startScan').addEventListener('click', startScanner);
+</script>
+
+<!--script>
+
 let stream;
 
 function startScanner() {
@@ -155,120 +227,7 @@ function startScanner() {
 }
 
 document.getElementById('startScan').addEventListener('click', startScanner);
-</script>
-
-
-
-<!--script>
-
-    function startScanner() {
-        const video = document.getElementById('video');
-        const resultDisplay = document.getElementById('result');
-    
-        navigator.mediaDevices.getUserMedia({video: true })
-        .then(stream => {
-            video.srcObject = stream;
-            video.play();
-            
-            video.addEventListener('loadedmetadata', function() {
-                
-                const canvas = document.createElement('canvas');
-                const context = canvas.getContext('2d');
-                
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                video.style.display = 'block';
-                
-                function captureFrame() {
-                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-    
-                    const qrCode = jsQR(imageData.data, canvas.width, canvas.height);
-    
-                    if (qrCode) {
-                        resultDisplay.textContent = qrCode.data;
-                        video.style.display = 'none';
-                        video.pause();
-                        
-                    } else {
-                        resultDisplay.textContent = "";
-                    }
-    
-                    // Keep scanning the next frame
-                    requestAnimationFrame(captureFrame);
-                }
-                requestAnimationFrame(captureFrame);
-            }); 
-            
-
-        }).catch(error => {
-            console.error("Error accessing camera:", error);
-            alert("Unable to access the camera. Please check permissions.");
-        });
-    }
-    
-    document.getElementById('startScan').addEventListener('click', startScanner);
-
 </script-->
-
-
-<!--script>
-
-    function startScanner() {
-        const video = document.getElementById('video');
-        const canvas = document.getElementById('canvas');
-        const context = canvas.getContext('2d');
-        const resultDisplay = document.getElementById('result');
-    
-        navigator.mediaDevices.getUserMedia({
-            video: { facingMode: {ideal:'environment'} } // Use the back camera
-        }).then(stream => {
-            video.srcObject = stream;
-            video.play();
-    
-            video.addEventListener('loadedmetadata', function() {
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-    
-                function captureFrame() {
-                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-    
-                    const qrCode = jsQR(imageData.data, canvas.width, canvas.height);
-    
-                    if (qrCode) {
-                        resultDisplay.textContent = qrCode.data;
-    
-                        // Draw a bounding box around the QR code
-                        context.beginPath();
-                        context.moveTo(qrCode.location.topLeftCorner.x, qrCode.location.topLeftCorner.y);
-                        context.lineTo(qrCode.location.topRightCorner.x, qrCode.location.topRightCorner.y);
-                        context.lineTo(qrCode.location.bottomRightCorner.x, qrCode.location.bottomRightCorner.y);
-                        context.lineTo(qrCode.location.bottomLeftCorner.x, qrCode.location.bottomLeftCorner.y);
-                        context.closePath();
-                        context.lineWidth = 4;
-                        context.strokeStyle = 'green'; // Change color to green for detected QR code
-                        context.stroke();
-                    } else {
-                        resultDisplay.textContent = "No QR code detected";
-                    }
-    
-                    // Keep scanning the next frame
-                    requestAnimationFrame(captureFrame);
-                }
-    
-                requestAnimationFrame(captureFrame);
-            });
-        }).catch(error => {
-            console.error("Error accessing camera:", error);
-            alert("Unable to access the camera. Please check permissions.");
-        });
-    }
-    
-    document.getElementById('startScan').addEventListener('click', startScanner);
-
-</script-->
-
 
 
 <script src="{% static 'js/select_items_form.js' %}"></script>
