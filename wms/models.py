@@ -90,6 +90,10 @@ class Ubicacion(models.Model):
     def columna(self):
         columna = int(self.modulo)
         return columna
+    
+    @property
+    def nombre_completo(self):
+        return f'{self.bodega}-{self.pasillo}-{self.modulo}-{self.nivel}'
 
 
 class Movimiento(models.Model):
