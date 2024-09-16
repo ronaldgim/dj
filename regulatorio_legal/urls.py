@@ -70,4 +70,11 @@ urlpatterns = [
         view = views.factura_detalle,
         name = 'factura_detalle'
     ),
+    
+    # Marca de agua en documentos
+    path(
+        route='prueba_api_marca_agua',
+        view = views.prueba_api_marca_agua,
+        name = 'prueba_api_marca_agua'
+    ),
 ]
