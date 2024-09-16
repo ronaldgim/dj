@@ -4056,16 +4056,25 @@ def wms_reporte_reposicion_alertas(request):
         if len(existencias_by_product) > 1:
                         
             producto_uno = existencias_by_product[0]
-            producto_dos = existencias_by_product[1]
+            #producto_dos = existencias_by_product[1]            
             
             total_unidades_nivel_uno_query = existencias_by_product.filter(
-                Q(ubicacion__nivel='1') & Q(lote_id=producto_uno.lote_id)
+                Q(ubicacion__nivel='1') & 
+                Q(lote_id=producto_uno.lote_id)
                 )
             
             if total_unidades_nivel_uno_query.exists():
                 total_unidades_nivel_uno = total_unidades_nivel_uno_query.aggregate(unidades_nivel_uno=Sum('unidades'))['unidades_nivel_uno']
             else:
                 total_unidades_nivel_uno = 0
+            
+            
+            suma_iteracion = 0
+            for j in existencias_by_product:
+                suma_iteracion += j.unidades
+                if suma_iteracion > total_unidades_nivel_uno:
+                    producto_dos = j
+                    break
             
             ventas_product_mensual = ventas.loc[ventas['PRODUCT_ID']==i, 'ANUAL'].values[0] / 12
             producto_uno_alerta_mensual = round(total_unidades_nivel_uno / ventas_product_mensual, 1)
