@@ -4051,7 +4051,7 @@ def wms_reporte_reposicion_alertas(request):
     
     reporte_existencias_list = []
     for i in productos_ventas:
-        existencias_by_product = Existencias.objects.filter(product_id=i).order_by('fecha_caducidad', 'lote_id')
+        existencias_by_product = Existencias.objects.filter(product_id=i).order_by('fecha_caducidad', 'lote_id', 'ubicacion__bodega', 'ubicacion__nivel')
         
         if len(existencias_by_product) > 1:
                         
@@ -4077,6 +4077,8 @@ def wms_reporte_reposicion_alertas(request):
                     'lote_id':producto_uno.lote_id,
                     'fecha_caducidad': producto_uno.fecha_caducidad,
                     'ubicacion':producto_uno.ubicacion.nombre_completo,
+                    'total_unidades_nivel_uno':total_unidades_nivel_uno,
+                    'ventas_product_mensual':ventas_product_mensual,
                     'unidades':producto_uno.unidades,
                     'meses':producto_uno_alerta_mensual,
                 }
