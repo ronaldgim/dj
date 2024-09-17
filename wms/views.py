@@ -1995,19 +1995,21 @@ def wms_egreso_picking(request, n_pedido): #OK
     mov_bodega_df = mov_bodega_df.rename(columns={'ubicacion__bodega':'bodega_mov'})
     mov_bodega_df = mov_bodega_df.drop_duplicates(subset='product_id', keep='first').fillna('')
     
-    exi_bodega_df = pd.DataFrame(inv.order_by('fecha_caducidad'))[['product_id','ubicacion__bodega']]
+    exi_bodega_df = pd.DataFrame(inv.order_by('fecha_caducidad'))#[['product_id','ubicacion__bodega']]
     exi_bodega_df = exi_bodega_df.rename(columns={'ubicacion__bodega':'bodega_exi'})
     exi_bodega_df = exi_bodega_df.drop_duplicates(subset='product_id', keep='first').fillna('')
     
     if not mov_bodega_df.empty and not exi_bodega_df.empty:
         bodega_df = exi_bodega_df.merge(mov_bodega_df, on='product_id', how='left').fillna('')
+    elif not mov_bodega_df.empty and exi_bodega_df.empty:
+        bodega_df = mov_bodega_df
     else:
         bodega_df = exi_bodega_df
         bodega_df['bodega_mov'] = ''
     
     bodega_df['primera_bodega'] = bodega_df.apply(lambda x: x['bodega_exi'] if not x['bodega_mov'] else x['bodega_mov'], axis=1)       
-    bodega_df = bodega_df.rename(columns={'product_id':'PRODUCT_ID'})
-
+    bodega_df = bodega_df.rename(columns={'product_id':'PRODUCT_ID'})[['PRODUCT_ID','primera_bodega']]
+    
     if inv.exists():
         inv = pd.DataFrame(inv).sort_values(by=['lote_id','fecha_caducidad','ubicacion__distancia_puerta'], ascending=[True,True,True])
         inv['fecha_caducidad'] = inv['fecha_caducidad'].astype(str)
@@ -2022,7 +2024,6 @@ def wms_egreso_picking(request, n_pedido): #OK
     # Calculo Cartones
     pedido['cartones'] = pedido['QUANTITY'] / pedido['Unidad_Empaque']
     pedido = pedido.merge(bodega_df, on='PRODUCT_ID', how='left').sort_values(by='primera_bodega')
-    
     ped = de_dataframe_a_template(pedido)
 
     for i in prod_list:

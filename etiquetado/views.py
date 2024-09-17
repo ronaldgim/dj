@@ -2709,24 +2709,26 @@ def reporte_revision_reservas(request):
     from datos.views import revision_reservas_fun
 
     reporte = revision_reservas_fun()
+
+    return HttpResponse('ok')
     
-    # Excel
-    if not reporte.empty:
-        hoy = datetime.today()
-        hoy = str(hoy)
-        n = 'Reporte-Reservas_' + hoy + '.xlsx'
-        nombre = 'attachment; filename=' + '"' + n + '"'
+    # # Excel
+    # if not reporte.empty:
+    #     hoy = datetime.today()
+    #     hoy = str(hoy)
+    #     n = 'Reporte-Reservas_' + hoy + '.xlsx'
+    #     nombre = 'attachment; filename=' + '"' + n + '"'
 
-        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        response['Content-Disposition'] = nombre
+    #     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    #     response['Content-Disposition'] = nombre
 
-        reporte.to_excel(response)
+    #     reporte.to_excel(response)
 
-        return response
+    #     return response
 
-    else:
-        messages.success(request, 'Reservas actualizadas, no hay items que mover !!!')
-        return HttpResponseRedirect('/etiquetado/revision/imp/llegadas/list')
+    # else:
+    #     messages.success(request, 'Reservas actualizadas, no hay items que mover !!!')
+    #     return HttpResponseRedirect('/etiquetado/revision/imp/llegadas/list')
 
 
 
