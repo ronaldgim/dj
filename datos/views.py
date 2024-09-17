@@ -1998,15 +1998,16 @@ def stock_lote_odbc():
 
 
 
-def revision_reservas_fun():
+def revision_reservas_fun_obsoleta():
 
     # Datos
     df_reservas_lote    = reservas_lote()
     df_reservas_sinlote = reservas_sinlote()
     clientes            = clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE','CLIENT_TYPE']]
     inventario          = stock_lote_odbc()
+    
     # Borrar columna 'EGRESO_TEMP' por modificación de consulta 'stock_lote_odbc'
-    inventario = inventario.drop(['EGRESO_TEMP'], axis=1)
+    inventario          = inventario.drop(['EGRESO_TEMP'], axis=1)
     productos           = productos_odbc_and_django()[['product_id', 'Nombre', 'Marca']]
     productos           = productos.rename(columns={'product_id':'PRODUCT_ID'})
     
@@ -2025,7 +2026,7 @@ def revision_reservas_fun():
     reservas = df_reservas_lote[-df_reservas_lote.CONTRATO_ID.isin(r_publico)]
 
     # Filtrar por reservas no confirmadas 
-    reservas = reservas[reservas['CONFIRMED']=='0'] 
+    reservas = reservas[reservas['CONFIRMED']=='0']
 
     # Filtrar por cliente gimpromed y cliente hospitales publicos
     reservas = reservas.merge(clientes, on='CODIGO_CLIENTE', how='left')
@@ -2055,7 +2056,6 @@ def revision_reservas_fun():
         
         r_tuple = [tuple(i) for i in r.values]
         
-        # print(r_tuple)    
         for j in r_tuple:
             
             r_product_id      = j[0]
@@ -2081,35 +2081,21 @@ def revision_reservas_fun():
             df_reserva['UNDS RESERVADAS CONTRATO'] = [r_egreso_temp]
             df_reserva['CONTRATO_ID']              = [r_contrato_id]
             df_reserva['NOMBRE_CLIENTE']           = [r_cliente]
-            # print(df_reserva)
 
             # Inventario filtrado por item de contrato
             inv_res = inventario[inventario['PRODUCT_ID']==prod]
             inv_res = inv_res.merge(r_agg, on=['PRODUCT_ID','LOTE_ID','WARE_CODE'], how='left').fillna(0)
             inv_res = inv_res.sort_values('FECHA_CADUCIDAD')
             
-            # Filtros y restricciónes 
-            # Mostrar inventario mayor a la fecha de caducidad del lote reservado
-            # inv_res = inv_res[inv_res['FECHA_CADUCIDAD']>r_fecha_caducidad]
-            
-            #inv_res['FECHA_CADUCIDAD'] = pd.to_datetime(inv_res['FECHA_CADUCIDAD'])
-            #inv_res = inv_res[inv_res['FECHA_CADUCIDAD']>pd.to_datetime(r_fecha_caducidad)]
-            
             # Quitar stock en cuarentena
             inv_res = inv_res[inv_res['WARE_CODE']!='CUA']
             inv_res = inv_res[inv_res['WARE_CODE']!='CUC']
-            #print(inv_res)
+            
             # Calcular
             inv_res['UNDS DISPONIBLE'] = inv_res['OH2'] - inv_res['EGRESO_TEMP']
             inv_res['und-res-cont']    = r_egreso_temp
             inv_res['cant-res']        = inv_res['und-res-cont'] - inv_res['UNDS DISPONIBLE']
-            
-            # inv_res['CANTIDAD A RESERVAR'] = (inv_res['cant-res']
-            #     .where(inv_res['und-res-cont']>inv_res['UNDS DISPONIBLE'], r_egreso_temp)) # MEJORAR
-
-            inv_res['CANTIDAD A RESERVAR'] = (inv_res['UNDS DISPONIBLE']
-                .where(inv_res['UNDS DISPONIBLE']<=inv_res['und-res-cont'], r_egreso_temp))
-            
+            inv_res['CANTIDAD A RESERVAR'] = (inv_res['UNDS DISPONIBLE'].where(inv_res['UNDS DISPONIBLE']<=inv_res['und-res-cont'], r_egreso_temp))
 
             # Restricciones
             inv_res = inv_res[inv_res['UNDS DISPONIBLE']>0]
@@ -2134,6 +2120,98 @@ def revision_reservas_fun():
     reporte = reporte.set_index('PRODUCT_ID')
 
     return reporte
+
+
+def revision_reservas_fun():
+
+    # Datos
+    df_reservas_lote    = reservas_lote()
+    df_reservas_sinlote = reservas_sinlote()
+    clientes            = clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE','CLIENT_TYPE']]
+    inventario          = stock_lote_odbc()
+    
+    # 1.- Encontrar contratos en los que se va a inspeccionar para mover las reservas
+    # 1.1.- Filtrar reservas por cliente gimpromed o cliente publico
+    reservas_clientes = df_reservas_lote.merge(clientes, on='CODIGO_CLIENTE', how='left')
+    reservas_publicos = reservas_clientes[reservas_clientes['CLIENT_TYPE']=='HOSPU']
+    reservas_gimpromed = reservas_clientes[reservas_clientes['CODIGO_CLIENTE']=='CLI01002']
+    reservas_clientes = pd.concat([reservas_gimpromed, reservas_publicos])
+    
+    # 1.2.- Encontrar reservas que se van a etiquetar
+    df_reservas_sinlote = df_reservas_sinlote[df_reservas_sinlote['SEC_NAME_CLIENTE']=='PUBLICO']
+    df_reservas_sinlote['CONTRATO_ID'] = df_reservas_sinlote['CONTRATO_ID'].astype('float')
+    df_reservas_sinlote['CONTRATO_ID'] = df_reservas_sinlote['CONTRATO_ID'].astype('int')
+    df_reservas_sinlote = df_reservas_sinlote[['CONTRATO_ID','SEC_NAME_CLIENTE']]
+
+    # 1.3.- Obtener dataframe final de reservas a las que se va a inspeccionar
+    reservas = reservas_clientes.merge(df_reservas_sinlote, on='CONTRATO_ID', how='left').fillna('')
+    reservas = reservas[reservas['SEC_NAME_CLIENTE']!='PUBLICO']
+    
+    # 1.4.- Filtrar por reservas no confirmadas
+    reservas = reservas[reservas['CONFIRMED']=='0']
+    
+    # 2.- Agrupar las reservas por codigo y lote y añadir una columna de contratos
+    # 2.1.- Agrupar contratos por codigo y lote
+    df_product_contrato_group = reservas.copy()
+    df_product_contrato_group['CLIENTE-CONTRATO-UNIDADES'] = '"' + df_product_contrato_group['NOMBRE_CLIENTE'].astype('str') + ': ' + df_product_contrato_group['CONTRATO_ID'].astype('str') + ' - ' + 'UNDS: ' + df_product_contrato_group['EGRESO_TEMP'].astype('str') + '"'
+    df_product_contrato_group = df_product_contrato_group.pivot_table(index=['PRODUCT_ID', 'LOTE_ID'], values='CLIENTE-CONTRATO-UNIDADES', aggfunc=lambda x: ' - '.join(x)).fillna(0)
+    df_product_contrato_group = df_product_contrato_group.reset_index()
+    
+    # 2.2.- Agrupar cantidades por codigo y lote
+    df_product_unidades_group = reservas.copy()
+    df_product_unidades_group = df_product_unidades_group.pivot_table(index=['PRODUCT_ID', 'LOTE_ID'], values='EGRESO_TEMP', aggfunc='sum').fillna(0)
+    df_product_unidades_group = df_product_unidades_group.reset_index()
+    
+    # 2.3.- Unir dataframes de reservas
+    df_reservas_agrupadas = df_product_contrato_group.merge(df_product_unidades_group, on=['PRODUCT_ID','LOTE_ID'], how='left')
+    df_reservas_agrupadas['LOTE_ID'] = quitar_puntos(df_reservas_agrupadas['LOTE_ID'])
+    
+    # 3.- Iterar en el inventario los productos y lotes de reservas
+    # 3.1.- Obtener productos y lotes de reservas
+    
+    lista_df = []
+    
+    for index, row in df_reservas_agrupadas.iterrows():
+        stock = inventario[inventario['PRODUCT_ID']==row['PRODUCT_ID']]
+        stock = stock[['PRODUCT_ID','LOTE_ID','OH2','FECHA_CADUCIDAD']]
+        stock['LOTE_ID'] = quitar_puntos(stock['LOTE_ID'])
+        stock = stock.groupby(by=['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD']).sum().sort_values(by='FECHA_CADUCIDAD').reset_index()
+        
+        # si hay mas de un lote procesar
+        if len(stock) > 1:
+            
+            ubicacion_de_lote = stock.loc[stock['LOTE_ID']==row['LOTE_ID']].index[0] 
+            ultimo_lote_index = len(stock) - 1 
+            
+            # si la ubicación del lote es menor al ultimo lote añadir al reporte
+            if ubicacion_de_lote < ultimo_lote_index:
+                
+                #print(row['PRODUCT_ID'], row['LOTE_ID'])
+
+                reserva_product_lote = reservas.copy()
+                reserva_product_lote = reserva_product_lote[(reserva_product_lote['PRODUCT_ID']==row['PRODUCT_ID']) & (reserva_product_lote['LOTE_ID']==row['LOTE_ID'])]
+                reserva_product_lote = reserva_product_lote[['NOMBRE_CLIENTE','CONTRATO_ID','PRODUCT_ID','LOTE_ID','EGRESO_TEMP']]
+                #print(reserva_product_lote)
+                
+                lista_df.append(reserva_product_lote)
+            
+
+    df = pd.concat(lista_df)
+    print(df)
+
+
+
+
+
+    #print(reservas)
+    #print(df_product_contrato_group)
+    #df_product_group.to_excel('df_product_group.xlsx')
+    
+    
+
+
+    return inventario
+
 
 
 
