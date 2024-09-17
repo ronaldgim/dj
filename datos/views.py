@@ -2123,94 +2123,86 @@ def revision_reservas_fun_obsoleta():
 
 
 def revision_reservas_fun():
-
-    # Datos
+    # 1. Obtener datos
     df_reservas_lote    = reservas_lote()
     df_reservas_sinlote = reservas_sinlote()
     clientes            = clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE','CLIENT_TYPE']]
     inventario          = stock_lote_odbc()
+    productos           = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     
-    # 1.- Encontrar contratos en los que se va a inspeccionar para mover las reservas
-    # 1.1.- Filtrar reservas por cliente gimpromed o cliente publico
+    # 1.1 Filtrar reservas por cliente gimpromed o cliente público
     reservas_clientes = df_reservas_lote.merge(clientes, on='CODIGO_CLIENTE', how='left')
-    reservas_publicos = reservas_clientes[reservas_clientes['CLIENT_TYPE']=='HOSPU']
-    reservas_gimpromed = reservas_clientes[reservas_clientes['CODIGO_CLIENTE']=='CLI01002']
-    reservas_clientes = pd.concat([reservas_gimpromed, reservas_publicos])
+    reservas_clientes = reservas_clientes[(reservas_clientes['CLIENT_TYPE'] == 'HOSPU') | 
+                                        (reservas_clientes['CODIGO_CLIENTE'] == 'CLI01002')]
     
-    # 1.2.- Encontrar reservas que se van a etiquetar
-    df_reservas_sinlote = df_reservas_sinlote[df_reservas_sinlote['SEC_NAME_CLIENTE']=='PUBLICO']
-    df_reservas_sinlote['CONTRATO_ID'] = df_reservas_sinlote['CONTRATO_ID'].astype('float')
-    df_reservas_sinlote['CONTRATO_ID'] = df_reservas_sinlote['CONTRATO_ID'].astype('int')
-    df_reservas_sinlote = df_reservas_sinlote[['CONTRATO_ID','SEC_NAME_CLIENTE']]
+    # 1.2 Filtrar y procesar reservas sin lote
+    df_reservas_sinlote = df_reservas_sinlote[df_reservas_sinlote['SEC_NAME_CLIENTE'] == 'PUBLICO'].copy()
+    df_reservas_sinlote['CONTRATO_ID'] = df_reservas_sinlote['CONTRATO_ID'].astype('float', errors='ignore')
+    df_reservas_sinlote['CONTRATO_ID'] = df_reservas_sinlote['CONTRATO_ID'].astype('int', errors='ignore')
+    df_reservas_sinlote = df_reservas_sinlote[['CONTRATO_ID', 'SEC_NAME_CLIENTE']]
 
-    # 1.3.- Obtener dataframe final de reservas a las que se va a inspeccionar
+    # 1.3 Merge reservas con clientes y reservas sin lote, excluyendo contratos de "PUBLICO"
     reservas = reservas_clientes.merge(df_reservas_sinlote, on='CONTRATO_ID', how='left').fillna('')
-    reservas = reservas[reservas['SEC_NAME_CLIENTE']!='PUBLICO']
+    reservas = reservas[reservas['SEC_NAME_CLIENTE'] != 'PUBLICO']
     
-    # 1.4.- Filtrar por reservas no confirmadas
-    reservas = reservas[reservas['CONFIRMED']=='0']
+    # 1.4 Filtrar por reservas no confirmadas
+    reservas = reservas[reservas['CONFIRMED'] == '0']
     
-    # 2.- Agrupar las reservas por codigo y lote y añadir una columna de contratos
-    # 2.1.- Agrupar contratos por codigo y lote
-    df_product_contrato_group = reservas.copy()
-    df_product_contrato_group['CLIENTE-CONTRATO-UNIDADES'] = '"' + df_product_contrato_group['NOMBRE_CLIENTE'].astype('str') + ': ' + df_product_contrato_group['CONTRATO_ID'].astype('str') + ' - ' + 'UNDS: ' + df_product_contrato_group['EGRESO_TEMP'].astype('str') + '"'
-    df_product_contrato_group = df_product_contrato_group.pivot_table(index=['PRODUCT_ID', 'LOTE_ID'], values='CLIENTE-CONTRATO-UNIDADES', aggfunc=lambda x: ' - '.join(x)).fillna(0)
-    df_product_contrato_group = df_product_contrato_group.reset_index()
+    # 2. Agrupar reservas por producto y lote, y añadir información de contratos
+    reservas['CLIENTE-CONTRATO-UNIDADES'] = ('"' + reservas['NOMBRE_CLIENTE'].astype(str) + ': ' +
+                                            reservas['CONTRATO_ID'].astype(str) + ' - UNDS: ' + 
+                                            reservas['EGRESO_TEMP'].astype(str) + '"')
     
-    # 2.2.- Agrupar cantidades por codigo y lote
-    df_product_unidades_group = reservas.copy()
-    df_product_unidades_group = df_product_unidades_group.pivot_table(index=['PRODUCT_ID', 'LOTE_ID'], values='EGRESO_TEMP', aggfunc='sum').fillna(0)
-    df_product_unidades_group = df_product_unidades_group.reset_index()
+    # 2.1 Agrupar contratos por producto y lote
+    df_product_contrato_group = reservas.pivot_table(index=['PRODUCT_ID', 'LOTE_ID'],
+                                                    values='CLIENTE-CONTRATO-UNIDADES',
+                                                    aggfunc=lambda x: ' - '.join(x)).reset_index()
     
-    # 2.3.- Unir dataframes de reservas
-    df_reservas_agrupadas = df_product_contrato_group.merge(df_product_unidades_group, on=['PRODUCT_ID','LOTE_ID'], how='left')
+    # 2.2 Agrupar cantidades por producto y lote
+    df_product_unidades_group = reservas.pivot_table(index=['PRODUCT_ID', 'LOTE_ID'],
+                                                    values='EGRESO_TEMP', aggfunc='sum').reset_index()
+    
+    # 2.3 Unir los dataframes de reservas agrupadas
+    df_reservas_agrupadas = df_product_contrato_group.merge(df_product_unidades_group, on=['PRODUCT_ID', 'LOTE_ID'])
     df_reservas_agrupadas['LOTE_ID'] = quitar_puntos(df_reservas_agrupadas['LOTE_ID'])
-    
-    # 3.- Iterar en el inventario los productos y lotes de reservas
-    # 3.1.- Obtener productos y lotes de reservas
-    
-    lista_df = []
-    
+    productos = productos.rename(columns={'product_id': 'PRODUCT_ID'})
+    df_reservas_agrupadas = df_reservas_agrupadas.merge(productos, on='PRODUCT_ID', how='left')
+
+    # 3. Iterar en el inventario para encontrar lotes con mayor tiempo de caducidad
+    resultados = []
+
     for index, row in df_reservas_agrupadas.iterrows():
-        stock = inventario[inventario['PRODUCT_ID']==row['PRODUCT_ID']]
-        stock = stock[['PRODUCT_ID','LOTE_ID','OH2','FECHA_CADUCIDAD']]
+        stock = inventario[inventario['PRODUCT_ID'] == row['PRODUCT_ID']].copy()
         stock['LOTE_ID'] = quitar_puntos(stock['LOTE_ID'])
-        stock = stock.groupby(by=['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD']).sum().sort_values(by='FECHA_CADUCIDAD').reset_index()
-        
-        # si hay mas de un lote procesar
+        stock = stock.groupby(by=['PRODUCT_ID', 'LOTE_ID', 'FECHA_CADUCIDAD'])['OH2'].sum().reset_index()
+        stock = stock.sort_values(by='FECHA_CADUCIDAD').reset_index(drop=True)
+
+        # Si hay más de un lote, evaluar si el lote actual es el último
         if len(stock) > 1:
-            
-            ubicacion_de_lote = stock.loc[stock['LOTE_ID']==row['LOTE_ID']].index[0] 
-            ultimo_lote_index = len(stock) - 1 
-            
-            # si la ubicación del lote es menor al ultimo lote añadir al reporte
-            if ubicacion_de_lote < ultimo_lote_index:
-                
-                #print(row['PRODUCT_ID'], row['LOTE_ID'])
+            ubicacion_lote = stock[stock['LOTE_ID'] == row['LOTE_ID']].index[0]
+            ultimo_lote_index = len(stock) - 1
 
-                reserva_product_lote = reservas.copy()
-                reserva_product_lote = reserva_product_lote[(reserva_product_lote['PRODUCT_ID']==row['PRODUCT_ID']) & (reserva_product_lote['LOTE_ID']==row['LOTE_ID'])]
-                reserva_product_lote = reserva_product_lote[['NOMBRE_CLIENTE','CONTRATO_ID','PRODUCT_ID','LOTE_ID','EGRESO_TEMP']]
-                #print(reserva_product_lote)
-                
-                lista_df.append(reserva_product_lote)
-            
+            # Si el lote no es el último, añadir al reporte
+            if ubicacion_lote < ultimo_lote_index:
+                reserva_product_lote = reservas[(reservas['PRODUCT_ID'] == row['PRODUCT_ID']) &
+                    (reservas['LOTE_ID'] == row['LOTE_ID'])][[
+                                                                'NOMBRE_CLIENTE', 
+                                                                'CONTRATO_ID', 
+                                                                'PRODUCT_ID', 
+                                                                'LOTE_ID', 
+                                                                'EGRESO_TEMP'
+                                                            ]]
+                resultados.append(reserva_product_lote)
 
-    df = pd.concat(lista_df)
-    print(df)
+    # Concatenar resultados y generar reporte final
+    if resultados:
+        reporte_final = pd.concat(resultados, ignore_index=True)
+        return reporte_final
 
+    else:
+        return reporte_final
 
-
-
-
-    #print(reservas)
-    #print(df_product_contrato_group)
-    #df_product_group.to_excel('df_product_group.xlsx')
     
-    
-
-
-    return inventario
 
 
 
