@@ -280,39 +280,34 @@
 <script>
 
     $(document).ready(function() {
-        //$("button[name='modal']").click(function(){
-        
-            $("#ubicaciones_rows > thead > tr:first").remove();
+
+        $("#ubicaciones_rows > thead > tr:first").remove();
+
+        $("#ubicaciones_rows > tbody > tr > td").each(function() {
+            $(this).addClass("text-end")
+            if ($(this).text() === '0') {
+                $(this).text('-')
+            }
+        });
+
+        $("#ubicaciones_rows > tbody > tr:last > td").each(function() {
+            $(this).addClass("fw-bold");
+        });
     
-            $("#ubicaciones_rows > thead > tr > th").each(function() {            
-                row_title = $(this);
-                row_title.addClass("text-center");
-                if (row_title.text() === "All") {
-                    row_title.text("TOTAL")
-                } else if (row_title.text() === "") {
-                    row_title.text("P-N")
-                } else if (row_title.text() === "pasillo") {
-                    row_title.remove()
-                }
-            });
+        $("#ubicaciones_rows > tbody > tr:first > td").each(function() {
+            $(this).addClass("fw-bold");
+            if ($(this).text()==='pasillo') {
+                $(this).text('P/N')
+            }
+        });
+
+        $("#ubicaciones_rows > tbody > tr").each(function() {
+            $(this).find("td:first").addClass("fw-bold");
+            $(this).find("td:last").addClass("fw-bold");
+        });
     
-            $("#ubicaciones_rows > tbody > tr > th").each(function() {
-                row_text = $(this);
-                if (row_text.text() === "") {
-                    row_text.remove()
-                }
-            });
-    
-            $("#ubicaciones_rows > tbody > tr > td").each(function() {
-                $(this).addClass("text-end")
-                if ($(this).text() === "All") {
-                    $(this).text("TOTAL")
-                }
-            });
-    
-            //$(this).append("asdf")
-        //})
     })
+
 
 </script>
 

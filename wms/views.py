@@ -479,18 +479,38 @@ def wms_ubicaciones_disponibles_cn6():
 
 
 def wms_ubicaciones_disponibles_rows():
-    ubicaciones_existencias = Existencias.objects.filter(ubicacion__bodega='CN6').values_list('ubicacion_id', flat=True)
-    ubicaciones = Ubicacion.objects.filter(disponible=True).filter(bodega='CN6').values_list('id', flat=True)
     
-    ubicaciones_existencias = set(ubicaciones_existencias)
-    ubicaciones = set(ubicaciones)
-    ubicaciones_disponibles = ubicaciones.difference(ubicaciones_existencias)
+    # Obtener las ubicaciones ocupadas y disponibles
+    ubicaciones_existencias = Existencias.objects.filter(
+        Q(ubicacion__bodega='CN6') & Q(ubicacion__disponible=True)
+    ).values_list('ubicacion_id', flat=True).distinct()
+
+    # Crear un DataFrame para las ubicaciones ocupadas
+    ubicaciones_existencias_df = pd.DataFrame(Ubicacion.objects.filter(id__in=ubicaciones_existencias).values('id'))
+    ubicaciones_existencias_df['ocupada'] = 'si'
     
-    ubi_list = pd.DataFrame(Ubicacion.objects.filter(id__in=ubicaciones_disponibles).values())[['pasillo','modulo','nivel']]
+    # Crear un DataFrame para todas las ubicaciones disponibles en la bodega CN6
+    ubicaciones_totales_df = pd.DataFrame(Ubicacion.objects.filter(
+        Q(bodega='CN6') & Q(disponible=True)).values())
     
-    ubi_list = ubi_list.pivot_table(index='nivel', columns='pasillo', margins=True, aggfunc='count').reset_index()
+    # Unir los DataFrames para indicar si cada ubicación está ocupada o no
+    ubicaciones_df = ubicaciones_totales_df.merge(ubicaciones_existencias_df, on='id', how='left').fillna('no')
     
-    ubi_list = ubi_list.to_html(
+    # Agrupar por pasillo y nivel para contar las ubicaciones disponibles (ocupada == 'no')
+    ubicaciones_resumen = ubicaciones_df[ubicaciones_df['ocupada'] == 'no'].groupby(['pasillo', 'nivel']).size().unstack(fill_value=0)
+    
+    # Asegurarnos de que tenemos columnas para cada nivel (1, 2, 3, 4)
+    niveles = ['1', '2', '3', '4']
+    ubicaciones_resumen = ubicaciones_resumen.reindex(columns=niveles, fill_value=0)
+    
+    # Calcular totales por pasillo y nivel
+    ubicaciones_resumen['TOTAL'] = ubicaciones_resumen.sum(axis=1)
+    ubicaciones_resumen.loc['TOTAL'] = ubicaciones_resumen.sum()
+
+    # Convertir los resultados a una tabla HTML
+    ubicaciones_resumen = ubicaciones_resumen.reset_index().T.reset_index()
+    
+    ubi_list = ubicaciones_resumen.to_html(
         float_format='{:,.0f}'.format,
         classes='table table-responsive table-bordered m-0 p-0', 
         na_rep='0',
@@ -509,7 +529,7 @@ def wms_home(request):
     tiempo_de_almacenamiento = kpi_tiempo_de_almacenamiento()
     capacidad_tabla = de_dataframe_a_template(kpi_capacidad()) 
     data_grafico = capacidad_data_grafico()
-    
+    #print(wms_ubicaciones_disponibles_rows())
     context = {
         # DATA GRAFICO
         'bodegas': data_grafico['bodega'],
