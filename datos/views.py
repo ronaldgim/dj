@@ -2184,23 +2184,21 @@ def revision_reservas_fun():
 
             # Si el lote no es el último, añadir al reporte
             if ubicacion_lote < ultimo_lote_index:
-                reserva_product_lote = reservas[(reservas['PRODUCT_ID'] == row['PRODUCT_ID']) &
+                reserva_product_lote = reservas[
+                    (reservas['PRODUCT_ID'] == row['PRODUCT_ID']) &
                     (reservas['LOTE_ID'] == row['LOTE_ID'])][[
-                                                                'NOMBRE_CLIENTE', 
-                                                                'CONTRATO_ID', 
-                                                                'PRODUCT_ID', 
-                                                                'LOTE_ID', 
-                                                                'EGRESO_TEMP'
-                                                            ]]
+                        'NOMBRE_CLIENTE', 'CONTRATO_ID', 'PRODUCT_ID', 'LOTE_ID', 'FECHA_CADUCIDAD', 'EGRESO_TEMP', 'WARE_CODE'
+                    ]]
                 resultados.append(reserva_product_lote)
 
     # Concatenar resultados y generar reporte final
     if resultados:
         reporte_final = pd.concat(resultados, ignore_index=True)
+        reporte_final['FECHA_CADUCIDAD'] = reporte_final['FECHA_CADUCIDAD'].astype('str')
         return reporte_final
 
     else:
-        return reporte_final
+        return pd.DataFrame()
 
     
 

@@ -2712,15 +2712,27 @@ def reporte_revision_reservas(request):
     
     # Excel
     if not reporte.empty:
-        hoy = datetime.today()
-        hoy = str(hoy)
-        n = 'Reporte-Reservas_' + hoy + '.xlsx'
-        nombre = 'attachment; filename=' + '"' + n + '"'
+        hoy = datetime.today().strftime('%Y-%m-%d_%H-%M-%S')
+        nombre_archivo = f'Reporte-Reservas_{hoy}.xlsx'
+        content_disposition = f'attachment; filename="{nombre_archivo}"'
 
         response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        response['Content-Disposition'] = nombre
+        response['Content-Disposition'] = content_disposition
 
-        reporte.to_excel(response)
+        with pd.ExcelWriter(response, engine='openpyxl') as writer:
+            
+            reporte.to_excel(writer, sheet_name='Reporte-Reservas', index=False)
+            
+            workbook = writer.book
+            worksheet = writer.sheets['Reporte-Reservas']
+            
+            worksheet.column_dimensions['A'].width = 35
+            worksheet.column_dimensions['B'].width = 18
+            worksheet.column_dimensions['C'].width = 15
+            worksheet.column_dimensions['D'].width = 15
+            worksheet.column_dimensions['E'].width = 20
+            worksheet.column_dimensions['F'].width = 15
+            worksheet.column_dimensions['G'].width = 15
 
         return response
 
