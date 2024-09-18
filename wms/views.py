@@ -529,7 +529,7 @@ def wms_home(request):
     tiempo_de_almacenamiento = kpi_tiempo_de_almacenamiento()
     capacidad_tabla = de_dataframe_a_template(kpi_capacidad()) 
     data_grafico = capacidad_data_grafico()
-    #print(wms_ubicaciones_disponibles_rows())
+    
     context = {
         # DATA GRAFICO
         'bodegas': data_grafico['bodega'],
