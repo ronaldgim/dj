@@ -19,13 +19,21 @@ from datos.views import (
 from api_mba.mba import api_mba_sql
 
 # Models
-from regulatorio_legal.models import DocumentoLote, DocumentoEnviado
+from regulatorio_legal.models import DocumentoLote, DocumentoEnviado, RegistroSanitario, DocumentosLegales, ProductosRegistroSanitario
 
 # Pandas
 import pandas as pd
 
+# Forms
+from regulatorio_legal.forms import (
+    DocumentoLoteForm, 
+    NewDocumentoLoteForm, 
+    DocumentoEnviadoForm,
+    DocumentosLegalesForm,
+    RegistroSanitarioForm
+    )
+
 # Utilities
-from regulatorio_legal.forms import DocumentoLoteForm, NewDocumentoLoteForm, DocumentoEnviadoForm
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from etiquetado.views import correos_notificacion_factura
 
@@ -39,6 +47,9 @@ import json
 from django.core.mail import EmailMessage
 from django.conf import settings
 from smtplib import SMTPException 
+
+# Login
+from django.contrib.auth.decorators import login_required
 
 # Lista de importaciones
 def importaciones_llegadas_list(request):
@@ -645,3 +656,159 @@ MARZO 2024
         except requests.exceptions.RequestException as e:
             # Manejar cualquier excepción de la solicitud
             return HttpResponse(f"Error al conectarse a la API: {str(e)}")
+
+
+@login_required(login_url='login')
+def documentos_legales_list_marcas(request):
+    
+    documentos = DocumentosLegales.objects.all()
+    
+    if documentos.exists():
+    
+        estados = pd.DataFrame([{'estado':i.estado, 'marca':i.marca} for i in documentos])
+        query_df = pd.DataFrame(documentos.values(
+            'id', 'marca', 'nombre_proveedor', 'documento', 'fecha_caducidad', 'usuario__first_name', 'usuario__last_name'
+        ))
+        query_df['fecha_caducidad'] = query_df['fecha_caducidad'].astype('str')
+        
+        marcas_doc = []
+        marcas_count = []
+        for i in documentos:
+            reg_san = i.registros_sanitarios.all()
+            for j in reg_san:
+                productos = len(j.productos.all())
+                
+                marcas_doc.append(i.marca)
+                marcas_count.append(productos)
+        
+        productos_por_marca_docs = pd.DataFrame({
+            'marca': [i for i in marcas_doc],
+            'documentos_agregados': [i for i in marcas_count]
+        })
+
+        productos_por_marca_total = productos_odbc_and_django()[['product_id','Marca']]
+        productos_por_marca_total = productos_por_marca_total.rename(columns={'Marca':'marca','product_id':'total_productos'})
+        productos_por_marca_total = productos_por_marca_total.groupby(by='marca').count().reset_index()
+        
+        if not productos_por_marca_docs.empty:
+            productos_por_marca_final = productos_por_marca_docs.merge(query_df, on='marca', how='left')
+            productos_por_marca_final = productos_por_marca_final.merge(estados, on='marca', how='left')
+        else:
+            productos_por_marca_final = query_df
+
+        productos_por_marca_final = productos_por_marca_final.groupby(by=[
+            'id','marca','nombre_proveedor','documento','fecha_caducidad','usuario__first_name','usuario__last_name','estado'
+        ]).sum().reset_index().sort_values(by='marca')
+        
+        if not productos_por_marca_final.empty:
+            productos_por_marca_final = productos_por_marca_final.merge(productos_por_marca_total, on='marca', how='left')
+            productos_por_marca_final['porcentaje'] = (productos_por_marca_final['documentos_agregados'] / productos_por_marca_final['total_productos'] * 100)
+            productos_por_marca_final = de_dataframe_a_template(productos_por_marca_final)
+    
+    else:
+        productos_por_marca_final = pd.DataFrame()
+    
+    marcas = productos_odbc_and_django()
+    marcas = list(marcas['Marca'].unique())
+    
+    form = DocumentosLegalesForm()
+    
+    if request.method == 'POST':
+        form = DocumentosLegalesForm(request.POST, request.FILES)
+        if form.is_valid():
+            doc = form.save()
+            return HttpResponseRedirect(f'/regulatorio-legal/documentos-legales-detail-marca/{doc.id}')
+            
+        else:
+            messages.error(request, form.errors)
+            return HttpResponseRedirect(f'/regulatorio-legal/documentos-legales-list-marcas')
+        
+    
+    context = {
+        'documentos': productos_por_marca_final,
+        'marcas': marcas,
+        'form': form
+    }
+    
+    return render(request, 'regulatorio_legal/documentos_legales_list_marcas.html', context)
+
+
+def documentos_legales_detail_marca(request, id):
+    
+    documento = DocumentosLegales.objects.get(id=id)
+
+    productos_list = productos_odbc_and_django()[['product_id','Marca']]
+    productos_list = productos_list[productos_list['Marca']==documento.marca]
+    productos_list = list(productos_list['product_id'].unique())
+    
+    if request.method == 'POST':
+
+        productos_list_post = request.POST.getlist('productos')
+        
+        form = RegistroSanitarioForm(request.POST, request.FILES)
+        
+        if form.is_valid():
+            reg = form.save()                        
+            for i in productos_list_post:
+                prod = ProductosRegistroSanitario.objects.create(product_id=i)
+                reg.productos.add(prod)
+                documento.registros_sanitarios.add(reg)
+                
+            messages.success(request, f'Registro sanitario añadido exitosamente !!!')
+        else:
+            messages.error(request, form.errors)
+    
+    context  = {
+        'documento': documento,
+        'productos_list':productos_list
+    }
+    
+    return render(request, 'regulatorio_legal/documentos_legales_detail_marca.html', context)
+
+
+def documento_legal_editar_marca(request, id):
+    
+    documento = DocumentosLegales.objects.get(id=id)
+    if request.method == 'GET':
+        form = DocumentosLegalesForm(instance=documento)
+        return HttpResponse(form.as_p())
+    
+    if request.method == 'POST':
+        form = DocumentosLegalesForm(request.POST, request.FILES, instance=documento)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Documento legal actualizado exitosamente !!!')
+            return HttpResponseRedirect(f'/regulatorio-legal/documentos-legales-detail-marca/{documento.id}')
+        else:
+            messages.error(request, form.errors)
+            return HttpResponseRedirect(f'/regulatorio-legal/documentos-legales-detail-marca/{documento.id}') 
+
+
+def documento_legal_editar_detail(request):    
+    
+    if request.method == 'GET':
+        reg_id = int(request.GET.get('reg_id'))
+        reg_sanitario = RegistroSanitario.objects.get(id=reg_id)
+        form = RegistroSanitarioForm(instance=reg_sanitario)
+        documento = reg_sanitario.documentoslegales_set.all().first()
+        
+        return JsonResponse({
+            'form': form.as_p(),   
+        })
+    
+    elif request.method == 'POST':
+        reg_id = int(request.POST.get('reg_id'))
+        reg_sanitario = RegistroSanitario.objects.get(id=reg_id)
+        form = RegistroSanitarioForm(request.POST, request.FILES, instance=reg_sanitario)
+        documento = reg_sanitario.documentoslegales_set.all().first()
+        
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Registro sanitario actualizado exitosamente !!!')
+            return HttpResponseRedirect(f'/regulatorio-legal/documentos-legales-detail-marca/{documento.id}')
+
+        else:
+            messages.error(request, form.errors)
+            return HttpResponseRedirect(f'/regulatorio-legal/documentos-legales-detail-marca/{documento.id}')
+
+

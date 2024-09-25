@@ -1,4 +1,5 @@
 from django.db import models
+import datetime
 
 from users.models import User
 
@@ -32,3 +33,56 @@ class DocumentoEnviado(models.Model):
 
     def __str__(self):
         return self.n_factura
+
+
+class ProductosRegistroSanitario(models.Model):
+    
+    product_id = models.CharField(max_length=50, unique=True)
+    
+    def __str__(self):
+        return self.product_id
+
+
+class RegistroSanitario(models.Model):
+    
+    n_reg_sanitario = models.CharField(max_length=50)
+    descripcion     = models.CharField(max_length=150)
+    fecha_caducidad = models.DateField()
+    documento       = models.FileField(upload_to='registros_sanitarios')
+    productos       = models.ManyToManyField(ProductosRegistroSanitario, blank=True)
+    creado          = models.DateTimeField(auto_now_add=True)
+    actualizado     = models.DateTimeField(auto_now=True)
+    usuario         = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.PROTECT)
+    
+    def __str__(self):
+        return self.n_reg_sanitario
+
+    @property
+    def estado(self):
+        if self.fecha_caducidad < datetime.date.today():
+            return 'Caducado'
+        else:
+            return 'Vigente'
+
+
+class DocumentosLegales(models.Model):
+    
+    marca                = models.CharField(max_length=50)
+    nombre_proveedor     = models.CharField(max_length=50)
+    documento            = models.FileField(upload_to='isos')
+    fecha_caducidad      = models.DateField()
+    registros_sanitarios = models.ManyToManyField(RegistroSanitario, blank=True)
+    creado               = models.DateTimeField(auto_now_add=True)
+    actualizado          = models.DateTimeField(auto_now=True)
+    usuario              = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.PROTECT)
+    
+    def __str__(self):
+        return self.marca
+    
+    @property
+    def estado(self):
+        if self.fecha_caducidad < datetime.date.today():
+            return 'Caducado'
+        else:
+            return 'Vigente'
+
