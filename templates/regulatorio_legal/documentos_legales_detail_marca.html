@@ -1,0 +1,385 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Importaciones Llegadas</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'regulatorio_legal/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+<h5 class="mt-4 mb-0 text-center fw-bold">{{documento.nombre_proveedor}}</h5>
+<h6 class="text-center">{{documento.marca}}</h6>
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
+<div id="msg"></div>
+
+<div class="col-6">
+    <div>
+        <label class="fw-bold">ISO:</label>
+        <a href="{{documento.documento.url}}" target="_blank">Ver documento <i class="bi bi-eye"></i></a>
+    </div>
+    <div>
+        <label class="fw-bold">Fecha de expiración:</label>
+        {{documento.fecha_caducidad}}
+    </div>
+    <div>
+        <label class="fw-bold">Estado:</label>
+        {{documento.estado}}
+    </div>
+    <div>
+        <label class="fw-bold">Creado:</label>
+        {{documento.creado|date:'Y-m-d'}}
+    </div>
+    {% if documento.creado != documento.actualizado %}
+    <div>
+        <label class="fw-bold">Actualizado:</label>
+        {{documento.actualizado|date:'Y-m-d'}}
+    </div>
+    {% endif %}
+    <div>
+        <label class="fw-bold">Creado por:</label>
+        {{documento.usuario.first_name}} {{documento.usuario.last_name}}
+    </div>
+    <button class="btn btn-warning mt-2" type="button" name="editar-iso" data-bs-toggle="modal" data-bs-target="#actualizar-iso">
+        Actualizar ISO
+    </button>
+</div>
+
+<hr>
+
+<div class="col-4 mb-2">
+    <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+</div>
+
+
+<!-- Button trigger modal -->
+<button type="button" class="btn btn-primary mb-2" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+    Añadir Reg-Sanitario
+</button>
+
+<div class="card mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">N° de registro sanitario</th>
+                        <th scope="col">Descripción</th>
+                        <th scope="col">Fecha expiración</th>
+                        <th scope="col">Estado</th>
+                        <th scope="col">Productos</th>
+                        <th scope="col">Creado</th>
+                        <th scope="col">Creado por</th>
+                        <th scope="col">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in documento.registros_sanitarios.all %}
+                    <tr>
+                        <td>{{i.n_reg_sanitario}}</td>
+                        <td>{{i.descripcion}}</td>
+                        <td>{{i.fecha_caducidad|date:'Y-m-d'}}</td>
+                        <td>{{i.estado}}</td>
+                        <td>
+                            {% for j in i.productos.all %}
+                                <ul>
+                                    <li>{{j.product_id}}</li>    
+                                </ul>
+                            {% endfor %}
+                        </td>
+                        <td>{% if i.creado != i.actualizado %} {{i.creado|date:'Y-m-d'}} {% else %} a: {{i.actualizado|date:'Y-m-d'}} {% endif %}</td>
+                        <td>{{i.usuario.first_name}} {{i.usuario.last_name}}</td>
+                        <td>
+                            <div class="btn-group">
+                                <a href="{{i.documento.url}}" class="btn btn-sm btn-primary" target="_blank">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <button class="btn btn-sm btn-warning" name="editar-reg" id="{{i.id}}" data-bs-toggle="modal" data-bs-target="#actualizar-reg">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<!-- Registro Sanitario -->
+<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="staticBackdropLabel">Añadir Reg. Sanitario.</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" id="reg-form" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="row g-2">
+
+                        <!-- N Reg Sanitario -->
+                        <div class="col-4">
+                            <label class="fw-bold" for="n_reg_sanitario">N° Reg. Sanitario:</label>
+                        </div>
+                        <div class="col-8">
+                            <input type="text" name="n_reg_sanitario" id="id_n_reg_sanitario" class="form-control" required>
+                        </div>
+
+                        <!-- Descripción -->
+                        <div class="col-4">
+                            <label class="fw-bold" for="descripcion">Descripción:</label>
+                        </div>
+                        <div class="col-8">
+                            <input type="text" name="descripcion" id="id_descripcion" class="form-control" required>
+                        </div>
+
+                        <!-- Fecha de caducidad -->
+                        <div class="col-4">
+                            <label class="fw-bold" for="fecha_caducidad">Fecha de expiración:</label>
+                        </div>
+                        <div class="col-8">
+                            <input type="date" name="fecha_caducidad" id="id_fecha_caducidad" class="form-control" required>
+                        </div>
+
+                        <!-- Productos -->
+                        <div class="col-4">
+                            <label class="fw-bold" for="productos">Productos:</label>
+                        </div>
+                        <div class="col-8">
+                            <select name="productos" id="id_productos" class="form-select" multiple required>
+                                {% for i in productos_list %}
+                                <option value="{{i}}">{{i}}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Documento -->
+                        <div class="col-4">
+                            <label class="fw-bold" for="documento">Documento:</label>
+                        </div>
+                        <div class="col-8">
+                            <input type="file" name="documento" id="id_documento" class="form-control" accept="application/pdf,application" required>
+                        </div>
+
+                        <input type="hidden" name="usuario" value="{{request.user.id}}">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" form="reg-form" class="btn btn-primary">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Editar ISO -->
+<div class="modal fade" id="actualizar-iso" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="actualizar-isoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="staticBackdropLabel">Actualizar ISO.</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{% url 'documento_legal_editar_marca' documento.id %}" id="actualizar-iso-form" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div id="actualizar-iso-form-get"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" form="actualizar-iso-form" class="btn btn-primary">Editar ISO</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Editar REG -->
+<div class="modal fade" id="actualizar-reg" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="actualizar-regLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="staticBackdropLabel">Actualizar Registro Sanitario.</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{% url 'documento_legal_editar_detail' %}" id="actualizar-reg-form" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div id="actualizar-reg-form-get"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" form="actualizar-reg-form" class="btn btn-primary">Editar Reg. Sanitario</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Select2 -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        $('#id_productos').select2({
+            dropdownParent:$('#staticBackdrop')
+        });
+    })
+</script>
+
+<!--filtro buscar-->
+<script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+
+<!-- Actualizar ISO -->
+<script>
+    $("button[name='editar-iso']").on('click', function() {
+        
+        $.ajax({
+            type: "GET",
+            url: "{% url 'documento_legal_editar_marca' documento.id %}",
+
+            success: function(response) {
+                
+                $("#actualizar-iso-form-get").html(response);
+
+                // add class labels marca
+                $("label[for='id_marca']").addClass('fw-bold');
+
+                // add class labels proveedor
+                $("label[for='id_nombre_proveedor']").addClass('fw-bold');
+
+                // add class labels documento
+                $("label[for='id_documento']").addClass('fw-bold').after('<br>');
+
+            },
+            error: function() {
+                $("#msg").html("Error !!!")
+            }
+        })
+    })
+</script>
+
+<!-- Actualizar REG -->
+<script>
+    $(document).ready(function() {
+        $("button[name='editar-reg']").on('click', function() {
+            var reg_id = $(this).attr('id');
+
+            $.ajax({
+                type: "GET",
+                url: `{% url 'documento_legal_editar_detail' %}`,
+
+                data: {
+                    'reg_id': reg_id
+                },
+                success: function(response) {
+                    $("#actualizar-reg-form-get").html(response.form);
+                    
+                    $("input[id='id_n_reg_sanitario']").after(`<input name="reg_id" type='hidden' value="${reg_id}">`)
+                },
+                error: function(xhr, status, error) {
+                    $("#msg").html("Error: " + error);
+                    console.error('AJAX Error:', status, error);
+                }
+            });
+        });
+    });
+    
+</script>
+
+{% comment %}
+<script>
+    $(document).ready(function() {
+        $("button[name='editar-reg']").on('click', function() {
+            var reg_id = $(this).attr('id');
+
+            $.ajax({
+                type: "GET",
+                url: "{% url 'documento_legal_editar_detail_get'%}",
+                data: {
+                    'reg_id': reg_id
+                },
+                success: function(response) {
+                    $("#actualizar-reg-form-get").html(response.form);
+                    
+                    $("input[id='id_n_reg_sanitario']").after(`<input name="reg_id" type='hidden' value="${reg_id}">`)
+
+                    // Create table for products
+                    var tableHtml = `
+                        <br>
+                        <label for="productos_table">Productos:</label>
+                        <div class="container">
+                        <table id="productos_table" class="table table-striped" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th>Código de Producto</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                        <div>
+                    `;
+                    
+                    $("input[id='id_documento']").after(tableHtml);
+                    
+                    // Populate table with product data
+                    var productos_list = response.productos;
+                    var tableBody = $("#productos_table tbody");
+                    
+                    productos_list.forEach(function(product) {
+                        var row = `
+                            <tr>
+                                <td>${product.product_id}</td>
+                                <td>
+                                    <button class="btn btn-danger btn-sm" type="button" name="eliminar_producto" id="${product.id}">
+                                        Eliminar
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                        tableBody.append(row);
+                    });
+                },
+                error: function(xhr, status, error) {
+                    $("#msg").html("Error: " + error);
+                    console.error('AJAX Error:', status, error);
+                }
+            });
+        });
+    });
+</script>
+{% endcomment %}
+
+{% endblock %}

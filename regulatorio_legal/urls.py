@@ -77,4 +77,33 @@ urlpatterns = [
         view = views.prueba_api_marca_agua,
         name = 'prueba_api_marca_agua'
     ),
+    
+    # documentos legales
+    path(
+        route='documentos-legales-list-marcas',
+        view = views.documentos_legales_list_marcas,
+        name = 'documentos_legales_list_marcas'
+    ),
+    
+        # documentos legales
+    path(
+        route='documentos-legales-detail-marca/<int:id>',
+        view = views.documentos_legales_detail_marca,
+        name = 'documentos_legales_detail_marca'
+    ),
+    
+    # documentos legales
+    path(
+        route='documento_legal_editar_marca/<int:id>',
+        view = views.documento_legal_editar_marca,
+        name = 'documento_legal_editar_marca'
+    ),
+    
+    # documentos legales
+    path(
+        route='documento_legal_editar_detail>',
+        view = views.documento_legal_editar_detail,
+        name = 'documento_legal_editar_detail'
+    ),
+    
 ]
