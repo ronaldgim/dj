@@ -464,4 +464,22 @@ urlpatterns = [
         view = views.wms_reporte_reposicion_alertas,
         name = 'wms_reporte_reposicion_alertas'
     ),
+    
+    path(
+        route='movimiento-grupal',
+        view = views.wms_movimiento_grupal,
+        name = 'wms_movimiento_grupal'
+    ),
+    
+    path(
+        route='wms_movimiento_grupal_get_ubi_list_ajax',
+        view = views.wms_movimiento_grupal_get_ubi_list_ajax,
+        name = 'wms_movimiento_grupal_get_ubi_list_ajax'
+    ),
+    
+    path(
+        route='wms_movimiento_grupal_ubicacion_salida_ajax',
+        view = views.wms_movimiento_grupal_ubicacion_salida_ajax,
+        name = 'wms_movimiento_grupal_ubicacion_salida_ajax'
+    ),
 ]
