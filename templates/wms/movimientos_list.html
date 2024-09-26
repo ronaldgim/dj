@@ -113,7 +113,7 @@
                         <td>
                             {% if i.referencia == 'Picking' %}
                                 {{i.referencia}} <span>: {{i.n_referencia|slice:"-2"}}</span>
-                            {% elif i.referencia == 'Movimiento Interno'  or i.referencia 'Movimiento Grupal' %}
+                            {% elif i.referencia == 'Movimiento Interno'  or i.referencia == 'Movimiento Grupal' %}
                                 {{i.referencia}}
                             {% else %}
                                 {{i.referencia}} <span>: {{i.n_referencia}}</span>
