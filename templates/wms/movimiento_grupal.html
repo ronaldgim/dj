@@ -51,31 +51,35 @@
 </div>
 <br>
 
-<form method="POST">
-    {% csrf_token %} 
-    <div id="div_pasillo"></div>
+<div class="mb-4">
+    <form method="POST">
+        {% csrf_token %} 
+        <div id="div_pasillo"></div>
+    
+            <div id="form-movimiento-interno">
+                <input type="hidden" value="{{request.user.username}}" name="usuario">
+    
+                <label class="fw-bold mt-4">Seleccione la ubicación de salida:</label>
+                <select class="form-select" name="ubicacion" id="ubicacion_salida" required>
+                </select>
+    
+                <div id="msg"></div>
+                <div id="table_data" class="p0"></div>
+                
+                <br>
+    
+                <label id="label_ubicacion_destino" class="fw-bold">Seleccione la ubicación de destino:</label>
+                <select class="form-select" name="ubicacion_destino" id="ubicacion_destino" required>
+                </select>
+                
+                <button class="btn btn-success float-end mt-2" type="submit">
+                    <i class="bi bi-arrows-move"></i> Mover
+                </button>
+            </div>
+    </form>
+</div>
 
-        <div id="form-movimiento-interno">
-            <input type="hidden" value="{{request.user.username}}" name="usuario">
 
-            <label class="fw-bold mt-4">Seleccione la ubicación de salida:</label>
-            <select class="form-select" name="ubicacion" id="ubicacion_salida" required>
-            </select>
-
-            <div id="msg"></div>
-            <div id="table_data" class="p0"></div>
-            
-            <br>
-
-            <label id="label_ubicacion_destino" class="fw-bold">Seleccione la ubicación de destino:</label>
-            <select class="form-select" name="ubicacion_destino" id="ubicacion_destino" required>
-            </select>
-            
-            <button class="btn btn-success float-end mt-2" type="submit">
-                <i class="bi bi-arrows-move"></i> Mover
-            </button>
-        </div>
-</form>
 
 <!-- Select 2 -->
 <script>
