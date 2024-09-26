@@ -4142,13 +4142,11 @@ def wms_movimiento_grupal_get_ubi_list_ajax(request):
 
     bodega  = request.POST['bodega']
     pasillo = request.POST['pasillo']
-    #ubi_salida = int(request.POST['ubi_salida'])
 
     ubi_list = pd.DataFrame(Ubicacion.objects
         .filter(disponible=True)
         .filter(bodega=bodega)
         .filter(pasillo=pasillo)
-        #.exclude(id=ubi_salida)
         .values()
         ).sort_values(by=['bodega','pasillo','modulo','nivel'])
 
@@ -4161,7 +4159,7 @@ def wms_movimiento_grupal_ubicacion_salida_ajax(request):
 
     ubi_salida = int(request.POST['ubi_salida'])
     ubi = Ubicacion.objects.get(id=ubi_salida)
-    #ubicaciones_destino = Ubicacion.objects.exclude(id=ubi.id).values()
+    ubicaciones_destino = pd.DataFrame(Ubicacion.objects.exclude(id=ubi.id).values()).sort_values(by=['bodega','pasillo','modulo','nivel'])
     existencia_ubi_salida = pd.DataFrame(Existencias.objects.filter(ubicacion_id=ubi_salida).values())
 
     if not existencia_ubi_salida.empty:
@@ -4211,7 +4209,7 @@ def wms_movimiento_grupal_ubicacion_salida_ajax(request):
             'exitencias':table,
             'msg':f'⚠ Existencias en ubicación {ubi} !!!',
             'type':'warning',
-            #'ubicaciones_destino':ubicaciones_destino
+            'ubicaciones_destino':de_dataframe_a_template(ubicaciones_destino)
             })
 
     else:
