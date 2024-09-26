@@ -4161,6 +4161,7 @@ def wms_movimiento_grupal_ubicacion_salida_ajax(request):
 
     ubi_salida = int(request.POST['ubi_salida'])
     ubi = Ubicacion.objects.get(id=ubi_salida)
+    #ubicaciones_destino = Ubicacion.objects.exclude(id=ubi.id).values()
     existencia_ubi_salida = pd.DataFrame(Existencias.objects.filter(ubicacion_id=ubi_salida).values())
 
     if not existencia_ubi_salida.empty:
@@ -4180,11 +4181,11 @@ def wms_movimiento_grupal_ubicacion_salida_ajax(request):
                 <tr>
                     <td>{row['product_id']}</td>
                     <td>{row['lote_id']}</td>
-                    <td>{row['unidades']}</td>
-                    <td>
-                        <input type="checkbox" class="form-check-input">
-                        <input name="id_existencia" type="hidden" value="{row['id']}">
-                        <input name="id_ubicacion" type="hidden" value="{row['ubicacion_id']}">
+                    <td class="text-end">{row['unidades']}</td>
+                    <td class="text-center" id="tr-inputs">
+                        <input id="id_mover" type="checkbox" class="form-check-input">
+                        <input id="id_existencia" type="hidden" value="{row['id']}">
+                        <input id="id_ubicacion" type="hidden" value="{row['ubicacion_id']}">
                     </td>
                 </tr>
             """
@@ -4209,7 +4210,8 @@ def wms_movimiento_grupal_ubicacion_salida_ajax(request):
         return JsonResponse({
             'exitencias':table,
             'msg':f'⚠ Existencias en ubicación {ubi} !!!',
-            'type':'warning'
+            'type':'warning',
+            #'ubicaciones_destino':ubicaciones_destino
             })
 
     else:

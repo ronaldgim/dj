@@ -40,46 +40,55 @@
 {% endif %}
 {% endcomment %}
 
+
+<label class="fw-bold">Seleccione Bodega:</label>
+<br>
+<div class="btn-group mt-2 mb-2" role="group" aria-label="Basic example">
+    <button name="bod-filter" id="CN4" type="button" class="btn btn-primary">CN4</button>
+    <button name="bod-filter" id="CN5" type="button" class="btn btn-secondary">CN5</button>
+    <button name="bod-filter" id="CN6" type="button" class="btn btn-success">CN6</button>
+    <button name="bod-filter" id="CN7" type="button" class="btn btn-warning">CN7</button>
+</div>
+<br>
+
 <form method="POST">
     {% csrf_token %} 
-    
-    <input type="hidden" value="{{request.user.username}}" name="usuario">
-    <label class="fw-bold">Seleccione Bodega:</label>
-    <br>
-    <div class="btn-group mt-2 mb-2" role="group" aria-label="Basic example">
-        <button name="bod-filter" id="CN4" type="button" class="btn btn-primary">CN4</button>
-        <button name="bod-filter" id="CN5" type="button" class="btn btn-secondary">CN5</button>
-        <button name="bod-filter" id="CN6" type="button" class="btn btn-success">CN6</button>
-        <button name="bod-filter" id="CN7" type="button" class="btn btn-warning">CN7</button>
-    </div>
-    <br>
-
     <div id="div_pasillo"></div>
 
         <div id="form-movimiento-interno">
-            <label class="fw-bold">Seleccione la ubicación de salida:</label>
-            <select class="form-select" name="ubicacion" id="chosen-select" required>
+            <input type="hidden" value="{{request.user.username}}" name="usuario">
+
+            <label class="fw-bold mt-4">Seleccione la ubicación de salida:</label>
+            <select class="form-select" name="ubicacion" id="ubicacion_salida" required>
             </select>
 
             <div id="msg"></div>
             <div id="table_data" class="p0"></div>
+            
+            <br>
 
-            <!--label class="fw-bold">Unidades:</label>
-            <input class="form-control form-control-sm" type="number" name="unidades" min="1" required-->
-
-            <label class="fw-bold">Seleccione la ubicación de entrada:</label>
-            <select class="form-select" name="ubicacion" id="chosen-select" required>
+            <label id="label_ubicacion_destino" class="fw-bold">Seleccione la ubicación de destino:</label>
+            <select class="form-select" name="ubicacion_destino" id="ubicacion_destino" required>
             </select>
-
-
+            
             <button class="btn btn-success float-end mt-2" type="submit">
                 <i class="bi bi-arrows-move"></i> Mover
             </button>
         </div>
 </form>
 
-<script src="{% static 'js/select_items_form.js' %}"></script>
+<!-- Select 2 -->
+<script>
+    $(document).ready(function() {
+        $('#ubicacion_salida').select2();
+    });
 
+    $(document).ready(function() {
+        $('#ubicacion_destino').select2();
+    })
+</script>
+
+<!-- Seleccionar pasillo y devolver lista de ubicaciones -->
 <script>
     $(document).ready(function() {
         $('#form-movimiento-interno').css('display', 'none');
@@ -127,7 +136,8 @@
                 var bodega  = $("#bod-selected").html();
                 var pasillo = $(this).text();
                 
-                var select_ubi_list = $("#chosen-select")
+                //var select_ubi_list = $("#chosen-select")
+                var select_ubi_list = $("#ubicacion_salida")
 
                 $.ajax({
                     type:"POST",
@@ -164,10 +174,10 @@
     
 </script>
 
-
+<!-- devolver lista de productos de la ubicación -->
 <script>
     $(document).ready(function() {
-        $('#chosen-select').change(function() {
+        $('#ubicacion_salida').change(function() {
             
             var select_ubi = $(this); 
             var title = $("#title_modal");
@@ -186,6 +196,7 @@
                         $("#msg").html(`<div class="text-center p-2 mt-2 mb-2 alert alert-${response.type}" role="alert">${response.msg}</div>`);
                         
                         if(response.type === 'warning'){
+
                             $("#table_data").html(
                                 `<div class="card p-0 mt-0">
                                     <div class="card-body p-0">
