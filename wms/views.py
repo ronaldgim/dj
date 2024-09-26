@@ -4127,3 +4127,93 @@ def wms_reporte_reposicion_alertas(request):
     }
     
     return render(request, 'wms/reporte_reposicion_alertas.html', context)
+
+
+def wms_movimiento_grupal(request):
+    
+    context = {
+        
+    }
+    
+    return render(request, 'wms/movimiento_grupal.html', context)
+
+
+def wms_movimiento_grupal_get_ubi_list_ajax(request):
+
+    bodega  = request.POST['bodega']
+    pasillo = request.POST['pasillo']
+    #ubi_salida = int(request.POST['ubi_salida'])
+
+    ubi_list = pd.DataFrame(Ubicacion.objects
+        .filter(disponible=True)
+        .filter(bodega=bodega)
+        .filter(pasillo=pasillo)
+        #.exclude(id=ubi_salida)
+        .values()
+        ).sort_values(by=['bodega','pasillo','modulo','nivel'])
+
+    ubi_list = de_dataframe_a_template(ubi_list)
+
+    return JsonResponse({'ubi_list':ubi_list}, status=200)
+
+
+def wms_movimiento_grupal_ubicacion_salida_ajax(request):
+
+    ubi_salida = int(request.POST['ubi_salida'])
+    ubi = Ubicacion.objects.get(id=ubi_salida)
+    existencia_ubi_salida = pd.DataFrame(Existencias.objects.filter(ubicacion_id=ubi_salida).values())
+
+    if not existencia_ubi_salida.empty:
+        existencia_ubi_salida = existencia_ubi_salida[[
+            'id', 
+            'product_id', 
+            'lote_id', 
+            'unidades',
+            'ubicacion_id'
+        ]]
+        
+        rows_html = []
+        
+        for index, row in existencia_ubi_salida.iterrows():
+            
+            row_tr = f"""
+                <tr>
+                    <td>{row['product_id']}</td>
+                    <td>{row['lote_id']}</td>
+                    <td>{row['unidades']}</td>
+                    <td>
+                        <input type="checkbox" class="form-check-input">
+                        <input name="id_existencia" type="hidden" value="{row['id']}">
+                        <input name="id_ubicacion" type="hidden" value="{row['ubicacion_id']}">
+                    </td>
+                </tr>
+            """
+            rows_html.append(row_tr)
+        
+        table = f"""
+        <table border="1" class="table table-responsive table-bordered m-0 p-0" id="existencias">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Lote</th>
+                    <th>Unidades</th>
+                    <th>Mover</th>
+                </tr>
+            </thead>
+            <tbody>
+                {''.join(rows_html)}
+            </tbody>
+        </table>
+        """        
+        
+        return JsonResponse({
+            'exitencias':table,
+            'msg':f'⚠ Existencias en ubicación {ubi} !!!',
+            'type':'warning'
+            })
+
+    else:
+        return JsonResponse({
+            'msg':f'✅ Posición {ubi} vacia !!!',
+            'type':'success'
+        })
