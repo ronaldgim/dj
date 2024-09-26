@@ -26,40 +26,6 @@
 {% endif %}
 
 
-<!--button class="btn btn-primary" name="buscar">
-    Busqueda
-</button-->
-
-<!--div class="row mb-2 m-0 p-0" style="display:none" id="buscar">
-    <div class="card mt-2 mb-2">
-        <div class="card-body mt-2 mb-2 p-0">
-            <form method="POST">
-                {% csrf_token %}
-                <div class="col-4">
-                    <label class="fw-bold">Tipo:</label>
-                    <select class="form-select" name="tipo">
-                        <option value="">-----------</option>
-                        <option value="Código">Código</option>
-                        <option value="Número de referencia">Número de referencia</option>
-                        <option value="Número de factura">Número de factura</option>
-                    </select>
-                </div>
-
-                <div class="col-4">
-                    <label class="fw-bold">Valor:</label>
-                    <input class="form-control" name="valor" />
-                </div>
-
-                <button class="btn btn-success mt-2">
-                    <i class="bi bi-search"></i> Buscar
-                </button>
-                
-            </form>
-        </div>
-    </div>
-</div-->
-
-
 <div class="row mb-2 m-0 p-0" id="buscar">
 
     <div class="card mt-2 mb-2">
@@ -121,7 +87,6 @@
                         <th scope="col">Lote</th>
                         <th scope="col">Tipo</th>
                         <th scope="col">Estado</th>
-                        <!--th scope="col">Descripción</th-->
                         <th scope="col">Referencia</th>
                         <th scope="col">Ubicación</th>
                         <th scope="col">Estado Picking</th>
@@ -145,12 +110,10 @@
                         <td>{{i.tipo}}</td>
                         <td>{{i.estado}}</td>
                         
-                        <!--td>{{i.descripcion|default:'-'}}</td-->
-                        
                         <td>
                             {% if i.referencia == 'Picking' %}
                                 {{i.referencia}} <span>: {{i.n_referencia|slice:"-2"}}</span>
-                            {% elif i.referencia == 'Movimiento Interno' %}
+                            {% elif i.referencia == 'Movimiento Interno'  or i.referencia 'Movimiento Grupal' %}
                                 {{i.referencia}}
                             {% else %}
                                 {{i.referencia}} <span>: {{i.n_referencia}}</span>

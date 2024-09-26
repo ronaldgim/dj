@@ -3714,7 +3714,7 @@ def wms_ajuste_liberacion_list(request):
     
     return render(request, 'wms/ajuste_liberacion_list.html', context)
 
-
+@login_required(login_url='login')
 def wms_ajuste_liberacion_input_ajax(request):
     
     tipo_liberacion = request.POST['tipo']
@@ -3787,7 +3787,7 @@ def wms_ajuste_liberacion_input_ajax(request):
                 }
             })
 
-
+@login_required(login_url='login')
 @permisos(['ADMINISTRADOR','OPERACIONES'],'/wms/home', 'ingresar a ajuste liberaciones')
 def wms_ajuste_liberacion_detalle(request, n_liberacion):
     
@@ -3901,6 +3901,7 @@ def wms_retiro_producto_despacho(request):
     return render(request, 'wms/retiro_producto_despacho_list.html', {})
 
 
+@login_required(login_url='login')
 @permisos(['ADMINISTRADOR','OPERACIONES'],'/wms/home', 'ingresar a retiro de productos en despacho')
 def wms_retiro_producto_despacho_ajax(request):
     
@@ -3940,6 +3941,7 @@ def wms_retiro_producto_despacho_ajax(request):
 
 
 # MODULO UBICACIÓNES DISPONIBLES Y NO DISPONIBLES
+@login_required(login_url='login')
 @permisos(['ADMINISTRADOR','OPERACIONES', 'BODEGA'],'/wms/home', 'ingresar a ubicaciones')
 def wms_ubicaciones_list(request):    
     
@@ -3955,6 +3957,7 @@ def wms_ubicaciones_list(request):
 
 
 # HABILITAR O DESHABILITAR UBICACIÓN
+@login_required(login_url='login')
 @permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'],'/wms/home', 'ingresar a ubicaciones')
 def wms_habilitar_deshabilitar_ubicacion_ajax(request):
     
@@ -4008,6 +4011,7 @@ def wms_habilitar_deshabilitar_ubicacion_ajax(request):
             return redirect('wms_ubicaciones_list')
 
 
+@login_required(login_url='login')
 @permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'],'/wms/home', 'ingresar a ubicaciones')
 def wms_reporte_reposicion(request):
     
@@ -4029,6 +4033,7 @@ def wms_reporte_reposicion(request):
     return render(request, 'wms/reporte_reposicion.html', context)
 
 
+@login_required(login_url='login')
 @permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'],'/wms/home', 'ingresar a reporte')
 def wms_reporte_bodegas457(request):
     
@@ -4063,7 +4068,7 @@ def wms_reporte_bodegas457(request):
     return render(request, 'wms/reporte_bod457.html', context)
 
 
-
+@login_required(login_url='login')
 @permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'],'/wms/home', 'ingresar a ubicaciones')
 def wms_reporte_reposicion_alertas(request):    
     
@@ -4129,6 +4134,8 @@ def wms_reporte_reposicion_alertas(request):
     return render(request, 'wms/reporte_reposicion_alertas.html', context)
 
 
+@login_required(login_url='login')
+@permisos(['BODEGA'], '/wms/inventario', 'ingrear a Movimiento interno')
 def wms_movimiento_grupal(request):
     
     if request.method == 'POST':
