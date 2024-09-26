@@ -52,31 +52,29 @@
 <br>
 
 
-<form method="POST">
-    {% csrf_token %} 
-    <div id="div_pasillo"></div>
+<div id="div_pasillo"></div>
 
-        <div id="form-movimiento-interno">
-            <input type="hidden" value="{{request.user.username}}" name="usuario">
+<input type="hidden" value="{{request.user.username}}" name="usuario" id="usuario">
 
-            <label class="fw-bold mt-4">Seleccione la ubicación de salida:</label>
-            <select class="form-select" name="ubicacion" id="ubicacion_salida" required>
-            </select>
+<label class="fw-bold mt-4">Seleccione la ubicación de salida:</label>
+<select class="form-select" name="ubicacion" id="ubicacion_salida">
+</select>
 
-            <div id="msg"></div>
-            <div id="table_data" class="p0"></div>
-            
-            <br>
+<div id="msg"></div>
+<div id="msg_dos"></div>
+<div id="table_data" class="p0"></div>
 
-            <label id="label_ubicacion_destino" class="fw-bold">Seleccione la ubicación de destino:</label>
-            <select class="form-select" name="ubicacion_destino" id="ubicacion_destino" required>
-            </select>
-            
-            <button class="btn btn-success float-end mt-2 mb-4" type="submit">
-                <i class="bi bi-arrows-move"></i> Mover
-            </button>
-        </div>
-</form>
+<br>
+
+<label id="label_ubicacion_destino" class="fw-bold">Seleccione la ubicación de destino:</label>
+<select class="form-select" name="ubicacion_destino" id="ubicacion_destino">
+</select>
+
+
+<button class="btn btn-success float-end mt-2 mb-4 disabled" type="button" name="form-movimiento-grupal">
+    <i class="bi bi-arrows-move"></i> Mover
+</button>
+
 
 <!-- Select 2 -->
 <script>
@@ -92,10 +90,7 @@
 <!-- Seleccionar pasillo y devolver lista de ubicaciones -->
 <script>
     $(document).ready(function() {
-        $('#form-movimiento-interno').css('display', 'none');
-
         $("button[name='bod-filter']").click(function(){
-            $('#form-movimiento-interno').css('display', 'none');
             var bod = $(this).attr('id');
             var div_pasillo = $("#div_pasillo");
     
@@ -116,7 +111,6 @@
                 } else {
                     pasillos = pasillos_demas
                 } 
-    
                 return pasillos
             }
     
@@ -150,8 +144,6 @@
 
                     success: function(response) {
 
-                        $('#form-movimiento-interno').css('display', 'block');
-
                         select_ubi_list.empty();
                         $("#msg").empty();
                         $("#table_data").empty();
@@ -164,7 +156,6 @@
                                 select_ubi_list.append(`<option value="${item.id}">${item.bodega}-${item.pasillo}-${item.modulo}</option>`);
                             }
                         })
-
                     }
                 })
 
@@ -184,45 +175,46 @@
             var cabecera = $('#cabecera_modal');
             var body = $('#body_modal');
                 
-                $.ajax({
-                    type: "POST",
-                    url: "{% url 'wms_movimiento_grupal_ubicacion_salida_ajax' %}", 
-                    data: { 
-                        'csrfmiddlewaretoken': '{{csrf_token}}',
-                        'ubi_salida': select_ubi.val(),
-                    },
-                    success: function(response) {
-                        
-                        var select_ubi_destino_list = $("#ubicacion_destino");
-                        $("#msg").html(`<div class="text-center p-2 mt-2 mb-2 alert alert-${response.type}" role="alert">${response.msg}</div>`);
-                        
-                        if(response.type === 'warning'){
+            $.ajax({
+                type: "POST",
+                url: "{% url 'wms_movimiento_grupal_ubicacion_salida_ajax' %}", 
+                data: { 
+                    'csrfmiddlewaretoken': '{{csrf_token}}',
+                    'ubi_salida': select_ubi.val(),
+                },
+                success: function(response) {
+                    
+                    var select_ubi_destino_list = $("#ubicacion_destino");
+                    $("#msg").html(`<div class="text-center p-2 mt-2 mb-2 alert alert-${response.type}" role="alert">${response.msg}</div>`);
+                    
+                    if(response.type === 'warning'){
 
-                            // Show table
-                            $("#table_data").html(
-                                `<div class="card p-0 mt-0">
-                                    <div class="card-body p-0">
-                                        ${response.exitencias}
-                                    </div>
+                        // Show table
+                        $("#table_data").html(
+                            `<div class="card p-0 mt-0">
+                                <div class="card-body p-0">
+                                    ${response.exitencias}
                                 </div>
-                            `)
-                            
-                            // Añadir ubicaciones de destino
-                            select_ubi_destino_list.empty();
-                            select_ubi_destino_list.append('<option value="">Selecciona una ubicación</option>');
-                            $.each(response.ubicaciones_destino, function(index, item){
-                                if (item.bodega === 'CN6') {
-                                    select_ubi_destino_list.append(`<option value="${item.id}">${item.bodega}-${item.pasillo}-${item.modulo}-${item.nivel}</option>`);
-                                } else {
-                                    select_ubi_destino_list.append(`<option value="${item.id}">${item.bodega}-${item.pasillo}-${item.modulo}</option>`);
-                                }
-                            })
-                            
+                            </div>
+                        `)
+                        
+                        // Añadir ubicaciones de destino
+                        select_ubi_destino_list.empty();
+                        select_ubi_destino_list.append('<option value="">Selecciona una ubicación</option>');
+                        $.each(response.ubicaciones_destino, function(index, item){
+                            if (item.bodega === 'CN6') {
+                                select_ubi_destino_list.append(`<option value="${item.id}">${item.bodega}-${item.pasillo}-${item.modulo}-${item.nivel}</option>`);
                             } else {
-                                    $("#table_data").empty()
-                                }
+                                select_ubi_destino_list.append(`<option value="${item.id}">${item.bodega}-${item.pasillo}-${item.modulo}</option>`);
+                            }
+                        })
+                        
+                        } else {
+                            $("#table_data").empty()
+                        }
                     },
-                    error: function(error) {
+
+                error: function(error) {
                         console.error(error);
                     }
                 }); 
@@ -231,6 +223,67 @@
     });
 </script>
 
+<!-- Enviar datos al backend crear movimientos -->
+<script>
+
+    $(document).ready(function() {
+        $("button[name='form-movimiento-grupal']").on('click', function() {
+            let datos_cabecera = {
+                usuario: $("#usuario").val(),
+                ubi_destino: $("#ubicacion_destino").val(),
+            }
+            
+            let datos_productos = [];
+    
+            $("#tabla_existencias > tbody > tr").each(function() {
+                var mover = $(this).find(".mover-checkbox").prop("checked");
+                
+                if (mover) {
+                    var id_existencia = $(this).find(".existencia-hidden").val();
+                    datos_productos.push({
+                        id_existencia: id_existencia,
+                    });
+                }
+            });
+    
+            // .ajax
+            $.ajax({
+                type: "POST",
+                url: "{% url 'wms_movimiento_grupal' %}",
+                data: {
+                    'csrfmiddlewaretoken': '{{ csrf_token }}',
+                    'cabecera': JSON.stringify(datos_cabecera),
+                    'productos': JSON.stringify(datos_productos),
+                },
+                success:function(response) {
+                    
+                    if (response.type==='success'){
+                        $("#msg_dos").html(`<div class="text-center p-2 mt-2 mb-2 alert alert-${response.type}" role="alert">${response.msg}</div>`);
+                        alert(response.msg);    
+                        window.location.reload();
+                    } else if(response.type==='danger'){
+                        $("#msg_dos").html(`<div class="text-center p-2 mt-2 mb-2 alert alert-${response.type}" role="alert">${response.msg}</div>`);
+                    }
+                },
+                error: function() {
+                    $("#msg_dos").html(`<div class="text-center p-2 mt-2 mb-2 alert alert-danger" role="alert">Error !!!</div>`);
+                }
+            })
+        });
+    })
+</script>
+
+<!-- diplay btn mover -->
+<script>
+    $("#ubicacion_destino").on("change", function() {
+        var ubicacion_destino = $(this).val();
+        if (ubicacion_destino){
+            $("button[name='form-movimiento-grupal']").removeClass('disabled');
+        } else {
+            $("button[name='form-movimiento-grupal']").addClass('disabled');
+        }
+    });
+</script>
 
 
 {% comment %}
