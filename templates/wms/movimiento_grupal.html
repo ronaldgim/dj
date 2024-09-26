@@ -140,8 +140,7 @@
                 var bodega  = $("#bod-selected").html();
                 var pasillo = $(this).text();
                 
-                //var select_ubi_list = $("#chosen-select")
-                var select_ubi_list = $("#ubicacion_salida")
+                var select_ubi_list = $("#ubicacion_salida");
 
                 $.ajax({
                     type:"POST",
@@ -197,17 +196,32 @@
                     },
                     success: function(response) {
                         
+                        var select_ubi_destino_list = $("#ubicacion_destino");
                         $("#msg").html(`<div class="text-center p-2 mt-2 mb-2 alert alert-${response.type}" role="alert">${response.msg}</div>`);
                         
                         if(response.type === 'warning'){
 
+                            // Show table
                             $("#table_data").html(
                                 `<div class="card p-0 mt-0">
                                     <div class="card-body p-0">
                                         ${response.exitencias}
                                     </div>
                                 </div>
-                                `)} else {
+                            `)
+                            
+                            // Añadir ubicaciones de destino
+                            select_ubi_destino_list.empty();
+                            select_ubi_destino_list.append('<option value="">Selecciona una ubicación</option>');
+                            $.each(response.ubicaciones_destino, function(index, item){
+                                if (item.bodega === 'CN6') {
+                                    select_ubi_destino_list.append(`<option value="${item.id}">${item.bodega}-${item.pasillo}-${item.modulo}-${item.nivel}</option>`);
+                                } else {
+                                    select_ubi_destino_list.append(`<option value="${item.id}">${item.bodega}-${item.pasillo}-${item.modulo}</option>`);
+                                }
+                            })
+                            
+                            } else {
                                     $("#table_data").empty()
                                 }
                     },
