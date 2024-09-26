@@ -50,7 +50,7 @@
     </div>
 </div>
 
-{#% comment %#}
+{% comment %}
 {% if request.user.is_superuser %}
 <!-- Scan QR -->
 <div>
@@ -59,7 +59,7 @@
     <p>QR Ubicación: <span id="result"></span></p>
 </div>
 {% endif %}
-{#% endcomment %#}
+{% endcomment %}
 
 <form method="POST">
     {% csrf_token %} 
@@ -94,82 +94,8 @@
         </div>
 </form>
 
-<!-- QR SCAN -->
-<script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
-<script>
-    let stream;
-
-    function startScanner() {
-        const video = document.getElementById('video');
-        const resultDisplay = document.getElementById('result');
-        
-        // Si ya hay un stream activo, deténgalo
-        if (stream) {
-            stream.getTracks().forEach(track => track.stop());
-        }
-
-        // Reinicia el contenido del span
-        resultDisplay.textContent = "";
-        
-        // Configuración específica para dispositivos móviles
-        const constraints = {
-            video: {
-                facingMode: 'environment' // Usa la cámara trasera en móviles
-            }
-        };
-
-        // Verifica si el navegador soporta getUserMedia
-        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-            navigator.mediaDevices.getUserMedia(constraints)
-            .then(newStream => {
-                stream = newStream;
-                video.srcObject = stream;
-                video.setAttribute('playsinline', true); // Importante para iOS
-                video.play();
-                
-                video.addEventListener('loadedmetadata', function() {
-                    const canvas = document.createElement('canvas');
-                    const context = canvas.getContext('2d');
-                    
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
-                    video.style.display = 'block';
-                    
-                    function captureFrame() {
-                        if (video.style.display === 'none') return;
-
-                        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-
-                        const qrCode = jsQR(imageData.data, canvas.width, canvas.height);
-
-                        if (qrCode) {
-                            resultDisplay.textContent = qrCode.data;
-                            video.style.display = 'none';
-                            video.pause();
-                            stream.getTracks().forEach(track => track.stop());
-                        } else {
-                            requestAnimationFrame(captureFrame);
-                        }
-                    }
-                    requestAnimationFrame(captureFrame);
-                });
-                
-            }).catch(error => {
-                console.error("Error accessing camera:", error);
-                alert("Camara inaccesible. Asegurate de utilizar https.");
-            });
-        } else {
-            alert("Lo siento, tu navegador no soporta acceso a camara.");
-        }
-    }
-
-    document.getElementById('startScan').addEventListener('click', startScanner);
-</script>
-
 
 <script src="{% static 'js/select_items_form.js' %}"></script>
-
 <script>
     $(document).ready(function() {
         $('#form-movimiento-interno').css('display', 'none');
@@ -265,7 +191,6 @@
             var cabecera = $('#cabecera_modal');
             var body = $('#body_modal');
 
-
             if (select_ubi.text().includes('CN6')) {
                 
                 $.ajax({
@@ -299,5 +224,80 @@
         });
     });
 </script>
+
+{% comment %}
+<!-- QR SCAN -->
+<script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
+<script>
+    let stream;
+
+    function startScanner() {
+        const video = document.getElementById('video');
+        const resultDisplay = document.getElementById('result');
+        
+        // Si ya hay un stream activo, deténgalo
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+        }
+
+        // Reinicia el contenido del span
+        resultDisplay.textContent = "";
+        
+        // Configuración específica para dispositivos móviles
+        const constraints = {
+            video: {
+                facingMode: 'environment' // Usa la cámara trasera en móviles
+            }
+        };
+
+        // Verifica si el navegador soporta getUserMedia
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia(constraints)
+            .then(newStream => {
+                stream = newStream;
+                video.srcObject = stream;
+                video.setAttribute('playsinline', true); // Importante para iOS
+                video.play();
+                
+                video.addEventListener('loadedmetadata', function() {
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    video.style.display = 'block';
+                    
+                    function captureFrame() {
+                        if (video.style.display === 'none') return;
+
+                        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+
+                        const qrCode = jsQR(imageData.data, canvas.width, canvas.height);
+
+                        if (qrCode) {
+                            resultDisplay.textContent = qrCode.data;
+                            video.style.display = 'none';
+                            video.pause();
+                            stream.getTracks().forEach(track => track.stop());
+                        } else {
+                            requestAnimationFrame(captureFrame);
+                        }
+                    }
+                    requestAnimationFrame(captureFrame);
+                });
+                
+            }).catch(error => {
+                console.error("Error accessing camera:", error);
+                alert("Camara inaccesible. Asegurate de utilizar https.");
+            });
+        } else {
+            alert("Lo siento, tu navegador no soporta acceso a camara.");
+        }
+    }
+
+    document.getElementById('startScan').addEventListener('click', startScanner);
+</script>
+{% endcomment %}
 
 {% endblock %}

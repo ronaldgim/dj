@@ -4131,11 +4131,62 @@ def wms_reporte_reposicion_alertas(request):
 
 def wms_movimiento_grupal(request):
     
-    context = {
+    if request.method == 'POST':
+        cabecera = json.loads(request.POST['cabecera'])
+        productos = json.loads(request.POST['productos'])
         
-    }
+        if len(productos) > 0:
+        
+            for i in productos:
+
+                usuario = User.objects.get(username=cabecera['usuario'])
+                ubicacion_destino = int(cabecera['ubi_destino'])
+                existencia = Existencias.objects.get(id=int(i['id_existencia']))
+                
+                # Crear movimiento de salida
+                mov_egreso = Movimiento(
+                    product_id=existencia.product_id,
+                    lote_id=existencia.lote_id,
+                    fecha_caducidad=existencia.fecha_caducidad,
+                    tipo='Egreso',
+                    descripcion='N/A',
+                    referencia='Movimiento Grupal',
+                    ubicacion=existencia.ubicacion,
+                    unidades=(existencia.unidades) * -1,
+                    estado=existencia.estado,
+                    usuario=usuario,
+                )
+                mov_egreso.save()
+                
+                # Crear movimiento de ingreso
+                mov_ingreso = Movimiento(
+                    product_id=existencia.product_id,
+                    lote_id=existencia.lote_id,
+                    fecha_caducidad=existencia.fecha_caducidad,
+                    tipo='Ingreso',
+                    descripcion='N/A',
+                    referencia='Movimiento Grupal',
+                    ubicacion_id=ubicacion_destino,
+                    unidades=existencia.unidades,
+                    estado=existencia.estado,
+                    usuario=usuario,
+                )
+                mov_ingreso.save()
+                
+                wms_existencias_query_product_lote(product_id=existencia.product_id, lote_id=existencia.lote_id)
+
+            return JsonResponse({
+                'msg':'Se movieron todos los productos seleccionados !!!',
+                'type':'success'
+            })                
+
+        else:
+            return JsonResponse({
+                'msg':'Seleccione almenos un producto !!!',
+                'type':'danger'
+            })
     
-    return render(request, 'wms/movimiento_grupal.html', context)
+    return render(request, 'wms/movimiento_grupal.html', {})
 
 
 def wms_movimiento_grupal_get_ubi_list_ajax(request):
@@ -4181,16 +4232,15 @@ def wms_movimiento_grupal_ubicacion_salida_ajax(request):
                     <td>{row['lote_id']}</td>
                     <td class="text-end">{row['unidades']}</td>
                     <td class="text-center" id="tr-inputs">
-                        <input id="id_mover" type="checkbox" class="form-check-input">
-                        <input id="id_existencia" type="hidden" value="{row['id']}">
-                        <input id="id_ubicacion" type="hidden" value="{row['ubicacion_id']}">
+                        <input class="mover-checkbox form-check-input" type="checkbox">
+                        <input class="existencia-hidden" type="hidden" value="{row['id']}">
                     </td>
                 </tr>
             """
             rows_html.append(row_tr)
         
         table = f"""
-        <table border="1" style="font-size:small" class="table table-responsive table-bordered m-0 p-0" id="existencias">
+        <table border="1" style="font-size:small" class="table table-responsive table-bordered m-0 p-0" id="tabla_existencias">
             <thead>
                 <tr>
                     <th>Código</th>

@@ -16,6 +16,7 @@ REFERENCIA_MOVIMIENTOS = [
     ('Inventario Inicial', 'Inventario Inicial'),
     ('Ingreso Importación', 'Ingreso Importación'),
     ('Movimiento Interno',  'Movimiento Interno'),
+    ('Movimiento Grupal',  'Movimiento Grupal'),
     ('Liberación', 'Liberación'),
     ('Ajuste', 'Ajuste'),
     ('Picking', 'Picking'),
@@ -69,7 +70,6 @@ class InventarioIngresoBodega(models.Model):
 
     def __str__(self):
         return f"código:{self.product_id} - unidades: {self.unidades_ingresadas}" 
-    
 
 
 class Ubicacion(models.Model):
