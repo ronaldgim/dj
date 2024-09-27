@@ -1495,7 +1495,14 @@ def wms_verificar_ubicacion_destino_ajax(request):
 
         existencia_ubi_destino['unidades'] = existencia_ubi_destino['unidades'].astype('str')
         existencia_ubi_destino.loc['total'] = existencia_ubi_destino.sum(numeric_only=True, axis=0)
-
+        
+        existencia_ubi_destino = existencia_ubi_destino.rename(columns={
+            'product_id':'Código',
+            'lote_id':'Lote',
+            'unidades':'Unidades',
+            'cartones':'Cartones'
+            })
+        
         existencia_ubi_destino_html = existencia_ubi_destino.to_html(
             float_format='{:,.2f}'.format,
             classes='table table-responsive table-bordered m-0 p-0',
