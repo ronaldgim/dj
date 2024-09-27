@@ -4254,7 +4254,7 @@ def wms_movimiento_grupal_ubicacion_salida_ajax(request):
             rows_html.append(row_tr)
         
         table = f"""
-        <table border="1" style="font-size:small" class="table table-responsive table-bordered m-0 p-0" id="tabla_existencias">
+        <table border="1" class="table table-responsive table-bordered m-0 p-0" id="tabla_existencias">
             <thead>
                 <tr>
                     <th>Código</th>
