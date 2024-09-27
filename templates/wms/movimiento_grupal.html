@@ -56,9 +56,11 @@
 
 <input type="hidden" value="{{request.user.username}}" name="usuario" id="usuario">
 
+<div id="div_ubi_salida">
 <label class="fw-bold mt-4">Seleccione la ubicación de salida:</label>
 <select class="form-select" name="ubicacion" id="ubicacion_salida">
 </select>
+</div>
 
 <div id="msg"></div>
 <div id="msg_dos"></div>
@@ -66,15 +68,15 @@
 
 <br>
 
+<div id="div_ubi_destino">
 <label id="label_ubicacion_destino" class="fw-bold">Seleccione la ubicación de destino:</label>
 <select class="form-select" name="ubicacion_destino" id="ubicacion_destino">
 </select>
 
-
 <button class="btn btn-success float-end mt-2 mb-4 disabled" type="button" name="form-movimiento-grupal">
     <i class="bi bi-arrows-move"></i> Mover
 </button>
-
+</div>
 
 <!-- Select 2 -->
 <script>
@@ -90,7 +92,17 @@
 <!-- Seleccionar pasillo y devolver lista de ubicaciones -->
 <script>
     $(document).ready(function() {
+
+        $("#div_ubi_salida").hide();
+
         $("button[name='bod-filter']").click(function(){
+
+            $("#div_ubi_destino").hide();
+            $("#div_ubi_salida").hide();
+            $("#table_data").empty();
+            $("#msg").empty();
+            $("#msg_dos").empty();
+
             var bod = $(this).attr('id');
             var div_pasillo = $("#div_pasillo");
     
@@ -128,6 +140,9 @@
             div_pasillo.append(btn_group)
     
             $("button[name='btn-pasillo']").click(function(){
+
+                $("#div_ubi_destino").hide();
+
                 var bodega  = $("#bod-selected").html();
                 var pasillo = $(this).text();
                 
@@ -144,6 +159,7 @@
 
                     success: function(response) {
 
+                        $("#div_ubi_salida").show();
                         select_ubi_list.empty();
                         $("#msg").empty();
                         $("#table_data").empty();
@@ -156,6 +172,9 @@
                                 select_ubi_list.append(`<option value="${item.id}">${item.bodega}-${item.pasillo}-${item.modulo}</option>`);
                             }
                         })
+                    },
+                    error: function() {
+                        $("#msg").html("<div class='alert alert-danger'>Error al obtener la lista de ubicaciones</div>")
                     }
                 })
 
@@ -168,6 +187,9 @@
 <!-- devolver lista de productos de la ubicación -->
 <script>
     $(document).ready(function() {
+
+        $("#div_ubi_destino").hide();
+        
         $('#ubicacion_salida').change(function() {
             
             var select_ubi = $(this); 
@@ -184,6 +206,8 @@
                 },
                 success: function(response) {
                     
+                    $("#div_ubi_destino").show();
+
                     var select_ubi_destino_list = $("#ubicacion_destino");
                     $("#msg").html(`<div class="text-center p-2 mt-2 mb-2 alert alert-${response.type}" role="alert">${response.msg}</div>`);
                     
@@ -222,6 +246,8 @@
         });
     });
 </script>
+
+
 
 <!-- Enviar datos al backend crear movimientos -->
 <script>
@@ -273,7 +299,8 @@
     })
 </script>
 
-<!-- diplay btn mover -->
+
+<!-- habilitar btn mover -->
 <script>
     $("#ubicacion_destino").on("change", function() {
         var ubicacion_destino = $(this).val();
@@ -284,7 +311,6 @@
         }
     });
 </script>
-
 
 {% comment %}
 <!-- QR SCAN -->
