@@ -57,36 +57,33 @@
     <div class="card-body m-2 p-2">
         <div class="row">
             <div class="col-5">
-                <!--form method="POST"-->
-                    {#% csrf_token %#}
-                    <div class="row">
-                        <div class="col-5">
-                            <label class="mb-1"><strong>Producto:</strong></label>
-                            <select name="producto" id="producto" class="form-select" value="{{productovalue}}">
-                                <option>-----------</option>
-                                <option value="CARGA COURIER" selected>CARGA COURIER</option>
-                                <option value="CARGA LIVIANA">CARGA LIVIANA</option>
-                                <option value="DOCUMENTOS">DOCUMENTOS</option>
-                            </select>
-                        </div>
-                        <div class="col-5">
-                            <label class="mb-1"><strong>Trayecto:</strong></label>
-                            <select name="trayecto" id="trayecto" class="form-select" value="{{trayectovalue}}">
-                                <option>-----------</option>
-                                <option value="PRINCIPAL" selected>PRINCIPAL</option>
-                                <option value="SECUNDARIO">SECUNDARIO</option>
-                                <option value="T.ESPECIAL">T.ESPECIAL</option>
-                                <option value="URBANO">URBANO</option>
-                                <option value="RURAL">RURAL</option>
-                            </select>
-                        </div>
-                        <div class="col-2 mt-4 pt-1">
-                            <button type="submit" class="btn btn-success" name="calcular">
-                                <i class="bi bi-currency-dollar"></i>  
-                            </button>
-                        </div>
+                <div class="row">
+                    <div class="col-5">
+                        <label class="mb-1"><strong>Producto:</strong></label>
+                        <select name="producto" id="producto" class="form-select" value="{{productovalue}}">
+                            <option>-----------</option>
+                            <option value="CARGA COURIER" selected>CARGA COURIER</option>
+                            <option value="CARGA LIVIANA">CARGA LIVIANA</option>
+                            <option value="DOCUMENTOS">DOCUMENTOS</option>
+                        </select>
                     </div>
-                <!--form-->                
+                    <div class="col-5">
+                        <label class="mb-1"><strong>Trayecto:</strong></label>
+                        <select name="trayecto" id="trayecto" class="form-select" value="{{trayectovalue}}">
+                            <option>-----------</option>
+                            <option value="PRINCIPAL" selected>PRINCIPAL</option>
+                            <option value="SECUNDARIO">SECUNDARIO</option>
+                            <option value="T.ESPECIAL">T.ESPECIAL</option>
+                            <option value="URBANO">URBANO</option>
+                            <option value="RURAL">RURAL</option>
+                        </select>
+                    </div>
+                    <div class="col-2 mt-4 pt-1">
+                        <button type="submit" class="btn btn-success" name="calcular">
+                            <i class="bi bi-currency-dollar"></i>  
+                        </button>
+                    </div>
+                </div>               
             </div>
             
             {% if fecha_entrega == 'None' %}
@@ -151,10 +148,6 @@
                     <div class="col-4">
                         <label class="mb-1"><strong>Estado de entrega:</strong></label><br>
                         <select class="form-select" id="entrega_estado">
-                            
-                            {% comment %}{% if fecha_entrega.est_entrega == 'PENDIENTE' %}
-                            <option value="PENDIENTE" selected>PENDIENTE</option>
-                            <option value="ENTREGADO">ENTREGADO</option>{% endcomment %}
                             {% if fecha_entrega.est_entrega == 'ENTREGADO' %}
                             <option value="PENDIENTE">PENDIENTE</option>
                             <option value="ENTREGADO" selected>ENTREGADO</option>
@@ -187,7 +180,6 @@
 </div>
 
 
-
 {% if costototal %}
 <div class="card mt-2">
     <div class="card-body m-2 p-2 mb-2">
@@ -212,6 +204,11 @@
 
 <div id="costo"></div>
 <div id="msg"></div>
+
+{% if error %}
+    {{error}}
+{% endif %}
+
 
 {% if messages %}
 <div class="alert alert-danger mb-0 mt-2" role="alert">
@@ -239,8 +236,8 @@
                         <th scope="col">T.P. 1P (h:m:s)</th>
                         <th scope="col">T.P. 2P (h:m:s)</th>
                         <th scope="col">T.P. 3P (h:m:s)</th>
-                        <th scope="col">Volumen m<sup>3</sup></th>
-                        <th scope="col">Peso kg</th>
+                        <th scope="col">Volumen /(m<sup>3)</sup></th>
+                        <th scope="col">Peso (kg)</th>
                     </tr>
                     </thead>
                     
@@ -248,7 +245,6 @@
                     {% for i in reservas %}
                     <tr>
                         <th scope="row">
-                            {#{i.PRODUCT_ID}#} 
                             <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#exampleModal" name='lotes'>{{i.PRODUCT_ID}}</button>
                             {% if i.unidades %}
                             <i class="bi bi-check-circle-fill" 
@@ -269,10 +265,6 @@
                             {% if not i.disp %} style="background-color: #F6B690;" {% endif %}>
                             {{i.stock_disp|floatformat:"0g"}}
                         </td>
-                        
-                        <!--td class="text-end" {% if i.t_una_p_hor == 0 %} style="background-color:#ffffcf" {% endif %}>{{i.t_una_p_hor|floatformat:'4g'}}</td>
-                        <td class="text-end" {% if i.t_dos_p_hor == 0 %} style="background-color:#ffffcf" {% endif %}>{{i.t_dos_p_hor|floatformat:'4g'}}</td>
-                        <td class="text-end" {% if i.t_tre_p_hor == 0 %} style="background-color:#ffffcf" {% endif %}>{{i.t_tre_p_hor|floatformat:'4g'}}</td-->
 
                         <td class="text-end" {% if i.t_una_p_hor == 0 %} style="background-color:#ffffcf" {% endif %}>{{i.t_str_1p}}</td>
                         <td class="text-end" {% if i.t_dos_p_hor == 0 %} style="background-color:#ffffcf" {% endif %}>{{i.t_str_2p}}</td>
@@ -284,16 +276,12 @@
                     {% endfor %}
                     </tbody>
                     <tr>
-                        <th scope="row">{#{i.PRODUCT_ID}#}</th>
-                        <td class="text-start">{#{i.PRODUCT_NAME}#}</td>
-                        <td class="text-start">{#{i.marca}#}</td>
+                        <th scope="row"></th>
+                        <td class="text-start"></td>
+                        <td class="text-start"></td>
                         <td class="text-end">{{t_unidades|floatformat:"0g"}}</td>
                         <td class="text-end">{{t_cartones|floatformat:"2g"}}</td>
                         <td class="text-end">-</td>
-
-                        <!--td class="text-end">{{t_total_1p_hor|floatformat:2}}</td>
-                        <td class="text-end">{{t_total_2p_hor|floatformat:2}}</td>
-                        <td class="text-end">{{t_total_3p_hor|floatformat:2}}</td-->
 
                         <td class="text-end">{{tt_str_1p}}</td>
                         <td class="text-end">{{tt_str_2p}}</td>
@@ -313,7 +301,6 @@
 <input id="peso_total" type="hidden" value="{{t_total_pes}}">
 <input id="p_cero" type="hidden" value="{{p_cero}}">
 
-
 <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -326,7 +313,6 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                <!--button type="button" class="btn btn-primary">Save changes</button-->
             </div>
         </div>
     </div>
@@ -339,18 +325,17 @@
         html2canvas($('#capture')[0], {
             width: 1300,
             height: 2200
-          }).then(function(canvas) {
+        }).then(function(canvas) {
             var a = document.createElement('a');
             a.href = canvas.toDataURL("image/png");
             a.download = 'Pedido {{pedido}}.png';
             a.click();
-          });
+        });
     }
 </script>
 
 <script>
     $("#fecha_entrega").on("click", function() {
-        //console.log('fecha entrega')
         var fecha = $("#fecha_confirmacion").val();
         var estado = $("#fecha_estado").val();
         var pedido = $("#pedido").val();
@@ -359,7 +344,6 @@
         $.ajax({
             type:"POST",
             url:"{% url 'pedidos_fecha_entrega_ajax' %}",
-            //data : datos_pedido,
             data:{
                 'csrfmiddlewaretoken': '{{ csrf_token }}',
                 'fecha':fecha,
@@ -368,11 +352,8 @@
             },
             
             success: function(response) {
-                //console.log(response.msg)
                 var mess = response.msg;
                 var mess_error = response.msg_error
-                //$('#msg').html('<div class="alert alert-success mt-3" role="alert"> Se guardo con exito la fecha de entrega </div>')
-                //$('#msg').html(`<div class="text-center alert alert-success mt-3" role="alert"> Fecha de entrega guardada con exito, fecha-hora: ${fecha} - estado: ${estado} </div>`)
                 $('#msg').html(`<div class="text-center alert alert-success mt-3" role="alert"> ${mess} </div>`)
                 $('#msg').html(mess_error)
                 setTimeout(function(){
@@ -381,7 +362,6 @@
             },
 
             error: function() {
-                //$('#msg').html(`<div class="text-center alert alert-danger mt-2" role="alert"> Error al subir documento del producto: ${product_id} - lote: ${lote} </div>`)
                 $('#msg').html('<div class="text-center alert alert-danger mt-2" role="alert"> Error intenta nuevamente !!! </div>')
                 setTimeout(function(){
                     window.location.reload();
@@ -407,20 +387,14 @@
             },
             
             success: function() {
-                //console.log(response.msg)
                 var mess = 'Se registro el estado de entrega correctamente !!!';
-                //var mess_error = response.msg_error
-                //$('#msg').html('<div class="alert alert-success mt-3" role="alert"> Se guardo con exito la fecha de entrega </div>')
-                //$('#msg').html(`<div class="text-center alert alert-success mt-3" role="alert"> Fecha de entrega guardada con exito, fecha-hora: ${fecha} - estado: ${estado} </div>`)
                 $('#msg').html(`<div class="text-center alert alert-success mt-3" role="alert"> ${mess} </div>`)
-                //$('#msg').html(mess_error)
                 setTimeout(function(){
                     window.location.reload();
                 }, 4000)
             },
 
             error: function() {
-                //$('#msg').html(`<div class="text-center alert alert-danger mt-2" role="alert"> Error al subir documento del producto: ${product_id} - lote: ${lote} </div>`)
                 $('#msg').html('<div class="text-center alert alert-danger mt-2" role="alert"> Error intenta nuevamente !!! </div>')
                 setTimeout(function(){
                     window.location.reload();
@@ -542,9 +516,6 @@
 
 <script>
     $("#print").click(function() {
-        // window.print({
-        //     addGlobalStyles:false,
-        // })
         
         w=window.open();
         w.document.write($('#print_area_cabecera').html());

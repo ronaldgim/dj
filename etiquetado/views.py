@@ -321,127 +321,135 @@ def fecha_entrega_ajax(request):
 # Lista de pickings
 def etiquetado_pedidos(request, n_pedido):
 
-    vehiculo = Vehiculos.objects.filter(activo=True).order_by('transportista')
-    
-    # Dataframes
-    pedido = pedido_por_cliente(n_pedido)
-    pedido = pedido[pedido['PRODUCT_ID']!='MANTEN']
-    
-    cabecera = pedido.merge(clientes_warehouse()[['CODIGO_CLIENTE','IDENTIFICACION_FISCAL']], on='CODIGO_CLIENTE', how='left')[[
-        'WARE_CODE',
-        'CONTRATO_ID',
-        'NOMBRE_CLIENTE',
-        'IDENTIFICACION_FISCAL',
-        'FECHA_PEDIDO',
-    ]]
-    cabecera['FECHA_PEDIDO'] = cabecera['FECHA_PEDIDO'].astype('str')
-    cabecera = de_dataframe_a_template(cabecera)[0]
-    
-    product = productos_odbc_and_django()
-    product['Unidad_Empaque'] = product['Unidad_Empaque'].replace(0, 1)
-    product = product.rename(columns={'product_id':'PRODUCT_ID'})
-
-    # Merge Dataframes
-    pedido = pedido.merge(product, on='PRODUCT_ID', how='left').fillna(0.0)
-    
-    # Calculos
-    pedido['Cartones'] = (pedido['QUANTITY'] / pedido['Unidad_Empaque']).round(2)
-    pedido = pedido.fillna(0.0).replace(np.inf, 0.0)
-    
-    pedido['t_una_p_min'] = (pedido['Cartones'] * pedido['t_etiq_1p']) / 60
-    pedido['t_una_p_hor'] = pedido['t_una_p_min'] / 60
-    pedido['t_dos_p_hor'] = ((pedido['Cartones'] * pedido['t_etiq_2p']) / 60) / 60
-    pedido['t_tre_p_hor'] = ((pedido['Cartones'] * pedido['t_etiq_3p']) / 60) / 60
-    pedido['vol_total'] = pedido['Cartones'] * (pedido['Volumen'] / 1000000)
-    pedido['pes_total'] = pedido['Cartones'] * pedido['Peso']
-    
-    p_cero = 0 in list(pedido['pes_total']) 
-    
-    pedido = pedido.fillna(0.0).replace(np.inf, 0.0) 
-
-    # Mejor formato de tiempo
-    pedido['t_s_1p']   = (pedido['Cartones'] * pedido['t_etiq_1p'].round(0))
-    pedido['t_str_1p'] = [str(timedelta(seconds=int(i))) for i in pedido['t_s_1p']] 
-
-    pedido['t_s_2p']   = (pedido['Cartones'] * pedido['t_etiq_2p']).round(0)
-    pedido['t_str_2p'] = [str(timedelta(seconds=int(i))) for i in pedido['t_s_2p']]
-
-    pedido['t_s_3p']   = (pedido['Cartones'] * pedido['t_etiq_3p'].round(0))
-    pedido['t_str_3p'] = [str(timedelta(seconds=int(i))) for i in pedido['t_s_3p']]
-
-    tt_str_1p = str(timedelta(seconds=int(pedido['t_s_1p'].sum())))
-    tt_str_2p = str(timedelta(seconds=int(pedido['t_s_2p'].sum())))
-    tt_str_3p = str(timedelta(seconds=int(pedido['t_s_3p'].sum())))
-
-    # STOCK
-    items = pedido['PRODUCT_ID'].unique()
-    items = list(items) 
-    bodega = pedido['WARE_CODE'].unique()[0] 
-
-    # STOCK DISPONIBLE POR PEDIDO
-    stock = stock_disponible(bodega=bodega, items_list=items)
-    stock = stock.rename(columns={'OH2':'stock_disp'})
-    
-    pedido = pedido.merge(stock, on='PRODUCT_ID', how='left').fillna(0)
-    pedido['disp'] = pedido['stock_disp']>pedido['QUANTITY']
-    
-    pedido = pedido.sort_values(by=['PRODUCT_NAME']) 
-    
-    # Avance
-    avance = etiquetado_avance_pedido(n_pedido) 
-    if not avance.empty:
-        avance = avance.rename(columns={'id':'avance'})[['PRODUCT_ID','unidades']]
-        pedido = pedido.merge(avance, on='PRODUCT_ID', how='left').fillna(0)
-    
-    # Transformar Datos para presentar en template
-    data = de_dataframe_a_template(pedido)
-
-    if FechaEntrega.objects.filter(pedido=n_pedido).exists():
-        fecha_entrega = FechaEntrega.objects.get(pedido=n_pedido)#;print(fecha_entrega)
-    else:
-        fecha_entrega='None'
-
-    if PedidosEstadoEtiquetado.objects.filter(n_pedido=n_pedido).exists():
-        estado = PedidosEstadoEtiquetado.objects.get(n_pedido=n_pedido).estado
-        estado = str(estado)
-    else:
-        estado = 'None'
-    
-    # Totales de tabla
-    t_total_1p_hor = pedido['t_una_p_hor'].sum()
-    t_total_2p_hor = pedido['t_dos_p_hor'].sum()
-    t_total_3p_hor = pedido['t_tre_p_hor'].sum()
-
-    t_total_vol = pedido['vol_total'].sum()
-    t_total_pes = pedido['pes_total'].sum()
-    t_cartones = pedido['Cartones'].sum()
-    t_unidades = pedido['QUANTITY'].sum()
-
-    context = {
-        'cabecera':cabecera,
-        'reservas':data,
-
-        't_total_1p_hor':t_total_1p_hor,
-        't_total_2p_hor':t_total_2p_hor,
-        't_total_3p_hor':t_total_3p_hor,
-
-        'tt_str_1p':tt_str_1p,
-        'tt_str_2p':tt_str_2p,
-        'tt_str_3p':tt_str_3p,
-
-        't_total_vol':t_total_vol,
-        't_total_pes':t_total_pes,
-        't_cartones':t_cartones,
-        't_unidades':t_unidades,
-
-        'vehiculos':vehiculo,
-        'fecha_entrega':fecha_entrega,
+    try:
         
-        'estado':estado,
-        'p_cero':p_cero
-    }
+        vehiculo = Vehiculos.objects.filter(activo=True).order_by('transportista')
+        
+        # Dataframes
+        pedido = pedido_por_cliente(n_pedido)
+        pedido = pedido[pedido['PRODUCT_ID']!='MANTEN']
+        
+        cabecera = pedido.merge(clientes_warehouse()[['CODIGO_CLIENTE','IDENTIFICACION_FISCAL']], on='CODIGO_CLIENTE', how='left')[[
+            'WARE_CODE',
+            'CONTRATO_ID',
+            'NOMBRE_CLIENTE',
+            'IDENTIFICACION_FISCAL',
+            'FECHA_PEDIDO',
+        ]]
+        cabecera['FECHA_PEDIDO'] = cabecera['FECHA_PEDIDO'].astype('str')
+        cabecera = de_dataframe_a_template(cabecera)[0]
+        
+        product = productos_odbc_and_django()
+        product['Unidad_Empaque'] = product['Unidad_Empaque'].replace(0, 1)
+        product = product.rename(columns={'product_id':'PRODUCT_ID'})
 
-    return render(request, 'etiquetado/pedidos/pedido.html', context)
+        # Merge Dataframes
+        pedido = pedido.merge(product, on='PRODUCT_ID', how='left').fillna(0.0)
+        
+        # Calculos
+        pedido['Cartones'] = (pedido['QUANTITY'] / pedido['Unidad_Empaque']).round(2)
+        pedido = pedido.fillna(0.0).replace(np.inf, 0.0)
+        
+        pedido['t_una_p_min'] = (pedido['Cartones'] * pedido['t_etiq_1p']) / 60
+        pedido['t_una_p_hor'] = pedido['t_una_p_min'] / 60
+        pedido['t_dos_p_hor'] = ((pedido['Cartones'] * pedido['t_etiq_2p']) / 60) / 60
+        pedido['t_tre_p_hor'] = ((pedido['Cartones'] * pedido['t_etiq_3p']) / 60) / 60
+        pedido['vol_total'] = pedido['Cartones'] * (pedido['Volumen'] / 1000000)
+        pedido['pes_total'] = pedido['Cartones'] * pedido['Peso']
+        
+        p_cero = 0 in list(pedido['pes_total']) 
+        
+        pedido = pedido.fillna(0.0).replace(np.inf, 0.0) 
+
+        # Mejor formato de tiempo
+        pedido['t_s_1p']   = (pedido['Cartones'] * pedido['t_etiq_1p'].round(0))
+        pedido['t_str_1p'] = [str(timedelta(seconds=int(i))) for i in pedido['t_s_1p']] 
+
+        pedido['t_s_2p']   = (pedido['Cartones'] * pedido['t_etiq_2p']).round(0)
+        pedido['t_str_2p'] = [str(timedelta(seconds=int(i))) for i in pedido['t_s_2p']]
+
+        pedido['t_s_3p']   = (pedido['Cartones'] * pedido['t_etiq_3p'].round(0))
+        pedido['t_str_3p'] = [str(timedelta(seconds=int(i))) for i in pedido['t_s_3p']]
+
+        tt_str_1p = str(timedelta(seconds=int(pedido['t_s_1p'].sum())))
+        tt_str_2p = str(timedelta(seconds=int(pedido['t_s_2p'].sum())))
+        tt_str_3p = str(timedelta(seconds=int(pedido['t_s_3p'].sum())))
+
+        # STOCK
+        items = pedido['PRODUCT_ID'].unique()
+        items = list(items) 
+        bodega = pedido['WARE_CODE'].unique()[0] 
+
+        # STOCK DISPONIBLE POR PEDIDO
+        stock = stock_disponible(bodega=bodega, items_list=items)
+        stock = stock.rename(columns={'OH2':'stock_disp'})
+        
+        pedido = pedido.merge(stock, on='PRODUCT_ID', how='left').fillna(0)
+        pedido['disp'] = pedido['stock_disp']>pedido['QUANTITY']
+        
+        pedido = pedido.sort_values(by=['PRODUCT_NAME']) 
+        
+        # Avance
+        avance = etiquetado_avance_pedido(n_pedido) 
+        if not avance.empty:
+            avance = avance.rename(columns={'id':'avance'})[['PRODUCT_ID','unidades']]
+            pedido = pedido.merge(avance, on='PRODUCT_ID', how='left').fillna(0)
+        
+        # Transformar Datos para presentar en template
+        data = de_dataframe_a_template(pedido)
+
+        if FechaEntrega.objects.filter(pedido=n_pedido).exists():
+            fecha_entrega = FechaEntrega.objects.get(pedido=n_pedido)#;print(fecha_entrega)
+        else:
+            fecha_entrega='None'
+
+        if PedidosEstadoEtiquetado.objects.filter(n_pedido=n_pedido).exists():
+            estado = PedidosEstadoEtiquetado.objects.get(n_pedido=n_pedido).estado
+            estado = str(estado)
+        else:
+            estado = 'None'
+        
+        # Totales de tabla
+        t_total_1p_hor = pedido['t_una_p_hor'].sum()
+        t_total_2p_hor = pedido['t_dos_p_hor'].sum()
+        t_total_3p_hor = pedido['t_tre_p_hor'].sum()
+
+        t_total_vol = pedido['vol_total'].sum()
+        t_total_pes = pedido['pes_total'].sum()
+        t_cartones = pedido['Cartones'].sum()
+        t_unidades = pedido['QUANTITY'].sum()
+
+        context = {
+            'cabecera':cabecera,
+            'reservas':data,
+
+            't_total_1p_hor':t_total_1p_hor,
+            't_total_2p_hor':t_total_2p_hor,
+            't_total_3p_hor':t_total_3p_hor,
+
+            'tt_str_1p':tt_str_1p,
+            'tt_str_2p':tt_str_2p,
+            'tt_str_3p':tt_str_3p,
+
+            't_total_vol':t_total_vol,
+            't_total_pes':t_total_pes,
+            't_cartones':t_cartones,
+            't_unidades':t_unidades,
+
+            'vehiculos':vehiculo,
+            'fecha_entrega':fecha_entrega,
+            
+            'estado':estado,
+            'p_cero':p_cero
+        }
+
+        return render(request, 'etiquetado/pedidos/pedido.html', context)
+    
+    except:
+        context = {
+            'error':'Error !!! carga nuevamente la página.'
+        }
+        return render(request, 'etiquetado/pedidos/pedido.html', context)
 
 
 def pedido_lotes(request, n_pedido):
