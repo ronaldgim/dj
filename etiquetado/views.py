@@ -321,12 +321,22 @@ def fecha_entrega_ajax(request):
 # Lista de pickings
 def etiquetado_pedidos(request, n_pedido):
 
-    # meta = request.META['REMOTE_ADDR']#REMOTE_ADDR
     vehiculo = Vehiculos.objects.filter(activo=True).order_by('transportista')
     
     # Dataframes
     pedido = pedido_por_cliente(n_pedido)
     pedido = pedido[pedido['PRODUCT_ID']!='MANTEN']
+    
+    cabecera = pedido.merge(clientes_warehouse()[['CODIGO_CLIENTE','IDENTIFICACION_FISCAL']], on='CODIGO_CLIENTE', how='left')[[
+        'WARE_CODE',
+        'CONTRATO_ID',
+        'NOMBRE_CLIENTE',
+        'IDENTIFICACION_FISCAL',
+        'FECHA_PEDIDO',
+    ]]
+    cabecera['FECHA_PEDIDO'] = cabecera['FECHA_PEDIDO'].astype('str')
+    cabecera = de_dataframe_a_template(cabecera)[0]
+    
     product = productos_odbc_and_django()
     product['Unidad_Empaque'] = product['Unidad_Empaque'].replace(0, 1)
     product = product.rename(columns={'product_id':'PRODUCT_ID'})
@@ -342,10 +352,7 @@ def etiquetado_pedidos(request, n_pedido):
     pedido['t_una_p_hor'] = pedido['t_una_p_min'] / 60
     pedido['t_dos_p_hor'] = ((pedido['Cartones'] * pedido['t_etiq_2p']) / 60) / 60
     pedido['t_tre_p_hor'] = ((pedido['Cartones'] * pedido['t_etiq_3p']) / 60) / 60
-
-    # pedido['vol_total'] = pedido['Cartones'] * pedido['volumen']
     pedido['vol_total'] = pedido['Cartones'] * (pedido['Volumen'] / 1000000)
-    # pedido['pes_total'] = pedido['Cartones'] * pedido['peso']
     pedido['pes_total'] = pedido['Cartones'] * pedido['Peso']
     
     p_cero = 0 in list(pedido['pes_total']) 
@@ -353,14 +360,14 @@ def etiquetado_pedidos(request, n_pedido):
     pedido = pedido.fillna(0.0).replace(np.inf, 0.0) 
 
     # Mejor formato de tiempo
-    pedido['t_s_1p'] = (pedido['Cartones'] * pedido['t_etiq_1p'].round(0)) 
-    pedido['t_str_1p'] =[str(timedelta(seconds=int(i))) for i in pedido['t_s_1p']] 
+    pedido['t_s_1p']   = (pedido['Cartones'] * pedido['t_etiq_1p'].round(0))
+    pedido['t_str_1p'] = [str(timedelta(seconds=int(i))) for i in pedido['t_s_1p']] 
 
-    pedido['t_s_2p'] =( pedido['Cartones'] * pedido['t_etiq_2p']).round(0)
-    pedido['t_str_2p'] =[str(timedelta(seconds=int(i))) for i in pedido['t_s_2p']]
+    pedido['t_s_2p']   = (pedido['Cartones'] * pedido['t_etiq_2p']).round(0)
+    pedido['t_str_2p'] = [str(timedelta(seconds=int(i))) for i in pedido['t_s_2p']]
 
-    pedido['t_s_3p'] = (pedido['Cartones'] * pedido['t_etiq_3p'].round(0))
-    pedido['t_str_3p'] =[str(timedelta(seconds=int(i))) for i in pedido['t_s_3p']]
+    pedido['t_s_3p']   = (pedido['Cartones'] * pedido['t_etiq_3p'].round(0))
+    pedido['t_str_3p'] = [str(timedelta(seconds=int(i))) for i in pedido['t_s_3p']]
 
     tt_str_1p = str(timedelta(seconds=int(pedido['t_s_1p'].sum())))
     tt_str_2p = str(timedelta(seconds=int(pedido['t_s_2p'].sum())))
@@ -371,11 +378,6 @@ def etiquetado_pedidos(request, n_pedido):
     items = list(items) 
     bodega = pedido['WARE_CODE'].unique()[0] 
 
-    # if bodega == 'BCT':
-    #     bod= 'Cerezos'
-    # elif bodega == 'BAN':
-    #     bod='Andagoya'
-
     # STOCK DISPONIBLE POR PEDIDO
     stock = stock_disponible(bodega=bodega, items_list=items)
     stock = stock.rename(columns={'OH2':'stock_disp'})
@@ -384,8 +386,6 @@ def etiquetado_pedidos(request, n_pedido):
     pedido['disp'] = pedido['stock_disp']>pedido['QUANTITY']
     
     pedido = pedido.sort_values(by=['PRODUCT_NAME']) 
-    cli_ruc = clientes_table()[['IDENTIFICACION_FISCAL','CODIGO_CLIENTE']]
-    pedido = pedido.merge(cli_ruc,on='CODIGO_CLIENTE', how='left') 
     
     # Avance
     avance = etiquetado_avance_pedido(n_pedido) 
@@ -406,11 +406,6 @@ def etiquetado_pedidos(request, n_pedido):
         estado = str(estado)
     else:
         estado = 'None'
-
-    # Cabecera del pedido
-    cliente = pedido['NOMBRE_CLIENTE'].iloc[0]
-    ruc = pedido['IDENTIFICACION_FISCAL'].iloc[0]
-    fecha_pedido = pedido['FECHA_PEDIDO'].iloc[0]
     
     # Totales de tabla
     t_total_1p_hor = pedido['t_una_p_hor'].sum()
@@ -423,12 +418,8 @@ def etiquetado_pedidos(request, n_pedido):
     t_unidades = pedido['QUANTITY'].sum()
 
     context = {
+        'cabecera':cabecera,
         'reservas':data,
-        'pedido':n_pedido,
-        'cliente':cliente,
-        'ruc':ruc,
-        'fecha_pedido':fecha_pedido,
-        # 't_total_min':t_total_min,
 
         't_total_1p_hor':t_total_1p_hor,
         't_total_2p_hor':t_total_2p_hor,
@@ -443,14 +434,10 @@ def etiquetado_pedidos(request, n_pedido):
         't_cartones':t_cartones,
         't_unidades':t_unidades,
 
-        # 'meta':meta,
         'vehiculos':vehiculo,
-
         'fecha_entrega':fecha_entrega,
+        
         'estado':estado,
-
-        #'bodega':bod,
-        'bodega':bodega,
         'p_cero':p_cero
     }
 

@@ -20,11 +20,11 @@
 <div class="row">
     <h5 class="m-4 text-center"><strong>PEDIDO</strong></h5>
     <div class="col-6" id="print_area_cabecera">
-        <h6><strong>Bodega: </strong><span id="bodega">{{bodega}}</span></h6>
-        <h6><strong>N. Pedido: </strong>{{pedido|slice:':-2'}}</h6>
-        <h6><strong>Cliente: </strong> {{cliente}}</h6>
-        <h6><strong>Ruc: </strong> {{ruc}}</h6>
-        <h6><strong>Fecha de pedido: </strong> {{fecha_pedido|date:'d-M-Y'}}</h6>
+        <h6><strong>Bodega: </strong><span id="bodega">{{cabecera.WARE_CODE}}</span></h6>
+        <h6><strong>N. Pedido: </strong>{{cabecera.CONTRATO_ID|slice:':-2'}}</h6>
+        <h6><strong>Cliente: </strong> {{cabecera.NOMBRE_CLIENTE}}</h6>
+        <h6><strong>Ruc: </strong> {{cabecera.IDENTIFICACION_FISCAL}}</h6>
+        <h6><strong>Fecha de pedido: </strong> {{cabecera.FECHA_PEDIDO}}</h6>
     </div>
     <div class="col-6" id="no_print">
         <div class="dropdown">
