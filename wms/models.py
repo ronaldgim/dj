@@ -55,6 +55,26 @@ TIPO_LIBERACION = [
     ('Liberación Importación', 'Liberación Importación'),
 ]
 
+## ARMADOS
+PRIORIDAD_ARMADO = [
+    ('Inmediato', 'Inmediato'),
+    ('Urgente (2 días)', 'Urgente (2 días)'),
+    ('Pronto (1 semana)', 'Pronto (1 semana)'),
+]
+
+ESTADO_ARMADO = [
+    ('Creado', 'Creado'),
+    ('En Picking', 'En Picking'),
+    ('En Proceso', 'En Proceso'),
+    ('En Pausa', 'En Pausa'),
+    ('Finalizado', 'Finalizado'),
+]
+
+BODEGA_ARMADO = [
+    ('Andagoya', 'Andagoya'),
+    ('Cerezos', 'Cerezos'),
+]
+
 # Create your models here.
 class InventarioIngresoBodega(models.Model):
     
@@ -254,3 +274,38 @@ class DespachoCarton(models.Model):
     
     def __str__(self):
         return f'Picking: {self.picking} - Factura: {self.factura}'
+    
+    
+class ProductoArmado(models.Model):
+    
+    product_id        = models.CharField(verbose_name='Product id', max_length=50)
+    lote_id           = models.CharField(verbose_name='Lote id', max_length=50)
+    fecha_elaboracion = models.DateField(verbose_name='Fecha de elaboración', blank=True)
+    fecha_caducidad   = models.DateField(verbose_name='Fecha de caducidad', blank=True)
+    precio_venta      = models.FloatField(verbose_name='Precio de venta', null=True)
+    ubicacion         = models.CharField(verbose_name='Ubicacion', max_length=12, blank=True)
+    unidades          = models.IntegerField(verbose_name='Unidades ingresadas', blank=True)
+    
+    def __str__(self):
+        return self.product_id
+    
+    
+class OrdenEmpaque(models.Model):
+
+    ruc            = models.CharField(verbose_name='RUC', max_length=13)
+    cliente        = models.CharField(verbose_name='Cliente', max_length=70)
+    bodega         = models.CharField(verbose_name='Bodega', choices=BODEGA_ARMADO, max_length=20)
+    prioridad      = models.CharField(verbose_name='Prioridad', choices=PRIORIDAD_ARMADO, max_length=20)
+    estado         = models.CharField(verbose_name='Estado', choices=ESTADO_ARMADO, max_length=20)
+    nuevo_producto = models.ForeignKey(ProductoArmado, related_name='nuevo_producto', on_delete=models.CASCADE, blank=True, null=True)
+    componentes    = models.ManyToManyField(ProductoArmado, related_name='componentes')
+    usuario        = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.CASCADE)    
+    creado         = models.DateTimeField(verbose_name='Creado', auto_now_add=True)
+    actualizado    = models.DateTimeField(verbose_name='Actualizado', auto_now=True)
+    observaciones  = models.TextField(blank=True)
+    
+    @property
+    def enum(self):
+        enum = OrdenEmpaque.objects.filter(id__lte=self.id).count() + 521
+        enum = f'{enum:06d}'
+        return enum 

@@ -95,6 +95,20 @@
             </ul>
           </li>
 
+
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Etiquetado
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                <li><a class="dropdown-item" href="{% url 'wms_armados_list' %}">Armados</a></li>
+                <!--li><a class="dropdown-item" href="{% url 'wms_reporte_nivelunovacio_rm' %}">Nivel uno vacio</a></li> 
+                <li><a class="dropdown-item" href="{% url 'wms_ubicaciones_list' %}">Ubicaciones</a></li>
+                <li><a class="dropdown-item" href="{% url 'wms_reporte_bodegas457' %}">Reposición bodega 4,5,7</a></li>
+                <li><a class="dropdown-item" href="{% url 'wms_reporte_reposicion_alertas' %}">Reposición alertas</a></li-->
+            </ul>
+          </li>
+
           <!--li class="nav-item dropdown">
             <a class="ms-4 btn btn btn-warning" href="{% url 'inv_home' %}">
               Inventario
@@ -108,14 +122,15 @@
 
           <!--li class="nav-item dropdown">
             <a class="nav-link" id="navbarDropdownMenuLink" href="{% url 'wms_importaciones_list' %}">
-              Lista de importaciones
+              Etiquetado
             </a>
             <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                <li><a class="dropdown-item" href="{% url 'revision_reservas' %}">Revision Reservas</a></li>
+                <li><a class="dropdown-item" href="{% url 'revision_reservas' %}">Armados</a></li>
                 <li><a class="dropdown-item" href="{% url 'picking_estado' %}">Estado de Picking</a></li> 
-                <li><a class="dropdown-item" href="{% url 'inventario_bodega' %}">Inventario</a></li> 
-            </ul-->
-          <!--/li-->
+                <li><a class="dropdown-item" href="{% url 'inventario_bodega' %}">Inventario</a></li>
+            </ul>
+          </li-->
+
           <!--li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
               Mantenimiento
