@@ -1,7 +1,7 @@
 {%extends 'base.html' %}
 
 {% block title %}
-<title>Pedido {{pedido|slice:':-2'}}</title>
+<title>Pedido {{cabecera.CONTRATO_ID|slice:':-2'}}</title>
 {% endblock%}
 
 {% block navbar %}
@@ -10,15 +10,9 @@
 
 {% block body %}
 
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.0.0-rc.5/dist/html2canvas.min.js"></script>
-
-<!--div class="ps-4 pe-4 ms-4 me-4"-->
-
-
-<!--h5 class="m-4 text-center"><strong>PEDIDO</strong></h5-->
-
+<!-- ENCABEZADO -->
 <div class="row">
-    <h5 class="m-4 text-center"><strong>PEDIDO</strong></h5>
+    <h5 class="m-4 text-center fw-bold">PEDIDO {{cabecera.CONTRATO_ID|slice:':-2'}}</h5>
     <div class="col-6" id="print_area_cabecera">
         <h6><strong>Bodega: </strong><span id="bodega">{{cabecera.WARE_CODE}}</span></h6>
         <h6><strong>N. Pedido: </strong>{{cabecera.CONTRATO_ID|slice:':-2'}}</h6>
@@ -26,6 +20,7 @@
         <h6><strong>Ruc: </strong> {{cabecera.IDENTIFICACION_FISCAL}}</h6>
         <h6><strong>Fecha de pedido: </strong> {{cabecera.FECHA_PEDIDO}}</h6>
     </div>
+
     <div class="col-6" id="no_print">
         <div class="dropdown">
             <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
@@ -42,22 +37,23 @@
             </ul>
         </div>
         <div class="float-end">
-            <!--button type="button" class="btn btn-primary rounded-circle" onclick="takeshot()">
-                <i class="bi bi-camera-fill"></i>
-            </button-->
             <button class="btn btn-primary" id="print">
                 <i class="bi bi-printer-fill"></i>
             </button>
         </div>
     </div>
 </div>
+<!-- / ENCABEZADO -->
 
 
 <div class="card mt-2" id="print_costo_entrega">
     <div class="card-body m-2 p-2">
-        <div class="row">
-            <div class="col-5">
+        
+        <div class="row g-3">
+            <!-- TRAMACO -->
+            <div class="col-md-4">
                 <div class="row">
+                    
                     <div class="col-5">
                         <label class="mb-1"><strong>Producto:</strong></label>
                         <select name="producto" id="producto" class="form-select" value="{{productovalue}}">
@@ -67,6 +63,7 @@
                             <option value="DOCUMENTOS">DOCUMENTOS</option>
                         </select>
                     </div>
+
                     <div class="col-5">
                         <label class="mb-1"><strong>Trayecto:</strong></label>
                         <select name="trayecto" id="trayecto" class="form-select" value="{{trayectovalue}}">
@@ -78,45 +75,59 @@
                             <option value="RURAL">RURAL</option>
                         </select>
                     </div>
+
                     <div class="col-2 mt-4 pt-1">
                         <button type="submit" class="btn btn-success" name="calcular">
                             <i class="bi bi-currency-dollar"></i>  
                         </button>
                     </div>
-                </div>               
+
+                </div>
             </div>
             
+            
             {% if fecha_entrega == 'None' %}
-            <div class="col-7">
+
+            <div class="col-md-8">
                 <div class="row">
-                    <div class="col-6">
+                    <input type="hidden" id="pedido" value="{{cabecera.CONTRATO_ID}}">
+                    <input type="hidden" id="user" value="{{request.user.userperfil.id}}">
+
+                    <div class="col-5">
                         <label class="mb-1"><strong>Entrega:</strong></label> <br>
                         <input class="form-control mb-1" id="fecha_confirmacion" type="datetime-local">
                     </div>
-                    <div class="col-5">
+
+                    <div class="col-4">
                         <label class="mb-1"><strong>Estado de la fecha:</strong></label><br>
                         <select class="form-select" id="fecha_estado">
                             <option value="TENTATIVA">TENTATIVA</option>
                             <option value="CONFIRMADO">CONFIRMADO</option>
                         </select>
                     </div>
-                    <input type="hidden" id="pedido" value="{{pedido}}">
-                    <input type="hidden" id="user" value="{{request.user.userperfil.id}}">
-                    <div class="col-1 mt-4 pt-1">
+
+                    <div class="col-2 mt-4 pt-1">
                         <button id="fecha_entrega" class="btn btn-primary">
                             <i class="bi bi-send"></i> 
                         </button>
                     </div>
                 </div>
             </div>
+
             {% else %}
-            <div class="col-6">
+
+            <div class="col-md-8">
+                <input type="hidden" id="pedido" value="{{cabecera.CONTRATO_ID}}">
+                <input type="hidden" id="user" value="{{request.user.userperfil.id}}">
+
                 <div class="row">
+                    
                     <div class="col-4 ms-1 me-0 ps-1 pe-0">
                         <label class="mb-1"><strong>Entrega:</strong></label> <br>
                         <input class="form-control mb-1" id="fecha_confirmacion" type="datetime-local" 
                         value="{{fecha_entrega.fecha_hora|date:'Y-m-d'}}T{{fecha_entrega.fecha_hora|date:'H:i'}}">
                     </div>
+
                     <div class="col-3 ms-1 me-0 ps-1 pe-0">
                         <label class="mb-1"><strong>Estado:</strong></label><br>
                         <select class="form-select" id="fecha_estado">
@@ -129,20 +140,20 @@
                             {% endif %}
                         </select>
                     </div>
+
                     <div class="col-3 ms-1 me-0 ps-1 pe-0">
                         <label class="mb-1"><strong>Registrado por:</strong></label><br>
                         {{fecha_entrega.user.user.first_name}} {{fecha_entrega.user.user.last_name}}
                     </div>
-                    
-                    <input type="hidden" id="pedido" value="{{pedido}}">
-                    <input type="hidden" id="user" value="{{request.user.userperfil.id}}">
 
-                    <div class="col-1 mt-4 pt-1 ms-1 me-0 ps-1 pe-0">
+                    <div class="col-auto mt-4 pt-1 ms-1 me-0 ps-1 pe-0">
                         <button id="fecha_entrega" class="btn btn-primary ms-0 me-0">
                             <i class="bi bi-send"></i> 
                         </button>
                     </div>
                 </div>
+
+                {% comment %}
                 {% if estado == 'FINALIZADO' %}
                 <div class="row">
                     <div class="col-4">
@@ -163,16 +174,18 @@
                         {{fecha_entrega.reg_entrega.user.first_name}} {{fecha_entrega.reg_entrega.user.last_name}}
                     </div>
                     
-                    <input type="hidden" id="pedido" value="{{pedido}}">
+                    <input type="hidden" id="pedido" value="{{cabecera.CONTRATO_ID}}">
                     <input type="hidden" id="user" value="{{request.user.userperfil.id}}">
 
                     <div class="col-3 mt-4 pt-1">
                         <button id="estado_entrega" class="btn btn-primary">
-                            <i class="bi bi-send"></i> 
+                            <i class="bi bi-send"></i>
                         </button>
                     </div>
                 </div>
                 {% endif %}
+                {% endcomment %}
+
             </div>
             {% endif %}
         </div>
@@ -318,8 +331,8 @@
     </div>
 </div>
 
-<!--/div-->
 
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.0.0-rc.5/dist/html2canvas.min.js"></script>
 <script type="text/javascript">
     function takeshot() {
         html2canvas($('#capture')[0], {
@@ -376,7 +389,7 @@
         
         var pedido = $("#pedido").val();
         var entrega_estado = $("#entrega_estado").val();
-                
+        
         $.ajax({
             type:"POST",
             url:"{% url 'entrega_estado_ajax' %}",
@@ -473,6 +486,7 @@
 
 </script>
 
+<!-- Lotes y productos -->
 <script>
     $("button[name='lotes']").click(function() {
         
@@ -513,7 +527,7 @@
     })
 </script>
 
-
+<!-- Imprimir -->
 <script>
     $("#print").click(function() {
         
