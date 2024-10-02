@@ -482,4 +482,18 @@ urlpatterns = [
         view = views.wms_movimiento_grupal_ubicacion_salida_ajax,
         name = 'wms_movimiento_grupal_ubicacion_salida_ajax'
     ),
+    
+    # Armados
+    path(
+        route='armados-list',
+        view = views.wms_armados_list,
+        name = 'wms_armados_list'
+    ),
+    
+    # Orden de armados
+    path(
+        route='orden-armado/<int:id>',
+        view = views.wms_orden_armado,
+        name = 'wms_orden_armado'
+    )
 ]

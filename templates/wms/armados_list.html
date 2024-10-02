@@ -1,0 +1,214 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Armados</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'wms/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+<h5 class="m-4 text-center fw-bold">ARMADOS</h5>
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
+
+<!-- Button trigger modal -->
+<button type="button" class="btn btn-primary mb-2" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+    Añadir Armado
+</button>
+
+{% if tipo %}
+<div class="card mt-2 mb-2">
+    <div class="card-body">
+        <label class="fw-bold">{{tipo}}: </label> {{valor}}<br>
+        <label class="fw-bold">Resultados: </label> {{len}}<br>
+        <a class="btn btn-sm btn-danger" href="{% url 'wms_movimientos_list' %}">Borrar busqueda</a>
+    </div>
+</div>
+{% endif %}
+
+<div class="col-12">
+    <input id="inputbuscar" type="text" placeholder="Filtro" class="form-control">
+</div>
+
+<div id="msg"></div>
+
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table" style="font-size: small;">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Código</th>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Marca</th>
+                        <th scope="col">Cantidad</th>
+                        <th scope="col">Cliente</th>
+                        <th scope="col">Estado</th>
+                        <th scope="col">Creado por</th>
+                        <th scope="col">Creado en</th>
+                        <th scope="col">Observaciones</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in mov %}
+                    <tr>
+                        <td>{{i.enum}}</td>
+                        <td>{{i.product_id}} <br>
+                        </td>
+
+                        <td>{{i.lote_id}}<br>
+                            {{i.fecha_caducidad|date:'Y-m-d'}}
+                        </td>
+
+                        <td>{{i.tipo}}</td>
+                        <td>{{i.estado}}</td>
+                        
+                        <td>
+                            {% if i.referencia == 'Picking' %}
+                                {{i.referencia}} <span>: {{i.n_referencia|slice:"-2"}}</span>
+                            {% elif i.referencia == 'Movimiento Interno'  or i.referencia == 'Movimiento Grupal' %}
+                                {{i.referencia}}
+                            {% else %}
+                                {{i.referencia}} <span>: {{i.n_referencia}}</span>
+                            {% endif %}
+                        </td>
+
+                        <td>{% if i.cuarentena %}CUC-{% endif %}{{i.ubicacion}}</td>
+
+                        <td>{{i.estado_picking|default:'-'}}</td>
+
+                        <td>{{i.n_factura|slice:"14:-6"}}</td>
+
+                        <td class="text-end">{{i.unidades|floatformat:"0g"}}</td>
+
+                        <td>{{i.usuario.first_name}} {{i.usuario.last_name}}</td>
+
+                        <td>{{i.fecha_hora|date:'Y-m-d - H:i'}}</td>
+                        
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal -->
+<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog"> <!-- modal-lg -->
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title fw-bold" id="staticBackdropLabel">Añadir ISO</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <form action="" method="POST" id="orden-form" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="row g-2">
+                    <!-- Bodega -->
+                    <div class="col-4">
+                        {{form.bodega.label}}:
+                    </div>
+                    <div class="col-8">
+                        {{form.bodega}}
+                    </div>
+
+                    <!-- Ruc -->
+                    <div class="col-4">
+                        {{form.ruc.label}}:
+                    </div>
+                    <div class="col-8">
+                        {{form.ruc}}
+                    </div>
+                    <!--div class="col-2">
+                        <button class="btn btn-secondary" type="button">
+                            Cliente
+                        </button>
+                    </div-->
+                    <!-- Cliente -->
+                    <div class="col-4">
+                        {{form.cliente.label}}:
+                    </div>
+                    <div class="col-8">
+                        {{form.cliente}}
+                    </div>
+                    <!-- Prioridad -->
+                    <div class="col-4">
+                        {{form.prioridad.label}}:
+                    </div>
+                    <div class="col-8">
+                        {{form.prioridad}}
+                    </div>
+                    <!-- Observaciones -->
+                    <div class="col-4">
+                        {{form.observaciones.label}}:
+                    </div>
+                    <div class="col-8">
+                        {{form.observaciones}}
+                    </div>
+                </div>  
+                <!-- hidden inputs -->
+                <input type="hidden" name="estado" value="Creado">
+                <input type="hidden" name="usuario" value="{{request.user.id}}">
+
+                
+                <datalist id="ruc_list">
+                    {% for i in ruc_list %}
+                    <option value="{{i.IDENTIFICACION_FISCAL}}">
+                    {% endfor %}
+                </datalist>
+
+                <datalist id="cliente_list">
+                    {% for i in cliente_list %}
+                    <option value="{{i.NOMBRE_CLIENTE}}">
+                    {% endfor %}
+                </datalist>
+
+
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="submit" form="orden-form" class="btn btn-primary">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        $("button[name='buscar']").click(function(){
+            $("#buscar").toggle()
+        })
+    })
+</script>
+
+<!--filtro buscar-->
+<script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+
+{% endblock %}

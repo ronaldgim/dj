@@ -65,7 +65,9 @@ from wms.models import (
     TransferenciaStatus,
     AjusteLiberacion,
     NotaEntregaStatus,
-    DespachoCarton
+    DespachoCarton,
+    ProductoArmado,
+    OrdenEmpaque
     )
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -79,7 +81,12 @@ import pandas as pd
 import numpy as np
 
 # Forms
-from wms.forms import MovimientosForm, DespachoCartonForm
+from wms.forms import (
+    MovimientosForm, 
+    DespachoCartonForm,
+    ProductoArmadoForm,
+    OrdenEmpaqueForm
+    )
 
 # Messages
 from django.contrib import messages
@@ -4281,3 +4288,41 @@ def wms_movimiento_grupal_ubicacion_salida_ajax(request):
             'msg':f'✅ Posición {ubi} vacia !!!',
             'type':'success'
         })
+
+
+## ARMADOS
+def wms_armados_list(request):
+    
+    armados = OrdenEmpaque.objects.all()
+    form = OrdenEmpaqueForm()
+    ruc_list = clientes_warehouse()[['IDENTIFICACION_FISCAL']]
+    cliente_list = clientes_warehouse()[['NOMBRE_CLIENTE']]
+    
+    if request.method == 'POST':
+        form = OrdenEmpaqueForm(request.POST)
+        if form.is_valid():
+            orden = form.save()
+            return HttpResponseRedirect(f'/wms/orden-armado/{orden.id}')
+        else:
+            messages.error(request, form.errors)
+    
+    context = {
+        'armados':armados,
+        'form':form,
+        'ruc_list':de_dataframe_a_template(ruc_list),
+        'cliente_list':de_dataframe_a_template(cliente_list)
+    }
+    
+    return render(request, 'wms/armados_list.html', context)
+
+
+
+def wms_orden_armado(request, id):
+    
+    orden = OrdenEmpaque.objects.get(id=id)
+    
+    context = {
+        'orden':orden,
+    }
+    
+    return render(request, 'wms/orden_armado.html', context)
