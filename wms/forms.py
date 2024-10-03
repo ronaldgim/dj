@@ -46,7 +46,7 @@ class ProductoNuevoArmadoForm(forms.ModelForm):
         
         
         widgets = {
-            'product_id':forms.TextInput(attrs={'class':'form-control','list':'product_list', 'readonly':'true'}),
+            'product_id':forms.TextInput(attrs={'class':'form-control','list':'product_list'}),
             'nombre':forms.TextInput(attrs={'class':'form-control'}),
             'marca':forms.TextInput(attrs={'class':'form-control'}),
             'precio_venta':forms.NumberInput(attrs={'class':'form-control'}),
