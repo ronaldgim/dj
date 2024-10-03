@@ -1,0 +1,396 @@
+{%extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+<title>Orden de armado</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'wms/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+
+
+<h5 class="m-4 text-center fw-bold">ORDEN DE EMPAQUE {{orden.enum}}</h5>
+
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
+
+<div class="card mb-2">
+    <div class="card-body">
+        <span class="fw-bold">Orden de empaque: </span>{{orden.enum}}<br>
+        <span class="fw-bold">Bodega: </span>{{orden.bodega}}<br>
+        <hr>
+        <div class="row g-2">
+            <div class="col-6">
+                <span class="fw-bold">Prioridad: </span>{{orden.prioridad}}<br>
+                <span class="fw-bold">Estado: </span>{{orden.estado}}<br>
+                <span class="fw-bold">Cliente: </span>{{orden.cliente}}<br>
+                <span class="fw-bold">Observaciones: </span>{{orden.observaciones}}<br>
+            </div>
+            <div class="col-6">
+                <span class="fw-bold">Creado en: </span>{{orden.creado|date:'Y-m-d'}}<br>
+                <span class="fw-bold">Creado por: </span>{{orden.usuario.first_name}} {{orden.usuario.last_name}}<br>
+                <span class="fw-bold">Código: </span>{{orden.nuevo_producto.product_id}}<br>
+                <span class="fw-bold">Precio Venta: </span>$ {{orden.nuevo_producto.precio_venta|floatformat:"2g"}}<br>
+            </div>
+        </div>
+        
+        <button class="btn btn-warning mt-4" type="button" name="editar-orden" id="{{orden.id}}" data-bs-toggle="modal" data-bs-target="#EditarOrden">
+            Editar
+        </button>
+    </div>
+</div>
+
+<!--div class="card mb-2">
+    <div class="card-body">
+        <div class="row g-2">
+            <div class="col-6">
+                <span class="fw-bold">Código: </span>{{orden.nuevo_producto.product_id}}<br>
+                <span class="fw-bold">Producto: </span>{{orden.nuevo_producto.nombre}}<br>
+                <span class="fw-bold">Marca: </span>{{orden.nuevo_producto.marca}}<br>
+            </div>
+            <div class="col-6">
+                <span class="fw-bold">Cantidad: </span>{{orden.nuevo_producto.unidades|floatformat:"0g"}}<br>
+                <span class="fw-bold">Precio Venta: </span>$ {{orden.nuevo_producto.precio_venta|floatformat:"2g"}}<br>
+            </div>
+        </div>
+        <button class="btn btn-warning mt-4" type="button" name="editar-nuevo-producto" id="{{orden.nuevo_producto.id}}" data-bs-toggle="modal" data-bs-target="#EditarNuevoProducto">
+            Editar
+        </button>
+    </div>
+</div-->
+
+<button class="btn btn-primary" type="button" name="nuevo-componente" data-bs-toggle="modal" data-bs-target="#NuevoComponente">
+    Añadir Componente
+</button>
+
+<!-- Tabla -->
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table" style="font-size: small;">
+                <thead>
+                    <tr>
+                        <th scope="col">Código</th>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Marca</th>
+                        <th scope="col">Lote</th>
+                        <th scope="col">Fecha Elab</th>
+                        <th scope="col">Fecha Venc</th>
+                        <th scope="col">Ubicación</th>
+                        <th scope="col">Cantidad por lote</th>
+                        <th scope="col">Ingreso</th>
+                        <th scope="col">Salida</th>
+                        <th scope="col">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    <tr>
+                        <td>{{orden.nuevo_producto.product_id}}</td>
+                        <td>{{orden.nuevo_producto.nombre}}</td>
+                        <td>{{orden.nuevo_producto.marca}}</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td>{{orden.nuevo_producto.unidades}}</td>
+                        <td></td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group" aria-label="Basic mixed styles example">
+                                <button type="button" class="btn btn-warning" name="editar-nuevo-producto" id="{{orden.nuevo_producto.id}}" data-bs-toggle="modal" data-bs-target="#EditarNuevoProducto">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% for i in orden.componentes.all %}
+                    <tr>
+                        <td>{{i.product_id}}</td>
+                        <td>{{i.nombre}}</td>
+                        <td>{{i.marca}}</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td>{{i.unidades}}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group" aria-label="Basic mixed styles example">
+                                <button type="button" class="btn btn-warning" name="editar-componente" id={{i.id}} data-bs-toggle="modal" data-bs-target="#EditarComponente">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button type="button" class="btn btn-danger" name="eliminar-componente" id={{i.id}}>
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Editar Orden -->
+<div class="modal fade" id="EditarOrden" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="EditarOrdenLabel" aria-hidden="true">
+    <div class="modal-dialog"> 
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="EditarOrdenLabel">Editar Orden</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <div id="error_modal"></div>
+                <form action="{% url 'wms_editar_orden_ajax' %}" method="POST" id="editar-orden-form">
+                    {% csrf_token %}
+                    <div id="editar-orden-form-get"></div>
+                    <input type="hidden" value="{{orden.id}}" name="id_orden">
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button type="submit" form="editar-orden-form" class="btn btn-primary">Editar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Editar Nuevo Producto -->
+<div class="modal fade" id="EditarNuevoProducto" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="EditarNuevoProductoLabel" aria-hidden="true">
+    <div class="modal-dialog"> 
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="EditarNuevoProductoLabel">Editar Nuevo Producto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <div id="error_modal"></div>
+                <form action="{% url 'wms_editar_nuevo_producto_ajax' %}" method="POST" id="editar-nuevo-producto-form">
+                    {% csrf_token %}
+                    <div id="editar-nuevo-producto-form-get"></div>
+                    <input type="hidden" value="{{orden.nuevo_producto.id}}" name="id_nuevo_producto">
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button type="submit" form="editar-nuevo-producto-form" class="btn btn-primary">Editar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Añadir Componente -->
+<div class="modal fade" id="NuevoComponente" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="NuevoComponenteLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="NuevoComponenteLabel">Añadir Componente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="error_modal"></div>
+                <form method="POST" id="nuevo-componente-form">
+                    {% csrf_token %}
+                    <div class="row g-2">                    
+                        <!-- Código -->
+                        <div class="col-4">
+                            {{form_componente.product_id.label}}:
+                        </div>
+                        <div class="col-5">
+                            {{form_componente.product_id}}
+                        </div>
+                        <div class="col-auto">
+                            <button class="btn btn-secondary" type="button" name="product">
+                                Código
+                            </button>
+                        </div>
+
+                        <!-- Nombre -->
+                        <div class="col-4">
+                            {{form_componente.nombre.label}}:
+                        </div>
+                        <div class="col-8">
+                            {{form_componente.nombre}}
+                        </div>
+
+                        <!-- Marca -->
+                        <div class="col-4">
+                            {{form_componente.marca.label}}:
+                        </div>
+                        <div class="col-8">
+                            {{form_componente.marca}}
+                        </div>
+
+                        <!-- Cantidad -->
+                        <div class="col-4">
+                            {{form_componente.unidades.label}}:
+                        </div>
+                        <div class="col-8 mb-4">
+                            {{form_componente.unidades}}
+                        </div>
+
+                        <datalist id="product_list">
+                            {% for i in product_list %}
+                            <option value="{{i.product_id}}">
+                            {% endfor %}
+                        </datalist>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" form="nuevo-componente-form" class="btn btn-primary">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Editar componente -->
+<div class="modal fade" id="EditarComponente" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="EditarComponenteLabel" aria-hidden="true">
+    <div class="modal-dialog"> 
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="EditarComponenteLabel">Editar Componente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <div id="error_modal"></div>
+                <form action="{% url 'wms_editar_componente_ajax' %}" method="POST" id="editar-componente-form">
+                    {% csrf_token %}
+                    <div id="editar-componente-form-get"></div>
+                    <div id="editar-componente-id-input"></div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button type="submit" form="editar-componente-form" class="btn btn-primary">Editar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Formulario de editar orden -->
+<script>
+    $("button[name='editar-orden']").on('click', function() {
+        var id_orden = $(this).attr('id');
+        
+        $.ajax({
+            type:'GET',
+            url:'{% url "wms_editar_orden_ajax" %}',
+            data:{
+                "id_orden":id_orden
+            },
+            success: function(response){
+                $("#editar-orden-form-get").html(response)
+            }
+        })
+    })
+</script>
+
+<!-- Formulario de editar nuevo producto -->
+<script>
+    $("button[name='editar-nuevo-producto']").on('click', function() {
+        var id_nuevo_producto = $(this).attr('id');
+        
+        $.ajax({
+            type:'GET',
+            url:'{% url "wms_editar_nuevo_producto_ajax" %}',
+            data:{
+                "id_nuevo_producto":id_nuevo_producto
+            },
+            success: function(response){
+                $("#editar-nuevo-producto-form-get").html(response)
+            }
+        })
+    })
+</script>
+
+<!-- ADD PRODUCT -->
+<script>
+    $("button[name='product']").on('click', function() {
+        var product_id = $("#id_product_id").val();
+        
+        $.ajax({
+            type:"POST",
+            url: "{% url 'get_product_data_by_product_id_ajax' %}",
+            data: {
+                'csrfmiddlewaretoken': '{{csrf_token}}',
+                'product_id': product_id,
+            },
+            success: function(data) {
+                $("#id_nombre").val(data.nombre);
+                $("#id_marca").val(data.marca);
+                if (data.error) {
+                    $("#error_modal").html(
+                        `<div class="alert alert-warning alert-dismissible fade show" role="alert">
+                        ${data.error}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>`
+                    )
+                }
+            }
+        })
+    })
+</script>
+
+
+<!-- Formulario de editar componente -->
+<script>
+    $("button[name='editar-componente']").on('click', function() {
+        var id_componente = $(this).attr('id');
+        
+        $.ajax({
+            type:'GET',
+            url:'{% url "wms_editar_componente_ajax" %}',
+            data:{
+                "id_componente":id_componente
+            },
+            success: function(response){
+                $("#editar-componente-form-get").html(response);
+                $("#editar-componente-id-input").html(`<input name="id_componente" type="hidden" value="${id_componente}">`)
+            }
+        })
+    })
+</script>
+
+<!-- Eliminar componente -->
+<script>
+    $("button[name='eliminar-componente']").on('click', function() {
+        var id_componente = $(this).attr('id');
+        var row = $(this).closest("tr");
+        $.ajax({
+            type:'POST',
+            url:'{% url "wms_eliminar_componente_ajax" %}',
+            data:{
+                'csrfmiddlewaretoken':'{{csrf_token}}',
+                "id_componente":id_componente
+            },
+            success: function(){
+                row.remove();
+            }
+        })
+    })
+</script>
+
+{% endblock %}
