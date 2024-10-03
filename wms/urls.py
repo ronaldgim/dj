@@ -495,5 +495,47 @@ urlpatterns = [
         route='orden-armado/<int:id>',
         view = views.wms_orden_armado,
         name = 'wms_orden_armado'
-    )
+    ),
+    
+    path(
+        route='get_ruc_by_name_client_ajax',
+        view = views.get_ruc_by_name_client_ajax,
+        name = 'get_ruc_by_name_client_ajax'
+    ),
+    
+    path(
+        route='get_product_data_by_product_id_ajax',
+        view = views.get_product_data_by_product_id_ajax,
+        name = 'get_product_data_by_product_id_ajax'
+    ),
+    
+    path(
+        route='get_precio_by_product_client_ajax',
+        view = views.get_precio_by_product_client_ajax,
+        name = 'get_precio_by_product_client_ajax'
+    ),
+    
+    path(
+        route='wms_editar_orden_ajax',
+        view = views.wms_editar_orden_ajax,
+        name = 'wms_editar_orden_ajax'
+    ),
+    
+    path(
+        route='wms_editar_nuevo_producto_ajax',
+        view = views.wms_editar_nuevo_producto_ajax,
+        name = 'wms_editar_nuevo_producto_ajax'
+    ),
+    
+    path(
+        route='wms_editar_componente_ajax',
+        view = views.wms_editar_componente_ajax,
+        name = 'wms_editar_componente_ajax'
+    ),
+    
+    path(
+        route='wms_eliminar_componente_ajax',
+        view = views.wms_eliminar_componente_ajax,
+        name = 'wms_eliminar_componente_ajax'
+    ),
 ]

@@ -63,44 +63,27 @@
                         <th scope="col">Creado por</th>
                         <th scope="col">Creado en</th>
                         <th scope="col">Observaciones</th>
+                        <th scope="col">Acciones</th>
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
-                    {% for i in mov %}
+                    {% for i in armados %}
                     <tr>
                         <td>{{i.enum}}</td>
-                        <td>{{i.product_id}} <br>
-                        </td>
-
-                        <td>{{i.lote_id}}<br>
-                            {{i.fecha_caducidad|date:'Y-m-d'}}
-                        </td>
-
-                        <td>{{i.tipo}}</td>
+                        <td>{{i.nuevo_producto.product_id}}</td>
+                        <td>{{i.nuevo_producto.nombre}}</td>
+                        <td>{{i.nuevo_producto.marca}}</td>
+                        <td>{{i.nuevo_producto.unidades}}</td>
+                        <td>{{i.cliente}}</td>
                         <td>{{i.estado}}</td>
-                        
-                        <td>
-                            {% if i.referencia == 'Picking' %}
-                                {{i.referencia}} <span>: {{i.n_referencia|slice:"-2"}}</span>
-                            {% elif i.referencia == 'Movimiento Interno'  or i.referencia == 'Movimiento Grupal' %}
-                                {{i.referencia}}
-                            {% else %}
-                                {{i.referencia}} <span>: {{i.n_referencia}}</span>
-                            {% endif %}
-                        </td>
-
-                        <td>{% if i.cuarentena %}CUC-{% endif %}{{i.ubicacion}}</td>
-
-                        <td>{{i.estado_picking|default:'-'}}</td>
-
-                        <td>{{i.n_factura|slice:"14:-6"}}</td>
-
-                        <td class="text-end">{{i.unidades|floatformat:"0g"}}</td>
-
                         <td>{{i.usuario.first_name}} {{i.usuario.last_name}}</td>
-
-                        <td>{{i.fecha_hora|date:'Y-m-d - H:i'}}</td>
-                        
+                        <td>{{i.creado|date:'Y-m-d'}}</td>
+                        <td>{{i.observaciones}}</td>
+                        <td>
+                            <a class="btn btn-sm btn-primary" href="{% url 'wms_orden_armado' i.id %}">
+                                Ver
+                            </a>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -115,60 +98,115 @@
     <div class="modal-dialog"> <!-- modal-lg -->
         <div class="modal-content">
         <div class="modal-header">
-            <h5 class="modal-title fw-bold" id="staticBackdropLabel">Añadir ISO</h5>
+            <h5 class="modal-title fw-bold" id="staticBackdropLabel">Añadir Armado</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
+            <div id="error_modal"></div>
             <form action="" method="POST" id="orden-form" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="row g-2">
-                    <!-- Bodega -->
+
+                    <!-- Código -->
                     <div class="col-4">
-                        {{form.bodega.label}}:
+                        {{form_nuevo_producto.product_id.label}}:
                     </div>
-                    <div class="col-8">
-                        {{form.bodega}}
+                    <div class="col-6">
+                        {{form_nuevo_producto.product_id}}
+                    </div>
+                    <div class="col-2">
+                        <button class="btn btn-secondary" type="button" name="product">
+                            Código
+                        </button>
                     </div>
 
-                    <!-- Ruc -->
+                    <!-- Nombre -->
                     <div class="col-4">
-                        {{form.ruc.label}}:
+                        {{form_nuevo_producto.nombre.label}}:
                     </div>
                     <div class="col-8">
-                        {{form.ruc}}
+                        {{form_nuevo_producto.nombre}}
                     </div>
-                    <!--div class="col-2">
-                        <button class="btn btn-secondary" type="button">
-                            Cliente
-                        </button>
-                    </div-->
+
+                    <!-- Marca -->
+                    <div class="col-4">
+                        {{form_nuevo_producto.marca.label}}:
+                    </div>
+                    <div class="col-8">
+                        {{form_nuevo_producto.marca}}
+                    </div>
+
+                    <!-- Bodega -->
+                    <div class="col-4">
+                        {{form_orden.bodega.label}}:
+                    </div>
+                    <div class="col-8">
+                        {{form_orden.bodega}}
+                    </div>
                     <!-- Cliente -->
                     <div class="col-4">
-                        {{form.cliente.label}}:
+                        {{form_orden.cliente.label}}:
                     </div>
                     <div class="col-8">
-                        {{form.cliente}}
+                        {{form_orden.cliente}}
+                    </div>
+                    <!-- Ruc -->
+                    <div class="col-4">
+                        {{form_orden.ruc.label}}:
+                    </div>
+                    <div class="col-6">
+                        {{form_orden.ruc}}
+                    </div>
+                    <div class="col-2">
+                        <button class="btn btn-secondary" type="button" name="ruc">
+                            Ruc
+                        </button>
+                    </div>
+                    <!-- Precio -->
+                    <div class="col-4">
+                        {{form_nuevo_producto.precio_venta.label}}:
+                    </div>
+                    <div class="col-6">
+                        {{form_nuevo_producto.precio_venta}}
+                    </div>
+                    <div class="col-2">
+                        <button class="btn btn-secondary" type="button" name="precio">
+                            Precio
+                        </button>
+                    </div>
+                    <!-- Cantidad -->
+                    <div class="col-4">
+                        {{form_nuevo_producto.unidades.label}}:
+                    </div>
+                    <div class="col-8">
+                        {{form_nuevo_producto.unidades}}
                     </div>
                     <!-- Prioridad -->
                     <div class="col-4">
-                        {{form.prioridad.label}}:
+                        {{form_orden.prioridad.label}}:
                     </div>
                     <div class="col-8">
-                        {{form.prioridad}}
+                        {{form_orden.prioridad}}
                     </div>
                     <!-- Observaciones -->
                     <div class="col-4">
-                        {{form.observaciones.label}}:
+                        {{form_orden.observaciones.label}}:
                     </div>
                     <div class="col-8">
-                        {{form.observaciones}}
+                        {{form_orden.observaciones}}
                     </div>
                 </div>  
                 <!-- hidden inputs -->
                 <input type="hidden" name="estado" value="Creado">
                 <input type="hidden" name="usuario" value="{{request.user.id}}">
+                <input type="hidden" id="id_codigo_cliente">
 
-                
+                <datalist id="product_list">
+                    {% for i in product_list %}
+                    <option value="{{i.product_id}}">
+                    {% endfor %}
+                </datalist>
+
                 <datalist id="ruc_list">
                     {% for i in ruc_list %}
                     <option value="{{i.IDENTIFICACION_FISCAL}}">
@@ -190,10 +228,93 @@
     </div>
 </div>
 
+<!-- ADD PRODUCT -->
 <script>
-    $(document).ready(function() {
-        $("button[name='buscar']").click(function(){
-            $("#buscar").toggle()
+    $("button[name='product']").on('click', function() {
+        var product_id = $("#id_product_id").val();
+
+        $.ajax({
+            type:"POST",
+            url: "{% url 'get_product_data_by_product_id_ajax' %}",
+            data: {
+                'csrfmiddlewaretoken': '{{csrf_token}}',
+                'product_id': product_id,
+            },
+            success: function(data) {
+                $("#id_nombre").val(data.nombre);
+                $("#id_marca").val(data.marca);
+                if (data.error) {
+                    $("#error_modal").html(
+                        `<div class="alert alert-warning alert-dismissible fade show" role="alert">
+                        ${data.error}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>`
+                    )
+                }
+            }
+        })
+    })
+</script>
+
+<!-- Add RUC -->
+<script>
+    $("button[name='ruc']").on('click', function() {
+        var cliente_name = $("#id_cliente").val();
+
+        $.ajax({
+            type:"POST",
+            url: "{% url 'get_ruc_by_name_client_ajax' %}",
+            data: {
+                'csrfmiddlewaretoken': '{{csrf_token}}',
+                'cliente_name': cliente_name 
+            },
+            success: function(data) {
+                $("#id_ruc").val(data.ruc);
+                $("#id_codigo_cliente").val(data.codigo_cliente);
+                if (data.error) {
+                    $("#error_modal").html(
+                        `<div class="alert alert-warning alert-dismissible fade show" role="alert">
+                        ${data.error}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>`
+                    )
+                }
+            }
+        })
+    })
+</script>
+
+
+<!-- ADD PRECIO -->
+<script>
+    $("button[name='precio']").on('click', function() {
+        var product_id = $("#id_product_id").val();
+        var codigo_cliente = $("#id_codigo_cliente").val();
+
+        $.ajax({
+            type:"POST",
+            url: "{% url 'get_precio_by_product_client_ajax' %}",
+            data: {
+                'csrfmiddlewaretoken': '{{csrf_token}}',
+                'product_id': product_id,
+                'codigo_cliente': codigo_cliente
+            },
+            success: function(data) {
+                
+                if (data.precio) {
+                    $("#id_precio_venta").val(data.precio);
+                };
+                
+                if (data.error) {
+                    $("#id_precio_venta").val('0.0');;
+                    $("#error_modal").html(
+                        `<div class="alert alert-warning alert-dismissible fade show" role="alert">
+                        ${data.error}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>`
+                    )
+                }
+            }
         })
     })
 </script>

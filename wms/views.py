@@ -84,8 +84,10 @@ import numpy as np
 from wms.forms import (
     MovimientosForm, 
     DespachoCartonForm,
-    ProductoArmadoForm,
-    OrdenEmpaqueForm
+    ProductoNuevoArmadoForm,
+    OrdenEmpaqueForm,
+    OrdenEmpaqueUpdateForm,
+    ComponenteArmadoForm
     )
 
 # Messages
@@ -4294,21 +4296,32 @@ def wms_movimiento_grupal_ubicacion_salida_ajax(request):
 def wms_armados_list(request):
     
     armados = OrdenEmpaque.objects.all()
-    form = OrdenEmpaqueForm()
+    form_orden = OrdenEmpaqueForm()
+    form_nuevo_producto = ProductoNuevoArmadoForm()
+    
     ruc_list = clientes_warehouse()[['IDENTIFICACION_FISCAL']]
     cliente_list = clientes_warehouse()[['NOMBRE_CLIENTE']]
+    products_list = productos_odbc_and_django()[['product_id']]
     
     if request.method == 'POST':
-        form = OrdenEmpaqueForm(request.POST)
-        if form.is_valid():
-            orden = form.save()
+        form_orden = OrdenEmpaqueForm(request.POST)
+        form_nuevo_producto = ProductoNuevoArmadoForm(request.POST)
+        if form_orden.is_valid() and form_nuevo_producto.is_valid():
+            orden = form_orden.save()
+            nuevo_producto = form_nuevo_producto.save()
+            
+            orden.nuevo_producto = nuevo_producto
+            orden.save()
+            
             return HttpResponseRedirect(f'/wms/orden-armado/{orden.id}')
         else:
-            messages.error(request, form.errors)
+            messages.error(request, form_orden.errors)
     
     context = {
         'armados':armados,
-        'form':form,
+        'form_nuevo_producto':form_nuevo_producto,
+        'form_orden':form_orden,
+        'products_list':de_dataframe_a_template(products_list),
         'ruc_list':de_dataframe_a_template(ruc_list),
         'cliente_list':de_dataframe_a_template(cliente_list)
     }
@@ -4316,13 +4329,184 @@ def wms_armados_list(request):
     return render(request, 'wms/armados_list.html', context)
 
 
+def get_product_data_by_product_id_ajax(request):
+    
+    try:
+        if request.method == 'POST':
+            product_id = request.POST.get('product_id')
+            
+            if product_id:
+            
+                with connections['gimpromed_sql'].cursor() as cursor:
+                    cursor.execute("SELECT * FROM productos WHERE Codigo = %s", [product_id])
+                    columns = [col[0] for col in cursor.description]
+                    product = [dict(zip(columns, row)) for row in cursor.fetchall()][0]
+                
+                return JsonResponse({
+                    'nombre':product['Nombre'],
+                    'marca':product['Marca'],
+                })
+                
+            else:
+                return JsonResponse({'error': 'Llene el código de producto'})
+    except:
+        return JsonResponse({'error': 'Error en el código de producto'})
+    
+    
+def get_ruc_by_name_client_ajax(request):
+    
+    try:
+        if request.method == 'POST':
+            nombre_cliente = request.POST.get('cliente_name')
+            
+            if nombre_cliente:
+            
+                ''' Colusta de clientes por ruc a la base de datos '''
+                with connections['gimpromed_sql'].cursor() as cursor:
+                    cursor.execute("SELECT * FROM clientes WHERE NOMBRE_CLIENTE = %s", [nombre_cliente])
+                    columns = [col[0] for col in cursor.description]
+                    clientes = [dict(zip(columns, row)) for row in cursor.fetchall()][0]
+                
+                return JsonResponse({
+                    'ruc':clientes['IDENTIFICACION_FISCAL'],
+                    'codigo_cliente':clientes['CODIGO_CLIENTE'],
+                })
+                
+            else:
+                return JsonResponse({'error': 'Llene el nombre del cliente'})
+    except:
+        return JsonResponse({'error': 'No hay ventas registradas'})
+
+
+def get_precio_by_product_client_ajax(request):
+    
+    try:
+        if request.method == 'POST':
+            product_id = request.POST.get('product_id')
+            codigo_cliente = request.POST.get('codigo_cliente')
+            
+            if product_id and codigo_cliente:
+            
+                ''' Colusta de clientes por ruc a la base de datos '''
+                with connections['gimpromed_sql'].cursor() as cursor:
+                    cursor.execute(f"""
+                        SELECT * 
+                        FROM warehouse.venta_facturas 
+                        WHERE PRODUCT_ID = '{product_id}' 
+                        AND CODIGO_CLIENTE = '{codigo_cliente}' 
+                        ORDER BY STR_TO_DATE(FECHA, '%Y-%m-%d') DESC
+                        """)
+                    columns = [col[0] for col in cursor.description]
+                    precio = [dict(zip(columns, row)) for row in cursor.fetchall()][0]
+                    
+                return JsonResponse({
+                    'precio':precio['UNIT_PRICE'],
+                })
+                
+            else:
+                return JsonResponse({'error': 'Llene el código y cliente'})
+    except:
+        return JsonResponse({'error': 'Error en el nombre del cliente'})
+
 
 def wms_orden_armado(request, id):
     
     orden = OrdenEmpaque.objects.get(id=id)
+    form_componente = ComponenteArmadoForm()
+    products_list = productos_odbc_and_django()[['product_id']]
     
+    # Agregar Componente
+    if request.method == 'POST':
+        form_componente = ComponenteArmadoForm(request.POST)
+        if form_componente.is_valid():
+            form_componente.save()
+            nuevo_producto = form_componente.save()
+            orden.componentes.add(nuevo_producto)
+            messages.success(request, 'Componente agregado exitosamente')
+            return redirect('wms_orden_armado', id=id)
+        else:
+            messages.error(request, form_componente.errors)
+            return redirect('wms_orden_armado', id=id)
+        
     context = {
         'orden':orden,
+        'form_componente':form_componente,
+        'products_list':de_dataframe_a_template(products_list),
     }
     
-    return render(request, 'wms/orden_armado.html', context)
+    return render(request, 'wms/armados_orden.html', context)
+
+
+def wms_editar_orden_ajax(request):
+    
+    if request.method == 'GET':
+        id_orden = int(request.GET.get('id_orden'))
+        orden = OrdenEmpaque.objects.get(id=id_orden)
+        form  = OrdenEmpaqueUpdateForm(instance=orden)
+        return HttpResponse(form.as_p())
+    
+    elif request.method == 'POST':
+        id_orden = int(request.POST.get('id_orden'))
+        orden = OrdenEmpaque.objects.get(id=id_orden)
+        form  = OrdenEmpaqueUpdateForm(request.POST, instance=orden)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Orden editada con exito !!!')
+            return HttpResponseRedirect(f'/wms/orden-armado/{orden.id}')
+        else:
+            messages.error(request, form.errors)
+            return HttpResponseRedirect(f'/wms/orden-armado/{orden.id}')
+
+
+def wms_editar_nuevo_producto_ajax(request):
+    
+    if request.method == 'GET':
+        id_nuevo_producto = int(request.GET.get('id_nuevo_producto'))
+        nuevo_producto = ProductoArmado.objects.get(id=id_nuevo_producto)
+        form  = ProductoNuevoArmadoForm(instance=nuevo_producto)
+        return HttpResponse(form.as_p())
+    
+    elif request.method == 'POST':
+        id_nuevo_producto = int(request.POST.get('id_nuevo_producto'))
+        nuevo_producto = ProductoArmado.objects.get(id=id_nuevo_producto)
+        orden = OrdenEmpaque.objects.get(nuevo_producto=nuevo_producto)
+        form  = ProductoNuevoArmadoForm(request.POST, instance=nuevo_producto)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Nuevo producto editado con exito !!!')
+            return HttpResponseRedirect(f'/wms/orden-armado/{orden.id}')
+        else:
+            messages.error(request, form.errors)
+            return HttpResponseRedirect(f'/wms/orden-armado/{orden.id}')
+
+
+def wms_editar_componente_ajax(request):
+    
+    if request.method == 'GET':
+        id_componente = int(request.GET.get('id_componente'))
+        componente = ProductoArmado.objects.get(id=id_componente)
+        form  = ComponenteArmadoForm(instance=componente)
+        return HttpResponse(form.as_p())
+    
+    elif request.method == 'POST':
+        id_componente = int(request.POST.get('id_componente'))
+        componente = ProductoArmado.objects.get(id=id_componente)
+        orden = componente.componentes.all().first()
+        form  = ComponenteArmadoForm(request.POST, instance=componente)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Nuevo producto editado con exito !!!')
+            return HttpResponseRedirect(f'/wms/orden-armado/{orden.id}')
+        else:
+            messages.error(request, form.errors)
+            return HttpResponseRedirect(f'/wms/orden-armado/{orden.id}')
+
+
+def wms_eliminar_componente_ajax(request):
+    if request.method == 'POST':
+        id_componente = int(request.POST.get('id_componente'))
+        componente = ProductoArmado.objects.get(id=id_componente)
+        componente.delete()
+        return JsonResponse({
+            'msg':'Componete eliminado exitosamente'
+        }) 
