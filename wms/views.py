@@ -4291,6 +4291,34 @@ def wms_movimiento_grupal_ubicacion_salida_ajax(request):
             'type':'success'
         })
 
+## Correo de creación de armados
+def wms_correo_creacion_armado(orden):
+    
+    send_mail(
+        subject=f'Solicitud de Armado {orden.bodega}',
+        message=f"""
+Estimados Compañeros:
+
+Solicito su gentil ayuda con realizando el siguiente armado.
+
+Orden de empaque: {orden.enum} \n
+Cliente : {orden.cliente} \n
+Bodega : {orden.bodega} \n
+Producto : {orden.nuevo_producto.product_id} - {orden.nuevo_producto.nombre} - {orden.nuevo_producto.marca} \n
+Cantidad : {orden.nuevo_producto.unidades} \n
+Prioridad : {orden.prioridad} \n
+
+Solicitud de armado creada por: {orden.usuario.first_name} {orden.usuario.last_name} \n
+
+***Este mensaje fue enviado automaticamente mediante WMS***
+""",
+        from_email     = settings.EMAIL_HOST_USER,
+        #recipient_list = ['bcerezos@gimpromed.com', 'bodega2@gimpromed.com'],
+        recipient_list = ['egarces@gimpromed.com'],
+        fail_silently  = False
+        )
+
+
 
 ## ARMADOS
 def wms_armados_list(request):
@@ -4312,6 +4340,9 @@ def wms_armados_list(request):
             
             orden.nuevo_producto = nuevo_producto
             orden.save()
+            
+            # enviar correo electronico
+            wms_correo_creacion_armado(orden)
             
             return HttpResponseRedirect(f'/wms/orden-armado/{orden.id}')
         else:
@@ -4510,3 +4541,89 @@ def wms_eliminar_componente_ajax(request):
         return JsonResponse({
             'msg':'Componete eliminado exitosamente'
         }) 
+        
+
+def wms_armado_picking_list(request):
+    
+    armados = OrdenEmpaque.objects.filter(
+        Q(estado='Creado') &
+        Q(bodega = 'Cerezos')
+        )
+    
+    context = {
+        'armados':armados
+    }
+    
+    return render(request, 'wms/armados_picking_list.html', context)
+
+
+def wms_armado_picking(request, id):
+
+    orden = OrdenEmpaque.objects.get(id=id)
+    
+    # Componentes
+    componentes = orden.componentes.all()
+    componentes_product_list = componentes.values_list('product_id', flat=True)
+    
+    # Existencias
+    existencias = Existencias.objects.filter(
+        Q(estado='Disponible') &
+        Q(product_id__in = componentes_product_list)
+        ).values(
+            'id',
+            'product_id','lote_id','fecha_caducidad','unidades','estado',
+            'ubicacion__id','ubicacion__bodega', 'ubicacion__pasillo', 'ubicacion__modulo', 'ubicacion__nivel'
+        )
+    
+    # Movimiento 
+    movimientos = Movimiento.objects.filter(
+        Q(n_referencia=orden.enum) &
+        Q(tipo='Egreso') &
+        Q(referencia='Picking')
+    ).values(
+        'id',
+        'product_id','lote_id','fecha_caducidad',
+        'unidades','ubicacion__bodega','ubicacion__pasillo','ubicacion__modulo','ubicacion__nivel',
+    )
+    
+    # Total picking
+    total_picking = []
+    for i in componentes_product_list:
+        total_picking_unds = Movimiento.objects.filter(
+            Q(product_id=i) & 
+            Q(n_referencia=orden.enum) &
+            Q(tipo='Egreso') &
+            Q(referencia='Picking')).aggregate(total_picking=Sum('unidades'))['total_picking']
+        if total_picking_unds:
+            total_picking_unds = total_picking_unds * -1
+            dict_total = {
+                'product_id' : i,
+                'total_picking' : total_picking_unds
+            }
+            total_picking.append(dict_total)
+    
+    # Data para picking
+    componentes_template = componentes.values()
+    for i in componentes_product_list:
+        for j in componentes_template:
+            if j['product_id'] == i:
+                j['ubi'] = ubi_list = []
+                j['pik'] = pik_list = []
+                for k in existencias:
+                    if k['product_id'] == i:
+                        ubi_list.append(k)
+                for k in movimientos:
+                    if k['product_id'] == i:
+                        pik_list.append(k)        
+                for l in total_picking:
+                    if l['product_id'] == i:
+                        j['total_picking'] = l['total_picking']
+
+    context = {
+        'orden':orden,
+        'componentes_template':componentes_template
+    }
+    
+    return render(request, 'wms/armado_picking.html', context)
+    
+    

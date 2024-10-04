@@ -538,4 +538,16 @@ urlpatterns = [
         view = views.wms_eliminar_componente_ajax,
         name = 'wms_eliminar_componente_ajax'
     ),
+    
+    path(
+        route='armados-picking-list',
+        view = views.wms_armado_picking_list,
+        name = 'wms_armado_picking_list'
+    ),
+    
+    path(
+        route='armados-picking/<int:id>',
+        view = views.wms_armado_picking,
+        name = 'wms_armado_picking'
+    ),
 ]
