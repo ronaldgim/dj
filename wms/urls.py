@@ -556,4 +556,10 @@ urlpatterns = [
         view = views.wms_armado_movimiento_egreso,
         name = 'wms_armado_movimiento_egreso'
     ),
+    
+    path(
+        route='wms_armado_editar_estado',
+        view = views.wms_armado_editar_estado,
+        name = 'wms_armado_editar_estado'
+    ),
 ]

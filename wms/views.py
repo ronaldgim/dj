@@ -2252,7 +2252,7 @@ def wms_movimiento_egreso_picking(request): #OK
             return JsonResponse({'msg':'❌ No puede retirar más unidades de las existentes !!!'})
         elif unds_egreso == 0 or unds_egreso < 0:
             return JsonResponse({'msg':'❌ La cantidad debe ser mayor 0 !!!'})
-        elif total_mov > total_pedido:
+        elif total_mov > total_pedido: #check
             return JsonResponse({'msg':'❌ No puede retirar más unidades de las solicitadas en el Picking !!!'})
         elif total_mov <= total_pedido:
 
@@ -4320,6 +4320,30 @@ Solicitud de armado creada por: {orden.usuario.first_name} {orden.usuario.last_n
 
 
 
+def wms_correo_finalizado_armado(orden):
+    
+    send_mail(
+        subject=f'Solicitud de Armado Finalizada',
+        message=f"""
+Estimados Compañeros:
+
+Se informa que la solicitud de armado finalizada.
+
+Orden de empaque: {orden.enum} \n
+Cliente : {orden.cliente} \n
+Bodega : {orden.bodega} \n
+Producto : {orden.nuevo_producto.product_id} - {orden.nuevo_producto.nombre} - {orden.nuevo_producto.marca} \n
+Cantidad : {orden.nuevo_producto.unidades} \n
+
+***Este mensaje fue enviado automaticamente mediante WMS***
+""",
+        from_email     = settings.EMAIL_HOST_USER,
+        #recipient_list = ['ncaisapanta@gimpromed.com', 'jgualotuna@gimpromed.com', 'kenriquez@gimpromed.com', 'carcosh@gimpromed.com'],
+        recipient_list = ['egarces@gimpromed.com'],
+        fail_silently  = False
+        )
+
+
 ## ARMADOS
 def wms_armados_list(request):
     
@@ -4619,9 +4643,20 @@ def wms_armado_picking(request, id):
                     if l['product_id'] == i:
                         j['total_picking'] = l['total_picking']
 
+    # Total Unidades Picking
+    total_unidades_picking_todos = [(i['unidades'] * -1) for i in movimientos]
+    total_unidades_picking_todos = sum(total_unidades_picking_todos)
+    
+    # Total Unidades componentes
+    total_componentes = componentes.aggregate(total=Sum('unidades'))['total']
+    total_componentes = total_componentes if total_componentes else 0
+    
     context = {
         'orden':orden,
-        'componentes_template':componentes_template
+        'componentes_template':componentes_template,
+        'total_unidades_picking_todos':total_unidades_picking_todos,
+        'total_componentes':total_componentes
+
     }
     
     return render(request, 'wms/armado_picking.html', context)
@@ -4650,7 +4685,7 @@ def wms_armado_movimiento_egreso(request):
     total_picking = int(total_picking) * -1 if total_picking else 0
     
     # Total Egreso
-    total_egreso_de_orden = OrdenEmpaque.objects.get(id=int(request.POST.get('orden_empaque_id'))).nuevo_producto.unidades
+    total_componente = OrdenEmpaque.objects.get(id=int(request.POST.get('orden_empaque_id'))).componentes.get(product_id=existencia.product_id).unidades
     
     if not existencia:
         return JsonResponse({'msg':'❌ Error, revise las existencias o refresque la pagina !!!'})
@@ -4659,13 +4694,13 @@ def wms_armado_movimiento_egreso(request):
             return JsonResponse({'msg':'❌ No puede retirar más unidades de las existentes !!!'})
         elif unds_egreso == 0 or unds_egreso < 0:
             return JsonResponse({'msg':'❌ La cantidad debe ser mayor 0 !!!'})
-        elif total_picking + unds_egreso > total_egreso_de_orden:
+        elif total_picking + unds_egreso > total_componente:
             return JsonResponse({'msg':'❌ No puede retirar más unidades de las solicitadas en el Picking !!!'})
-        elif total_picking + unds_egreso <= total_egreso_de_orden:
+        elif total_picking + unds_egreso <= total_componente:
             
             picking = Movimiento(
                 product_id      = existencia.product_id,
-                lote_id         = 'lotePrueba2', #existencia.lote_id,
+                lote_id         = 'lotePrueba', #existencia.lote_id,
                 fecha_caducidad = existencia.fecha_caducidad,
                 tipo            = 'Egreso',
                 descripcion     = 'N/A',
@@ -4679,14 +4714,64 @@ def wms_armado_movimiento_egreso(request):
             )
 
             picking.save()
-            #wms_existencias_query_product_lote(product_id=picking.product_id, lote_id=picking.lote_id)
+            wms_existencias_query_product_lote(product_id=picking.product_id, lote_id=picking.lote_id)
 
             # Cambio de estado de orden
             orden = OrdenEmpaque.objects.get(id=int(request.POST.get('orden_empaque_id')))
             if orden.estado == 'Creado':
-                orden.estado = 'Picking'
+                orden.estado = 'En Picking'
                 orden.save()
             
             return JsonResponse({'msg':f'✅ Producto {existencia.product_id}, lote {existencia.lote_id} seleccionado correctamente !!!'})
         return JsonResponse({'msg':'❌ Error !!!'})
     return JsonResponse({'msg':'❌Error !!!'})
+
+
+def wms_armado_editar_estado(request):
+    
+    if request.method == 'POST':
+        
+        id_orden = int(request.POST.get('orden_empaque_id'))
+        orden = OrdenEmpaque.objects.get(id=id_orden)
+        
+        nuevo_estado = request.POST.get('estado')
+        
+        if nuevo_estado != 'Finalizado':
+            orden.estado = nuevo_estado
+            orden.save()
+        
+        elif nuevo_estado == 'Finalizado':
+            
+            # Comprobar que los campos lotes y fechas se hayan completado antes de finalizar
+            componentes = orden.componentes.all()
+            
+            componentes_llenos_list = []
+            for i in componentes:
+                
+                if i.lote_id:
+                    componentes_llenos_list.append(True)
+                else:
+                    componentes_llenos_list.append(False)
+                    
+                if i.fecha_elaboracion:
+                    componentes_llenos_list.append(True)
+                else:
+                    componentes_llenos_list.append(False)
+                    
+                if i.fecha_caducidad:
+                    componentes_llenos_list.append(True)
+                else:
+                    componentes_llenos_list.append(False)
+                
+                
+            if all(componentes_llenos_list):
+                orden.estado = nuevo_estado
+                orden.save()
+
+                # Enviar Correo
+                wms_correo_finalizado_armado(orden)
+    
+        return JsonResponse({'msg':f'✅ Orden N° {orden.enum} {orden.estado}'})
+    
+    
+### LOGICA PARA AGREGAR LOTES Y FECHAS DE CADUCIDAD Y ELABORACIÓN A NUEVO PRODUCTO
