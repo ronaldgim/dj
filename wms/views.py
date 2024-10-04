@@ -4579,7 +4579,7 @@ def wms_armado_picking(request, id):
     movimientos = Movimiento.objects.filter(
         Q(n_referencia=orden.enum) &
         Q(tipo='Egreso') &
-        Q(referencia='Picking')
+        Q(referencia='Picking O.Empaque')
     ).values(
         'id',
         'product_id','lote_id','fecha_caducidad',
@@ -4593,7 +4593,7 @@ def wms_armado_picking(request, id):
             Q(product_id=i) & 
             Q(n_referencia=orden.enum) &
             Q(tipo='Egreso') &
-            Q(referencia='Picking')).aggregate(total_picking=Sum('unidades'))['total_picking']
+            Q(referencia='Picking O.Empaque')).aggregate(total_picking=Sum('unidades'))['total_picking']
         if total_picking_unds:
             total_picking_unds = total_picking_unds * -1
             dict_total = {
@@ -4626,4 +4626,67 @@ def wms_armado_picking(request, id):
     
     return render(request, 'wms/armado_picking.html', context)
     
+
+def wms_armado_movimiento_egreso(request):
     
+    # Verificar si se ingresaron unidades
+    unds_egreso = request.POST.get('unds')
+    if not unds_egreso:
+        unds_egreso = 0
+        return JsonResponse({'msg':'❌ Error, ingrese una cantidad !!!'})
+    else:
+        unds_egreso = int(unds_egreso)
+    
+    # Existencia
+    id_existencia = int(request.POST.get('id_existencia'))
+    existencia = Existencias.objects.get(id=id_existencia)
+    
+    # Total Picking por producto
+    total_picking = Movimiento.objects.filter(
+        Q(product_id=existencia.product_id) &
+        Q(n_referencia=request.POST.get('orden_empaque')) &
+        Q(tipo='Egreso') &    
+        Q(referencia='Picking O.Empaque')).aggregate(total_picking=Sum('unidades'))['total_picking']    
+    total_picking = int(total_picking) * -1 if total_picking else 0
+    
+    # Total Egreso
+    total_egreso_de_orden = OrdenEmpaque.objects.get(id=int(request.POST.get('orden_empaque_id'))).nuevo_producto.unidades
+    
+    if not existencia:
+        return JsonResponse({'msg':'❌ Error, revise las existencias o refresque la pagina !!!'})
+    elif existencia:
+        if unds_egreso > existencia.unidades:
+            return JsonResponse({'msg':'❌ No puede retirar más unidades de las existentes !!!'})
+        elif unds_egreso == 0 or unds_egreso < 0:
+            return JsonResponse({'msg':'❌ La cantidad debe ser mayor 0 !!!'})
+        elif total_picking + unds_egreso > total_egreso_de_orden:
+            return JsonResponse({'msg':'❌ No puede retirar más unidades de las solicitadas en el Picking !!!'})
+        elif total_picking + unds_egreso <= total_egreso_de_orden:
+            
+            picking = Movimiento(
+                product_id      = existencia.product_id,
+                lote_id         = 'lotePrueba2', #existencia.lote_id,
+                fecha_caducidad = existencia.fecha_caducidad,
+                tipo            = 'Egreso',
+                descripcion     = 'N/A',
+                referencia      = 'Picking O.Empaque',
+                n_referencia    = request.POST.get('orden_empaque'),
+                ubicacion_id    = existencia.ubicacion.id,
+                unidades        = unds_egreso*-1,
+                estado          = existencia.estado,
+                estado_picking  = 'Despachado',
+                usuario_id      = request.user.id,
+            )
+
+            picking.save()
+            #wms_existencias_query_product_lote(product_id=picking.product_id, lote_id=picking.lote_id)
+
+            # Cambio de estado de orden
+            orden = OrdenEmpaque.objects.get(id=int(request.POST.get('orden_empaque_id')))
+            if orden.estado == 'Creado':
+                orden.estado = 'Picking'
+                orden.save()
+            
+            return JsonResponse({'msg':f'✅ Producto {existencia.product_id}, lote {existencia.lote_id} seleccionado correctamente !!!'})
+        return JsonResponse({'msg':'❌ Error !!!'})
+    return JsonResponse({'msg':'❌Error !!!'})
