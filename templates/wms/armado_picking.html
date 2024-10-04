@@ -18,7 +18,7 @@
 <h5 class="mt-2 text-center fw-bold">{{orden.cliente}}</h5>
 
 <div class="mt-2 mb-2">   
-    <span class="fw-bold" style="font-size: small;">Orden de empaque: </span> <span style="font-size: small;">{{orden.enum}}</span> <br>
+    <span class="fw-bold" style="font-size: small;">Orden de empaque: </span> <span style="font-size: small;" id="orden_empaque">{{orden.enum}}</span> <br>
     <span class="fw-bold" style="font-size: small;">Fecha-Hora: </span> <span style="font-size: small;"> {{orden.creado|date:'Y-m-d'}} {{hora}}</span> <br>
     <span class="fw-bold" style="font-size: small;">Nuevo producto: </span> <span style="font-size: small;"> {{orden.nuevo_producto.product_id}} </span> 
 </div>
@@ -156,12 +156,16 @@
 
                                                 <td>
                                                     <!--input type="hidden" value="{{i.lote_id}}" id="lote_id"-->
+                                                    {% comment %}
                                                     {% if i.EGRESO_TEMP %}
                                                     <button class="text-sm m-0 p-0" style="background-color:yellow" id="{{i.lote_id}}" name="reservas" data-bs-toggle="modal" data-bs-target="#exampleModal">{{i.lote_id}}</button><br>
                                                     {% else %}
                                                     <span style="background-color:#37F8F5">{{i.lote_id}}</span><br>
                                                     {% endif %}
-                                                    <span id="caducidad">{{i.fecha_caducidad|date:'Y-d-m'}}</span>
+                                                    <!--span id="caducidad">{{i.fecha_caducidad|date:'Y-d-m'}}</span-->
+                                                    {% endcomment %}
+                                                    <span style="background-color:#37F8F5">{{i.lote_id}}</span><br>
+                                                    <span>{{i.fecha_caducidad|date:'Y-d-m'}}</span>
                                                 </td>
                                                 
                                                 <td class="{% if i.estado == 'Cuarentena' %}text-danger{% endif %}">{% if i.estado == 'Cuarentena' %}CUC-{% endif %}
@@ -177,7 +181,7 @@
                                                 </td>
                                                 
                                                 <td class="text-center">
-                                                    <button name="pick" type="button" class="btn btn-success btn-sm {% if i.estado == 'Cuarentena' %} disabled {% endif %}">
+                                                    <button name="pick" type="button" class="btn btn-success btn-sm {% if i.estado == 'Cuarentena' %} disabled {% endif %}" id="{{i.id}}">
                                                         <i class="bi bi-arrow-bar-right"></i>
                                                     </button>
                                                 </td>
@@ -202,11 +206,7 @@
                                                     </thead>
                                                     <tbody>
                                                         {% for j in i.pik %}
-                                                        <tr>
-                                                            <!--input type="hidden" value="{{n_ped}}" id="reg_n_picking">
-                                                            <input type="hidden" value="{{j.product_id}}" id="reg_prod_id">
-                                                            <input type="hidden" value="{{j.ubicacion_id}}" id="reg_ubi"-->
-                                                            
+                                                        <tr>                                                            
                                                             <td id="reg_lote">{{j.lote_id}}</td>
                                                             <td id="reg_caducidad">{{j.fecha_caducidad|date:"Y-m-d"}}</td>
                                                             <td>{{j.ubicacion__bodega}}-{{j.ubicacion__pasillo}}-{{j.ubicacion__modulo}}{% if j.ubicacion__bodega == 'CN6' %}-{{j.ubicacion__nivel}}{% else %}{% endif %}</td>
@@ -242,22 +242,21 @@
 </div>
 
 <!-- Modal - RESERVAS -->
-<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<!--div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title fw-bold" id="exampleModalLabel">Reservas</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-                <div id="reservas" class="modal-body responsive"><!--class="modal-body"-->
+                <div id="reservas" class="modal-body responsive">
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                <!--button type="button" class="btn btn-primary">Save changes</button-->
             </div>
         </div>
     </div>
-</div>
+</div-->
 
 <!-- Desplegar ubicaciones -->
 <script>
@@ -273,24 +272,19 @@
 <!-- Picking -->
 <script>
     $("button[name='pick']").click(function(){
-        var prod_id          = $(this).closest("tr").find("#prod_id").val();
-        var lote             = $(this).closest("tr").find("#lote_id").val();
-        var caducidad        = $(this).closest("tr").find("#caducidad").html();
+        var orden_empaque = $("#orden_empaque").html();
+        var id_existencia = $(this).attr('id')
         var picking_cantidad = $(this).closest("tr").find("#picking_cantidad").val();
-        var n_picking        = $(this).closest("tr").find("#n_picking").val();
-        var ubi              = $(this).closest("tr").find("#ubi").val();
-        
+
         $.ajax({
             type:"POST",
-            url:"{% url 'wms_movimiento_egreso_picking' %}",
+            url:"{% url 'wms_armado_movimiento_egreso' %}",
             data:{
                 'csrfmiddlewaretoken': '{{ csrf_token }}',
-                'prod_id':prod_id,
-                'lote_id':lote,
-                'caducidad':caducidad,
+                'orden_empaque':orden_empaque,
+                'orden_empaque_id':'{{orden.id}}',
+                'id_existencia':id_existencia,
                 'unds'   :picking_cantidad,
-                'n_picking':n_picking,
-                'ubi':ubi
             },
 
             success: function(response) {
@@ -347,7 +341,7 @@
 </script>
 
 <!-- Reservas -->
-<script>
+<!--script>
     $("button[name='reservas']").click(function(){
         var prod_id          = $(this).closest("tr").find("#prod_id").val();
         //var lote             = $(this).closest("tr").find("#lote").html();
@@ -383,7 +377,7 @@
             }
         })
     })
-</script>
+</script-->
 
 
 <!-- Estado Picking -->
@@ -424,6 +418,7 @@
         
     })
 </script>
+
 
 <!-- Actuaizar Estado Picking -->
 <script>

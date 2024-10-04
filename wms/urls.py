@@ -550,4 +550,10 @@ urlpatterns = [
         view = views.wms_armado_picking,
         name = 'wms_armado_picking'
     ),
+    
+    path(
+        route='wms_armado_movimiento_egreso',
+        view = views.wms_armado_movimiento_egreso,
+        name = 'wms_armado_movimiento_egreso'
+    ),
 ]

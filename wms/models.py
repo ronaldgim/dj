@@ -20,6 +20,7 @@ REFERENCIA_MOVIMIENTOS = [
     ('Liberación', 'Liberación'),
     ('Ajuste', 'Ajuste'),
     ('Picking', 'Picking'),
+    ('Picking O.Empaque', 'Picking O.Empaque'),
     ('Reverso de picking', 'Reverso de picking'),
     ('Transferencia', 'Transferencia'),
     ('Nota de entrega', 'Nota de entrega'),
