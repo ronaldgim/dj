@@ -1,0 +1,93 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Armados</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'wms/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+<h5 class="m-4 text-center fw-bold">ARMADOS</h5>
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
+
+
+{% if tipo %}
+<div class="card mt-2 mb-2">
+    <div class="card-body">
+        <label class="fw-bold">{{tipo}}: </label> {{valor}}<br>
+        <label class="fw-bold">Resultados: </label> {{len}}<br>
+        <a class="btn btn-sm btn-danger" href="{% url 'wms_movimientos_list' %}">Borrar busqueda</a>
+    </div>
+</div>
+{% endif %}
+
+<div class="col-12">
+    <input id="inputbuscar" type="text" placeholder="Filtro" class="form-control">
+</div>
+
+<div id="msg"></div>
+
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Cliente</th>
+                        <th scope="col">Estado</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in armados %}
+                    <tr>
+                        <td>
+                            {{i.cliente}} <br>
+                            {{i.enum}} <br>
+                            {{i.bodega}} <br>
+                            {{i.creado|date:"Y-m-d"}}
+                        </td>
+                        <td>
+                            <a class="btn btn-sm btn-primary" href="{% url 'wms_armado_picking' i.id %}">
+                                PICKING
+                            </a>
+                            {{i.estado}} <br>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<!--filtro buscar-->
+<script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+
+{% endblock %}
