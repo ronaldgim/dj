@@ -4716,6 +4716,8 @@ def wms_armado_movimiento_egreso(request):
             picking.save()
             wms_existencias_query_product_lote(product_id=picking.product_id, lote_id=picking.lote_id)
 
+            # Actualizar campos de fechas y lote de producto seleccionado
+            
             # Cambio de estado de orden
             orden = OrdenEmpaque.objects.get(id=int(request.POST.get('orden_empaque_id')))
             if orden.estado == 'Creado':
@@ -4770,8 +4772,16 @@ def wms_armado_editar_estado(request):
 
                 # Enviar Correo
                 wms_correo_finalizado_armado(orden)
+            else:
+                return JsonResponse({
+                    'msg':f'❌ No puede finalizar la Orden N° {orden.enum} hasta completar los lotes y fechas de los productos',
+                    'type':'danger'
+                    })
     
-        return JsonResponse({'msg':f'✅ Orden N° {orden.enum} {orden.estado}'})
+        return JsonResponse({
+            'msg':f'✅ Orden N° {orden.enum} {orden.estado}',
+            'type':'success'
+            })
     
     
 ### LOGICA PARA AGREGAR LOTES Y FECHAS DE CADUCIDAD Y ELABORACIÓN A NUEVO PRODUCTO

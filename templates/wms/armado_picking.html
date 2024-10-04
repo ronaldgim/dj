@@ -309,7 +309,7 @@
             success: function(response) {
             
             if (response.msg) {
-                $('#msg').html(`<div class="text-center alert alert-success" role="alert"> ${response.msg} </div>`)
+                $('#msg').html(`<div class="text-center alert alert-${response.type}" role="alert"> ${response.msg} </div>`)
             }
             
             setTimeout(function(){
@@ -329,44 +329,6 @@
     })
 </script>
 
-
-<!-- Actuaizar Estado Picking -->
-<script>
-    $("button[name='estado_actualizar']").click(function(){
-        var id_picking = $(this).attr('id');
-        var estado = $(this).text()
-        
-        $.ajax({
-            type:"POST",
-            url:"{% url 'wms_estado_picking_actualizar_ajax' %}",
-            data:{
-                'csrfmiddlewaretoken': '{{ csrf_token }}',
-                'id_picking':id_picking,
-                'estado':estado,
-            },
-
-            success: function(response) {
-            
-            if (response.msg) {
-                $('#msg').html(`<div class="text-center alert alert-${response.alert}" role="alert"> ${response.msg} </div>`)
-            }
-            
-            setTimeout(function(){
-                window.location.reload();
-            }, 2000)
-        
-            },
-            
-            error: function() {
-                $('#msg').html('<div class="text-center alert alert-danger" role="alert"> Error al hacer el picking !!! </div>')
-                    setTimeout(function(){
-                    window.location.reload();
-                    }, 2000)
-            }
-        })
-        
-    })
-</script>
 
 
 <!-- Modal - RESERVAS -->
