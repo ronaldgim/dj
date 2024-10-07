@@ -562,4 +562,10 @@ urlpatterns = [
         view = views.wms_armado_editar_estado,
         name = 'wms_armado_editar_estado'
     ),
+    
+    path(
+        route='wms_completar_componente_ajax',
+        view = views.wms_completar_componente_ajax,
+        name = 'wms_completar_componente_ajax'
+    ),
 ]

@@ -12,6 +12,8 @@ from wms.models import (
     NotaEntrega,
     NotaEntregaStatus,
     AnulacionPicking,
+    ProductoArmado,
+    OrdenEmpaque
     )
 
 
@@ -152,4 +154,37 @@ class AnulacionPickingAdmin(admin.ModelAdmin):
         'estado',
         'usuario',
         'fecha_hora'
+        )
+    
+@admin.register(ProductoArmado)
+class ProductoArmadoAdmin(admin.ModelAdmin):
+
+    list_display = (
+        'id',
+        'product_id',
+        'nombre',
+        'marca',
+        'lote_id',
+        'fecha_elaboracion',
+        'fecha_caducidad',
+        'precio_venta',
+        'ubicacion',
+        'unidades'
+        )
+    
+@admin.register(OrdenEmpaque)
+class OrdenEmpaqueAdmin(admin.ModelAdmin):
+
+    list_display = (
+        'id',
+        'ruc',
+        'cliente',
+        'bodega',
+        'prioridad',
+        'estado',
+        'nuevo_producto',
+        'usuario',
+        'creado',
+        'actualizado',
+        'observaciones'
         )

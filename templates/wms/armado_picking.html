@@ -36,9 +36,9 @@
 <h6 class="text-end fw-bold">Estado de Armado</h6>
 <div class="text-end">
     <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
-        <button type="button" name="estado-orden" class="btn btn-warning">En Proceso</button>
-        <button type="button" name="estado-orden" class="btn btn-danger">En Pausa</button>
-        <button type="button" name="estado-orden" class="btn btn-success">Finalizado</button>
+        <button type="button" name="estado-orden" class="btn btn-warning {% if orden.estado == 'Finalizado' %} disabled {% endif %}">En Proceso</button>
+        <button type="button" name="estado-orden" class="btn btn-danger {% if orden.estado == 'Finalizado' %} disabled {% endif %}">En Pausa</button>
+        <button type="button" name="estado-orden" class="btn btn-success {% if orden.estado == 'Finalizado' %} disabled {% endif %}">Finalizado</button>
     </div>
 </div>
 <hr>
@@ -101,10 +101,18 @@
                             </td>
 
                             <td class="text-end">
-                                <button class="btn btn-primary btn-sm {% if estado == 'SIN ESTADO' %} disabled {% endif %} " id="{{i.PRODUCT_ID}}" name="boton_ubicaciones"> 
+                                <div class="btn-group btn-group-sm" role="group" aria-label="Basic mixed styles example">
+                                <button class="btn btn-primary btn-sm {% if estado == 'SIN ESTADO' %} disabled {% endif %}" name="boton_ubicaciones"> 
                                     <i class="bi bi-geo-fill"></i>
                                 </button>
-                                <br>
+
+                                {% if i.total_picking == i.unidades %}
+                                <button type="button" class="btn btn-primary" name="completar-nuevo-producto" id="{{i.id}}" data-bs-toggle="modal" data-bs-target="#CompletarProductoNuevo">
+                                    <i class="bi bi-text-left"></i>
+                                </button>
+                                {% endif %}
+
+                                </div>
 
                             </td>
                         </tr>
@@ -206,7 +214,30 @@
     </div>
 </div>
 
+<!-- Completar producto nuevo -->
+<div class="modal fade" id="CompletarProductoNuevo" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="CompletarProductoNuevoLabel" aria-hidden="true">
+    <div class="modal-dialog"> 
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="CompletarProductoNuevoLabel">Completar Datos Producto Nuevo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
 
+            <div class="modal-body">
+                <div id="error_modal"></div>
+                <form action="{% url 'wms_completar_componente_ajax' %}" method="POST" id="completar-producto-nuevo-form">
+                    {% csrf_token %}
+                    <div id="completar-producto-nuevo-form-get"></div>
+                    <div id="completar-producto-id-input"></div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button type="submit" form="completar-producto-nuevo-form" class="btn btn-primary">Completar</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Desplegar ubicaciones -->
 <script>
@@ -329,60 +360,27 @@
     })
 </script>
 
-
-
-<!-- Modal - RESERVAS -->
-<!--div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title fw-bold" id="exampleModalLabel">Reservas</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-                <div id="reservas" class="modal-body responsive">
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-            </div>
-        </div>
-    </div>
-</div-->
-<!-- Reservas -->
-<!--script>
-    $("button[name='reservas']").click(function(){
-        var prod_id          = $(this).closest("tr").find("#prod_id").val();
-        //var lote             = $(this).closest("tr").find("#lote").html();
-        var lote             = $(this).attr('id')
+<!-- Completar de editar componente -->
+<script>
+    $("button[name='completar-nuevo-producto']").on('click', function() {
+        var id_componente = $(this).attr('id');
         
         $.ajax({
-            type:"POST",
-            url:"{% url 'wms_reservas_lote_consulta_ajax' %}",
+            type:'GET',
+            url:'{% url "wms_completar_componente_ajax" %}',
             data:{
-                'csrfmiddlewaretoken': '{{ csrf_token }}',
-                'prod_id':prod_id,
-                'lote_id':lote,
+                "id_componente":id_componente
             },
-
-            success: function(response) {
-            $('#reservas').html(
-                `
-                </h6 class="fw-bold">Producto:</h6> ${prod_id}<br>
-                </h6 class="fw-bold">Lote: </h6>${lote}
-                ${response}
-                `
-            )
-
-            $("#reservas_table").css("font-size", "smaller")
-
-            },
-            
-            error: function() {
-                $('#msg').html('<div class="text-center alert alert-danger" role="alert"> Error al hacer el picking !!! </div>')
-                    setTimeout(function(){
-                    window.location.reload();
-                    }, 2000)
+            success: function(response){
+                console.log(response);
+                $("#completar-producto-nuevo-form-get").html(response);
+                $("#completar-producto-id-input").html(`<input name="id_componente" type="hidden" value="${id_componente}">`)
+                
+                // Remove inputs
+                $("label[for='id_ubicacion']").remove();
+                $("#id_ubicacion").remove();
             }
         })
     })
-</script-->
+</script>
 {% endblock %}
