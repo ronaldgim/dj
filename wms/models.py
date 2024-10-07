@@ -282,7 +282,7 @@ class ProductoArmado(models.Model):
     product_id        = models.CharField(verbose_name='Código', max_length=50)
     nombre            = models.CharField(verbose_name='Nombre', max_length=50)
     marca             = models.CharField(verbose_name='Marca', max_length=50)
-    lote_id           = models.CharField(verbose_name='Lote id', max_length=50, blank=True)
+    lote_id           = models.CharField(verbose_name='Lote', max_length=50, blank=True)
     fecha_elaboracion = models.DateField(verbose_name='Fecha de elaboración', blank=True, null=True)
     fecha_caducidad   = models.DateField(verbose_name='Fecha de caducidad', blank=True, null=True)
     precio_venta      = models.FloatField(verbose_name='Precio de venta', null=True)

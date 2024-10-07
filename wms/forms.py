@@ -33,7 +33,6 @@ class DespachoCartonForm(forms.ModelForm):
         
 
 class ProductoNuevoArmadoForm(forms.ModelForm):
-    
     class Meta:
         model = ProductoArmado
         fields = [
@@ -44,7 +43,6 @@ class ProductoNuevoArmadoForm(forms.ModelForm):
             'unidades',
         ]
         
-        
         widgets = {
             'product_id':forms.TextInput(attrs={'class':'form-control','list':'product_list'}),
             'nombre':forms.TextInput(attrs={'class':'form-control'}),
@@ -52,7 +50,30 @@ class ProductoNuevoArmadoForm(forms.ModelForm):
             'precio_venta':forms.NumberInput(attrs={'class':'form-control'}),
             'unidades':forms.NumberInput(attrs={'class':'form-control'}),
         }
+
+
+class ProductoNuevoArmadoUpdateForm(forms.ModelForm):
+    class Meta:
+        model = ProductoArmado
+        fields = [
+            'product_id',
+            'nombre',
+            'marca',
+            'lote_id',
+            'fecha_elaboracion',
+            'fecha_caducidad',
+            'ubicacion',
+        ]
         
+        widgets = {
+            'product_id':forms.TextInput(attrs={'class':'form-control','readonly':'true'}),
+            'nombre':forms.TextInput(attrs={'class':'form-control','readonly':'true'}),
+            'marca':forms.TextInput(attrs={'class':'form-control','readonly':'true'}),
+            'lote_id':forms.TextInput(attrs={'class':'form-control','list':'lote_list'}),
+            'fecha_elaboracion':forms.DateInput(attrs={'class':'form-control', 'type':'date'}),
+            'fecha_caducidad':forms.DateInput(attrs={'class':'form-control', 'type':'date'}),
+            'ubicacion':forms.TextInput(attrs={'class':'form-control', 'list':'ubicacion_list'}),
+        }
 
 
 class ComponenteArmadoForm(forms.ModelForm):
@@ -74,6 +95,7 @@ class ComponenteArmadoForm(forms.ModelForm):
             'precio_venta':forms.NumberInput(attrs={'class':'form-control'}),
             'unidades':forms.NumberInput(attrs={'class':'form-control', 'required':'true'}),
         }
+
 
 class OrdenEmpaqueForm(forms.ModelForm):
     
@@ -98,6 +120,7 @@ class OrdenEmpaqueForm(forms.ModelForm):
             'estado':forms.TextInput(attrs={'type':'hidden'}),
             'usuario':forms.TextInput(attrs={'type':'hidden'}),
         }
+
 
 class OrdenEmpaqueUpdateForm(forms.ModelForm):
     
