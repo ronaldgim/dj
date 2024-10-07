@@ -4316,8 +4316,8 @@ Solicitud de armado creada por: {orden.usuario.first_name} {orden.usuario.last_n
 ***Este mensaje fue enviado automaticamente mediante WMS***
 """,
         from_email     = settings.EMAIL_HOST_USER,
-        #recipient_list = ['bcerezos@gimpromed.com', 'bodega2@gimpromed.com'],
-        recipient_list = ['egarces@gimpromed.com'],
+        recipient_list = ['bcerezos@gimpromed.com', 'bodega2@gimpromed.com'],
+        #recipient_list = ['egarces@gimpromed.com'],
         fail_silently  = False
         )
 
@@ -4340,8 +4340,8 @@ Cantidad : {orden.nuevo_producto.unidades} \n
 ***Este mensaje fue enviado automaticamente mediante WMS***
 """,
         from_email     = settings.EMAIL_HOST_USER,
-        #recipient_list = ['ncaisapanta@gimpromed.com', 'jgualotuna@gimpromed.com', 'kenriquez@gimpromed.com', 'carcosh@gimpromed.com'],
-        recipient_list = ['egarces@gimpromed.com'],
+        recipient_list = ['ncaisapanta@gimpromed.com', 'jgualotuna@gimpromed.com', 'kenriquez@gimpromed.com', 'carcosh@gimpromed.com'],
+        #recipient_list = ['egarces@gimpromed.com'],
         fail_silently  = False
         )
 
@@ -4561,23 +4561,36 @@ def wms_editar_nuevo_producto_ajax(request):
 def wms_completar_componente_ajax(request):
     
     if request.method == 'GET':
-        id_nuevo_producto = int(request.GET.get('id_componente'))
-        nuevo_producto = ProductoArmado.objects.get(id=id_nuevo_producto)
-        form  = ProductoNuevoArmadoUpdateForm(instance=nuevo_producto)#;print(form)
+        id_componente = int(request.GET.get('id_componente'))
+        componente = ProductoArmado.objects.get(id=id_componente)
+        form  = ProductoNuevoArmadoUpdateForm(instance=componente)
         return HttpResponse(form.as_p())
     
     elif request.method == 'POST':
-        id_nuevo_producto = int(request.POST.get('id_componente'))
-        nuevo_producto = ProductoArmado.objects.get(id=id_nuevo_producto)
-        orden = OrdenEmpaque.objects.get(nuevo_producto=nuevo_producto)
-        form  = ProductoNuevoArmadoUpdateForm(request.POST, instance=nuevo_producto)
+        id_componente = int(request.POST.get('id_componente'))
+        componente = ProductoArmado.objects.get(id=id_componente)
+        
+        if OrdenEmpaque.objects.filter(nuevo_producto=componente).exists():
+            orden = OrdenEmpaque.objects.get(nuevo_producto=componente)
+            tipo_request = 'nuevo'
+        else:
+            orden = OrdenEmpaque.objects.filter(componentes=componente).first()
+            tipo_request = 'componente'
+        
+        form  = ProductoNuevoArmadoUpdateForm(request.POST, instance=componente)
         if form.is_valid():
             form.save()
             messages.success(request, 'Nuevo producto editado con exito !!!')
-            return HttpResponseRedirect(f'/wms/orden-armado/{orden.id}')
+            if tipo_request == 'nuevo':
+                return HttpResponseRedirect(f'/wms/orden-armado/{orden.id}')
+            else:
+                return HttpResponseRedirect(f'/wms/armados-picking/{orden.id}')
         else:
             messages.error(request, form.errors)
-            return HttpResponseRedirect(f'/wms/orden-armado/{orden.id}')
+            if tipo_request == 'nuevo':
+                return HttpResponseRedirect(f'/wms/orden-armado/{orden.id}')
+            else:
+                return HttpResponseRedirect(f'/wms/armados-picking/{orden.id}')
 
 
 def wms_editar_componente_ajax(request):
@@ -4704,7 +4717,7 @@ def wms_armado_picking(request, id):
     }
     
     return render(request, 'wms/armado_picking.html', context)
-    
+
 
 def wms_armado_movimiento_egreso(request):
     
@@ -4744,7 +4757,7 @@ def wms_armado_movimiento_egreso(request):
             
             picking = Movimiento(
                 product_id      = existencia.product_id,
-                lote_id         = 'lotePrueba', #existencia.lote_id,
+                lote_id         = existencia.lote_id,
                 fecha_caducidad = existencia.fecha_caducidad,
                 tipo            = 'Egreso',
                 descripcion     = 'N/A',
@@ -4758,7 +4771,7 @@ def wms_armado_movimiento_egreso(request):
             )
 
             picking.save()
-            #wms_existencias_query_product_lote(product_id=picking.product_id, lote_id=picking.lote_id)
+            wms_existencias_query_product_lote(product_id=picking.product_id, lote_id=picking.lote_id)
 
             # Actualizar campos de fechas y lote de producto seleccionado
             actualizar_componente = OrdenEmpaque.objects.get(id=int(request.POST.get('orden_empaque_id'))).componentes.get(product_id=existencia.product_id)
@@ -4830,6 +4843,3 @@ def wms_armado_editar_estado(request):
             'msg':f'✅ Orden N° {orden.enum} {orden.estado}',
             'type':'success'
             })
-    
-    
-### LOGICA PARA AGREGAR LOTES Y FECHAS DE CADUCIDAD Y ELABORACIÓN A NUEVO PRODUCTO
