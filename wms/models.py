@@ -309,6 +309,6 @@ class OrdenEmpaque(models.Model):
     
     @property
     def enum(self):
-        enum = OrdenEmpaque.objects.filter(id__lte=self.id).count() + 521
-        enum = f'{enum:06d}'
+        enum = OrdenEmpaque.objects.filter(id__lte=self.id).count() + 1456
+        enum = f'{enum:07d}'
         return enum 

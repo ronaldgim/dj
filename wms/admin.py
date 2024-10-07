@@ -177,6 +177,7 @@ class OrdenEmpaqueAdmin(admin.ModelAdmin):
 
     list_display = (
         'id',
+        'enum',
         'ruc',
         'cliente',
         'bodega',

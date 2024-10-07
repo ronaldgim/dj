@@ -70,8 +70,12 @@ class ProductoNuevoArmadoUpdateForm(forms.ModelForm):
             'nombre':forms.TextInput(attrs={'class':'form-control','readonly':'true'}),
             'marca':forms.TextInput(attrs={'class':'form-control','readonly':'true'}),
             'lote_id':forms.TextInput(attrs={'class':'form-control','list':'lote_list'}),
-            'fecha_elaboracion':forms.DateInput(attrs={'class':'form-control', 'type':'date'}),
-            'fecha_caducidad':forms.DateInput(attrs={'class':'form-control', 'type':'date'}),
+            'fecha_elaboracion':forms.DateInput(
+                format='%Y-%m-%d',
+                attrs={'class':'form-control', 'type':'date', 'required':'true'}),
+            'fecha_caducidad':forms.DateInput(
+                format='%Y-%m-%d',
+                attrs={'class':'form-control', 'type':'date'}),
             'ubicacion':forms.TextInput(attrs={'class':'form-control', 'list':'ubicacion_list'}),
         }
 
