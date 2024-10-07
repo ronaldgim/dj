@@ -4346,6 +4346,8 @@ Cantidad : {orden.nuevo_producto.unidades} \n
         )
 
 
+@login_required(login_url='login')
+@permisos(['ADMINISTRADOR','OPERACIONES',], '/wms/inventario', 'ingrear a lista de armados')
 def wms_armados_list(request):
     
     armados = OrdenEmpaque.objects.all().order_by('-id')
@@ -4469,6 +4471,8 @@ def get_precio_by_product_client_ajax(request):
         return JsonResponse({'error': 'Error en el nombre del cliente'})
 
 
+@login_required(login_url='login')
+@permisos(['ADMINISTRADOR','OPERACIONES',], '/wms/inventario', 'ingrear a detalle de armado')
 def wms_orden_armado(request, id):
     
     # Orden
@@ -4625,6 +4629,8 @@ def wms_eliminar_componente_ajax(request):
         }) 
 
 
+@login_required(login_url='login')
+@permisos(['BODEGA'], '/wms/inventario', 'ingrear a Picking de armados')
 def wms_armado_picking_list(request):
     
     armados = OrdenEmpaque.objects.filter(
@@ -4638,6 +4644,8 @@ def wms_armado_picking_list(request):
     return render(request, 'wms/armados_picking_list.html', context)
 
 
+@login_required(login_url='login')
+@permisos(['BODEGA'], '/wms/inventario', 'ingrear a Picking de armados')
 def wms_armado_picking(request, id):
 
     orden = OrdenEmpaque.objects.get(id=id)
