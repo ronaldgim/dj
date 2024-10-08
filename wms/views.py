@@ -4059,16 +4059,19 @@ def wms_reporte_bodegas457(request):
     products_list_final = []    
     for i in products:
         existencia = Existencias.objects.filter(
-            product_id=i,
-            ubicacion__bodega__in = ['CN4','CN5','CN7']
+            Q(product_id=i) #&
+            #Q(ubicacion__bodega__in = ['CN4','CN5','CN7']) # En este nuevo reporte se comento esta linea
         ).order_by('fecha_caducidad', 'lote_id')
         
+        
         if existencia.exists():
-            products_list_final.append(existencia.first().id)
+            if existencia.first().ubicacion.bodega != 'CN6': # esta linea se agrego  en este nuevo reporte
+                products_list_final.append(existencia.first().id)
+    
     
     df = pd.DataFrame(Existencias.objects.filter(id__in = products_list_final).values(
-        'product_id','lote_id','fecha_caducidad','ubicacion__bodega', 'unidades',
-        'ubicacion__pasillo','ubicacion__modulo','ubicacion__nivel'
+        'product_id','lote_id','fecha_caducidad','unidades',
+        'ubicacion__bodega','ubicacion__pasillo','ubicacion__modulo','ubicacion__nivel'
     ))
     
     products = productos_odbc_and_django()[['product_id','Nombre','Marca']]
