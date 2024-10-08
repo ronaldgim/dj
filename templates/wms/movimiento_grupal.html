@@ -69,14 +69,27 @@
 <br>
 
 <div id="div_ubi_destino">
-<label id="label_ubicacion_destino" class="fw-bold">Seleccione la ubicación de destino:</label>
-<select class="form-select" name="ubicacion_destino" id="ubicacion_destino">
-</select>
-
-<button class="btn btn-success float-end mt-2 mb-4 disabled" type="button" name="form-movimiento-grupal">
-    <i class="bi bi-arrows-move"></i> Mover
-</button>
+    <label id="label_ubicacion_destino" class="fw-bold">Seleccione la ubicación de destino:</label><br>
+    <div class="btn-group mt-2 mb-2" role="group" aria-label="Basic example">
+        <button name="bod-filter-destino" id="CN4" type="button" class="btn btn-primary">CN4</button>
+        <button name="bod-filter-destino" id="CN5" type="button" class="btn btn-secondary">CN5</button>
+        <button name="bod-filter-destino" id="CN6" type="button" class="btn btn-success">CN6</button>
+        <button name="bod-filter-destino" id="CN7" type="button" class="btn btn-warning">CN7</button>
+    </div>
+    <div id="div_pasillo_salida"></div>
 </div>
+
+<div id="div_ubi_destino_select">
+    <select class="form-select" name="ubicacion_destino" id="ubicacion_destino">
+    </select>
+    <div id="msg_verificacion"></div>
+    <div id="table_data_verficacion" class="p0"></div>
+    <button class="btn btn-success float-end mt-2 mb-4 disabled" type="button" name="form-movimiento-grupal">
+        <i class="bi bi-arrows-move"></i> Mover
+    </button>
+</div>
+
+
 
 <!-- Select 2 -->
 <script>
@@ -97,11 +110,13 @@
 
         $("button[name='bod-filter']").click(function(){
 
-            $("#div_ubi_destino").hide();
             $("#div_ubi_salida").hide();
             $("#table_data").empty();
             $("#msg").empty();
             $("#msg_dos").empty();
+            $("#div_ubi_destino").hide();
+            $("#div_ubi_destino_select").hide();
+            $("#ubicacion_destino").empty();
 
             var bod = $(this).attr('id');
             var div_pasillo = $("#div_pasillo");
@@ -141,7 +156,13 @@
     
             $("button[name='btn-pasillo']").click(function(){
 
+                $("#div_ubicacion_destino_select").hide();
+                $("#div_ubi_destino_select").hide();
+                $("#ubicacion_destino").empty();
                 $("#div_ubi_destino").hide();
+                $("#div_ubi_destino_select").hide();
+                $("#ubicacion_destino").empty();
+                $("#msg_dos").empty();
 
                 var bodega  = $("#bod-selected").html();
                 var pasillo = $(this).text();
@@ -155,6 +176,7 @@
                         'csrfmiddlewaretoken': '{{ csrf_token }}',
                         'bodega':bodega,
                         'pasillo':pasillo,
+                        'ubi_salida':''
                     },
 
                     success: function(response) {
@@ -189,6 +211,7 @@
     $(document).ready(function() {
 
         $("#div_ubi_destino").hide();
+        $("#div_ubi_destino_select").hide();
         
         $('#ubicacion_salida').change(function() {
             
@@ -207,8 +230,6 @@
                 success: function(response) {
                     
                     $("#div_ubi_destino").show();
-
-                    var select_ubi_destino_list = $("#ubicacion_destino");
                     $("#msg").html(`<div class="text-center p-2 mt-2 mb-2 alert alert-${response.type}" role="alert">${response.msg}</div>`);
                     
                     if(response.type === 'warning'){
@@ -222,19 +243,10 @@
                             </div>
                         `)
                         
-                        // Añadir ubicaciones de destino
-                        select_ubi_destino_list.empty();
-                        select_ubi_destino_list.append('<option value="">Selecciona una ubicación</option>');
-                        $.each(response.ubicaciones_destino, function(index, item){
-                            if (item.bodega === 'CN6') {
-                                select_ubi_destino_list.append(`<option value="${item.id}">${item.bodega}-${item.pasillo}-${item.modulo}-${item.nivel}</option>`);
-                            } else {
-                                select_ubi_destino_list.append(`<option value="${item.id}">${item.bodega}-${item.pasillo}-${item.modulo}</option>`);
-                            }
-                        })
-                        
                         } else {
-                            $("#table_data").empty()
+                            $("#table_data").empty();
+                            $("#div_ubi_destino").hide();
+                            $("#div_ubi_destino_select").hide();
                         }
                     },
 
@@ -248,6 +260,133 @@
 </script>
 
 
+<!-- UBICACIÓN DESTINO -->
+<!-- Seleccionar pasillo y devolver lista de ubicaciones -->
+<script>
+    $(document).ready(function() {
+        $("button[name='bod-filter-destino']").click(function(){
+            $("#div_ubi_destino_select").hide();
+            $("#ubicacion_destino").empty();
+            $("#table_data_verficacion").empty();
+            $("#msg_verificacion").empty();
+
+            var bod = $(this).attr('id');
+            var div_pasillo = $("#div_pasillo_salida");
+            var pasillos_bod_6 = [
+                {index:0, color:'primary', pasillo:'A'},
+                {index:1, color:'secondary', pasillo:'B'},
+                {index:2, color:'success', pasillo:'C'},
+                {index:3, color:'info', pasillo:'D'},
+                {index:4, color:'danger', pasillo:'E'},
+                {index:5, color:'light', pasillo:'F'},
+                {index:6, color:'dark', pasillo:'G'}];
+    
+            var pasillos_demas = [{index:0, color:'primary', pasillo:'A'}, {index:1, color:'secondary', pasillo:'B'}]
+    
+            function pasillos_list () {
+                if (bod === 'CN6') {
+                    pasillos = pasillos_bod_6
+                } else {
+                    pasillos = pasillos_demas
+                } 
+                return pasillos
+            }
+    
+            var btn_group = $('<br><div class="btn-group mb-4" role="group"></div><br>')
+    
+            div_pasillo.html(`<label class="fw-bold">Seleccione pasillo de la bodega <span id='bod-selected-destino'>${bod}</span>:<label><br>`);
+                
+            btn_group.empty();
+
+            $.each(pasillos_list(), function(index, item) {
+                var btn = $(`<button name="btn-pasillo-destino" type="button" class="btn btn-${item.color}">${item.pasillo}</button>`)
+                btn_group.append(btn)
+            })
+            
+            div_pasillo.append(btn_group)
+    
+            $("button[name='btn-pasillo-destino']").click(function(){
+                $("#table_data_verficacion").empty();
+                $("#msg_verificacion").empty();
+
+                var bodega  = $("#bod-selected-destino").html();
+                var pasillo = $(this).text();
+                var select_ubi_list = $("#ubicacion_destino");
+                var ubi_salida = $('#ubicacion_salida').val();
+
+                $.ajax({
+                    type:"POST",
+                    url:"{% url 'wms_movimiento_grupal_get_ubi_list_ajax' %}", 
+                    data:{
+                        'csrfmiddlewaretoken': '{{ csrf_token }}',
+                        'bodega':bodega,
+                        'pasillo':pasillo,
+                        'ubi_salida':ubi_salida
+                    },
+
+                    success: function(response) {
+                        $("#div_ubi_destino_select").show();
+                        select_ubi_list.empty();
+                        select_ubi_list.append('<option value="">Selecciona una ubicación</option>');
+                        $.each(response.ubi_list, function(index, item) {
+                            if (item.bodega === 'CN6') {
+                                select_ubi_list.append(`<option value="${item.id}">${item.bodega}-${item.pasillo}-${item.modulo}-${item.nivel}</option>`);
+                            } else {
+                                select_ubi_list.append(`<option value="${item.id}">${item.bodega}-${item.pasillo}-${item.modulo}</option>`);
+                            }
+                        })
+                    },
+                    error: function() {
+                        $("#msg").html("<div class='alert alert-danger'>Error al obtener la lista de ubicaciones</div>")
+                    }
+                })
+            })
+        })
+    })
+    
+</script>
+
+<!-- Productos en ubicación de destino -->
+<script>
+    $(document).ready(function() {
+        $('#ubicacion_destino').change(function() {
+        var select_ubi = $(this); 
+
+        if (select_ubi.val()){
+            $("button[name='form-movimiento-grupal']").removeClass('disabled');
+        } else {
+            $("button[name='form-movimiento-grupal']").addClass('disabled');
+        }
+        
+        $.ajax({
+            type: "POST",
+            url: "{% url 'wms_verificar_ubicacion_destino_ajax' %}", 
+            data: { 
+                'csrfmiddlewaretoken': '{{csrf_token}}',
+                'ubi_destino': select_ubi.val(),
+            },
+            success: function(response) {
+                
+                $("#msg_verificacion").html(`<div class="text-center p-2 mt-2 mb-2 alert alert-${response.type}" role="alert">${response.msg}</div>`);
+                
+                if(response.type === 'warning'){
+                    $("#table_data_verficacion").html(
+                        `<div class="card p-0 mt-0">
+                            <div class="card-body p-0">
+                                ${response.exitencias}
+                            </div>
+                        </div>
+                        `)} else {
+                            $("#table_data_verficacion").empty()
+                        }
+            },
+            error: function(error) {
+                console.error(error);
+                }
+        });
+        });
+    });
+</script>
 
 <!-- Enviar datos al backend crear movimientos -->
 <script>
@@ -297,19 +436,6 @@
             })
         });
     })
-</script>
-
-
-<!-- habilitar btn mover -->
-<script>
-    $("#ubicacion_destino").on("change", function() {
-        var ubicacion_destino = $(this).val();
-        if (ubicacion_destino){
-            $("button[name='form-movimiento-grupal']").removeClass('disabled');
-        } else {
-            $("button[name='form-movimiento-grupal']").addClass('disabled');
-        }
-    });
 </script>
 
 {% comment %}
