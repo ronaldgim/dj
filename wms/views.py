@@ -4059,7 +4059,8 @@ def wms_reporte_bodegas457(request):
     products_list_final = []    
     for i in products:
         existencia = Existencias.objects.filter(
-            Q(product_id=i) #&
+            Q(product_id=i) &
+            Q(estado='Disponible')
             #Q(ubicacion__bodega__in = ['CN4','CN5','CN7']) # En este nuevo reporte se comento esta linea
         ).order_by('fecha_caducidad', 'lote_id')
         
@@ -4220,17 +4221,31 @@ def wms_movimiento_grupal_get_ubi_list_ajax(request):
 
     bodega  = request.POST['bodega']
     pasillo = request.POST['pasillo']
+    ubi_salida = request.POST['ubi_salida']
 
-    ubi_list = pd.DataFrame(Ubicacion.objects
-        .filter(disponible=True)
-        .filter(bodega=bodega)
-        .filter(pasillo=pasillo)
-        .values()
-        ).sort_values(by=['bodega','pasillo','modulo','nivel'])
+    if not ubi_salida:
+        ubi_list = pd.DataFrame(Ubicacion.objects
+            .filter(disponible=True)
+            .filter(bodega=bodega)
+            .filter(pasillo=pasillo)
+            .values()
+            ).sort_values(by=['bodega','pasillo','modulo','nivel'])
 
-    ubi_list = de_dataframe_a_template(ubi_list)
+        ubi_list = de_dataframe_a_template(ubi_list)
 
-    return JsonResponse({'ubi_list':ubi_list}, status=200)
+        return JsonResponse({'ubi_list':ubi_list}, status=200)
+    else:
+        ubi_list = pd.DataFrame(Ubicacion.objects
+            .exclude(id=int(ubi_salida))
+            .filter(disponible=True)
+            .filter(bodega=bodega)
+            .filter(pasillo=pasillo)
+            .values()
+            ).sort_values(by=['bodega','pasillo','modulo','nivel'])
+
+        ubi_list = de_dataframe_a_template(ubi_list)
+
+        return JsonResponse({'ubi_list':ubi_list}, status=200)
 
 
 def wms_movimiento_grupal_ubicacion_salida_ajax(request):
@@ -4247,7 +4262,7 @@ def wms_movimiento_grupal_ubicacion_salida_ajax(request):
             'lote_id', 
             'unidades',
             'ubicacion_id'
-        ]]
+        ]].sort_values(by=['product_id','lote_id'])
         
         rows_html = []
         
