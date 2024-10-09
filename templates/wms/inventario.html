@@ -30,7 +30,7 @@
 
 
 {% if request.user.is_superuser %}
-<a class="btn btn-warning mb-2" href="{% url 'wms_btn_actualizar_todas_existencias' %}">Actulizar todas las existencias</a>
+<a class="btn btn-warning mb-2 disabled" href="{% url 'wms_btn_actualizar_todas_existencias' %}">Actulizar todas las existencias</a>
 {% endif %}
 
 <div class="text-end">
