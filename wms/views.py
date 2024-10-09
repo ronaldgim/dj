@@ -2740,18 +2740,18 @@ def wms_transferencias_list(request):
 def wms_transferencia_picking(request, n_transf):
     
     estado = TransferenciaStatus.objects.get(n_transferencia=n_transf)
-    
     prod   = productos_odbc_and_django()[['product_id','Nombre','Marca','Unidad_Empaque','Volumen']]
     
     # Trasferencia
     transf = pd.DataFrame(Transferencia.objects.filter(n_transferencia=n_transf).values())
-    transf = transf.merge(prod, on='product_id', how='left')
-    transf['fecha_caducidad'] = pd.to_datetime(transf['fecha_caducidad']).dt.strftime('%d-%m-%Y').astype(str)
-    transf['cartones'] = transf['unidades'] / transf['Unidad_Empaque']
-    transf['vol'] = transf['cartones'] * (transf['Volumen']/1000000)
-    transf['id_max'] = ''
-    transf.at[transf['vol'].idxmax(), 'id_max'] = 'max'
-    # transf = transf.sort_values('ubicacion')
+    transf_group = transf.groupby(by=['product_id','lote_id','fecha_caducidad'])['unidades'].sum().reset_index()
+    transf_group = transf_group.merge(prod, on='product_id', how='left')
+    transf_group['fecha_caducidad'] = pd.to_datetime(transf_group['fecha_caducidad']).dt.strftime('%d-%m-%Y').astype(str)
+    transf_group['cartones'] = transf_group['unidades'] / transf_group['Unidad_Empaque']
+    transf_group['vol'] = transf_group['cartones'] * (transf_group['Volumen']/1000000)
+    transf_group['id_max'] = ''
+    transf_group.at[transf_group['vol'].idxmax(), 'id_max'] = 'max'
+    transf = transf_group
     
     # Productos y cantidades egresados de WMS por Picking Transferencia
     mov = pd.DataFrame(Movimiento.objects.filter(n_referencia=n_transf).values(
@@ -2763,10 +2763,10 @@ def wms_transferencia_picking(request, n_transf):
     if not mov.empty:
         mov['fecha_caducidad'] = pd.to_datetime(mov['fecha_caducidad']).dt.strftime('%d-%m-%Y')
         mov['unidades'] = mov['unidades']*-1
-
+    
     # Lista de movimientos
     mov_list = de_dataframe_a_template(mov)
-
+    
     # Si existen movimiento añadir al pedido la suma
     if not mov.empty:
         mov_group = mov.groupby(by=['product_id','lote_id']).sum().reset_index()
@@ -2789,22 +2789,14 @@ def wms_transferencia_picking(request, n_transf):
 
     prod = list(transf['product_id'].unique())
     
-    
     # df existencias bodega
-    existencias_bodega_df = pd.DataFrame(Existencias.objects.filter(product_id__in=prod).values(
-        'product_id','lote_id','ubicacion__bodega').order_by('fecha_caducidad'))
+    existencias_bodega_df = (pd.DataFrame(Existencias.objects
+            .filter(product_id__in=prod)
+            .values('product_id','lote_id','ubicacion__bodega')
+            .order_by('fecha_caducidad'))
+            .drop_duplicates(subset=['product_id','lote_id','ubicacion__bodega']))
+    existencias_bodega_df = de_dataframe_a_template(existencias_bodega_df)
 
-    # Merge transf
-    if not transf.empty and not mov.empty and not existencias_bodega_df.empty:
-        existencias_bodega_df = existencias_bodega_df.rename(columns={'ubicacion__bodega':'bodega_exi'})        
-        transf = transf.merge(existencias_bodega_df, on=['product_id','lote_id'], how='left').fillna('')
-        
-        mov_bodega_df = mov[['product_id','lote_id','ubicacion__bodega']].rename(columns={'ubicacion__bodega':'bodega_mov'})
-        transf = transf.merge(mov_bodega_df, on=['product_id','lote_id'], how='left').fillna('')
-        
-        transf['primera_bodega'] = transf.apply(lambda x: x['bodega_exi'] if not x['bodega_mov'] else x['bodega_mov'], axis=1)
-        transf = transf.sort_values(by='primera_bodega')
-        
     transf_template = de_dataframe_a_template(transf)
     
     for i in prod:
@@ -2812,12 +2804,17 @@ def wms_transferencia_picking(request, n_transf):
             if j['product_id'] == i:
                 j['ubi'] = ubi_list = []
                 j['pik'] = pik_list = []
+                j['primera_bodega'] = primera_bodega = []
                 for k in ext_id:
                     if k['product_id'] == i:
                         ubi_list.append(k)
                 for m in mov_list:
                     if m['product_id'] == i:
                         pik_list.append(m)
+                for l in existencias_bodega_df:
+                    if l['product_id'] == i and l['lote_id'] == j['lote_id']:
+                        primera_bodega.append(l['ubicacion__bodega'])
+                        
     
     context = {
         'transf':transf_template,
