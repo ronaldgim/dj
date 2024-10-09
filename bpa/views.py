@@ -520,6 +520,8 @@ def revision_tecnica_transferencia(request, doc):
     
     trans = pd.DataFrame(Trasferencia.objects.filter(documento=doc).values())
     trans_odbc = doc_transferencia_odbc(doc)[['product_id','bodega_salida']]
+    bodega_salida = trans_odbc.iloc[0]['bodega_salida']
+
     prod = productos_odbc_and_django()[[
         'product_id',
         'Nombre',
@@ -531,10 +533,11 @@ def revision_tecnica_transferencia(request, doc):
 
     trans = trans.groupby(['product_id', 'documento']).sum()
     trans = trans.reset_index()
-
+    
     muest = muestreo(trans, 'unidades')
     muest = muest.merge(prod, on='product_id', how='left')
-    muest = muest.merge(trans_odbc, on='product_id', how='left')
+    #muest = muest.merge(trans_odbc, on='product_id', how='left')
+    muest['bodega_salida'] = bodega_salida
     muest['Reg_San'] = muest['Reg_San'].apply(quitar_prefijo)
     
     docum = muest['documento'].iloc[0]
