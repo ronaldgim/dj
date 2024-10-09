@@ -2814,7 +2814,8 @@ def wms_transferencia_picking(request, n_transf):
                 for l in existencias_bodega_df:
                     if l['product_id'] == i and l['lote_id'] == j['lote_id']:
                         primera_bodega.append(l['ubicacion__bodega'])
-                        
+    
+    transf_template = sorted(transf_template, key=lambda x:x['primera_bodega'], reverse=False)
     
     context = {
         'transf':transf_template,
