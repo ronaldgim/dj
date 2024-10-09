@@ -2791,7 +2791,10 @@ def wms_transferencia_picking(request, n_transf):
     
     # df existencias bodega
     existencias_bodega_df = (pd.DataFrame(Existencias.objects
-            .filter(product_id__in=prod)
+            .filter(
+                Q(product_id__in=prod) & 
+                Q(estado='Disponible')
+            )
             .values('product_id','lote_id','ubicacion__bodega')
             .order_by('fecha_caducidad'))
             .drop_duplicates(subset=['product_id','lote_id','ubicacion__bodega']))
