@@ -1313,7 +1313,7 @@ Señores {picking_estado.cliente} \n
 Su pedido con factura # {n_factura}, se encuentra listo para ser retirado en:
 Bodega: {b}. \n
 {vol_car} \n
-Nuestro horario de atención es: Lunes a Viernes de 7:30 am a 13:30 pm y de 14:30 pm a 16:30 pm.
+Nuestro horario de atención es: Lunes a Viernes de 8:00 am a 13:30 pm y de 14:00 pm a 16:30 pm.
 Estamos para servirle.\n
 GIMPROMED Cia. Ltda.\n
 ****Esta notificación ha sido enviada automáticamente - No responder****
