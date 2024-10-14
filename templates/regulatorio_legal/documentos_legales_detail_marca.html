@@ -82,7 +82,6 @@
                         <th scope="col">Descripción</th>
                         <th scope="col">Fecha expiración</th>
                         <th scope="col">Estado</th>
-                        <th scope="col">Productos</th>
                         <th scope="col">Creado</th>
                         <th scope="col">Creado por</th>
                         <th scope="col">Acciones</th>
@@ -95,13 +94,6 @@
                         <td>{{i.descripcion}}</td>
                         <td>{{i.fecha_caducidad|date:'Y-m-d'}}</td>
                         <td>{{i.estado}}</td>
-                        <td>
-                            {% for j in i.productos.all %}
-                                <ul>
-                                    <li>{{j.product_id}}</li>    
-                                </ul>
-                            {% endfor %}
-                        </td>
                         <td>{% if i.creado != i.actualizado %} {{i.creado|date:'Y-m-d'}} {% else %} a: {{i.actualizado|date:'Y-m-d'}} {% endif %}</td>
                         <td>{{i.usuario.first_name}} {{i.usuario.last_name}}</td>
                         <td>
@@ -123,6 +115,28 @@
 </div>
 
 
+<!-- Editar ISO -->
+<div class="modal fade" id="actualizar-iso" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="actualizar-isoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="staticBackdropLabel">Actualizar ISO.</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{% url 'documento_legal_editar_marca' documento.id %}" id="actualizar-iso-form" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div id="actualizar-iso-form-get"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" form="actualizar-iso-form" class="btn btn-primary">Editar ISO</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <!-- Registro Sanitario -->
 <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -135,7 +149,7 @@
                 <form method="POST" id="reg-form" enctype="multipart/form-data">
                     {% csrf_token %}
                     <div class="row g-2">
-
+                        
                         <!-- N Reg Sanitario -->
                         <div class="col-4">
                             <label class="fw-bold" for="n_reg_sanitario">N° Reg. Sanitario:</label>
@@ -165,11 +179,26 @@
                             <label class="fw-bold" for="productos">Productos:</label>
                         </div>
                         <div class="col-8">
-                            <select name="productos" id="id_productos" class="form-select" multiple required>
-                                {% for i in productos_list %}
-                                <option value="{{i}}">{{i}}</option>
-                                {% endfor %}
-                            </select>
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <td class="col">Código</td>
+                                        <td class="col">Nombre</td>
+                                        <td class="col">Marca</td>
+                                        <td class="col">Seleccionar</td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for i in productos_list_select %}
+                                    <tr>
+                                        <td>{{i.product_id}}</td>
+                                        <td>{{i.Nombre}}</td>
+                                        <td>{{i.Marca}}</td>
+                                        <td class="text-center"><input class="form-check-input" type="checkbox" name="productos" value="{{i.product_id}}"></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
                         </div>
 
                         <!-- Documento -->
@@ -192,27 +221,6 @@
 </div>
 
 
-<!-- Editar ISO -->
-<div class="modal fade" id="actualizar-iso" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="actualizar-isoLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title fw-bold" id="staticBackdropLabel">Actualizar ISO.</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form method="POST" action="{% url 'documento_legal_editar_marca' documento.id %}" id="actualizar-iso-form" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    <div id="actualizar-iso-form-get"></div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="submit" form="actualizar-iso-form" class="btn btn-primary">Editar ISO</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <!-- Editar REG -->
 <div class="modal fade" id="actualizar-reg" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="actualizar-regLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -225,6 +233,29 @@
                 <form method="POST" action="{% url 'documento_legal_editar_detail' %}" id="actualizar-reg-form" enctype="multipart/form-data">
                     {% csrf_token %}
                     <div id="actualizar-reg-form-get"></div>
+                    <!--div id="actualizar-reg-form-get-list-products"></div-->
+                    <table class="table table-bordered" id="actualizar-reg-form-get-list-products">
+                        <thead>
+                            <tr>
+                                <td class="col">Código</td>
+                                <td class="col">Nombre</td>
+                                <td class="col">Marca</td>
+                                <td class="col">Seleccionar</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {#% for i in productos_list_selected %#}
+                            <!--tr>
+                                <td>{{i.product_id}}</td>
+                                <td>{{i.Nombre}}</td>
+                                <td>{{i.Marca}}</td>
+                                <td class="text-center">
+                                    <input class="form-check-input" type="checkbox" name="product" value="{{i.product_id}}" checked>
+                                </td>
+                            </tr-->
+                            {#% endfor %#}
+                        </tbody>
+                    </table>
                 </form>
             </div>
             <div class="modal-footer">
@@ -294,7 +325,7 @@
     $(document).ready(function() {
         $("button[name='editar-reg']").on('click', function() {
             var reg_id = $(this).attr('id');
-
+            $("#actualizar-reg-form-get-list-products > tbody").empty();
             $.ajax({
                 type: "GET",
                 url: `{% url 'documento_legal_editar_detail' %}`,
@@ -304,12 +335,25 @@
                 },
                 success: function(response) {
                     $("#actualizar-reg-form-get").html(response.form);
-                    
                     $("input[id='id_n_reg_sanitario']").after(`<input name="reg_id" type='hidden' value="${reg_id}">`)
+
+                    
+                    $.each(response.productos_list, function(index, item) {
+                        $("#actualizar-reg-form-get-list-products > tbody").append(`
+                        <tr>
+                            <td>${item.product_id}</td>
+                            <td>${item.Nombre}</td>
+                            <td>${item.Marca}</td>
+                            <td class="text-center">
+                                <input type="checkbox" name="productos" value="${item.product_id}" ${item.checked}/>
+                            </td>
+                        </tr>`)
+                    })
+                    
                 },
                 error: function(xhr, status, error) {
                     $("#msg").html("Error: " + error);
-                    console.error('AJAX Error:', status, error);
+                    //console.error('AJAX Error:', status, error);
                 }
             });
         });
