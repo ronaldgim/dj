@@ -851,6 +851,3 @@ def documento_legal_editar_detail(request):
         except Exception as e:
             messages.error(request, str(e))
             return HttpResponseRedirect(f'/regulatorio-legal/documentos-legales-detail-marca/{documento.id}')
-            
-
-
