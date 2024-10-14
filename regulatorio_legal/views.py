@@ -737,9 +737,22 @@ def documentos_legales_detail_marca(request, id):
     
     documento = DocumentosLegales.objects.get(id=id)
 
-    productos_list = productos_odbc_and_django()[['product_id','Marca']]
+    # PROCESAR LISTA DE PRODUCTOS
+    productos_list = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     productos_list = productos_list[productos_list['Marca']==documento.marca]
-    productos_list = list(productos_list['product_id'].unique())
+    productos = set(productos_list['product_id'].unique())
+    
+    # FILTRAR POR PRODUCTOS YA OCUPADOS DE ESA MARCA
+    productos_reg_san = set(ProductosRegistroSanitario.objects.all().values_list('product_id', flat=True))
+    
+    # LISTADO DE PRODUCTOS PARA SELECCIONAR
+    # NUEVOS REG SANITARIO
+    productos_list_select = pd.DataFrame(productos.difference(productos_reg_san), columns=['product_id'])
+    productos_list_select = sorted(
+        de_dataframe_a_template(productos_list_select.merge(productos_list, on='product_id', how='left')),
+        key= lambda x: x['product_id']
+        )
+    
     
     if request.method == 'POST':
 
@@ -760,7 +773,7 @@ def documentos_legales_detail_marca(request, id):
     
     context  = {
         'documento': documento,
-        'productos_list':productos_list
+        'productos_list_select':productos_list_select, 
     }
     
     return render(request, 'regulatorio_legal/documentos_legales_detail_marca.html', context)
@@ -792,23 +805,49 @@ def documento_legal_editar_detail(request):
         form = RegistroSanitarioForm(instance=reg_sanitario)
         documento = reg_sanitario.documentoslegales_set.all().first()
         
+        productos_todos = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+        productos_todos = productos_todos[productos_todos['Marca']==documento.marca]
+        
+        productos_registro_sanitario = pd.DataFrame(reg_sanitario.productos.values())
+        if not productos_registro_sanitario.empty:
+            productos_registro_sanitario['checked'] = 'checked'
+            productos = productos_todos.merge(productos_registro_sanitario, on='product_id', how='left')
+            productos = sorted(de_dataframe_a_template(productos), key=lambda x: x['product_id'])
+
+        else:
+            productos = productos_todos
+            productos = sorted(de_dataframe_a_template(productos), key=lambda x: x['product_id'])
+        
         return JsonResponse({
-            'form': form.as_p(),   
+            'form': form.as_p(),
+            'productos_list':productos
         })
     
     elif request.method == 'POST':
+        
         reg_id = int(request.POST.get('reg_id'))
         reg_sanitario = RegistroSanitario.objects.get(id=reg_id)
         form = RegistroSanitarioForm(request.POST, request.FILES, instance=reg_sanitario)
         documento = reg_sanitario.documentoslegales_set.all().first()
         
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Registro sanitario actualizado exitosamente !!!')
+        try:
+            # Actualizar productos
+            # Eliminar todos los productos
+            reg_sanitario.productos.all().delete()
+            reg_sanitario.productos.clear()
+            
+            # Agregar los productos
+            for i in request.POST.getlist('productos'):
+                prod = ProductosRegistroSanitario.objects.create(product_id=i)
+                reg_sanitario.productos.add(prod)
+            
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'Registro sanitario actualizado exitosamente !!!')
+                return HttpResponseRedirect(f'/regulatorio-legal/documentos-legales-detail-marca/{documento.id}')
+            else:
+                messages.error(request, form.errors)
+                return HttpResponseRedirect(f'/regulatorio-legal/documentos-legales-detail-marca/{documento.id}')
+        except Exception as e:
+            messages.error(request, str(e))
             return HttpResponseRedirect(f'/regulatorio-legal/documentos-legales-detail-marca/{documento.id}')
-
-        else:
-            messages.error(request, form.errors)
-            return HttpResponseRedirect(f'/regulatorio-legal/documentos-legales-detail-marca/{documento.id}')
-
-
