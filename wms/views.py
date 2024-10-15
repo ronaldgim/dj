@@ -4319,18 +4319,18 @@ def wms_movimiento_grupal_ubicacion_salida_ajax(request):
 def wms_correo_creacion_armado(orden):
     
     send_mail(
-        subject=f'Solicitud de Armado {orden.bodega}',
+        subject=f'SOLICITUD DE ARMADO {orden.bodega}',
         message=f"""
 Estimados Compañeros:
 
 Solicito su gentil ayuda con realizando el siguiente armado.
 
-Orden de empaque: {orden.enum} \n
-Cliente : {orden.cliente} \n
-Bodega : {orden.bodega} \n
-Producto : {orden.nuevo_producto.product_id} - {orden.nuevo_producto.nombre} - {orden.nuevo_producto.marca} \n
-Cantidad : {orden.nuevo_producto.unidades} \n
-Prioridad : {orden.prioridad} \n
+Orden de empaque: {orden.enum}
+Cliente : {orden.cliente}
+Bodega : {orden.bodega}
+Producto : {orden.nuevo_producto.product_id} - {orden.nuevo_producto.nombre} - {orden.nuevo_producto.marca}
+Cantidad : {orden.nuevo_producto.unidades}
+Prioridad : {orden.prioridad}
 
 Solicitud de armado creada por: {orden.usuario.first_name} {orden.usuario.last_name} \n
 
@@ -4346,22 +4346,24 @@ Solicitud de armado creada por: {orden.usuario.first_name} {orden.usuario.last_n
 def wms_correo_finalizado_armado(orden):
     
     send_mail(
-        subject=f'Solicitud de Armado Finalizada',
+        subject=f'SOLICITUD ARMADO #{orden.enum} - FINALIZADO',
         message=f"""
 Estimados Compañeros:
 
 Se informa que la solicitud de armado finalizada.
 
-Orden de empaque: {orden.enum} \n
-Cliente : {orden.cliente} \n
-Bodega : {orden.bodega} \n
-Producto : {orden.nuevo_producto.product_id} - {orden.nuevo_producto.nombre} - {orden.nuevo_producto.marca} \n
-Cantidad : {orden.nuevo_producto.unidades} \n
+Orden de empaque: {orden.enum}
+Cliente : {orden.cliente}
+Bodega : {orden.bodega}
+Producto : {orden.nuevo_producto.product_id} - {orden.nuevo_producto.nombre} - {orden.nuevo_producto.marca}
+Cantidad : {orden.nuevo_producto.unidades}
+
+Su ayuda ingresando el armado en CN7-A-1
 
 ***Este mensaje fue enviado automaticamente mediante WMS***
 """,
         from_email     = settings.EMAIL_HOST_USER,
-        recipient_list = ['ncaisapanta@gimpromed.com', 'jgualotuna@gimpromed.com', 'kenriquez@gimpromed.com', 'carcosh@gimpromed.com'],
+        recipient_list = ['ncaisapanta@gimpromed.com','ncastillo@gimpromed.com','jgualotuna@gimpromed.com', 'kenriquez@gimpromed.com', 'carcosh@gimpromed.com'],
         #recipient_list = ['egarces@gimpromed.com'],
         fail_silently  = False
         )
@@ -4535,6 +4537,8 @@ def wms_orden_armado(request, id):
         'componente_picking':componente_picking,
         'form_componente':form_componente,
         'products_list':de_dataframe_a_template(products_list),
+        'clientes':de_dataframe_a_template(clientes_warehouse()[['NOMBRE_CLIENTE']]),
+        'ruc':de_dataframe_a_template(clientes_warehouse()[['IDENTIFICACION_FISCAL']]),
     }
     
     return render(request, 'wms/armados_orden.html', context)
@@ -4641,7 +4645,8 @@ def wms_editar_componente_ajax(request):
 
 
 def wms_eliminar_componente_ajax(request):
-    if request.method == 'POST':
+    
+    if request.method == 'POST':    
         id_componente = int(request.POST.get('id_componente'))
         componente = ProductoArmado.objects.get(id=id_componente)
         componente.delete()
@@ -4845,10 +4850,10 @@ def wms_armado_editar_estado(request):
                 else:
                     componentes_llenos_list.append(False)
                     
-                if i.fecha_elaboracion:
-                    componentes_llenos_list.append(True)
-                else:
-                    componentes_llenos_list.append(False)
+                # if i.fecha_elaboracion:
+                #     componentes_llenos_list.append(True)
+                # else:
+                #     componentes_llenos_list.append(False)
                     
                 if i.fecha_caducidad:
                     componentes_llenos_list.append(True)
@@ -4862,6 +4867,7 @@ def wms_armado_editar_estado(request):
 
                 # Enviar Correo
                 wms_correo_finalizado_armado(orden)
+                
             else:
                 return JsonResponse({
                     'msg':f'❌ No puede finalizar la Orden N° {orden.enum} hasta completar los lotes y fechas de los productos',

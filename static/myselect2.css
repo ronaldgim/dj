@@ -1,0 +1,15 @@
+.select2-container .select2-selection--multiple { 
+    font-family: 'Arial', Verdana;
+    font-size: 12px;
+    box-sizing: border-box;
+    display: block;
+    height: 27px;
+    }
+    
+    #dropList1 + .select2-container--default .select2-selection--multiple{
+        height: auto;
+    }
+    
+    #dropList1 + .select2-container--default .select2-selection--multiple .select2-selection__choice{
+        margin-right: 1px;
+    }
