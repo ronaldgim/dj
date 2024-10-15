@@ -13,14 +13,17 @@
 <h6 class="m-4 text-end mb-2 me-0"><strong>Actualizado a:</strong> {{actualizado}}</h6>
 
 <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-    <button id="actualizar" class="btn btn-primary btn-sm mb-2">
+    <button id="actualizar" class="btn btn-sm btn-primary mb-2">
         <i class="bi bi-arrow-clockwise"></i> Actualizar
     </button>
+    <a class="btn btn-sm btn-info mb-2 text-white" target="_blank" href="{% url 'wms_armados_list' %}">
+        <i class="bi bi-plus"></i> Nuevo Armado
+    </a>
 </div>
 
 
 <div class="row">
-    <div class="col-6">
+    <div class="col-4">
         <div class="card text-white bg-danger">
             <h5 class="card-header text-center fs-4">URGENTE</h5>
             <div class="card-body">
@@ -29,11 +32,20 @@
             </div>
         </div>
     </div>
-    <div class="col-6">
+    <div class="col-4">
         <div class="card text-white bg-warning">
             <h5 class="card-header text-center fs-4">PRONTO</h5>
             <div class="card-body">
             <h5 class="card-title text-center fs-1">{{pronto}}</h5>
+            <!--p class="card-text">With supporting text below as a natural lead-in to additional content.</p-->
+            </div>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="card text-white bg-success">
+            <h5 class="card-header text-center fs-4">SOLICITUDES</h5>
+            <div class="card-body">
+            <h5 class="card-title text-center fs-1">{{solicitudes}}</h5>
             <!--p class="card-text">With supporting text below as a natural lead-in to additional content.</p-->
             </div>
         </div>

@@ -3732,6 +3732,7 @@ def wms_ajuste_liberacion_list(request):
     
     return render(request, 'wms/ajuste_liberacion_list.html', context)
 
+
 @login_required(login_url='login')
 def wms_ajuste_liberacion_input_ajax(request):
     
@@ -3804,6 +3805,7 @@ def wms_ajuste_liberacion_input_ajax(request):
                     'texto': f'La liberación {n_liberacion} ingresada exitosamente !!!'
                 }
             })
+
 
 @login_required(login_url='login')
 @permisos(['ADMINISTRADOR','OPERACIONES'],'/wms/home', 'ingresar a ajuste liberaciones')
