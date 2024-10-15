@@ -831,9 +831,11 @@ def documento_legal_editar_detail(request):
         documento = reg_sanitario.documentoslegales_set.all().first()
         
         try:
-            # Actualizar productos
+            
             # Eliminar todos los productos
             reg_sanitario.productos.all().delete()
+            
+            # Actualizar productos
             reg_sanitario.productos.clear()
             
             # Agregar los productos
