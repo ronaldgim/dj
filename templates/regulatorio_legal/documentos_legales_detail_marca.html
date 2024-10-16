@@ -178,6 +178,7 @@
                         <div class="col-4">
                             <label class="fw-bold" for="productos">Productos:</label>
                         </div>
+                        {% if productos_list_select %}
                         <div class="col-8">
                             <table class="table table-bordered">
                                 <thead>
@@ -200,7 +201,11 @@
                                 </tbody>
                             </table>
                         </div>
-
+                        {% else %}
+                        <div class="col-8">
+                            <p class="text-danger">Todos los productos ya fueron seleccionados !!!</p>
+                        </div>
+                        {% endif %}
                         <!-- Documento -->
                         <div class="col-4">
                             <label class="fw-bold" for="documento">Documento:</label>
