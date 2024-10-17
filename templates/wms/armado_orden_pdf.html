@@ -1,0 +1,267 @@
+{% load static %}
+<title>Orden # {{orden.enum}}
+</title>
+
+<style>
+    @page{
+        /*size: A4;*/
+        size: letter landscape;
+        margin-top:1cm;
+        margin-left:0.5cm;
+        margin-right:0.5cm;
+        margin-bottom:1cm;
+
+        /* HEADER Static frame */
+        /*@frame header_frame {           
+            -pdf-frame-content: header_content;
+            left: 0pt; width: 595pt; top: 0pt; height: 140pt;
+        }*/
+        /* FOOTER Static frame */
+        /*@frame footer_frame {
+            -pdf-frame-content: footer_content;
+            left:0pt; width:595pt; top:727pt; height:150pt;
+        }*/
+        /* BODY */
+        /*@frame body_frame {}*/
+            
+    }
+    #gim {
+        background-size:100%;
+        background-repeat:no-repeat;
+    }
+
+    .t_b {
+        padding-top: 4px;
+        padding-left: 4px;
+        padding-right: 4px;
+        padding-bottom: 0px;
+
+        font-size: large;
+    } 
+
+    .t_codigo {
+        width: 120px;
+        font-size: large;
+    }
+
+    .t_nombre {
+        width: 230px;
+        font-size: large;
+    }
+
+    .t_u_c {
+        width: 90px;
+        font-size: large;
+    }
+
+    .t_row {
+        padding-top: 4px;
+        padding-left: 4px;
+        padding-right: 4px;
+        padding-bottom: 0px;
+
+        font-size: medium;
+    }
+
+    .t_row_cal {
+        padding-top: 4px;
+        padding-left: 4px;
+        padding-right: 4px;
+        padding-bottom: 0px;
+        text-align: right;
+
+        font-size: large;
+    }
+</style>
+
+<meta charset="UTF-8">
+
+<!--img id="header_content" src="{% static 'encabezado.png' %}"-->
+
+<div class="gim" style="text-align:justify; font-size:14px">
+
+    <div class="body_frame">
+
+        <table> <!-- style="border:1px solid black;" -->
+            <tr>
+                <th  class="t_b" rowspan="2">
+                    <img src="{% static 'gim_muestreo.png' %}" alt="">
+                </th> 
+                <th class="t_b" rowspan="2">
+                    <!--REGISTRO DE MUESTREO DE MERCADERIA-->
+                </th>
+                <th class="t_b">
+                    ORDEN DE EMPAQUE <span style="color:red">{{orden.enum}}</span>
+                </th>
+            </tr>
+            <tr>
+                <th class="t_b">
+                    BODEGA <span style="border:1px solid black;">{{orden.bodega}}</span>
+                </th>
+            </tr>
+        </table>
+
+        <table style="border:1px solid black;">
+            <tr>
+                <th class="t_b" colspan="6">Prioridad del armado</th>
+            </tr>
+            <tr>
+                <th class="t_b" width="300px">
+                    Inmediato
+                </th> 
+                <th class="t_b" width="100px">
+                    {% if orden.prioridad  == 'Inmediato' %}X{% endif %}
+                </th>
+                <th class="t_b" width="300px">
+                    Urgente (2dias)
+                </th>
+                <th class="t_b" width="100px">
+                    {% if orden.prioridad  == 'Urgente (2 días)' %}X{% endif %}
+                </th>
+                <th class="t_b" width="300px">
+                    Pronto (1 semana)
+                </th>
+                <th class="t_b" width="100px">
+                    {% if orden.prioridad  == 'Pronto (1 semana)' %}X{% endif %}
+                </th>
+            </tr>
+        </table>
+
+        <br>
+
+        <table> <!-- style="border:1px solid black;" -->
+            <tr>
+                <td style="font-weight: bold" width="150px">Producto:</td>
+                <td>{{orden.nuevo_producto.nombre}}</td>
+                <td rowspan="4"></td>
+                <td style="font-weight: bold" width="150px">Fecha:</td>
+                <td>{{orden.creado|date:"l, d F Y"}}</td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold" width="150px">Código:</td>
+                <td>{{orden.nuevo_producto.product_id}}</td>
+                <td style="font-weight: bold" width="150px">Marca:</td>
+                <td>{{orden.nuevo_producto.marca}}</td>
+            </tr>
+            <!--tr><td colspan="4"></td></tr-->
+            <tr>
+                <td style="font-weight: bold" width="150px">Precio Venta:</td>
+                <td>{{orden.nuevo_producto.precio_venta}}</td>
+                <td style="font-weight: bold" width="150px" rowspan="2">Cantidad:</td>
+                <td style="border:1px solid black; text-align:center" rowspan="2">{{orden.nuevo_producto.unidades}}</td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold" width="150px">Cliente:</td>
+                <td>{{orden.cliente}}</td>
+            </tr>
+        </table>
+
+        <br>
+
+        <table style="border:1px solid black;">
+            <thead>
+                <tr>
+                    <th class="t_row" rowspan="2">CÓDIGO</th>
+                    <th class="t_row" rowspan="2">DETALLE</th>
+                    <th class="t_row" rowspan="2">MARCA</th>
+                    <th class="t_row" rowspan="2">LOTE</th>
+                    <th class="t_row" rowspan="2">FECHA ELAB</th>
+                    <th class="t_row" rowspan="2">FECHA VENC</th>
+                    <th class="t_row" rowspan="2">UBICACIÓN EN BODEEGAS</th>
+                    <th class="t_row" rowspan="2">CANTIDAD POR LOTE</th>
+                    <th class="t_row" rowspan="2">INGRESO</th>
+                    <th class="t_row" rowspan="2">SALINDA</th>
+                    <th class="t_row" colspan="3">CONTROL DEL PROCESO</th>
+                </tr>
+                <tr>
+                    <th class="t_row">INICIO</th>
+                    <th class="t_row">INTER</th>
+                    <th class="t_row">FIN</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="t_row">{{orden.nuevo_producto.product_id}}</td>
+                    <td width="200px" class="t_row">{{orden.nuevo_producto.nombre}}</td>
+                    <td class="t_row">{{orden.nuevo_producto.marca}}</td>
+                    <td class="t_row">{{orden.nuevo_producto.lote_id}}</td>
+                    <td width="65px" class="t_row">{{orden.nuevo_producto.fecha_elaboracion|date:'Y-m-d'}}</td>
+                    <td width="65px" class="t_row">{{orden.nuevo_producto.fecha_caducidad|date:'Y-m-d'}}</td>
+                    <td width="75px" class="t_row">{{orden.nuevo_producto.ubicacion}}</td>
+                    <td width="55px"></td>
+                    <td width="55px" class="t_row">{{orden.nuevo_producto.unidades}}</td>
+                    <td width="55px"></td>
+                    <td width="35px"></td>
+                    <td width="35px"></td>
+                    <td width="35px"></td>
+                </tr>
+                {% for i in componente_picking %}
+                <tr>
+                    <td class="t_row">{{i.componente.product_id}}</td>
+                    <td class="t_row">{{i.componente.nombre}}</td>
+                    <td class="t_row">{{i.componente.marca}}</td>
+                    <td class="t_row">{{i.componente.lote_id}}</td>
+                    <td class="t_row">{{i.componente.fecha_elaboracion|date:'Y-m-d'}}</td>
+                    <td class="t_row">{{i.componente.fecha_caducidad|date:'Y-m-d'}}</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td class="t_row">{{i.componente.unidades}}</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                {% for j in i.movimiento %}
+                <tr style="background-color:#e1efff">
+                    <td class="t_row">{{i.componente.product_id}}</td>
+                    <td class="t_row">{{i.componente.nombre}}</td>
+                    <td class="t_row">{{i.componente.marca}}</td>
+                    <td class="t_row">{{j.lote_id}}</td>
+                    <td></td>
+                    <td class="t_row">{{j.fecha_caducidad|date:'Y-m-d'}}</td>
+                    <td class="t_row">{{j.ubicacion}}</td>
+                    <td class="t_row">{{j.unidades}}</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                {% endfor %}
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <br>
+        
+        <label><strong>OBSERVACIONES:</strong></label>
+        <table style="border:1px solid black;">
+            <tr>
+                <td>
+                    <p>
+                        <br>
+                        <br>
+                        <br>
+                    </p>
+                </td>
+            </tr>
+        </table>
+
+        <br><br><br><br>
+
+        <table style="font-size:medium; text-align:center; font-weight:bold">
+            <tr>
+                <td>---------------------------------------------------</td>
+                <td>---------------------------------------------------</td>
+                <td>---------------------------------------------------</td>
+                <td>---------------------------------------------------</td>
+            </tr>
+            <tr>
+                <td>ELABORADO POR</td>
+                <td>AUTORIZADO POR</td>
+                <td>RESPONS.BODEGA/ARMADO</td>
+                <td>RESPONSE BOD/LIBERACIÓN KIT</td>
+            </tr>
+        </table>
+    </div>
+</div>

@@ -12,7 +12,7 @@ import pandas as pd
 import numpy as np
 
 # Datos Models
-from datos.models import Product, Vehiculos, TimeStamp
+from datos.models import Product, Vehiculos, TimeStamp, StockConsulta
 from etiquetado.models import (
     Calculadora,
     PedidosEstadoEtiquetado,
@@ -29,9 +29,11 @@ from etiquetado.models import (
     AnexoGuia
     )
 
-from datos.models import StockConsulta
 from mantenimiento.models import Equipo
 from users.models import UserPerfil, User
+
+# Wms models
+from wms.models import OrdenEmpaque
 
 # Forms
 from etiquetado.forms import (
@@ -2686,14 +2688,17 @@ def dashboard_armados(request):
     
     armados = armados.sort_values(by=['meses','mensual','PRODUCT_NAME'], ascending=[True, True, False])
     
+    # Solicitudes de armado
+    solicitudes = OrdenEmpaque.objects.exclude(estado='Finalizado').count()
+    
     armados = de_dataframe_a_template(armados)
 
     context = {
         'armados':armados,
         'urgente':len(urgente),
         'pronto' :len(pronto),
-        'actualizado':ultima_actualizacion('actulization_stoklote')
-        
+        'actualizado':ultima_actualizacion('actulization_stoklote'),
+        'solicitudes':solicitudes
     }
     
     return render(request, 'etiquetado/pedidos/dashboard_armados.html', context)

@@ -3732,6 +3732,7 @@ def wms_ajuste_liberacion_list(request):
     
     return render(request, 'wms/ajuste_liberacion_list.html', context)
 
+
 @login_required(login_url='login')
 def wms_ajuste_liberacion_input_ajax(request):
     
@@ -3804,6 +3805,7 @@ def wms_ajuste_liberacion_input_ajax(request):
                     'texto': f'La liberación {n_liberacion} ingresada exitosamente !!!'
                 }
             })
+
 
 @login_required(login_url='login')
 @permisos(['ADMINISTRADOR','OPERACIONES'],'/wms/home', 'ingresar a ajuste liberaciones')
@@ -4317,18 +4319,18 @@ def wms_movimiento_grupal_ubicacion_salida_ajax(request):
 def wms_correo_creacion_armado(orden):
     
     send_mail(
-        subject=f'Solicitud de Armado {orden.bodega}',
+        subject=f'SOLICITUD DE ARMADO {orden.bodega}',
         message=f"""
 Estimados Compañeros:
 
 Solicito su gentil ayuda con realizando el siguiente armado.
 
-Orden de empaque: {orden.enum} \n
-Cliente : {orden.cliente} \n
-Bodega : {orden.bodega} \n
-Producto : {orden.nuevo_producto.product_id} - {orden.nuevo_producto.nombre} - {orden.nuevo_producto.marca} \n
-Cantidad : {orden.nuevo_producto.unidades} \n
-Prioridad : {orden.prioridad} \n
+Orden de empaque: {orden.enum}
+Cliente : {orden.cliente}
+Bodega : {orden.bodega}
+Producto : {orden.nuevo_producto.product_id} - {orden.nuevo_producto.nombre} - {orden.nuevo_producto.marca}
+Cantidad : {orden.nuevo_producto.unidades}
+Prioridad : {orden.prioridad}
 
 Solicitud de armado creada por: {orden.usuario.first_name} {orden.usuario.last_name} \n
 
@@ -4344,22 +4346,24 @@ Solicitud de armado creada por: {orden.usuario.first_name} {orden.usuario.last_n
 def wms_correo_finalizado_armado(orden):
     
     send_mail(
-        subject=f'Solicitud de Armado Finalizada',
+        subject=f'SOLICITUD ARMADO #{orden.enum} - FINALIZADO',
         message=f"""
 Estimados Compañeros:
 
 Se informa que la solicitud de armado finalizada.
 
-Orden de empaque: {orden.enum} \n
-Cliente : {orden.cliente} \n
-Bodega : {orden.bodega} \n
-Producto : {orden.nuevo_producto.product_id} - {orden.nuevo_producto.nombre} - {orden.nuevo_producto.marca} \n
-Cantidad : {orden.nuevo_producto.unidades} \n
+Orden de empaque: {orden.enum}
+Cliente : {orden.cliente}
+Bodega : {orden.bodega}
+Producto : {orden.nuevo_producto.product_id} - {orden.nuevo_producto.nombre} - {orden.nuevo_producto.marca}
+Cantidad : {orden.nuevo_producto.unidades}
+
+Su ayuda ingresando el armado en CN7-A-1
 
 ***Este mensaje fue enviado automaticamente mediante WMS***
 """,
         from_email     = settings.EMAIL_HOST_USER,
-        recipient_list = ['ncaisapanta@gimpromed.com', 'jgualotuna@gimpromed.com', 'kenriquez@gimpromed.com', 'carcosh@gimpromed.com'],
+        recipient_list = ['ncaisapanta@gimpromed.com','ncastillo@gimpromed.com','jgualotuna@gimpromed.com', 'kenriquez@gimpromed.com', 'carcosh@gimpromed.com'],
         #recipient_list = ['egarces@gimpromed.com'],
         fail_silently  = False
         )
@@ -4385,9 +4389,9 @@ def wms_armados_list(request):
             nuevo_producto = form_nuevo_producto.save()
             
             orden.nuevo_producto = nuevo_producto
-            if orden.bodega == 'Andagoya':
-                nuevo_producto.ubicacion = 'CN7-A-1'
-                nuevo_producto.save()
+            # if orden.bodega == 'Andagoya':
+            #     nuevo_producto.ubicacion = 'CN7-A-1'
+            #     nuevo_producto.save()
             
             orden.save()
             
@@ -4533,6 +4537,8 @@ def wms_orden_armado(request, id):
         'componente_picking':componente_picking,
         'form_componente':form_componente,
         'products_list':de_dataframe_a_template(products_list),
+        'clientes':de_dataframe_a_template(clientes_warehouse()[['NOMBRE_CLIENTE']]),
+        'ruc':de_dataframe_a_template(clientes_warehouse()[['IDENTIFICACION_FISCAL']]),
     }
     
     return render(request, 'wms/armados_orden.html', context)
@@ -4639,7 +4645,8 @@ def wms_editar_componente_ajax(request):
 
 
 def wms_eliminar_componente_ajax(request):
-    if request.method == 'POST':
+    
+    if request.method == 'POST':    
         id_componente = int(request.POST.get('id_componente'))
         componente = ProductoArmado.objects.get(id=id_componente)
         componente.delete()
@@ -4843,10 +4850,10 @@ def wms_armado_editar_estado(request):
                 else:
                     componentes_llenos_list.append(False)
                     
-                if i.fecha_elaboracion:
-                    componentes_llenos_list.append(True)
-                else:
-                    componentes_llenos_list.append(False)
+                # if i.fecha_elaboracion:
+                #     componentes_llenos_list.append(True)
+                # else:
+                #     componentes_llenos_list.append(False)
                     
                 if i.fecha_caducidad:
                     componentes_llenos_list.append(True)
@@ -4860,6 +4867,7 @@ def wms_armado_editar_estado(request):
 
                 # Enviar Correo
                 wms_correo_finalizado_armado(orden)
+                
             else:
                 return JsonResponse({
                     'msg':f'❌ No puede finalizar la Orden N° {orden.enum} hasta completar los lotes y fechas de los productos',
@@ -4870,3 +4878,55 @@ def wms_armado_editar_estado(request):
             'msg':f'✅ Orden N° {orden.enum} {orden.estado}',
             'type':'success'
             })
+
+
+# PDF
+from django_xhtml2pdf.utils import pdf_decorator
+@pdf_decorator(pdfname='orden-armado.pdf')
+def wms_armado_orden_pdf(request, orden_id):
+    
+    # Orden
+    orden = OrdenEmpaque.objects.get(id=orden_id)
+    # form_componente = ComponenteArmadoForm()
+    # products_list = productos_odbc_and_django()[['product_id']]
+    # producto_nuevo_form = ProductoNuevoArmadoUpdateForm()
+    
+    # Movimientos
+    mov = Movimiento.objects.filter(n_referencia=orden.enum)
+    
+    # Componentes
+    componentes = orden.componentes.all()
+    componente_picking = []
+    for i in componentes:
+        movimiento = mov.filter(product_id=i)
+        c_m = {
+            'componente':i,
+            'movimiento':movimiento
+        }
+        componente_picking.append(c_m)    
+    
+    # # Agregar Componente
+    # if request.method == 'POST':
+    #     form_componente = ComponenteArmadoForm(request.POST)
+    #     if form_componente.is_valid():
+    #         form_componente.save()
+    #         nuevo_producto = form_componente.save()
+    #         orden.componentes.add(nuevo_producto)
+    #         messages.success(request, 'Componente agregado exitosamente')
+    #         return redirect('wms_orden_armado', id=id)
+    #     else:
+    #         messages.error(request, form_componente.errors)
+    #         return redirect('wms_orden_armado', id=id)
+        
+    context = {
+        'orden':orden,
+        #'producto_nuevo_form':producto_nuevo_form,
+        'componente_picking':componente_picking,
+        #'form_componente':form_componente,
+        #'products_list':de_dataframe_a_template(products_list),
+        #'clientes':de_dataframe_a_template(clientes_warehouse()[['NOMBRE_CLIENTE']]),
+        #'ruc':de_dataframe_a_template(clientes_warehouse()[['IDENTIFICACION_FISCAL']]),
+    }
+    
+    return render(request, 'wms/armado_orden_pdf.html', context)
+    

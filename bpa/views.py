@@ -115,6 +115,8 @@ def importaciones_compras_df():
 def importaciones(request):
 
     imp = importaciones_compras_df()
+    imp = imp.dropna()
+    
     imp = imp.drop_duplicates(subset=['DOC_ID_CORP'])
     imp['tipo'] = 'importaciones_llegadas'
     filtro_1 = imp['Procedencia'].str.contains('NACIONAL')
@@ -266,10 +268,10 @@ def muestreo_unidades(request, memo):
     imp = muestreo(data, 'OH')
     imp = imp.sort_values(by='product_id')
 
-    proveedor = imp['marca2'].iloc[0]
-    proveedor2 = imp['Marca'].iloc[0]
-    n_imp = imp['MEMO'].iloc[0]
-    n_doc = imp['DOC_ID_CORP'].iloc[0]
+    proveedor = imp['marca2'].dropna().iloc[0]
+    proveedor2 = imp['Marca'].dropna().iloc[0]
+    n_imp = imp['MEMO'].dropna().iloc[0]
+    n_doc = imp['DOC_ID_CORP'].dropna().iloc[0]
     
     imp = de_dataframe_a_template(imp)
 
@@ -292,10 +294,10 @@ def muestreo_cartones(request, memo):
     imp = muestreo(data, 'CARTONES')
     imp = imp.sort_values(by='product_id')
 
-    proveedor = imp['marca2'].iloc[0]
-    proveedor2 = imp['Marca'].iloc[0]
-    n_imp = imp['MEMO'].iloc[0]
-    n_doc = imp['DOC_ID_CORP'].iloc[0]
+    proveedor = imp['marca2'].dropna().iloc[0]
+    proveedor2 = imp['Marca'].dropna().iloc[0]
+    n_imp = imp['MEMO'].dropna().iloc[0]
+    n_doc = imp['DOC_ID_CORP'].dropna().iloc[0]
     
     imp = de_dataframe_a_template(imp)
     
@@ -318,10 +320,10 @@ def muestreo_unidades_transito(request, contrato_id):
     imp = muestreo(data, 'OH')
     imp = imp.sort_values(by='product_id')
 
-    proveedor = imp['marca2'].iloc[0]
-    proveedor2 = imp['Marca'].iloc[0]
-    n_imp = imp['MEMO'].iloc[0]
-    n_doc = imp['CONTRATO_ID'].iloc[0]
+    proveedor = imp['marca2'].dropna().iloc[0]
+    proveedor2 = imp['Marca'].dropna().iloc[0]
+    n_imp = imp['MEMO'].dropna().iloc[0]
+    n_doc = imp['CONTRATO_ID'].dropna().iloc[0]
     
     imp = de_dataframe_a_template(imp)
 
@@ -344,10 +346,10 @@ def muestreo_cartones_transito(request, contrato_id):
     imp = muestreo(data, 'CARTONES')
     imp = imp.sort_values(by='product_id')
 
-    proveedor = imp['marca2'].iloc[0]
-    proveedor2 = imp['Marca'].iloc[0]
-    n_imp = imp['MEMO'].iloc[0]
-    n_doc = imp['CONTRATO_ID'].iloc[0]
+    proveedor = imp['marca2'].dropna().iloc[0]
+    proveedor2 = imp['Marca'].dropna().iloc[0]
+    n_imp = imp['MEMO'].dropna().iloc[0]
+    n_doc = imp['CONTRATO_ID'].dropna().iloc[0]
     
     imp = de_dataframe_a_template(imp)
 
@@ -426,7 +428,7 @@ def revision_tecnica(request, doc_id):
     
     fecha_entrada = data['ENTRADA_FECHA'].iloc[0]
     bodega_llegada = data['WARE_COD_CORP'].iloc[0]
-    proveedor = data['marca2'].iloc[0]
+    proveedor = data['marca2'].dropna().iloc[0]
     n_imp = data['MEMO'].iloc[0]
 
     data = empaque(data)

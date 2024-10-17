@@ -9,6 +9,7 @@
 {% endblock %}
 
 {% block body %}
+
 <h5 class="m-4 text-center fw-bold">ARMADOS</h5>
 
 {% if messages %}
@@ -111,14 +112,19 @@
                     <div class="col-4">
                         {{form_nuevo_producto.product_id.label}}:
                     </div>
-                    <div class="col-6">
-                        {{form_nuevo_producto.product_id}}
+                    <div class="col-8">
+                        <select class="form-select select2" id="id_product_id" name="product_id">
+                            <option>-----------</option>
+                            {% for i in products_list %}
+                            <option value="{{i.product_id}}">{{i.product_id}}</option>
+                            {% endfor %}
+                        </select>
                     </div>
-                    <div class="col-2">
+                    <!--div class="col-2">
                         <button class="btn btn-secondary" type="button" name="product">
                             Código
                         </button>
-                    </div>
+                    </div-->
 
                     <!-- Nombre -->
                     <div class="col-4">
@@ -148,20 +154,26 @@
                         {{form_orden.cliente.label}}:
                     </div>
                     <div class="col-8">
-                        {{form_orden.cliente}}
+                        {#{form_orden.cliente}#}
+                        <select class="form-select select2" id="id_cliente" name="cliente">
+                            <option>-----------</option>
+                            {% for i in cliente_list %}
+                            <option value="{{i.NOMBRE_CLIENTE}}">{{i.NOMBRE_CLIENTE}}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                     <!-- Ruc -->
                     <div class="col-4">
                         {{form_orden.ruc.label}}:
                     </div>
-                    <div class="col-6">
+                    <div class="col-8">
                         {{form_orden.ruc}}
                     </div>
-                    <div class="col-2">
+                    <!--div class="col-2">
                         <button class="btn btn-secondary" type="button" name="ruc">
                             Ruc
                         </button>
-                    </div>
+                    </div-->
                     <!-- Precio -->
                     <div class="col-4">
                         {{form_nuevo_producto.precio_venta.label}}:
@@ -201,6 +213,7 @@
                 <input type="hidden" name="usuario" value="{{request.user.id}}">
                 <input type="hidden" id="id_codigo_cliente">
 
+                {% comment %}
                 <datalist id="product_list">
                     {% for i in product_list %}
                     <option value="{{i.product_id}}">
@@ -218,7 +231,7 @@
                     <option value="{{i.NOMBRE_CLIENTE}}">
                     {% endfor %}
                 </datalist>
-
+                {% endcomment %}
 
             </form>
         </div>
@@ -228,11 +241,25 @@
     </div>
 </div>
 
+
+<!-- Select2 -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $(".select2").select2({
+            dropdownParent: $('#staticBackdrop'),
+            width:'100%',
+        })
+    })
+</script>
+
 <!-- ADD PRODUCT -->
 <script>
-    $("button[name='product']").on('click', function() {
+    //$("button[name='product']").on('click', function() {
+    $("#id_product_id").on('change', function() {
         var product_id = $("#id_product_id").val();
-
+        
         $.ajax({
             type:"POST",
             url: "{% url 'get_product_data_by_product_id_ajax' %}",
@@ -258,7 +285,8 @@
 
 <!-- Add RUC -->
 <script>
-    $("button[name='ruc']").on('click', function() {
+    //$("button[name='ruc']").on('click', function() {
+    $("#id_cliente").on('change', function() {
         var cliente_name = $("#id_cliente").val();
 
         $.ajax({
