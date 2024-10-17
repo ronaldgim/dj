@@ -4878,3 +4878,55 @@ def wms_armado_editar_estado(request):
             'msg':f'✅ Orden N° {orden.enum} {orden.estado}',
             'type':'success'
             })
+
+
+# PDF
+from django_xhtml2pdf.utils import pdf_decorator
+@pdf_decorator(pdfname='orden-armado.pdf')
+def wms_armado_orden_pdf(request, orden_id):
+    
+    # Orden
+    orden = OrdenEmpaque.objects.get(id=orden_id)
+    # form_componente = ComponenteArmadoForm()
+    # products_list = productos_odbc_and_django()[['product_id']]
+    # producto_nuevo_form = ProductoNuevoArmadoUpdateForm()
+    
+    # Movimientos
+    mov = Movimiento.objects.filter(n_referencia=orden.enum)
+    
+    # Componentes
+    componentes = orden.componentes.all()
+    componente_picking = []
+    for i in componentes:
+        movimiento = mov.filter(product_id=i)
+        c_m = {
+            'componente':i,
+            'movimiento':movimiento
+        }
+        componente_picking.append(c_m)    
+    
+    # # Agregar Componente
+    # if request.method == 'POST':
+    #     form_componente = ComponenteArmadoForm(request.POST)
+    #     if form_componente.is_valid():
+    #         form_componente.save()
+    #         nuevo_producto = form_componente.save()
+    #         orden.componentes.add(nuevo_producto)
+    #         messages.success(request, 'Componente agregado exitosamente')
+    #         return redirect('wms_orden_armado', id=id)
+    #     else:
+    #         messages.error(request, form_componente.errors)
+    #         return redirect('wms_orden_armado', id=id)
+        
+    context = {
+        'orden':orden,
+        #'producto_nuevo_form':producto_nuevo_form,
+        'componente_picking':componente_picking,
+        #'form_componente':form_componente,
+        #'products_list':de_dataframe_a_template(products_list),
+        #'clientes':de_dataframe_a_template(clientes_warehouse()[['NOMBRE_CLIENTE']]),
+        #'ruc':de_dataframe_a_template(clientes_warehouse()[['IDENTIFICACION_FISCAL']]),
+    }
+    
+    return render(request, 'wms/armado_orden_pdf.html', context)
+    

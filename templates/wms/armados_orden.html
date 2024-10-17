@@ -61,6 +61,12 @@
     Añadir Componente
 </button>
 
+{% if orden.estado == 'Finalizado' %}
+<a class="btn btn-danger" href="{% url 'wms_armado_orden_pdf' orden.id %}">
+    PDF
+</a>
+{% endif %}
+
 <!-- Tabla -->
 <div class="card mt-2 mb-2">
     <div class="card-body m-0 p-0">
