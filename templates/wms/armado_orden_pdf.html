@@ -181,15 +181,15 @@
             </thead>
             <tbody>
                 <tr>
-                    <td class="t_row">{{orden.nuevo_producto.product_id}}</td>
-                    <td width="200px" class="t_row">{{orden.nuevo_producto.nombre}}</td>
-                    <td class="t_row">{{orden.nuevo_producto.marca}}</td>
-                    <td class="t_row">{{orden.nuevo_producto.lote_id}}</td>
+                    <td class="t_row">{{orden.nuevo_producto.product_id|default:"-"}}</td>
+                    <td width="200px" class="t_row">{{orden.nuevo_producto.nombre|default:"-"}}</td>
+                    <td class="t_row">{{orden.nuevo_producto.marca|default:"-"}}</td>
+                    <td class="t_row">{{orden.nuevo_producto.lote_id|default:"-"}}</td>
                     <td width="65px" class="t_row">{{orden.nuevo_producto.fecha_elaboracion|date:'Y-m-d'}}</td>
                     <td width="65px" class="t_row">{{orden.nuevo_producto.fecha_caducidad|date:'Y-m-d'}}</td>
-                    <td width="75px" class="t_row">{{orden.nuevo_producto.ubicacion}}</td>
+                    <td width="75px" class="t_row">{{orden.nuevo_producto.ubicacion|default:"-"}}</td>
                     <td width="55px"></td>
-                    <td width="55px" class="t_row">{{orden.nuevo_producto.unidades}}</td>
+                    <td width="55px" class="t_row">{{orden.nuevo_producto.unidades|default:"-"}}</td>
                     <td width="55px"></td>
                     <td width="35px"></td>
                     <td width="35px"></td>

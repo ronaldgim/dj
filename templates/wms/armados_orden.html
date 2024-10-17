@@ -11,6 +11,11 @@
 
 {% block body %}
 
+<style>
+    .select2-dropdown-custom {
+        z-index: 9999 !important; /* Asegura que el dropdown tenga el z-index más alto */
+    }
+</style>
 
 <h5 class="m-4 text-center fw-bold">ORDEN DE EMPAQUE {{orden.enum}}</h5>
 
@@ -61,11 +66,10 @@
     Añadir Componente
 </button>
 
-{% if orden.estado == 'Finalizado' %}
-<a class="btn btn-danger" href="{% url 'wms_armado_orden_pdf' orden.id %}">
+<a class="btn btn-danger {#% if orden.estado == 'Finalizado' %} disabled {% endif %#}" href="{% url 'wms_armado_orden_pdf' orden.id %}">
     PDF
 </a>
-{% endif %}
+
 
 <!-- Tabla -->
 <div class="card mt-2 mb-2">
@@ -234,14 +238,20 @@
                         <div class="col-4">
                             {{form_componente.product_id.label}}:
                         </div>
-                        <div class="col-5">
-                            {{form_componente.product_id}}
+                        <div class="col-8">
+                            {#{form_componente.product_id}#}
+                            <select  class="form-select" id="id_product_id" name="product_id">
+                                <option>-----------</option>
+                                {% for i in products_list %}
+                                <option value="{{i.product_id}}">{{i.product_id}}</option>
+                                {% endfor %}
+                            </select>
                         </div>
-                        <div class="col-auto">
+                        <!--div class="col-auto">
                             <button class="btn btn-secondary" type="button" name="product">
                                 Código
                             </button>
-                        </div>
+                        </div-->
 
                         <!-- Nombre -->
                         <div class="col-4">
@@ -266,12 +276,13 @@
                         <div class="col-8 mb-4">
                             {{form_componente.unidades}}
                         </div>
-
+                        {% comment %}
                         <datalist id="product_list">
                             {% for i in product_list %}
                             <option value="{{i.product_id}}">
                             {% endfor %}
                         </datalist>
+                        {% endcomment %}
                     </div>
                 </form>
             </div>
@@ -333,6 +344,20 @@
     </div>
 </div>
 
+
+<!-- Select2 -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $("#id_product_id").select2({
+            dropdownCssClass: 'select2-dropdown-custom',
+            width:'100%',
+        })
+    })
+</script>
+
+
 <!-- Formulario de editar orden -->
 <script>
     $("button[name='editar-orden']").on('click', function() {
@@ -369,9 +394,14 @@
     })
 </script>
 
+<script>
+
+</script>
+
 <!-- ADD PRODUCT -->
 <script>
-    $("button[name='product']").on('click', function() {
+    //$("button[name='product']").on('click', function() {
+    $("#id_product_id").on('change', function() {
         var product_id = $("#id_product_id").val();
         
         $.ajax({
