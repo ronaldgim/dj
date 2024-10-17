@@ -146,7 +146,7 @@
             <!--tr><td colspan="4"></td></tr-->
             <tr>
                 <td style="font-weight: bold" width="150px">Precio Venta:</td>
-                <td>{{orden.nuevo_producto.precio_venta}}</td>
+                <td>$ {{orden.nuevo_producto.precio_venta}}</td>
                 <td style="font-weight: bold" width="150px" rowspan="2">Cantidad:</td>
                 <td style="border:1px solid black; text-align:center" rowspan="2">{{orden.nuevo_producto.unidades}}</td>
             </tr>
@@ -195,6 +195,21 @@
                     <td width="35px"></td>
                     <td width="35px"></td>
                 </tr>
+                <tr>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                </tr>
                 {% for i in componente_picking %}
                 <tr>
                     <td class="t_row">{{i.componente.product_id}}</td>
@@ -211,6 +226,23 @@
                     <td></td>
                     <td></td>
                 </tr>
+                {% if orden.bodega == "Andagoya" %}
+                <tr>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                </tr>
+                {% endif %}
                 {% for j in i.movimiento %}
                 <tr style="background-color:#e1efff">
                     <td class="t_row">{{i.componente.product_id}}</td>
