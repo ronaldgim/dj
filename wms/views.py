@@ -108,6 +108,9 @@ from django.db import transaction
 from django.contrib.auth.decorators import login_required, permission_required
 
 # Email
+from django.core.mail import EmailMultiAlternatives
+from django.utils.html import strip_tags
+from django.template.loader import render_to_string
 from django.core.mail import send_mail
 from django.conf import settings
 
@@ -4315,59 +4318,43 @@ def wms_movimiento_grupal_ubicacion_salida_ajax(request):
         })
 
 
+
 ## ARMADOS
 ## Correo de creación de armados
 def wms_correo_creacion_armado(orden):
     
-    send_mail(
+    context = {'orden':orden}
+    html_message  = render_to_string('emails/crear_armado.html', context)
+    plain_message = strip_tags(html_message)
+    
+    email = EmailMultiAlternatives(
         subject=f'SOLICITUD DE ARMADO {orden.bodega}',
-        message=f"""
-Estimados Compañeros:
-
-Solicito su gentil ayuda con realizando el siguiente armado.
-
-Orden de empaque: {orden.enum}
-Cliente : {orden.cliente}
-Bodega : {orden.bodega}
-Producto : {orden.nuevo_producto.product_id} - {orden.nuevo_producto.nombre} - {orden.nuevo_producto.marca}
-Cantidad : {orden.nuevo_producto.unidades}
-Prioridad : {orden.prioridad}
-
-Solicitud de armado creada por: {orden.usuario.first_name} {orden.usuario.last_name} \n
-
-***Este mensaje fue enviado automaticamente mediante WMS***
-""",
-        from_email     = settings.EMAIL_HOST_USER,
-        recipient_list = ['bcerezos@gimpromed.com', 'bodega2@gimpromed.com'],
-        #recipient_list = ['egarces@gimpromed.com'],
-        fail_silently  = False
-        )
+        from_email=settings.EMAIL_HOST_USER,
+        body=plain_message,
+        #to=['egarces@gimpromed.com'],
+        to=['ncaisapanta@gimpromed.com','ncastillo@gimpromed.com','jgualotuna@gimpromed.com', 'kenriquez@gimpromed.com', 'carcosh@gimpromed.com', 'dreyes@gimpromed.com'],
+    )
+    
+    email.attach_alternative(html_message, 'text/html')
+    email.send()
 
 
 def wms_correo_finalizado_armado(orden):
+
+    context = {'orden':orden}
+    html_message  = render_to_string('emails/finalizar_armado.html', context)
+    plain_message = strip_tags(html_message)
     
-    send_mail(
+    email = EmailMultiAlternatives(
         subject=f'SOLICITUD ARMADO #{orden.enum} - FINALIZADO',
-        message=f"""
-Estimados Compañeros:
-
-Se informa que la solicitud de armado finalizada.
-
-Orden de empaque: {orden.enum}
-Cliente : {orden.cliente}
-Bodega : {orden.bodega}
-Producto : {orden.nuevo_producto.product_id} - {orden.nuevo_producto.nombre} - {orden.nuevo_producto.marca}
-Cantidad : {orden.nuevo_producto.unidades}
-
-Su ayuda ingresando el armado en CN7-A-1
-
-***Este mensaje fue enviado automaticamente mediante WMS***
-""",
-        from_email     = settings.EMAIL_HOST_USER,
-        recipient_list = ['ncaisapanta@gimpromed.com','ncastillo@gimpromed.com','jgualotuna@gimpromed.com', 'kenriquez@gimpromed.com', 'carcosh@gimpromed.com'],
-        #recipient_list = ['egarces@gimpromed.com'],
-        fail_silently  = False
-        )
+        from_email=settings.EMAIL_HOST_USER,
+        body=plain_message,
+        #to=['egarces@gimpromed.com'],
+        to=['ncaisapanta@gimpromed.com','ncastillo@gimpromed.com','jgualotuna@gimpromed.com', 'kenriquez@gimpromed.com', 'carcosh@gimpromed.com', 'dreyes@gimpromed.com'],
+    )
+    
+    email.attach_alternative(html_message, 'text/html')
+    email.send()
 
 
 @login_required(login_url='login')
@@ -4492,17 +4479,16 @@ def get_precio_by_product_client_ajax(request):
             else:
                 return JsonResponse({'error': 'Llene el código y cliente'})
     except:
-        return JsonResponse({'error': 'Error en el nombre del cliente'})
+        return JsonResponse({'error': 'Este cliente no ha comprado este producto por ello el precio es 0.0, edite el precio.'})
 
 
 @login_required(login_url='login')
 @permisos(['ADMINISTRADOR','OPERACIONES',], '/wms/inventario', 'ingrear a detalle de armado')
 def wms_orden_armado(request, id):
-    
+
     # Orden
     orden = OrdenEmpaque.objects.get(id=id)
     form_componente = ComponenteArmadoForm()
-    products_list = productos_odbc_and_django()[['product_id']]
     producto_nuevo_form = ProductoNuevoArmadoUpdateForm()
     
     # Movimientos
@@ -4537,7 +4523,7 @@ def wms_orden_armado(request, id):
         'producto_nuevo_form':producto_nuevo_form,
         'componente_picking':componente_picking,
         'form_componente':form_componente,
-        'products_list':de_dataframe_a_template(products_list),
+        'products_list':de_dataframe_a_template(productos_odbc_and_django()[['product_id']]),
         'clientes':de_dataframe_a_template(clientes_warehouse()[['NOMBRE_CLIENTE']]),
         'ruc':de_dataframe_a_template(clientes_warehouse()[['IDENTIFICACION_FISCAL']]),
     }

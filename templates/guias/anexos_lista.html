@@ -9,6 +9,13 @@
 {% endblock %}
 
 {% block body %}
+
+<style>
+    .select2-dropdown-custom {
+        z-index: 9999 !important; /* Asegura que el dropdown tenga el z-index más alto */
+    }
+</style>
+
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
 
 <h5 class="m-4 text-center"><strong>LISTADO DE ANEXOS</strong></h5>
@@ -119,11 +126,6 @@
     })
 </script>
 
-<style>
-    .select2-dropdown-custom {
-        z-index: 9999 !important; /* Asegura que el dropdown tenga el z-index más alto */
-    }
-</style>
 
 <!--filtro buscar-->
 <script>
