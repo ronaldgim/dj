@@ -11,14 +11,7 @@
 
 {% block body %}
 
-<style>
-    .select2-dropdown-custom {
-        z-index: 9999 !important; /* Asegura que el dropdown tenga el z-index más alto */
-    }
-</style>
-
 <h5 class="m-4 text-center fw-bold">ORDEN DE EMPAQUE {{orden.enum}}</h5>
-
 
 {% if messages %}
 {% for message in messages %}
@@ -239,8 +232,8 @@
                             {{form_componente.product_id.label}}:
                         </div>
                         <div class="col-8">
-                            {#{form_componente.product_id}#}
-                            <select  class="form-select" id="id_product_id" name="product_id">
+                            {#{form_componente.product_id} class="form-select select2" #}
+                            <select class="select2" id="id_product_id" name="product_id">
                                 <option>-----------</option>
                                 {% for i in products_list %}
                                 <option value="{{i.product_id}}">{{i.product_id}}</option>
@@ -346,13 +339,10 @@
 
 
 <!-- Select2 -->
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
     $(document).ready(function() {
-        $("#id_product_id").select2({
-            dropdownCssClass: 'select2-dropdown-custom',
-            width:'100%',
+        $(".select2").select2({
+            dropdownParent: $('#NuevoComponente'), //opciones ancladas al modal
         })
     })
 </script>

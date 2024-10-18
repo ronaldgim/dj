@@ -118,8 +118,9 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
     $(document).ready(function() {
-        $('#id_facturas').addClass('form-select').select2({
-            dropdownCssClass: 'select2-dropdown-custom'
+        //.addClass('form-select')
+        $('#id_facturas').select2({ 
+            //dropdownCssClass: 'select2-dropdown-custom'
         });
         $("label[for='id_bodega_nombre']").html('Bodega');
         $("#id_bodega_nombre").addClass('form-select');

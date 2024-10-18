@@ -31,22 +31,12 @@
 <button type="button" class="btn btn-primary mb-2" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
     Añadir Armado
 </button>
-
-{% if tipo %}
-<div class="card mt-2 mb-2">
-    <div class="card-body">
-        <label class="fw-bold">{{tipo}}: </label> {{valor}}<br>
-        <label class="fw-bold">Resultados: </label> {{len}}<br>
-        <a class="btn btn-sm btn-danger" href="{% url 'wms_movimientos_list' %}">Borrar busqueda</a>
-    </div>
-</div>
-{% endif %}
+<div id="msg"></div>
 
 <div class="col-12">
     <input id="inputbuscar" type="text" placeholder="Filtro" class="form-control">
 </div>
 
-<div id="msg"></div>
 
 <div class="card mt-2 mb-2">
     <div class="card-body m-0 p-0">
@@ -243,13 +233,10 @@
 
 
 <!-- Select2 -->
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
     $(document).ready(function() {
         $(".select2").select2({
-            dropdownParent: $('#staticBackdrop'),
-            width:'100%',
+            dropdownParent: $('#staticBackdrop'), //opciones ancladas al modal
         })
     })
 </script>
