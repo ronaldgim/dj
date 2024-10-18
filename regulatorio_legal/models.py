@@ -3,7 +3,11 @@ import datetime
 
 from users.models import User
 
-# Create your models here.
+# CHOISES
+TIPO = [
+    ('factura', 'factura'),
+    ('proforma', 'proforma'),
+]
 
 
 # Create your models here.
@@ -81,8 +85,38 @@ class DocumentosLegales(models.Model):
     
     @property
     def estado(self):
-        if self.fecha_caducidad < datetime.date.today():
-            return 'Caducado'
-        else:
-            return 'Vigente'
+        return 'Caducado' if self.fecha_caducidad < datetime.date.today() else 'Vigente'
 
+
+# class RegSanFacturaProforma(models.Model):
+    
+#     product_id       = models.CharField(max_length=30)
+#     nombre           = models.CharField(max_length=30)
+#     marca            = models.CharField(max_length=30)
+#     enviar_documento = models.BooleanField(default=False)
+#     documento        = models.FileField(blank=True)
+
+
+# class IsoFacturaProforma(models.Model):
+    
+#     marca            = models.CharField(max_length=30)
+#     enviar_documento = models.BooleanField(default=False)
+#     documento        = models.FileField(blank=True)
+
+
+
+# class FacturaProforma(models.Model):
+    
+#     tipo           = models.CharField(max_length=10, choices=TIPO)
+#     documento_str  = models.CharField(max_length=30)
+#     documento_int  = models.IntegerField()
+#     codigo_cliente = models.CharField(max_length=10)
+#     nombre_cliente = models.CharField(max_length=150)
+#     fecha          = models.DateField()
+    
+#     productos      = models.ManyToManyField()
+    
+#     marca_de_agua  = models.TextField(blank=True)
+#     creado         = models.DateTimeField(auto_now_add=True)
+#     actualizado    = models.DateTimeField(auto_now=True)
+#     usuario        = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.PROTECT)

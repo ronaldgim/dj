@@ -1,0 +1,54 @@
+/* Tomar todo el ancho del div contenedor */
+.select2-container {
+    width: 100% !important;
+}
+
+/* Estilo para los selects simples */
+.select2-container .select2-selection--single {
+    height: calc(1.5em + .75rem + 2px) !important;
+    padding: .35rem .1rem !important;
+    font-size: 1rem !important;
+    font-weight: 400 !important;
+    line-height: 1.5 !important;
+    color: #495057 !important;
+    background-color: #fff !important;
+    background-clip: padding-box !important;
+    border: 1px solid #ced4da !important;
+    border-radius: .25rem !important;
+    transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out !important;
+}
+
+/* Ajuste de la flecha del select simple */
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: calc(1.5em + .75rem + 2px) !important;
+    right: .75rem !important;
+}
+
+.select2-container .select2-selection--single .select2-selection__arrow {
+    height: calc(1.5em + .75rem + 2px) !important;
+    right: .75rem !important;
+}
+
+/* Estilo para los select múltiples */
+.select2-container--default .select2-selection--multiple {
+    min-height: calc(1.5em + .75rem + 2px) !important;
+    /*padding: .35rem .1rem !important;
+    font-size: 1rem !important;
+    border-radius: 0.25rem;
+    border: 1px solid #ced4da;
+    background-color: #fff;
+    display: flex;
+    align-items: center;*/
+}
+
+/* Espaciado entre las etiquetas de los elementos seleccionados en select múltiple */
+/*.select2-container--default .select2-selection--multiple .select2-selection__choice {
+    margin-right: 0.25rem;*/
+    /*margin-top: 0.25rem;*/
+    /*background-color: #0d6efd; /* Azul de Bootstrap */
+    /*color: white;*/
+    /*border: none;*/
+    /*border-radius: 0.2rem;*/
+    /*padding: 0.25rem 0.5rem;*/
+    /*font-size: 0.875rem;
+}*/
