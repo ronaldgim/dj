@@ -4326,16 +4326,40 @@ def wms_movimiento_grupal_ubicacion_salida_ajax(request):
 ## Correo de creación de armados
 def wms_correo_creacion_armado(orden):
     
+    lista_correos_andagoya = [
+        'ncaisapanta@gimpromed.com',
+        'ncastillo@gimpromed.com',
+        'jgualotuna@gimpromed.com',
+        'kenriquez@gimpromed.com',
+        'carcosh@gimpromed.com',
+        'dreyes@gimpromed.com',
+    ]
+    
+    lista_cooreos_cerezos = [
+        'ncaisapanta@gimpromed.com',
+        'ncastillo@gimpromed.com',
+        'jgualotuna@gimpromed.com',
+        'kenriquez@gimpromed.com',
+        'carcosh@gimpromed.com',
+        'dreyes@gimpromed.com',
+        'bodega2@gimpromed.com',
+    ]
+    
+    if orden.bodega=='Andagoya':
+        correos = lista_correos_andagoya
+    elif orden.bodega=='Cerezos':
+        correos = lista_cooreos_cerezos
+
+    
     context = {'orden':orden}
     html_message  = render_to_string('emails/crear_armado.html', context)
     plain_message = strip_tags(html_message)
     
     email = EmailMultiAlternatives(
-        subject=f'SOLICITUD DE ARMADO {orden.bodega}',
-        from_email=settings.EMAIL_HOST_USER,
-        body=plain_message,
-        #to=['egarces@gimpromed.com'],
-        to=['bcerezos@gimpromed.com', 'bodega2@gimpromed.com', 'ncaisapanta@gimpromed.com','ncastillo@gimpromed.com','jgualotuna@gimpromed.com', 'kenriquez@gimpromed.com', 'carcosh@gimpromed.com', 'dreyes@gimpromed.com'],
+        subject    = f'SOLICITUD DE ARMADO {orden.bodega}',
+        from_email = settings.EMAIL_HOST_USER,
+        body       = plain_message,
+        to         = correos
     )
     
     email.attach_alternative(html_message, 'text/html')
@@ -4352,8 +4376,15 @@ def wms_correo_editar_bodega_armado(orden):
         subject=f'SOLICITUD DE ARMADO {orden.bodega} - CAMBIO DE BODEGA',
         from_email=settings.EMAIL_HOST_USER,
         body=plain_message,
-        #to=['egarces@gimpromed.com'],
-        to=['bcerezos@gimpromed.com','bodega2@gimpromed.com','ncaisapanta@gimpromed.com','ncastillo@gimpromed.com','jgualotuna@gimpromed.com', 'kenriquez@gimpromed.com', 'carcosh@gimpromed.com', 'dreyes@gimpromed.com'],
+        to=[
+            'ncaisapanta@gimpromed.com',
+            'ncastillo@gimpromed.com',
+            'jgualotuna@gimpromed.com',
+            'kenriquez@gimpromed.com',
+            'carcosh@gimpromed.com',
+            'dreyes@gimpromed.com',
+            'bodega2@gimpromed.com',
+            ],
     )
     
     email.attach_alternative(html_message, 'text/html')
@@ -4370,8 +4401,15 @@ def wms_correo_finalizado_armado(orden):
         subject=f'SOLICITUD ARMADO #{orden.enum} - FINALIZADO',
         from_email=settings.EMAIL_HOST_USER,
         body=plain_message,
-        #to=['egarces@gimpromed.com'],
-        to=['ncaisapanta@gimpromed.com','ncastillo@gimpromed.com','jgualotuna@gimpromed.com', 'kenriquez@gimpromed.com', 'carcosh@gimpromed.com', 'dreyes@gimpromed.com'],
+        to=[
+            'ncaisapanta@gimpromed.com',
+            'ncastillo@gimpromed.com',
+            'jgualotuna@gimpromed.com',
+            'kenriquez@gimpromed.com',
+            'carcosh@gimpromed.com',
+            'dreyes@gimpromed.com',
+            'bodega2@gimpromed.com',
+            ],
     )
     
     email.attach_alternative(html_message, 'text/html')
@@ -4567,14 +4605,13 @@ def wms_editar_orden_ajax(request):
         form  = OrdenEmpaqueUpdateForm(request.POST, instance=orden)
         anterior_bodega = orden.bodega
         if form.is_valid():
-            form.save()
+            nueva_orden = form.save()
             
             # Enviar correo - si cambia de bodega            
             nueva_bodega = form.cleaned_data['bodega']
             
             if anterior_bodega != nueva_bodega:
-                # Enviar correo a los usuarios de la nueva bodega
-                pass
+                wms_correo_editar_bodega_armado(orden=nueva_orden)
             
             messages.success(request, 'Orden editada con exito !!!')
             return HttpResponseRedirect(f'/wms/orden-armado/{orden.id}')
