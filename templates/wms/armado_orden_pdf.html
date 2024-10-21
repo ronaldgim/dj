@@ -166,120 +166,6 @@
 
         <br>
 
-        <!-- Tabla de productos -->
-        {% comment %}
-        <table style="border:1px solid black; table-layout: fixed; width: 100%;">
-            <thead>
-                <tr>
-                    <th class="t_row" rowspan="2">CÓDIGO</th>
-                    <th class="t_row" rowspan="2">DETALLE</th>
-                    <th class="t_row" rowspan="2">MARCA</th>
-                    <th class="t_row" rowspan="2">LOTE</th>
-                    <th class="t_row" rowspan="2">FECHA ELAB</th>
-                    <th class="t_row" rowspan="2">FECHA VENC</th>
-                    <th class="t_row" rowspan="2">UBICACIÓN EN BODEGAS</th>
-                    <th class="t_row" rowspan="2">CANTIDAD POR LOTE</th>
-                    <th class="t_row" rowspan="2">INGRESO</th>
-                    <th class="t_row" rowspan="2">SALINDA</th>
-                    <th class="t_row" colspan="3">CONTROL DEL PROCESO</th>
-                </tr>
-                <tr>
-                    <th class="t_row">INICIO</th>
-                    <th class="t_row">INTER</th>
-                    <th class="t_row">FIN</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td width="90px" class="t_row">{{orden.nuevo_producto.product_id|default:"-"}}</td>
-                    <td width="200px" class="t_row">{{orden.nuevo_producto.nombre|default:"-"}}</td>
-                    <td width="70px" class="t_row">{{orden.nuevo_producto.marca|default:"-"}}</td>
-                    <td width="70px" class="t_row">{{orden.nuevo_producto.lote_id|default:"-"}}</td>
-                    <!--td class="t_row">{{orden.nuevo_producto.fecha_elaboracion|default:"-"}}</td-->
-                    <td width="65px" class="t_row">{{orden.nuevo_producto.fecha_caducidad|date:'Y-m-d'}}</td>
-                    <td width="65px" class="t_row">{{orden.nuevo_producto.fecha_caducidad|date:'Y-m-d'}}</td>
-                    <td width="75px" class="t_row">{{orden.nuevo_producto.ubicacion|default:"-"}}</td>
-                    <td width="55px" class="t_row"></td>
-                    <td width="55px" class="t_row">{{orden.nuevo_producto.unidades|default:"-"}}</td>
-                    <td width="55px" class="t_row"></td>
-                    <td width="35px" class="t_row"></td>
-                    <td width="35px" class="t_row"></td>
-                    <td width="35px" class="t_row"></td>
-                </tr>
-                {% if orden.bodega == "Andagoya" %}
-                <tr style="text-color:white">
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                </tr>
-                {% endif %}
-                {% for i in componente_picking %}
-                <tr>
-                    <td class="t_row">{{i.componente.product_id}}</td>
-                    <td class="t_row">{{i.componente.nombre}}</td>
-                    <td class="t_row">{{i.componente.marca}}</td>
-                    <td class="t_row">{{i.componente.lote_id}}</td>
-                    <td class="t_row">{{i.componente.fecha_elaboracion|date:'Y-m-d'}}</td>
-                    <td class="t_row">{{i.componente.fecha_caducidad|date:'Y-m-d'}}</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td class="t_row">{{i.componente.unidades}}</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                {% if orden.bodega == "Andagoya" %}
-                <tr style="text-color:white">
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                </tr>
-                {% endif %}
-                {% for j in i.movimiento %}
-                <tr style="background-color:#e1efff">
-                    <td class="t_row">{{i.componente.product_id}}</td>
-                    <td class="t_row">{{i.componente.nombre}}</td>
-                    <td class="t_row">{{i.componente.marca}}</td>
-                    <td class="t_row">{{j.lote_id}}</td>
-                    <td></td>
-                    <td class="t_row">{{j.fecha_caducidad|date:'Y-m-d'}}</td>
-                    <td class="t_row">{{j.ubicacion}}</td>
-                    <td class="t_row">{{j.unidades}}</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                {% endfor %}
-                {% endfor %}
-            </tbody>
-        </table>
-
-        <br>
-        {% endcomment %}
-
         <table style="border:1px solid black; table-layout: fixed; width: 100%;">
             <thead>
                 <tr>
@@ -319,7 +205,22 @@
                 </tr>
                 
                 {% if orden.bodega == "Andagoya" %}
-                <tr style="text-color:white">
+                <tr style="color:#FFFFFF">
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                </tr>
+                <tr style="color:#FFFFFF">
                     <td>-</td>
                     <td>-</td>
                     <td>-</td>
@@ -354,7 +255,22 @@
                 </tr>
                 
                 {% if orden.bodega == "Andagoya" %}
-                <tr style="text-color:white">
+                <tr style="color:#FFFFFF">
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                </tr>
+                <tr style="color:#FFFFFF">
                     <td>-</td>
                     <td>-</td>
                     <td>-</td>
@@ -389,6 +305,38 @@
                 </tr>
                 {% endfor %}
                 {% endfor %}
+                {% if orden.bodega == "Andagoya" %}
+                <tr style="color:#FFFFFF">
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                </tr>
+                <tr style="color:#FFFFFF">
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                </tr>
+                {% endif %}
             </tbody>
         </table>
 
