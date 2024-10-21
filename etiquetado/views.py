@@ -834,7 +834,7 @@ def facturas(request, n_factura):
 # Lista de actulización BODEGA
 def pedidos_estado_list(request):
 
-    davimed_list = ['83141.0']
+    davimed_list = ['83141.0','83314.0']
     
     if request.user.has_perm('etiquetado.view_pedidosestadoetiquetado'):
 
@@ -2356,7 +2356,7 @@ def publico_dashboard_fun():
     reservas = reservas[reservas['PRODUCT_ID']!='MANTEN']
     
     # davimed #
-    davimed_list = ['83141.0']
+    davimed_list = ['83141.0','83314.0']
     
     davimed = reservas[reservas.CONTRATO_ID.isin(davimed_list)]
     # davimed #
