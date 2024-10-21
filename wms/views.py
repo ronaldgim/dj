@@ -121,6 +121,9 @@ import pyodbc
 # Paginado
 from django.core.paginator import Paginator
 
+# PDF
+from django_xhtml2pdf.utils import pdf_decorator
+
 
 """
     LISTAS DE INGRESOS
@@ -4332,7 +4335,25 @@ def wms_correo_creacion_armado(orden):
         from_email=settings.EMAIL_HOST_USER,
         body=plain_message,
         #to=['egarces@gimpromed.com'],
-        to=['ncaisapanta@gimpromed.com','ncastillo@gimpromed.com','jgualotuna@gimpromed.com', 'kenriquez@gimpromed.com', 'carcosh@gimpromed.com', 'dreyes@gimpromed.com'],
+        to=['bcerezos@gimpromed.com', 'bodega2@gimpromed.com', 'ncaisapanta@gimpromed.com','ncastillo@gimpromed.com','jgualotuna@gimpromed.com', 'kenriquez@gimpromed.com', 'carcosh@gimpromed.com', 'dreyes@gimpromed.com'],
+    )
+    
+    email.attach_alternative(html_message, 'text/html')
+    email.send()
+
+
+def wms_correo_editar_bodega_armado(orden):
+
+    context = {'orden':orden}
+    html_message  = render_to_string('emails/editar_armado.html', context)
+    plain_message = strip_tags(html_message)
+    
+    email = EmailMultiAlternatives(
+        subject=f'SOLICITUD DE ARMADO {orden.bodega} - CAMBIO DE BODEGA',
+        from_email=settings.EMAIL_HOST_USER,
+        body=plain_message,
+        #to=['egarces@gimpromed.com'],
+        to=['bcerezos@gimpromed.com','bodega2@gimpromed.com','ncaisapanta@gimpromed.com','ncastillo@gimpromed.com','jgualotuna@gimpromed.com', 'kenriquez@gimpromed.com', 'carcosh@gimpromed.com', 'dreyes@gimpromed.com'],
     )
     
     email.attach_alternative(html_message, 'text/html')
@@ -4355,6 +4376,7 @@ def wms_correo_finalizado_armado(orden):
     
     email.attach_alternative(html_message, 'text/html')
     email.send()
+
 
 
 @login_required(login_url='login')
@@ -4536,15 +4558,24 @@ def wms_editar_orden_ajax(request):
     if request.method == 'GET':
         id_orden = int(request.GET.get('id_orden'))
         orden = OrdenEmpaque.objects.get(id=id_orden)
-        form  = OrdenEmpaqueUpdateForm(instance=orden)
+        form  = OrdenEmpaqueUpdateForm(instance=orden) 
         return HttpResponse(form.as_p())
     
     elif request.method == 'POST':
         id_orden = int(request.POST.get('id_orden'))
         orden = OrdenEmpaque.objects.get(id=id_orden)
         form  = OrdenEmpaqueUpdateForm(request.POST, instance=orden)
+        anterior_bodega = orden.bodega
         if form.is_valid():
             form.save()
+            
+            # Enviar correo - si cambia de bodega            
+            nueva_bodega = form.cleaned_data['bodega']
+            
+            if anterior_bodega != nueva_bodega:
+                # Enviar correo a los usuarios de la nueva bodega
+                pass
+            
             messages.success(request, 'Orden editada con exito !!!')
             return HttpResponseRedirect(f'/wms/orden-armado/{orden.id}')
         else:
@@ -4867,8 +4898,7 @@ def wms_armado_editar_estado(request):
             })
 
 
-# PDF
-from django_xhtml2pdf.utils import pdf_decorator
+
 @pdf_decorator(pdfname='orden-armado.pdf')
 def wms_armado_orden_pdf(request, orden_id):
     

@@ -92,7 +92,12 @@
                         <td>{{orden.nuevo_producto.lote_id}}</td>
                         <td>{{orden.nuevo_producto.fecha_elaboracion|date:'Y-m-d'}}</td>
                         <td>{{orden.nuevo_producto.fecha_caducidad|date:'Y-m-d'}}</td>
-                        <td>{{orden.nuevo_producto.ubicacion}}</td>
+                        <td>
+                            {#{orden.nuevo_producto.ubicacion}#}
+                            {% if orden.bodega == 'Cerezos' %}
+                            CN7-A-1
+                            {% endif %}
+                        </td>
                         <td></td>
                         <td class="text-end">{{orden.nuevo_producto.unidades}}</td>
                         <td></td>
@@ -361,6 +366,9 @@
             },
             success: function(response){
                 $("#editar-orden-form-get").html(response);
+
+                // editar user POST
+                $("#id_usuario").val({{request.user.id}});
             }
         })
     })
