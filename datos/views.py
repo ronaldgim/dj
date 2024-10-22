@@ -67,6 +67,11 @@ from functools import wraps
 # rexex
 import re
 
+
+# ACTUALIZAR WAREHOUSER POR API DATA
+from api_mba.tablas_warehouse import actualizar_productos_warehouse
+
+
 # CONECIONES A MBA
 # cnx_odbc_mba     = pyodbc.connect('DSN=mba3;PWD=API')
 
@@ -842,30 +847,33 @@ def stock_lote(request):
             #####Connect to MYSQL Database#####
             mycursorMysql = mydb.cursor()
 
-            # ACTUALIZAR PRODUCTOS 
-            try:
-                #Productos
-                cursorOdbc.execute(
-                    "SELECT INVT_Ficha_Principal.PRODUCT_ID, INVT_Ficha_Principal.PRODUCT_NAME, "
-                    "INVT_Ficha_Principal.UM, INVT_Ficha_Principal.GROUP_CODE, INVT_Ficha_Principal.UNIDADES_EMPAQUE, INVT_Ficha_Principal.Custom_Field_1,INVT_Ficha_Principal.Custom_Field_2, INVT_Ficha_Principal.Custom_Field_4, "
-                    "INVT_Ficha_Principal.INACTIVE, INVT_Ficha_Principal.LARGO, INVT_Ficha_Principal.ANCHO, INVT_Ficha_Principal.ALTURA, INVT_Ficha_Principal.VOLUMEN, INVT_Ficha_Principal.WEIGHT, INVT_Ficha_Principal.AVAILABLE, INVT_Ficha_Principal.UnidadesPorPallet "
-                    "FROM INVT_Ficha_Principal INVT_Ficha_Principal"
-                )
-                productos = cursorOdbc.fetchall()
+            # # ACTUALIZAR PRODUCTOS 
+            # try:
+            #     #Productos
+            #     cursorOdbc.execute(
+            #         "SELECT INVT_Ficha_Principal.PRODUCT_ID, INVT_Ficha_Principal.PRODUCT_NAME, "
+            #         "INVT_Ficha_Principal.UM, INVT_Ficha_Principal.GROUP_CODE, INVT_Ficha_Principal.UNIDADES_EMPAQUE, INVT_Ficha_Principal.Custom_Field_1,INVT_Ficha_Principal.Custom_Field_2, INVT_Ficha_Principal.Custom_Field_4, "
+            #         "INVT_Ficha_Principal.INACTIVE, INVT_Ficha_Principal.LARGO, INVT_Ficha_Principal.ANCHO, INVT_Ficha_Principal.ALTURA, INVT_Ficha_Principal.VOLUMEN, INVT_Ficha_Principal.WEIGHT, INVT_Ficha_Principal.AVAILABLE, INVT_Ficha_Principal.UnidadesPorPallet "
+            #         "FROM INVT_Ficha_Principal INVT_Ficha_Principal"
+            #     )
+            #     productos = cursorOdbc.fetchall()
                 
-                delete_sql = "DELETE FROM productos"
-                mycursorMysql.execute(delete_sql)
-                mydb.commit()
-                print("Sucessful Deleted productos")
+            #     delete_sql = "DELETE FROM productos"
+            #     mycursorMysql.execute(delete_sql)
+            #     mydb.commit()
+            #     print("Sucessful Deleted productos")
                 
-                sql_insert = """INSERT INTO productos (Codigo,Nombre,Unidad,Marca,Unidad_Empaque,Reg_San,Procedencia,Unidad_Box,Inactivo,Largo,Ancho,Altura,Volumen,Peso,Disponible,UnidadesPorPallet) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,%s,%s)"""
-                data_productos = [list(rows) for rows in productos]
-                mycursorMysql.executemany(sql_insert, data_productos)
-                print("Sucessful Updated Productos")
-                mydb.commit()
-            except:
-                print('Error actulizar productos')        
+            #     sql_insert = """INSERT INTO productos (Codigo,Nombre,Unidad,Marca,Unidad_Empaque,Reg_San,Procedencia,Unidad_Box,Inactivo,Largo,Ancho,Altura,Volumen,Peso,Disponible,UnidadesPorPallet) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,%s,%s)"""
+            #     data_productos = [list(rows) for rows in productos]
+            #     mycursorMysql.executemany(sql_insert, data_productos)
+            #     print("Sucessful Updated Productos")
+            #     mydb.commit()
+            # except:
+            #     print('Error actulizar productos')        
             
+            
+            actualizar_productos_warehouse()
+
 
             #Reservas  (Pedidos Abiertos) - (<> MANTEN)
             cursorOdbc.execute(
