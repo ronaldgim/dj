@@ -468,6 +468,7 @@ def pedido_lotes(request, n_pedido):
     if not pedido.empty:
         pedido = pedido.merge(prod, on='PRODUCT_ID', how='left')
         pedido = pedido.merge(cli, on='CODIGO_CLIENTE', how='left')
+        pedido['FECHA_CADUCIDAD'] = pedido['FECHA_CADUCIDAD'].astype('str')
         
         bodega = pedido['WARE_CODE'][0]
         cliente = pedido['NOMBRE_CLIENTE'][0]
