@@ -192,10 +192,10 @@
                     <td style="width: 12%;" class="t_row">{{orden.nuevo_producto.product_id}}</td>      
                     <td style="width: auto;" class="t_row">{{orden.nuevo_producto.nombre}}</td>         
                     <td style="width: 7%;" class="t_row">{{orden.nuevo_producto.marca}}</td>           
-                    <td style="width: 7%;" class="t_row">{{orden.nuevo_producto.lote_id}}</td>         
+                    <td style="width: 7%;" class="t_row">{{orden.nuevo_producto.lote_id|default:"-"}}</td>         
                     <td style="width: 7%;" class="t_row">{{orden.nuevo_producto.fecha_elaboracion|default:"-"}}</td>
-                    <td style="width: 7%;" class="t_row">{{orden.nuevo_producto.fecha_caducidad|date:'Y-m-d'}}</td>
-                    <td style="width: 7%;" class="t_row">{% if orden.nuevo_producto.ubicacion %} {{orden.nuevo_producto.ubicacion}} {% endif %}</td>       
+                    <td style="width: 7%;" class="t_row">{{orden.nuevo_producto.fecha_caducidad|date:'Y-m-d'|default:"-"}}</td>
+                    <td style="width: 7%;" class="t_row">{% if orden.nuevo_producto.bodega == "Cerezos" %} {{orden.nuevo_producto.ubicacion}} {% endif %}</td>       
                     <td style="width: 6%;" class="t_row"></td>                                                     
                     <td style="width: 6%;" class="t_row">{{orden.nuevo_producto.unidades}}</td>        
                     <td style="width: 6%;" class="t_row"></td>                                                     
@@ -242,9 +242,9 @@
                     <td class="t_row">{{i.componente.product_id}}</td>                      
                     <td class="t_row">{{i.componente.nombre}}</td>                          
                     <td class="t_row">{{i.componente.marca}}</td>                           
-                    <td class="t_row">{{i.componente.lote_id}}</td>                         
+                    <td class="t_row">{{i.componente.lote_id|default:"-"}}</td>                         
                     <td class="t_row">{{i.componente.fecha_elaboracion|date:'Y-m-d'|default:"-"}}</td>  
-                    <td class="t_row">{{i.componente.fecha_caducidad|date:'Y-m-d'}}</td>    
+                    <td class="t_row">{{i.componente.fecha_caducidad|date:'Y-m-d'|default:"-"}}</td>    
                     <td></td>                                                               
                     <td></td>                                                               
                     <td></td>                                                               
