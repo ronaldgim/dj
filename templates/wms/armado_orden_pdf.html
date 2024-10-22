@@ -195,7 +195,7 @@
                     <td style="width: 7%;" class="t_row">{{orden.nuevo_producto.lote_id}}</td>         
                     <td style="width: 7%;" class="t_row">{{orden.nuevo_producto.fecha_elaboracion|default:"-"}}</td>
                     <td style="width: 7%;" class="t_row">{{orden.nuevo_producto.fecha_caducidad|date:'Y-m-d'}}</td>
-                    <td style="width: 7%;" class="t_row">{{orden.nuevo_producto.ubicacion}}</td>       
+                    <td style="width: 7%;" class="t_row">{% if orden.nuevo_producto.ubicacion %} {{orden.nuevo_producto.ubicacion}} {% endif %}</td>       
                     <td style="width: 6%;" class="t_row"></td>                                                     
                     <td style="width: 6%;" class="t_row">{{orden.nuevo_producto.unidades}}</td>        
                     <td style="width: 6%;" class="t_row"></td>                                                     
