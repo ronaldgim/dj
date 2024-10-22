@@ -261,7 +261,7 @@
                             <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#exampleModal" name='lotes'>{{i.PRODUCT_ID}}</button>
                             {% if i.unidades %}
                             <i class="bi bi-check-circle-fill" 
-                                {% if i.QUANTITY == i.unidades %}
+                                {% if i.QUANTITY == i.unidades or i.unidades > i.QUANTITY %}
                                 style="color:green"
                                 {% elif i.unidades < i.QUANTITY %}
                                 style="color:yellow"
