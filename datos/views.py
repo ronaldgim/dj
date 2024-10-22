@@ -2405,7 +2405,6 @@ def etiquetado_avance_pedido(n_pedido):
     avance = EtiquetadoAvance.objects.filter(n_pedido=n_pedido).values()
     avance = pd.DataFrame(avance)
     avance = avance.rename(columns={
-        # 'n_pedido':'CONTRADO_ID',
         'product_id':'PRODUCT_ID'
         })
     return avance

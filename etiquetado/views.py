@@ -328,8 +328,15 @@ def etiquetado_pedidos(request, n_pedido):
         vehiculo = Vehiculos.objects.filter(activo=True).order_by('transportista')
         
         # Dataframes
-        pedido = pedido_por_cliente(n_pedido)
+        pedido = pedido_por_cliente(n_pedido) 
         pedido = pedido[pedido['PRODUCT_ID']!='MANTEN']
+        
+        # Agrupar pedido por código
+        pedido = pedido.groupby(by=[
+            'FECHA_PEDIDO', 'CONTRATO_ID', 'CODIGO_CLIENTE', 'NOMBRE_CLIENTE',
+            'PRODUCT_ID', 'PRODUCT_NAME', 'WARE_CODE',
+            'CONFIRMED', 'HORA_LLEGADA', 'SEC_NAME_CLIENTE'
+        ]).sum().reset_index()
         
         cabecera = pedido.merge(clientes_warehouse()[['CODIGO_CLIENTE','IDENTIFICACION_FISCAL']], on='CODIGO_CLIENTE', how='left')[[
             'WARE_CODE',
@@ -394,14 +401,15 @@ def etiquetado_pedidos(request, n_pedido):
         # Avance
         avance = etiquetado_avance_pedido(n_pedido) 
         if not avance.empty:
-            avance = avance.rename(columns={'id':'avance'})[['PRODUCT_ID','unidades']]
-            pedido = pedido.merge(avance, on='PRODUCT_ID', how='left').fillna(0)
+            avance = avance[['PRODUCT_ID','unidades']] 
+            pedido = pedido.merge(avance, on='PRODUCT_ID', how='left').fillna(0) 
+            pedido = pedido.drop_duplicates(subset=['PRODUCT_ID','QUANTITY'])
         
         # Transformar Datos para presentar en template
         data = de_dataframe_a_template(pedido)
 
         if FechaEntrega.objects.filter(pedido=n_pedido).exists():
-            fecha_entrega = FechaEntrega.objects.get(pedido=n_pedido)#;print(fecha_entrega)
+            fecha_entrega = FechaEntrega.objects.get(pedido=n_pedido)
         else:
             fecha_entrega='None'
 
