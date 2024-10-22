@@ -800,6 +800,28 @@ def actualizar_facturas_odbc():
         cnx_odbc_mba.close()
 
 
+
+
+
+def get_proveedores():
+    
+    cnxn = pyodbc.connect('DSN=mba3;PWD=API')
+    # Create a cursor from the connection
+    cursorOdbc = cnxn.cursor()
+    
+    #Importaciones y Proveedor
+    cursorOdbc.execute("SELECT CLNT_Pedidos_Principal.CONTRATO_ID_CORP, PROV_Ficha_Principal.VENDOR_NAME "
+                    "FROM CLNT_Pedidos_Principal CLNT_Pedidos_Principal, PROV_Ficha_Principal PROV_Ficha_Principal "
+                    "WHERE CLNT_Pedidos_Principal.CLIENT_ID_CORP = PROV_Ficha_Principal.CODIGO_PROVEEDOR_EMPRESA AND "
+                    "((CLNT_Pedidos_Principal.FECHA_PEDIDO>'01-01-2023') AND (CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND "
+                    "(CLNT_Pedidos_Principal.VOID=false))")
+    prov_imp= cursorOdbc.fetchall()
+    prov_imp = [list(rows) for rows in prov_imp]
+    prov_imp = pd.DataFrame(prov_imp, columns=['DOC_ID_CORP','PROVEEDOR'])
+    
+    return prov_imp
+
+
 # # Carga la tabla de stock lote automaticamente
 def stock_lote(request):
 
@@ -1041,15 +1063,19 @@ def stock_lote(request):
 
 
 
-def product_detail(request, id):
-    p = Product.objects.get(id=id)
-    form = ProductForm(instance=p)
 
-    context = {
-        'form':form
-    }
 
-    return render(request, 'datos/product_detail.html', context)
+
+
+# def product_detail(request, id):
+#     p = Product.objects.get(id=id)
+#     form = ProductForm(instance=p)
+
+#     context = {
+#         'form':form
+#     }
+
+#     return render(request, 'datos/product_detail.html', context)
 
 
 
@@ -1850,15 +1876,7 @@ def actualizar_imp_llegadas_odbc(request):
     mycursorMysql = mydb.cursor()
 
     ##Imp Llegada
-    cursorOdbc.execute(
-        # "SELECT INVT_Lotes_Trasabilidad.DOC_ID_CORP, INVT_Lotes_Trasabilidad.ENTRADA_FECHA, "
-        # "INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP, INVT_Lotes_Trasabilidad.LOTE_ID, INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD, "
-        # "INVT_Lotes_Trasabilidad.AVAILABLE, INVT_Lotes_Trasabilidad.EGRESO_TEMP, INVT_Lotes_Trasabilidad.OH, INVT_Lotes_Trasabilidad.WARE_COD_CORP, CLNT_Pedidos_Principal.MEMO "
-        # "FROM INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad "
-        # "LEFT JOIN CLNT_Pedidos_Principal ON INVT_Lotes_Trasabilidad.DOC_ID_CORP = CLNT_Pedidos_Principal.CONTRATO_ID_CORP "
-        # #"WHERE (INVT_Lotes_Trasabilidad.ENTRADA_TIPO='OC') AND (INVT_Lotes_Trasabilidad.ENTRADA_FECHA>'01/01/2022') AND (INVT_Lotes_Trasabilidad.Tipo_Movimiento='RP')"
-        # f"WHERE (INVT_Lotes_Trasabilidad.ENTRADA_TIPO='OC') AND (INVT_Lotes_Trasabilidad.ENTRADA_FECHA>'01/01/{anio}') AND (INVT_Lotes_Trasabilidad.Tipo_Movimiento='RP')"
-        
+    cursorOdbc.execute(        
         "SELECT INVT_Lotes_Trasabilidad.DOC_ID_CORP, INVT_Lotes_Trasabilidad.ENTRADA_FECHA, "
         "INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP, INVT_Lotes_Trasabilidad.LOTE_ID, INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD, "
         "INVT_Lotes_Trasabilidad.AVAILABLE, INVT_Lotes_Trasabilidad.EGRESO_TEMP, INVT_Lotes_Trasabilidad.OH, INVT_Lotes_Trasabilidad.WARE_COD_CORP, CLNT_Pedidos_Principal.MEMO "
@@ -1869,16 +1887,26 @@ def actualizar_imp_llegadas_odbc(request):
     llegada = cursorOdbc.fetchall()
     llegada = [list(rows) for rows in llegada]
     
-    # delete_sql = "DELETE FROM imp_llegadas"
+    # UNIR IMPORTACIONES CON PROVEEDOR
+    llegadas_df = pd.DataFrame(llegada, columns=[
+        'DOC_ID_CORP','ENTRADA_FECHA','PRODUCT_ID_CORP','LOTE_ID','FECHA_CADUCIDAD','AVAILABLE','EGRESO_TEMP','OH','WARE_COD_CORP','MEMO'
+    ])    
+    llegadas_df = llegadas_df.merge(get_proveedores(), on='DOC_ID_CORP', how='left').fillna('')
+    llegadas_df = llegadas_df[['DOC_ID_CORP','PROVEEDOR','ENTRADA_FECHA','PRODUCT_ID_CORP','LOTE_ID','FECHA_CADUCIDAD','AVAILABLE','EGRESO_TEMP','OH','WARE_COD_CORP','MEMO']]
+    
+    llegada_final = llegadas_df.values.tolist()
+
+    # BORRAR DATOS
     delete_sql = "DELETE FROM imp_llegadas WHERE ENTRADA_FECHA>'2023-01-01'"
     mycursorMysql.execute(delete_sql)
     mydb.commit()
     print("Sucessful Deleted importaciones arrived")
 
-
-    sql_insert = """INSERT INTO imp_llegadas (DOC_ID_CORP,ENTRADA_FECHA,PRODUCT_ID_CORP,LOTE_ID,FECHA_CADUCIDAD,AVAILABLE,EGRESO_TEMP,OH,WARE_COD_CORP,MEMO) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
-    data_llegada = [list(rows) for rows in llegada]
-    mycursorMysql.executemany(sql_insert, data_llegada)
+    # INSERTAR DATOS
+    sql_insert = """INSERT INTO imp_llegadas (DOC_ID_CORP,PROVEEDOR,ENTRADA_FECHA,PRODUCT_ID_CORP,LOTE_ID,FECHA_CADUCIDAD,AVAILABLE,EGRESO_TEMP,OH,WARE_COD_CORP,MEMO) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+    #data_llegada = [list(rows) for rows in llegada]
+    #mycursorMysql.executemany(sql_insert, data_llegada)
+    mycursorMysql.executemany(sql_insert, llegada_final)
     mydb.commit()
     print("Sucessful importaciones arrived")
 

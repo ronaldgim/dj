@@ -38,12 +38,12 @@ urlpatterns = [
         name = 'stocklote'
     ),
 
-    ### EXCEL
-    path(
-        route='product/<int:id>',
-        view=views.product_detail,
-        name='product_id',   
-    ),
+    # ### EXCEL
+    # path(
+    #     route='product/<int:id>',
+    #     view=views.product_detail,
+    #     name='product_id',   
+    # ),
 
     path(
         route='freq-ventas',
