@@ -4437,9 +4437,9 @@ def wms_armados_list(request):
             nuevo_producto = form_nuevo_producto.save()
             
             orden.nuevo_producto = nuevo_producto
-            # if orden.bodega == 'Andagoya':
-            #     nuevo_producto.ubicacion = 'CN7-A-1'
-            #     nuevo_producto.save()
+            if orden.bodega == 'Cerezos':
+                nuevo_producto.ubicacion = 'CN7-A-1'
+                nuevo_producto.save()
             
             orden.save()
             
