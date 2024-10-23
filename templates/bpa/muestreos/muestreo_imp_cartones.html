@@ -106,6 +106,8 @@
         {% if proveedor %}
         <label><strong>Proveedor:</strong> {{proveedor}}</label><br>
         {% elif not proveedor %}
+        <label><strong>Proveedor:</strong> {{proveedor1}}</label><br>
+        {% elif not proveedor and not proveedor1 %}
         <label><strong>Proveedor:</strong> {{proveedor2}}</label><br>
         {% endif %}
         

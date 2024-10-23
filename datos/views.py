@@ -681,22 +681,6 @@ def stock_lote(request):
 
 
 
-
-
-
-
-# def product_detail(request, id):
-#     p = Product.objects.get(id=id)
-#     form = ProductForm(instance=p)
-
-#     context = {
-#         'form':form
-#     }
-
-#     return render(request, 'datos/product_detail.html', context)
-
-
-
 # DATOS PARA MUESTREO DE TRANSFERENCIAS
 def doc_transferencia_odbc(n_transf):
 
@@ -823,7 +807,7 @@ def importaciones_llegadas_por_docid_odbc(doc_id):
     prod = productos_odbc_and_django()[['product_id', 'description','Nombre','marca2','Marca','Unidad_Empaque','Procedencia']]
     with connections['gimpromed_sql'].cursor() as cursor:
         cursor.execute(
-            f"SELECT DOC_ID_CORP, PRODUCT_ID_CORP, OH, MEMO FROM imp_llegadas where DOC_ID_CORP ='{doc_id}'"
+            f"SELECT * FROM imp_llegadas where DOC_ID_CORP ='{doc_id}'"
             )
         columns = [col[0] for col in cursor.description]
         importaciones_llegadas = [
@@ -833,7 +817,7 @@ def importaciones_llegadas_por_docid_odbc(doc_id):
 
         importaciones_llegadas = pd.DataFrame(importaciones_llegadas)
         importaciones_llegadas['product_id'] = list(map(lambda x:x[:-6], list(importaciones_llegadas['PRODUCT_ID_CORP'])))
-        importaciones_llegadas = importaciones_llegadas.groupby(by=['DOC_ID_CORP','MEMO','product_id']).sum().reset_index()
+        importaciones_llegadas = importaciones_llegadas.groupby(by=['DOC_ID_CORP', 'PROVEEDOR', 'MEMO','product_id']).sum().reset_index()
         
         importaciones_llegadas = importaciones_llegadas.merge(prod, on='product_id', how='left')
         importaciones_llegadas['CARTONES'] = importaciones_llegadas['OH']/importaciones_llegadas['Unidad_Empaque']

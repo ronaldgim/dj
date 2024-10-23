@@ -114,7 +114,7 @@ def importaciones_compras_df():
 @login_required(login_url='login')
 def importaciones(request):
 
-    imp = importaciones_compras_df()
+    imp = importaciones_compras_df() 
     imp = imp.dropna()
     
     imp = imp.drop_duplicates(subset=['DOC_ID_CORP'])
@@ -264,11 +264,12 @@ def muestreo(data, und):
 @login_required(login_url='login')
 def muestreo_unidades(request, memo):
 
-    data = importaciones_llegadas_por_docid_odbc(memo)
+    data = importaciones_llegadas_por_docid_odbc(memo) 
     imp = muestreo(data, 'OH')
     imp = imp.sort_values(by='product_id')
 
-    proveedor = imp['marca2'].dropna().iloc[0]
+    proveedor = imp['PROVEEDOR'].dropna().iloc[0]
+    proveedor1 = imp['marca2'].dropna().iloc[0]
     proveedor2 = imp['Marca'].dropna().iloc[0]
     n_imp = imp['MEMO'].dropna().iloc[0]
     n_doc = imp['DOC_ID_CORP'].dropna().iloc[0]
@@ -278,6 +279,7 @@ def muestreo_unidades(request, memo):
     context = {
         'imp':imp,
         'proveedor':proveedor,
+        'proveedor1':proveedor1,
         'proveedor2':proveedor2,
         'n_imp':n_imp,
         'n_doc':n_doc
@@ -294,7 +296,8 @@ def muestreo_cartones(request, memo):
     imp = muestreo(data, 'CARTONES')
     imp = imp.sort_values(by='product_id')
 
-    proveedor = imp['marca2'].dropna().iloc[0]
+    proveedor = imp['PROVEEDOR'].dropna().iloc[0]
+    proveedor1 = imp['marca2'].dropna().iloc[0]
     proveedor2 = imp['Marca'].dropna().iloc[0]
     n_imp = imp['MEMO'].dropna().iloc[0]
     n_doc = imp['DOC_ID_CORP'].dropna().iloc[0]
@@ -304,6 +307,7 @@ def muestreo_cartones(request, memo):
     context = {
         'imp':imp,
         'proveedor':proveedor,
+        'proveedor1':proveedor1,
         'proveedor2':proveedor2,
         'n_imp':n_imp,
         'n_doc':n_doc
