@@ -116,15 +116,18 @@ from datos.views import (
     whastapp_cliente_por_codigo,
     email_cliente_por_codigo,
     
-    actualizar_facturas_odbc,
-    
     # Proformas
     lista_proformas_odbc,
     proformas_por_contrato_id_odbc,
-    importaciones_en_transito_odbc_insert_warehouse,
+    
     
     # Extraer número de factura
     extraer_numero_de_factura
+    )
+
+from api_mba.tablas_warehouse import (
+    api_actualizar_facturas_warehouse, 
+    api_actualizar_imp_transito_warehouse
     )
 
 
@@ -2055,8 +2058,8 @@ def revision_reservas(request):
     }
 
     if request.method == 'POST':
-        #main_importaciones()
-        importaciones_en_transito_odbc_insert_warehouse()
+        
+        api_actualizar_imp_transito_warehouse()
 
         actualizado = str(datetime.now())
         TimeStamp.objects.create(actulization_importaciones=actualizado)
@@ -3284,10 +3287,7 @@ def set_estado_etiquetado_stock(request):
 
 def actualizar_facturas_ajax(request):
     
-    update = actualizar_facturas_odbc()
-    #import time
-    #time.sleep(3)
-    #update = 'ok'
+    update = api_actualizar_facturas_warehouse()
     
     if update == 'ok':
     
