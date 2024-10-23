@@ -9,7 +9,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 
 # datetime
-from datetime import datetime
+from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 
 # Pandas
@@ -517,6 +517,40 @@ def api_actualizar_producto_transito_warehouse():
             recipient_list=['egarces@gimpromed.com'],
             fail_silently=False,
         )
+
+
+
+### ACTULIZAR PROFORMAS
+def api_actualizar_proformas_warehouse():
+    
+    
+    today = datetime.today() - timedelta(days=45)
+    today = today.strftime('%Y-%m-%d')
+    
+    proformas_mba = api_mba_sql(
+        f"""
+        SELECT 
+            CLNT_Pedidos_Principal.CONTRATO_ID, 
+            CLNT_Ficha_Principal.NOMBRE_CLIENTE, 
+            CLNT_Pedidos_Principal.FECHA_PEDIDO, 
+            CLNT_Pedidos_Principal.FECHA_HASTA, 
+            CLNT_Pedidos_Principal.SALESMAN, 
+            CLNT_Pedidos_Principal.CONFIRMED, 
+            CLNT_Pedidos_Detalle.PRODUCT_ID, 
+            CLNT_Pedidos_Detalle.QUANTITY 
+        FROM 
+            CLNT_Ficha_Principal CLNT_Ficha_Principal, 
+            CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, 
+            CLNT_Pedidos_Principal CLNT_Pedidos_Principal 
+        WHERE 
+            CLNT_Pedidos_Detalle.CONTRATO_ID_CORP = CLNT_Pedidos_Principal.CONTRATO_ID_CORP AND 
+            CLNT_Ficha_Principal.CODIGO_CLIENTE_EMPRESA = CLNT_Pedidos_Principal.CLIENT_ID_CORP AND 
+            CLNT_Pedidos_Principal.FECHA_PEDIDO >='{today}' AND 
+            ((CLNT_Pedidos_Detalle.TIPO_DOCUMENTO='CT') AND (CLNT_Pedidos_Principal.VOID=False))
+        """
+    )
+
+
 
 
 ### ACTUALIZAR RESERVAS WAREHOUSE
