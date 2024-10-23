@@ -36,7 +36,7 @@ def insert_data_warehouse(table_name, data):
 
 
 
-### ACTUALIZAR PRODUCTOS WAREHOUSER PO API DATA
+### ACTUALIZAR PRODUCTOS WAREHOUSER POR API DATA
 def actualizar_productos_warehouse():
     
     productos_mba = api_mba_sql(
@@ -57,8 +57,8 @@ def actualizar_productos_warehouse():
             
             product_id = i['PRODUCT_ID']
             product_name = i['PRODUCT_NAME']
-            um = i['UM']
             group_code = i['GROUP_CODE']
+            um = i['UM']
             unidades_empaque = i['UNIDADES_EMPAQUE']
             custom_field_1 = i['CUSTOM_FIELD_1']
             custom_field_2 = i['CUSTOM_FIELD_2']
@@ -75,8 +75,8 @@ def actualizar_productos_warehouse():
             t = (
                 product_id,
                 product_name,
-                um,
                 group_code,
+                um,
                 unidades_empaque,
                 custom_field_1,
                 custom_field_2,
@@ -92,7 +92,7 @@ def actualizar_productos_warehouse():
             )
             
             data.append(t)
-            
+        
         # Borrar datos de tabla 
         delete_data_warehouse('productos')
         
