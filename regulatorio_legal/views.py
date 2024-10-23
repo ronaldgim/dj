@@ -174,23 +174,7 @@ def doc_importacion_por_codigo_ajax(request):
     codigo = request.POST.get('codigo')
     codigo_corp = codigo + '-GIMPR'
     
-    try:
-        # cnxn = pyodbc.connect('DSN=mba3;PWD=API')
-        # cursorOdbc = cnxn.cursor()
-
-        # cursorOdbc.execute(
-        #     "SELECT INVT_Lotes_Trasabilidad.DOC_ID_CORP, INVT_Lotes_Trasabilidad.ENTRADA_FECHA, "
-        #     "INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP, INVT_Lotes_Trasabilidad.LOTE_ID, INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD, "
-        #     "INVT_Lotes_Trasabilidad.AVAILABLE, INVT_Lotes_Trasabilidad.EGRESO_TEMP, INVT_Lotes_Trasabilidad.OH, INVT_Lotes_Trasabilidad.WARE_COD_CORP, CLNT_Pedidos_Principal.MEMO "
-        #     "FROM INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad "
-        #     "LEFT JOIN CLNT_Pedidos_Principal ON INVT_Lotes_Trasabilidad.DOC_ID_CORP = CLNT_Pedidos_Principal.CONTRATO_ID_CORP "
-        #     f"WHERE (INVT_Lotes_Trasabilidad.ENTRADA_TIPO='OC') AND (INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP = '{codigo_corp}') AND (INVT_Lotes_Trasabilidad.Tipo_Movimiento='RP')"
-        # )
-        
-        # columns = [col[0] for col in cursorOdbc.description]
-        # data = [dict(zip(columns, row)) for row in cursorOdbc.fetchall()]
-        
-        
+    try:        
         request = api_mba_sql("SELECT INVT_Lotes_Trasabilidad.DOC_ID_CORP, INVT_Lotes_Trasabilidad.ENTRADA_FECHA, "
             "INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP, INVT_Lotes_Trasabilidad.LOTE_ID, INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD, "
             "INVT_Lotes_Trasabilidad.AVAILABLE, INVT_Lotes_Trasabilidad.EGRESO_TEMP, INVT_Lotes_Trasabilidad.OH, INVT_Lotes_Trasabilidad.WARE_COD_CORP, CLNT_Pedidos_Principal.MEMO "
@@ -200,44 +184,47 @@ def doc_importacion_por_codigo_ajax(request):
         )
         
         status = request['status']
-        data = request['json']
         
-        data = pd.DataFrame(data).drop_duplicates(subset='DOC_ID_CORP').fillna('-').sort_values(by='ENTRADA_FECHA', ascending=False)
-        
-        data = data.rename(columns={
-            'DOC_ID_CORP':'O.Compra',
-            'ENTRADA_FECHA':'Fecha-Llegada',
-            'PRODUCT_ID_CORP':'Código',
-            'LOTE_ID':'Lote',
-            'FECHA_CADUCIDAD':'Fecha-Caducidad',
-            'AVAILABLE':'Unidades',
-            'EGRESO_TEMP':'Egreso-Temporal',
-            'OH':'OH',
-            'WARE_COD_CORP':'Bodega',
-            'MEMO':'Memo'
-        })
-        
-        data['Código'] = data['Código'].str.replace('-GIMPR', '')
-        data['Fecha-Llegada'] = data['Fecha-Llegada'].apply(lambda x: x[0:10])
-        data['Fecha-Caducidad'] = data['Fecha-Caducidad'].apply(lambda x: x[0:10])
-        data['Fecha-Llegada'] = pd.to_datetime(data['Fecha-Llegada'])
-        data['Fecha-Caducidad'] = pd.to_datetime(data['Fecha-Caducidad'])
-        
-        data = data[['O.Compra','Memo','Fecha-Llegada','Código','Lote','Fecha-Caducidad','Unidades']]
-        data = data.sort_values(by=['Fecha-Llegada'], ascending=False)
-        
-        html_tabla = data.to_html(
-            float_format='{:,.0f}'.format,
-            classes='table table-responsive table-bordered m-0 p-0',
-            index=False,
-            justify='start',
-            na_rep=''
-        )
+        if status == 200:
+            
+            data = request['data']
+            
+            data = pd.DataFrame(data).drop_duplicates(subset='DOC_ID_CORP').fillna('-').sort_values(by='ENTRADA_FECHA', ascending=False)
+            
+            data = data.rename(columns={
+                'DOC_ID_CORP':'O.Compra',
+                'ENTRADA_FECHA':'Fecha-Llegada',
+                'PRODUCT_ID_CORP':'Código',
+                'LOTE_ID':'Lote',
+                'FECHA_CADUCIDAD':'Fecha-Caducidad',
+                'AVAILABLE':'Unidades',
+                'EGRESO_TEMP':'Egreso-Temporal',
+                'OH':'OH',
+                'WARE_COD_CORP':'Bodega',
+                'MEMO':'Memo'
+            })
+            
+            data['Código'] = data['Código'].str.replace('-GIMPR', '')
+            data['Fecha-Llegada'] = data['Fecha-Llegada'].apply(lambda x: x[0:10])
+            data['Fecha-Caducidad'] = data['Fecha-Caducidad'].apply(lambda x: x[0:10])
+            data['Fecha-Llegada'] = pd.to_datetime(data['Fecha-Llegada'])
+            data['Fecha-Caducidad'] = pd.to_datetime(data['Fecha-Caducidad'])
+            
+            data = data[['O.Compra','Memo','Fecha-Llegada','Código','Lote','Fecha-Caducidad','Unidades']]
+            data = data.sort_values(by=['Fecha-Llegada'], ascending=False)
+            
+            html_tabla = data.to_html(
+                float_format='{:,.0f}'.format,
+                classes='table table-responsive table-bordered m-0 p-0',
+                index=False,
+                justify='start',
+                na_rep=''
+            )
 
-        return JsonResponse({
-            'msg_data':f'{len(data)} Importaciones encontradas',
-            'data':html_tabla
-        })
+            return JsonResponse({
+                'msg_data':f'{len(data)} Importaciones encontradas',
+                'data':html_tabla
+            })
     
     except Exception as e:
         return JsonResponse({

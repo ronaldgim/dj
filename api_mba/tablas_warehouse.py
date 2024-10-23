@@ -36,7 +36,7 @@ def insert_data_warehouse(table_name, data):
 
 
 
-### ACTUALIZAR PRODUCTOS WAREHOUSER POR API DATA
+### ACTUALIZAR PRODUCTOS WAREHOUSE POR API DATA
 def actualizar_productos_warehouse():
     
     productos_mba = api_mba_sql(
@@ -48,12 +48,12 @@ def actualizar_productos_warehouse():
     
     if productos_mba['status'] == 200:
         
-        # data = [tuple(i.values()) for i in productos_mba['json']]
+        # data = [tuple(i.values()) for i in productos_mba['data']]
         
         # Trasformar data
         data = []
         
-        for i in productos_mba["json"]:
+        for i in productos_mba["data"]:
             
             product_id = i['PRODUCT_ID']
             product_name = i['PRODUCT_NAME']
@@ -93,8 +93,34 @@ def actualizar_productos_warehouse():
             
             data.append(t)
         
-        # Borrar datos de tabla 
+        # Borrar datos de tabla productos
         delete_data_warehouse('productos')
         
-        # Insertar datos
+        # Insertar datos de tabla productos
         insert_data_warehouse('productos', data)
+
+
+# ### ACTUALIZAR CLIENTES WAREHOUSE POR API DATA
+# def actualizar_clientes_warehouse():
+    
+#     clientes_mba = api_mba_sql(
+#         "SELECT CLNT_Ficha_Principal.CODIGO_CLIENTE, CLNT_Ficha_Principal.IDENTIFICACION_FISCAL, CLNT_Ficha_Principal.NOMBRE_CLIENTE, "
+#         "CLNT_Ficha_Principal.CIUDAD_PRINCIPAL, CLNT_Ficha_Principal.CLIENT_TYPE, CLNT_Ficha_Principal.SALESMAN, CLNT_Ficha_Principal.LIMITE_CREDITO, "
+#         "CLNT_Ficha_Principal.PriceList, CLNT_Ficha_Principal.E_MAIL, CLNT_Ficha_Principal.Email_Fiscal, CLNT_Ficha_Principal.DIRECCION_PRINCIPAL_1, CLNT_Ficha_Principal.FAX "
+#         "FROM CLNT_Ficha_Principal CLNT_Ficha_Principal"
+#     )
+    
+
+#     for i in clientes_mba['data'][290:300]:
+#         print(i)
+
+
+#     # if clientes_mba["status"] == 200:
+        
+#     #     data = [tuple(i.values()) for i in clientes_mba['data']]
+        
+#     #     # Borrar datos de tabla clientes
+#     #     delete_data_warehouse('clientes')
+        
+#     #     # Insertar datos de tabla clientes
+#     #     insert_data_warehouse('clientes', data)
