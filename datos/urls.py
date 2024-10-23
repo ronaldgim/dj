@@ -5,7 +5,7 @@ from django.urls import path
 from datos import views
 
 urlpatterns = [
-       
+    
     path(
         route='products/list',
         view=views.productos,
@@ -37,13 +37,6 @@ urlpatterns = [
         view = views.stock_lote,
         name = 'stocklote'
     ),
-
-    # ### EXCEL
-    # path(
-    #     route='product/<int:id>',
-    #     view=views.product_detail,
-    #     name='product_id',   
-    # ),
 
     path(
         route='freq-ventas',
