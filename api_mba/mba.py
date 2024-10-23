@@ -11,5 +11,5 @@ def api_mba_sql(sql):
 
     return {
         "status": r.status_code,
-        "json": r.json()
+        "data": r.json()
     }

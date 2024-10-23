@@ -497,7 +497,7 @@ def add_datos_anexo_from_factura_ajax(request):
             "WHERE INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP = INVT_Ficha_Principal.PRODUCT_ID_CORP AND CLNT_Factura_Principal.CODIGO_FACTURA = INVT_Lotes_Trasabilidad.DOC_ID_CORP AND "
             f"((CLNT_Factura_Principal.CODIGO_FACTURA='{factura_sql}') AND (CLNT_Factura_Principal.ANULADA=FALSE))"
         ) 
-        factura_df = pd.DataFrame(factura['json']) 
+        factura_df = pd.DataFrame(factura['data']) 
         
         hoy = datetime.now().strftime("%d/%m/%Y") 
         extra_data = api_mba_sql(
@@ -505,7 +505,7 @@ def add_datos_anexo_from_factura_ajax(request):
             "FROM INVT_Producto_Lotes INVT_Producto_Lotes "
             f"WHERE (INVT_Producto_Lotes.FECHA_CADUCIDAD>'{hoy}')"
         ) 
-        extra_data_df = pd.DataFrame(extra_data['json'])
+        extra_data_df = pd.DataFrame(extra_data['data'])
         extra_data_df['PRODUCT_ID'] = extra_data_df['PRODUCT_ID_CORP'].str.replace('-GIMPR', '')
         extra_data_df = extra_data_df[['PRODUCT_ID_CORP','LOTE_ID','FECHA_ELABORACION_LOTE','PRODUCT_ID']]
         
@@ -534,7 +534,7 @@ def add_datos_anexo_from_factura_ajax(request):
             "WHERE "
             f"CLNT_Factura_Principal.CODIGO_FACTURA = '{factura_sql}'"
             "LIMIT 1"
-        )['json'][0]
+        )['data'][0]
         
         # Add cabecera anexo    
         anexo = Anexo(
