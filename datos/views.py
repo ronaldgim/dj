@@ -69,7 +69,16 @@ import re
 
 
 # ACTUALIZAR WAREHOUSER POR API DATA
-from api_mba.tablas_warehouse import actualizar_productos_warehouse
+from api_mba.tablas_warehouse import (
+    api_actualizar_clientes_warehouse,
+    api_actualizar_facturas_warehouse,
+    api_actualizar_imp_llegadas_warehouse,
+    api_actualizar_imp_transito_warehouse,
+    api_actualizar_productos_warehouse, 
+    api_actualizar_producto_transito_warehouse,
+    api_actualizar_reservas_warehouse,
+    api_actualizar_reservas_lotes_warehouse,
+    )
 
 
 # CONECIONES A MBA
@@ -629,54 +638,6 @@ def etiquetado_ajax(request):
 
 
 
-def importaciones_en_transito_odbc_insert_warehouse():
-    
-    try:
-        # currentTimeDate = datetime.now() - relativedelta(days=15)
-        # TwoWeekTime = currentTimeDate.strftime('%d-%m-%Y')
-    
-        # MBA ODBC
-        cnx_odbc_mba     = pyodbc.connect('DSN=mba3;PWD=API')
-        cursor_odbc_mba  = cnx_odbc_mba.cursor()
-        
-        cursor_odbc_mba.execute(
-            "SELECT CLNT_Pedidos_Principal.CONTRATO_ID, PROV_Ficha_Principal.VENDOR_NAME, CLNT_Pedidos_Detalle.PRODUCT_ID, CLNT_Pedidos_Detalle.QUANTITY, CLNT_Pedidos_Principal.FECHA_ENTREGA, CLNT_Pedidos_Principal.MEMO "
-            "FROM CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, CLNT_Pedidos_Principal CLNT_Pedidos_Principal, PROV_Ficha_Principal PROV_Ficha_Principal "
-            "WHERE CLNT_Pedidos_Detalle.CONTRATO_ID_CORP = CLNT_Pedidos_Principal.CONTRATO_ID_CORP AND "
-            "CLNT_Pedidos_Principal.CLIENT_ID_CORP = PROV_Ficha_Principal.CODIGO_PROVEEDOR_EMPRESA AND (CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND "
-            "(CLNT_Pedidos_Principal.CONFIRMED=false) AND (CLNT_Pedidos_Principal.VOID=false))"
-        )
-        
-        imp_transito = cursor_odbc_mba.fetchall()
-        
-        # Delete
-        # DB WAREHOUSE
-        cnx_db_warehouse = mysql.connector.connect(
-            host="172.16.28.102",
-            user="standard",
-            passwd="gimpromed",
-            database="warehouse"
-        )
-        
-        cursor_db_warehouse = cnx_db_warehouse.cursor()
-        cursor_db_warehouse.execute("DELETE FROM imp_transito")
-        cnx_db_warehouse.commit()
-        
-        sql_insert = """INSERT INTO imp_transito (CONTRATO_ID, VENDOR_NAME, PRODUCT_ID, QUANTITY, FECHA_ENTREGA, MEMO) VALUES (%s, %s, %s, %s, %s, %s)"""
-        data_transito = [list(rows) for rows in imp_transito]
-        cursor_db_warehouse.executemany(sql_insert, data_transito)
-        cnx_db_warehouse.commit()
-        
-        print('Importaciones Warehouse Actualizados')
-    except Exception as e:
-        print(e)
-    
-    finally:
-        cursor_odbc_mba.close()
-        cursor_db_warehouse.close()
-
-
-
 def actulizar_facturas_warehouse():
 
     actualizacion_stocklote = pd.DataFrame(TimeStamp.objects.all().values())
@@ -748,85 +709,6 @@ def actulizar_facturas_warehouse():
 
 
 
-def actualizar_facturas_odbc():
-    # DB MBA
-    cnx_odbc_mba     = pyodbc.connect('DSN=mba3;PWD=API')
-
-    # DB WAREHOUSE
-    cnx_db_warehouse = mysql.connector.connect(
-        host="172.16.28.102",
-        user="standard",
-        passwd="gimpromed",
-        database="warehouse"
-    )
-    
-    currentTimeDate = datetime.now() - relativedelta(days=90)
-    OneMonthTime = currentTimeDate.strftime('%d-%m-%Y')
-    
-    try:
-        # CONECCIÓN ODBC
-        cursorOdbc = cnx_odbc_mba.cursor()
-        
-        # SELECT FACTURAS ODBC
-        cursorOdbc.execute(
-            "SELECT CLNT_Factura_Principal.CODIGO_FACTURA, CLNT_Factura_Principal.FECHA_FACTURA, "
-            "CLNT_Ficha_Principal.NOMBRE_CLIENTE, INVT_Ficha_Principal.PRODUCT_ID, "
-            "INVT_Ficha_Principal.PRODUCT_NAME, INVT_Ficha_Principal.GROUP_CODE, INVT_Producto_Movimientos.QUANTITY, CLNT_Factura_Principal.NUMERO_PEDIDO_SISTEMA "
-            "FROM CLNT_Factura_Principal CLNT_Factura_Principal, CLNT_Ficha_Principal CLNT_Ficha_Principal, INVT_Ficha_Principal INVT_Ficha_Principal, INVT_Producto_Movimientos INVT_Producto_Movimientos "
-            "WHERE INVT_Ficha_Principal.PRODUCT_ID_CORP = INVT_Producto_Movimientos.PRODUCT_ID_CORP AND "
-            "CLNT_Factura_Principal.CODIGO_CLIENTE = CLNT_Ficha_Principal.CODIGO_CLIENTE AND CLNT_Factura_Principal.CODIGO_FACTURA = INVT_Producto_Movimientos.DOC_ID_CORP2 "
-            "AND ((INVT_Producto_Movimientos.CONFIRM=TRUE And INVT_Producto_Movimientos.CONFIRM=TRUE) AND (INVT_Producto_Movimientos.I_E_SIGN='-') "
-            "AND (INVT_Producto_Movimientos.ADJUSTMENT_TYPE='FT') AND (CLNT_Factura_Principal.ANULADA=FALSE)) AND  FECHA_FACTURA >='"+OneMonthTime+"'"
-        )
-        facturas = cursorOdbc.fetchall()
-        
-        # CONECCIÓN WAREHOUSE
-        cursorMysql = cnx_db_warehouse.cursor()
-        
-        # DELETE FACTURAS
-        cursorMysql.execute("DELETE FROM facturas")
-        cnx_db_warehouse.commit()
-        print("Sucessful Deleted facturas")
-
-        # INSERT FACTURAS
-        sql_insert = """INSERT INTO facturas (CODIGO_FACTURA,FECHA_FACTURA,NOMBRE_CLIENTE,PRODUCT_ID,PRODUCT_NAME,GROUP_CODE,QUANTITY,NUMERO_PEDIDO_SISTEMA) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"""
-        data_facturas = [list(rows) for rows in facturas] 
-        cursorMysql.executemany(sql_insert, data_facturas)
-        cnx_db_warehouse.commit()
-        print("Sucessful Updated Facturas")    
-        return 'ok'
-    
-    except Exception as e :
-        print('Error --> ', e)
-        return 'fail'
-    
-    finally:
-        cnx_db_warehouse.close()
-        cnx_odbc_mba.close()
-
-
-
-
-
-def get_proveedores():
-    
-    cnxn = pyodbc.connect('DSN=mba3;PWD=API')
-    # Create a cursor from the connection
-    cursorOdbc = cnxn.cursor()
-    
-    #Importaciones y Proveedor
-    cursorOdbc.execute("SELECT CLNT_Pedidos_Principal.CONTRATO_ID_CORP, PROV_Ficha_Principal.VENDOR_NAME "
-                    "FROM CLNT_Pedidos_Principal CLNT_Pedidos_Principal, PROV_Ficha_Principal PROV_Ficha_Principal "
-                    "WHERE CLNT_Pedidos_Principal.CLIENT_ID_CORP = PROV_Ficha_Principal.CODIGO_PROVEEDOR_EMPRESA AND "
-                    "((CLNT_Pedidos_Principal.FECHA_PEDIDO>'01-01-2023') AND (CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND "
-                    "(CLNT_Pedidos_Principal.VOID=false))")
-    prov_imp= cursorOdbc.fetchall()
-    prov_imp = [list(rows) for rows in prov_imp]
-    prov_imp = pd.DataFrame(prov_imp, columns=['DOC_ID_CORP','PROVEEDOR'])
-    
-    return prov_imp
-
-
 # # Carga la tabla de stock lote automaticamente
 def stock_lote(request):
 
@@ -848,6 +730,7 @@ def stock_lote(request):
             mycursorMysql = mydb.cursor()
 
             # # ACTUALIZAR PRODUCTOS 
+            api_actualizar_productos_warehouse()
             # try:
             #     #Productos
             #     cursorOdbc.execute(
@@ -872,95 +755,87 @@ def stock_lote(request):
             #     print('Error actulizar productos')        
             
             
-            actualizar_productos_warehouse()
-
-
-            #Reservas  (Pedidos Abiertos) - (<> MANTEN)
-            cursorOdbc.execute(
-                "SELECT CLNT_Pedidos_Principal.FECHA_PEDIDO, CLNT_Pedidos_Principal.CONTRATO_ID, CLNT_Ficha_Principal.CODIGO_CLIENTE, CLNT_Ficha_Principal.NOMBRE_CLIENTE, "
-                "CLNT_Pedidos_Detalle.PRODUCT_ID, CLNT_Pedidos_Detalle.PRODUCT_NAME, CLNT_Pedidos_Detalle.QUANTITY, CLNT_Pedidos_Detalle.Despachados, CLNT_Pedidos_Principal.WARE_CODE, CLNT_Pedidos_Principal.CONFIRMED, CLNT_Pedidos_Principal.HORA_LLEGADA, CLNT_Pedidos_Principal.SEC_NAME_CLIENTE "
-                "FROM CLNT_Ficha_Principal CLNT_Ficha_Principal, CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, CLNT_Pedidos_Principal CLNT_Pedidos_Principal "
-                "WHERE CLNT_Pedidos_Principal.CONTRATO_ID_CORP = CLNT_Pedidos_Detalle.CONTRATO_ID_CORP AND CLNT_Ficha_Principal.CODIGO_CLIENTE = CLNT_Pedidos_Principal.CLIENT_ID "
-                "AND CLNT_Pedidos_Detalle.Despachados=0 AND ((CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND (CLNT_Pedidos_Detalle.TIPO_DOCUMENTO='PE') AND (CLNT_Pedidos_Detalle.PRODUCT_ID<>'MANTEN')) ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID DESC"
-            )
-
-            reservas = cursorOdbc.fetchall()
             
-            sql_delete="DELETE FROM reservas"
-            mycursorMysql.execute(sql_delete)
-            print("successfully deleted reservas")
+            #Reservas  (Pedidos Abiertos) - (<> MANTEN)
+            api_actualizar_reservas_warehouse()
+            # cursorOdbc.execute(
+            #     "SELECT CLNT_Pedidos_Principal.FECHA_PEDIDO, CLNT_Pedidos_Principal.CONTRATO_ID, CLNT_Ficha_Principal.CODIGO_CLIENTE, CLNT_Ficha_Principal.NOMBRE_CLIENTE, "
+            #     "CLNT_Pedidos_Detalle.PRODUCT_ID, CLNT_Pedidos_Detalle.PRODUCT_NAME, CLNT_Pedidos_Detalle.QUANTITY, CLNT_Pedidos_Detalle.Despachados, CLNT_Pedidos_Principal.WARE_CODE, CLNT_Pedidos_Principal.CONFIRMED, CLNT_Pedidos_Principal.HORA_LLEGADA, CLNT_Pedidos_Principal.SEC_NAME_CLIENTE "
+            #     "FROM CLNT_Ficha_Principal CLNT_Ficha_Principal, CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, CLNT_Pedidos_Principal CLNT_Pedidos_Principal "
+            #     "WHERE CLNT_Pedidos_Principal.CONTRATO_ID_CORP = CLNT_Pedidos_Detalle.CONTRATO_ID_CORP AND CLNT_Ficha_Principal.CODIGO_CLIENTE = CLNT_Pedidos_Principal.CLIENT_ID "
+            #     "AND CLNT_Pedidos_Detalle.Despachados=0 AND ((CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND (CLNT_Pedidos_Detalle.TIPO_DOCUMENTO='PE') AND (CLNT_Pedidos_Detalle.PRODUCT_ID<>'MANTEN')) ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID DESC"
+            # )
 
-            sql_insert_reservas = """INSERT INTO reservas (FECHA_PEDIDO, CONTRATO_ID, CODIGO_CLIENTE, NOMBRE_CLIENTE, 
-            PRODUCT_ID, PRODUCT_NAME, QUANTITY, Despachados, WARE_CODE, CONFIRMED, HORA_LLEGADA, SEC_NAME_CLIENTE) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);"""
+            # reservas = cursorOdbc.fetchall()
+            
+            # sql_delete="DELETE FROM reservas"
+            # mycursorMysql.execute(sql_delete)
+            # print("successfully deleted reservas")
 
-            data_reservas = [list(rows) for rows in reservas]
-            result = mycursorMysql.executemany(sql_insert_reservas, data_reservas)
-            mydb.commit()
-            print("Record inserted successfully into database_mysql-RESERVAS")
+            # sql_insert_reservas = """INSERT INTO reservas (FECHA_PEDIDO, CONTRATO_ID, CODIGO_CLIENTE, NOMBRE_CLIENTE, 
+            # PRODUCT_ID, PRODUCT_NAME, QUANTITY, Despachados, WARE_CODE, CONFIRMED, HORA_LLEGADA, SEC_NAME_CLIENTE) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);"""
+
+            # data_reservas = [list(rows) for rows in reservas]
+            # result = mycursorMysql.executemany(sql_insert_reservas, data_reservas)
+            # mydb.commit()
+            # print("Record inserted successfully into database_mysql-RESERVAS")
             
 
             # Reservas lotes
-            cursorOdbc.execute(
+            api_actualizar_reservas_lotes_warehouse()
+            # cursorOdbc.execute(            
             # "SELECT CLNT_Pedidos_Principal.FECHA_PEDIDO, CLNT_Pedidos_Principal.CONTRATO_ID, CLNT_Ficha_Principal.CODIGO_CLIENTE, CLNT_Pedidos_Detalle.PRODUCT_ID, "
-            # "CLNT_Pedidos_Principal.WARE_CODE, INVT_Lotes_Trasabilidad.EGRESO_TEMP, INVT_Lotes_Trasabilidad.LOTE_ID, INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD, CLNT_Pedidos_Principal.CONFIRMED "
+            # "CLNT_Pedidos_Principal.WARE_CODE, INVT_Lotes_Trasabilidad.EGRESO_TEMP, INVT_Lotes_Trasabilidad.LOTE_ID, INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD, "
+            # "INVT_Producto_Lotes.Fecha_elaboracion_lote, CLNT_Pedidos_Principal.CONFIRMED, CLNT_Pedidos_Detalle.UNIT_COST "
             # "FROM CLNT_Ficha_Principal CLNT_Ficha_Principal, CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, CLNT_Pedidos_Principal CLNT_Pedidos_Principal, "
-            # "INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad "
+            # "INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad, INVT_Producto_Lotes INVT_Producto_Lotes "
             # "WHERE CLNT_Pedidos_Principal.CONTRATO_ID_CORP = CLNT_Pedidos_Detalle.CONTRATO_ID_CORP AND CLNT_Ficha_Principal.CODIGO_CLIENTE = CLNT_Pedidos_Principal.CLIENT_ID "
             # "AND CLNT_Pedidos_Detalle.CONTRATO_ID_CORP = INVT_Lotes_Trasabilidad.DOC_ID_CORP AND CLNT_Pedidos_Detalle.PRODUCT_ID_CORP = INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP "
-            # "AND ((CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND (CLNT_Pedidos_Detalle.TIPO_DOCUMENTO='PE')) "
+            # "AND INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND INVT_Lotes_Trasabilidad.LOTE_ID = INVT_Producto_Lotes.LOTE_ID AND INVT_Lotes_Trasabilidad.WARE_COD_CORP = INVT_Producto_Lotes.WARE_CODE_CORP AND ((CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND (CLNT_Pedidos_Detalle.TIPO_DOCUMENTO='PE')) "
             # "ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID, CLNT_Pedidos_Detalle.PRODUCT_ID DESC"
             
-            "SELECT CLNT_Pedidos_Principal.FECHA_PEDIDO, CLNT_Pedidos_Principal.CONTRATO_ID, CLNT_Ficha_Principal.CODIGO_CLIENTE, CLNT_Pedidos_Detalle.PRODUCT_ID, "
-            "CLNT_Pedidos_Principal.WARE_CODE, INVT_Lotes_Trasabilidad.EGRESO_TEMP, INVT_Lotes_Trasabilidad.LOTE_ID, INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD, "
-            "INVT_Producto_Lotes.Fecha_elaboracion_lote, CLNT_Pedidos_Principal.CONFIRMED, CLNT_Pedidos_Detalle.UNIT_COST "
-            "FROM CLNT_Ficha_Principal CLNT_Ficha_Principal, CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, CLNT_Pedidos_Principal CLNT_Pedidos_Principal, "
-            "INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad, INVT_Producto_Lotes INVT_Producto_Lotes "
-            "WHERE CLNT_Pedidos_Principal.CONTRATO_ID_CORP = CLNT_Pedidos_Detalle.CONTRATO_ID_CORP AND CLNT_Ficha_Principal.CODIGO_CLIENTE = CLNT_Pedidos_Principal.CLIENT_ID "
-            "AND CLNT_Pedidos_Detalle.CONTRATO_ID_CORP = INVT_Lotes_Trasabilidad.DOC_ID_CORP AND CLNT_Pedidos_Detalle.PRODUCT_ID_CORP = INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP "
-            "AND INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND INVT_Lotes_Trasabilidad.LOTE_ID = INVT_Producto_Lotes.LOTE_ID AND INVT_Lotes_Trasabilidad.WARE_COD_CORP = INVT_Producto_Lotes.WARE_CODE_CORP AND ((CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND (CLNT_Pedidos_Detalle.TIPO_DOCUMENTO='PE')) "
-            "ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID, CLNT_Pedidos_Detalle.PRODUCT_ID DESC"
-            
-            )
-            reservas_lote = cursorOdbc.fetchall()
+            # )
+            # reservas_lote = cursorOdbc.fetchall()
 
-            sql_delete="DELETE FROM reservas_lote"
-            mycursorMysql = mydb.cursor()
-            mycursorMysql.execute(sql_delete)
-            print("successfully deleted reservas con lote")
+            # sql_delete="DELETE FROM reservas_lote"
+            # mycursorMysql = mydb.cursor()
+            # mycursorMysql.execute(sql_delete)
+            # print("successfully deleted reservas con lote")
 
-            # sql_insert_reservas_lote = """INSERT INTO reservas_lote (FECHA_PEDIDO, CONTRATO_ID, CODIGO_CLIENTE,
-            # PRODUCT_ID, WARE_CODE, EGRESO_TEMP, LOTE_ID, FECHA_CADUCIDAD, CONFIRMED) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s);"""
-            sql_insert_reservas_lote = """INSERT INTO reservas_lote (FECHA_PEDIDO, CONTRATO_ID, CODIGO_CLIENTE, 
-            PRODUCT_ID, WARE_CODE, EGRESO_TEMP, LOTE_ID, FECHA_CADUCIDAD, Fecha_elaboracion_lote, CONFIRMED, PRICE) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);"""
-            data_reservas_lote = [list(rows) for rows in reservas_lote]
-            mycursorMysql.executemany(sql_insert_reservas_lote, data_reservas_lote)
-            print("Record inserted successfully into database_mysql - RESERVAS con LOTE")
-            mydb.commit()
+            # # sql_insert_reservas_lote = """INSERT INTO reservas_lote (FECHA_PEDIDO, CONTRATO_ID, CODIGO_CLIENTE,
+            # # PRODUCT_ID, WARE_CODE, EGRESO_TEMP, LOTE_ID, FECHA_CADUCIDAD, CONFIRMED) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s);"""
+            # sql_insert_reservas_lote = """INSERT INTO reservas_lote (FECHA_PEDIDO, CONTRATO_ID, CODIGO_CLIENTE, 
+            # PRODUCT_ID, WARE_CODE, EGRESO_TEMP, LOTE_ID, FECHA_CADUCIDAD, Fecha_elaboracion_lote, CONFIRMED, PRICE) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);"""
+            # data_reservas_lote = [list(rows) for rows in reservas_lote]
+            # mycursorMysql.executemany(sql_insert_reservas_lote, data_reservas_lote)
+            # print("Record inserted successfully into database_mysql - RESERVAS con LOTE")
+            # mydb.commit()
 
 
             #Clientes
-            cursorOdbc.execute(
-                "SELECT CLNT_Ficha_Principal.CODIGO_CLIENTE, CLNT_Ficha_Principal.IDENTIFICACION_FISCAL, CLNT_Ficha_Principal.NOMBRE_CLIENTE, "
-                "CLNT_Ficha_Principal.CIUDAD_PRINCIPAL, CLNT_Ficha_Principal.CLIENT_TYPE, CLNT_Ficha_Principal.SALESMAN, CLNT_Ficha_Principal.LIMITE_CREDITO, "
-                "CLNT_Ficha_Principal.PriceList, CLNT_Ficha_Principal.E_MAIL, CLNT_Ficha_Principal.Email_Fiscal, CLNT_Ficha_Principal.DIRECCION_PRINCIPAL_1, CLNT_Ficha_Principal.FAX "
-                "FROM CLNT_Ficha_Principal CLNT_Ficha_Principal"
-            )
+            api_actualizar_clientes_warehouse()
+            # cursorOdbc.execute(
+            #     "SELECT CLNT_Ficha_Principal.CODIGO_CLIENTE, CLNT_Ficha_Principal.IDENTIFICACION_FISCAL, CLNT_Ficha_Principal.NOMBRE_CLIENTE, "
+            #     "CLNT_Ficha_Principal.CIUDAD_PRINCIPAL, CLNT_Ficha_Principal.CLIENT_TYPE, CLNT_Ficha_Principal.SALESMAN, CLNT_Ficha_Principal.LIMITE_CREDITO, "
+            #     "CLNT_Ficha_Principal.PriceList, CLNT_Ficha_Principal.E_MAIL, CLNT_Ficha_Principal.Email_Fiscal, CLNT_Ficha_Principal.DIRECCION_PRINCIPAL_1, CLNT_Ficha_Principal.FAX "
+            #     "FROM CLNT_Ficha_Principal CLNT_Ficha_Principal"
+            # )
 
-            clientes = cursorOdbc.fetchall()
+            # clientes = cursorOdbc.fetchall()
 
-            sql_delete = "DELETE FROM clientes"
-            mycursorMysql.execute(sql_delete)
-            print("successfully deleted clientes")
+            # sql_delete = "DELETE FROM clientes"
+            # mycursorMysql.execute(sql_delete)
+            # print("successfully deleted clientes")
             
-            sql_insert_clientes = """INSERT INTO clientes (CODIGO_CLIENTE, IDENTIFICACION_FISCAL, NOMBRE_CLIENTE,
-            CIUDAD_PRINCIPAL, CLIENT_TYPE, SALESMAN, LIMITE_CREDITO, PRICELIST, EMAIL, Email_Fiscal, DIRECCION, WP) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);"""
+            # sql_insert_clientes = """INSERT INTO clientes (CODIGO_CLIENTE, IDENTIFICACION_FISCAL, NOMBRE_CLIENTE,
+            # CIUDAD_PRINCIPAL, CLIENT_TYPE, SALESMAN, LIMITE_CREDITO, PRICELIST, EMAIL, Email_Fiscal, DIRECCION, WP) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);"""
 
 
-            data_clientes = [list(rows) for rows in clientes]
-            result = mycursorMysql.executemany(sql_insert_clientes, data_clientes)
-            mydb.commit()
-            print("Record inserted successfully into database_mysql-CLIENTES")
-
+            # data_clientes = [list(rows) for rows in clientes]
+            # result = mycursorMysql.executemany(sql_insert_clientes, data_clientes)
+            # mydb.commit()
+            # print("Record inserted successfully into database_mysql-CLIENTES")
+            
 
             ##Stock Lotes
             cursorOdbc.execute(
@@ -991,7 +866,7 @@ def stock_lote(request):
 
 
             # Facturas (ultimos 2 meses)
-            actualizar_facturas_odbc()
+            api_actualizar_facturas_warehouse()
             # cursorOdbc.execute(
             #     "SELECT CLNT_Factura_Principal.CODIGO_FACTURA, CLNT_Factura_Principal.FECHA_FACTURA, "
             #     "CLNT_Ficha_Principal.NOMBRE_CLIENTE, INVT_Ficha_Principal.PRODUCT_ID, "
@@ -1017,32 +892,31 @@ def stock_lote(request):
             # mydb.commit()
             
             
-            # Actualizar facturas warehouse
-            # actulizar_facturas_warehouse()
             
             # Actualizar importaciones en transito
-            importaciones_en_transito_odbc_insert_warehouse()
+            api_actualizar_imp_transito_warehouse()
             
             
             #Productos en Transito
-            cursorOdbc.execute(
-                "SELECT INVT_Ficha_Principal.PRODUCT_ID, INVT_Producto_Lotes.OH, INVT_Producto_Lotes.LOTE_ID, INVT_Producto_Lotes.Fecha_elaboracion_lote, "
-                "INVT_Producto_Lotes.FECHA_CADUCIDAD, INVT_Producto_Lotes.WARE_CODE_CORP "
-                "FROM INVT_Ficha_Principal INVT_Ficha_Principal, INVT_Producto_Lotes INVT_Producto_Lotes "
-                "WHERE INVT_Ficha_Principal.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND ((INVT_Producto_Lotes.WARE_CODE_CORP='TRN'))"
-            )
-            productos_transito = cursorOdbc.fetchall()
+            api_actualizar_producto_transito_warehouse()
+            # cursorOdbc.execute(
+            #     "SELECT INVT_Ficha_Principal.PRODUCT_ID, INVT_Producto_Lotes.OH, INVT_Producto_Lotes.LOTE_ID, INVT_Producto_Lotes.Fecha_elaboracion_lote, "
+            #     "INVT_Producto_Lotes.FECHA_CADUCIDAD, INVT_Producto_Lotes.WARE_CODE_CORP "
+            #     "FROM INVT_Ficha_Principal INVT_Ficha_Principal, INVT_Producto_Lotes INVT_Producto_Lotes "
+            #     "WHERE INVT_Ficha_Principal.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND ((INVT_Producto_Lotes.WARE_CODE_CORP='TRN'))"
+            # )
+            # productos_transito = cursorOdbc.fetchall()
             
-            delete_sql = "DELETE FROM productos_transito"
-            mycursorMysql.execute(delete_sql)
-            mydb.commit()
-            print("Sucessful Deleted productos_transito")
+            # delete_sql = "DELETE FROM productos_transito"
+            # mycursorMysql.execute(delete_sql)
+            # mydb.commit()
+            # print("Sucessful Deleted productos_transito")
 
-            sql_insert = """INSERT INTO productos_transito (PRODUCT_ID,OH,LOTE_ID,FECHA_ELABORACION_LOTE,FECHA_CADUCIDAD,WARE_CODE_CORP) VALUES (%s, %s, %s, %s, %s, %s)"""
-            data_productos_transito = [list(rows) for rows in productos_transito]
-            mycursorMysql.executemany(sql_insert, data_productos_transito)
-            print("Sucessful Updated Productos Transito")
-            mydb.commit()
+            # sql_insert = """INSERT INTO productos_transito (PRODUCT_ID,OH,LOTE_ID,FECHA_ELABORACION_LOTE,FECHA_CADUCIDAD,WARE_CODE_CORP) VALUES (%s, %s, %s, %s, %s, %s)"""
+            # data_productos_transito = [list(rows) for rows in productos_transito]
+            # mycursorMysql.executemany(sql_insert, data_productos_transito)
+            # print("Sucessful Updated Productos Transito")
+            # mydb.commit()
             
             
 
@@ -1870,53 +1744,7 @@ def stock_faltante_contrato(contratos, bodega):
 
 def actualizar_imp_llegadas_odbc(request):
 
-    # anio = str(datetime.now().year)
-    # anio_sql = '%' + anio + '%'
-    
-    cnxn = pyodbc.connect('DSN=mba3;PWD=API')
-    cursorOdbc = cnxn.cursor()
-    mydb = mysql.connector.connect(
-        host="172.16.28.102",
-        user="standard",
-        passwd="gimpromed",
-        database="warehouse"
-    )
-    mycursorMysql = mydb.cursor()
-
-    ##Imp Llegada
-    cursorOdbc.execute(        
-        "SELECT INVT_Lotes_Trasabilidad.DOC_ID_CORP, INVT_Lotes_Trasabilidad.ENTRADA_FECHA, "
-        "INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP, INVT_Lotes_Trasabilidad.LOTE_ID, INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD, "
-        "INVT_Lotes_Trasabilidad.AVAILABLE, INVT_Lotes_Trasabilidad.EGRESO_TEMP, INVT_Lotes_Trasabilidad.OH, INVT_Lotes_Trasabilidad.WARE_COD_CORP, CLNT_Pedidos_Principal.MEMO "
-        "FROM INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad "
-        "LEFT JOIN CLNT_Pedidos_Principal ON INVT_Lotes_Trasabilidad.DOC_ID_CORP = CLNT_Pedidos_Principal.CONTRATO_ID_CORP "
-        "WHERE (INVT_Lotes_Trasabilidad.ENTRADA_TIPO='OC') AND (INVT_Lotes_Trasabilidad.ENTRADA_FECHA>'2023-01-01') AND (INVT_Lotes_Trasabilidad.Tipo_Movimiento='RP')"
-    )
-    llegada = cursorOdbc.fetchall()
-    llegada = [list(rows) for rows in llegada]
-    
-    # UNIR IMPORTACIONES CON PROVEEDOR
-    llegadas_df = pd.DataFrame(llegada, columns=[
-        'DOC_ID_CORP','ENTRADA_FECHA','PRODUCT_ID_CORP','LOTE_ID','FECHA_CADUCIDAD','AVAILABLE','EGRESO_TEMP','OH','WARE_COD_CORP','MEMO'
-    ])    
-    llegadas_df = llegadas_df.merge(get_proveedores(), on='DOC_ID_CORP', how='left').fillna('')
-    llegadas_df = llegadas_df[['DOC_ID_CORP','PROVEEDOR','ENTRADA_FECHA','PRODUCT_ID_CORP','LOTE_ID','FECHA_CADUCIDAD','AVAILABLE','EGRESO_TEMP','OH','WARE_COD_CORP','MEMO']]
-    
-    llegada_final = llegadas_df.values.tolist()
-
-    # BORRAR DATOS
-    delete_sql = "DELETE FROM imp_llegadas WHERE ENTRADA_FECHA>'2023-01-01'"
-    mycursorMysql.execute(delete_sql)
-    mydb.commit()
-    print("Sucessful Deleted importaciones arrived")
-
-    # INSERTAR DATOS
-    sql_insert = """INSERT INTO imp_llegadas (DOC_ID_CORP,PROVEEDOR,ENTRADA_FECHA,PRODUCT_ID_CORP,LOTE_ID,FECHA_CADUCIDAD,AVAILABLE,EGRESO_TEMP,OH,WARE_COD_CORP,MEMO) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
-    #data_llegada = [list(rows) for rows in llegada]
-    #mycursorMysql.executemany(sql_insert, data_llegada)
-    mycursorMysql.executemany(sql_insert, llegada_final)
-    mydb.commit()
-    print("Sucessful importaciones arrived")
+    api_actualizar_imp_llegadas_warehouse()
 
     time = str(datetime.now())
     TimeStamp.objects.create(actualization_imp_llegadas=time)

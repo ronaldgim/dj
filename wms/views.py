@@ -19,7 +19,6 @@ from datos.views import (
     wms_stock_lote_cerezos_by_product,
     wms_stock_lote_products,
     wms_datos_nota_entrega,
-    importaciones_en_transito_odbc_insert_warehouse,
 
     # Trasnferencia
     doc_transferencia_odbc,
@@ -123,6 +122,9 @@ from django.core.paginator import Paginator
 
 # PDF
 from django_xhtml2pdf.utils import pdf_decorator
+
+# datos api_mba
+from api_mba.tablas_warehouse import api_actualizar_imp_transito_warehouse
 
 
 """
@@ -543,8 +545,6 @@ def wms_ubicaciones_disponibles_rows():
 @login_required(login_url='login')
 def wms_home(request):
     
-    # from api_mba.tablas_warehouse import actualizar_clientes_warehouse
-    # actualizar_clientes_warehouse()
     tiempo_de_almacenamiento = kpi_tiempo_de_almacenamiento()
     capacidad_tabla = de_dataframe_a_template(kpi_capacidad()) 
     data_grafico = capacidad_data_grafico()
@@ -748,7 +748,7 @@ def wms_importaciones_transito_list(request):
     imp_transito = de_dataframe_a_template(imp_transito)
     
     if request.method == 'POST':
-        importaciones_en_transito_odbc_insert_warehouse()
+        api_actualizar_imp_transito_warehouse()
         return redirect('wms_importaciones_transito_list')
         
     context = {
