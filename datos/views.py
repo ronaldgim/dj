@@ -84,10 +84,6 @@ from api_mba.tablas_warehouse import (
     )
 
 
-
-
-
-
 # Chequear si el usuario tiene permiso
 def user_perm(user_id, permiso_function):
     
