@@ -76,6 +76,7 @@ from api_mba.tablas_warehouse import (
     api_actualizar_imp_transito_warehouse,
     api_actualizar_productos_warehouse, 
     api_actualizar_producto_transito_warehouse,
+    api_actualizar_proformas_warehouse,
     api_actualizar_reservas_warehouse,
     api_actualizar_reservas_lotes_warehouse,
     
@@ -2334,57 +2335,13 @@ def proformas_por_contrato_id_odbc(contrato_id):
 
 def actualizar_proformas_ajax(request):
     
-    try:
-        today = datetime.today() - timedelta(days=45)
-        today = today.strftime('%Y-%m-%d')
-        
-        # MBA ODBC
-        cnx_odbc_mba     = pyodbc.connect('DSN=mba3;PWD=API')
-        cursor_odbc_mba  = cnx_odbc_mba.cursor()
-        
-        # DB WAREHOUSE
-        cnx_db_warehouse = mysql.connector.connect(
-            host="172.16.28.102",
-            user="standard",
-            passwd="gimpromed",
-            database="warehouse"
-        )
-        
-        cursor_db_warehouse = cnx_db_warehouse.cursor()
-        
-        sql_query = cursor_odbc_mba.execute(                        
-            "SELECT CLNT_Pedidos_Principal.CONTRATO_ID, CLNT_Ficha_Principal.NOMBRE_CLIENTE, CLNT_Pedidos_Principal.FECHA_PEDIDO, CLNT_Pedidos_Principal.FECHA_HASTA, "
-            "CLNT_Pedidos_Principal.SALESMAN, CLNT_Pedidos_Principal.CONFIRMED, CLNT_Pedidos_Detalle.PRODUCT_ID, CLNT_Pedidos_Detalle.QUANTITY "
-            "FROM CLNT_Ficha_Principal CLNT_Ficha_Principal, CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, CLNT_Pedidos_Principal CLNT_Pedidos_Principal "
-            "WHERE CLNT_Pedidos_Detalle.CONTRATO_ID_CORP = CLNT_Pedidos_Principal.CONTRATO_ID_CORP AND "
-            f"CLNT_Ficha_Principal.CODIGO_CLIENTE_EMPRESA = CLNT_Pedidos_Principal.CLIENT_ID_CORP AND CLNT_Pedidos_Principal.FECHA_PEDIDO >='{today}' AND ((CLNT_Pedidos_Detalle.TIPO_DOCUMENTO='CT') AND (CLNT_Pedidos_Principal.VOID=False))"
-        )
-        
-        sql_query = sql_query.fetchall()
-        sql_query = [list(rows) for rows in sql_query]
+    api_actualizar_proformas_warehouse()
     
-        cursor_db_warehouse.execute("DELETE FROM proformas")
-        cnx_db_warehouse.commit()
-        
-        sql_insert = """INSERT INTO proformas (contrato_id,nombre_cliente,fecha_pedido,fecha_hasta,salesman,confirmed,product_id,quantity) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
-        
-        cursor_db_warehouse.executemany(sql_insert, sql_query)
-        cnx_db_warehouse.commit()
-        
-        return JsonResponse({
-            'tipo':'success',
-            'msg': 'Proformas actualizadas exitosamente !!!'
-            })
+    return JsonResponse({
+        'tipo':'success',
+        'msg': 'Proformas actualizadas exitosamente !!!'
+        })
     
-    except Exception as e:
-        return JsonResponse({
-            'tipo':'danger',
-            'msg': f'Error {e} !!!'
-            })
-        
-    finally:
-        cnx_db_warehouse.close()
-        cursor_odbc_mba.close()
     
     
 # Obtener una datos picking por contrato_id -PARA CABECERA DE ANEXO
