@@ -545,9 +545,6 @@ def wms_ubicaciones_disponibles_rows():
 @login_required(login_url='login')
 def wms_home(request):
     
-    from api_mba.tablas_warehouse import api_actualizar_proformas_warehouse
-    api_actualizar_proformas_warehouse()
-    
     tiempo_de_almacenamiento = kpi_tiempo_de_almacenamiento()
     capacidad_tabla = de_dataframe_a_template(kpi_capacidad()) 
     data_grafico = capacidad_data_grafico()
