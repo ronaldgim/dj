@@ -383,21 +383,21 @@ def api_actualizar_imp_transito_warehouse():
                 # # Insertar datos de tabla imp_transito
                 insert_data_warehouse('imp_transito', data)
     
-            else:
-            
-                send_mail(
-                    subject='Error DB WAREHOUSE',
-                    message=f"""
-                    
-                    TABLA: IMP LLEGADAS - 'warehouse.imp_transito'
-                    
-                    ERROR : ERROR API - STATUS: {imp_transito_mba['status']}
-                    
-                    """,
-                    from_email=settings.EMAIL_HOST_USER,
-                    recipient_list=['egarces@gimpromed.com'],
-                    fail_silently=False,
-                )
+        else:
+        
+            send_mail(
+                subject='Error DB WAREHOUSE',
+                message=f"""
+                
+                TABLA: IMP TRNASITO - 'warehouse.imp_transito'
+                
+                ERROR : ERROR API - STATUS: {imp_transito_mba['status']}
+                
+                """,
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=['egarces@gimpromed.com'],
+                fail_silently=False,
+            )
     
     except Exception as e:
         
