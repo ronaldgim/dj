@@ -763,7 +763,7 @@ def wms_importaciones_transito_list(request):
 @permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'], '/wms/home', 'Importaciones en tránsito')
 def wms_importaciones_transito_detalle(request, contrato_id):
     
-    prod = productos_odbc_and_django()[['product_id','Nombre','Marca','Unidad_Empaque','UnidadesPorPallet']]
+    prod = productos_odbc_and_django()[['product_id','Nombre','Marca','Unidad_Empaque','UnidadesPorPallet','Volumen']]
     prod = prod.fillna(0)
     
     imp_transito = importaciones_en_transito_detalle_odbc(contrato_id)   
@@ -772,11 +772,13 @@ def wms_importaciones_transito_detalle(request, contrato_id):
     imp_transito =  imp_transito.merge(prod, on='product_id', how='left')
     
     imp_transito['cartones'] = imp_transito['QUANTITY'] / imp_transito['Unidad_Empaque']
+    imp_transito['vol_m3'] = imp_transito['cartones'] * (imp_transito['Volumen'] / 1000000)
     imp_transito['pallets'] = imp_transito['QUANTITY'] / imp_transito['UnidadesPorPallet']
     imp_transito = imp_transito.replace(np.inf, 0)
     
     unidades_total = imp_transito['QUANTITY'].sum()
     cartones_total = imp_transito['cartones'].sum()
+    vol_m3_total   = imp_transito['vol_m3'].sum()
     pallets_total  = imp_transito['pallets'].sum()
     
     proveedor = imp_transito.loc[0]['VENDOR_NAME']
@@ -791,6 +793,7 @@ def wms_importaciones_transito_detalle(request, contrato_id):
         
         'unidades_total':unidades_total,
         'cartones_total':cartones_total,
+        'vol_m3_total':vol_m3_total,
         'pallets_total':pallets_total
     }
     
