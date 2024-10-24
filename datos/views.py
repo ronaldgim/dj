@@ -107,7 +107,6 @@ def user_perm(user_id, permiso_function):
             return False
 
 
-
 # Decorador de permiso de vista
 def permisos(permiso, redirect_url, modulo):
     def decorador(view_func):
@@ -121,7 +120,7 @@ def permisos(permiso, redirect_url, modulo):
                 return redirect(redirect_url)
         return _wrapped_view
     return decorador
-    
+
 
 # DE DATAFRAME A LISTA DE DICCIONARIOS PARA PASAR A UN TEMPLATE
 def de_dataframe_a_template(dataframe):
@@ -172,76 +171,6 @@ class MarcaImportExcelCreateView(CreateView):
 
 
 
-def tabla_productos():
-    ''' Colusta de productos '''
-    # Leer base de datos y retornar lista de diccionarios
-    with connections['gimpromed_sql'].cursor() as cursor:
-        cursor.execute("SELECT Codigo, Nombre, Marca, Unidad_Empaque FROM productos")
-        columns = [col[0] for col in cursor.description]
-        products = [ # Lista de diccionarios
-            dict(zip(columns, row))
-            for row in cursor.fetchall()
-        ]
-
-        # Unir datos con pandas dataframes
-        # Tabla productos de base de datos
-        p = pd.DataFrame(products)
-        p = p.rename(columns={'Codigo':'PRODUCT_ID'})
-
-        # Excel consolidado
-        ope = pd.read_excel('Z:/GIM-OP (Operaciones)/datos_product_operaciones.xlsx')
-        ope = ope[[
-            'PRODUCT_ID',
-            'Marca2',
-            'Largo(m)',
-            'Ancho(m)',
-            'Alto(m)',
-            'PesoBruto(kg)',
-            'T C/M 1 P',
-            'T C/M 2 P',
-            'T C/M 3 P',
-            'M3/CAJA']]
-
-        # Unir columnas
-        p = p.merge(ope, on='PRODUCT_ID', how='left')
-        p = p.fillna(0)
-        #p.to_excel('Z:/GIM-OP (Operaciones)/datos_product.xlsx')
-        p = p.to_dict('records')
-        # print(p)
-
-        # Crear lista de tuplas para inyectar en sql
-        lista_productos = []
-        pk = 0
-
-        for i in p:
-
-            pk += 1
-            cod = i.get('PRODUCT_ID')
-            nom = i.get('Nombre')
-            mar = i.get('Marca')
-
-            uem = i.get('Unidad_Empaque')
-            lar = i.get('Largo(m)')
-            anc = i.get('Ancho(m)')
-            alt = i.get('Alto(m)')
-            vol = i.get('M3/CAJA')
-            pes = i.get('PesoBruto(kg)')
-            t1p = i.get('T C/M 1 P')
-            t2p = i.get('T C/M 2 P')
-
-            t3p = i.get('T C/M 3 P')
-            ma2 = i.get('Marca2')
-
-            # Crea una tupla de valores por cada diccionario
-            prod = (pk, cod, nom, mar, uem, alt, anc, lar, pes, t1p, t2p, vol, t3p, ma2)
-
-            # Añade la tupla a una lista
-            lista_productos.append(prod)
-        #print(lista_productos)
-
-    return lista_productos
-
-
 def productos_odbc_and_django():
     with connections['gimpromed_sql'].cursor() as cursor:
         #cursor.execute("SELECT Codigo, Nombre, Unidad, Marca, Unidad_Empaque, Unidad_Box, Inactivo FROM productos")
@@ -264,50 +193,6 @@ def productos_odbc_and_django():
     return products
 
 
-def productos(request):
-
-    if request.method == 'GET':
-
-        context = {
-            'products': Product.objects.all().order_by('marca2')
-        }
-
-    elif request.method == 'POST':
-
-        with connections['default'].cursor() as cursor:
-
-            prod = tabla_productos()
-            cursor.executemany(
-                # INSERTAR
-                #"INSERT INTO datos_product (id, product_id, description, marca, unidad_empaque, alto, ancho, largo, peso, t_etiq_1p, t_etiq_2p, volumen, t_etiq_3p, marca2) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)", prod
-                # REEMPLAZAR O ACTULIZAR
-                "REPLACE INTO datos_product (id, product_id, description, marca, unidad_empaque, alto, ancho, largo, peso, t_etiq_1p, t_etiq_2p, volumen, t_etiq_3p, marca2) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)", prod
-                )
-
-        context = {
-            'products': Product.objects.all().order_by('marca2')
-        }
-
-    return render(request, 'datos/products_list.html', context)
-
-
-def marcas_excel(): #request
-
-    marcas = pd.read_excel('media/marcas_excel_import/marcas.xlsx', header=None)
-
-    pk = 0
-    marcas_import = []
-
-    for i in range(len(marcas)):
-        pk += 1
-        m   = marcas.iloc[i][0]
-        d   = marcas.iloc[i][1]
-        marcas_tupla = (pk, m, d)
-        marcas_import.append(marcas_tupla)
-
-    return marcas_import
-
-
 
 def productos_transito_odbc():
     ### TRANSITO
@@ -325,32 +210,6 @@ def productos_transito_odbc():
     
     return transito
 
-
-def cargar_marcas_excel(request): #request
-
-    if request.method == 'GET':
-
-        context = {
-            'marcas': Marca.objects.all().order_by('marca')
-        }
-
-    elif request.method == 'POST':
-
-        with connections['default'].cursor() as cursor:
-
-            marcas = marcas_excel()
-            cursor.executemany(
-                ### INSERTAR
-                #"INSERT INTO datos_product (id, marca, description) VALUES (%s,%s,%s)", marcas
-                ### REEMPLAZAR O ACTULIZAR
-                "REPLACE INTO datos_marca (id, marca, description) VALUES (%s,%s,%s)", marcas
-                )
-
-        context = {
-            'marcas':Marca.objects.all().order_by('marca')
-        }
-
-    return render(request, 'datos/marcas_list.html', context)
 
 
 # SSH DATA TUNEL
@@ -639,30 +498,23 @@ def stock_lote(request):
         # Reservas  (Pedidos Abiertos) - (<> MANTEN)
         api_actualizar_reservas_warehouse()
 
-
         # Reservas lotes
         api_actualizar_reservas_lotes_warehouse()
-
 
         # Clientes
         api_actualizar_clientes_warehouse()
 
-
         # Stock Lotes
         actualizar_stock_lote_odbc()
-
 
         # Facturas (ultimos 2 meses)
         api_actualizar_facturas_warehouse()
         
-        
         # Actualizar importaciones en transito
         api_actualizar_imp_transito_warehouse()
         
-        
         # Productos en Transito
         api_actualizar_producto_transito_warehouse()
-
 
         time = str(datetime.now())
         TimeStamp.objects.create(actulization_stoklote=time)
@@ -672,7 +524,6 @@ def stock_lote(request):
         context = {
             'context':time
         }
-
 
     return render(request, 'datos/stock_lote.html', context)
 
@@ -689,29 +540,6 @@ def doc_transferencia_odbc(n_transf):
     #Transferencia Egreso
     try:
         cursorOdbc.execute(
-            # "SELECT INVT_Lotes_Ubicacion.DOC_ID_CORP, INVT_Lotes_Ubicacion.PRODUCT_ID_CORP, INVT_Lotes_Ubicacion.LOTE_ID, INVT_Lotes_Ubicacion.EGRESO_TEMP, "
-            # "INVT_Lotes_Ubicacion.WARE_CODE_CORP, INVT_Producto_Lotes.ANIADIDO, INVT_Lotes_Ubicacion.UBICACION, INVT_Producto_Lotes.Fecha_elaboracion_lote, "
-            # "INVT_Producto_Lotes.FECHA_CADUCIDAD "
-            # "FROM INVT_Lotes_Ubicacion INVT_Lotes_Ubicacion, INVT_Producto_Lotes INVT_Producto_Lotes "
-            # "WHERE INVT_Lotes_Ubicacion.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND INVT_Producto_Lotes.LOTE_ID = INVT_Lotes_Ubicacion.LOTE_ID AND "
-            # #"((INVT_Lotes_Ubicacion.DOC_ID_CORP='A-0000054824-gimpr') AND (INVT_Producto_Lotes.ENTRADA_TIPO='OC') AND (INVT_Lotes_Ubicacion.EGRESO_TEMP>0))"
-            # f"((INVT_Lotes_Ubicacion.DOC_ID_CORP='{n}') AND (INVT_Producto_Lotes.ENTRADA_TIPO='OC') AND (INVT_Lotes_Ubicacion.EGRESO_TEMP>0))"
-        
-            # "SELECT INVT_Lotes_Ubicacion.DOC_ID_CORP, INVT_Lotes_Ubicacion.PRODUCT_ID_CORP, INVT_Lotes_Ubicacion.LOTE_ID, INVT_Producto_Lotes.COMMITED, INVT_Lotes_Ubicacion.EGRESO_TEMP, "
-            # "INVT_Lotes_Ubicacion.WARE_CODE_CORP, INVT_Lotes_Ubicacion.UBICACION, INVT_Producto_Lotes.Fecha_elaboracion_lote, "
-            # "INVT_Producto_Lotes.FECHA_CADUCIDAD "
-            # "FROM INVT_Lotes_Ubicacion INVT_Lotes_Ubicacion, INVT_Producto_Lotes INVT_Producto_Lotes "
-            # "WHERE INVT_Lotes_Ubicacion.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND INVT_Producto_Lotes.LOTE_ID = INVT_Lotes_Ubicacion.LOTE_ID AND "
-            # f"((INVT_Lotes_Ubicacion.DOC_ID_CORP='{n}') AND (INVT_Producto_Lotes.ENTRADA_TIPO='TR') AND (INVT_Lotes_Ubicacion.EGRESO_TEMP>0) AND (INVT_Producto_Lotes.WARE_CODE_CORP='BCT'))"
-        
-            # "SELECT INVT_Lotes_Ubicacion.DOC_ID_CORP, INVT_Lotes_Ubicacion.PRODUCT_ID_CORP, INVT_Lotes_Ubicacion.LOTE_ID, INVT_Lotes_Ubicacion.EGRESO_TEMP, "
-            # "INVT_Lotes_Ubicacion.WARE_CODE_CORP, INVT_Producto_Lotes.ANIADIDO, INVT_Lotes_Ubicacion.UBICACION, INVT_Producto_Lotes.Fecha_elaboracion_lote, "
-            # "INVT_Producto_Lotes.FECHA_CADUCIDAD "
-            # "FROM INVT_Lotes_Ubicacion INVT_Lotes_Ubicacion, INVT_Producto_Lotes INVT_Producto_Lotes "
-            # "WHERE INVT_Lotes_Ubicacion.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND INVT_Producto_Lotes.LOTE_ID = INVT_Lotes_Ubicacion.LOTE_ID AND "
-            # f"((INVT_Lotes_Ubicacion.DOC_ID_CORP='{n}') AND (INVT_Lotes_Ubicacion.EGRESO_TEMP>0) AND (INVT_Producto_Lotes.ENTRADA_TIPO='TR' "
-            # "Or INVT_Producto_Lotes.ENTRADA_TIPO='AE') AND (INVT_Producto_Lotes.WARE_CODE_CORP='BCT'))"
-            
             
             "SELECT INVT_Lotes_Ubicacion.DOC_ID_CORP, INVT_Lotes_Ubicacion.PRODUCT_ID_CORP, INVT_Lotes_Ubicacion.LOTE_ID, INVT_Lotes_Ubicacion.EGRESO_TEMP, "
             "INVT_Producto_Lotes.WARE_CODE_CORP, INVT_Producto_Lotes.ANIADIDO, INVT_Lotes_Ubicacion.UBICACION, INVT_Producto_Lotes.Fecha_elaboracion_lote, "
@@ -720,8 +548,6 @@ def doc_transferencia_odbc(n_transf):
             "WHERE INVT_Lotes_Ubicacion.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND INVT_Producto_Lotes.LOTE_ID = INVT_Lotes_Ubicacion.LOTE_ID AND "
             # "((INVT_Lotes_Ubicacion.DOC_ID_CORP='A-0000063572-GIMPR') AND (INVT_Lotes_Ubicacion.EGRESO_TEMP>0) AND (INVT_Producto_Lotes.WARE_CODE_CORP='BCT')) "
             f"((INVT_Lotes_Ubicacion.DOC_ID_CORP='{n}') AND (INVT_Lotes_Ubicacion.EGRESO_TEMP>0) AND (INVT_Producto_Lotes.WARE_CODE_CORP='BCT'))"
-            
-            
         )
         
         columns = [col[0] for col in cursorOdbc.description]
@@ -1038,35 +864,7 @@ def lotes_facturas_odbc(n_factura, product_id):
 
 def reservas_lotes_actualizar_odbc(request):
 
-    cnxn = pyodbc.connect('DSN=mba3;PWD=API')
-    cursorOdbc = cnxn.cursor()
-
-    cursorOdbc.execute(
-    "SELECT CLNT_Pedidos_Principal.FECHA_PEDIDO, CLNT_Pedidos_Principal.CONTRATO_ID, CLNT_Ficha_Principal.CODIGO_CLIENTE, CLNT_Pedidos_Detalle.PRODUCT_ID, "
-    "CLNT_Pedidos_Principal.WARE_CODE, INVT_Lotes_Trasabilidad.EGRESO_TEMP, INVT_Lotes_Trasabilidad.LOTE_ID, INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD, CLNT_Pedidos_Principal.CONFIRMED "
-    "FROM CLNT_Ficha_Principal CLNT_Ficha_Principal, CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, CLNT_Pedidos_Principal CLNT_Pedidos_Principal, "
-    "INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad "
-    "WHERE CLNT_Pedidos_Principal.CONTRATO_ID_CORP = CLNT_Pedidos_Detalle.CONTRATO_ID_CORP AND CLNT_Ficha_Principal.CODIGO_CLIENTE = CLNT_Pedidos_Principal.CLIENT_ID "
-    "AND CLNT_Pedidos_Detalle.CONTRATO_ID_CORP = INVT_Lotes_Trasabilidad.DOC_ID_CORP AND CLNT_Pedidos_Detalle.PRODUCT_ID_CORP = INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP "
-    "AND ((CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND (CLNT_Pedidos_Detalle.TIPO_DOCUMENTO='PE')) "
-    "ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID, CLNT_Pedidos_Detalle.PRODUCT_ID DESC"
-    )
-
-    reservas_lote = cursorOdbc.fetchall()
-    data_reservas_lote = [list(rows) for rows in reservas_lote]
-
-    with connections['gimpromed_sql'].cursor() as cursor:
-        cursor.execute("DELETE FROM reservas_lote")
-    print("successfully deleted reservas con lote")
-
-    with connections['gimpromed_sql'].cursor() as cursor:
-        cursor.executemany(
-        """INSERT INTO reservas_lote (FECHA_PEDIDO, CONTRATO_ID, CODIGO_CLIENTE,
-        PRODUCT_ID, WARE_CODE, EGRESO_TEMP, LOTE_ID, FECHA_CADUCIDAD, CONFIRMED)
-        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s);""", data_reservas_lote
-        )
-    print("Record inserted successfully into database_mysql - RESERVAS con LOTE")
-
+    api_actualizar_reservas_lotes_warehouse()
 
     time = str(datetime.now())
     TimeStamp.objects.create(actualization_reserva_lote=time)
@@ -1159,34 +957,6 @@ def factura_detalle_odbc(n_factura):
 
     return facturas
 
-
-# def factura_detalle_lote_odbc(n_factura, product_id):
-
-#     cnxn = pyodbc.connect('DSN=mba3;PWD=API')
-#     cursorOdbc = cnxn.cursor()
-
-#     cursorOdbc.execute(
-
-#         f"""SELECT CLNT_Factura_Principal.CODIGO_FACTURA, INVT_Ficha_Principal.PRODUCT_ID, INVT_Producto_Movimientos.QUANTITY, INVT_Lotes_Trasabilidad.LOTE_ID, INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD
-#         FROM CLNT_Factura_Principal CLNT_Factura_Principal, INVT_Ficha_Principal INVT_Ficha_Principal, INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad, INVT_Producto_Movimientos INVT_Producto_Movimientos
-#         WHERE INVT_Ficha_Principal.PRODUCT_ID_CORP = INVT_Producto_Movimientos.PRODUCT_ID_CORP AND
-#         CLNT_Factura_Principal.CODIGO_FACTURA = INVT_Producto_Movimientos.DOC_ID_CORP2 AND
-#         INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP = INVT_Ficha_Principal.PRODUCT_ID_CORP AND
-#         CLNT_Factura_Principal.CODIGO_FACTURA = INVT_Lotes_Trasabilidad.DOC_ID_CORP AND
-#         ((INVT_Producto_Movimientos.CONFIRM=TRUE) AND (CLNT_Factura_Principal.CODIGO_FACTURA='{n_factura}') AND
-#         (INVT_Producto_Movimientos.PRODUCT_ID='{product_id}') AND
-#         (INVT_Producto_Movimientos.I_E_SIGN='-') AND
-#         (INVT_Producto_Movimientos.ADJUSTMENT_TYPE='FT') AND
-#         (CLNT_Factura_Principal.ANULADA=FALSE))
-#         """
-#     )
-
-#     lote_factura = cursorOdbc.fetchall()
-
-#     # lote_factura = [list(rows) for rows in lote_factura]
-#     # lote_factura = pd.DataFrame(lote_factura)
-
-#     return lote_factura
 
 
 def factura_lote_odbc(n_factura):
@@ -1951,36 +1721,6 @@ def trazabilidad_odbc(cod, lot):
     return df_trazabilidad
 
 
-
-
-
-### Consulta pedidos cuenca
-# def pedidos_cuenca_odbc():
-
-#     # cnxn = pyodbc.connect('DSN=mba3;PWD=API')
-
-#     open_ssh_tunnel()
-#     mysql_connect()
-
-#     df = run_query(
-#         # "SELECT orders.id,seller_code,client_code,client_name,client_identification,orders.created_at,order_products.product_id,orders.status,order_products.product_name,"
-#         # "order_products.product_group_code,order_products.quantity,order_products.price FROM orders LEFT JOIN order_products "
-#         # "ON orders.id = order_products.order_id where seller_code='VEN03' AND orders.status='TCR';"
-        
-#         "SELECT orders.id,seller_code,client_code,client_name,client_identification,orders.created_at,order_products.product_id,orders.status,order_products.product_name,"
-#         "order_products.product_group_code,order_products.quantity,order_products.price FROM orders LEFT JOIN order_products "
-#         "ON orders.id = order_products.order_id where seller_code='VEN03' AND orders.status='TCR';"
-#     )
-#     print(df)
-#     # df = pd.read_sql_query(query, cnxn)
-    
-#     mysql_disconnect()
-#     close_ssh_tunnel()
-    
-#     return df
-
-
-
 # Filtrar avance de etiquetado por pedido
 def etiquetado_avance_pedido(n_pedido):
     avance = EtiquetadoAvance.objects.filter(n_pedido=n_pedido).values()
@@ -2010,9 +1750,9 @@ def calculo_etiquetado_avance(n_pedido):
         porcentaje_avance = round(porcentaje_avance, 1)
         
         return porcentaje_avance
-    
 
-    
+
+
 def lotes_bodega(bodega, product_id):
     
     with connections['gimpromed_sql'].cursor() as cursor:
