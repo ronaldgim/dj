@@ -7,29 +7,11 @@ from datos import views
 urlpatterns = [
     
     path(
-        route='products/list',
-        view=views.productos,
-        name='products_list',    
-    ),
-    
-    path(
         route='marcas/import',
         view=views.MarcaImportExcelCreateView.as_view(),
         name='marcas_import'
     ),
     
-    
-    path(
-        route='marcas/list',
-        view=views.cargar_marcas_excel,
-        name='marcas_list',    
-    ),
-    
-    path(
-        route = 'productos/tabla',
-        view = views.tabla_productos,
-        name = 'productos_tabla'
-    ),
 
     # EJECUTAR FUNCIÓN STOCK LOTE
     path(
