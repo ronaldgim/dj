@@ -71,6 +71,22 @@ def api_actualizar_clientes_warehouse():
             
             # Insertar datos de tabla clientes
             insert_data_warehouse('clientes', data)
+        
+        else:
+            
+            send_mail(
+                subject='Error DB WAREHOUSE',
+                message=f"""
+                
+                TABLA: CLIENTES - 'warehouse.clientes'
+                
+                ERROR : ERROR API - STATUS: {clientes_mba["status"]}
+                
+                """,
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=['egarces@gimpromed.com'],
+                fail_silently=False,
+            )
 
     except Exception as e:
         
@@ -158,6 +174,22 @@ def api_actualizar_facturas_warehouse():
             
             # Insertar datos de tabla facturas
             insert_data_warehouse('facturas', data)
+        
+        else:
+            
+            send_mail(
+                subject='Error DB WAREHOUSE',
+                message=f"""
+                
+                TABLA: FACTURAS - 'warehouse.facturas'
+                
+                ERROR : ERROR API - STATUS: {facturas_mba["status"]}
+                
+                """,
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=['egarces@gimpromed.com'],
+                fail_silently=False,
+            )
     
     except Exception as e:
         
@@ -261,6 +293,22 @@ def api_actualizar_imp_llegadas_warehouse():
             # Insertar datos de tabla imp_llegadas
             insert_data_warehouse('imp_llegadas', data)
         
+        else:
+            
+            send_mail(
+                subject='Error DB WAREHOUSE',
+                message=f"""
+                
+                TABLA: IMPORTACIONES LLEGADAS - 'warehouse.imp_llegadas'
+                
+                ERROR : ERROR API - STATUS: imp_llegadas_status:{imp_llegadas_mba['status']}, proveedor_status:{proveedor_mba['status']}
+                
+                """,
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=['egarces@gimpromed.com'],
+                fail_silently=False,
+            )
+            
     except Exception as e:
         
         send_mail(
@@ -334,6 +382,22 @@ def api_actualizar_imp_transito_warehouse():
                 
                 # # Insertar datos de tabla imp_transito
                 insert_data_warehouse('imp_transito', data)
+    
+            else:
+            
+                send_mail(
+                    subject='Error DB WAREHOUSE',
+                    message=f"""
+                    
+                    TABLA: IMP LLEGADAS - 'warehouse.imp_transito'
+                    
+                    ERROR : ERROR API - STATUS: {imp_transito_mba['status']}
+                    
+                    """,
+                    from_email=settings.EMAIL_HOST_USER,
+                    recipient_list=['egarces@gimpromed.com'],
+                    fail_silently=False,
+                )
     
     except Exception as e:
         
@@ -433,6 +497,22 @@ def api_actualizar_productos_warehouse():
             
             # Insertar datos de tabla productos
             insert_data_warehouse('productos', data)
+
+        else:
+        
+            send_mail(
+                subject='Error DB WAREHOUSE',
+                message=f"""
+                
+                TABLA: PRODUCTOS - 'warehouse.productos'
+                
+                ERROR : ERROR API - STATUS: {productos_mba['status']}
+                
+                """,
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=['egarces@gimpromed.com'],
+                fail_silently=False,
+            )
     
     except Exception as e:
         
@@ -503,7 +583,24 @@ def api_actualizar_producto_transito_warehouse():
             # Insertar datos de tabla clientes
             insert_data_warehouse('productos_transito', data)
     
+        else:
+        
+            send_mail(
+                subject='Error DB WAREHOUSE',
+                message=f"""
+                
+                TABLA: PRODUCTOS EN TRANSITO - 'warehouse.productos_transito'
+                
+                ERROR : ERROR API - STATUS: {productos_transito_mba["status"]}
+                
+                """,
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=['egarces@gimpromed.com'],
+                fail_silently=False,
+            )
+    
     except Exception as e:
+        
         send_mail(
             subject='Error DB WAREHOUSE',
             message=f"""
@@ -523,34 +620,101 @@ def api_actualizar_producto_transito_warehouse():
 ### ACTULIZAR PROFORMAS
 def api_actualizar_proformas_warehouse():
     
-    
-    today = datetime.today() - timedelta(days=45)
-    today = today.strftime('%Y-%m-%d')
-    
-    proformas_mba = api_mba_sql(
-        f"""
-        SELECT 
-            CLNT_Pedidos_Principal.CONTRATO_ID, 
-            CLNT_Ficha_Principal.NOMBRE_CLIENTE, 
-            CLNT_Pedidos_Principal.FECHA_PEDIDO, 
-            CLNT_Pedidos_Principal.FECHA_HASTA, 
-            CLNT_Pedidos_Principal.SALESMAN, 
-            CLNT_Pedidos_Principal.CONFIRMED, 
-            CLNT_Pedidos_Detalle.PRODUCT_ID, 
-            CLNT_Pedidos_Detalle.QUANTITY 
-        FROM 
-            CLNT_Ficha_Principal CLNT_Ficha_Principal, 
-            CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, 
-            CLNT_Pedidos_Principal CLNT_Pedidos_Principal 
-        WHERE 
-            CLNT_Pedidos_Detalle.CONTRATO_ID_CORP = CLNT_Pedidos_Principal.CONTRATO_ID_CORP AND 
-            CLNT_Ficha_Principal.CODIGO_CLIENTE_EMPRESA = CLNT_Pedidos_Principal.CLIENT_ID_CORP AND 
-            CLNT_Pedidos_Principal.FECHA_PEDIDO >='{today}' AND 
-            ((CLNT_Pedidos_Detalle.TIPO_DOCUMENTO='CT') AND (CLNT_Pedidos_Principal.VOID=False))
-        """
-    )
-
-
+    try:
+        
+        today = datetime.today() - timedelta(days=45)
+        today = today.strftime('%Y-%m-%d')
+        
+        proformas_mba = api_mba_sql(
+            f"""
+            SELECT 
+                CLNT_Pedidos_Principal.CONTRATO_ID, 
+                CLNT_Ficha_Principal.NOMBRE_CLIENTE, 
+                CLNT_Pedidos_Principal.FECHA_PEDIDO, 
+                CLNT_Pedidos_Principal.FECHA_HASTA, 
+                CLNT_Pedidos_Principal.SALESMAN, 
+                CLNT_Pedidos_Principal.CONFIRMED, 
+                CLNT_Pedidos_Detalle.PRODUCT_ID, 
+                CLNT_Pedidos_Detalle.QUANTITY 
+            FROM 
+                CLNT_Ficha_Principal CLNT_Ficha_Principal, 
+                CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, 
+                CLNT_Pedidos_Principal CLNT_Pedidos_Principal 
+            WHERE 
+                CLNT_Pedidos_Detalle.CONTRATO_ID_CORP = CLNT_Pedidos_Principal.CONTRATO_ID_CORP AND 
+                CLNT_Ficha_Principal.CODIGO_CLIENTE_EMPRESA = CLNT_Pedidos_Principal.CLIENT_ID_CORP AND 
+                CLNT_Pedidos_Principal.FECHA_PEDIDO >='{today}' AND 
+                ((CLNT_Pedidos_Detalle.TIPO_DOCUMENTO='CT') AND (CLNT_Pedidos_Principal.VOID=False))
+            """
+        )
+        
+        if proformas_mba['status'] == 200:
+            
+            # data = [tuple(i.values()) for i in proformas_mba['data']]
+            
+            data = []
+            
+            for i in proformas_mba['data']:
+                
+                contrato_id = i['CONTRATO_ID']
+                nombre_cliente = i['NOMBRE_CLIENTE']            
+                fecha_pedido = '' if not i['FECHA_PEDIDO'] else i['FECHA_PEDIDO'][:10]            
+                fecha_hasta = '' if not i['FECHA_HASTA'] else i['FECHA_HASTA'][:10] 
+                salesman = i['SALESMAN']
+                confirmed = 0 if i['CONFIRMED'] == 'false' else 1
+                product_id = i['PRODUCT_ID']
+                quantity = i['QUANTITY']
+                
+                row = (
+                    contrato_id,
+                    nombre_cliente,
+                    fecha_pedido,
+                    fecha_hasta,
+                    salesman,
+                    confirmed,
+                    product_id,
+                    quantity,
+                )
+                
+                data.append(row)
+            
+            # Borrar datos de tabla proformas
+            delete_data_warehouse('proformas')
+            
+            # Insertar datos de tabla proformas
+            insert_data_warehouse('proformas', data)
+        
+        else:
+            
+            send_mail(
+                subject='Error DB WAREHOUSE',
+                message=f"""
+                
+                TABLA: PROFORMAS - 'warehouse.proformas'
+                
+                ERROR : ERROR API - STATUS: {proformas_mba['data']}
+                
+                """,
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=['egarces@gimpromed.com'],
+                fail_silently=False,
+            )
+        
+    except Exception as e:
+        
+        send_mail(
+            subject='Error DB WAREHOUSE',
+            message=f"""
+            
+            TABLA: PROFORMAS - 'warehouse.proformas'
+            
+            ERROR : {e}
+            
+            """,
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=['egarces@gimpromed.com'],
+            fail_silently=False,
+        )
 
 
 ### ACTUALIZAR RESERVAS WAREHOUSE
@@ -629,7 +793,24 @@ def api_actualizar_reservas_warehouse():
             # Insertar datos de tabla reservas
             insert_data_warehouse('reservas', data)
 
+        else:
+        
+            send_mail(
+                subject='Error DB WAREHOUSE',
+                message=f"""
+                
+                TABLA: RESERVAS - 'warehouse.reservas'
+                
+                ERROR : ERROR API - STATUS: {reservas_mba["status"]}
+                
+                """,
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=['egarces@gimpromed.com'],
+                fail_silently=False,
+            )
+
     except Exception as e:
+        
         send_mail(
             subject='Error DB WAREHOUSE',
             message=f"""
@@ -686,7 +867,7 @@ def api_actualizar_reservas_lotes_warehouse():
             """
         )
         
-        if  reservas_lotes_mba["status"] == 200:
+        if reservas_lotes_mba["status"] == 200:
         
             #data = [tuple(i.values()) for i in reservas_lotes_mba['data']]
         
@@ -725,8 +906,25 @@ def api_actualizar_reservas_lotes_warehouse():
             
             # Insertar datos de tabla reservas_lote
             insert_data_warehouse('reservas_lote', data)
+
+        else:
+        
+            send_mail(
+                subject='Error DB WAREHOUSE',
+                message=f"""
+                
+                TABLA: RESERVAS LOTE - 'warehouse.reservas_lote'
+                
+                ERROR : ERROR API - STATUS: {reservas_lotes_mba["status"]}
+                
+                """,
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=['egarces@gimpromed.com'],
+                fail_silently=False,
+            )
         
     except Exception as e:
+        
         send_mail(
             subject='Error DB WAREHOUSE',
             message=f"""
