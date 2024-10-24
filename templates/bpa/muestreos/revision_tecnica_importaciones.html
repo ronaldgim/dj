@@ -197,7 +197,7 @@
             </tr>
             <tr>
                 <td class="t_title_2"><strong>Proveedor/Fabricante:</strong></td>
-                <td class="t_title_2">{{proveedor}}</td>
+                <td class="t_title_2">{% if not proveedor %}{{proveedor1}}{% else %}{{proveedor}}{% endif %}</td>
                 <td class="t_title_3"><strong>Cerezos</strong></td>
                 <td class="t_bodega">{% if bodega_llegada == 'CUC' %} X {% endif %}</td>
             </tr>

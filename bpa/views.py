@@ -424,7 +424,8 @@ def revision_tecnica(request, doc_id):
         'ENTRADA_FECHA',
         'OH',
         'WARE_COD_CORP',
-        'MEMO'
+        'MEMO',
+        'PROVEEDOR'
         ]).sum().reset_index()
     
     data = data.merge(prod, on='product_id', how='left')
@@ -432,7 +433,8 @@ def revision_tecnica(request, doc_id):
     
     fecha_entrada = data['ENTRADA_FECHA'].iloc[0]
     bodega_llegada = data['WARE_COD_CORP'].iloc[0]
-    proveedor = data['marca2'].dropna().iloc[0]
+    proveedor = data['PROVEEDOR'].dropna().loc[0]
+    proveedor1 = data['marca2'].dropna().iloc[0]
     n_imp = data['MEMO'].iloc[0]
 
     data = empaque(data)
@@ -444,6 +446,7 @@ def revision_tecnica(request, doc_id):
         'fecha':fecha_entrada,
         'bodega_llegada':bodega_llegada,
         'proveedor':proveedor,
+        'proveedor1':proveedor1,
         'n_imp':n_imp,
         'n_lineas':range(5)
     }
