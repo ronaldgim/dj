@@ -55,8 +55,9 @@
                         <th scope="col">Cliente</th>
                         <th scope="col">Fecha</th>
                         <th scope="col">Factura</th>
-                        <th class="text-center" scope="col">Enviado por</th>
-                        <th class="text-center" scope="col">Detalle</th>
+                        <th class="text-center" scope="col">Enviado de lotes por</th>
+                        <th class="text-center" scope="col">Lotes</th>
+                        <th class="text-center" scope="col">Iso-Reg.San.</th>
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
@@ -74,6 +75,17 @@
                             {% endif %}
                         </td>
                         <!-- target="_blank" -->
+                        <td class="text-center">
+                            <a href="{% url 'factura_detalle' i.CODIGO_FACTURA %}" 
+                            {% if i.user %}
+                                class="btn btn-success btn-sm"
+                            {% else %}
+                                class="btn btn-primary btn-sm"
+                            {% endif %}
+                            >
+                                <i class="bi bi-list-ul"></i>
+                            </a>
+                        </td>
                         <td class="text-center">
                             <a href="{% url 'factura_detalle' i.CODIGO_FACTURA %}" 
                             {% if i.user %}

@@ -263,10 +263,9 @@ def api_actualizar_imp_llegadas_warehouse():
             imp_llegadas = imp_llegadas_df.merge(proveedor_df, on='DOC_ID_CORP', how='left').fillna('')
             
             # Transformar datos de fechas
-            imp_llegadas['ENTRADA_FECHA'] = imp_llegadas['ENTRADA_FECHA'].str.slice(0, 10)
-            imp_llegadas['ENTRADA_FECHA'] = pd.to_datetime(imp_llegadas['ENTRADA_FECHA'])
-            imp_llegadas['FECHA_CADUCIDAD'] = imp_llegadas['FECHA_CADUCIDAD'].str.slice(0, 10)
-
+            imp_llegadas['ENTRADA_FECHA'] = pd.to_datetime(imp_llegadas['ENTRADA_FECHA'].str.slice(0, 10)).dt.date
+            imp_llegadas['FECHA_CADUCIDAD'] = pd.to_datetime(imp_llegadas['FECHA_CADUCIDAD'].str.slice(0, 10)).dt.date
+            
             # Ordenar por fecha de entrada
             imp_llegadas = imp_llegadas.sort_values(by='ENTRADA_FECHA')
             
