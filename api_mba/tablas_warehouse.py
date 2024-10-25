@@ -751,6 +751,9 @@ def api_actualizar_reservas_warehouse():
             """
         )
         
+        # r = pd.DataFrame(reservas_mba['data'])
+        # print(r['SEC_NAME_CLIENTE'].unique())
+        
         if  reservas_mba["status"] == 200:
             
             # data = [tuple(i.values()) for i in reservas_mba['data']]
@@ -768,7 +771,15 @@ def api_actualizar_reservas_warehouse():
                 ware_code = i['WARE_CODE']
                 confirmed = 0 if i['CONFIRMED'] == 'false' else 1
                 hora_llegada = i['HORA_LLEGADA'] # time
-                sec_name_cliente = i['SEC_NAME_CLIENTE']
+                
+                #sec_name_cliente = i['SEC_NAME_CLIENTE']
+                s_n_c = i['SEC_NAME_CLIENTE']
+                if s_n_c.startswith('P'):
+                    sec_name_cliente = 'PUBLICO'
+                elif s_n_c.startswith('R'):
+                    sec_name_cliente = 'RESERVA'
+                else:
+                    sec_name_cliente = ''
                 
                 row = (
                     fecha_pedido,
@@ -786,7 +797,7 @@ def api_actualizar_reservas_warehouse():
                 )
                 
                 data.append(row)
-                
+            
             # Borrar datos de tabla reservas
             delete_data_warehouse('reservas')
             
