@@ -56,6 +56,7 @@
                         <th scope="col">Fecha</th>
                         <th scope="col">Factura</th>
                         <th class="text-center" scope="col">Enviado de lotes por</th>
+                        <!--th class="text-center" scope="col">Enviado de isos-reg.san por</th-->
                         <th class="text-center" scope="col">Lotes</th>
                         <th class="text-center" scope="col">Iso-Reg.San.</th>
                     </tr>
@@ -74,27 +75,23 @@
                             -
                             {% endif %}
                         </td>
+                        <!--td>
+                            {% if i.user %}
+                            {{i.user}} - {{i.fecha_hora}}
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td-->
                         <!-- target="_blank" -->
                         <td class="text-center">
-                            <a href="{% url 'factura_detalle' i.CODIGO_FACTURA %}" 
-                            {% if i.user %}
-                                class="btn btn-success btn-sm"
-                            {% else %}
-                                class="btn btn-primary btn-sm"
-                            {% endif %}
-                            >
+                            <a href="{% url 'factura_detalle' i.CODIGO_FACTURA %}" class="btn btn-sm {% if i.user %} btn-success {% else %} btn-primary {% endif %}">
                                 <i class="bi bi-list-ul"></i>
                             </a>
                         </td>
                         <td class="text-center">
-                            <a href="{% url 'factura_detalle' i.CODIGO_FACTURA %}" 
-                            {% if i.user %}
-                                class="btn btn-success btn-sm"
-                            {% else %}
-                                class="btn btn-primary btn-sm"
-                            {% endif %}
-                            >
-                                <i class="bi bi-list-ul"></i>
+                            <!-- Envio de isos -->
+                            <a href="" class="btn btn-sm disabled {% if i.user %} btn-success {% else %} btn-primary {% endif %}">
+                                <i class="bi bi-files"></i>
                             </a>
                         </td>
                     </tr>
