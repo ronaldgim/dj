@@ -1004,13 +1004,14 @@ def actualizar_stock_lote_odbc():
             
     
     except Exception as e:
+        
         send_mail(
             subject='Error DB WAREHOUSE',
             message=f"""
             
             OJO : REALIZADO CON ODBC
             
-            TABLA: RESERVAS LOTES - 'warehouse.stock_lote'
+            TABLA: STOCK LOTE - 'warehouse.stock_lote'
             
             ERROR : {e}
             
