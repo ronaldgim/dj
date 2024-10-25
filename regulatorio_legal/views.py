@@ -19,7 +19,13 @@ from datos.views import (
 from api_mba.mba import api_mba_sql
 
 # Models
-from regulatorio_legal.models import DocumentoLote, DocumentoEnviado, RegistroSanitario, DocumentosLegales, ProductosRegistroSanitario
+from regulatorio_legal.models import (
+    DocumentoLote, 
+    DocumentoEnviado, 
+    RegistroSanitario, 
+    DocumentosLegales, 
+    ProductosRegistroSanitario
+    )
 
 # Pandas
 import pandas as pd
