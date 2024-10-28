@@ -4967,4 +4967,7 @@ def wms_armado_orden_pdf(request, orden_id):
     }
     
     return render(request, 'wms/armado_orden_pdf.html', context)
-    
+
+
+def new_sidebar(request):
+    return render(request, 'sidevar_structura.html')

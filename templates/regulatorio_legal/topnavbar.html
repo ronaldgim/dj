@@ -10,65 +10,24 @@
   
     <div class="collapse navbar-collapse" id="navbarNavDropdown">
       <ul class="navbar-nav">
-        <!-- li class="nav-item dropdown">
+        <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            Dashboards Bodega
+            Portal de Lotes
           </a>
           <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-              <li><a class="dropdown-item" href="{% url 'stock' %}">Etiquetado Completo</a></li>
-              <li><a class="dropdown-item" href="{% url 'stock_bodega' %}">Etiquetado Bodega</a></li>
-              <li><a class="dropdown-item" href="{% url 'picking_dashboard' 'BAN' %}">Pedidos Andagoya</a></li>
-              <li><a class="dropdown-item" href="{% url 'picking_dashboard' 'BCT' %}">Pedidos Cerezos</a></li>
+              <li><a class="dropdown-item" href="{% url 'importaciones_list' %}">Lista de importaciones</a></li>
+              <li><a class="dropdown-item" href="{% url 'r_l_facturas' %}">Lista de facturas</a></li>
           </ul>
         </li>
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            Bodega
+            Portal de Isos y Reg.Sanitarios
           </a>
           <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-              <li><a class="dropdown-item" href="{% url 'pedidos_estado_list' %}">Estado de Etiquetado</a></li>
-              <li><a class="dropdown-item" href="{% url 'picking_estado' %}">Estado de Picking</a></li> 
-              <li><a class="dropdown-item" href="{% url 'inventario_bodega' %}">Inventario</a></li> 
+              <li><a class="dropdown-item" href="{% url 'documentos_legales_list_marcas' %}">Lista de documentos</a></li>
+              <li><a class="dropdown-item" href="">Lista de facturas y proformas</a></li>
           </ul>
-        </li-->
-        <li class="nav-item dropdown">
-          <a class="nav-link" id="navbarDropdownMenuLink" href="{% url 'importaciones_list' %}">
-            Lista de importaciones
-          </a>
-          <!--ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-              <li><a class="dropdown-item" href="{% url 'revision_reservas' %}">Revision Reservas</a></li>
-              <li><a class="dropdown-item" href="{% url 'picking_estado' %}">Estado de Picking</a></li> 
-              <li><a class="dropdown-item" href="{% url 'inventario_bodega' %}">Inventario</a></li> 
-          </ul-->
         </li>
-        <li class="nav-item dropdown">
-          <a class="nav-link" id="navbarDropdownMenuLink" href="{% url 'documentos_legales_list_marcas' %}">
-            Portal de Iso y Reg.Sanitarios
-          </a>
-          <!--ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-              <li><a class="dropdown-item" href="{% url 'revision_reservas' %}">Revision Reservas</a></li>
-              <li><a class="dropdown-item" href="{% url 'picking_estado' %}">Estado de Picking</a></li> 
-              <li><a class="dropdown-item" href="{% url 'inventario_bodega' %}">Inventario</a></li> 
-          </ul-->
-        </li>
-        <li class="nav-item dropdown">
-          <a class="nav-link" id="navbarDropdownMenuLink" href="{% url 'r_l_facturas' %}">
-            Lista de facturas
-          </a>
-          <!--ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-              <li><a class="dropdown-item" href="{% url 'revision_reservas' %}">Revision Reservas</a></li>
-              <li><a class="dropdown-item" href="{% url 'picking_estado' %}">Estado de Picking</a></li> 
-              <li><a class="dropdown-item" href="{% url 'inventario_bodega' %}">Inventario</a></li> 
-          </ul-->
-        </li>
-        <!--li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            Mantenimiento
-          </a>
-          <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-              <li><a class="dropdown-item" href="{% url 'mantenimientos_list' %}">Lista de mantenimiento</a></li>
-          </ul>
-        </li-->
       </ul>
     </div>
     <a class="navbar-brand" href="{% url 'logout' %}">

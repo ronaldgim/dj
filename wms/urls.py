@@ -574,4 +574,10 @@ urlpatterns = [
         view = views.wms_armado_orden_pdf,
         name = 'wms_armado_orden_pdf'
     ),
+    
+    path(
+        route='new_sidebar',
+        view = views.new_sidebar,
+        name = 'new_sidebar'
+    ),
 ]
