@@ -1,0 +1,133 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Lista de facturas y proformas</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'regulatorio_legal/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+<h5 class="m-4 text-center"><strong>LISTADO DE FACTURAS Y PROFORMAS</strong></h5>
+
+<div class="col-4">
+    <!-- form method="POST" -->
+        {#% csrf_token %#}
+        <div class="input-group mb-3">
+            <input type="text" placeholder="Factura" class="form-control" name="factura">
+            <button class="btn btn-primary" type="button" name="add_comprobante">Añadir</button>
+        </div>
+        <div class="input-group mb-3">
+            <input type="text" placeholder="Proforma" class="form-control" name="proforma">
+            <button class="btn btn-secondary" type="button" name="add_comprobante">Añadir</button>
+        </div>
+    <!-- /form-->
+</div>
+
+<div class="col-4">
+    <input id="inputbuscar" type="text" placeholder="Filtro" class="form-control" name="n_factura">
+</div>
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
+<div class="mt-2" id="msg"></div>
+
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Tipo comprobante</th>
+                        <th scope="col">N° comprobante</th>
+                        <th scope="col">Cliente</th>
+                        <th scope="col">Fecha-Hora</th>
+                        <th scope="col">Creado por</th>
+                        <th scope="col">Detalle</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in factura_proforma_list %}
+                    <tr class="content">
+                        <td>{{i.tipo_comprobante|capfirst}}</td>
+                        <td>{{i.n_comprobante}}</td>
+                        <td>{{i.nombre_cliente}}</td>
+                        <td>{{i.creado}}</td>
+                        <td>{{i.usuario}}</td>
+                        <td class="text-center">
+                            <a class="btn btn-sm btn-primary" href="{% url 'facturas_proformas_detalle' i.id %}">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add comprobante -->
+<script>
+    $(document).ready(function() {
+        $("button[name='add_comprobante']").on('click', function() {
+            tipo_comprobante = $(this).closest('div').find('input').attr('name');
+            n_comprobante = $(this).closest('div').find('input').val();
+
+            if (!n_comprobante) {
+                alert('Ingrese el número de ' + tipo_comprobante);
+            } else {
+                $.ajax({
+                    type: "POST",
+                    url: "{% url 'facturas_proformas_list' %}",
+                    data: {
+                        'csrfmiddlewaretoken': '{{ csrf_token }}',
+                        'n_comprobante': n_comprobante,
+                        'tipo_comprobante': tipo_comprobante
+                    },
+                    success: function(response) {
+                        console.log(response);
+                        $('#msg').html(`<div class="text-center alert alert-${response.alert}" role="alert"> ${response.msg} !!! </div>`)
+                    },
+                    error: function(xhr) {
+                        $('#msg').html(`<div class="text-center alert alert-danger" role="alert"> ${xhr.statusText} !!! </div>`)
+                    }
+
+                    
+                })
+            }
+
+        })
+    })
+
+</script>
+
+
+
+<!-- Filtro --> 
+<script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+
+{% endblock %}
