@@ -12,17 +12,14 @@
 <h5 class="m-4 text-center"><strong>LISTADO DE FACTURAS Y PROFORMAS</strong></h5>
 
 <div class="col-4">
-    <!-- form method="POST" -->
-        {#% csrf_token %#}
-        <div class="input-group mb-3">
-            <input type="text" placeholder="Factura" class="form-control" name="factura">
-            <button class="btn btn-primary" type="button" name="add_comprobante">Añadir</button>
-        </div>
-        <div class="input-group mb-3">
-            <input type="text" placeholder="Proforma" class="form-control" name="proforma">
-            <button class="btn btn-secondary" type="button" name="add_comprobante">Añadir</button>
-        </div>
-    <!-- /form-->
+    <div class="input-group mb-3">
+        <input type="text" placeholder="Factura" class="form-control" name="factura">
+        <button class="btn btn-primary" type="button" name="add_comprobante">Añadir</button>
+    </div>
+    <div class="input-group mb-3">
+        <input type="text" placeholder="Proforma" class="form-control" name="proforma">
+        <button class="btn btn-secondary" type="button" name="add_comprobante">Añadir</button>
+    </div>
 </div>
 
 <div class="col-4">

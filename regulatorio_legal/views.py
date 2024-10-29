@@ -593,65 +593,6 @@ GIMPROMED Cia. Ltda.\n
     return render(request, 'regulatorio_legal/factura_detalle.html', context)
 
 
-import requests
-def prueba_api_marca_agua(request):
-    # Obtener el documento desde la base de datos
-    doc = DocumentoLote.objects.get(id=5304).documento.path
-    
-    print(f"Documento a enviar: {doc}")
-    
-    url_api = 'https://www.gimpromed.com/app/api/procesarPdf'
-    
-    # Cargar el archivo y los datos que se enviarán
-    with open(doc, 'rb') as pdf_file:
-        # Definir el payload con datos adicionales
-        data = {
-            'texto': """
-GIMPROMED CIA. LTDA.
-AUTORIZA EL USO DE
-ESTE DOCUMENTO A:
-COMERCIALIZADORA Y
-CONSULTORA DE IMPLEMENTOS MAYKCARS S.A
-PARA PARTICIPAR EN EL:
-PROCESO No.
-SIE-HTMC-2023-202
-HOSPITAL DE ESPECIALIDADES
-TEODORO MALDONADO CARBO DISTRITNAL DE NUMERO 1
-USO VALIDO HASTA:
-MARZO 2024
-""",
-            'espacio': '100'
-        }
-        
-        # Enviar el archivo PDF y los datos adicionales a la API externa
-        files = {
-            'pdf': pdf_file  # Aquí 'pdf' es el nombre del campo que la API espera
-        }
-        
-        try:
-            r = requests.post(url_api, data=data, files=files)
-            
-            # Verificar si la solicitud fue exitosa
-            if r.status_code == 200:
-                # Imprimir la respuesta o la URL de descarga si la API lo proporciona
-                print(f"Respuesta de la API: {r.text}")
-                try:
-                    response_json = r.json()  # Intentar convertir la respuesta a JSON
-                    url_descarga = response_json.get('url_descarga', 'URL no disponible')
-                    
-                    # Retornar un mensaje o redirigir al usuario a la URL de descarga
-                    return HttpResponse(f"El archivo fue procesado exitosamente. Descarga aquí: {url_descarga}")
-                except ValueError:
-                    # Si la respuesta no es JSON, retornar el texto de la respuesta
-                    return HttpResponse(f"Respuesta de la API: {r.text}")
-            else:
-                # Si hubo un error con la solicitud
-                return HttpResponse(f"Error al procesar el archivo. Código de estado: {r.status_code}")
-        
-        except requests.exceptions.RequestException as e:
-            # Manejar cualquier excepción de la solicitud
-            return HttpResponse(f"Error al conectarse a la API: {str(e)}")
-
 
 @login_required(login_url='login')
 def documentos_legales_list_marcas(request):
@@ -942,6 +883,20 @@ def facturas_proformas_list(request):
     return render(request, 'regulatorio_legal/lista_facturas_proformas.html', context)
 
 
+def factura_proforma_marca_de_agua_ajax(request):
+
+    id_factura_proforma = int(request.POST.get('id_factura_proforma'))
+    
+    factura_proforma = FacturaProforma.objects.get(id=id_factura_proforma)
+    factura_proforma.marca_de_agua = request.POST.get('texto_marca_agua')
+    factura_proforma.save()
+    
+    return JsonResponse({
+        'alert':'success',
+        'msg': f'Texto de marca de agua agregado !!!'
+    })
+
+from api_mba.api_marca_agua import api_marca_agua
 def facturas_proformas_detalle(request, id):
     
     if request.method == 'GET':
@@ -971,3 +926,56 @@ def facturas_proformas_detalle(request, id):
             'registros_sanitarios':registros_sanitarios
         }
         return render(request, 'regulatorio_legal/detalle_factura_proforma.html', context)
+    
+    elif request.method == 'POST':
+        
+        factura_proforma = FacturaProforma.objects.get(id=id)
+        documentos = json.loads(request.POST.get('documentos'))
+        
+        for i in documentos:
+            
+            if i['tipo'] == 'iso':
+                iso = DocumentosLegales.objects.get(id=int(i['id_doc']))
+                iso_doc_path = iso.documento.path
+                descripcion = f'{iso.marca} - {iso.nombre_proveedor}' 
+                
+                procesar_pdf = api_marca_agua(texto=factura_proforma.marca_de_agua, file_path=iso_doc_path)
+                print(procesar_pdf)
+                if procesar_pdf.status_code == 200:
+                    print(procesar_pdf)
+                    # documento_procesado = procesar_pdf['url_descarga']
+                    
+                    # iso_reg = IsosRegEnviados.objects.create(
+                    #     tipo_documento= 'ISO',
+                    #     descripcion= descripcion,
+                    #     documento= documento_procesado,
+                    # )
+
+                    # factura_proforma.documentos.add(iso_reg)
+                    
+                
+            elif i['tipo'] == 'reg_san':
+                reg_san = RegistroSanitario.objects.get(id=int(i['id_doc']))
+                reg_san_doc_path = reg_san.documento.path
+                descripcion = f'{reg_san.n_reg_sanitario} - {reg_san.descripcion}'
+                
+                procesar_pdf = api_marca_agua(texto=factura_proforma.marca_de_agua, file_path=reg_san_doc_path)
+                print(procesar_pdf)
+                if procesar_pdf.status_code == 200:
+                    print(procesar_pdf)
+                    # documento_procesado = procesar_pdf['url_descarga']
+                    
+                    # iso_reg = IsosRegEnviados.objects.create(
+                    #     tipo_documento= 'Registro Sanitario',
+                    #     descripcion= descripcion,
+                    #     documento= documento_procesado,
+                    # )
+
+                    # factura_proforma.documentos.add(iso_reg)
+        
+        return JsonResponse({
+            'alert':'success',
+            'msg': f'Documentos agregados !!!'
+        })
+    
+

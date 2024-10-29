@@ -61,13 +61,17 @@
     </div>
 </div>
 
+<button class="btn text-white {% if not factura_proforma.marca_de_agua %} btn-danger {% else %} btn-warning {% endif %}" type="button" data-bs-toggle="modal" data-bs-target="#marcaAgua">
+    TEXTO DE MARCA DE AGUA
+</button>
+
 <hr>
 
 <h6 class="list-group-item mt-2 mb-2">DOCUMENTOS</h6>
 <div class="card mt-2 mb-2">
     <div class="card-body m-0 p-0">
         <div class="container table-responsive">
-            <table class="table">
+            <table class="table" style="font-size:small" id="tabla_documentos">
                 <thead>
                     <tr>
                         <th scope="col">Detalle</th>
@@ -76,7 +80,7 @@
                         <th scope="col">Procesar</th>
                     </tr>
                 </thead>
-                <tbody id="pedidosbuscar" style="font-size:small">
+                <tbody id="pedidosbuscar" >
                     <tr>
                         <td style="font-size:medium" class="text-center bg-info bg-gradient text-white" colspan="4">ISOS</td>
                     </tr>
@@ -86,14 +90,14 @@
                         <td><a class="btn btn-sm btn-{% if i.estado == 'Vigente' %}success{% else %}danger{% endif %} disabled">{{i.estado|default:'X'}}</a></td>
                         <td>
                             {% if i.documento %} 
-                            <a class="btn btn-sm btn-primary" href="/media/{{i.documento}}" target="_blank"> Ver documento</a>
+                            <a class="btn btn-sm btn-primary" href="/media/{{i.documento}}" target="_blank"><i class="bi bi-filetype-doc"></i></a>
                             {% else %} 
                             no existe documento 
                             {% endif %}
                         </td>
                         <td class="text-center">
                             {% if i.documento %} 
-                            <input type="checkbox">
+                            <input type="checkbox" class="procesar form-check-input" {% if not factura_proforma.marca_de_agua %} disabled {% endif %} name="iso" value="{{i.id}}">
                             {% else %} 
                             X
                             {% endif %}
@@ -116,14 +120,14 @@
                         <td><a class="btn btn-sm btn-{% if i.estado == 'Vigente' %}success{% else %}danger{% endif %} disabled">{{i.estado|default:'X'}}</a></td>
                         <td>
                             {% if i.documento %} 
-                            <a class="btn btn-sm btn-secondary" href="/media/{{i.documento}}" target="_blank"> Ver documento</a>
+                            <a class="btn btn-sm btn-secondary" href="/media/{{i.documento}}" target="_blank"><i class="bi bi-filetype-doc"></i></a>
                             {% else %} 
                             no existe documento 
                             {% endif %}
                         </td>
                         <td class="text-center">
                             {% if i.documento %} 
-                            <input type="checkbox">
+                            <input type="checkbox" class="procesar form-check-input" {% if not factura_proforma.marca_de_agua %} disabled {% endif %} name="reg_san" value="{{i.id}}">
                             {% else %} 
                             X
                             {% endif %}
@@ -136,76 +140,28 @@
     </div>
 </div>
 
-{% comment %}
-REGISTROS SANITARIOS
-<div class="card mt-2 mb-2">
-    <div class="card-body m-0 p-0">
-        <div class="container table-responsive">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th scope="col">Tipo de documento</th>
-                        <th scope="col">Detalle</th>
-                        <th scope="col">Documento</th>
-                        <th scope="col">Procesar</th>
-                    </tr>
-                </thead>
-                <tbody id="pedidosbuscar">
-                    {% for i in registros_sanitarios %}
-                    <tr class="content">
-                        <td>Registro Sanitario</td>
-                        <td>
-                            N°.Reg Sanitario: {{i.n_reg_sanitario}} <br>
-                            Descripción: {{i.descripcion}} <br>
-                            Detalle : {% for i in  i.productos.all %} - {{i.product_id}} {% endfor %}
-                        </td>
-                        <td>{{i.documento|default:"-"}}</td>
-                        <td><input type="checkbox"></td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+<button class="btn btn-success mb-4" name="procesar_documentos">
+    Procesar documentos
+</button>
+
+<!-- Modal -->
+<div class="modal fade" id="marcaAgua" tabindex="-1" aria-labelledby="marcaAguaLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Texto de marca de agua</h5><br>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <small>Maximo 12 lineas y 46 caracteres por línea</small>
+            <textarea id="id_texto_marca_agua" name="texto_marca_agua" class="form-control" rows="12" cols="50">{{factura_proforma.marca_de_agua}}</textarea>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-primary" name="marca_agua">Guardar</button>
+        </div>
         </div>
     </div>
 </div>
-{% endcomment %}
-
-
-<!-- Add comprobante -->
-<script>
-    $(document).ready(function() {
-        $("button[name='add_comprobante']").on('click', function() {
-            tipo_comprobante = $(this).closest('div').find('input').attr('name');
-            n_comprobante = $(this).closest('div').find('input').val();
-
-            if (!n_comprobante) {
-                alert('Ingrese el número de ' + tipo_comprobante);
-            } else {
-                $.ajax({
-                    type: "POST",
-                    url: "{% url 'facturas_proformas_list' %}",
-                    data: {
-                        'csrfmiddlewaretoken': '{{ csrf_token }}',
-                        'n_comprobante': n_comprobante,
-                        'tipo_comprobante': tipo_comprobante
-                    },
-                    success: function(response) {
-                        console.log(response);
-                        $('#msg').html(`<div class="text-center alert alert-${response.alert}" role="alert"> ${response.msg} !!! </div>`)
-                    },
-                    error: function(xhr) {
-                        $('#msg').html(`<div class="text-center alert alert-danger" role="alert"> ${xhr.statusText} !!! </div>`)
-                    }
-
-                    
-                })
-            }
-
-        })
-    })
-
-</script>
-
 
 <!-- Detalle -->
 <script>
@@ -214,6 +170,109 @@ REGISTROS SANITARIOS
             $("#detalle").toggle();
             $(this).find("i").toggleClass("bi-caret-down-fill bi-caret-up-fill");
         })
+    })
+</script>
+
+<!-- Add marca de agua -->
+<script>
+        // Aseguramos que el script se ejecute después de que el DOM esté cargado.
+        document.addEventListener('DOMContentLoaded', function () {
+            let textarea = document.getElementById('id_texto_marca_agua');
+            
+            // Llamar a la validación cada vez que el usuario escriba.
+            textarea.addEventListener('input', validarTextarea);
+
+            const MAX_LINES = 12;   // Número máximo de líneas permitidas
+            const MAX_CHARACTERS_PER_LINE = 46;  // Máximo de caracteres por línea
+
+            function validarTextarea() {
+                const lineas = textarea.value.toUpperCase().split('\n');  // Convertimos a mayúsculas y dividimos
+                
+                // Limitar número de líneas
+                if (lineas.length > MAX_LINES) {
+                    textarea.value = lineas.slice(0, MAX_LINES).join('\n');
+                    alert(`Máximo permitido: ${MAX_LINES} líneas.`);
+                    return;
+                }
+
+                // Limitar caracteres por línea
+                for (let i = 0; i < lineas.length; i++) {
+                    if (lineas[i].length > MAX_CHARACTERS_PER_LINE) {
+                        lineas[i] = lineas[i].slice(0, MAX_CHARACTERS_PER_LINE);
+                        alert(`Límite de ${MAX_CHARACTERS_PER_LINE} caracteres por línea alcanzado.`);
+                    }
+                }
+                
+                // Actualizamos el contenido del textarea
+                textarea.value = lineas.join('\n');
+            }
+            
+        });
+
+        $('button[name="marca_agua"]').on('click', function() {
+            var marca_agua = $('#id_texto_marca_agua').val();
+            
+            if (!marca_agua) {
+                alert('Por favor, ingrese el texto de la marca de agua.');
+            } else {
+                $.ajax({
+                    type: "POST",
+                    url: "{% url 'factura_proforma_marca_de_agua_ajax' %}",
+                    data: {
+                        'csrfmiddlewaretoken': '{{ csrf_token }}',
+                        'id_factura_proforma':{{factura_proforma.id}},
+                        'texto_marca_agua': marca_agua 
+                    },
+                    success: function(response) {
+                        setTimeout(function(){
+                            window.location.reload();
+                        }, 1000)
+                    },
+                    error: function(xhr, status, error) {
+                        $('#msg').html(`<div class="text-center alert alert-danger" role="alert"> ${xhr.statusText} !!! </div>`)
+                    }
+                })
+            }
+        })
+</script>
+
+<!-- Enviar documentos a procesar -->
+<script>
+    $(document).ready(function(){
+        $('button[name="procesar_documentos"]').on('click', function(){
+            
+            let documentos = [];
+
+            $("#tabla_documentos > tbody > tr").each(function() {
+                var doc_select = $(this).find('.procesar').prop('checked');
+                var doc = $(this).find('.procesar');
+
+                if (doc_select) {
+                    var tipo = doc.attr('name');
+                    var id_doc = doc.val();
+                    
+                    documentos.push(
+                        {'tipo':tipo, 'id_doc':id_doc}
+                    );
+                }
+            });
+            
+            $.ajax({
+                type: "POST",
+                url: "{% url 'facturas_proformas_detalle' factura_proforma.id %}",
+                data: {
+                    'csrfmiddlewaretoken': '{{ csrf_token }}',
+                    'documentos': JSON.stringify(documentos),
+                },
+                success: function(response) {
+                    $('#msg').html(`<div class="text-center alert alert-${response.alert}" role="alert"> ${response.msg} !!! </div>`)
+                },
+                error: function(response) {
+                    $('#msg').html(`<div class="text-center alert alert-${response.alert}" role="alert"> ${response.msg} !!! </div>`)
+                }
+            });
+            
+        });
     })
 </script>
 
