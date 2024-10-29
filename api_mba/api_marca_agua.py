@@ -13,7 +13,7 @@ def api_marca_agua(texto, file_path):
         with open(file_path, 'rb') as pdf_file:
             files = {'pdf': pdf_file}
         
-            response = requests.post(url_api=URL_MARA_AGUA, data=data, files=files)
+            response = requests.post(url=URL_MARA_AGUA, data=data, files=files)
             return response
     except Exception as e:
         return e
