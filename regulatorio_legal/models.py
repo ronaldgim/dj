@@ -81,8 +81,8 @@ class DocumentosLegales(models.Model):
 
 class IsosRegEnviados(models.Model):
     
-    tipo_documento = models.CharField(max_length=10) # iso o reg sanitario
-    descripcion    = models.CharField(max_length=60, blank=True) # marca o product_id
+    tipo_documento = models.CharField(max_length=20) # iso o reg sanitario
+    descripcion    = models.CharField(max_length=200, blank=True) # marca o product_id
     documento      = models.FileField(upload_to='doc_legales_enviados', blank=True, null=True) # documento con marca de agua 
     creado         = models.DateTimeField(auto_now_add=True)
 
