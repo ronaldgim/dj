@@ -1,0 +1,802 @@
+{% comment %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.3/font/bootstrap-icons.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>
+    
+    <!-- Dropdown -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.min.js" integrity="sha384-Atwg2Pkwv9vp0ygtn1JAojH0nYbwNJLPhwyoVbhoPwBhjQPR5VtM2+xf0Uwh9KtT" crossorigin="anonymous"></script>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap JS (incluye Popper.js) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+
+
+
+    <!-- Ajax -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+
+    <!-- Select2 -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <!-- my select2 css -->
+    <link href="{% static 'css/myselect2.css' %}" rel="stylesheet"/>
+
+    {% block title %}
+    <title>GIM - Operaciones</title>
+    {% endblock %}
+</head>
+
+<body>
+
+    <style>
+        :root {
+            --sidebar-width: 250px;
+            --sidebar-collapsed-width: 60px;
+            /*--primary-bg: #2c3e50; COLOR DE SIDEBAR  */
+            --primary-bg: white;
+            /*--secondary-bg: #34495e;*/
+        }
+
+        /* Layout */
+        .wrapper {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: var(--sidebar-width);
+            background: var(--primary-bg);
+            transition: all 0.3s ease;
+            z-index: 1040;
+        }
+
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed-width);
+        }
+
+        /*.sidebar-logo {
+            height: 80px;
+            padding: 0 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }*/
+        .sidebar-logo {
+            height: 60px;
+            padding: 0 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .logo-img {
+            width: 40px;
+            height: 30px;
+            object-fit: cover;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar:not(.collapsed) .nav-text {
+            color: black;
+            display: inline-block;
+            text-align: center;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar.collapsed .nav-text {
+            display: none; /* Ocultar el texto en modo colapsado */
+        }
+
+        .sidebar.collapsed .navbar-brand {
+            justify-content: center;
+            width: 100%;
+        }
+        
+        /*.sidebar.collapsed .logo-img {*/
+            /*margin: auto; /* Centrar la imagen en modo colapsado */
+        /*}*/
+
+        .sidebar .nav-link {
+            /*color: rgba(255,255,255,0.8);*/
+            /*color:black;*/
+            display: flex;
+            align-items: center;
+            padding: 0.8rem 1rem;
+            gap: 0.8rem;
+            transition: all 0.5s;
+        }
+
+        /*.sidebar .nav-link:hover {
+            color: grey;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .sidebar .nav-link.active {
+            background: rgba(255,255,255,0.1);
+            color: grey;
+        }*/
+
+        .sidebar .nav-link i {
+            font-size: 1.2rem;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        .sidebar .nav-link:hover {
+            background :#f2f4f4;
+        }
+
+        .sidebar.collapsed .nav-text {
+            display: none;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            transition: margin-left 0.3s ease;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .main-content.shifted {
+            margin-left: var(--sidebar-collapsed-width);
+        }
+
+        /* Top Navbar */
+        .top-navbar {
+            background: #fff;
+            border-bottom: 1px solid #dee2e6;
+            padding: 0.5rem 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 1030;
+        }
+
+        .navbar-brand img {
+            height: 30px;
+        }
+
+        .toggle-sidebar-btn {
+            padding: 0.5rem;
+            font-size: 1.25rem;
+            border: none;
+            background: none;
+            color: var(--primary-bg);
+        }
+
+        /* Mobile Overlay */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1035;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 991.98px) {
+            /*.sidebar {
+                margin-left: calc(-1 * var(--sidebar-width));
+            }*/
+
+            .sidebar {
+                display: none; /* Ocultar sidebar en pantallas pequeñas */
+            }
+
+            .sidebar.mobile-open {
+                margin-left: 0;
+            }
+
+            .main-content {
+                margin-left: 0 !important;
+            }
+
+            .sidebar-overlay.active {
+                display: block;
+            }
+
+            .desktop-toggle {
+                display: none;
+            }
+        }
+
+        @media (min-width: 992px) {
+            .mobile-toggle {
+                display: none;
+            }
+        }
+    </style>
+
+
+    <div class="wrapper">
+        <!-- Sidebar -->
+        <nav class="sidebar shadow rounded">
+
+            <!-- LOGO SIDEBAR -->
+            
+            <div class="sidebar-logo d-flex align-items-center justify-content-center">
+                <a href="{% url 'inicio' %}" class="navbar-brand">
+                    <img src="{% static 'fondo.png' %}" alt="Logo" class="logo-img">
+                    <span class="fw-bold ms-2 nav-text">GIM - Operaciones</span>
+                </a>
+            </div>
+            
+
+            <!-- LINKS DE MENU LATERAL -->
+            <!--div class="mt-2">
+                <a href="{#% url 'dashboard' %#}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    <i class="bi bi-speedometer2"></i>
+                    <span class="nav-text">Dashboard</span>
+                </a>
+                <a href="{#% url 'perfil' %#}" class="nav-link {% if request.resolver_match.url_name == 'perfil' %}active{% endif %}">
+                    <i class="bi bi-person"></i>
+                    <span class="nav-text">Perfil</span>
+                </a>
+                <a href="{#% url 'reportes' %#}" class="nav-link {% if request.resolver_match.url_name == 'reportes' %}active{% endif %}">
+                    <i class="bi bi-file-text"></i>
+                    <span class="nav-text">Reportes</span>
+                </a>
+                <a href="{#% url 'configuracion' %#}" class="nav-link {% if request.resolver_match.url_name == 'configuracion' %}active{% endif %}">
+                    <i class="bi bi-gear"></i>
+                    <span class="nav-text">Configuración</span>
+                </a>
+            </div-->
+            <div class="mt-2">
+                <!-- Dashboard Dropdown -->
+                <div class="nav-item dropdown">
+                    <a href="#" class="nav-link dropdown-toggle {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" 
+                        id="dashboardDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-speedometer2"></i>
+                        <span class="nav-text">Dashboard</span>
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="dashboardDropdown">
+                        <li><a class="dropdown-item" href="#">Subenlace 1</a></li>
+                        <li><a class="dropdown-item" href="#">Subenlace 2</a></li>
+                    </ul>
+                </div>
+            
+                <!-- Perfil Dropdown -->
+                <div class="nav-item dropdown">
+                    <a href="#" class="nav-link dropdown-toggle {% if request.resolver_match.url_name == 'perfil' %}active{% endif %}" 
+                        id="perfilDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-person"></i>
+                        <span class="nav-text">Perfil</span>
+                    </a>
+                    <ul class="dropdown-menu ms-2" aria-labelledby="perfilDropdown">
+                        <li><a class="dropdown-item" href="#">Editar Perfil</a></li>
+                        <li><a class="dropdown-item" href="#">Configuración de Cuenta</a></li>
+                    </ul>
+                </div>
+
+                <!-- Reportes Dropdown -->
+                <div class="nav-item dropdown">
+                    <a href="#" class="nav-link dropdown-toggle {% if request.resolver_match.url_name == 'reportes' %}active{% endif %}" 
+                        id="reportesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-file-text"></i>
+                        <span class="nav-text">Reportes</span>
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="reportesDropdown">
+                        <li><a class="dropdown-item" href="#">Reporte Mensual</a></li>
+                        <li><a class="dropdown-item" href="#">Reporte Anual</a></li>
+                    </ul>
+                </div>
+            
+                <!-- Configuración Dropdown -->
+                <div class="nav-item dropdown">
+                    <a href="#" class="nav-link dropdown-toggle {% if request.resolver_match.url_name == 'configuracion' %}active{% endif %}" 
+                        id="configuracionDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-gear"></i>
+                        <span class="nav-text">Configuración</span>
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="configuracionDropdown">
+                        <li><a class="dropdown-item" href="#">Preferencias</a></li>
+                        <li><a class="dropdown-item" href="#">Seguridad</a></li>
+                    </ul>
+                </div>
+
+
+
+
+            </div>
+            
+        </nav>
+
+        <!-- Main Content -->
+        <div class="main-content">
+
+            <!-- Top Navbar -->
+            {% block top-navbar %}
+            <nav class="top-navbar shadow rounded">
+                <div class="container-fluid px-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+
+                            <!--button class="toggle-sidebar-btn mobile-toggle" type="button">
+                                <i class="bi bi-list" style="color:red"></i>
+                            </button>
+
+                            <button class="btn btn-link desktop-toggle" id="sidebarToggle"> 
+                                <i class="bi bi-list"></i>
+                            </button-->
+
+                            <button class="btn btn-link desktop-toggle" id="sidebarToggle"> 
+                                <i class="bi bi-list"></i>
+                            </button>
+
+                            <div class="ms-3">
+                                <div class="nav">
+                                    <!--a class="nav-link text-dark" href="{#% url 'inicio' %#}">Inicio</a>
+                                    <a class="nav-link text-dark" href="{#% url 'productos' %#}">WMS</a>
+                                    <a class="nav-link text-dark" href="{#% url 'servicios' %#}">Servicios</a>
+                                    <a class="nav-link text-dark" href="{#% url 'contacto' %#}">Contacto</a-->
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <span class="me-3">{{ request.user.username }}</span>
+                            <a href="{% url 'logout' %}" class="btn btn-danger btn-sm">
+                                <i class="bi bi-box-arrow-right"></i>
+                                <!--span class="ms-1">Cerrar Sesión</span-->
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+            {% endblock %}
+
+            <!-- Page Content -->
+            <div class="container-fluid ps-4 pe-4" style="background-color:#DFEEF7"> <!-- p-4 style="background-color:#DFEEF7"-->
+                {% block body %}
+                MAIN CONTENT
+                {% endblock %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay"></div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.querySelector('.sidebar');
+            const mainContent = document.querySelector('.main-content');
+            const sidebarToggle = document.querySelector('#sidebarToggle');
+            //const mobileToggle = document.querySelector('.mobile-toggle');
+            const sidebarOverlay = document.querySelector('.sidebar-overlay');
+            const toggleIcon = sidebarToggle.querySelector('i');
+
+            // Desktop toggle
+            sidebarToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('collapsed');
+                mainContent.classList.toggle('shifted');
+                toggleIcon.classList.toggle('bi-chevron-left');
+                toggleIcon.classList.toggle('bi-chevron-right');
+            });
+
+            // Mobile toggle
+            //mobileToggle.addEventListener('click', function() {
+            //    sidebar.classList.toggle('mobile-open');
+            //    sidebarOverlay.classList.toggle('active');
+            //    document.body.style.overflow = sidebar.classList.contains('mobile-open') ? 'hidden' : '';
+            //});
+
+            // Close sidebar on overlay click
+            sidebarOverlay.addEventListener('click', function() {
+                sidebar.classList.remove('mobile-open');
+                sidebarOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+            });
+
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                
+                if (window.innerWidth >= 992) {
+                    
+                    //sidebar.classList.remove('mobile-open');
+                    //sidebarOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            });
+        });
+    </script>
+
+</body>
+
+</html>
+{% endcomment %}
+
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.3/font/bootstrap-icons.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>
+    
+    <!-- Dropdown -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.min.js" integrity="sha384-Atwg2Pkwv9vp0ygtn1JAojH0nYbwNJLPhwyoVbhoPwBhjQPR5VtM2+xf0Uwh9KtT" crossorigin="anonymous"></script>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap JS (incluye Popper.js) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Ajax -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+
+    <!-- Select2 -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <!-- my select2 css -->
+    <link href="{% static 'css/myselect2.css' %}" rel="stylesheet"/>
+
+    {% block title %}
+    <title>GIM - Operaciones</title>
+    {% endblock %}
+
+    <style>
+        :root {
+            --sidebar-width: 250px;
+            --sidebar-collapsed-width: 60px;
+            --primary-bg: white;
+        }
+
+        /* Layout */
+        .wrapper {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: var(--sidebar-width);
+            background: var(--primary-bg);
+            transition: all 0.3s ease;
+            z-index: 1040;
+        }
+
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed-width);
+        }
+
+        .sidebar-logo {
+            height: 60px;
+            padding: 0 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .logo-img {
+            width: 40px;
+            height: 30px;
+            object-fit: cover;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar:not(.collapsed) .nav-text {
+            color: black;
+            display: inline-block;
+            text-align: center;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar.collapsed .nav-text {
+            display: none;
+        }
+
+        .sidebar.collapsed .navbar-brand {
+            justify-content: center;
+            width: 100%;
+        }
+
+        .sidebar .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem 1rem;
+            gap: 0.8rem;
+            transition: all 0.5s;
+        }
+
+        .sidebar .nav-link:hover {
+            background:#f2f4f4;
+        }
+
+        .sidebar .nav-link i {
+            font-size: 1.2rem;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        .sidebar .nav-link:hover {
+            background :#f2f4f4;
+        }
+
+        .sidebar.collapsed .nav-text {
+            display: none;
+        }
+
+        .sidebar.collapsed .submenu {
+            display: none;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            transition: margin-left 0.3s ease;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .main-content.shifted {
+            margin-left: var(--sidebar-collapsed-width);
+        }
+
+        /* Top Navbar */
+        .top-navbar {
+            background: #fff;
+            border-bottom: 1px solid #dee2e6;
+            padding: 0.5rem 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 1030;
+        }
+
+        .navbar-brand img {
+            height: 30px;
+        }
+
+        .toggle-sidebar-btn {
+            padding: 0.5rem;
+            font-size: 1.25rem;
+            border: none;
+            background: none;
+            color: var(--primary-bg);
+        }
+
+        /* Mobile Overlay */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1035;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 991.98px) {
+            .sidebar {
+                display: none;
+            }
+
+            .main-content {
+                margin-left: 0 !important;
+            }
+
+            .sidebar-overlay.active {
+                display: block;
+            }
+
+            .desktop-toggle {
+                display: none;
+            }
+
+            .mobile-toggle {
+                display: block;
+            }
+        }
+
+        @media (min-width: 992px) {
+            .mobile-toggle {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <!-- Sidebar -->
+        <nav class="sidebar shadow rounded">
+            <!-- LOGO SIDEBAR -->
+            <div class="sidebar-logo d-flex align-items-center justify-content-center">
+                <a href="{% url 'inicio' %}" class="navbar-brand">
+                    <img src="{% static 'fondo.png' %}" alt="Logo" class="logo-img">
+                    <span class="fw-bold ms-2 nav-text">GIM - Operaciones</span>
+                </a>
+            </div>
+
+            <!-- LINKS DE MENU LATERAL -->
+            <div class="mt-2">
+                <!-- Dashboard -->
+                <div class="nav-item">
+                    <a href="#" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                        <i class="bi bi-speedometer2"></i>
+                        <span class="nav-text">Dashboard</span>
+                    </a>
+                    <div class="submenu ms-3">
+                        <a href="#" class="nav-link">Subenlace 1</a>
+                        <a href="#" class="nav-link">Subenlace 2</a>
+                    </div>
+                </div>
+            
+                <!-- Perfil -->
+                <div class="nav-item">
+                    <a href="#" class="nav-link {% if request.resolver_match.url_name == 'perfil' %}active{% endif %}">
+                        <i class="bi bi-person"></i>
+                        <span class="nav-text">Perfil</span>
+                    </a>
+                    <div class="submenu ms-3">
+                        <a href="#" class="nav-link">Editar Perfil</a>
+                        <a href="#" class="nav-link">Configuración de Cuenta</a>
+                    </div>
+                </div>
+
+                <!-- Reportes -->
+                <div class="nav-item">
+                    <a href="#" class="nav-link {% if request.resolver_match.url_name == 'reportes' %}active{% endif %}">
+                        <i class="bi bi-file-text"></i>
+                        <span class="nav-text">Reportes</span>
+                    </a>
+                    <div class="submenu ms-3">
+                        <a href="#" class="nav-link">Reporte Mensual</a>
+                        <a href="#" class="nav-link">Reporte Anual</a>
+                    </div>
+                </div>
+            
+                <!-- Configuración -->
+                <div class="nav-item">
+                    <a href="#" class="nav-link {% if request.resolver_match.url_name == 'configuracion' %}active{% endif %}">
+                        <i class="bi bi-gear"></i>
+                        <span class="nav-text">Configuración</span>
+                    </a>
+                    <div class="submenu ms-3">
+                        <a href="#" class="nav-link">Preferencias</a>
+                        <a href="#" class="nav-link">Seguridad</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Top Navbar -->
+            {% block top-navbar %}
+            <nav class="top-navbar shadow rounded">
+                <div class="container-fluid px-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <button class="btn btn-link desktop-toggle" id="sidebarToggle"> 
+                                <i class="bi bi-list"></i>a
+                            </button>
+                            <button class="btn btn-link mobile-toggle" id="sidebarToggle">
+                                <i class="bi bi-list"></i>b
+                            </button>
+
+                            <div class="ms-3">
+                                <div class="nav">
+                                    <!--a class="nav-link text-dark" href="{#% url 'inicio' %#}">Inicio</a>
+                                    <a class="nav-link text-dark" href="{#% url 'productos' %#}">WMS</a>
+                                    <a class="nav-link text-dark" href="{#% url 'servicios' %#}">Servicios</a>
+                                    <a class="nav-link text-dark" href="{#% url 'contacto' %#}">Contacto</a-->
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <span class="me-3">{{ request.user.username }}</span>
+                            <a href="{% url 'logout' %}" class="btn btn-danger btn-sm">
+                                <i class="bi bi-box-arrow-right"></i>--
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+            {% endblock %}
+
+            <!-- Page Content -->
+            <div class="container-fluid ps-4 pe-4" style="background-color:#DFEEF7">
+                {% block body %}
+                MAIN CONTENT
+                {% endblock %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay"></div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.querySelector('.sidebar');
+            const mainContent = document.querySelector('.main-content');
+            const sidebarToggle = document.querySelectorAll('#sidebarToggle');
+            const sidebarOverlay = document.querySelector('.sidebar-overlay');
+            const toggleIcon = sidebarToggle[0].querySelector('i');
+
+            // Toggle sidebar
+            sidebarToggle.forEach(toggle => {
+                toggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('collapsed');
+                    mainContent.classList.toggle('shifted');
+                    // toggleIcon.classList.toggle('bi-chevron-left');
+                    // toggleIcon.classList.toggle('bi-chevron-right');
+                });
+            });
+
+            // Close sidebar on overlay click
+            sidebarOverlay.addEventListener('click', function() {
+                sidebar.classList.remove('mobile-open');
+                sidebarOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+            });
+
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                if (window.innerWidth >= 992) {
+                    document.body.style.overflow = '';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
+
+

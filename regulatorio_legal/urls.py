@@ -101,9 +101,21 @@ urlpatterns = [
     
     # documentos legales
     path(
-        route='documento_legal_editar_detail>',
+        route='documento_legal_editar_detail',
         view = views.documento_legal_editar_detail,
         name = 'documento_legal_editar_detail'
     ),
+    
+    path(
+        route = 'facturas-proformas-list',
+        view  = views.facturas_proformas_list,
+        name = 'facturas_proformas_list'
+    ),
+    
+    path(
+        route = 'facturas-proformas-detalle/<int:id>',
+        view  = views.facturas_proformas_detalle,
+        name = 'facturas_proformas_detalle'
+    )
     
 ]

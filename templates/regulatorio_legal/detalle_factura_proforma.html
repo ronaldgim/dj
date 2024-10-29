@@ -1,0 +1,220 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Detalle de facturas y proformas</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'regulatorio_legal/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+<h5 class="m-4 text-center fw-bold">{{factura_proforma.nombre_cliente}}</h5>
+<h5 class="m-4 text-center fw-bold">{{factura_proforma.tipo_comprobante|upper}} NÚMERO {{factura_proforma.n_comprobante}}</h5>
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
+<div class="mt-2" id="msg"></div>
+
+
+<h6 class="list-group-item mt-2 mb-2 active" type="button" name="detalle">
+    DETALLE DE {{factura_proforma.tipo_comprobante|upper}}
+    <i class="bi bi-caret-down-fill" style="float: right"></i>
+</h6>
+
+<div class="card mt-2 mb-2" id="detalle" style="display:none">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table" style="font-size:small">
+                <thead>
+                    <tr>
+                        <th scope="col">Código</th>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Marca</th>
+                        <th scope="col">Unidades</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in detalle %}
+                    <tr class="content">
+                        <td>{{i.product_id}}</td>
+                        <td>{{i.Nombre}}</td>
+                        <td>{{i.Marca}}</td>
+                        <td class="text-end">{{i.quantity|floatformat:"0g"}}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<hr>
+
+<h6 class="list-group-item mt-2 mb-2">DOCUMENTOS</h6>
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Detalle</th>
+                        <th scope="col">Estado</th>
+                        <th scope="col">Documento</th>
+                        <th scope="col">Procesar</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar" style="font-size:small">
+                    <tr>
+                        <td style="font-size:medium" class="text-center bg-info bg-gradient text-white" colspan="4">ISOS</td>
+                    </tr>
+                    {% for i in isos %}
+                    <tr class="content">
+                        <td>Marca: {{i.marca}} - Proveedor: {{i.nombre_proveedor|default:"-"}}</td>
+                        <td><a class="btn btn-sm btn-{% if i.estado == 'Vigente' %}success{% else %}danger{% endif %} disabled">{{i.estado|default:'X'}}</a></td>
+                        <td>
+                            {% if i.documento %} 
+                            <a class="btn btn-sm btn-primary" href="/media/{{i.documento}}" target="_blank"> Ver documento</a>
+                            {% else %} 
+                            no existe documento 
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if i.documento %} 
+                            <input type="checkbox">
+                            {% else %} 
+                            X
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+
+                    <tr>
+                        <td style="font-size:medium" class="text-center bg-secondary bg-gradient text-white" colspan="4">REGISTROS SANITARIOS</td>
+                    </tr>
+
+                    {% for i in registros_sanitarios %}
+                    <tr class="content">
+                        
+                        <td>
+                            N°.Reg Sanitario: {{i.n_reg_sanitario}} <br>
+                            Descripción: {{i.descripcion}} <br>
+                            Detalle : {% for i in  i.productos.all %} - {{i.product_id}} {% endfor %}
+                        </td>
+                        <td><a class="btn btn-sm btn-{% if i.estado == 'Vigente' %}success{% else %}danger{% endif %} disabled">{{i.estado|default:'X'}}</a></td>
+                        <td>
+                            {% if i.documento %} 
+                            <a class="btn btn-sm btn-secondary" href="/media/{{i.documento}}" target="_blank"> Ver documento</a>
+                            {% else %} 
+                            no existe documento 
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if i.documento %} 
+                            <input type="checkbox">
+                            {% else %} 
+                            X
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% comment %}
+REGISTROS SANITARIOS
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Tipo de documento</th>
+                        <th scope="col">Detalle</th>
+                        <th scope="col">Documento</th>
+                        <th scope="col">Procesar</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in registros_sanitarios %}
+                    <tr class="content">
+                        <td>Registro Sanitario</td>
+                        <td>
+                            N°.Reg Sanitario: {{i.n_reg_sanitario}} <br>
+                            Descripción: {{i.descripcion}} <br>
+                            Detalle : {% for i in  i.productos.all %} - {{i.product_id}} {% endfor %}
+                        </td>
+                        <td>{{i.documento|default:"-"}}</td>
+                        <td><input type="checkbox"></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endcomment %}
+
+
+<!-- Add comprobante -->
+<script>
+    $(document).ready(function() {
+        $("button[name='add_comprobante']").on('click', function() {
+            tipo_comprobante = $(this).closest('div').find('input').attr('name');
+            n_comprobante = $(this).closest('div').find('input').val();
+
+            if (!n_comprobante) {
+                alert('Ingrese el número de ' + tipo_comprobante);
+            } else {
+                $.ajax({
+                    type: "POST",
+                    url: "{% url 'facturas_proformas_list' %}",
+                    data: {
+                        'csrfmiddlewaretoken': '{{ csrf_token }}',
+                        'n_comprobante': n_comprobante,
+                        'tipo_comprobante': tipo_comprobante
+                    },
+                    success: function(response) {
+                        console.log(response);
+                        $('#msg').html(`<div class="text-center alert alert-${response.alert}" role="alert"> ${response.msg} !!! </div>`)
+                    },
+                    error: function(xhr) {
+                        $('#msg').html(`<div class="text-center alert alert-danger" role="alert"> ${xhr.statusText} !!! </div>`)
+                    }
+
+                    
+                })
+            }
+
+        })
+    })
+
+</script>
+
+
+<!-- Detalle -->
+<script>
+    $(document).ready(function() {
+        $("h6[name='detalle']").click(function(){
+            $("#detalle").toggle();
+            $(this).find("i").toggleClass("bi-caret-down-fill bi-caret-up-fill");
+        })
+    })
+</script>
+
+{% endblock %}

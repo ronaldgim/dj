@@ -1,7 +1,15 @@
 from django.contrib import admin
 
 # Model
-from regulatorio_legal.models import DocumentoLote, DocumentoEnviado, DocumentosLegales, RegistroSanitario, ProductosRegistroSanitario
+from regulatorio_legal.models import (
+    DocumentoLote, 
+    DocumentoEnviado, 
+    DocumentosLegales, 
+    RegistroSanitario, 
+    ProductosRegistroSanitario,
+    IsosRegEnviados,
+    FacturaProforma
+    )
 
 # Register your models here.
 @admin.register(DocumentoLote)
@@ -44,4 +52,29 @@ class ProductosRegistroSanitarioAdmin(admin.ModelAdmin):
     list_display = (
         'id',
         'product_id'
+    )
+    
+
+@admin.register(FacturaProforma)
+class FacturaProformaAdmin(admin.ModelAdmin):
+    list_display = (
+        'tipo_comprobante',
+        'n_comprobante',
+        'detalle',
+        'codigo_cliente',
+        'nombre_cliente',
+        'marca_de_agua',
+        'creado',
+        'actualizado',
+        'usuario',
+    )
+
+
+@admin.register(IsosRegEnviados)
+class IsosRegEnviadosAdmin(admin.ModelAdmin):
+    list_display = (
+        'tipo_documento',
+        'descripcion',
+        'documento',
+        'creado',
     )

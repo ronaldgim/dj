@@ -24,7 +24,9 @@ from regulatorio_legal.models import (
     DocumentoEnviado, 
     RegistroSanitario, 
     DocumentosLegales, 
-    ProductosRegistroSanitario
+    ProductosRegistroSanitario,
+    IsosRegEnviados,
+    FacturaProforma
     )
 
 # Pandas
@@ -846,3 +848,126 @@ def documento_legal_editar_detail(request):
         except Exception as e:
             messages.error(request, str(e))
             return HttpResponseRedirect(f'/regulatorio-legal/documentos-legales-detail-marca/{documento.id}')
+        
+        
+        
+### ENVIO DE ISOS Y REGISTROS CON MARCA DE AGUA
+def data_factura_proforma_warehouse(tipo_comprobante, n_comprobante):
+    
+    if tipo_comprobante == 'factura':
+        
+        # ARMAR FACTURA
+        n_comprobante   = 'FCSRI-1001' + f'{int(n_comprobante):09d}' + '-GIMPR'
+        
+        with connections['gimpromed_sql'].cursor() as cursor:
+            cursor.execute(f"SELECT * FROM facturas WHERE CODIGO_FACTURA = '{n_comprobante}'")
+            columns = [col[0] for col in cursor.description]
+            data = [dict(zip(columns, row)) for row in cursor.fetchall()]
+            data = pd.DataFrame(data)
+            
+            data = data.rename(columns={'PRODUCT_ID':'product_id','QUANTITY':'quantity'})
+            data = data.merge(clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE']], on='NOMBRE_CLIENTE', how='left')
+            detalle = str(data[['product_id','quantity']].to_dict('records'))
+            
+            return {
+                'detalle':detalle,
+                'codigo_cliente':data['CODIGO_CLIENTE'].unique()[0],
+                'nombre_cliente':data['NOMBRE_CLIENTE'].unique()[0],                
+            }
+
+        
+    elif tipo_comprobante == 'proforma':
+        with connections['gimpromed_sql'].cursor() as cursor:
+            cursor.execute(f"SELECT * FROM proformas WHERE contrato_id = '{n_comprobante}'")
+            columns = [col[0] for col in cursor.description]
+            data = [dict(zip(columns, row)) for row in cursor.fetchall()]
+            data = pd.DataFrame(data)
+            
+            data = data.rename(columns={'nombre_cliente':'NOMBRE_CLIENTE'})
+            data = data.merge(clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE']], on='NOMBRE_CLIENTE', how='left')
+            detalle = str(data[['product_id','quantity']].to_dict('records'))
+            
+            return {
+                'detalle':detalle,
+                'codigo_cliente':data['CODIGO_CLIENTE'].unique()[0],
+                'nombre_cliente':data['NOMBRE_CLIENTE'].unique()[0],
+            }
+
+
+
+
+def facturas_proformas_list(request):
+    
+    if request.method == 'GET':
+    
+        factura_proforma_list = FacturaProforma.objects.all().order_by('-id')
+        
+    elif request.method == 'POST':
+        
+        tipo_comprobante = request.POST.get('tipo_comprobante') #'proforma'
+        n_comprobante = request.POST.get('n_comprobante') #'45692'
+
+        data = data_factura_proforma_warehouse(tipo_comprobante, n_comprobante)
+        
+        try:
+        
+            factura_proforma = FacturaProforma.objects.create(
+                tipo_comprobante = tipo_comprobante,
+                n_comprobante = n_comprobante,
+                detalle = data['detalle'],
+                codigo_cliente = data['codigo_cliente'],
+                nombre_cliente = data['nombre_cliente'],
+                usuario_id = request.user.id,
+            )
+            
+            if factura_proforma:
+                pass
+                #redirect
+            else:
+                return JsonResponse({
+                    'alert':'danger',
+                    'msg': f'Error al añadir {tipo_comprobante} con número {n_comprobante}',
+            })
+                
+        except Exception as e:
+            return JsonResponse({
+                    'alert':'danger',
+                    'msg': f'Error ("{e}")',
+            })
+        
+    context = {
+        'factura_proforma_list': factura_proforma_list,
+    }
+    
+    return render(request, 'regulatorio_legal/lista_facturas_proformas.html', context)
+
+
+def facturas_proformas_detalle(request, id):
+    
+    if request.method == 'GET':
+        factura_proforma = FacturaProforma.objects.get(id=id)
+        detalle = json.loads(factura_proforma.detalle.replace("'", '"'))
+        detalle = pd.DataFrame(detalle)
+        detalle = detalle.groupby(by='product_id').sum().reset_index()
+        detalle = detalle.merge(productos_odbc_and_django()[['product_id','Nombre','Marca']])
+        
+        # ISOS
+        marcas = detalle['Marca'].unique()
+        isos_query =  DocumentosLegales.objects.filter(marca__in = list(marcas))        
+        doc_isos = pd.DataFrame(isos_query.values('id','marca','nombre_proveedor','documento'))
+        
+        doc_isos_estados = pd.DataFrame([{'id':i.id, 'estado':i.estado} for i in isos_query])
+        doc_isos = doc_isos.merge(doc_isos_estados, on='id', how='left')
+        isos = pd.DataFrame(marcas, columns=['marca']).merge(doc_isos, on='marca', how='left').fillna('')
+        
+        # REGISTROS SANITARIOS
+        productos = detalle['product_id'].unique()        
+        registros_sanitarios = RegistroSanitario.objects.filter(productos__product_id__in = list(productos)).distinct()
+        
+        context = {
+            'factura_proforma': factura_proforma,
+            'detalle':de_dataframe_a_template(detalle),
+            'isos':de_dataframe_a_template(isos),
+            'registros_sanitarios':registros_sanitarios
+        }
+        return render(request, 'regulatorio_legal/detalle_factura_proforma.html', context)

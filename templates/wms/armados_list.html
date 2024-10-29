@@ -10,6 +10,7 @@
 
 {% block body %}
 
+
 <h5 class="m-4 text-center fw-bold">ARMADOS</h5>
 
 {% if messages %}
@@ -90,145 +91,146 @@
 <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
     <div class="modal-dialog"> <!-- modal-lg -->
         <div class="modal-content">
-        <div class="modal-header">
-            <h5 class="modal-title fw-bold" id="staticBackdropLabel">Añadir Armado</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-            <div id="error_modal"></div>
-            <form action="" method="POST" id="orden-form" enctype="multipart/form-data">
-                {% csrf_token %}
-                <div class="row g-2">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="staticBackdropLabel">Añadir Armado</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="error_modal"></div>
+                <form action="" method="POST" id="orden-form" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="row g-2">
 
-                    <!-- Código -->
-                    <div class="col-4">
-                        {{form_nuevo_producto.product_id.label}}:
-                    </div>
-                    <div class="col-8">
-                        <select class="form-select select2" id="id_product_id" name="product_id">
-                            <option>-----------</option>
-                            {% for i in products_list %}
-                            <option value="{{i.product_id}}">{{i.product_id}}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <!--div class="col-2">
-                        <button class="btn btn-secondary" type="button" name="product">
-                            Código
-                        </button>
-                    </div-->
+                        <!-- Código -->
+                        <div class="col-4">
+                            {{form_nuevo_producto.product_id.label}}:
+                        </div>
+                        <div class="col-8">
+                            <select class="form-select select2" id="id_product_id" name="product_id">
+                                <option>-----------</option>
+                                {% for i in products_list %}
+                                <option value="{{i.product_id}}">{{i.product_id}}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <!--div class="col-2">
+                            <button class="btn btn-secondary" type="button" name="product">
+                                Código
+                            </button>
+                        </div-->
 
-                    <!-- Nombre -->
-                    <div class="col-4">
-                        {{form_nuevo_producto.nombre.label}}:
-                    </div>
-                    <div class="col-8">
-                        {{form_nuevo_producto.nombre}}
-                    </div>
+                        <!-- Nombre -->
+                        <div class="col-4">
+                            {{form_nuevo_producto.nombre.label}}:
+                        </div>
+                        <div class="col-8">
+                            {{form_nuevo_producto.nombre}}
+                        </div>
 
-                    <!-- Marca -->
-                    <div class="col-4">
-                        {{form_nuevo_producto.marca.label}}:
-                    </div>
-                    <div class="col-8">
-                        {{form_nuevo_producto.marca}}
-                    </div>
+                        <!-- Marca -->
+                        <div class="col-4">
+                            {{form_nuevo_producto.marca.label}}:
+                        </div>
+                        <div class="col-8">
+                            {{form_nuevo_producto.marca}}
+                        </div>
 
-                    <!-- Bodega -->
-                    <div class="col-4">
-                        {{form_orden.bodega.label}}:
-                    </div>
-                    <div class="col-8">
-                        {{form_orden.bodega}}
-                    </div>
-                    <!-- Cliente -->
-                    <div class="col-4">
-                        {{form_orden.cliente.label}}:
-                    </div>
-                    <div class="col-8">
-                        {#{form_orden.cliente}#}
-                        <select class="form-select select2" id="id_cliente" name="cliente">
-                            <option>-----------</option>
-                            {% for i in cliente_list %}
-                            <option value="{{i.NOMBRE_CLIENTE}}">{{i.NOMBRE_CLIENTE}}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <!-- Ruc -->
-                    <div class="col-4">
-                        {{form_orden.ruc.label}}:
-                    </div>
-                    <div class="col-8">
-                        {{form_orden.ruc}}
-                    </div>
-                    <!--div class="col-2">
-                        <button class="btn btn-secondary" type="button" name="ruc">
-                            Ruc
-                        </button>
-                    </div-->
-                    <!-- Precio -->
-                    <div class="col-4">
-                        {{form_nuevo_producto.precio_venta.label}}:
-                    </div>
-                    <div class="col-6">
-                        {{form_nuevo_producto.precio_venta}}
-                    </div>
-                    <div class="col-2">
-                        <button class="btn btn-secondary" type="button" name="precio">
-                            Precio
-                        </button>
-                    </div>
-                    <!-- Cantidad -->
-                    <div class="col-4">
-                        {{form_nuevo_producto.unidades.label}}:
-                    </div>
-                    <div class="col-8">
-                        {{form_nuevo_producto.unidades}}
-                    </div>
-                    <!-- Prioridad -->
-                    <div class="col-4">
-                        {{form_orden.prioridad.label}}:
-                    </div>
-                    <div class="col-8">
-                        {{form_orden.prioridad}}
-                    </div>
-                    <!-- Observaciones -->
-                    <div class="col-4">
-                        {{form_orden.observaciones.label}}:
-                    </div>
-                    <div class="col-8">
-                        {{form_orden.observaciones}}
-                    </div>
-                </div>  
-                <!-- hidden inputs -->
-                <input type="hidden" name="estado" value="Creado">
-                <input type="hidden" name="usuario" value="{{request.user.id}}">
-                <input type="hidden" id="id_codigo_cliente">
+                        <!-- Bodega -->
+                        <div class="col-4">
+                            {{form_orden.bodega.label}}:
+                        </div>
+                        <div class="col-8">
+                            {{form_orden.bodega}}
+                        </div>
+                        <!-- Cliente -->
+                        <div class="col-4">
+                            {{form_orden.cliente.label}}:
+                        </div>
+                        <div class="col-8">
+                            {#{form_orden.cliente}#}
+                            <select class="form-select select2" id="id_cliente" name="cliente">
+                                <option>-----------</option>
+                                {% for i in cliente_list %}
+                                <option value="{{i.NOMBRE_CLIENTE}}">{{i.NOMBRE_CLIENTE}}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <!-- Ruc -->
+                        <div class="col-4">
+                            {{form_orden.ruc.label}}:
+                        </div>
+                        <div class="col-8">
+                            {{form_orden.ruc}}
+                        </div>
+                        <!--div class="col-2">
+                            <button class="btn btn-secondary" type="button" name="ruc">
+                                Ruc
+                            </button>
+                        </div-->
+                        <!-- Precio -->
+                        <div class="col-4">
+                            {{form_nuevo_producto.precio_venta.label}}:
+                        </div>
+                        <div class="col-6">
+                            {{form_nuevo_producto.precio_venta}}
+                        </div>
+                        <div class="col-2">
+                            <button class="btn btn-secondary" type="button" name="precio">
+                                Precio
+                            </button>
+                        </div>
+                        <!-- Cantidad -->
+                        <div class="col-4">
+                            {{form_nuevo_producto.unidades.label}}:
+                        </div>
+                        <div class="col-8">
+                            {{form_nuevo_producto.unidades}}
+                        </div>
+                        <!-- Prioridad -->
+                        <div class="col-4">
+                            {{form_orden.prioridad.label}}:
+                        </div>
+                        <div class="col-8">
+                            {{form_orden.prioridad}}
+                        </div>
+                        <!-- Observaciones -->
+                        <div class="col-4">
+                            {{form_orden.observaciones.label}}:
+                        </div>
+                        <div class="col-8">
+                            {{form_orden.observaciones}}
+                        </div>
+                    </div>  
+                    <!-- hidden inputs -->
+                    <input type="hidden" name="estado" value="Creado">
+                    <input type="hidden" name="usuario" value="{{request.user.id}}">
+                    <input type="hidden" id="id_codigo_cliente">
 
-                {% comment %}
-                <datalist id="product_list">
-                    {% for i in product_list %}
-                    <option value="{{i.product_id}}">
-                    {% endfor %}
-                </datalist>
+                    {% comment %}
+                    <datalist id="product_list">
+                        {% for i in product_list %}
+                        <option value="{{i.product_id}}">
+                        {% endfor %}
+                    </datalist>
 
-                <datalist id="ruc_list">
-                    {% for i in ruc_list %}
-                    <option value="{{i.IDENTIFICACION_FISCAL}}">
-                    {% endfor %}
-                </datalist>
+                    <datalist id="ruc_list">
+                        {% for i in ruc_list %}
+                        <option value="{{i.IDENTIFICACION_FISCAL}}">
+                        {% endfor %}
+                    </datalist>
 
-                <datalist id="cliente_list">
-                    {% for i in cliente_list %}
-                    <option value="{{i.NOMBRE_CLIENTE}}">
-                    {% endfor %}
-                </datalist>
-                {% endcomment %}
+                    <datalist id="cliente_list">
+                        {% for i in cliente_list %}
+                        <option value="{{i.NOMBRE_CLIENTE}}">
+                        {% endfor %}
+                    </datalist>
+                    {% endcomment %}
 
-            </form>
-        </div>
-        <div class="modal-footer">
-            <button type="submit" form="orden-form" class="btn btn-primary">Guardar</button>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" form="orden-form" class="btn btn-primary">Guardar</button>
+            </div>
         </div>
     </div>
 </div>
@@ -300,7 +302,6 @@
         })
     })
 </script>
-
 
 <!-- ADD PRECIO -->
 <script>

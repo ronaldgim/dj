@@ -3,12 +3,6 @@ import datetime
 
 from users.models import User
 
-# CHOISES
-TIPO = [
-    ('factura', 'factura'),
-    ('proforma', 'proforma'),
-]
-
 
 # Create your models here.
 class DocumentoLote(models.Model):
@@ -63,10 +57,7 @@ class RegistroSanitario(models.Model):
 
     @property
     def estado(self):
-        if self.fecha_caducidad < datetime.date.today():
-            return 'Caducado'
-        else:
-            return 'Vigente'
+        return 'Caducado' if self.fecha_caducidad < datetime.date.today() else 'Vigente'
 
 
 class DocumentosLegales(models.Model):
@@ -88,35 +79,22 @@ class DocumentosLegales(models.Model):
         return 'Caducado' if self.fecha_caducidad < datetime.date.today() else 'Vigente'
 
 
-# class RegSanFacturaProforma(models.Model):
+class IsosRegEnviados(models.Model):
     
-#     product_id       = models.CharField(max_length=30)
-#     nombre           = models.CharField(max_length=30)
-#     marca            = models.CharField(max_length=30)
-#     enviar_documento = models.BooleanField(default=False)
-#     documento        = models.FileField(blank=True)
+    tipo_documento = models.CharField(max_length=10) # iso o reg sanitario
+    descripcion    = models.CharField(max_length=60, blank=True) # marca o product_id
+    documento      = models.FileField(upload_to='doc_legales_enviados', blank=True, null=True) # documento con marca de agua 
+    creado         = models.DateTimeField(auto_now_add=True)
 
-
-# class IsoFacturaProforma(models.Model):
+class FacturaProforma(models.Model):
     
-#     marca            = models.CharField(max_length=30)
-#     enviar_documento = models.BooleanField(default=False)
-#     documento        = models.FileField(blank=True)
-
-
-
-# class FacturaProforma(models.Model):
-    
-#     tipo           = models.CharField(max_length=10, choices=TIPO)
-#     documento_str  = models.CharField(max_length=30)
-#     documento_int  = models.IntegerField()
-#     codigo_cliente = models.CharField(max_length=10)
-#     nombre_cliente = models.CharField(max_length=150)
-#     fecha          = models.DateField()
-    
-#     productos      = models.ManyToManyField()
-    
-#     marca_de_agua  = models.TextField(blank=True)
-#     creado         = models.DateTimeField(auto_now_add=True)
-#     actualizado    = models.DateTimeField(auto_now=True)
-#     usuario        = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.PROTECT)
+    tipo_comprobante = models.CharField(max_length=10) # factura o proforma
+    n_comprobante    = models.CharField(max_length=30) # numero de factura o proforma
+    detalle          = models.TextField() # lista de productos JSON
+    documentos       = models.ManyToManyField(IsosRegEnviados)   
+    codigo_cliente   = models.CharField(max_length=10)
+    nombre_cliente   = models.CharField(max_length=150)
+    marca_de_agua    = models.TextField(blank=True)
+    creado           = models.DateTimeField(auto_now_add=True)
+    actualizado      = models.DateTimeField(auto_now=True)
+    usuario          = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.PROTECT)

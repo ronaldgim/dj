@@ -1,0 +1,367 @@
+{% comment %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sidebar con Topnav</title>
+    <link rel="stylesheet" href="styles.css">
+
+    <style>
+        /* Estilo general */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: -250px;
+            width: 250px;
+            height: 100%;
+            background-color: #333;
+            color: white;
+            transition: left 0.3s;
+            overflow-y: auto;
+        }
+
+        .sidebar.open {
+            left: 0;
+        }
+
+        .sidebar .menu {
+            list-style: none;
+            padding: 0;
+        }
+
+        .sidebar .menu li {
+            padding: 15px;
+        }
+
+        .sidebar .menu li a {
+            color: white;
+            text-decoration: none;
+            display: block;
+        }
+
+        /* Submenús */
+        .submenu .submenu-items {
+            display: none;
+            padding-left: 15px;
+        }
+
+        .submenu.open .submenu-items {
+            display: block;
+        }
+
+        /* Botón de menú */
+        .menu-btn {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            font-size: 30px;
+            background-color: #333;
+            color: white;
+            border: none;
+            cursor: pointer;
+            z-index: 1000;
+            transition: left 0.3s;
+        }
+
+        /* Contenido principal */
+        .content {
+            margin-left: 0;
+            transition: margin-left 0.3s;
+        }
+
+        .sidebar.open + .content {
+            margin-left: 250px;
+        }
+
+        /* Topnav fija */
+        .topnav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #333;
+            color: white;
+            overflow: hidden;
+            z-index: 500;
+        }
+
+        .topnav a {
+            float: left;
+            display: block;
+            color: white;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+        }
+
+        .topnav a:hover {
+            background-color: #575757;
+        }
+
+        .topnav a.active {
+            background-color: #4CAF50;
+        }
+
+        /* Espaciado para que el contenido no se superponga con la topnav */
+        .main-content {
+            padding: 60px 20px; /* Dejar espacio para la topnav */
+        }
+
+    </style>
+
+</head>
+<body>
+    <!--button id="toggleSidebar" class="menu-btn">☰</button-->
+
+    <div id="sidebar" class="sidebar">
+        <ul class="menu">
+            <li><a href="#">Inicio</a></li>
+            <li class="submenu">
+                <a href="#" class="submenu-toggle">Menú 1 ▾</a>
+                <ul class="submenu-items">
+                    <li><a href="#">Opción 1</a></li>
+                    <li><a href="#">Opción 2</a></li>
+                </ul>
+            </li>
+            <li class="submenu">
+                <a href="#" class="submenu-toggle">Menú 2 ▾</a>
+                <ul class="submenu-items">
+                    <li><a href="#">Opción A</a></li>
+                    <li><a href="#">Opción B</a></li>
+                </ul>
+            </li>
+            <li><a href="#">Acerca de</a></li>
+        </ul>
+    </div>
+
+    <div class="content">
+        <!-- Topnav fija -->
+        <div class="topnav">
+            <button id="toggleSidebar" class="menu-btn">☰</button>
+            <a href="#" class="active">Inicio</a>
+            <a href="#">Perfil</a>
+            <a href="#">Configuración</a>
+            <a href="#">Cerrar sesión</a>
+        </div>
+
+        <div class="main-content">
+            <h1>Contenido principal</h1>
+            <p>Este es el contenido principal de la página.</p>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus lacinia odio vitae vestibulum vestibulum. Cras venenatis euismod malesuada.</p>
+            <p>Este contenido se desplaza mientras la topnav permanece fija en la parte superior.</p>
+        </div>
+    </div>
+
+    <script>
+        // Referencias a los elementos
+        const toggleSidebarButton = document.getElementById('toggleSidebar');
+        const sidebar = document.getElementById('sidebar');
+        const submenuToggles = document.querySelectorAll('.submenu-toggle');
+
+        // Evento para abrir/cerrar el sidebar
+        toggleSidebarButton.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+        });
+
+        // Eventos para los submenús colapsables
+        submenuToggles.forEach((toggle) => {
+            toggle.addEventListener('click', (e) => {
+                e.preventDefault(); // Evitar redireccionamiento
+                const parent = toggle.parentElement;
+                parent.classList.toggle('open');
+            });
+        });
+
+    </script>
+</body>
+</html>
+{% endcomment %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sidebar con Topnav Integrado</title>
+    
+    <style>
+        /* Estilo general */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            height: 100vh;
+            display: flex;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -250px;
+            width: 250px;
+            height: 100vh; /* Alto completo de la pantalla */
+            background-color: #333;
+            color: white;
+            transition: left 0.3s;
+            overflow-y: auto;
+        }
+
+        .sidebar.open {
+            left: 0;
+        }
+
+        .sidebar .menu {
+            list-style: none;
+            padding: 0;
+        }
+
+        .sidebar .menu li {
+            padding: 15px;
+        }
+
+        .sidebar .menu li a {
+            color: white;
+            text-decoration: none;
+            display: block;
+        }
+
+        /* Submenús */
+        .submenu .submenu-items {
+            display: none;
+            padding-left: 15px;
+        }
+
+        .submenu.open .submenu-items {
+            display: block;
+        }
+
+        /* Topnav */
+        .topnav {
+            width: 100%; /* Ocupa todo el ancho del contenido */
+            background-color: #333;
+            color: white;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            padding: 10px;
+        }
+
+        .topnav a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 15px;
+            display: block;
+        }
+
+        .topnav a:hover {
+            background-color: #575757;
+        }
+
+        .topnav a.active {
+            background-color: #4CAF50;
+        }
+
+        /* Botón de menú */
+        .menu-btn {
+            font-size: 30px;
+            background-color: transparent;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        /* Contenido principal */
+        .content {
+            flex: 1; /* El contenido ocupa todo el espacio restante */
+            transition: margin-left 0.3s;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar.open + .content {
+            margin-left: 250px;
+        }
+
+        /* Main content padding */
+        .main-content {
+            padding: 20px;
+        }
+
+    </style>
+
+</head>
+<body>
+    <div id="sidebar" class="sidebar">
+        <ul class="menu">
+            <li><a href="#">Inicio</a></li>
+            <li class="submenu">
+                <a href="#" class="submenu-toggle">Menú 1 ▾</a>
+                <ul class="submenu-items">
+                    <li><a href="#">Opción 1</a></li>
+                    <li><a href="#">Opción 2</a></li>
+                </ul>
+            </li>
+            <li class="submenu">
+                <a href="#" class="submenu-toggle">Menú 2 ▾</a>
+                <ul class="submenu-items">
+                    <li><a href="#">Opción A</a></li>
+                    <li><a href="#">Opción B</a></li>
+                </ul>
+            </li>
+            <li><a href="#">Acerca de</a></li>
+        </ul>
+    </div>
+
+    <div class="content">
+        <!-- Topnav integrada -->
+        <div class="topnav">
+            <button id="toggleSidebar" class="menu-btn">☰</button>
+            <!--a href="#" class="active">Inicio</a>
+            <a href="#">Perfil</a>
+            <a href="#">Configuración</a-->
+            <a href="#">Cerrar sesión</a>
+        </div>
+
+        <div class="main-content">
+            <h1>Contenido principal</h1>
+            <p>Este es el contenido principal de la página.</p>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus lacinia odio vitae vestibulum vestibulum. Cras venenatis euismod malesuada.</p>
+        </div>
+    </div>
+
+    <script>
+        // Referencias a los elementos
+        const toggleSidebarButton = document.getElementById('toggleSidebar');
+        const sidebar = document.getElementById('sidebar');
+        const submenuToggles = document.querySelectorAll('.submenu-toggle');
+
+        // Evento para abrir/cerrar el sidebar
+        toggleSidebarButton.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+        });
+
+        // Eventos para los submenús colapsables
+        submenuToggles.forEach((toggle) => {
+            toggle.addEventListener('click', (e) => {
+                e.preventDefault(); // Evitar redireccionamiento
+                const parent = toggle.parentElement;
+                parent.classList.toggle('open');
+            });
+        });
+    </script>
+</body>
+</html>
+
