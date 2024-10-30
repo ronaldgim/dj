@@ -360,6 +360,9 @@
                 },
                 success: function(response) {
                     $('#msg-documentos').html(`<div class="text-center alert alert-${response.alert}" role="alert"> ${response.msg} !!! </div>`);
+                    setTimeout(function(){
+                        window.location.reload();
+                    }, 3000)
                     $("#spinner-documentos").hide();
                 },
                 error: function(response) {
@@ -392,7 +395,6 @@
         })
     })
 </script>
-
 
 <!-- Eliminar documento procesado-->
 <script>
