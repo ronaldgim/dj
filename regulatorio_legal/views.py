@@ -59,6 +59,12 @@ from smtplib import SMTPException
 # Login
 from django.contrib.auth.decorators import login_required
 
+# Usu de api
+from api_mba.api_marca_agua import api_marca_agua
+from django.core.files.base import ContentFile
+import requests
+
+
 # Lista de importaciones
 def importaciones_llegadas_list(request):
     
@@ -896,9 +902,7 @@ def factura_proforma_marca_de_agua_ajax(request):
         'msg': f'Texto de marca de agua agregado !!!'
     })
 
-from api_mba.api_marca_agua import api_marca_agua
-from django.core.files.base import ContentFile
-import requests
+
 def facturas_proformas_detalle(request, id):
     
     if request.method == 'GET':
@@ -920,7 +924,8 @@ def facturas_proformas_detalle(request, id):
             'factura_proforma': factura_proforma,
             'detalle':de_dataframe_a_template(detalle),
             'isos':isos_query,
-            'registros_sanitarios':registros_sanitarios
+            'registros_sanitarios':registros_sanitarios,
+            'correo':correos_notificacion_factura(factura_proforma.nombre_cliente)[0]
         }
         return render(request, 'regulatorio_legal/detalle_factura_proforma.html', context)
     
@@ -929,30 +934,89 @@ def facturas_proformas_detalle(request, id):
         factura_proforma = FacturaProforma.objects.get(id=id)
         documentos = json.loads(request.POST.get('documentos'))
 
-        for i in documentos:
-            
-            tipo = i.get('tipo').split('_')[0]
-            desc = i.get('tipo').split('_')[1]
-            path = i.get('doc_path')
-            
-            procesar_pdf = api_marca_agua(texto=factura_proforma.marca_de_agua, file_path=path)
-            if procesar_pdf.status_code == 200:
-                pdf_response = requests.get(procesar_pdf.json().get('url_descarga'))
-                if pdf_response.status_code==200:
-                    
-                    iso_reg = IsosRegEnviados(
-                        tipo_documento= tipo,
-                        descripcion= desc,
-                    )
-                    
-                    iso_reg.documento.save(
-                        f'{tipo}-gim.pdf',
-                        ContentFile(pdf_response.content, name=f'{tipo}')
-                    )
-                    
-                    factura_proforma.documentos.add(iso_reg)
+        if len(documentos) < 1:
+            return JsonResponse({'alert':'danger', 'msg':'Seleccione documentos que desea procesar'})
+        else:
+            for i in documentos:
+                
+                tipo = i.get('tipo').split('_')[0]
+                desc = i.get('tipo').split('_')[1]
+                path = i.get('doc_path')
+                
+                procesar_pdf = api_marca_agua(texto=factura_proforma.marca_de_agua, file_path=path)
+                if procesar_pdf.status_code == 200:
+                    pdf_response = requests.get(procesar_pdf.json().get('url_descarga'))
+                    if pdf_response.status_code==200:
+                        
+                        iso_reg = IsosRegEnviados(
+                            tipo_documento= tipo,
+                            descripcion= desc,
+                        )
+                        
+                        iso_reg.documento.save(
+                            f'{tipo}-gim.pdf',
+                            ContentFile(pdf_response.content, name=f'{tipo}')
+                        )
+                        
+                        factura_proforma.documentos.add(iso_reg)
         
         return JsonResponse({
             'alert':'success',
             'msg': f'Documentos procesados exitosamente !!!'
         })
+
+
+def eliminar_documento_procesado_ajax(request):
+    if request.method == 'POST':
+        id_documento = int(request.POST.get('id_documento'))
+        documento = IsosRegEnviados.objects.get(id=id_documento)
+        documento.delete()
+        return JsonResponse({
+            'alert':'success',
+        })
+    
+    
+def enviar_documentos_procesados_ajax(request):
+    print(request.POST)
+    id_factura_proforma = int(request.POST.get('id'))
+    email = request.POST.get('email')
+    
+    factura_proforma = FacturaProforma.objects.get(id=id_factura_proforma)
+    documentos = factura_proforma.documentos.all()
+    
+    if factura_proforma:
+    
+        try:
+            email = EmailMessage(
+                subject="PRUEBA SUBJECT",
+                body="PREUBA BODY",
+                from_email=settings.EMAIL_HOST_USER,
+                to=[email],
+                #bcc=['jgualotuna@gimpromed.com','ncaisapanta@gimpromed.com','dtrujillo@gimpromed.com'],
+                headers={'Message-ID':'Documentos'}
+            )
+            
+            for i in documentos:
+                email.attach_file(i.documento.path)
+            
+            email.send()
+            
+            # campo boleando de confirmación
+            
+            return JsonResponse({
+                'alert':'success',
+                'msg': f'Documentos enviados exitosamente !!!'
+            })
+            
+        except SMTPException as e:
+            return JsonResponse({
+                'alert':'danger',
+                'msg': f'Error al enviar documentos: {e}'
+            })
+    else:
+        return JsonResponse({
+            'alert':'danger',
+            'msg': f'Error !!!'
+        })
+    
+        

@@ -29,8 +29,8 @@
 <div class="mt-2" id="msg"></div>
 
 
-<h6 class="list-group-item mt-2 mb-2 active" type="button" name="detalle">
-    DETALLE DE {{factura_proforma.tipo_comprobante|upper}}
+<h6 class="list-group-item mt-2 mb-2" type="button" name="detalle">
+    Detalle de {{factura_proforma.tipo_comprobante}}
     <i class="bi bi-caret-down-fill" style="float: right"></i>
 </h6>
 
@@ -61,13 +61,16 @@
     </div>
 </div>
 
-<button class="btn text-white {% if not factura_proforma.marca_de_agua %} btn-danger {% else %} btn-warning {% endif %}" type="button" data-bs-toggle="modal" data-bs-target="#marcaAgua">
-    TEXTO DE MARCA DE AGUA
-</button>
-
 <hr>
 
-<h6 class="list-group-item mt-2 mb-2">DOCUMENTOS</h6>
+
+<h6 class="fw-bold">Documentos</h6>
+<button class="btn text-white {% if not factura_proforma.marca_de_agua %} btn-danger {% else %} btn-warning {% endif %}" type="button" data-bs-toggle="modal" data-bs-target="#marcaAgua">
+    Marca de agua
+</button>
+<button class="btn btn-success {% if not factura_proforma.marca_de_agua %} disabled {% endif %}" name="procesar_documentos">
+    Procesar documentos
+</button>
 <div class="card mt-2 mb-2">
     <div class="card-body m-0 p-0">
         <div class="container table-responsive">
@@ -95,7 +98,7 @@
                         </td>
                         <td>
                             {% if i.documento %}
-                            <a class="btn btn-sm btn-primary" href="{{i.documento.url}}" target="_blank"><i class="bi bi-filetype-doc"></i></a>
+                            <a class="btn btn-sm btn-info text-white" href="{{i.documento.url}}" target="_blank"><i class="bi bi-filetype-doc"></i></a>
                             {% else %} 
                             no existe documento 
                             {% endif %}
@@ -145,9 +148,62 @@
     </div>
 </div>
 
-<button class="btn btn-success mb-4" name="procesar_documentos">
-    Procesar documentos
-</button>
+
+<!-- DOCUMENTOS PROCESADOS -->
+{% if factura_proforma.documentos.all %}
+<div class="card ps-4 pe-4 pt-2 pb-2 mb-4" style="background-color:whitesmoke">
+    <h6 class="fw-bold">Documentos procesados listos para enviar</h6>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="input-group">
+                <span class="input-group-text" for="buscar_cliente_id">Email:</span>
+                <input class="form-control" id="email" type="email" value="{{correo}}">
+                <button class="btn btn-success" type="submit" name="enviar-email">
+                    <i class="bi bi-send"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-2 mb-2">
+        <div class="card-body m-0 p-0">
+            <div class="container table-responsive">
+                <table class="table" style="font-size:small" id="tabla_documentos">
+                    <thead>
+                        <tr>
+                            <th scope="col">Tipo</th>
+                            <th scope="col">Descripción</th>
+                            <th scope="col">Documento</th>
+                            <th scope="col">Creado</th>
+                            <th scope="col">Eliminar</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pedidosbuscar" >
+                        <!-- DOCUMENTOS PROCESADOS -->
+                        {% for i in factura_proforma.documentos.all %}
+                        <tr class="content">
+                            <td>{% if i.tipo_documento == 'iso' %}Iso{% else %}Registro Sanitario{% endif %}</td>
+                            <td>{{i.descripcion}}</td>
+                            <td>
+                                <a class="btn btn-sm {% if i.tipo_documento == 'iso' %} btn-info text-white {% else %} btn-secondary {% endif %}" href="{{i.documento.url}}" target="_blank">
+                                    <i class="bi bi-filetype-doc"></i>
+                                </a>
+                            </td>
+                            <td>{{i.creado}}</td>
+                            <td>
+                                <button class="btn btn-sm btn-danger" name="eliminar-documento" id={{i.id}}>
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 <!-- Modal -->
 <div class="modal fade" id="marcaAgua" tabindex="-1" aria-labelledby="marcaAguaLabel" aria-hidden="true">
@@ -280,6 +336,53 @@
             });
             
         });
+    })
+</script>
+
+<!-- Eliminar documento procesado-->
+<script>
+    $("button[name='eliminar-documento']").on('click', function() {
+        var id_documento = $(this).attr('id');
+        var row = $(this).closest("tr");
+        
+        $.ajax({
+            type:'POST',
+            url:'{% url "eliminar_documento_procesado_ajax" %}',
+            data:{
+                'csrfmiddlewaretoken':'{{csrf_token}}',
+                "id_documento":id_documento
+            },
+
+            success: function(){
+                row.remove();
+            }
+        })
+    })
+</script>
+
+
+<!-- Eliminar documento procesado-->
+<script>
+    $("button[name='enviar-email']").on('click', function() {
+        
+        var email = $("#email").val();
+        
+        $.ajax({
+            type:'POST',
+            url:'{% url "enviar_documentos_procesados_ajax" %}',
+            data:{
+                "csrfmiddlewaretoken":"{{csrf_token}}",
+                "id":"{{factura_proforma.id}}",
+                "email":email,
+            },
+
+            success: function(){
+                $('#msg').html(`<div class="text-center alert alert-${response.alert}" role="alert"> ${response.msg} !!! </div>`)
+            },
+            error: function(response) {
+                $('#msg').html(`<div class="text-center alert alert-${response.alert}" role="alert"> ${response.msg} !!! </div>`)
+            }
+        })
     })
 </script>
 

@@ -119,12 +119,15 @@ urlpatterns = [
     
     
     
+    path(
+        route = 'eliminar_documento_procesado_ajax',
+        view  = views.eliminar_documento_procesado_ajax,
+        name = 'eliminar_documento_procesado_ajax'
+    ),
     
-    #     # Marca de agua en documentos
-    # path(
-    #     route='prueba_api_marca_agua',
-    #     view = views.prueba_api_marca_agua,
-    #     name = 'prueba_api_marca_agua'
-    # ),
-    
+    path(
+        route = 'enviar_documentos_procesados_ajax',
+        view  = views.enviar_documentos_procesados_ajax,
+        name = 'enviar_documentos_procesados_ajax'
+    ),
 ]
