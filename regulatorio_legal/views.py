@@ -910,12 +910,7 @@ def facturas_proformas_detalle(request, id):
         
         # ISOS
         marcas = detalle['Marca'].unique()
-        isos_query =  DocumentosLegales.objects.filter(marca__in = list(marcas))        
-        doc_isos = pd.DataFrame(isos_query.values('id','marca','nombre_proveedor','documento'))
-        
-        doc_isos_estados = pd.DataFrame([{'id':i.id, 'estado':i.estado} for i in isos_query])
-        doc_isos = doc_isos.merge(doc_isos_estados, on='id', how='left')
-        isos = pd.DataFrame(marcas, columns=['marca']).merge(doc_isos, on='marca', how='left').fillna('')
+        isos_query =  DocumentosLegales.objects.filter(marca__in = list(marcas)).distinct()
         
         # REGISTROS SANITARIOS
         productos = detalle['product_id'].unique()        
@@ -924,7 +919,7 @@ def facturas_proformas_detalle(request, id):
         context = {
             'factura_proforma': factura_proforma,
             'detalle':de_dataframe_a_template(detalle),
-            'isos':de_dataframe_a_template(isos),
+            'isos':isos_query,
             'registros_sanitarios':registros_sanitarios
         }
         return render(request, 'regulatorio_legal/detalle_factura_proforma.html', context)
@@ -933,65 +928,31 @@ def facturas_proformas_detalle(request, id):
         
         factura_proforma = FacturaProforma.objects.get(id=id)
         documentos = json.loads(request.POST.get('documentos'))
-        
+
         for i in documentos:
             
-            if i['tipo'] == 'iso':
-                iso = DocumentosLegales.objects.get(id=int(i['id_doc']))
-                iso_doc_path = iso.documento.path
-                descripcion = f'{iso.marca} - {iso.nombre_proveedor}' 
-                
-                procesar_pdf = api_marca_agua(texto=factura_proforma.marca_de_agua, file_path=iso_doc_path)
-                if procesar_pdf.status_code == 200:      
-                    
-                    documento_procesado_url = procesar_pdf.json().get('url_descarga')
-                    pdf_response = requests.get(documento_procesado_url)
-                    
-                    if pdf_response.status_code == 200:
-                        iso_reg = IsosRegEnviados(
-                            tipo_documento= 'ISO',
-                            descripcion= descripcion,
-                        )
-                        
-                        iso_reg.documento.save(
-                            f'ISO-{iso.marca}-{factura_proforma.n_comprobante}-ma.pdf',
-                            ContentFile(pdf_response.content)
-                        )
-                        factura_proforma.documentos.add(iso_reg)
-                    
-                
-            elif i['tipo'] == 'reg_san':
-                reg_san = RegistroSanitario.objects.get(id=int(i['id_doc']))
-                reg_san_doc_path = reg_san.documento.path
-                descripcion = f'{reg_san.n_reg_sanitario} - {reg_san.descripcion}'
-                
-                procesar_pdf = api_marca_agua(texto=factura_proforma.marca_de_agua, file_path=reg_san_doc_path)
-                if procesar_pdf.status_code == 200:
-                    
-                    documento_procesado_url = procesar_pdf.json().get('url_descarga')
-                    pdf_response = requests.get(documento_procesado_url)
-                    
-                    if pdf_response.status_code == 200:
-                        iso_reg = IsosRegEnviados(
-                            tipo_documento= 'Registro Sanitario',
-                            descripcion= descripcion,
-                        )
-                        iso_reg.documento.save(
-                            f'REG-SAN-{reg_san.n_reg_sanitario}-{factura_proforma.n_comprobante}-ma.pdf',
-                            ContentFile(pdf_response.content)
-                        )
-
-                        factura_proforma.documentos.add(iso_reg)
+            tipo = i.get('tipo').split('_')[0]
+            desc = i.get('tipo').split('_')[1]
+            path = i.get('doc_path')
             
-            if factura_proforma.documentos.all().exists():
-                return JsonResponse({
-                    'alert':'success',
-                    'msg': f'Documentos procesados exitosamente !!!'
-                })
-            else:
-                return JsonResponse({
-                        'alert':'danger',
-                        'msg': f'Error al procesar documentos con marga de agua !!!'
-                    })
-    
-
+            procesar_pdf = api_marca_agua(texto=factura_proforma.marca_de_agua, file_path=path)
+            if procesar_pdf.status_code == 200:
+                pdf_response = requests.get(procesar_pdf.json().get('url_descarga'))
+                if pdf_response.status_code==200:
+                    
+                    iso_reg = IsosRegEnviados(
+                        tipo_documento= tipo,
+                        descripcion= desc,
+                    )
+                    
+                    iso_reg.documento.save(
+                        f'{tipo}-gim.pdf',
+                        ContentFile(pdf_response.content, name=f'{tipo}')
+                    )
+                    
+                    factura_proforma.documentos.add(iso_reg)
+        
+        return JsonResponse({
+            'alert':'success',
+            'msg': f'Documentos procesados exitosamente !!!'
+        })
