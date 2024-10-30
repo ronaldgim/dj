@@ -14,7 +14,10 @@ def api_marca_agua(texto, file_path):
             files = {'pdf': pdf_file}
         
             response = requests.post(url=URL_MARA_AGUA, data=data, files=files)
-            return response
+            if response.status_code == 200:
+                return response
+            else:
+                return None
     except Exception as e:
         return e
 
