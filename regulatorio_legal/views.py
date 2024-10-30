@@ -1026,5 +1026,3 @@ GIMPROMED Cia. Ltda.\n
             'alert':'danger',
             'msg': f'Error !!!'
         })
-    
-        
