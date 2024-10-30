@@ -70,8 +70,16 @@
 </button>
 <button class="btn btn-success {% if not factura_proforma.marca_de_agua %} disabled {% endif %}" name="procesar_documentos">
     Procesar documentos
+
+    <div id="spinner-documentos" class="spinner-border spinner-border-sm" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+
 </button>
-<div class="card mt-2 mb-2">
+
+<div class="mt-3" id="msg-documentos"></div>
+
+<div class="card mb-2">
     <div class="card-body m-0 p-0">
         <div class="container table-responsive">
             <table class="table" style="font-size:small" id="tabla_documentos">
@@ -160,10 +168,18 @@
                 <input class="form-control" id="email" type="email" value="{{correo}}">
                 <button class="btn btn-success" type="submit" name="enviar-email">
                     <i class="bi bi-send"></i>
+
+                    <div id="spinner-email" class="spinner-border spinner-border-sm" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+
                 </button>
+
             </div>
         </div>
     </div>
+
+    <div class="mt-2" id="msg-email"></div>
 
     <div class="card mt-2 mb-2">
         <div class="card-body m-0 p-0">
@@ -312,7 +328,12 @@
 <!-- Enviar documentos a procesar -->
 <script>
     $(document).ready(function(){
+
+        $("#spinner-documentos").hide();
+
         $('button[name="procesar_documentos"]').on('click', function(){
+            
+            $("#spinner-documentos").show();
             
             let documentos = [];
 
@@ -338,10 +359,12 @@
                     'documentos': JSON.stringify(documentos),
                 },
                 success: function(response) {
-                    $('#msg').html(`<div class="text-center alert alert-${response.alert}" role="alert"> ${response.msg} !!! </div>`)
+                    $('#msg-documentos').html(`<div class="text-center alert alert-${response.alert}" role="alert"> ${response.msg} !!! </div>`);
+                    $("#spinner-documentos").hide();
                 },
                 error: function(response) {
-                    $('#msg').html(`<div class="text-center alert alert-${response.alert}" role="alert"> ${response.msg} !!! </div>`)
+                    $('#msg-documentos').html(`<div class="text-center alert alert-${response.alert}" role="alert"> ${response.msg} !!! </div>`);
+                    $("#spinner-documentos").hide();
                 }
             });
             
@@ -373,25 +396,32 @@
 
 <!-- Eliminar documento procesado-->
 <script>
-    $("button[name='enviar-email']").on('click', function() {
-        
-        var email = $("#email").val();
-        
-        $.ajax({
-            type:'POST',
-            url:'{% url "enviar_documentos_procesados_ajax" %}',
-            data:{
-                "csrfmiddlewaretoken":"{{csrf_token}}",
-                "id":"{{factura_proforma.id}}",
-                "email":email,
-            },
+    $(document).ready(function() {
+        $("#spinner-email").hide();
 
-            success: function(){
-                $('#msg').html(`<div class="text-center alert alert-${response.alert}" role="alert"> ${response.msg} !!! </div>`)
-            },
-            error: function(response) {
-                $('#msg').html(`<div class="text-center alert alert-${response.alert}" role="alert"> ${response.msg} !!! </div>`)
-            }
+        $("button[name='enviar-email']").on('click', function() {
+            $("#spinner-email").show();
+
+            var email = $("#email").val();
+            
+            $.ajax({
+                type:'POST',
+                url:'{% url "enviar_documentos_procesados_ajax" %}',
+                data:{
+                    "csrfmiddlewaretoken":"{{csrf_token}}",
+                    "id":"{{factura_proforma.id}}",
+                    "email":email,
+                },
+    
+                success: function(){
+                    $('#msg-email').html(`<div class="text-center alert alert-${response.alert}" role="alert"> ${response.msg} !!! </div>`);
+                    $("#spinner-email").hide();
+                },
+                error: function(response) {
+                    $('#msg-email').html(`<div class="text-center alert alert-${response.alert}" role="alert"> ${response.msg} !!! </div>`);
+                    $("#spinner-email").hide();
+                }
+            })
         })
     })
 </script>
