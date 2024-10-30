@@ -163,7 +163,7 @@
 <div class="card ps-4 pe-4 pt-2 pb-2 mb-4" style="background-color:whitesmoke">
     <h6 class="fw-bold">Documentos procesados listos para enviar</h6>
     <div class="row">
-        <div class="col-md-4">
+        <div class="col-md-5">
             <div class="input-group">
                 <span class="input-group-text" for="buscar_cliente_id">Email:</span>
                 <input class="form-control" id="email" type="email" value="{{correo}}">
@@ -232,16 +232,16 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-            <div class="alert alert-warning" role="alert">
-                Maximo 12 lineas y 26 caracteres por línea tomando en cuenta los espacios.
+            <div class="alert alert-warning" style="text-align:center;"  role="alert">
+                Maximo 12 lineas y 25 caracteres por línea tomando en cuenta los espacios.
             </div>
+            <!-- style="text-align:justify;" -->
             <textarea 
                 id="id_texto_marca_agua" 
                 name="texto_marca_agua" 
                 class="form-control" 
-                style="text-align:center;" 
                 rows="12" 
-                cols="26"
+                cols="25"
                 {% if factura_proforma.email %} readonly {% endif %}
                 >
                 {{factura_proforma.marca_de_agua}}
@@ -274,7 +274,7 @@
             textarea.addEventListener('input', validarTextarea);
 
             const MAX_LINES = 12;   // Número máximo de líneas permitidas
-            const MAX_CHARACTERS_PER_LINE = 26;  // Máximo de caracteres por línea
+            const MAX_CHARACTERS_PER_LINE = 25;  // Máximo de caracteres por línea
 
             function validarTextarea() {
                 const lineas = textarea.value.toUpperCase().split('\n');  // Convertimos a mayúsculas y dividimos
