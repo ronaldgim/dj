@@ -104,8 +104,10 @@
                         'tipo_comprobante': tipo_comprobante
                     },
                     success: function(response) {
-                        console.log(response);
                         $('#msg').html(`<div class="text-center alert alert-${response.alert}" role="alert"> ${response.msg} !!! </div>`)
+                        setTimeout(function(){
+                            window.location.reload();
+                        }, 1000)
                     },
                     error: function(xhr) {
                         $('#msg').html(`<div class="text-center alert alert-danger" role="alert"> ${xhr.statusText} !!! </div>`)

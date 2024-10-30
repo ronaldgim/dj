@@ -841,8 +841,6 @@ def data_factura_proforma_warehouse(tipo_comprobante, n_comprobante):
             }
 
 
-
-
 def facturas_proformas_list(request):
     
     if request.method == 'GET':
@@ -868,13 +866,15 @@ def facturas_proformas_list(request):
             )
             
             if factura_proforma:
-                pass
-                #redirect
+                return JsonResponse({
+                    'alert':'success',
+                    'msg': f'Se agregao la {tipo_comprobante} con número {n_comprobante} exitosamente !!!',
+                    })
             else:
                 return JsonResponse({
                     'alert':'danger',
                     'msg': f'Error al añadir {tipo_comprobante} con número {n_comprobante}',
-            })
+                    })
                 
         except Exception as e:
             return JsonResponse({
@@ -906,7 +906,7 @@ def factura_proforma_marca_de_agua_ajax(request):
 def facturas_proformas_detalle(request, id):
     
     if request.method == 'GET':
-        factura_proforma = FacturaProforma.objects.get(id=id)
+        factura_proforma = FacturaProforma.objects.get(id=id) 
         detalle = json.loads(factura_proforma.detalle.replace("'", '"'))
         detalle = pd.DataFrame(detalle)
         detalle = detalle.groupby(by='product_id').sum().reset_index()
@@ -977,8 +977,8 @@ def eliminar_documento_procesado_ajax(request):
         return JsonResponse({
             'alert':'success',
         })
-    
-    
+
+
 def enviar_documentos_procesados_ajax(request):
     
     id_factura_proforma = int(request.POST.get('id'))
