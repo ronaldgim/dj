@@ -977,7 +977,7 @@ def eliminar_documento_procesado_ajax(request):
     
     
 def enviar_documentos_procesados_ajax(request):
-    print(request.POST)
+    
     id_factura_proforma = int(request.POST.get('id'))
     email = request.POST.get('email')
     
@@ -988,11 +988,17 @@ def enviar_documentos_procesados_ajax(request):
     
         try:
             email = EmailMessage(
-                subject="PRUEBA SUBJECT",
-                body="PREUBA BODY",
+                subject=f"Documentos de {factura_proforma.tipo_comprobante} N°.{factura_proforma.n_comprobante}",
+                body=f"""
+Señore {factura_proforma.nombre_cliente}, \n
+Su pedido de documentos con respecto a la {factura_proforma.tipo_comprobante} N°.{factura_proforma.n_comprobante} es enviado de acuerdo a lo solicitado.\n
+GIMPROMED Cia. Ltda.\n
+****Esta notificación ha sido enviada automáticamente - No responder****
+                """
+                ,
                 from_email=settings.EMAIL_HOST_USER,
                 to=[email],
-                #bcc=['jgualotuna@gimpromed.com','ncaisapanta@gimpromed.com','dtrujillo@gimpromed.com'],
+                bcc=['jgualotuna@gimpromed.com','ncaisapanta@gimpromed.com','dtrujillo@gimpromed.com'],
                 headers={'Message-ID':'Documentos'}
             )
             
@@ -1002,6 +1008,8 @@ def enviar_documentos_procesados_ajax(request):
             email.send()
             
             # campo boleando de confirmación
+            factura_proforma.email = True
+            factura_proforma.save()
             
             return JsonResponse({
                 'alert':'success',
