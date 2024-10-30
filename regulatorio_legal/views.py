@@ -959,6 +959,9 @@ def facturas_proformas_detalle(request, id):
                         )
                         
                         factura_proforma.documentos.add(iso_reg)
+            
+            factura_proforma.procesar_docs = True
+            factura_proforma.save()
         
         return JsonResponse({
             'alert':'success',

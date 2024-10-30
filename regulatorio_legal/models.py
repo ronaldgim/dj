@@ -99,3 +99,4 @@ class FacturaProforma(models.Model):
     actualizado      = models.DateTimeField(auto_now=True)
     usuario          = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.PROTECT)
     email            = models.BooleanField(default=False)
+    procesar_docs    = models.BooleanField(default=False)

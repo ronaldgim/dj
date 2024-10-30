@@ -63,7 +63,6 @@
 
 <hr>
 
-
 <h6 class="fw-bold">Documentos</h6>
 <button class="btn text-white {% if not factura_proforma.marca_de_agua %} btn-danger {% else %} btn-warning {% endif %}" type="button" data-bs-toggle="modal" data-bs-target="#marcaAgua">
     Marca de agua
@@ -74,7 +73,9 @@
     <div id="spinner-documentos" class="spinner-border spinner-border-sm" role="status">
         <span class="visually-hidden">Loading...</span>
     </div>
-
+    {% if factura_proforma.procesar_docs %}
+    <i class="bi bi-check-lg"></i>
+    {% endif %}
 </button>
 
 <div class="mt-3" id="msg-documentos"></div>
@@ -172,9 +173,10 @@
                     <div id="spinner-email" class="spinner-border spinner-border-sm" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
-
+                    {% if factura_proforma.email %}
+                    <i class="bi bi-check-lg"></i>
+                    {% endif %}
                 </button>
-
             </div>
         </div>
     </div>
@@ -230,16 +232,16 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-            <div class="alert alert-warning text-center" role="alert">
-                Maximo 14 lineas y 30 caracteres por línea tomando en cuenta los espacios.
+            <div class="alert alert-warning text-justify" role="alert">
+                Maximo 12 lineas y 26 caracteres por línea tomando en cuenta los espacios.
             </div>
             <textarea 
                 id="id_texto_marca_agua" 
                 name="texto_marca_agua" 
                 class="form-control" 
                 style="text-align:center;" 
-                rows="14" 
-                cols="30"
+                rows="12" 
+                cols="26"
                 {% if factura_proforma.email %} readonly {% endif %}
                 >
                 {{factura_proforma.marca_de_agua}}
@@ -271,8 +273,8 @@
             // Llamar a la validación cada vez que el usuario escriba.
             textarea.addEventListener('input', validarTextarea);
 
-            const MAX_LINES = 14;   // Número máximo de líneas permitidas
-            const MAX_CHARACTERS_PER_LINE = 30;  // Máximo de caracteres por línea
+            const MAX_LINES = 12;   // Número máximo de líneas permitidas
+            const MAX_CHARACTERS_PER_LINE = 26;  // Máximo de caracteres por línea
 
             function validarTextarea() {
                 const lineas = textarea.value.toUpperCase().split('\n');  // Convertimos a mayúsculas y dividimos
