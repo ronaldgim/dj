@@ -153,7 +153,9 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-            <small>Maximo 12 lineas y 46 caracteres por línea</small>
+            <div class="alert alert-warning text-center" role="alert">
+                Maximo 12 lineas y 46 caracteres por línea
+            </div>
             <textarea id="id_texto_marca_agua" name="texto_marca_agua" class="form-control" rows="12" cols="50">{{factura_proforma.marca_de_agua}}</textarea>
         </div>
         <div class="modal-footer">
