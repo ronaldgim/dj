@@ -53,6 +53,7 @@
                         <th scope="col">Cliente</th>
                         <th scope="col">Fecha-Hora</th>
                         <th scope="col">Creado por</th>
+                        <th scope="col">Documento enviados</th>
                         <th scope="col">Detalle</th>
                     </tr>
                 </thead>
@@ -63,7 +64,14 @@
                         <td>{{i.n_comprobante}}</td>
                         <td>{{i.nombre_cliente}}</td>
                         <td>{{i.creado}}</td>
-                        <td>{{i.usuario}}</td>
+                        <td>{{i.usuario.first_name}} {{i.usuario.last_name}}</td>
+                        <td>
+                            {% if i.email %}
+                            <i class="bi bi-check-circle" style="color:green"></i>
+                            {% else %}
+                            <i class="bi bi-x-circle" style="color:red"></i>
+                            {% endif %}
+                        </td>
                         <td class="text-center">
                             <a class="btn btn-sm btn-primary" href="{% url 'facturas_proformas_detalle' i.id %}">
                                 <i class="bi bi-eye"></i>
