@@ -413,7 +413,7 @@
                     "email":email,
                 },
     
-                success: function(){
+                success: function(response){
                     $('#msg-email').html(`<div class="text-center alert alert-${response.alert}" role="alert"> ${response.msg} !!! </div>`);
                     $("#spinner-email").hide();
                 },
