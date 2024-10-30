@@ -449,7 +449,7 @@
     $("button[name='eliminar-componente']").on('click', function() {
         var id_componente = $(this).attr('id');
         var row = $(this).closest("tr");
-        console.log(id_componente);
+        
         $.ajax({
             type:'POST',
             url:'{% url "wms_eliminar_componente_ajax" %}',
