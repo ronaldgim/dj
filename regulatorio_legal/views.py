@@ -990,7 +990,7 @@ def enviar_documentos_procesados_ajax(request):
             email = EmailMessage(
                 subject=f"Documentos de {factura_proforma.tipo_comprobante} N°.{factura_proforma.n_comprobante}",
                 body=f"""
-Señore {factura_proforma.nombre_cliente}, \n
+Señores {factura_proforma.nombre_cliente}, \n
 Su pedido de documentos con respecto a la {factura_proforma.tipo_comprobante} N°.{factura_proforma.n_comprobante} es enviado de acuerdo a lo solicitado.\n
 GIMPROMED Cia. Ltda.\n
 ****Esta notificación ha sido enviada automáticamente - No responder****
