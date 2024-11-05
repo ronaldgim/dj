@@ -3308,8 +3308,8 @@ def listado_proformas(request):
     
     proformas = lista_proformas_odbc()
     proformas = proformas.drop_duplicates(subset=['contrato_id'])
-    proformas['fecha_pedido'] = pd.to_datetime(proformas['fecha_pedido']) #;print(proformas) #.dt.strftime("%Y-%m-%d")
-    #proformas['fecha_pedido'] = pd.to_datetime(proformas['fecha_pedido']).dt.strftime("%d-%m-%Y") 
+    #proformas['fecha_pedido'] = pd.to_datetime(proformas['fecha_pedido']).dt.strftime("%Y-%m-%d")
+    proformas['fecha_pedido'] = proformas['fecha_pedido'].astype('str')
     proformas = proformas.sort_values(by='fecha_pedido', ascending=False)
     proformas = de_dataframe_a_template(proformas)
     

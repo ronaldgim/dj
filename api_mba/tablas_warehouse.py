@@ -664,8 +664,6 @@ def api_actualizar_proformas_warehouse():
                 product_id = i['PRODUCT_ID']
                 quantity = i['QUANTITY']
                 
-                fecha_pedido = datetime.strftime(fecha_pedido,'%Y-%m-%d')
-                
                 row = (
                     contrato_id,
                     nombre_cliente,
