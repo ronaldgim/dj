@@ -58,7 +58,7 @@ class ProcesosSercop(models.Model):
 
 class Producto(models.Model):
     
-    product_id      = models.CharField(verbose_name='Código', max_length=15)
+    product_id      = models.CharField(verbose_name='Código', max_length=20)
     nombre          = models.CharField(verbose_name='Nombre', max_length=150)
     nombre_generico = models.CharField(verbose_name='Nombre generico', max_length=150, blank=True)
     presentacion    = models.CharField(verbose_name='Presentación', max_length=40, blank=True)
