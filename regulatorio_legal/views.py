@@ -925,7 +925,7 @@ def facturas_proformas_detalle(request, id):
             'detalle':de_dataframe_a_template(detalle),
             'isos':isos_query,
             'registros_sanitarios':registros_sanitarios,
-            'correo':correos_notificacion_factura(factura_proforma.nombre_cliente)[0]
+            #'correo':correos_notificacion_factura(factura_proforma.nombre_cliente)[0]
         }
         return render(request, 'regulatorio_legal/detalle_factura_proforma.html', context)
     
@@ -982,7 +982,7 @@ def eliminar_documento_procesado_ajax(request):
 def enviar_documentos_procesados_ajax(request):
     
     id_factura_proforma = int(request.POST.get('id'))
-    email = request.POST.get('email')
+    email_user = request.POST.get('email')
     
     factura_proforma = FacturaProforma.objects.get(id=id_factura_proforma)
     documentos = factura_proforma.documentos.all()
@@ -1000,7 +1000,7 @@ GIMPROMED Cia. Ltda.\n
                 """
                 ,
                 from_email=settings.EMAIL_HOST_USER,
-                to=[email],
+                to=[email_user],
                 bcc=['jgualotuna@gimpromed.com','ncaisapanta@gimpromed.com','dtrujillo@gimpromed.com'],
                 headers={'Message-ID':'Documentos'}
             )
