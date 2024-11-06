@@ -417,19 +417,40 @@ def api_actualizar_imp_transito_warehouse():
 
 ### ACTUALIZAR PRODUCTOS WAREHOUSE POR API DATA
 def api_actualizar_productos_warehouse():
+    # """
+    # SELECT 
+    #     INVT_Ficha_Principal.PRODUCT_ID, 
+    #     INVT_Ficha_Principal.PRODUCT_NAME, 
+    #     INVT_Ficha_Principal.UM, 
+    #     INVT_Ficha_Principal.GROUP_CODE, 
+    #     INVT_Ficha_Principal.UNIDADES_EMPAQUE, 
+    #     INVT_Ficha_Principal.Custom_Field_1,
+    #     INVT_Ficha_Principal.Custom_Field_2, 
+    #     INVT_Ficha_Principal.Custom_Field_4, 
+    #     INVT_Ficha_Principal.INACTIVE, 
+    #     INVT_Ficha_Principal.LARGO, 
+    #     INVT_Ficha_Principal.ANCHO, 
+    #     INVT_Ficha_Principal.ALTURA, 
+    #     INVT_Ficha_Principal.VOLUMEN, 
+    #     INVT_Ficha_Principal.WEIGHT, 
+    #     INVT_Ficha_Principal.AVAILABLE, 
+    #     INVT_Ficha_Principal.UnidadesPorPallet 
+    # FROM 
+    #     INVT_Ficha_Principal INVT_Ficha_Principal
+    # """
     
     try:
     
         productos_mba = api_mba_sql(
-            """
+        """
             SELECT 
                 INVT_Ficha_Principal.PRODUCT_ID, 
                 INVT_Ficha_Principal.PRODUCT_NAME, 
                 INVT_Ficha_Principal.UM, 
                 INVT_Ficha_Principal.GROUP_CODE, 
+                INVT_Grupo_SubGrupo_Lista.DESCRIPTION, 
                 INVT_Ficha_Principal.UNIDADES_EMPAQUE, 
-                INVT_Ficha_Principal.Custom_Field_1,
-                INVT_Ficha_Principal.Custom_Field_2, 
+                INVT_Ficha_Principal.Custom_Field_1,INVT_Ficha_Principal.Custom_Field_2, 
                 INVT_Ficha_Principal.Custom_Field_4, 
                 INVT_Ficha_Principal.INACTIVE, 
                 INVT_Ficha_Principal.LARGO, 
@@ -440,8 +461,12 @@ def api_actualizar_productos_warehouse():
                 INVT_Ficha_Principal.AVAILABLE, 
                 INVT_Ficha_Principal.UnidadesPorPallet 
             FROM 
-                INVT_Ficha_Principal INVT_Ficha_Principal
-            """
+                INVT_Ficha_Principal INVT_Ficha_Principal, 
+                INVT_Grupo_SubGrupo_Lista INVT_Grupo_SubGrupo_Lista 
+            WHERE 
+                INVT_Ficha_Principal.GROUP_CODE = INVT_Grupo_SubGrupo_Lista.GROUP_CODE AND 
+                INVT_Grupo_SubGrupo_Lista.SUB_GROUP=false 
+        """
         )    
         
         if productos_mba['status'] == 200:
