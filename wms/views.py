@@ -2794,7 +2794,7 @@ def wms_transferencia_picking(request, n_transf):
             'ubicacion__id',
             'ubicacion__bodega','ubicacion__pasillo','ubicacion__modulo','ubicacion__nivel',
             'ubicacion__distancia_puerta'
-        ).order_by('ubicacion__bodega','-ubicacion__distancia_puerta')
+        ).order_by('ubicacion__bodega','-ubicacion__distancia_puerta','ubicacion__pasillo','ubicacion__modulo')
         if ext.exists():
             for j in ext:
                 ext_id.append(j)
