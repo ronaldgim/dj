@@ -2794,22 +2794,24 @@ def wms_transferencia_picking(request, n_transf):
             'ubicacion__id',
             'ubicacion__bodega','ubicacion__pasillo','ubicacion__modulo','ubicacion__nivel',
             'ubicacion__distancia_puerta'
-        ).order_by('ubicacion__bodega')
+        ).order_by('ubicacion__bodega','-ubicacion__distancia_puerta')
         if ext.exists():
             for j in ext:
                 ext_id.append(j)
 
     prod = list(transf['product_id'].unique())
     
-    # df existencias bodega
     existencias_bodega_df = (pd.DataFrame(Existencias.objects
             .filter(
                 Q(product_id__in=prod) & 
                 Q(estado='Disponible')
             )
-            .values('product_id','lote_id','ubicacion__bodega')
+            .values('product_id','lote_id','ubicacion__bodega','ubicacion__pasillo')
             .order_by('fecha_caducidad'))
-            .drop_duplicates(subset=['product_id','lote_id','ubicacion__bodega']))
+            .drop_duplicates(subset=['product_id','lote_id','ubicacion__bodega','ubicacion__pasillo']))
+    
+    existencias_bodega_df['ubi_show'] = existencias_bodega_df['ubicacion__bodega'] + '-' + existencias_bodega_df['ubicacion__pasillo']
+    
     existencias_bodega_df = de_dataframe_a_template(existencias_bodega_df)
 
     transf_template = de_dataframe_a_template(transf)
@@ -2828,7 +2830,7 @@ def wms_transferencia_picking(request, n_transf):
                         pik_list.append(m)
                 for l in existencias_bodega_df:
                     if l['product_id'] == i and l['lote_id'] == j['lote_id']:
-                        primera_bodega.append(l['ubicacion__bodega'])
+                        primera_bodega.append(l['ubi_show'])
     
     transf_template = sorted(transf_template, key=lambda x:x['primera_bodega'], reverse=False)
     
