@@ -215,6 +215,20 @@ urlpatterns = [
         view  = views.dashboard_completo,
         name  = 'dashboard_completo'
     ),
+    
+    # Dashboard completo VUE DATA JSON
+    path(
+        route = 'publico/dashboard/completo-vue',
+        view  = views.dashboard_completo_vue,
+        name  = 'dashboard_completo_vue'
+    ),
+    
+    # Dashboard completo VUE HTML VIEW
+    path(
+        route = 'publico/dashboard/completo-view',
+        view  = views.dashboard_completo_view,
+        name  = 'dashboard_completo_view'
+    ),
 
     # Dashboard armados
     path(

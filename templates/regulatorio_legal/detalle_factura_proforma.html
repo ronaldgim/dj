@@ -86,6 +86,7 @@
             <table class="table" style="font-size:small" id="tabla_documentos">
                 <thead>
                     <tr>
+                        <th scope="col">#</th>
                         <th scope="col">Detalle</th>
                         <th scope="col">Estado</th>
                         <th scope="col">Documento</th>
@@ -94,11 +95,12 @@
                 </thead>
                 <tbody id="pedidosbuscar" >
                     <tr>
-                        <td style="font-size:medium" class="text-center bg-info bg-gradient text-white" colspan="4">ISOS</td>
+                        <td style="font-size:medium" class="text-center bg-info bg-gradient text-white" colspan="5">ISOS {{isos.count}}</td>
                     </tr>
                     <!-- ISOS -->
                     {% for i in isos %}
-                    <tr class="content">
+                    <tr class="content iso">
+                        <td id="iso-count"></td>
                         <td>Marca: {{i.marca}} - Proveedor: {{i.nombre_proveedor|default:"-"}}</td>
                         <td>
                             <a class="btn btn-sm btn-{% if i.estado == 'Vigente' %}success{% else %}danger{% endif %} disabled">
@@ -121,14 +123,13 @@
                         </td>
                     </tr>
                     {% endfor %}
-
                     <tr>
-                        <td style="font-size:medium" class="text-center bg-secondary bg-gradient text-white" colspan="4">REGISTROS SANITARIOS</td>
+                        <td style="font-size:medium" class="text-center bg-secondary bg-gradient text-white" colspan="5">REGISTROS SANITARIOS {{registros_sanitarios.count}}</td>
                     </tr>
                     <!-- REGISTROS SANITARIOS -->
                     {% for i in registros_sanitarios %}
-                    <tr class="content">
-                        
+                    <tr class="content reg">
+                        <td id="reg-count"></td>
                         <td>
                             N°.Reg Sanitario: {{i.n_reg_sanitario}} <br>
                             Descripción: {{i.descripcion}} <br>
@@ -161,7 +162,7 @@
 <!-- DOCUMENTOS PROCESADOS -->
 {% if factura_proforma.documentos.all %}
 <div class="card ps-4 pe-4 pt-2 pb-2 mb-4" style="background-color:whitesmoke">
-    <h6 class="fw-bold">Documentos procesados listos para enviar</h6>
+    <h6 class="fw-bold">Documentos procesados listos para enviar {{factura_proforma.documentos.count}}</h6>
     <div class="row">
         <div class="col-md-5">
             <div class="input-group">
@@ -186,9 +187,10 @@
     <div class="card mt-2 mb-2">
         <div class="card-body m-0 p-0">
             <div class="container table-responsive">
-                <table class="table" style="font-size:small" id="tabla_documentos">
+                <table class="table" style="font-size:small" id="tabla_documentos_enviar">
                     <thead>
                         <tr>
+                            <th scope="col">#</th>
                             <th scope="col">Tipo</th>
                             <th scope="col">Descripción</th>
                             <th scope="col">Documento</th>
@@ -199,8 +201,9 @@
                     <tbody id="pedidosbuscar" >
                         <!-- DOCUMENTOS PROCESADOS -->
                         {% for i in factura_proforma.documentos.all %}
-                        <tr class="content">
-                            <td>{% if i.tipo_documento == 'iso' %}Iso{% else %}Registro Sanitario{% endif %}</td>
+                        <tr class="content documentos">
+                            <td id="docs-count"></td>
+                            <td id="tipo">{% if i.tipo_documento == 'iso' %}Iso{% else %}Registro Sanitario{% endif %}</td>
                             <td>{{i.descripcion}}</td>
                             <td>
                                 <a class="btn btn-sm {% if i.tipo_documento == 'iso' %} btn-info text-white {% else %} btn-secondary {% endif %}" href="{{i.documento.url}}" target="_blank">
@@ -233,7 +236,8 @@
         </div>
         <div class="modal-body">
             <div class="alert alert-warning" style="text-align:center;"  role="alert">
-                Maximo 12 lineas y 25 caracteres por línea tomando en cuenta los espacios.
+                Maximo 12 lineas y 25 caracteres por línea tomando en cuenta los espacios.<br>
+                <span style="display:none;" id="alertaTexto" class="text-danger m-2 text-center"></span>
             </div>
             <!-- style="text-align:justify;" -->
             <textarea 
@@ -254,6 +258,25 @@
     </div>
 </div>
 
+<!-- Enumerar rows -->
+<script>
+    $(document).ready(function() {
+        $("#tabla_documentos_enviar > tbody > tr").each(function() {
+            $(this).find('#docs-count').text($(this).index() +1 )
+        })
+    });
+
+    $(document).ready(function() {
+        $("#tabla_documentos tbody tr.content.iso").each(function() {
+            $(this).find('#iso-count').text($(this).index())
+        });
+        $("#tabla_documentos tbody tr.content.reg").each(function() {
+            $(this).find('#reg-count').text($(this).index()-1)
+        })
+    });
+</script>
+
+
 <!-- Detalle -->
 <script>
     $(document).ready(function() {
@@ -269,7 +292,8 @@
         // Aseguramos que el script se ejecute después de que el DOM esté cargado.
         document.addEventListener('DOMContentLoaded', function () {
             let textarea = document.getElementById('id_texto_marca_agua');
-            
+            //const alertaTexto = documento.getElementById('alerta-texto');
+
             // Llamar a la validación cada vez que el usuario escriba.
             textarea.addEventListener('input', validarTextarea);
 
@@ -282,16 +306,25 @@
                 // Limitar número de líneas
                 if (lineas.length > MAX_LINES) {
                     textarea.value = lineas.slice(0, MAX_LINES).join('\n');
-                    alert(`Máximo permitido: ${MAX_LINES} líneas.`);
+                    document.getElementById('alertaTexto').style.display = 'inline';
+                    document.getElementById('alertaTexto').innerHTML = `Máximo permitido: ${MAX_LINES} líneas.`;
                     return;
+                } else {
+                    document.getElementById('alertaTexto').style.display = 'none';
+                    document.getElementById('alertaTexto').innerHTML = '';
                 }
 
                 // Limitar caracteres por línea
                 for (let i = 0; i < lineas.length; i++) {
                     if (lineas[i].length > MAX_CHARACTERS_PER_LINE) {
                         lineas[i] = lineas[i].slice(0, MAX_CHARACTERS_PER_LINE);
-                        alert(`Límite de ${MAX_CHARACTERS_PER_LINE} caracteres por línea alcanzado.`);
+                        document.getElementById('alertaTexto').style.display = 'inline';
+                        document.getElementById('alertaTexto').innerHTML = `Límite de ${MAX_CHARACTERS_PER_LINE} caracteres por línea alcanzado.`
+                    } else {
+                        document.getElementById('alertaTexto').style.display = 'none';
+                        document.getElementById('alertaTexto').innerHTML = '';
                     }
+                    
                 }
                 
                 // Actualizamos el contenido del textarea

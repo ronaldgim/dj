@@ -1,0 +1,765 @@
+{% extends 'base_vue.html' %}
+{% block title %}
+<title>DASHBOARD COMPLETO CEREZOS</title>
+{% endblock%}
+
+{#% block navbar %#}
+{#% include 'etiquetado/topnavbar.html' %#}
+{#% endblock %#}
+
+{% block body %}
+{#% block body_2 %#}
+
+<style>
+    
+    thead {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background-color: #ffffff;
+    }
+    
+    .table-responsive-pedidos {
+        height: 400px;
+        overflow-y: scroll;
+    }
+    .table-responsive-stock {
+        height: 452px;
+        overflow-y: scroll;
+    }
+    .table-responsive-publico {
+        height: 505px;
+        overflow-y: scroll;
+    }
+</style>
+
+<div id="app">
+
+    <h1 class="mt-2 text-center fw-bold">DASHBOARD COMPLETO CEREZOS</h1>
+    <h6 class="mt-0 pt-0 text-end fw-bold">{% verbatim %}{{ fechaHoraActual }}{% endverbatim %}</h6>
+
+    <!--div id="error-dash"></div>
+    <div id="dash"><div-->
+    
+    <!-- Botón para actualizar el dashboard -->
+    <button @click="actualizarDashboard">Actualizar Dashboard</button>
+
+    <!-- Indicador de carga para el dashboard -->
+    <div v-if="cargandoDashboard">Actualizando el dashboard...</div>
+
+    <!-- Contenedor del dashboard -->
+    <div id="dash"></div>
+
+
+    <table v-if="pedidos_cerezos.length">
+        <thead>
+            <tr>
+                <th>Pedidos Cerezos</th>
+                <th>Pedidos Hoy</th>
+                <th>Pedidos Ayer</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr v-for="(pedido, index) in pedidos_cerezos" :key="index">
+                <!-- Columna de pedidos -->
+                <td>{% verbatim %}{{ pedido.CONTRATO_ID|slice:'-2' }} - {{ pedido.FECHA_PEDIDO }}{% endverbatim %}</td>
+
+                <!-- Columna de pedidos hoy, si existe -->
+            </tr>
+        </tbody>
+    </table>
+    
+
+    
+    <div class="row mb-4">
+        <div class="col mb-4">
+            <!--h6 class="text-center">PEDIDOS PENDIENTES</h6-->
+            <div class="card">
+                <h6 class="card-header text-center fs-2">PEDIDOS PENDIENTES</h6>
+                <div class="card-body">
+                    <div class="container">
+                        <ul class="list-group"> <!--fs-4-->
+                            <!--li class="list-group-item d-flex justify-content-between align-items-center list-group-item-danger"-->
+                            <li class="list-group-item d-flex justify-content-between align-items-center bg-danger text-white">
+                                PEDIDOS MÁS DE 3 DÍAS
+                                <!--span class="badge bg-danger"-->
+                                <span class="fs-4">
+                                    {% if pedidos_cerezos_mas3 == 0%}
+                                    -
+                                    {% else %}
+                                    {{pedidos_cerezos_mas3}}
+                                    {% endif %}
+                                </span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center bg-warning text-white">
+                                PEDIDOS AYER
+                                <!--span class="badge bg-warning"-->
+                                <span class="fs-4">
+                                    {% if pedidos_cerezos_ayer == 0%}
+                                    -
+                                    {% else %}
+                                    {{pedidos_cerezos_ayer}}
+                                    {% endif %}
+                                </span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center bg-success text-white">
+                                PEDIDOS HOY
+                                <!--span class="badge bg-success"-->
+                                <span class="fs-4">
+                                    {% if pedidos_cerezos_hoy == 0 %}
+                                    -
+                                    {% else %}
+                                    {{pedidos_cerezos_hoy}}
+                                    {% endif %}
+                                </span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="table-responsive-pedidos mt-4">
+                        <table class="table">
+                            <thead>
+                                <th>N° PEDIDO</th>
+                                <th>FECHA</th>
+                                <th>CIU</th>
+                                <th>ESTADO</th>
+                                <th>OP</th>
+                            </thead>
+                            {#% for i in pedidos_cerezos %#}
+                            <tbody style="font-size: small;">
+                                <tr v-for="(i, index) in pedidos_cerezos" :key="index">
+                                    <td
+                                    {% if i.fecha_estado == 'hoy' %}
+                                    style="background-color: #BAF690;"
+                                    {% elif i.fecha_estado == 'ayer' %}
+                                    style="background-color: #F6F490;"
+                                    {% elif i.fecha_estado == 'mas3' %}
+                                    style="background-color: #F6B690;"
+                                    {% endif %}>
+                                        <!--span class="fs-6">{{i.CONTRATO_ID|slice:-2}}</span><br>
+                                        {{i.NOMBRE_CLIENTE}}<br-->
+
+                                        <a class="fs-6" href="{#% url 'pedidos' i.CONTRATO_ID %#}" target="_blank">
+                                            {% verbatim %}{{i.CONTRATO_ID|slice:-2}}{% endverbatim %}
+                                        </a> 
+
+                                        <!-- STOCK COMPLETO -->
+                                        {% if i.DISP == 'NOT' %}
+                                            <i style = "color:red;" class="bi bi-file-earmark-x-fill"></i>
+                                        {% endif %}
+
+                                        <!-- PEDIDO CONFIRMADO -->
+                                        {% if i.CONFIRMED %}
+                                            <i class="bi bi-check2"></i>
+                                        {% endif %}
+
+                                        <br> {% verbatim %}{{i.NOMBRE_CLIENTE}}{% endverbatim %}
+                                        
+                                    </td>
+
+                                    <td>{% verbatim %}{{i.FECHA_PEDIDO}}{% endverbatim %} {% verbatim %}{{i.HORA_LLEGADA}}{% endverbatim %}</td>
+
+                                    <td>{{i.CIUDAD_PRINCIPAL|slice:'0:3'}}</td>
+
+                                    <td>
+                                        {% if i.estado == 'EN PAUSA' %}
+                                        <a class="btn btn-danger btn-sm disabled">{{i.estado}}</a>
+                                        {% elif i.estado == 'EN TRANSITO' %}
+                                        <a class="btn btn-primary btn-sm disabled">{{i.estado}}</a>
+                                        {% elif i.estado == 'EN PROCESO' %}
+                                        <a class="btn btn-warning text-white btn-sm disabled">{{i.estado}}</a> 
+                                        {% elif i.estado == 'INCOMPLETO' %} 
+                                        <a class="btn text-white btn-sm disabled"  style="background-color:  #bf03c8 ;">{{i.estado}}</a>
+                                        {% elif i.estado == 'FINALIZADO' %}
+                                        <a class="btn btn-success btn-sm disabled">{{i.estado}}</a>
+                                        {% else %}
+                                        -
+                                        {% endif %}
+                                    </td>
+
+                                    <!--td>{{i.operario}}</td-->
+                                    {% if i.first_name == '-' %}
+                                    <td>-</td>
+                                    {% else %}
+                                    <td>{{i.first_name|slice:1}}.{{i.last_name|slice:1}}</td>
+                                    {% endif %}
+                                </tr>
+                            </tbody>
+                            {#% endfor %#}
+                        </table>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col mb-4">
+            <div class="card">
+                <h6 class="card-header text-center fs-2">ETIQUETADO STOCK</h6>
+                <div class="card-body">
+                    <div class="container">
+                        <ul class="list-group">
+                            <li class="list-group-item d-flex justify-content-between align-items-center bg-danger text-white">
+                                URGENTE
+                                <!--span class="badge bg-danger"-->
+                                <span class="fs-4">
+                                    {% if rojo == 0 %}
+                                    -
+                                    {% else %}
+                                    {{rojo}}
+                                    {% endif %}
+                                </span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center bg-warning text-white">
+                                PRONTO
+                                <!--span class="badge bg-warning"-->
+                                <span class="fs-4">
+                                    {% if amarillo == 0 %}
+                                    -
+                                    {% else %}
+                                    {{amarillo}}
+                                    {% endif %}
+                                </span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="table-responsive-stock mt-4">
+                        <table class="table">
+                            <thead>
+                                <th>ITEM</th>
+                                <th>CUA</th>
+                                <th>TIEMPO</th>
+                                <th>MESES</th>
+                            </thead>
+                            
+                            {% for i in etiquetado %}
+                            <tbody style="font-size: small;"> <!-- style="font-size: small;" -->
+
+                                <td>
+                                    <span class="fs-6">
+                                        {% if i.estado == 'EN PROCESO' %}
+                                        <i class="bi bi-check-circle-fill" style="color:green"></i>
+                                        {% endif %}
+                                        <a href="{% url 'etiquetado_stock_detalle' i.PRODUCT_ID %}" target="_blank">{{i.PRODUCT_ID}}</a> 
+                                    </span>
+                                    {% if i.n_personas %}
+                                        <span class="bg-info bg-gradient text-white m-2 p-1">{{i.n_personas}}p</span>
+                                    {% endif %}
+                                    
+                                    <br>
+                                    <span style="font-size: small;">{{i.PRODUCT_NAME}}</span> 
+                                </td>
+                                <td class="text-end">{{i.Cuarentena|floatformat:'0g'}}</td>
+                                <td class="text-end">{{i.tiempo}}</td>
+        
+                                <td class="text-end" 
+                                {% if i.Meses < urgente %} style="background-color:#F6B690"
+                                {% elif i.Meses >= urgente and i.Meses < correcto %} style="background-color:#F6F490"
+                                {% else %} style="background-color:#BAF690"
+                                {% endif %}>
+                                {{i.Meses|floatformat:'2g'}}</td>
+                                
+                            </tbody>
+                            {% endfor %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card">
+                <h6 class="card-header text-center fs-2">ETIQUETADO PÚBLICO</h6>
+                <div class="card-body">
+                    <div class="container">
+                        <ul class="list-group">
+                            <li class="list-group-item d-flex justify-content-between align-items-center bg-primary text-white">
+                                NÚMERO DE PEDIDOS 
+                                <!--span class="badge bg-primary"-->
+                                <span class="fs-4">
+                                    {% if publico_n == 0 %}
+                                    -
+                                    {% else %}
+                                    {{publico_n}}
+                                    {% endif %}
+                                </span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="table-responsive-publico mt-4">
+                        <table class="table">
+                            <thead>
+                                <th>N° PEDIDO</th>
+                                <!--th>FECHA</th-->
+                                <th>ENTREGA</th>
+                                <th>TIEMPO</th>
+                                <th>ESTADO</th>
+                            </thead>
+                            {% for i in publico %}
+                            <tbody style="font-size: small;">
+                                <td>
+                                    <a class="fs-6" href="{% url 'pedidos' i.CONTRATO_ID %}" target="_blank">
+                                        {{i.CONTRATO_ID|slice:-2}}
+                                    </a> 
+                                    {% if i.DISP == 'NOT' %}
+                                        <i style = "color:red;" class="bi bi-file-earmark-x-fill"></i>
+                                    {% endif %}
+                                    
+                                    <br> <span style="font-size: smaller;">{{i.NOMBRE_CLIENTE}}</span>
+                                    <!--span class="fs-6">{{i.CONTRATO_ID|slice:-2}}</span><br>
+                                    {{i.NOMBRE_CLIENTE}}<br-->
+        
+                                </td>
+
+
+                                {% if i.dias_faltantes == '-' %}
+                                <td class="text-end">-</td>
+                                {% else %}
+
+                                <!--td {% if i.estado_entrega == 'CONFIRMADO' %} style="background-color: #AED6F1;"{% endif %}                         
+                                >{{i.fecha_hora|slice:'0:10'}} {{i.fecha_hora|slice:'11:16'}}<br> Faltan: {{i.dias_faltantes|floatformat:0}} días</td-->
+
+                                <td {% if i.estado_entrega == 'CONFIRMADO' %} style="background-color: #AED6F1;"{% endif %}                         
+                                >{{i.dia|slice:'0:4'}} {{i.fecha_hora|slice:'8:10'}}. {{i.mes|slice:'0:3'}} {{i.fecha_hora|slice:'11:16'}}<br> Faltan: {{i.dias_faltantes|floatformat:0}} días</td>
+
+                                {% endif %}
+
+                                
+                                <td class="text-end">
+                                    {% if i.TIEMPOS == 't1' %}
+                                    {{i.t_1p_str}}
+                                    {% elif i.TIEMPOS == 't2' %}
+                                    {{i.t_2p_str}}
+                                    {% elif i.TIEMPOS == 't3' %}
+                                    {{i.t_3p_str}}
+                                    {% else %}
+                                    F
+                                    {% endif %}
+                                </td>
+
+
+                                <td class="estado text-center">
+                                    {% if i.estado == 'EN PAUSA' %}
+                                    <a class="btn btn-danger btn-sm disabled lh-1">{{i.estado}}</a>
+                                    {% elif i.estado == 'EN TRANSITO' %}
+                                    <a class="btn btn-danger btn-sm disabled lh-1">{{i.estado}}</a>
+                                    {% elif i.estado == 'EN PROCESO' %}
+                                    <a class="btn btn-warning text-white btn-sm disabled lh-1">{{i.estado}}</a>
+                                    {% elif i.estado == 'INCOMPLETO' %}
+                                    <a class="btn btn-danger btn-sm disabled lh-1">{{i.estado}}</a>
+                                    {% elif i.estado == 'FINALIZADO' %}
+                                    <a class="btn btn-success btn-sm disabled lh-1">{{i.estado}}</a>
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                    <br>
+
+                                    {% if i.estado != '-' %}
+                                    <span class="mt-2 ps-1 pe-1" style="background-color: #BAF690;">
+                                        {{i.avance}}%
+                                    </span>
+                                    {% endif %}
+
+                                </td>
+                            </tbody>
+                            {% endfor %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+
+
+
+    {% comment %}
+    <div class="row mb-4">
+        <div class="col mb-4">
+            <!--h6 class="text-center">PEDIDOS PENDIENTES</h6-->
+            <div class="card">
+                <h6 class="card-header text-center fs-2">PEDIDOS PENDIENTES</h6>
+                <div class="card-body">
+                    <div class="container">
+                        <ul class="list-group"> <!--fs-4-->
+                            <!--li class="list-group-item d-flex justify-content-between align-items-center list-group-item-danger"-->
+                            <li class="list-group-item d-flex justify-content-between align-items-center bg-danger text-white">
+                                PEDIDOS MÁS DE 3 DÍAS
+                                <!--span class="badge bg-danger"-->
+                                <span class="fs-4">
+                                    {% if pedidos_cerezos_mas3 == 0%}
+                                    -
+                                    {% else %}
+                                    {{pedidos_cerezos_mas3}}
+                                    {% endif %}
+                                </span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center bg-warning text-white">
+                                PEDIDOS AYER
+                                <!--span class="badge bg-warning"-->
+                                <span class="fs-4">
+                                    {% if pedidos_cerezos_ayer == 0%}
+                                    -
+                                    {% else %}
+                                    {{pedidos_cerezos_ayer}}
+                                    {% endif %}
+                                </span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center bg-success text-white">
+                                PEDIDOS HOY
+                                <!--span class="badge bg-success"-->
+                                <span class="fs-4">
+                                    {% if pedidos_cerezos_hoy == 0 %}
+                                    -
+                                    {% else %}
+                                    {{pedidos_cerezos_hoy}}
+                                    {% endif %}
+                                </span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="table-responsive-pedidos mt-4">
+                        <table class="table">
+                            <thead>
+                                <th>N° PEDIDO</th>
+                                <th>FECHA</th>
+                                <th>CIU</th>
+                                <th>ESTADO</th>
+                                <th>OP</th>
+                            </thead>
+                            {% for i in pedidos_cerezos %}
+                            <tbody style="font-size: small;">
+                                <td
+                                {% if i.fecha_estado == 'hoy' %}
+                                style="background-color: #BAF690;"
+                                {% elif i.fecha_estado == 'ayer' %}
+                                style="background-color: #F6F490;"
+                                {% elif i.fecha_estado == 'mas3' %}
+                                style="background-color: #F6B690;"
+                                {% endif %}>
+                                    <!--span class="fs-6">{{i.CONTRATO_ID|slice:-2}}</span><br>
+                                    {{i.NOMBRE_CLIENTE}}<br-->
+
+                                    <a class="fs-6" href="{% url 'pedidos' i.CONTRATO_ID %}" target="_blank">
+                                        {{i.CONTRATO_ID|slice:-2}}
+                                    </a> 
+
+                                    <!-- STOCK COMPLETO -->
+                                    {% if i.DISP == 'NOT' %}
+                                        <i style = "color:red;" class="bi bi-file-earmark-x-fill"></i>
+                                    {% endif %}
+
+                                    <!-- PEDIDO CONFIRMADO -->
+                                    {% if i.CONFIRMED %}
+                                        <i class="bi bi-check2"></i>
+                                    {% endif %}
+
+                                    <br> {{i.NOMBRE_CLIENTE}}
+                                    
+                                </td>
+
+                                <td>{{i.FECHA_PEDIDO}} {{i.HORA_LLEGADA}}</td>
+
+                                <td>{{i.CIUDAD_PRINCIPAL|slice:'0:3'}}</td>
+
+                                <td>
+                                    {% if i.estado == 'EN PAUSA' %}
+                                    <a class="btn btn-danger btn-sm disabled">{{i.estado}}</a>
+                                    {% elif i.estado == 'EN TRANSITO' %}
+                                    <a class="btn btn-primary btn-sm disabled">{{i.estado}}</a>
+                                    {% elif i.estado == 'EN PROCESO' %}
+                                    <a class="btn btn-warning text-white btn-sm disabled">{{i.estado}}</a> 
+                                    {% elif i.estado == 'INCOMPLETO' %} 
+                                    <a class="btn text-white btn-sm disabled"  style="background-color:  #bf03c8 ;">{{i.estado}}</a>
+                                    {% elif i.estado == 'FINALIZADO' %}
+                                    <a class="btn btn-success btn-sm disabled">{{i.estado}}</a>
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td>
+
+                                <!--td>{{i.operario}}</td-->
+                                {% if i.first_name == '-' %}
+                                <td>-</td>
+                                {% else %}
+                                <td>{{i.first_name|slice:1}}.{{i.last_name|slice:1}}</td>
+                                {% endif %}
+                            </tbody>
+                            {% endfor %}
+                        </table>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col mb-4">
+            <div class="card">
+                <h6 class="card-header text-center fs-2">ETIQUETADO STOCK</h6>
+                <div class="card-body">
+                    <div class="container">
+                        <ul class="list-group">
+                            <li class="list-group-item d-flex justify-content-between align-items-center bg-danger text-white">
+                                URGENTE
+                                <!--span class="badge bg-danger"-->
+                                <span class="fs-4">
+                                    {% if rojo == 0 %}
+                                    -
+                                    {% else %}
+                                    {{rojo}}
+                                    {% endif %}
+                                </span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center bg-warning text-white">
+                                PRONTO
+                                <!--span class="badge bg-warning"-->
+                                <span class="fs-4">
+                                    {% if amarillo == 0 %}
+                                    -
+                                    {% else %}
+                                    {{amarillo}}
+                                    {% endif %}
+                                </span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="table-responsive-stock mt-4">
+                        <table class="table">
+                            <thead>
+                                <th>ITEM</th>
+                                <th>CUA</th>
+                                <th>TIEMPO</th>
+                                <th>MESES</th>
+                            </thead>
+                            
+                            {% for i in etiquetado %}
+                            <tbody style="font-size: small;"> <!-- style="font-size: small;" -->
+
+                                <td>
+                                    <span class="fs-6">
+                                        {% if i.estado == 'EN PROCESO' %}
+                                        <i class="bi bi-check-circle-fill" style="color:green"></i>
+                                        {% endif %}
+                                        <a href="{% url 'etiquetado_stock_detalle' i.PRODUCT_ID %}" target="_blank">{{i.PRODUCT_ID}}</a> 
+                                    </span>
+                                    {% if i.n_personas %}
+                                        <span class="bg-info bg-gradient text-white m-2 p-1">{{i.n_personas}}p</span>
+                                    {% endif %}
+                                    
+                                    <br>
+                                    <span style="font-size: small;">{{i.PRODUCT_NAME}}</span> 
+                                </td>
+                                <td class="text-end">{{i.Cuarentena|floatformat:'0g'}}</td>
+                                <td class="text-end">{{i.tiempo}}</td>
+        
+                                <td class="text-end" 
+                                {% if i.Meses < urgente %} style="background-color:#F6B690"
+                                {% elif i.Meses >= urgente and i.Meses < correcto %} style="background-color:#F6F490"
+                                {% else %} style="background-color:#BAF690"
+                                {% endif %}>
+                                {{i.Meses|floatformat:'2g'}}</td>
+                                
+                            </tbody>
+                            {% endfor %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card">
+                <h6 class="card-header text-center fs-2">ETIQUETADO PÚBLICO</h6>
+                <div class="card-body">
+                    <div class="container">
+                        <ul class="list-group">
+                            <li class="list-group-item d-flex justify-content-between align-items-center bg-primary text-white">
+                                NÚMERO DE PEDIDOS 
+                                <!--span class="badge bg-primary"-->
+                                <span class="fs-4">
+                                    {% if publico_n == 0 %}
+                                    -
+                                    {% else %}
+                                    {{publico_n}}
+                                    {% endif %}
+                                </span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="table-responsive-publico mt-4">
+                        <table class="table">
+                            <thead>
+                                <th>N° PEDIDO</th>
+                                <!--th>FECHA</th-->
+                                <th>ENTREGA</th>
+                                <th>TIEMPO</th>
+                                <th>ESTADO</th>
+                            </thead>
+                            {% for i in publico %}
+                            <tbody style="font-size: small;">
+                                <td>
+                                    <a class="fs-6" href="{% url 'pedidos' i.CONTRATO_ID %}" target="_blank">
+                                        {{i.CONTRATO_ID|slice:-2}}
+                                    </a> 
+                                    {% if i.DISP == 'NOT' %}
+                                        <i style = "color:red;" class="bi bi-file-earmark-x-fill"></i>
+                                    {% endif %}
+                                    
+                                    <br> <span style="font-size: smaller;">{{i.NOMBRE_CLIENTE}}</span>
+                                    <!--span class="fs-6">{{i.CONTRATO_ID|slice:-2}}</span><br>
+                                    {{i.NOMBRE_CLIENTE}}<br-->
+        
+                                </td>
+
+
+                                {% if i.dias_faltantes == '-' %}
+                                <td class="text-end">-</td>
+                                {% else %}
+
+                                <!--td {% if i.estado_entrega == 'CONFIRMADO' %} style="background-color: #AED6F1;"{% endif %}                         
+                                >{{i.fecha_hora|slice:'0:10'}} {{i.fecha_hora|slice:'11:16'}}<br> Faltan: {{i.dias_faltantes|floatformat:0}} días</td-->
+
+                                <td {% if i.estado_entrega == 'CONFIRMADO' %} style="background-color: #AED6F1;"{% endif %}                         
+                                >{{i.dia|slice:'0:4'}} {{i.fecha_hora|slice:'8:10'}}. {{i.mes|slice:'0:3'}} {{i.fecha_hora|slice:'11:16'}}<br> Faltan: {{i.dias_faltantes|floatformat:0}} días</td>
+
+                                {% endif %}
+
+                                
+                                <td class="text-end">
+                                    {% if i.TIEMPOS == 't1' %}
+                                    {{i.t_1p_str}}
+                                    {% elif i.TIEMPOS == 't2' %}
+                                    {{i.t_2p_str}}
+                                    {% elif i.TIEMPOS == 't3' %}
+                                    {{i.t_3p_str}}
+                                    {% else %}
+                                    F
+                                    {% endif %}
+                                </td>
+
+
+                                <td class="estado text-center">
+                                    {% if i.estado == 'EN PAUSA' %}
+                                    <a class="btn btn-danger btn-sm disabled lh-1">{{i.estado}}</a>
+                                    {% elif i.estado == 'EN TRANSITO' %}
+                                    <a class="btn btn-danger btn-sm disabled lh-1">{{i.estado}}</a>
+                                    {% elif i.estado == 'EN PROCESO' %}
+                                    <a class="btn btn-warning text-white btn-sm disabled lh-1">{{i.estado}}</a>
+                                    {% elif i.estado == 'INCOMPLETO' %}
+                                    <a class="btn btn-danger btn-sm disabled lh-1">{{i.estado}}</a>
+                                    {% elif i.estado == 'FINALIZADO' %}
+                                    <a class="btn btn-success btn-sm disabled lh-1">{{i.estado}}</a>
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                    <br>
+
+                                    {% if i.estado != '-' %}
+                                    <span class="mt-2 ps-1 pe-1" style="background-color: #BAF690;">
+                                        {{i.avance}}%
+                                    </span>
+                                    {% endif %}
+
+                                </td>
+                            </tbody>
+                            {% endfor %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endcomment %}
+
+</div>
+<script>
+    const dashboardUrl = "{% url 'dashboard_completo_vue' %}";
+</script>
+
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            fechaHoraActual: '',
+            cargandoDashboard:false,
+            pedidos_cerezos: [],
+        },
+        mounted() {
+            this.actualizarFechaHora();  // Muestra la fecha y hora inmediatamente al cargar la página
+
+            // Actualiza la fecha y hora cada segundo (minuto)
+            setInterval(this.actualizarFechaHora, 1000);
+
+            // Actulizar dash
+            // setInterval(this.actualizarDashoboard, 10000);
+        },
+        methods: {
+            actualizarFechaHora() {
+                // Formatea la fecha y hora actual
+                const ahora = new Date();
+                // Formatea la fecha en el formato requerido
+                const opcionesFecha = {
+                    weekday: 'long',   // Día de la semana
+                    day: 'numeric',    // Día del mes
+                    month: 'long',     // Mes completo
+                    year: 'numeric'    // Año
+                };
+                const opcionesHora = {
+                    hour: 'numeric',   // Hora
+                    minute: 'numeric',  // Minuto
+                    second: 'numeric',  // Segundo
+                };
+                
+                // Combina la fecha y hora en el formato deseado
+                const fecha = ahora.toLocaleDateString('es-ES', opcionesFecha);
+                const hora = ahora.toLocaleTimeString('es-ES', opcionesHora);
+                this.fechaHoraActual = `${fecha} ${hora}`;
+            },
+
+            async actualizarDashboard() {
+                this.cargandoDashboard = true;
+                console.log('init dash')
+                try {
+                    const response = await fetch(dashboardUrl);  
+                    if (!response.ok) {
+                        throw new Error(response.statusText);
+                    }
+                    // const html = await response.text();
+                    const data = await response.json();
+
+                    this.pedidos_cerezos = data.pedidos_cerezos || [];
+                    
+
+                } catch (error) {
+                    console.error('Error al cargar el dashboard:', error);
+                } finally {
+                    this.cargandoDashboard = false;
+                }
+            }
+        },
+        //mounted() {
+        //    this.actualizarDashoboard();
+        //}
+    });
+</script>
+
+<!--script type="text/javascript">
+    function actualizar(){location.reload(true);}
+    //Función para actualizar cada 30 min = 1,800,000 milisegundos
+    setInterval("actualizar()",300000); // 5 min
+</script-->
+
+
+<!--script>
+    // Fecha actual
+    var hoy = new Date();
+
+    var options = {weekday:'long', year:'numeric', month:'long', day:'numeric'};
+    options.timeZone = 'America/Guayaquil';
+    options.timeZoneName = 'short';
+
+    var now = hoy.toLocaleString('es', options);
+    // console.log(now)
+
+    document.getElementById('fecha').innerHTML = now
+    
+</script-->
+
+{% endblock %}

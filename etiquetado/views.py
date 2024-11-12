@@ -2254,6 +2254,7 @@ def estado_pedidos_dashboard_fun(bodega):
     # AÑADIR CLIENTES
     solca_uio = reservas[reservas['NOMBRE_CLIENTE']=='SOLCA QUITO']
     solca_gye = reservas[reservas['NOMBRE_CLIENTE']=='SOLCA MATRIZ GUAYAQUIL']
+    solca_thu = reservas[reservas['NOMBRE_CLIENTE']=='SOLCA TUNGURAHUA']
     junta_gye = reservas[reservas['NOMBRE_CLIENTE']=='JUNTA DE BENEFICENCIA DE GUAYA']
 
     # Fistrado de datos
@@ -2261,7 +2262,7 @@ def estado_pedidos_dashboard_fun(bodega):
     reservas = reservas[reservas['CLIENT_TYPE']!='HOSPU']
 
     # Añadir clientes
-    reservas = pd.concat([reservas, solca_uio, solca_gye, junta_gye])
+    reservas = pd.concat([reservas, solca_uio, solca_gye, junta_gye, solca_thu])
 
     # Filtrar por finalizado y reservas
     reservas = reservas[reservas['estado']!='FINALIZADO']
@@ -2526,7 +2527,7 @@ def dashboard_completo(request):
     if not sto_pedidos.empty:
         pedidos_cerezos = pedidos_cerezos.merge(sto_pedidos, on='CONTRATO_ID', how='left')
 
-    # Fistrado por fecha
+    # Filtrado por fecha
     hoy = date.today()
     ayer = hoy - timedelta(days=1)
     meses_2 = hoy - timedelta(days=30)
@@ -2589,6 +2590,99 @@ def dashboard_completo(request):
 
     return render(request, 'etiquetado/pedidos/dashboard_completo.html', context)
 
+
+def dashboard_completo_vue(request):
+
+    # PEDIDOS CEREZOS
+    pedidos_cerezos = estado_pedidos_dashboard_fun('BCT')
+    contratos_pedidos = list(pedidos_cerezos['CONTRATO_ID'].unique())
+    sto_pedidos = stock_faltante_contrato(contratos_pedidos, 'BCT')
+    
+    if not sto_pedidos.empty:
+        pedidos_cerezos = pedidos_cerezos.merge(sto_pedidos, on='CONTRATO_ID', how='left')
+
+    # Filtrado por fecha
+    hoy = date.today()
+    ayer = hoy - timedelta(days=1)
+    meses_2 = hoy - timedelta(days=30)
+
+    pedidos_cerezos = pedidos_cerezos[pedidos_cerezos['FECHA_PEDIDO']>meses_2]
+
+    pedidos_cerezos_hoy = len(pedidos_cerezos[pedidos_cerezos['FECHA_PEDIDO']==hoy])
+    pedidos_cerezos_ayer = len(pedidos_cerezos[pedidos_cerezos['FECHA_PEDIDO']==ayer])
+    pedidos_cerezos_mas3 = len(pedidos_cerezos[pedidos_cerezos['FECHA_PEDIDO']<ayer])
+
+    if len(pedidos_cerezos) > 0:
+        pedidos_cerezos['fecha_estado'] = pedidos_cerezos.apply(lambda x: 'hoy' if x['FECHA_PEDIDO']==hoy else 'ayer' if x['FECHA_PEDIDO']==ayer else 'mas3' if x['FECHA_PEDIDO']<ayer else 'mas3', axis=1)
+
+    pedidos_cerezos['FECHA_PEDIDO'] = pedidos_cerezos['FECHA_PEDIDO'].astype(str)
+    pedidos_cerezos = de_dataframe_a_template(pedidos_cerezos)
+
+    # ETIQUETADO STOCK
+    etiquetado = etiquetado_fun() 
+    urgente = 0.75
+    correcto = 2
+    rojo = len(etiquetado[etiquetado['Meses']<urgente])
+    amarillo = etiquetado[etiquetado['Meses']>=urgente]
+    amarillo = amarillo[amarillo['Meses']<correcto]
+    amarillo = len(amarillo)
+
+    etiquetado = de_dataframe_a_template(etiquetado)
+
+    # ETIQUETADO PUBLICO
+    publico = publico_dashboard_fun()
+    publico = publico[publico['estado']!='FINALIZADO']
+    contratos_publicos = list(publico['CONTRATO_ID'].unique())
+    sto_publico = stock_faltante_contrato(contratos_publicos, 'BCT')
+    
+    
+    if not sto_publico.empty:
+        publico = publico.merge(sto_publico, on='CONTRATO_ID', how='left')
+    
+    publicos_n = len(publico)
+    publico = de_dataframe_a_template(publico)
+    print(pedidos_cerezos)
+    context = {
+        # PEDIDOS CEREZOS
+        'pedidos_cerezos':pedidos_cerezos,
+        'pedidos_cerezos_hoy':pedidos_cerezos_hoy,
+        'pedidos_cerezos_ayer':pedidos_cerezos_ayer,
+        'pedidos_cerezos_mas3':pedidos_cerezos_mas3,
+
+        # ETIQUETADO STOCK
+        'etiquetado':etiquetado,
+        'urgente':urgente,
+        'correcto':correcto,
+        'rojo':rojo,
+        'amarillo':amarillo,
+
+        # PUBLICO
+        'publico':publico,
+        'publico_n':publicos_n
+    }
+
+    # context = {
+    #     # "pedidos_cerezos": [
+    #     #     {"nombre": "Pedido 1", "descripcion": "Descripción del Pedido 1"},
+    #     #     {"nombre": "Pedido 2", "descripcion": "Descripción del Pedido 2"},
+    #     #     {"nombre": "Pedido 3", "descripcion": "Descripción del Pedido 3"}
+    #     # ],
+    #     # "pedidos_cerezos_hoy": [
+    #     #     {"nombre": "Pedido Hoy 1", "estado": "Entregado"},
+    #     #     {"nombre": "Pedido Hoy 2", "estado": "En proceso"},
+    #     # ],
+    #     # "pedidos_cerezos_ayer": [
+    #     #     {"nombre": "Pedido Ayer 1", "estado": "Cancelado"},
+    #     #     {"nombre": "Pedido Ayer 2", "estado": "Entregado"},
+    #     #     {"nombre": "Pedido Ayer 3", "estado": "En proceso"}
+    #     # ]
+    # }
+
+    return JsonResponse(context)
+
+
+def dashboard_completo_view(request):
+    return render(request, 'etiquetado/pedidos/dashboard_completo_vue.html')
 
 
 def detalle_dashboard_armados(request):

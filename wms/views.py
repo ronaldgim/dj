@@ -2175,6 +2175,18 @@ def wms_estado_picking_actualizar_ajax(request):
 
                 try:
                     estado_picking.save()
+                    
+                    n_pedido_mail = int(float(estado_picking.n_pedido))
+                    
+                    # send_mail(
+                    #     subject=f'Picking Finalizado{n_pedido_mail}',
+                    #     message= f"""El picking {n_pedido_mail} del cliente {estado_picking.cliente} a finalizado en bodega Cerezos.\nEste email es automatico no responder"""
+                    #     from_email=settings.EMAIL_HOST_USER,
+                    #     recipient_list= 'wms@wms.com',
+                    #     # ['wms@wms.com'],
+                    #     # fail_silently=False,
+                        
+                    # )
 
                     if estado_picking.id:
                         return JsonResponse({'msg':f'✅ Estado de picking {estado_picking.estado}',
