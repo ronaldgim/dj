@@ -2762,7 +2762,7 @@ def wms_transferencias_list(request):
 
 @login_required(login_url='login')
 def wms_transferencia_picking(request, n_transf):
-    
+    print('asdfasdf')
     estado = TransferenciaStatus.objects.get(n_transferencia=n_transf)
     prod   = productos_odbc_and_django()[['product_id','Nombre','Marca','Unidad_Empaque','Volumen']]
     
@@ -2806,7 +2806,7 @@ def wms_transferencia_picking(request, n_transf):
             'ubicacion__id',
             'ubicacion__bodega','ubicacion__pasillo','ubicacion__modulo','ubicacion__nivel',
             'ubicacion__distancia_puerta'
-        ).order_by('ubicacion__bodega','-ubicacion__distancia_puerta','ubicacion__pasillo','ubicacion__modulo')
+        ).order_by('fecha_caducidad','ubicacion__nivel','-ubicacion__modulo','-ubicacion__distancia_puerta','ubicacion__pasillo')
         if ext.exists():
             for j in ext:
                 ext_id.append(j)
