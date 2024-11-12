@@ -2175,6 +2175,18 @@ def wms_estado_picking_actualizar_ajax(request):
 
                 try:
                     estado_picking.save()
+                    
+                    n_pedido_mail = int(float(estado_picking.n_pedido))
+                    
+                    # send_mail(
+                    #     subject=f'Picking Finalizado{n_pedido_mail}',
+                    #     message= f"""El picking {n_pedido_mail} del cliente {estado_picking.cliente} a finalizado en bodega Cerezos.\nEste email es automatico no responder"""
+                    #     from_email=settings.EMAIL_HOST_USER,
+                    #     recipient_list= 'wms@wms.com',
+                    #     # ['wms@wms.com'],
+                    #     # fail_silently=False,
+                        
+                    # )
 
                     if estado_picking.id:
                         return JsonResponse({'msg':f'✅ Estado de picking {estado_picking.estado}',
@@ -4110,14 +4122,20 @@ def wms_reporte_bodegas457(request):
 @permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'],'/wms/home', 'ingresar a ubicaciones')
 def wms_reporte_reposicion_alertas(request):    
     
+    """Crear un reporte que muestre los productos con mayor frecuencia de ventas para mover al nivel 1 con alertas segun demanda"""
     ventas = frecuancia_ventas()
-    productos_ventas = ventas['PRODUCT_ID'].unique()
-    
+    productos_ventas = set(ventas['PRODUCT_ID'].unique())    
+    productos_existencias = set(Existencias.objects.values_list('product_id', flat=True))
+    productos_analisis = productos_ventas.intersection(productos_existencias)
+
     reporte_existencias_list = []
-    for i in productos_ventas:
+    for i in productos_analisis:
         existencias_by_product = Existencias.objects.filter(product_id=i).order_by('fecha_caducidad', 'lote_id', 'ubicacion__bodega', 'ubicacion__nivel')
         
-        if len(existencias_by_product) >= 1:
+        if len(existencias_by_product) == 1 and existencias_by_product.first().ubicacion.nivel == '1':
+            continue
+        
+        elif len(existencias_by_product) >= 1:
                         
             producto_uno = existencias_by_product[0]
             #producto_dos = existencias_by_product[1]            

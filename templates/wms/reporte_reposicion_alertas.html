@@ -48,6 +48,7 @@
             <table class="table" style="font-size: small;">
                 <thead>
                     <tr>
+                        <th scope="col">#</th>
                         <th scope="col">Código</th>
                         <th scope="col">Nombre</th>
                         <th scope="col">Marca</th>
@@ -65,6 +66,7 @@
                 <tbody id="pedidosbuscar">
                     {% for i in reporte %}
                     <tr>
+                        <td class="enum"></td>
                         <td>
                             <form method="POST" action="/wms/inventario">
                                 {% csrf_token %}
@@ -101,7 +103,14 @@
     </div>
 </div>
 
-
+<!-- enum rows -->
+<script>
+    $(document).ready(function(){
+        $(".table tbody tr").each(function() {
+            $(this).find(".enum").text($(this).index()+1)
+        })
+    })
+</script>
 
 <!--filtro buscar-->
 <script>
