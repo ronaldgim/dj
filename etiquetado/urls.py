@@ -218,9 +218,9 @@ urlpatterns = [
     
     # Dashboard completo VUE DATA JSON
     path(
-        route = 'publico/dashboard/completo-vue',
-        view  = views.dashboard_completo_vue,
-        name  = 'dashboard_completo_vue'
+        route = 'publico/dashboard/completo-json-response',
+        view  = views.dashboard_completo_json_response,
+        name  = 'dashboard_completo_json_response'
     ),
     
     # Dashboard completo VUE HTML VIEW
