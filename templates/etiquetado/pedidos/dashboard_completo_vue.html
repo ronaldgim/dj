@@ -139,7 +139,7 @@
                                     </td>
                                     <td class="text-end">{{i.Cuarentena|floatformat:'0g'}}</td>
                                     <td class="text-end">{{i.tiempo}}</td>
-                                    <td :style="{backgroundColor: obtenerColorFondoMeses(i.Meses)}" class="text-end">{{i.Meses}}</td>
+                                    <td :style="{backgroundColor: obtenerColorFondoMeses(i.Meses, config_urgente, config_correcto)}" class="text-end">{{i.Meses}}</td>
                                     {% endverbatim %}
                                 </tr>
                             </tbody>
@@ -215,9 +215,12 @@
     new Vue({
         el: '#app',
         data: {
+            // CONFIG
             cargandoDashboard:false,
             errorDatos:false,
             fechaHoraActual: '',
+            config_urgente:'',
+            config_correcto:'',
             // PEDIDOS PENDIENTES
             pedidos_mas_tres_dias: '',
             pedidos_ayer:'',
@@ -314,12 +317,12 @@
                 }
             },
 
-            obtenerColorFondoMeses(meses) {
-                if (meses < 0.75) {
+            obtenerColorFondoMeses(meses, config_urgente, config_correcto) {
+                if (meses < config_urgente) {
                     return '#F6B690';
-                } else if (meses >=0.75 && meses <2) {
+                } else if (meses >= config_urgente && meses < config_correcto) {
                     return '#F6F490';
-                } else if (meses >=2 ) {
+                } else if (meses >=config_correcto ) {
                     return '#BAF690';
                 }
             },
@@ -364,6 +367,9 @@
                     }
                     // const html = await response.text();
                     const data = await response.json();
+                    // CONFIG
+                    this.config_urgente = data.urgente;
+                    this.config_correcto = data.correcto;
                     this.errorDatos = false;
                     // PEDIDOS PENDIENTES
                     this.pedidos_mas_tres_dias = data.pedidos_cerezos_mas3;
@@ -379,6 +385,7 @@
                     this.publico = data.publico || [];
                 } catch (error) {
                     this.errorDatos = true;
+                    console.log(error);
                 } finally {
                     this.cargandoDashboard = false;
                 }

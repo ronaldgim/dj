@@ -211,7 +211,7 @@ urlpatterns = [
 
     # Dashboard completo
     path(
-        route = 'publico/dashboard/completo',
+        route = 'publico/dashboard/completo-html',
         view  = views.dashboard_completo,
         name  = 'dashboard_completo'
     ),
@@ -225,7 +225,7 @@ urlpatterns = [
     
     # Dashboard completo VUE HTML VIEW
     path(
-        route = 'publico/dashboard/completo-view',
+        route = 'publico/dashboard/completo',
         view  = views.dashboard_completo_view,
         name  = 'dashboard_completo_view'
     ),
