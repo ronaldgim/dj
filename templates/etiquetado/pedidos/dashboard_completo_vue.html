@@ -7,8 +7,8 @@
 {#% include 'etiquetado/topnavbar.html' %#}
 {#% endblock %#}
 
-{% block body %}
-{#% block body_2 %#}
+{#% block body %#}
+{% block body_2 %}
 
 <style>
     
@@ -35,84 +35,41 @@
 
 <div id="app">
 
-    <h1 class="mt-2 text-center fw-bold">DASHBOARD COMPLETO CEREZOS</h1>
+    <div class="text-center mt-2">
+        <h1 class="fw-bold d-inline">DASHBOARD COMPLETO CEREZOS</h1>
+        <div v-if="cargandoDashboard" class="spinner-border" role="status"></div>
+        <div v-if="errorDatos"><i style="color:red" class="bi bi-bug-fill"></i></div>
+    </div>
+
     <h6 class="mt-0 pt-0 text-end fw-bold">{% verbatim %}{{ fechaHoraActual }}{% endverbatim %}</h6>
 
     <!--div id="error-dash"></div>
     <div id="dash"><div-->
     
     <!-- Botón para actualizar el dashboard -->
-    <button @click="actualizarDashboard">Actualizar Dashboard</button>
-
-    <!-- Indicador de carga para el dashboard -->
-    <div v-if="cargandoDashboard">Actualizando el dashboard...</div>
-
-    <!-- Contenedor del dashboard -->
-    <div id="dash"></div>
-
-
-    <table v-if="pedidos_cerezos.length">
-        <thead>
-            <tr>
-                <th>Pedidos Cerezos</th>
-                <th>Pedidos Hoy</th>
-                <th>Pedidos Ayer</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr v-for="(pedido, index) in pedidos_cerezos" :key="index">
-                <!-- Columna de pedidos -->
-                <td>{% verbatim %}{{ pedido.CONTRATO_ID|slice:'-2' }} - {{ pedido.FECHA_PEDIDO }}{% endverbatim %}</td>
-
-                <!-- Columna de pedidos hoy, si existe -->
-            </tr>
-        </tbody>
-    </table>
-    
-
+    <!--button @click="actualizarDashboard">Actualizar Dashboard</button-->
     
     <div class="row mb-4">
         <div class="col mb-4">
-            <!--h6 class="text-center">PEDIDOS PENDIENTES</h6-->
             <div class="card">
                 <h6 class="card-header text-center fs-2">PEDIDOS PENDIENTES</h6>
                 <div class="card-body">
                     <div class="container">
-                        <ul class="list-group"> <!--fs-4-->
-                            <!--li class="list-group-item d-flex justify-content-between align-items-center list-group-item-danger"-->
+                        <ul class="list-group">
+                            {% verbatim %}
                             <li class="list-group-item d-flex justify-content-between align-items-center bg-danger text-white">
                                 PEDIDOS MÁS DE 3 DÍAS
-                                <!--span class="badge bg-danger"-->
-                                <span class="fs-4">
-                                    {% if pedidos_cerezos_mas3 == 0%}
-                                    -
-                                    {% else %}
-                                    {{pedidos_cerezos_mas3}}
-                                    {% endif %}
-                                </span>
+                                <span class="fs-4">{{pedidos_mas_tres_dias}}</span>
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center bg-warning text-white">
                                 PEDIDOS AYER
-                                <!--span class="badge bg-warning"-->
-                                <span class="fs-4">
-                                    {% if pedidos_cerezos_ayer == 0%}
-                                    -
-                                    {% else %}
-                                    {{pedidos_cerezos_ayer}}
-                                    {% endif %}
-                                </span>
+                                <span class="fs-4">{{pedidos_ayer}}</span>
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center bg-success text-white">
                                 PEDIDOS HOY
-                                <!--span class="badge bg-success"-->
-                                <span class="fs-4">
-                                    {% if pedidos_cerezos_hoy == 0 %}
-                                    -
-                                    {% else %}
-                                    {{pedidos_cerezos_hoy}}
-                                    {% endif %}
-                                </span>
+                                <span class="fs-4">{{pedidos_hoy}}</span>
                             </li>
+                            {% endverbatim %}
                         </ul>
                     </div>
 
@@ -125,67 +82,29 @@
                                 <th>ESTADO</th>
                                 <th>OP</th>
                             </thead>
-                            {#% for i in pedidos_cerezos %#}
                             <tbody style="font-size: small;">
-                                <tr v-for="(i, index) in pedidos_cerezos" :key="index">
-                                    <td
-                                    {% if i.fecha_estado == 'hoy' %}
-                                    style="background-color: #BAF690;"
-                                    {% elif i.fecha_estado == 'ayer' %}
-                                    style="background-color: #F6F490;"
-                                    {% elif i.fecha_estado == 'mas3' %}
-                                    style="background-color: #F6B690;"
-                                    {% endif %}>
-                                        <!--span class="fs-6">{{i.CONTRATO_ID|slice:-2}}</span><br>
-                                        {{i.NOMBRE_CLIENTE}}<br-->
-
-                                        <a class="fs-6" href="{#% url 'pedidos' i.CONTRATO_ID %#}" target="_blank">
-                                            {% verbatim %}{{i.CONTRATO_ID|slice:-2}}{% endverbatim %}
-                                        </a> 
-
-                                        <!-- STOCK COMPLETO -->
-                                        {% if i.DISP == 'NOT' %}
-                                            <i style = "color:red;" class="bi bi-file-earmark-x-fill"></i>
-                                        {% endif %}
-
-                                        <!-- PEDIDO CONFIRMADO -->
-                                        {% if i.CONFIRMED %}
-                                            <i class="bi bi-check2"></i>
-                                        {% endif %}
-
-                                        <br> {% verbatim %}{{i.NOMBRE_CLIENTE}}{% endverbatim %}
-                                        
+                                <tr v-for="(i, index) in pedidosCerezosData" :key="index">
+                                    {% verbatim %}
+                                    <td :style="{backgroundColor: obtenerColorFondoNumeroPedido(i.fecha_estado)}">
+                                        <a :href="'/etiquetado/pedidos/' + i.CONTRATO_ID" class="fs-6" target="_blank">{{i.contrato_id}}</a>
+                                        <br>
+                                        {{i.NOMBRE_CLIENTE}}
                                     </td>
-
-                                    <td>{% verbatim %}{{i.FECHA_PEDIDO}}{% endverbatim %} {% verbatim %}{{i.HORA_LLEGADA}}{% endverbatim %}</td>
-
-                                    <td>{{i.CIUDAD_PRINCIPAL|slice:'0:3'}}</td>
-
+                                    <td>{{i.FECHA_PEDIDO}} {{i.HORA_LLEGADA}}</td>
+                                    <td>{{i.CIUDAD_PRINCIPAL}}</td>
                                     <td>
-                                        {% if i.estado == 'EN PAUSA' %}
-                                        <a class="btn btn-danger btn-sm disabled">{{i.estado}}</a>
-                                        {% elif i.estado == 'EN TRANSITO' %}
-                                        <a class="btn btn-primary btn-sm disabled">{{i.estado}}</a>
-                                        {% elif i.estado == 'EN PROCESO' %}
-                                        <a class="btn btn-warning text-white btn-sm disabled">{{i.estado}}</a> 
-                                        {% elif i.estado == 'INCOMPLETO' %} 
-                                        <a class="btn text-white btn-sm disabled"  style="background-color:  #bf03c8 ;">{{i.estado}}</a>
-                                        {% elif i.estado == 'FINALIZADO' %}
-                                        <a class="btn btn-success btn-sm disabled">{{i.estado}}</a>
-                                        {% else %}
-                                        -
-                                        {% endif %}
+                                        <a v-if="i.estado == 'EN PAUSA'" class="btn btn-danger btn-sm disabled">{{i.estado}}</a>
+                                        <a v-else-if="i.estado == 'EN TRANSITO'" class="btn btn-primary btn-sm disabled">{{i.estado}}</a>
+                                        <a v-else-if="i.estado == 'EN PROCESO'" class="btn btn-warning text-white btn-sm disabled">{{i.estado}}</a>
+                                        <a v-else-if="i.estado == 'INCOMPLETO'" class="btn text-white btn-sm disabled" style="background-color:  #bf03c8 ;">{{i.estado}}</a>
+                                        <a v-else-if="i.estado == 'FINALIZADO'" class="btn btn-success btn-sm disabled">{{i.estado}}</a>
+                                        <a v-else="i.estado == '-'" >{{i.estado}}</a>
                                     </td>
-
-                                    <!--td>{{i.operario}}</td-->
-                                    {% if i.first_name == '-' %}
-                                    <td>-</td>
-                                    {% else %}
-                                    <td>{{i.first_name|slice:1}}.{{i.last_name|slice:1}}</td>
-                                    {% endif %}
+                                    <td v-if="i.first_name != '-'">{{i.first_name}}.{{i.last_name}}</td>
+                                    <td v-else>-</td>
+                                    {% endverbatim %}
                                 </tr>
                             </tbody>
-                            {#% endfor %#}
                         </table>
 
                     </div>
@@ -198,29 +117,16 @@
                 <div class="card-body">
                     <div class="container">
                         <ul class="list-group">
+                            {% verbatim %}
                             <li class="list-group-item d-flex justify-content-between align-items-center bg-danger text-white">
-                                URGENTE
-                                <!--span class="badge bg-danger"-->
-                                <span class="fs-4">
-                                    {% if rojo == 0 %}
-                                    -
-                                    {% else %}
-                                    {{rojo}}
-                                    {% endif %}
-                                </span>
+                                URGENTE <span class="fs-4">{{urgente}}</span>
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center bg-warning text-white">
-                                PRONTO
-                                <!--span class="badge bg-warning"-->
-                                <span class="fs-4">
-                                    {% if amarillo == 0 %}
-                                    -
-                                    {% else %}
-                                    {{amarillo}}
-                                    {% endif %}
-                                </span>
+                                PRONTO <span class="fs-4">{{pronto}}</span>
                             </li>
+                            {% endverbatim %}
                         </ul>
+
                     </div>
                     <div class="table-responsive-stock mt-4">
                         <table class="table">
@@ -230,36 +136,22 @@
                                 <th>TIEMPO</th>
                                 <th>MESES</th>
                             </thead>
-                            
-                            {% for i in etiquetado %}
-                            <tbody style="font-size: small;"> <!-- style="font-size: small;" -->
-
-                                <td>
-                                    <span class="fs-6">
-                                        {% if i.estado == 'EN PROCESO' %}
-                                        <i class="bi bi-check-circle-fill" style="color:green"></i>
-                                        {% endif %}
-                                        <a href="{% url 'etiquetado_stock_detalle' i.PRODUCT_ID %}" target="_blank">{{i.PRODUCT_ID}}</a> 
-                                    </span>
-                                    {% if i.n_personas %}
-                                        <span class="bg-info bg-gradient text-white m-2 p-1">{{i.n_personas}}p</span>
-                                    {% endif %}
-                                    
-                                    <br>
-                                    <span style="font-size: small;">{{i.PRODUCT_NAME}}</span> 
-                                </td>
-                                <td class="text-end">{{i.Cuarentena|floatformat:'0g'}}</td>
-                                <td class="text-end">{{i.tiempo}}</td>
-        
-                                <td class="text-end" 
-                                {% if i.Meses < urgente %} style="background-color:#F6B690"
-                                {% elif i.Meses >= urgente and i.Meses < correcto %} style="background-color:#F6F490"
-                                {% else %} style="background-color:#BAF690"
-                                {% endif %}>
-                                {{i.Meses|floatformat:'2g'}}</td>
-                                
+                            <tbody style="font-size: small;"> 
+                                <tr v-for="(i, index) in etiquetadoData" :key="index">
+                                    {% verbatim %}
+                                    <td>
+                                        <span v-if="i.estado == 'EN PROCESO'"><i class="bi bi-check-circle-fill" style="color:green"></i></span>
+                                        <a :href="'/etiquetado/pedidos/' + i.CONTRATO_ID" class="fs-6" target="_blank">{{i.PRODUCT_ID}}</a>
+                                        <span v-if="i.n_personas" class="bg-info bg-gradient text-white m-2 p-1">{{i.n_personas}}p</span>
+                                        <br>
+                                        <span style="font-size: small;">{{i.PRODUCT_NAME}}</span> 
+                                    </td>
+                                    <td class="text-end">{{i.Cuarentena|floatformat:'0g'}}</td>
+                                    <td class="text-end">{{i.tiempo}}</td>
+                                    <td :style="{backgroundColor: obtenerColorFondoMeses(i.Meses)}" class="text-end">{{i.Meses}}</td>
+                                    {% endverbatim %}
+                                </tr>
                             </tbody>
-                            {% endfor %}
                         </table>
                     </div>
                 </div>
@@ -273,14 +165,9 @@
                         <ul class="list-group">
                             <li class="list-group-item d-flex justify-content-between align-items-center bg-primary text-white">
                                 NÚMERO DE PEDIDOS 
-                                <!--span class="badge bg-primary"-->
-                                <span class="fs-4">
-                                    {% if publico_n == 0 %}
-                                    -
-                                    {% else %}
-                                    {{publico_n}}
-                                    {% endif %}
-                                </span>
+                                {% verbatim %}
+                                <span class="fs-4">{{n_publico}}</span>
+                                {% endverbatim %}
                             </li>
                         </ul>
                     </div>
@@ -288,79 +175,44 @@
                         <table class="table">
                             <thead>
                                 <th>N° PEDIDO</th>
-                                <!--th>FECHA</th-->
                                 <th>ENTREGA</th>
                                 <th>TIEMPO</th>
                                 <th>ESTADO</th>
                             </thead>
-                            {% for i in publico %}
+                            
                             <tbody style="font-size: small;">
-                                <td>
-                                    <a class="fs-6" href="{% url 'pedidos' i.CONTRATO_ID %}" target="_blank">
-                                        {{i.CONTRATO_ID|slice:-2}}
-                                    </a> 
-                                    {% if i.DISP == 'NOT' %}
-                                        <i style = "color:red;" class="bi bi-file-earmark-x-fill"></i>
-                                    {% endif %}
-                                    
-                                    <br> <span style="font-size: smaller;">{{i.NOMBRE_CLIENTE}}</span>
-                                    <!--span class="fs-6">{{i.CONTRATO_ID|slice:-2}}</span><br>
-                                    {{i.NOMBRE_CLIENTE}}<br-->
-        
-                                </td>
-
-
-                                {% if i.dias_faltantes == '-' %}
-                                <td class="text-end">-</td>
-                                {% else %}
-
-                                <!--td {% if i.estado_entrega == 'CONFIRMADO' %} style="background-color: #AED6F1;"{% endif %}                         
-                                >{{i.fecha_hora|slice:'0:10'}} {{i.fecha_hora|slice:'11:16'}}<br> Faltan: {{i.dias_faltantes|floatformat:0}} días</td-->
-
-                                <td {% if i.estado_entrega == 'CONFIRMADO' %} style="background-color: #AED6F1;"{% endif %}                         
-                                >{{i.dia|slice:'0:4'}} {{i.fecha_hora|slice:'8:10'}}. {{i.mes|slice:'0:3'}} {{i.fecha_hora|slice:'11:16'}}<br> Faltan: {{i.dias_faltantes|floatformat:0}} días</td>
-
-                                {% endif %}
-
-                                
-                                <td class="text-end">
-                                    {% if i.TIEMPOS == 't1' %}
-                                    {{i.t_1p_str}}
-                                    {% elif i.TIEMPOS == 't2' %}
-                                    {{i.t_2p_str}}
-                                    {% elif i.TIEMPOS == 't3' %}
-                                    {{i.t_3p_str}}
-                                    {% else %}
-                                    F
-                                    {% endif %}
-                                </td>
-
-
-                                <td class="estado text-center">
-                                    {% if i.estado == 'EN PAUSA' %}
-                                    <a class="btn btn-danger btn-sm disabled lh-1">{{i.estado}}</a>
-                                    {% elif i.estado == 'EN TRANSITO' %}
-                                    <a class="btn btn-danger btn-sm disabled lh-1">{{i.estado}}</a>
-                                    {% elif i.estado == 'EN PROCESO' %}
-                                    <a class="btn btn-warning text-white btn-sm disabled lh-1">{{i.estado}}</a>
-                                    {% elif i.estado == 'INCOMPLETO' %}
-                                    <a class="btn btn-danger btn-sm disabled lh-1">{{i.estado}}</a>
-                                    {% elif i.estado == 'FINALIZADO' %}
-                                    <a class="btn btn-success btn-sm disabled lh-1">{{i.estado}}</a>
-                                    {% else %}
-                                    -
-                                    {% endif %}
-                                    <br>
-
-                                    {% if i.estado != '-' %}
-                                    <span class="mt-2 ps-1 pe-1" style="background-color: #BAF690;">
-                                        {{i.avance}}%
-                                    </span>
-                                    {% endif %}
-
-                                </td>
+                                <tr v-for="(i, index) in publicoData" :key="index">
+                                    {% verbatim %}
+                                    <td>
+                                        <a :href="'/etiquetado/pedidos/' + i.CONTRATO_ID" class="fs-6" target="_blank">{{i.contrato_id}}</a>
+                                        <i v-if="i.DISP == 'NOT'" style="color:red;" class="bi bi-file-earmark-x-fill"></i>
+                                        <br>
+                                        <span style="font-size: smaller;">{{i.NOMBRE_CLIENTE}}</span>
+                                    </td>
+                                    <td>
+                                        {{i.dia}} {{i.dia_mes}}.{{i.mes}} {{i.hora}}
+                                        <br>
+                                        Faltan: {{i.dias_faltantes}} días
+                                    </td>
+                                    <td>
+                                        <span v-if="i.TIEMPOS == 't1'">{{i.t_1p_str}}</span>
+                                        <span v-if="i.TIEMPOS == 't2'">{{i.t_2p_str}}</span>
+                                        <span v-if="i.TIEMPOS == 't3'">{{i.t_3p_str}}</span>
+                                        <span v-if="i.TIEMPOS == 'F'">F</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <a v-if="i.estado == 'EN PAUSA'" class="btn btn-danger btn-sm disabled">{{i.estado}}</a>
+                                        <a v-else-if="i.estado == 'EN TRANSITO'" class="btn btn-primary btn-sm disabled">{{i.estado}}</a>
+                                        <a v-else-if="i.estado == 'EN PROCESO'" class="btn btn-warning text-white btn-sm disabled">{{i.estado}}</a>
+                                        <a v-else-if="i.estado == 'INCOMPLETO'" class="btn text-white btn-sm disabled" style="background-color:  #bf03c8 ;">{{i.estado}}</a>
+                                        <a v-else-if="i.estado == 'FINALIZADO'" class="btn btn-success btn-sm disabled">{{i.estado}}</a>
+                                        <a v-else="i.estado == '-'" >{{i.estado}}</a>
+                                        <span v-if="i.estado != '-'" class="mt-2 ps-1 pe-1" style="background-color: #BAF690;">{{i.avance}}%</span>
+                                    </td>
+                                    {% endverbatim %}
+                                </tr>
                             </tbody>
-                            {% endfor %}
+                            
                         </table>
                     </div>
                 </div>
@@ -368,327 +220,78 @@
         </div>
     </div>
     
-
-
-
-    {% comment %}
-    <div class="row mb-4">
-        <div class="col mb-4">
-            <!--h6 class="text-center">PEDIDOS PENDIENTES</h6-->
-            <div class="card">
-                <h6 class="card-header text-center fs-2">PEDIDOS PENDIENTES</h6>
-                <div class="card-body">
-                    <div class="container">
-                        <ul class="list-group"> <!--fs-4-->
-                            <!--li class="list-group-item d-flex justify-content-between align-items-center list-group-item-danger"-->
-                            <li class="list-group-item d-flex justify-content-between align-items-center bg-danger text-white">
-                                PEDIDOS MÁS DE 3 DÍAS
-                                <!--span class="badge bg-danger"-->
-                                <span class="fs-4">
-                                    {% if pedidos_cerezos_mas3 == 0%}
-                                    -
-                                    {% else %}
-                                    {{pedidos_cerezos_mas3}}
-                                    {% endif %}
-                                </span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center bg-warning text-white">
-                                PEDIDOS AYER
-                                <!--span class="badge bg-warning"-->
-                                <span class="fs-4">
-                                    {% if pedidos_cerezos_ayer == 0%}
-                                    -
-                                    {% else %}
-                                    {{pedidos_cerezos_ayer}}
-                                    {% endif %}
-                                </span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center bg-success text-white">
-                                PEDIDOS HOY
-                                <!--span class="badge bg-success"-->
-                                <span class="fs-4">
-                                    {% if pedidos_cerezos_hoy == 0 %}
-                                    -
-                                    {% else %}
-                                    {{pedidos_cerezos_hoy}}
-                                    {% endif %}
-                                </span>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <div class="table-responsive-pedidos mt-4">
-                        <table class="table">
-                            <thead>
-                                <th>N° PEDIDO</th>
-                                <th>FECHA</th>
-                                <th>CIU</th>
-                                <th>ESTADO</th>
-                                <th>OP</th>
-                            </thead>
-                            {% for i in pedidos_cerezos %}
-                            <tbody style="font-size: small;">
-                                <td
-                                {% if i.fecha_estado == 'hoy' %}
-                                style="background-color: #BAF690;"
-                                {% elif i.fecha_estado == 'ayer' %}
-                                style="background-color: #F6F490;"
-                                {% elif i.fecha_estado == 'mas3' %}
-                                style="background-color: #F6B690;"
-                                {% endif %}>
-                                    <!--span class="fs-6">{{i.CONTRATO_ID|slice:-2}}</span><br>
-                                    {{i.NOMBRE_CLIENTE}}<br-->
-
-                                    <a class="fs-6" href="{% url 'pedidos' i.CONTRATO_ID %}" target="_blank">
-                                        {{i.CONTRATO_ID|slice:-2}}
-                                    </a> 
-
-                                    <!-- STOCK COMPLETO -->
-                                    {% if i.DISP == 'NOT' %}
-                                        <i style = "color:red;" class="bi bi-file-earmark-x-fill"></i>
-                                    {% endif %}
-
-                                    <!-- PEDIDO CONFIRMADO -->
-                                    {% if i.CONFIRMED %}
-                                        <i class="bi bi-check2"></i>
-                                    {% endif %}
-
-                                    <br> {{i.NOMBRE_CLIENTE}}
-                                    
-                                </td>
-
-                                <td>{{i.FECHA_PEDIDO}} {{i.HORA_LLEGADA}}</td>
-
-                                <td>{{i.CIUDAD_PRINCIPAL|slice:'0:3'}}</td>
-
-                                <td>
-                                    {% if i.estado == 'EN PAUSA' %}
-                                    <a class="btn btn-danger btn-sm disabled">{{i.estado}}</a>
-                                    {% elif i.estado == 'EN TRANSITO' %}
-                                    <a class="btn btn-primary btn-sm disabled">{{i.estado}}</a>
-                                    {% elif i.estado == 'EN PROCESO' %}
-                                    <a class="btn btn-warning text-white btn-sm disabled">{{i.estado}}</a> 
-                                    {% elif i.estado == 'INCOMPLETO' %} 
-                                    <a class="btn text-white btn-sm disabled"  style="background-color:  #bf03c8 ;">{{i.estado}}</a>
-                                    {% elif i.estado == 'FINALIZADO' %}
-                                    <a class="btn btn-success btn-sm disabled">{{i.estado}}</a>
-                                    {% else %}
-                                    -
-                                    {% endif %}
-                                </td>
-
-                                <!--td>{{i.operario}}</td-->
-                                {% if i.first_name == '-' %}
-                                <td>-</td>
-                                {% else %}
-                                <td>{{i.first_name|slice:1}}.{{i.last_name|slice:1}}</td>
-                                {% endif %}
-                            </tbody>
-                            {% endfor %}
-                        </table>
-
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col mb-4">
-            <div class="card">
-                <h6 class="card-header text-center fs-2">ETIQUETADO STOCK</h6>
-                <div class="card-body">
-                    <div class="container">
-                        <ul class="list-group">
-                            <li class="list-group-item d-flex justify-content-between align-items-center bg-danger text-white">
-                                URGENTE
-                                <!--span class="badge bg-danger"-->
-                                <span class="fs-4">
-                                    {% if rojo == 0 %}
-                                    -
-                                    {% else %}
-                                    {{rojo}}
-                                    {% endif %}
-                                </span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center bg-warning text-white">
-                                PRONTO
-                                <!--span class="badge bg-warning"-->
-                                <span class="fs-4">
-                                    {% if amarillo == 0 %}
-                                    -
-                                    {% else %}
-                                    {{amarillo}}
-                                    {% endif %}
-                                </span>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="table-responsive-stock mt-4">
-                        <table class="table">
-                            <thead>
-                                <th>ITEM</th>
-                                <th>CUA</th>
-                                <th>TIEMPO</th>
-                                <th>MESES</th>
-                            </thead>
-                            
-                            {% for i in etiquetado %}
-                            <tbody style="font-size: small;"> <!-- style="font-size: small;" -->
-
-                                <td>
-                                    <span class="fs-6">
-                                        {% if i.estado == 'EN PROCESO' %}
-                                        <i class="bi bi-check-circle-fill" style="color:green"></i>
-                                        {% endif %}
-                                        <a href="{% url 'etiquetado_stock_detalle' i.PRODUCT_ID %}" target="_blank">{{i.PRODUCT_ID}}</a> 
-                                    </span>
-                                    {% if i.n_personas %}
-                                        <span class="bg-info bg-gradient text-white m-2 p-1">{{i.n_personas}}p</span>
-                                    {% endif %}
-                                    
-                                    <br>
-                                    <span style="font-size: small;">{{i.PRODUCT_NAME}}</span> 
-                                </td>
-                                <td class="text-end">{{i.Cuarentena|floatformat:'0g'}}</td>
-                                <td class="text-end">{{i.tiempo}}</td>
-        
-                                <td class="text-end" 
-                                {% if i.Meses < urgente %} style="background-color:#F6B690"
-                                {% elif i.Meses >= urgente and i.Meses < correcto %} style="background-color:#F6F490"
-                                {% else %} style="background-color:#BAF690"
-                                {% endif %}>
-                                {{i.Meses|floatformat:'2g'}}</td>
-                                
-                            </tbody>
-                            {% endfor %}
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col">
-            <div class="card">
-                <h6 class="card-header text-center fs-2">ETIQUETADO PÚBLICO</h6>
-                <div class="card-body">
-                    <div class="container">
-                        <ul class="list-group">
-                            <li class="list-group-item d-flex justify-content-between align-items-center bg-primary text-white">
-                                NÚMERO DE PEDIDOS 
-                                <!--span class="badge bg-primary"-->
-                                <span class="fs-4">
-                                    {% if publico_n == 0 %}
-                                    -
-                                    {% else %}
-                                    {{publico_n}}
-                                    {% endif %}
-                                </span>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="table-responsive-publico mt-4">
-                        <table class="table">
-                            <thead>
-                                <th>N° PEDIDO</th>
-                                <!--th>FECHA</th-->
-                                <th>ENTREGA</th>
-                                <th>TIEMPO</th>
-                                <th>ESTADO</th>
-                            </thead>
-                            {% for i in publico %}
-                            <tbody style="font-size: small;">
-                                <td>
-                                    <a class="fs-6" href="{% url 'pedidos' i.CONTRATO_ID %}" target="_blank">
-                                        {{i.CONTRATO_ID|slice:-2}}
-                                    </a> 
-                                    {% if i.DISP == 'NOT' %}
-                                        <i style = "color:red;" class="bi bi-file-earmark-x-fill"></i>
-                                    {% endif %}
-                                    
-                                    <br> <span style="font-size: smaller;">{{i.NOMBRE_CLIENTE}}</span>
-                                    <!--span class="fs-6">{{i.CONTRATO_ID|slice:-2}}</span><br>
-                                    {{i.NOMBRE_CLIENTE}}<br-->
-        
-                                </td>
-
-
-                                {% if i.dias_faltantes == '-' %}
-                                <td class="text-end">-</td>
-                                {% else %}
-
-                                <!--td {% if i.estado_entrega == 'CONFIRMADO' %} style="background-color: #AED6F1;"{% endif %}                         
-                                >{{i.fecha_hora|slice:'0:10'}} {{i.fecha_hora|slice:'11:16'}}<br> Faltan: {{i.dias_faltantes|floatformat:0}} días</td-->
-
-                                <td {% if i.estado_entrega == 'CONFIRMADO' %} style="background-color: #AED6F1;"{% endif %}                         
-                                >{{i.dia|slice:'0:4'}} {{i.fecha_hora|slice:'8:10'}}. {{i.mes|slice:'0:3'}} {{i.fecha_hora|slice:'11:16'}}<br> Faltan: {{i.dias_faltantes|floatformat:0}} días</td>
-
-                                {% endif %}
-
-                                
-                                <td class="text-end">
-                                    {% if i.TIEMPOS == 't1' %}
-                                    {{i.t_1p_str}}
-                                    {% elif i.TIEMPOS == 't2' %}
-                                    {{i.t_2p_str}}
-                                    {% elif i.TIEMPOS == 't3' %}
-                                    {{i.t_3p_str}}
-                                    {% else %}
-                                    F
-                                    {% endif %}
-                                </td>
-
-
-                                <td class="estado text-center">
-                                    {% if i.estado == 'EN PAUSA' %}
-                                    <a class="btn btn-danger btn-sm disabled lh-1">{{i.estado}}</a>
-                                    {% elif i.estado == 'EN TRANSITO' %}
-                                    <a class="btn btn-danger btn-sm disabled lh-1">{{i.estado}}</a>
-                                    {% elif i.estado == 'EN PROCESO' %}
-                                    <a class="btn btn-warning text-white btn-sm disabled lh-1">{{i.estado}}</a>
-                                    {% elif i.estado == 'INCOMPLETO' %}
-                                    <a class="btn btn-danger btn-sm disabled lh-1">{{i.estado}}</a>
-                                    {% elif i.estado == 'FINALIZADO' %}
-                                    <a class="btn btn-success btn-sm disabled lh-1">{{i.estado}}</a>
-                                    {% else %}
-                                    -
-                                    {% endif %}
-                                    <br>
-
-                                    {% if i.estado != '-' %}
-                                    <span class="mt-2 ps-1 pe-1" style="background-color: #BAF690;">
-                                        {{i.avance}}%
-                                    </span>
-                                    {% endif %}
-
-                                </td>
-                            </tbody>
-                            {% endfor %}
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endcomment %}
 
 </div>
 <script>
-    const dashboardUrl = "{% url 'dashboard_completo_vue' %}";
+    const dashboardUrl = "{% url 'dashboard_completo_json_response' %}";
 </script>
 
 <script>
     new Vue({
         el: '#app',
         data: {
-            fechaHoraActual: '',
             cargandoDashboard:false,
+            errorDatos:false,
+            fechaHoraActual: '',
+            // PEDIDOS PENDIENTES
+            pedidos_mas_tres_dias: '',
+            pedidos_ayer:'',
+            pedidos_hoy:'',
             pedidos_cerezos: [],
+            // ETIQUETADO STOCK
+            urgente:'',
+            pronto:'',
+            etiquetado:[],
+            // ETIQUETADO publico
+            n_publico:'',
+            publico:[],
         },
         mounted() {
-            this.actualizarFechaHora();  // Muestra la fecha y hora inmediatamente al cargar la página
+            // Muestra la fecha y hora inmediatamente al cargar la página
+            this.actualizarFechaHora();
+            // Actualiza la fecha y hora cada segundo (segundo)
+            setInterval(this.actualizarFechaHora, 30000);
 
-            // Actualiza la fecha y hora cada segundo (minuto)
-            setInterval(this.actualizarFechaHora, 1000);
+            // Datos de dashboard
+            this.actualizarDashboard();
+            // Actualizar datos de dashboard cada (5 minuto)
+            setInterval(this.actualizarDashboard, 300000);
 
-            // Actulizar dash
-            // setInterval(this.actualizarDashoboard, 10000);
+        },
+        computed: {
+            pedidosCerezosData() {
+                return this.pedidos_cerezos.map(i => {
+                    return {
+                        ...i,
+                        contrato_id:i.CONTRATO_ID.slice(0,5),
+                        CIUDAD_PRINCIPAL:i.CIUDAD_PRINCIPAL.slice(0,3),
+                        first_name:i.first_name.slice(0,1),
+                        last_name:i.last_name.slice(0,1),
+                    };
+                });
+            },
+
+            etiquetadoData() {
+                return this.etiquetado.map(i => {
+                    return {
+                        ...i,
+                        Cuarentena: i.Cuarentena.toLocaleString('es-ES'),
+                    };
+                });
+            },
+
+            publicoData() {
+                return this.publico.map(i => {
+                    return {
+                        ...i,
+                        contrato_id:i.CONTRATO_ID.slice(0,5),
+                        dia:i.dia.slice(0,4),
+                        dia_mes:i.fecha_hora.slice(8,10),
+                        mes:i.mes.slice(0,3),
+                        hora:i.fecha_hora.slice(11,16)
+                    }
+                })
+            }
         },
         methods: {
             actualizarFechaHora() {
@@ -704,7 +307,7 @@
                 const opcionesHora = {
                     hour: 'numeric',   // Hora
                     minute: 'numeric',  // Minuto
-                    second: 'numeric',  // Segundo
+                    //second: 'numeric',  // Segundo
                 };
                 
                 // Combina la fecha y hora en el formato deseado
@@ -713,9 +316,31 @@
                 this.fechaHoraActual = `${fecha} ${hora}`;
             },
 
+            obtenerColorFondoNumeroPedido(estado) {
+                switch (estado) {
+                    case 'hoy':
+                        return '#BAF690';
+                    case 'ayer':
+                        return '#F6F490';
+                    case 'mas3':
+                        return '#F6B690';
+                    default:"white"
+                }
+            },
+
+            obtenerColorFondoMeses(meses) {
+                if (meses < 0.75) {
+                    return '#F6B690';
+                } else if (meses >=0.75 && meses <2) {
+                    return '#F6F490';
+                } else if (meses >=2 ) {
+                    return '#BAF690';
+                }
+            },
+
             async actualizarDashboard() {
                 this.cargandoDashboard = true;
-                console.log('init dash')
+                
                 try {
                     const response = await fetch(dashboardUrl);  
                     if (!response.ok) {
@@ -723,43 +348,27 @@
                     }
                     // const html = await response.text();
                     const data = await response.json();
-
+                    this.errorDatos = false;
+                    // PEDIDOS PENDIENTES
+                    this.pedidos_mas_tres_dias = data.pedidos_cerezos_mas3;
+                    this.pedidos_ayer = data.pedidos_cerezos_ayer;
+                    this.pedidos_hoy = data.pedidos_cerezos_hoy;
                     this.pedidos_cerezos = data.pedidos_cerezos || [];
-                    
-
+                    // ETIQUETADO STOCK
+                    this.urgente = data.n_urgente;
+                    this.pronto = data.n_pronto;
+                    this.etiquetado = data.etiquetado || [];
+                    // ETIQUETADO publico
+                    this.n_publico = data.n_publico;
+                    this.publico = data.publico || [];
                 } catch (error) {
-                    console.error('Error al cargar el dashboard:', error);
+                    this.errorDatos = true;
                 } finally {
                     this.cargandoDashboard = false;
                 }
             }
         },
-        //mounted() {
-        //    this.actualizarDashoboard();
-        //}
     });
 </script>
-
-<!--script type="text/javascript">
-    function actualizar(){location.reload(true);}
-    //Función para actualizar cada 30 min = 1,800,000 milisegundos
-    setInterval("actualizar()",300000); // 5 min
-</script-->
-
-
-<!--script>
-    // Fecha actual
-    var hoy = new Date();
-
-    var options = {weekday:'long', year:'numeric', month:'long', day:'numeric'};
-    options.timeZone = 'America/Guayaquil';
-    options.timeZoneName = 'short';
-
-    var now = hoy.toLocaleString('es', options);
-    // console.log(now)
-
-    document.getElementById('fecha').innerHTML = now
-    
-</script-->
 
 {% endblock %}

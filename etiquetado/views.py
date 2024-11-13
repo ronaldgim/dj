@@ -2591,7 +2591,7 @@ def dashboard_completo(request):
     return render(request, 'etiquetado/pedidos/dashboard_completo.html', context)
 
 
-def dashboard_completo_vue(request):
+def dashboard_completo_json_response(request):
 
     # PEDIDOS CEREZOS
     pedidos_cerezos = estado_pedidos_dashboard_fun('BCT')
@@ -2622,10 +2622,11 @@ def dashboard_completo_vue(request):
     etiquetado = etiquetado_fun() 
     urgente = 0.75
     correcto = 2
-    rojo = len(etiquetado[etiquetado['Meses']<urgente])
+    #rojo = len(etiquetado[etiquetado['Meses']<urgente])
+    n_urgente = len(etiquetado[etiquetado['Meses']<urgente])
     amarillo = etiquetado[etiquetado['Meses']>=urgente]
     amarillo = amarillo[amarillo['Meses']<correcto]
-    amarillo = len(amarillo)
+    n_pronto = len(amarillo)
 
     etiquetado = de_dataframe_a_template(etiquetado)
 
@@ -2641,7 +2642,7 @@ def dashboard_completo_vue(request):
     
     publicos_n = len(publico)
     publico = de_dataframe_a_template(publico)
-    print(pedidos_cerezos)
+    
     context = {
         # PEDIDOS CEREZOS
         'pedidos_cerezos':pedidos_cerezos,
@@ -2653,31 +2654,16 @@ def dashboard_completo_vue(request):
         'etiquetado':etiquetado,
         'urgente':urgente,
         'correcto':correcto,
-        'rojo':rojo,
-        'amarillo':amarillo,
+        #'rojo':rojo,
+        'n_urgente':n_urgente,
+        #'amarillo':amarillo,
+        'n_pronto':n_pronto,
 
         # PUBLICO
         'publico':publico,
-        'publico_n':publicos_n
+        'n_publico':publicos_n
     }
-
-    # context = {
-    #     # "pedidos_cerezos": [
-    #     #     {"nombre": "Pedido 1", "descripcion": "Descripción del Pedido 1"},
-    #     #     {"nombre": "Pedido 2", "descripcion": "Descripción del Pedido 2"},
-    #     #     {"nombre": "Pedido 3", "descripcion": "Descripción del Pedido 3"}
-    #     # ],
-    #     # "pedidos_cerezos_hoy": [
-    #     #     {"nombre": "Pedido Hoy 1", "estado": "Entregado"},
-    #     #     {"nombre": "Pedido Hoy 2", "estado": "En proceso"},
-    #     # ],
-    #     # "pedidos_cerezos_ayer": [
-    #     #     {"nombre": "Pedido Ayer 1", "estado": "Cancelado"},
-    #     #     {"nombre": "Pedido Ayer 2", "estado": "Entregado"},
-    #     #     {"nombre": "Pedido Ayer 3", "estado": "En proceso"}
-    #     # ]
-    # }
-
+    
     return JsonResponse(context)
 
 
