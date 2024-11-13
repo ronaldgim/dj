@@ -89,14 +89,7 @@
                                     </td>
                                     <td>{{i.FECHA_PEDIDO}} {{i.HORA_LLEGADA}}</td>
                                     <td>{{i.CIUDAD_PRINCIPAL}}</td>
-                                    <td>
-                                        <a v-if="i.estado == 'EN PAUSA'" class="btn btn-danger btn-sm disabled">{{i.estado}}</a>
-                                        <a v-else-if="i.estado == 'EN TRANSITO'" class="btn btn-primary btn-sm disabled">{{i.estado}}</a>
-                                        <a v-else-if="i.estado == 'EN PROCESO'" class="btn btn-warning text-white btn-sm disabled">{{i.estado}}</a>
-                                        <a v-else-if="i.estado == 'INCOMPLETO'" class="btn text-white btn-sm disabled" style="background-color:  #bf03c8 ;">{{i.estado}}</a>
-                                        <a v-else-if="i.estado == 'FINALIZADO'" class="btn btn-success btn-sm disabled">{{i.estado}}</a>
-                                        <a v-else="i.estado == '-'" >{{i.estado}}</a>
-                                    </td>
+                                    <td><a :class="obtenerColorFondoEstado(i.estado)" :style="{backgroundColor: obtenerColorFondoEstadoIncompleto(i.estado)}">{{i.estado}}</a></td>
                                     <td v-if="i.first_name != '-'">{{i.first_name}}.{{i.last_name}}</td>
                                     <td v-else>-</td>
                                     {% endverbatim %}
@@ -108,6 +101,7 @@
                 </div>
             </div>
         </div>
+
         <div class="col mb-4">
             <div class="card">
                 <h6 class="card-header text-center fs-2">ETIQUETADO STOCK</h6>
@@ -154,6 +148,7 @@
                 </div>
             </div>
         </div>
+
         <div class="col">
             <div class="card">
                 <h6 class="card-header text-center fs-2">ETIQUETADO PÚBLICO</h6>
@@ -197,13 +192,8 @@
                                         <span v-if="i.TIEMPOS == 't3'">{{i.t_3p_str}}</span>
                                         <span v-if="i.TIEMPOS == 'F'">F</span>
                                     </td>
-                                    <td class="text-center">
-                                        <a v-if="i.estado == 'EN PAUSA'" class="btn btn-danger btn-sm disabled">{{i.estado}}</a>
-                                        <a v-else-if="i.estado == 'EN TRANSITO'" class="btn btn-primary btn-sm disabled">{{i.estado}}</a>
-                                        <a v-else-if="i.estado == 'EN PROCESO'" class="btn btn-warning text-white btn-sm disabled">{{i.estado}}</a>
-                                        <a v-else-if="i.estado == 'INCOMPLETO'" class="btn text-white btn-sm disabled" style="background-color:  #bf03c8 ;">{{i.estado}}</a>
-                                        <a v-else-if="i.estado == 'FINALIZADO'" class="btn btn-success btn-sm disabled">{{i.estado}}</a>
-                                        <a v-else="i.estado == '-'" >{{i.estado}}</a>
+                                    <td>
+                                        <a :class="obtenerColorFondoEstado(i.estado)" :style="{backgroundColor: obtenerColorFondoEstadoIncompleto(i.estado)}">{{i.estado}}</a>
                                         <span v-if="i.estado != '-'" class="mt-2 ps-1 pe-1" style="background-color: #BAF690;">{{i.avance}}%</span>
                                     </td>
                                     {% endverbatim %}
@@ -313,8 +303,8 @@
                 this.fechaHoraActual = `${fecha} ${hora}`;
             },
 
-            obtenerColorFondoNumeroPedido(estado) {
-                switch (estado) {
+            obtenerColorFondoNumeroPedido(fecha_estado) {
+                switch (fecha_estado) {
                     case 'hoy':
                         return '#BAF690';
                     case 'ayer':
@@ -340,6 +330,28 @@
                     case 'CONFIRMADO': 
                         return '#AED6F1';
                     default:"white"
+                }
+            },
+
+            obtenerColorFondoEstado(estado){
+                switch (estado) {
+                    case 'EN PAUSA':
+                        return 'btn btn-danger btn-sm disabled';
+                    case 'EN TRANSITO':
+                        return 'btn btn-primary btn-sm disabled';
+                    case 'EN PROCESO':
+                        return 'btn btn-warning text-white btn-sm disabled';
+                    case 'FINALIZADO':
+                        return 'btn btn-success btn-sm disabled';
+                    case 'INCOMPLETO':
+                        return 'btn text-white btn-sm disabled';
+                }
+            },
+
+            obtenerColorFondoEstadoIncompleto(estado) {
+                switch (estado) {
+                    case 'INCOMPLETO':
+                        return '#bf03c8';
                 }
             },
 
