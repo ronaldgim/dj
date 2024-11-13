@@ -2622,7 +2622,6 @@ def dashboard_completo_json_response(request):
     etiquetado = etiquetado_fun() 
     urgente = 0.75
     correcto = 2
-    #rojo = len(etiquetado[etiquetado['Meses']<urgente])
     n_urgente = len(etiquetado[etiquetado['Meses']<urgente])
     amarillo = etiquetado[etiquetado['Meses']>=urgente]
     amarillo = amarillo[amarillo['Meses']<correcto]
@@ -2644,6 +2643,10 @@ def dashboard_completo_json_response(request):
     publico = de_dataframe_a_template(publico)
     
     context = {
+        # CONFIG
+        'urgente':urgente,
+        'correcto':correcto,
+        
         # PEDIDOS CEREZOS
         'pedidos_cerezos':pedidos_cerezos,
         'pedidos_cerezos_hoy':pedidos_cerezos_hoy,
@@ -2652,11 +2655,7 @@ def dashboard_completo_json_response(request):
 
         # ETIQUETADO STOCK
         'etiquetado':etiquetado,
-        'urgente':urgente,
-        'correcto':correcto,
-        #'rojo':rojo,
         'n_urgente':n_urgente,
-        #'amarillo':amarillo,
         'n_pronto':n_pronto,
 
         # PUBLICO
