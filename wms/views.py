@@ -2762,7 +2762,7 @@ def wms_transferencias_list(request):
 
 @login_required(login_url='login')
 def wms_transferencia_picking(request, n_transf):
-    print('asdfasdf')
+    
     estado = TransferenciaStatus.objects.get(n_transferencia=n_transf)
     prod   = productos_odbc_and_django()[['product_id','Nombre','Marca','Unidad_Empaque','Volumen']]
     
