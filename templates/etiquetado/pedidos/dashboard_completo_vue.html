@@ -179,7 +179,7 @@
                                         <a :href="'/etiquetado/pedidos/' + i.CONTRATO_ID" class="fs-6" target="_blank">{{i.contrato_id}}</a>
                                         <i v-if="i.DISP == 'NOT'" style="color:red;" class="bi bi-file-earmark-x-fill"></i>
                                         <br>
-                                        <span style="font-size: smaller;">{{i.NOMBRE_CLIENTE}}</span>
+                                        <span>{{i.NOMBRE_CLIENTE}}</span>
                                     </td>
                                     <td :style="{backgroundColor: obtenerColorFondoEntrega(i.estado_entrega)}">
                                         {{i.dia}} {{i.dia_mes}}.{{i.mes}} {{i.hora}}
@@ -209,11 +209,12 @@
     
 
 </div>
-<script>
+<!--script>
     const dashboardUrl = "{% url 'dashboard_completo_json_response' %}";
-</script>
+</script-->
 
 <script>
+    const dashboardUrl = "{% url 'dashboard_completo_json_response' %}";
     new Vue({
         el: '#app',
         data: {
@@ -252,6 +253,7 @@
                         ...i,
                         contrato_id:i.CONTRATO_ID.slice(0,5),
                         CIUDAD_PRINCIPAL:i.CIUDAD_PRINCIPAL.slice(0,3),
+                        HORA_LLEGADA:i.HORA_LLEGADA.slice(0,5),
                         first_name:i.first_name.slice(0,1),
                         last_name:i.last_name.slice(0,1),
                     };
