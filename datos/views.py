@@ -1,5 +1,5 @@
 # DB
-from django.db import connections
+from django.db import connections, transaction
 
 # Shortcuts
 from django.shortcuts import render, redirect
@@ -162,6 +162,7 @@ def frecuancia_ventas():
 
 
 ## ACTUALIZAR DATOS DE WAREHOUSE
+@transaction.atomic
 def actualizar_datos_etiquetado_fun():
     ### STOCK
     with connections['gimpromed_sql'].cursor() as cursor:
