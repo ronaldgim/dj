@@ -125,3 +125,13 @@ class EmailApiLog(models.Model):
     error       = models.CharField(max_length=250, blank=True, null=True)
     enviado     = models.BooleanField(blank=True, null=True)
     fecha       = models.DateTimeField(auto_now_add=True)
+
+
+# ADMINISTRACIÓN DE ACTUALIZACIÓNES WAREHOUSE
+class AdminActualizationWarehaouse(models.Model):
+    
+    table_name = models.CharField(max_length=50, unique=True)
+    datetime = models.DateTimeField()
+    
+    def __str__(self):
+        return self.table_name

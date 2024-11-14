@@ -5,27 +5,13 @@ from django.urls import path
 from datos import views
 
 urlpatterns = [
-    
-    path(
-        route='marcas/import',
-        view=views.MarcaImportExcelCreateView.as_view(),
-        name='marcas_import'
-    ),
-    
 
-    # EJECUTAR FUNCIÓN STOCK LOTE
+    # EJECUTAR FUNCIÓN STOCK LOTE COMPLETA
     path(
         route = 'stocklote',
         view = views.stock_lote,
         name = 'stocklote'
     ),
-
-    path(
-        route='freq-ventas',
-        view=views.frecuancia_ventas,
-        name='freq_ventas',   
-    ),
-
 
     # ACTUALIZAR ETIQUETADO AJAX
     path(
