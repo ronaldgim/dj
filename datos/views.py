@@ -74,9 +74,151 @@ from api_mba.tablas_warehouse import (
     )
 
 
+# FUNCIONES UTILES
+# Chequear si el usuario tiene permiso
+def user_perm(user_id, permiso_function):
+    
+    user = User.objects.get(id=user_id)
+    superuser = user.is_superuser
+
+    if superuser: 
+        return True
+    
+    else:
+        permisos_user_list = list(UserPerfil.objects.get(user_id=user.id).permisos.values_list('permiso', flat=True))
+        
+        perm_true_list = []
+        for permiso in permiso_function:
+            p = permiso in permisos_user_list
+            perm_true_list.append(p)
+        
+        if True in perm_true_list:
+            return True
+        else:
+            return False
+
+
+# Decorador de permiso de vista
+def permisos(permiso, redirect_url, modulo):
+    def decorador(view_func):
+        @wraps(view_func)
+        def _wrapped_view(request, *args, **kwargs):
+            user_has_perm = user_perm(request.user.id, permiso)
+            if user_has_perm:
+                return view_func(request, *args, **kwargs)
+            else:
+                messages.error(request, f'{request.user} no tiene permiso de {modulo} !!!')
+                return redirect(redirect_url)
+        return _wrapped_view
+    return decorador
+
+
+# DE DATAFRAME A LISTA DE DICCIONARIOS PARA PASAR A UN TEMPLATE
+def de_dataframe_a_template(dataframe):
+
+    json_records = dataframe.reset_index().to_json(orient='records') # reset_index().
+    dataframe = json.loads(json_records)
+
+    return dataframe
+
+
+# QUITAR PREFIJOS EN REG SAN, PROCEDENCIA
+def quitar_prefijo(texto):
+    if ':' in texto:
+        texto = texto.split(':')[1]
+        return texto
+    else:
+        return texto
+    
+    
+def extraer_fecha(texto):
+    # Buscar una fecha en formato dd/mm/yyyy en el texto
+    match = re.search(r'\b\d{2}/\d{2}/\d{4}\b', texto)
+    
+    if match:
+        fecha_str = match.group(0)
+        try:
+            # Convertir la cadena a un objeto datetime
+            fecha = datetime.strptime(fecha_str, '%d/%m/%Y')
+            return fecha
+        except ValueError:
+            print("Formato de fecha inválido")
+            return None
+    else:
+        print("No se encontró una fecha en el texto")
+        return None
+
+
 # HOME PRINCIPAL
 class Inicio(LoginRequiredMixin, TemplateView):
     template_name = 'inicio.html'
+
+
+
+def productos_odbc_and_django():
+    with connections['gimpromed_sql'].cursor() as cursor:
+        #cursor.execute("SELECT Codigo, Nombre, Unidad, Marca, Unidad_Empaque, Unidad_Box, Inactivo FROM productos")
+        cursor.execute("SELECT * FROM productos WHERE Inactivo = 0")
+        columns = [col[0] for col in cursor.description]
+        products = [ # Lista de diccionarios
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+
+        products = pd.DataFrame(products)
+        products = products.rename(columns={
+            'Codigo':'product_id'
+        })
+
+        p = pd.DataFrame(Product.objects.all().values())
+
+        products = products.merge(p, on='product_id', how='left')
+
+    return products
+
+
+def pedidos_cuenca_odbc(n_pedido): #n_pedido
+
+    open_ssh_tunnel()
+    mysql_connect()
+
+    df = run_query(        
+        # "SELECT orders.id,seller_code,client_code,client_name,client_identification,orders.created_at,order_products.product_id,orders.status,order_products.product_name,"
+        # "order_products.product_group_code,order_products.quantity,order_products.price FROM orders LEFT JOIN order_products "
+        # "ON orders.id = order_products.order_id where seller_code='VEN03' AND orders.status='TCR';"
+        
+        # PEDIDOS 5455 | 5495
+        
+        "SELECT orders.id,seller_code,client_code,client_name,client_identification,orders.created_at,order_products.product_id,orders.status,order_products.product_name,"
+        "order_products.product_group_code,order_products.quantity,order_products.price FROM orders LEFT JOIN order_products "
+        #f"ON orders.id = order_products.order_id where orders.id='{n_pedido}' AND orders.status='TCR';" 
+        f"ON orders.id = order_products.order_id where orders.id='{n_pedido}'" 
+    )
+        
+    mysql_disconnect()
+    close_ssh_tunnel()
+    
+    return df
+
+
+def ventas_desde_fecha(fecha, codigo_cliente):
+    ''' Colusta de ventas desde fecha especifica '''
+    
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute(
+            f"SELECT CODIGO_CLIENTE, FECHA, PRODUCT_ID FROM venta_facturas WHERE fecha > '{fecha}' AND codigo_cliente = '{codigo_cliente}'"
+            )
+        columns = [col[0] for col in cursor.description]
+        ventas = [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+        
+        ventas = pd.DataFrame(ventas)
+    
+    return ventas
+
+
 
 # FRECUENCIA DE VENTAS DATA
 # SSH DATA TUNEL
@@ -196,7 +338,7 @@ def productos_transito_odbc():
 
 
 ## ACTUALIZAR DATOS DE WAREHOUSE
-@transaction.atomic
+#@transaction.atomic
 def actualizar_datos_etiquetado_fun():
     ### STOCK
     with connections['gimpromed_sql'].cursor() as cursor:
@@ -270,11 +412,9 @@ def actualizar_datos_etiquetado_fun():
     reservas_r = reservas_r[reservas_r['WARE_CODE']!='BCT']
     reservas_r = reservas_r[reservas_r['NOMBRE_CLIENTE']!='GIMPROMED CIA. LTDA.']
 
-
     r = pd.concat([reservas_filtrado, reservas_r])
     r = r.pivot_table(index=['PRODUCT_ID'], values='QUANTITY', aggfunc='sum')
     r = r.rename(columns={'QUANTITY':'Reservas'})
-
 
     ### TRANSITO
     transito = productos_transito_odbc()
@@ -313,7 +453,6 @@ def actualizar_datos_etiquetado_fun():
             t.append(i)
     t_a = t[-1][:-7]
     eti['actulizado'] = t_a
-
 
     eti = eti.fillna(0.0)
     eti = eti.sort_values(by='Meses', ascending=True)
@@ -392,143 +531,6 @@ def etiquetado_ajax(request):
 
 
 
-# FUNCIONES UTILES
-# Chequear si el usuario tiene permiso
-def user_perm(user_id, permiso_function):
-    
-    user = User.objects.get(id=user_id)
-    superuser = user.is_superuser
-
-    if superuser: 
-        return True
-    
-    else:
-        permisos_user_list = list(UserPerfil.objects.get(user_id=user.id).permisos.values_list('permiso', flat=True))
-        
-        perm_true_list = []
-        for permiso in permiso_function:
-            p = permiso in permisos_user_list
-            perm_true_list.append(p)
-        
-        if True in perm_true_list:
-            return True
-        else:
-            return False
-
-
-# Decorador de permiso de vista
-def permisos(permiso, redirect_url, modulo):
-    def decorador(view_func):
-        @wraps(view_func)
-        def _wrapped_view(request, *args, **kwargs):
-            user_has_perm = user_perm(request.user.id, permiso)
-            if user_has_perm:
-                return view_func(request, *args, **kwargs)
-            else:
-                messages.error(request, f'{request.user} no tiene permiso de {modulo} !!!')
-                return redirect(redirect_url)
-        return _wrapped_view
-    return decorador
-
-
-# DE DATAFRAME A LISTA DE DICCIONARIOS PARA PASAR A UN TEMPLATE
-def de_dataframe_a_template(dataframe):
-
-    json_records = dataframe.reset_index().to_json(orient='records') # reset_index().
-    dataframe = json.loads(json_records)
-
-    return dataframe
-
-
-# QUITAR PREFIJOS EN REG SAN, PROCEDENCIA
-def quitar_prefijo(texto):
-    if ':' in texto:
-        texto = texto.split(':')[1]
-        return texto
-    else:
-        return texto
-    
-    
-def extraer_fecha(texto):
-    # Buscar una fecha en formato dd/mm/yyyy en el texto
-    match = re.search(r'\b\d{2}/\d{2}/\d{4}\b', texto)
-    
-    if match:
-        fecha_str = match.group(0)
-        try:
-            # Convertir la cadena a un objeto datetime
-            fecha = datetime.strptime(fecha_str, '%d/%m/%Y')
-            return fecha
-        except ValueError:
-            print("Formato de fecha inválido")
-            return None
-    else:
-        print("No se encontró una fecha en el texto")
-        return None
-
-
-def productos_odbc_and_django():
-    with connections['gimpromed_sql'].cursor() as cursor:
-        #cursor.execute("SELECT Codigo, Nombre, Unidad, Marca, Unidad_Empaque, Unidad_Box, Inactivo FROM productos")
-        cursor.execute("SELECT * FROM productos WHERE Inactivo = 0")
-        columns = [col[0] for col in cursor.description]
-        products = [ # Lista de diccionarios
-            dict(zip(columns, row))
-            for row in cursor.fetchall()
-        ]
-
-        products = pd.DataFrame(products)
-        products = products.rename(columns={
-            'Codigo':'product_id'
-        })
-
-        p = pd.DataFrame(Product.objects.all().values())
-
-        products = products.merge(p, on='product_id', how='left')
-
-    return products
-
-
-def pedidos_cuenca_odbc(n_pedido): #n_pedido
-
-    open_ssh_tunnel()
-    mysql_connect()
-
-    df = run_query(        
-        # "SELECT orders.id,seller_code,client_code,client_name,client_identification,orders.created_at,order_products.product_id,orders.status,order_products.product_name,"
-        # "order_products.product_group_code,order_products.quantity,order_products.price FROM orders LEFT JOIN order_products "
-        # "ON orders.id = order_products.order_id where seller_code='VEN03' AND orders.status='TCR';"
-        
-        # PEDIDOS 5455 | 5495
-        
-        "SELECT orders.id,seller_code,client_code,client_name,client_identification,orders.created_at,order_products.product_id,orders.status,order_products.product_name,"
-        "order_products.product_group_code,order_products.quantity,order_products.price FROM orders LEFT JOIN order_products "
-        #f"ON orders.id = order_products.order_id where orders.id='{n_pedido}' AND orders.status='TCR';" 
-        f"ON orders.id = order_products.order_id where orders.id='{n_pedido}'" 
-    )
-        
-    mysql_disconnect()
-    close_ssh_tunnel()
-    
-    return df
-
-
-def ventas_desde_fecha(fecha, codigo_cliente):
-    ''' Colusta de ventas desde fecha especifica '''
-    
-    with connections['gimpromed_sql'].cursor() as cursor:
-        cursor.execute(
-            f"SELECT CODIGO_CLIENTE, FECHA, PRODUCT_ID FROM venta_facturas WHERE fecha > '{fecha}' AND codigo_cliente = '{codigo_cliente}'"
-            )
-        columns = [col[0] for col in cursor.description]
-        ventas = [
-            dict(zip(columns, row))
-            for row in cursor.fetchall()
-        ]
-        
-        ventas = pd.DataFrame(ventas)
-    
-    return ventas
 
 
 
@@ -751,10 +753,6 @@ def importaciones_en_transito_detalle_odbc(contrato_id):
     return importaciones_transito
 
 
-
-
-
-
 def ventas_facturas_odbc(): # PARA REGISTRO DE GUIAS
     with connections['gimpromed_sql'].cursor() as cursor:
         cursor.execute(
@@ -917,7 +915,6 @@ def stock_total(): #request
         stock = pd.DataFrame(stock)
                 
     return stock
-
 
 
 def facturas_odbc(): #request
@@ -2038,6 +2035,7 @@ def email_cliente_por_codigo(codigo_cliente):
         
         return email
     
+    
 # Obtener todas las proformas
 def lista_proformas_odbc():
     
@@ -2048,6 +2046,7 @@ def lista_proformas_odbc():
         proformas = pd.DataFrame(proformas)
         
     return proformas
+
 
 # Obtener una proforma por contrato_id
 def proformas_por_contrato_id_odbc(contrato_id):
