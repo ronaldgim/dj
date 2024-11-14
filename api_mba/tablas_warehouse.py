@@ -2,7 +2,7 @@
 from api_mba.mba import api_mba_sql
 
 # BD Connection
-from django.db import connections
+from django.db import connections, transaction
 
 # Send mail
 from django.core.mail import send_mail
@@ -21,7 +21,7 @@ from api_mba.api_query import (
     )
 
 # datos de actualización
-from datos.models import TimeStamp
+from datos.models import AdminActualizationWarehaouse
 
 
 # eliminar datos de tablas en wharehouse
@@ -54,8 +54,21 @@ def insert_data_warehouse(table_name, data):
         cursor.executemany(sql_insert, data)
 
 
+def admin_warehouse_timestamp(tabla):
+    
+    timestamp = AdminActualizationWarehaouse.objects.filter(table_name=tabla)
+    
+    if timestamp.exists():
+        registro = timestamp.first() 
+        registro.datetime = datetime.now()
+        registro.save()
+    else:
+        AdminActualizationWarehaouse.objects.create(table_name=tabla, datetime=datetime.now())
+
+
 ###### FUNCIONES PARA ACTUALIZAR DATOS EN WAREHOUSE ######
 ### ACTUALIZAR CLIENTES WAREHOUSE POR API DATA
+# atomic transaction
 def api_actualizar_clientes_warehouse():
     
     try:
@@ -66,11 +79,15 @@ def api_actualizar_clientes_warehouse():
             
             data = [tuple(i.values()) for i in clientes_mba['data']]
             
-            # Borrar datos de tabla clientes
-            delete_data_warehouse('clientes')
+            with transaction.atomic():
             
-            # Insertar datos de tabla clientes
-            insert_data_warehouse('clientes', data)
+                # Borrar datos de tabla clientes
+                delete_data_warehouse('clientes')
+                
+                # Insertar datos de tabla clientes
+                insert_data_warehouse('clientes', data)
+                
+                admin_warehouse_timestamp('clientes')
         
         else:
             
@@ -106,6 +123,7 @@ def api_actualizar_clientes_warehouse():
 
 
 ### ACTUALIZAR FACTURAS WAREHOUSE
+# atomic transaction
 def api_actualizar_facturas_warehouse():
     
     try:
@@ -169,12 +187,15 @@ def api_actualizar_facturas_warehouse():
                 
                 data.append(row)
         
-            # Borrar datos de tabla facturas
-            delete_data_warehouse('facturas')
-            
-            # Insertar datos de tabla facturas
-            insert_data_warehouse('facturas', data)
+            with transaction.atomic():
+                # Borrar datos de tabla facturas
+                delete_data_warehouse('facturas')
+                
+                # Insertar datos de tabla facturas
+                insert_data_warehouse('facturas', data)
         
+                admin_warehouse_timestamp('facturas')
+                
         else:
             
             send_mail(
@@ -209,6 +230,7 @@ def api_actualizar_facturas_warehouse():
 
 
 ### ACTUALIZAR IMP LLEGADAS WAREHOUSE
+# atomic transaction
 def api_actualizar_imp_llegadas_warehouse():
 
     try:
@@ -286,11 +308,15 @@ def api_actualizar_imp_llegadas_warehouse():
             
             data = imp_llegadas.values.tolist()
             
-            # Borrar datos de tabla imp_llegadas
-            delete_data_warehouse('imp_llegadas')
-            
-            # Insertar datos de tabla imp_llegadas
-            insert_data_warehouse('imp_llegadas', data)
+            with transaction.atomic():
+
+                # Borrar datos de tabla imp_llegadas
+                delete_data_warehouse('imp_llegadas')
+                
+                # Insertar datos de tabla imp_llegadas
+                insert_data_warehouse('imp_llegadas', data)
+                
+                admin_warehouse_timestamp('imp_llegadas')
         
         else:
             
@@ -326,6 +352,7 @@ def api_actualizar_imp_llegadas_warehouse():
 
 
 ### ACTUALIZAR IMP TRANSITO WAREHOUSE
+# atomic transaction
 def api_actualizar_imp_transito_warehouse():
     
     try:
@@ -376,11 +403,15 @@ def api_actualizar_imp_transito_warehouse():
                 
                 data.append(row)
                 
+                
+            with transaction.atomic():
                 # Borrar datos de tabla imp_transito
                 delete_data_warehouse('imp_transito')
                 
                 # # Insertar datos de tabla imp_transito
                 insert_data_warehouse('imp_transito', data)
+                
+                admin_warehouse_timestamp('imp_transito')
     
         else:
         
@@ -416,6 +447,7 @@ def api_actualizar_imp_transito_warehouse():
 
 
 ### ACTUALIZAR PRODUCTOS WAREHOUSE POR API DATA
+# atomic transaction
 def api_actualizar_productos_warehouse():
     
     try:
@@ -498,11 +530,14 @@ def api_actualizar_productos_warehouse():
                 
                 data.append(row)
             
-            # Borrar datos de tabla productos
-            delete_data_warehouse('productos')
-            
-            # Insertar datos de tabla productos
-            insert_data_warehouse('productos', data)
+            with transaction.atomic():
+                # Borrar datos de tabla productos
+                delete_data_warehouse('productos')
+                
+                # Insertar datos de tabla productos
+                insert_data_warehouse('productos', data)
+                
+                admin_warehouse_timestamp('productos')
 
         else:
         
@@ -538,6 +573,7 @@ def api_actualizar_productos_warehouse():
 
 
 ### ACTUALIZAR PRODUCTOS EN TRANSITO
+# atomic transaction
 def api_actualizar_producto_transito_warehouse():
     
     try:
@@ -583,11 +619,15 @@ def api_actualizar_producto_transito_warehouse():
 
                 data.append(row)
                 
-            # Borrar datos de tabla clientes
-            delete_data_warehouse('productos_transito')
             
-            # Insertar datos de tabla clientes
-            insert_data_warehouse('productos_transito', data)
+            with transaction.atomic():
+                # Borrar datos de tabla clientes
+                delete_data_warehouse('productos_transito')
+                
+                # Insertar datos de tabla clientes
+                insert_data_warehouse('productos_transito', data)
+                
+                admin_warehouse_timestamp('productos_transito')
     
         else:
         
@@ -622,8 +662,8 @@ def api_actualizar_producto_transito_warehouse():
         )
 
 
-
 ### ACTULIZAR PROFORMAS
+# atomic transaction
 def api_actualizar_proformas_warehouse():
     
     try:
@@ -684,11 +724,15 @@ def api_actualizar_proformas_warehouse():
                 
                 data.append(row)
             
-            # Borrar datos de tabla proformas
-            delete_data_warehouse('proformas')
             
-            # Insertar datos de tabla proformas
-            insert_data_warehouse('proformas', data)
+            with transaction.atomic():
+                # Borrar datos de tabla proformas
+                delete_data_warehouse('proformas')
+                
+                # Insertar datos de tabla proformas
+                insert_data_warehouse('proformas', data)
+                
+                admin_warehouse_timestamp('proformas')
         
         else:
             
@@ -724,6 +768,7 @@ def api_actualizar_proformas_warehouse():
 
 
 ### ACTUALIZAR RESERVAS WAREHOUSE
+# atomic transaction
 def api_actualizar_reservas_warehouse():
     
     try:
@@ -804,11 +849,14 @@ def api_actualizar_reservas_warehouse():
                 
                 data.append(row)
             
-            # Borrar datos de tabla reservas
-            delete_data_warehouse('reservas')
-            
-            # Insertar datos de tabla reservas
-            insert_data_warehouse('reservas', data)
+            with transaction.atomic():
+                # Borrar datos de tabla reservas
+                delete_data_warehouse('reservas')
+                
+                # Insertar datos de tabla reservas
+                insert_data_warehouse('reservas', data)
+                
+                admin_warehouse_timestamp('reservas')
 
         else:
         
@@ -844,6 +892,7 @@ def api_actualizar_reservas_warehouse():
 
 
 ### ACTUALIZAR RESERVAS LOTES WAREHOUSE
+# atomic transaction
 def api_actualizar_reservas_lotes_warehouse():
     
     try:
@@ -918,11 +967,14 @@ def api_actualizar_reservas_lotes_warehouse():
                 
                 data.append(row)
                 
-            # Borrar datos de tabla reservas_lote
-            delete_data_warehouse('reservas_lote')
-            
-            # Insertar datos de tabla reservas_lote
-            insert_data_warehouse('reservas_lote', data)
+            with transaction.atomic():
+                # Borrar datos de tabla reservas_lote
+                delete_data_warehouse('reservas_lote')
+                
+                # Insertar datos de tabla reservas_lote
+                insert_data_warehouse('reservas_lote', data)
+                
+                admin_warehouse_timestamp('reservas_lote')
 
         else:
         
@@ -959,6 +1011,7 @@ def api_actualizar_reservas_lotes_warehouse():
 
 
 ### ACTULIZAR STOCK LOTE POR ODBC
+# atomic transaction
 import pyodbc
 def actualizar_stock_lote_odbc():
 
@@ -1000,13 +1053,14 @@ def actualizar_stock_lote_odbc():
         
         if len(data) > 0:
             
-            # Borrar datos de tabla stock_lote
-            delete_data_warehouse('stock_lote')
-            
-            # Insertar datos de tabla stock_lote
-            insert_data_warehouse('stock_lote', data)
-            time = str(datetime.now())
-            TimeStamp.objects.create(actulization_facturas=time)
+            while transaction.atomic():
+                # Borrar datos de tabla stock_lote
+                delete_data_warehouse('stock_lote')
+                
+                # Insertar datos de tabla stock_lote
+                insert_data_warehouse('stock_lote', data)
+                
+                admin_warehouse_timestamp('stock_lote')
             
     
     except Exception as e:

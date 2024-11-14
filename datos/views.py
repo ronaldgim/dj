@@ -4,19 +4,15 @@ from django.db import connections
 # Shortcuts
 from django.shortcuts import render, redirect
 
-# Urls
-from django.urls import reverse_lazy
 
 # Messages
 from django.contrib import messages
 
 # Generic View
-from django.views.generic.list import ListView
-from django.views.generic.edit import CreateView
 from django.views.generic import TemplateView
 
 # Models
-from datos.models import Marca, Product, MarcaImportExcel, Vehiculos
+from datos.models import Product, MarcaImportExcel, Vehiculos
 from datos.models import TimeStamp
 from etiquetado.models import EtiquetadoAvance
 
@@ -26,9 +22,6 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 # Pandas
 import pandas as pd
 import numpy as np
-
-# Form
-from datos.forms import ProductForm
 
 
 # SSH DATA TUNEL
@@ -40,10 +33,8 @@ from sshtunnel import SSHTunnelForwarder
 # Pyodbc
 import pyodbc
 
-
 # Json
 import json
-
 
 # HTTP
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
@@ -55,11 +46,9 @@ from dateutil.relativedelta import relativedelta
 # Mysql connector
 import mysql.connector
 
-
 ### PERMISOS PERSONALIZADOS
 from users.models import UserPerfil
 from django.contrib.auth.models import User
-
 
 ### PERMISO PERSONALIZADO
 from functools import wraps
@@ -67,9 +56,10 @@ from functools import wraps
 # rexex
 import re
 
-
 # ACTUALIZAR WAREHOUSER POR API DATA
 from api_mba.tablas_warehouse import (
+    admin_warehouse_timestamp,
+    
     api_actualizar_clientes_warehouse,
     api_actualizar_facturas_warehouse,
     api_actualizar_imp_llegadas_warehouse,
@@ -84,134 +74,11 @@ from api_mba.tablas_warehouse import (
     )
 
 
-# Chequear si el usuario tiene permiso
-def user_perm(user_id, permiso_function):
-    
-    user = User.objects.get(id=user_id)
-    superuser = user.is_superuser
-
-    if superuser: 
-        return True
-    
-    else:
-        permisos_user_list = list(UserPerfil.objects.get(user_id=user.id).permisos.values_list('permiso', flat=True))
-        
-        perm_true_list = []
-        for permiso in permiso_function:
-            p = permiso in permisos_user_list
-            perm_true_list.append(p)
-        
-        if True in perm_true_list:
-            return True
-        else:
-            return False
-
-
-# Decorador de permiso de vista
-def permisos(permiso, redirect_url, modulo):
-    def decorador(view_func):
-        @wraps(view_func)
-        def _wrapped_view(request, *args, **kwargs):
-            user_has_perm = user_perm(request.user.id, permiso)
-            if user_has_perm:
-                return view_func(request, *args, **kwargs)
-            else:
-                messages.error(request, f'{request.user} no tiene permiso de {modulo} !!!')
-                return redirect(redirect_url)
-        return _wrapped_view
-    return decorador
-
-
-# DE DATAFRAME A LISTA DE DICCIONARIOS PARA PASAR A UN TEMPLATE
-def de_dataframe_a_template(dataframe):
-
-    json_records = dataframe.reset_index().to_json(orient='records') # reset_index().
-    dataframe = json.loads(json_records)
-
-    return dataframe
-
-
-# QUITAR PREFIJOS EN REG SAN, PROCEDENCIA
-def quitar_prefijo(texto):
-    if ':' in texto:
-        texto = texto.split(':')[1]
-        return texto
-    else:
-        return texto
-    
-    
-def extraer_fecha(texto):
-    # Buscar una fecha en formato dd/mm/yyyy en el texto
-    match = re.search(r'\b\d{2}/\d{2}/\d{4}\b', texto)
-    
-    if match:
-        fecha_str = match.group(0)
-        try:
-            # Convertir la cadena a un objeto datetime
-            fecha = datetime.strptime(fecha_str, '%d/%m/%Y')
-            return fecha
-        except ValueError:
-            print("Formato de fecha inválido")
-            return None
-    else:
-        print("No se encontró una fecha en el texto")
-        return None
-    
-
+# HOME PRINCIPAL
 class Inicio(LoginRequiredMixin, TemplateView):
     template_name = 'inicio.html'
-    
 
-
-class MarcaImportExcelCreateView(CreateView):
-    model = MarcaImportExcel
-    fields = '__all__'
-    template_name = 'datos/marcas_import.html'
-    success_url = reverse_lazy('marcas_list')
-
-
-
-def productos_odbc_and_django():
-    with connections['gimpromed_sql'].cursor() as cursor:
-        #cursor.execute("SELECT Codigo, Nombre, Unidad, Marca, Unidad_Empaque, Unidad_Box, Inactivo FROM productos")
-        cursor.execute("SELECT * FROM productos WHERE Inactivo = 0")
-        columns = [col[0] for col in cursor.description]
-        products = [ # Lista de diccionarios
-            dict(zip(columns, row))
-            for row in cursor.fetchall()
-        ]
-
-        products = pd.DataFrame(products)
-        products = products.rename(columns={
-            'Codigo':'product_id'
-        })
-
-        p = pd.DataFrame(Product.objects.all().values())
-
-        products = products.merge(p, on='product_id', how='left')
-
-    return products
-
-
-
-def productos_transito_odbc():
-    ### TRANSITO
-    with connections['gimpromed_sql'].cursor() as cursor:
-        cursor.execute(
-            "SELECT * FROM productos_transito"
-        )
-
-        columns = [col[0] for col in cursor.description]
-        transito = [
-            dict(zip(columns, row))
-            for row in cursor.fetchall()
-        ]
-    transito = pd.DataFrame(transito)
-    
-    return transito
-
-
-
+# FRECUENCIA DE VENTAS DATA
 # SSH DATA TUNEL
 ssh_host = '10.10.3.4'
 ssh_username = 'root'
@@ -293,50 +160,9 @@ def frecuancia_ventas():
     return df
 
 
-def pedidos_cuenca_odbc(n_pedido): #n_pedido
 
-    open_ssh_tunnel()
-    mysql_connect()
-
-    df = run_query(        
-        # "SELECT orders.id,seller_code,client_code,client_name,client_identification,orders.created_at,order_products.product_id,orders.status,order_products.product_name,"
-        # "order_products.product_group_code,order_products.quantity,order_products.price FROM orders LEFT JOIN order_products "
-        # "ON orders.id = order_products.order_id where seller_code='VEN03' AND orders.status='TCR';"
-        
-        # PEDIDOS 5455 | 5495
-        
-        "SELECT orders.id,seller_code,client_code,client_name,client_identification,orders.created_at,order_products.product_id,orders.status,order_products.product_name,"
-        "order_products.product_group_code,order_products.quantity,order_products.price FROM orders LEFT JOIN order_products "
-        #f"ON orders.id = order_products.order_id where orders.id='{n_pedido}' AND orders.status='TCR';" 
-        f"ON orders.id = order_products.order_id where orders.id='{n_pedido}'" 
-    )
-        
-    mysql_disconnect()
-    close_ssh_tunnel()
-    
-    return df
-
-
-def ventas_desde_fecha(fecha, codigo_cliente):
-    ''' Colusta de ventas desde fecha especifica '''
-    
-    with connections['gimpromed_sql'].cursor() as cursor:
-        cursor.execute(
-            f"SELECT CODIGO_CLIENTE, FECHA, PRODUCT_ID FROM venta_facturas WHERE fecha > '{fecha}' AND codigo_cliente = '{codigo_cliente}'"
-            )
-        columns = [col[0] for col in cursor.description]
-        ventas = [
-            dict(zip(columns, row))
-            for row in cursor.fetchall()
-        ]
-        
-        ventas = pd.DataFrame(ventas)
-    
-    return ventas
-
-
-
-def etiquetado_fun():
+## ACTUALIZAR DATOS DE WAREHOUSE
+def actualizar_datos_etiquetado_fun():
     ### STOCK
     with connections['gimpromed_sql'].cursor() as cursor:
         cursor.execute(
@@ -476,56 +302,219 @@ def etiquetado_fun():
         REPLACE INTO etiquetado_etiquetadostock (id,PRODUCT_ID,PRODUCT_NAME,GROUP_CODE,Cat,Reservas,Transito,Disp_Reserva,Disp_Total,Mensual,Cuarentena,Tres_Semanas,Stock_Mensual,Meses,O_Etiquetado,actulizado)
         VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""", e)
 
+    admin_warehouse_timestamp('etiquetado_stock')
+
     return print('etiquetado-fun')
 
 
-def etiquetado_ajax(request):
 
-    etiquetado_fun()
-
-    return HttpResponseRedirect('/etiquetado/stock')
-
-
-
-# # Carga la tabla de stock lote automaticamente
+## Carga la tabla de stock lote automaticamente
 def stock_lote(request):
 
     if request.method == 'GET':
 
-        # ACTUALIZAR PRODUCTOS 
+        # 1 ACTUALIZAR PRODUCTOS 
         api_actualizar_productos_warehouse()
         
-        # Reservas  (Pedidos Abiertos) - (<> MANTEN)
+        # 2 Reservas  (Pedidos Abiertos) - (<> MANTEN)
         api_actualizar_reservas_warehouse()
 
-        # Reservas lotes
+        # 3 Reservas lotes
         api_actualizar_reservas_lotes_warehouse()
 
-        # Clientes
+        # 4 Clientes
         api_actualizar_clientes_warehouse()
 
-        # Stock Lotes
+        # 5 Stock Lotes
         actualizar_stock_lote_odbc()
 
-        # Facturas (ultimos 2 meses)
+        # 6 Facturas (ultimos 2 meses)
         api_actualizar_facturas_warehouse()
         
-        # Actualizar importaciones en transito
+        # 7 Actualizar importaciones en transito
         api_actualizar_imp_transito_warehouse()
         
-        # Productos en Transito
+        # 8 Productos en Transito
         api_actualizar_producto_transito_warehouse()
 
+        # 9 tabla de etiquetado estock
+        actualizar_datos_etiquetado_fun()
+
         time = str(datetime.now())
-        TimeStamp.objects.create(actulization_stoklote=time)
-
-        etiquetado_fun()
-
         context = {
             'context':time
         }
 
     return render(request, 'datos/stock_lote.html', context)
+
+
+
+def etiquetado_ajax(request):
+
+    actualizar_datos_etiquetado_fun()
+
+    return HttpResponseRedirect('/etiquetado/stock')
+
+
+
+# FUNCIONES UTILES
+# Chequear si el usuario tiene permiso
+def user_perm(user_id, permiso_function):
+    
+    user = User.objects.get(id=user_id)
+    superuser = user.is_superuser
+
+    if superuser: 
+        return True
+    
+    else:
+        permisos_user_list = list(UserPerfil.objects.get(user_id=user.id).permisos.values_list('permiso', flat=True))
+        
+        perm_true_list = []
+        for permiso in permiso_function:
+            p = permiso in permisos_user_list
+            perm_true_list.append(p)
+        
+        if True in perm_true_list:
+            return True
+        else:
+            return False
+
+
+# Decorador de permiso de vista
+def permisos(permiso, redirect_url, modulo):
+    def decorador(view_func):
+        @wraps(view_func)
+        def _wrapped_view(request, *args, **kwargs):
+            user_has_perm = user_perm(request.user.id, permiso)
+            if user_has_perm:
+                return view_func(request, *args, **kwargs)
+            else:
+                messages.error(request, f'{request.user} no tiene permiso de {modulo} !!!')
+                return redirect(redirect_url)
+        return _wrapped_view
+    return decorador
+
+
+# DE DATAFRAME A LISTA DE DICCIONARIOS PARA PASAR A UN TEMPLATE
+def de_dataframe_a_template(dataframe):
+
+    json_records = dataframe.reset_index().to_json(orient='records') # reset_index().
+    dataframe = json.loads(json_records)
+
+    return dataframe
+
+
+# QUITAR PREFIJOS EN REG SAN, PROCEDENCIA
+def quitar_prefijo(texto):
+    if ':' in texto:
+        texto = texto.split(':')[1]
+        return texto
+    else:
+        return texto
+    
+    
+def extraer_fecha(texto):
+    # Buscar una fecha en formato dd/mm/yyyy en el texto
+    match = re.search(r'\b\d{2}/\d{2}/\d{4}\b', texto)
+    
+    if match:
+        fecha_str = match.group(0)
+        try:
+            # Convertir la cadena a un objeto datetime
+            fecha = datetime.strptime(fecha_str, '%d/%m/%Y')
+            return fecha
+        except ValueError:
+            print("Formato de fecha inválido")
+            return None
+    else:
+        print("No se encontró una fecha en el texto")
+        return None
+
+
+def productos_odbc_and_django():
+    with connections['gimpromed_sql'].cursor() as cursor:
+        #cursor.execute("SELECT Codigo, Nombre, Unidad, Marca, Unidad_Empaque, Unidad_Box, Inactivo FROM productos")
+        cursor.execute("SELECT * FROM productos WHERE Inactivo = 0")
+        columns = [col[0] for col in cursor.description]
+        products = [ # Lista de diccionarios
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+
+        products = pd.DataFrame(products)
+        products = products.rename(columns={
+            'Codigo':'product_id'
+        })
+
+        p = pd.DataFrame(Product.objects.all().values())
+
+        products = products.merge(p, on='product_id', how='left')
+
+    return products
+
+
+def productos_transito_odbc():
+    ### TRANSITO
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute(
+            "SELECT * FROM productos_transito"
+        )
+
+        columns = [col[0] for col in cursor.description]
+        transito = [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+    transito = pd.DataFrame(transito)
+    
+    return transito
+
+
+
+def pedidos_cuenca_odbc(n_pedido): #n_pedido
+
+    open_ssh_tunnel()
+    mysql_connect()
+
+    df = run_query(        
+        # "SELECT orders.id,seller_code,client_code,client_name,client_identification,orders.created_at,order_products.product_id,orders.status,order_products.product_name,"
+        # "order_products.product_group_code,order_products.quantity,order_products.price FROM orders LEFT JOIN order_products "
+        # "ON orders.id = order_products.order_id where seller_code='VEN03' AND orders.status='TCR';"
+        
+        # PEDIDOS 5455 | 5495
+        
+        "SELECT orders.id,seller_code,client_code,client_name,client_identification,orders.created_at,order_products.product_id,orders.status,order_products.product_name,"
+        "order_products.product_group_code,order_products.quantity,order_products.price FROM orders LEFT JOIN order_products "
+        #f"ON orders.id = order_products.order_id where orders.id='{n_pedido}' AND orders.status='TCR';" 
+        f"ON orders.id = order_products.order_id where orders.id='{n_pedido}'" 
+    )
+        
+    mysql_disconnect()
+    close_ssh_tunnel()
+    
+    return df
+
+
+def ventas_desde_fecha(fecha, codigo_cliente):
+    ''' Colusta de ventas desde fecha especifica '''
+    
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute(
+            f"SELECT CODIGO_CLIENTE, FECHA, PRODUCT_ID FROM venta_facturas WHERE fecha > '{fecha}' AND codigo_cliente = '{codigo_cliente}'"
+            )
+        columns = [col[0] for col in cursor.description]
+        ventas = [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+        
+        ventas = pd.DataFrame(ventas)
+    
+    return ventas
+
+
+
 
 
 
