@@ -2662,7 +2662,8 @@ def dashboard_completo_json_response(request):
         'publico':publico,
         'n_publico':publicos_n
     }
-    
+
+
     return JsonResponse(context)
 
 
