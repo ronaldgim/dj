@@ -160,6 +160,40 @@ def frecuancia_ventas():
     return df
 
 
+def clientes_warehouse():
+
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute(
+            "SELECT * FROM clientes"
+        )
+
+        columns = [col[0] for col in cursor.description]
+        clientes = [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+    clientes = pd.DataFrame(clientes)
+
+    return clientes
+
+
+def productos_transito_odbc():
+    ### TRANSITO
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute(
+            "SELECT * FROM productos_transito"
+        )
+
+        columns = [col[0] for col in cursor.description]
+        transito = [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+    transito = pd.DataFrame(transito)
+    
+    return transito
+
+
 
 ## ACTUALIZAR DATOS DE WAREHOUSE
 @transaction.atomic
@@ -330,13 +364,13 @@ def stock_lote(request):
         actualizar_stock_lote_odbc()
 
         # 6 Facturas (ultimos 2 meses)
-        #api_actualizar_facturas_warehouse()
+        api_actualizar_facturas_warehouse()
         
         # 7 Actualizar importaciones en transito
-        #api_actualizar_imp_transito_warehouse()
+        api_actualizar_imp_transito_warehouse()
         
         # 8 Productos en Transito
-        #api_actualizar_producto_transito_warehouse()
+        api_actualizar_producto_transito_warehouse()
 
         # 9 tabla de etiquetado estock
         actualizar_datos_etiquetado_fun()
@@ -453,24 +487,6 @@ def productos_odbc_and_django():
         products = products.merge(p, on='product_id', how='left')
 
     return products
-
-
-def productos_transito_odbc():
-    ### TRANSITO
-    with connections['gimpromed_sql'].cursor() as cursor:
-        cursor.execute(
-            "SELECT * FROM productos_transito"
-        )
-
-        columns = [col[0] for col in cursor.description]
-        transito = [
-            dict(zip(columns, row))
-            for row in cursor.fetchall()
-        ]
-    transito = pd.DataFrame(transito)
-    
-    return transito
-
 
 
 def pedidos_cuenca_odbc(n_pedido): #n_pedido
@@ -736,21 +752,7 @@ def importaciones_en_transito_detalle_odbc(contrato_id):
 
 
 
-def clientes_warehouse():
 
-    with connections['gimpromed_sql'].cursor() as cursor:
-        cursor.execute(
-            "SELECT * FROM clientes"
-        )
-
-        columns = [col[0] for col in cursor.description]
-        clientes = [
-            dict(zip(columns, row))
-            for row in cursor.fetchall()
-        ]
-    clientes = pd.DataFrame(clientes)
-
-    return clientes
 
 
 def ventas_facturas_odbc(): # PARA REGISTRO DE GUIAS
