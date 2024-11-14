@@ -330,13 +330,13 @@ def stock_lote(request):
         actualizar_stock_lote_odbc()
 
         # 6 Facturas (ultimos 2 meses)
-        api_actualizar_facturas_warehouse()
+        #api_actualizar_facturas_warehouse()
         
         # 7 Actualizar importaciones en transito
-        api_actualizar_imp_transito_warehouse()
+        #api_actualizar_imp_transito_warehouse()
         
         # 8 Productos en Transito
-        api_actualizar_producto_transito_warehouse()
+        #api_actualizar_producto_transito_warehouse()
 
         # 9 tabla de etiquetado estock
         actualizar_datos_etiquetado_fun()
