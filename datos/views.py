@@ -12,8 +12,7 @@ from django.contrib import messages
 from django.views.generic import TemplateView
 
 # Models
-from datos.models import Product, Vehiculos #,MarcaImportExcel
-from datos.models import TimeStamp
+from datos.models import TimeStamp, Product, AdminActualizationWarehaouse, Vehiculos #,MarcaImportExcel
 from etiquetado.models import EtiquetadoAvance
 
 # Autentication
@@ -22,7 +21,6 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 # Pandas
 import pandas as pd
 import numpy as np
-
 
 # SSH DATA TUNEL
 import pymysql
@@ -50,6 +48,7 @@ import mysql.connector
 from users.models import UserPerfil
 from django.contrib.auth.models import User
 
+
 ### PERMISO PERSONALIZADO
 from functools import wraps
 
@@ -72,19 +71,6 @@ from api_mba.tablas_warehouse import (
     
     odbc_actualizar_stock_lote
     )
-
-
-from datos.models import AdminActualizationWarehaouse
-
-# FRON ADMIN ACTULIZACIONES WAREHOUSE
-def admin_actualizar_warehouse_view(request):
-    
-    context = {
-        'tablas': AdminActualizationWarehaouse.objects.all()
-    }
-    
-    return render(request, 'datos/admin_actualizar_warehouse.html', context)
-    
 
 
 # FUNCIONES UTILES
@@ -496,77 +482,129 @@ def actualizar_datos_etiquetado_fun():
 
 
 ## Carga la tabla de stock lote automaticamente
+from django.views.decorators.csrf import csrf_exempt
+@csrf_exempt
 def stock_lote(request):
-
-    if request.method == 'GET':
+    
+    time = str(datetime.now())
+    context = {
+        'context':time
+    }
+    
+    if request.method == "POST":
         
-        # 1 Clientes
-        # warehouse.clientes
-        api_actualizar_clientes_warehouse()
+        data = json.loads(request.body)
+        table_name = data.get("table_name", None)
+        todo = data.get("get", None)
+
+        if todo:
+            
+            # 1 Clientes
+            # warehouse.clientes
+            api_actualizar_clientes_warehouse()
+            
+            # 2 Facturas (ultimos 2 meses)
+            # warehouse.facturas
+            api_actualizar_facturas_warehouse()
+            
+            # 3 Imp Llegadas
+            # warehouse.imp_llegadas
+            api_actualizar_imp_llegadas_warehouse()
+            
+            # 4 Actualizar importaciones en transito
+            # warehouse.imp_transito
+            api_actualizar_imp_transito_warehouse()
+
+            # 5 ACTUALIZAR PRODUCTOS 
+            # warehouse.productos
+            api_actualizar_productos_warehouse()
+
+            # 6 Productos en Transito
+            # warehouse.productos_transito
+            api_actualizar_producto_transito_warehouse()
+
+            # 7 ACTUALIZAR PROFORMAS
+            # warehouse.proformas
+            api_actualizar_proformas_warehouse()
+            
+            # 8 Reservas  (Pedidos Abiertos) - (<> MANTEN)
+            # warehouse.reservas
+            api_actualizar_reservas_warehouse()
+
+            # 9 Reservas lotes
+            # warehouse.reservas_lotes
+            api_actualizar_reservas_lotes_warehouse()
+
+            # 10 Stock Lotes
+            # warehouse.stock_lotes
+            odbc_actualizar_stock_lote()
+
+            ### TABLA DJANGO
+            # 11 tabla de etiquetado estock
+            actualizar_datos_etiquetado_fun()
+            
+        elif table_name:
         
-        # 2 Facturas (ultimos 2 meses)
-        # warehouse.facturas
-        api_actualizar_facturas_warehouse()
-        
-        # 3 Imp Llegadas
-        # warehouse.imp_llegadas
-        # api_actualizar_imp_llegadas_warehouse()
-        
-        # 4 Actualizar importaciones en transito
-        # warehouse.imp_transito
-        api_actualizar_imp_transito_warehouse()
+            if table_name == "clientes":
+                api_actualizar_clientes_warehouse()
+            elif table_name == "facturas":
+                api_actualizar_facturas_warehouse()
+            elif table_name == "imp_llegadas":
+                api_actualizar_imp_llegadas_warehouse
+            elif table_name == "imp_transito":
+                api_actualizar_imp_transito_warehouse()
+            elif table_name == "productos":
+                api_actualizar_productos_warehouse()
+            elif table_name == "productos_transito":
+                api_actualizar_producto_transito_warehouse()
+            elif table_name == "proformas":
+                api_actualizar_proformas_warehouse()
+            elif table_name == "reservas":
+                api_actualizar_reservas_warehouse()
+            elif table_name == "reservas_lotes":
+                api_actualizar_reservas_lotes_warehouse()
+            elif table_name == "stock_lotes":
+                odbc_actualizar_stock_lote()
+            elif table_name == "etiquetado_stock":
+                actualizar_datos_etiquetado_fun()
 
-        # 5 ACTUALIZAR PRODUCTOS 
-        # warehouse.productos
-        api_actualizar_productos_warehouse()
-
-        # 6 Productos en Transito
-        # warehouse.productos_transito
-        api_actualizar_producto_transito_warehouse()
-
-        # 7 ACTUALIZAR PROFORMAS
-        # warehouse.proformas
-        # api_actualizar_proformas_warehouse()
-        
-        # 8 Reservas  (Pedidos Abiertos) - (<> MANTEN)
-        # warehouse.reservas
-        api_actualizar_reservas_warehouse()
-
-        # 9 Reservas lotes
-        # warehouse.reservas_lotes
-        api_actualizar_reservas_lotes_warehouse()
-
-        # 10 Stock Lotes
-        # warehouse.stock_lotes
-        odbc_actualizar_stock_lote()
-
-        ### TABLA DJANGO
-        # 11 tabla de etiquetado estock
-        actualizar_datos_etiquetado_fun()
-
-        time = str(datetime.now())
-        context = {
-            'context':time
-        }
-
+    #return render(request, 'datos/stock_lote.html', {})
     return render(request, 'datos/stock_lote.html', context)
 
 
+### ACTUALIZAR TABLAS WAREHAUSE CON BOTON REQUEST
+def actualizar_proformas_ajax(request):
+    api_actualizar_proformas_warehouse()    
+    return JsonResponse({
+        'tipo':'success',
+        'msg': 'Proformas actualizadas exitosamente !!!'
+        })
+
+
+def actualizar_imp_llegadas_odbc(request):
+    api_actualizar_imp_llegadas_warehouse()
+    return HttpResponse('ok')
+
 
 def etiquetado_ajax(request):
-
     actualizar_datos_etiquetado_fun()
-
     return HttpResponseRedirect('/etiquetado/stock')
 
 
+# FRON ADMIN ACTULIZACIONES WAREHOUSE
+def admin_actualizar_warehouse_json_response(request):
+    query = AdminActualizationWarehaouse.objects.all().order_by('orden').values()
+    data = list(query.values())
+    return JsonResponse(data, safe=False)
+    #return render(request, 'datos/admin_actualizar_warehouse.html', context)
+
+def admin_actualizar_warehouse_view(request):
+    return render(request, 'datos/admin_actualizar_warehouse.html')
 
 
 
 
-
-
-
+### UTILS 
 # DATOS PARA MUESTREO DE TRANSFERENCIAS
 def doc_transferencia_odbc(n_transf):
 
@@ -1248,11 +1286,7 @@ def stock_faltante_contrato(contratos, bodega):
     return sto
 
 
-def actualizar_imp_llegadas_odbc(request):
 
-    api_actualizar_imp_llegadas_warehouse()
-
-    return HttpResponse('ok')
 
 
 # Función para quitar puntos de un str
@@ -2085,17 +2119,6 @@ def proformas_por_contrato_id_odbc(contrato_id):
         proformas = pd.DataFrame(proformas)
         
     return proformas
-
-
-def actualizar_proformas_ajax(request):
-    
-    api_actualizar_proformas_warehouse()
-    
-    return JsonResponse({
-        'tipo':'success',
-        'msg': 'Proformas actualizadas exitosamente !!!'
-        })
-    
     
     
 # Obtener una datos picking por contrato_id -PARA CABECERA DE ANEXO
