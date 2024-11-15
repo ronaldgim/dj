@@ -67,8 +67,7 @@ def admin_warehouse_timestamp(tabla):
 
 
 ###### FUNCIONES PARA ACTUALIZAR DATOS EN WAREHOUSE ######
-### ACTUALIZAR CLIENTES WAREHOUSE POR API DATA
-# atomic transaction
+### 1 ACTUALIZAR CLIENTES WAREHOUSE POR API DATA
 def api_actualizar_clientes_warehouse():
     
     try:
@@ -122,8 +121,7 @@ def api_actualizar_clientes_warehouse():
         )
 
 
-### ACTUALIZAR FACTURAS WAREHOUSE
-# atomic transaction
+### 2 ACTUALIZAR FACTURAS WAREHOUSE
 def api_actualizar_facturas_warehouse():
     
     try:
@@ -229,8 +227,7 @@ def api_actualizar_facturas_warehouse():
         )
 
 
-### ACTUALIZAR IMP LLEGADAS WAREHOUSE
-# atomic transaction
+### 3 ACTUALIZAR IMP LLEGADAS WAREHOUSE
 def api_actualizar_imp_llegadas_warehouse():
 
     try:
@@ -351,8 +348,7 @@ def api_actualizar_imp_llegadas_warehouse():
         )
 
 
-### ACTUALIZAR IMP TRANSITO WAREHOUSE
-# atomic transaction
+### 4 ACTUALIZAR IMP TRANSITO WAREHOUSE
 def api_actualizar_imp_transito_warehouse():
     
     try:
@@ -446,8 +442,7 @@ def api_actualizar_imp_transito_warehouse():
         )
 
 
-### ACTUALIZAR PRODUCTOS WAREHOUSE POR API DATA
-# atomic transaction
+### 5 ACTUALIZAR PRODUCTOS WAREHOUSE POR API DATA
 def api_actualizar_productos_warehouse():
     
     try:
@@ -572,8 +567,7 @@ def api_actualizar_productos_warehouse():
         )
 
 
-### ACTUALIZAR PRODUCTOS EN TRANSITO
-# atomic transaction
+### 6 ACTUALIZAR PRODUCTOS EN TRANSITO
 def api_actualizar_producto_transito_warehouse():
     
     try:
@@ -662,8 +656,7 @@ def api_actualizar_producto_transito_warehouse():
         )
 
 
-### ACTULIZAR PROFORMAS
-# atomic transaction
+### 7 ACTULIZAR PROFORMAS
 def api_actualizar_proformas_warehouse():
     
     try:
@@ -767,8 +760,7 @@ def api_actualizar_proformas_warehouse():
         )
 
 
-### ACTUALIZAR RESERVAS WAREHOUSE
-# atomic transaction
+### 8 ACTUALIZAR RESERVAS WAREHOUSE
 def api_actualizar_reservas_warehouse():
     
     try:
@@ -891,8 +883,7 @@ def api_actualizar_reservas_warehouse():
         )
 
 
-### ACTUALIZAR RESERVAS LOTES WAREHOUSE
-# atomic transaction
+### 9 ACTUALIZAR RESERVAS LOTES WAREHOUSE
 def api_actualizar_reservas_lotes_warehouse():
     
     try:
@@ -1009,11 +1000,9 @@ def api_actualizar_reservas_lotes_warehouse():
         )
 
 
-
-### ACTULIZAR STOCK LOTE POR ODBC
-# atomic transaction
+### 10 ACTULIZAR STOCK LOTE POR ODBC
 import pyodbc
-def actualizar_stock_lote_odbc():
+def odbc_actualizar_stock_lote():
 
     try:
         cnxn = pyodbc.connect('DSN=mba3;PWD=API')
