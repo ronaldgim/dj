@@ -12,7 +12,7 @@ from django.contrib import messages
 from django.views.generic import TemplateView
 
 # Models
-from datos.models import Product, MarcaImportExcel, Vehiculos
+from datos.models import Product, Vehiculos #,MarcaImportExcel
 from datos.models import TimeStamp
 from etiquetado.models import EtiquetadoAvance
 

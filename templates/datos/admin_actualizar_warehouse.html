@@ -16,7 +16,11 @@
             <thead>
                 <tr>
                     <th scope="col">TABLA</th>
-                    <th scope="col">ACTUALIZADO</th>
+                    <th scope="col">ULTIMA ACTUALIZACIÓN</th>
+                    <th scope="col">AUTOMATICO</th>
+                    <th scope="col">PERIODICIDAD</th>
+                    <th scope="col">MILISEGUNDOS</th>
+                    <th scope="col">ACCIONES</th>
                 </tr>
         </thead>
         {% for i in tablas %}
@@ -24,6 +28,10 @@
             <tr>
                 <td>{{i.table_name}}</td>
                 <td>{{i.datetime}}</td>
+                <td>{{i.automatico}}</td>
+                <td>{{i.periodicidad}}</td>
+                <td>{{i.milisegundos}}</td>
+                <td><button class="btn btn-success">actualizar</button></td>
             </tr>
         </tbody>
         {% endfor %}
