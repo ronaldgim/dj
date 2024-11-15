@@ -117,7 +117,6 @@ urlpatterns = [
     
     path(
         route = 'picking/estado/<str:n_pedido>',
-        # route = 'picking/estado/<str:n_pedido>/<str:id>',
         view  = views.picking_estado_bodega,
         name  = 'picking_estado_bodega'
     ),
@@ -128,8 +127,6 @@ urlpatterns = [
         name  = 'ajax_lotes_bodega'
     ),
     
-    
-
     path(
         route = 'picking/historial',
         view  = views.picking_historial,
@@ -194,8 +191,14 @@ urlpatterns = [
         name  = 'correo_facturado'
     ),
 
+    # Dashboard pedidos andagoya y cerezos json response
+    path(
+        route = 'picking/picking_dashboard_json_response/<str:bodega>',
+        view  = views.picking_dashboard_json_response,
+        name  = 'picking_dashboard_json_response'
+    ),
     
-    # Dashboard pedidos andagoya
+    # Dashboard pedidos andagoya y cerezos
     path(
         route = 'picking/dashboard/<str:bodega>',
         view  = views.picking_dashboard,
@@ -389,4 +392,12 @@ urlpatterns = [
         view = views.sleep_prueba,
         name = 'sleep_prueba'
     ),
+    
+    
+    # # DASHBOARDS VUE JS
+    # path(
+    #     route='picking_dashboard_vue_ban',
+    #     view=views.picking_dashboard_vue_ban,
+    #     name='picking_dashboard_vue_ban'
+    # )
 ]

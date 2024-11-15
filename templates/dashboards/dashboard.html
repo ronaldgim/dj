@@ -3,10 +3,6 @@
 <title>PEDIDOS {{bodega}}</title>
 {% endblock%}
 
-{#% block navbar %#}
-{#% include 'etiquetado/topnavbar.html' %#}
-{#% endblock %#}
-
 {% block body %}
 <h5 class="m-4 text-center"><strong>PEDIDOS PENDIENTES {{bodega}}</strong></h5>
 <!--h6 class="m-4 text-end"><strong>Actualizado a:</strong> {{actualizado}}</h6-->
@@ -17,12 +13,6 @@
             <h5 class="card-header text-center fs-4">PEDIDOS MAS DE 3 DIAS</h5>
             <div class="card-body">
             <h5 class="card-title text-center fs-1">{{mas3}}</h5>
-            <!--span>Finalizados: {{mas3_fin}}</span><br-->
-            <!--span>Pendientes: {{mas3_pen}}</span><br>
-            <span>En proceso: {{mas3_pro}}</span><br>
-            <span>En pausa: {{mas3_pau}}</span><br>
-            <span>Incompleto: {{mas3_inc}}</span><br-->
-            <!--p class="card-text">With supporting text below as a natural lead-in to additional content.</p-->
             </div>
         </div>
     </div>
@@ -31,12 +21,6 @@
             <h5 class="card-header text-center fs-4">PEDIDOS AYER</h5>
             <div class="card-body">
             <h5 class="card-title text-center fs-1">{{ayer}}</h5>
-            <!--span>Finalizados: {{ayer_fin}}</span><br-->
-            <!--span>Pendientes: {{ayer_pen}}</span><br>
-            <span>En proceso: {{ayer_pro}}</span><br>
-            <span>En pausa: {{ayer_pau}}</span><br>
-            <span>Incompleto: {{ayer_inc}}</span><br-->
-            <!--p class="card-text">With supporting text below as a natural lead-in to additional content.</p-->
             </div>
         </div>
     </div>
@@ -45,12 +29,6 @@
             <h5 class="card-header text-center fs-4">PEDIDOS HOY</h5>
             <div class="card-body">
             <h5 class="card-title text-center fs-1">{{hoy}}</h5>
-            <!--span>Finalizados: {{hoy_fin}}</span><br-->
-            <!--span>Pendientes: {{hoy_pen}}</span><br>
-            <span>En proceso: {{hoy_pro}}</span><br>
-            <span>En pausa: {{hoy_pau}}</span><br>
-            <span>Incompleto: {{hoy_inc}}</span><br-->
-            <!--p class="card-text">With supporting text below as a natural lead-in to additional content.</p-->
             </div>
         </div>
     </div>
@@ -59,7 +37,7 @@
 <div>
     <div class="card mt-4 mb-4">
         <div class="card-body m-0 p-0">
-            <div class="container table-responsive"> <!-- class="container table-responsive"-->
+            <div class="container table-responsive">
                 <table class="table">
                     <thead>
                     <tr>
@@ -75,15 +53,6 @@
                     
                     <tbody>
                     {% for i in reservas %}
-                    {% comment %}
-                    {% if i.fecha_estado == 'hoy' %}
-                    <tr style="font-size: small; background-color: #D2FCD2;">
-                    {% elif i.fecha_estado == 'ayer' %}
-                    <tr style="font-size: small; background-color: #F7F5DF;">
-                    {% elif i.fecha_estado == 'mas3' %}
-                    <tr style="font-size: small; background-color: #F6B690;">
-                    {% endif %}
-                    {% endcomment %}
                     <tr style="font-size: small;">
 
                         <th scope="row" 

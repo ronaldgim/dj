@@ -2275,7 +2275,7 @@ def estado_pedidos_dashboard_fun(bodega):
     return reservas
 
 
-def picking_dashboard(request, bodega):
+def picking_dashboard_json_response(request, bodega):
 
     if bodega == 'BAN':
         b = 'ANDAGOYA'
@@ -2301,35 +2301,18 @@ def picking_dashboard(request, bodega):
     # Numero de pedidos
     pedidos_hoy = reservas[reservas['FECHA_PEDIDO']==hoy]
     pedidos_hoy_n = len(pedidos_hoy)
-    # pedidos_hoy_fin = len(pedidos_hoy[pedidos_hoy['estado']=='FINALIZADO'])
-    # pedidos_hoy_pro = len(pedidos_hoy[pedidos_hoy['estado']=='EN PROCESO'])
-    # pedidos_hoy_inc = len(pedidos_hoy[pedidos_hoy['estado']=='INCOMPLETO'])
-    # pedidos_hoy_pau = len(pedidos_hoy[pedidos_hoy['estado']=='EN PAUSA'])
-    # pedidos_hoy_pen = pedidos_hoy_n - (pedidos_hoy_fin+pedidos_hoy_pro+pedidos_hoy_inc+pedidos_hoy_pau)
 
     ayer = hoy - timedelta(days=1)
     pedidos_ayer = reservas[reservas['FECHA_PEDIDO']==ayer]
     pedidos_ayer_n = len(pedidos_ayer)
-    # pedidos_ayer_fin = len(pedidos_ayer[pedidos_ayer['estado']=='FINALIZADO'])
-    # pedidos_ayer_pro = len(pedidos_ayer[pedidos_ayer['estado']=='EN PROCESO'])
-    # pedidos_ayer_inc = len(pedidos_ayer[pedidos_ayer['estado']=='INCOMPLETO'])
-    # pedidos_ayer_pau = len(pedidos_ayer[pedidos_ayer['estado']=='EN PAUSA'])
-    # pedidos_ayer_pen = pedidos_ayer_n - (pedidos_ayer_fin+pedidos_ayer_pro+pedidos_ayer_inc+pedidos_ayer_pau)
-
 
     pedidos_mas3 = reservas[reservas['FECHA_PEDIDO']<ayer]#[['CONTRATO_ID','FECHA_PEDIDO']];print(pedidos_mas3)
     pedidos_mas3_n = len(pedidos_mas3)
-    # pedidos_mas3_fin = len(pedidos_mas3[pedidos_mas3['estado']=='FINALIZADO'])
-    # pedidos_mas3_pro = len(pedidos_mas3[pedidos_mas3['estado']=='EN PROCESO'])
-    # pedidos_mas3_inc = len(pedidos_mas3[pedidos_mas3['estado']=='INCOMPLETO'])
-    # pedidos_mas3_pau = len(pedidos_mas3[pedidos_mas3['estado']=='EN PAUSA'])
-    # pedidos_mas3_pen = pedidos_mas3_n - (pedidos_mas3_fin+pedidos_mas3_pro+pedidos_mas3_inc+pedidos_mas3_pau)
 
     # Definir columna de dia para añadir color
     if len(reservas) > 0:
         reservas['fecha_estado'] = reservas.apply(lambda x: 'hoy' if x['FECHA_PEDIDO']==hoy else 'ayer' if x['FECHA_PEDIDO']==ayer else 'mas3' if x['FECHA_PEDIDO']<ayer else 'mas3', axis=1)
-    # print(reservas);print(reservas.keys())
-    # print(reservas)
+
     # Config
     reservas['FECHA_PEDIDO'] = reservas['FECHA_PEDIDO'].astype(str)
     reservas = de_dataframe_a_template(reservas)
@@ -2337,34 +2320,22 @@ def picking_dashboard(request, bodega):
     context = {
         'reservas':reservas,
         'hoy':pedidos_hoy_n,
-        # 'hoy_fin':pedidos_hoy_fin,
-        # 'hoy_pro':pedidos_hoy_pro,
-        # 'hoy_inc':pedidos_hoy_inc,
-        # 'hoy_pau':pedidos_hoy_pau,
-        # 'hoy_pen':pedidos_hoy_pen,
-
         'ayer':pedidos_ayer_n,
-        # 'ayer_fin':pedidos_ayer_fin,
-        # 'ayer_pro':pedidos_ayer_pro,
-        # 'ayer_inc':pedidos_ayer_inc,
-        # 'ayer_pau':pedidos_ayer_pau,
-        # 'ayer_pen':pedidos_ayer_pen,
-
         'mas3':pedidos_mas3_n,
-        # 'mas3_fin':pedidos_mas3_fin,
-        # 'mas3_pro':pedidos_mas3_pro,
-        # 'mas3_inc':pedidos_mas3_inc,
-        # 'mas3_pau':pedidos_mas3_pau,
-        # 'mas3_pen':pedidos_mas3_pen,
-
         'bodega':b
     }
+    
+    return JsonResponse(context, safe=False)
+    #return render(request, 'dashboards/dashboard.html', context)
 
-    return render(request, 'etiquetado/pedidos/dashboard.html', context)
+
+def picking_dashboard(request, bodega):
+    return render(request, 'dashboards/dashboard_vue.html')
+
 
 
 def publico_dashboard_fun():
-
+    
     reservas = pd.DataFrame(reservas_table())
     reservas = reservas[reservas['PRODUCT_ID']!='MANTEN']
     
@@ -2514,7 +2485,7 @@ def publico_dashboard(request):
         'por_facturar':len(fin)
     }
 
-    return render(request, 'etiquetado/etiquetado_estado/dashboard.html', context)
+    return render(request, 'dashboards/etiquetado_publico.html', context)
 
 
 def dashboard_completo(request):
@@ -2588,7 +2559,7 @@ def dashboard_completo(request):
         'publico_n':publicos_n
     }
 
-    return render(request, 'etiquetado/pedidos/dashboard_completo.html', context)
+    return render(request, 'dashboards/dashboard_completo.html', context)
 
 
 def dashboard_completo_json_response(request):
@@ -2668,7 +2639,7 @@ def dashboard_completo_json_response(request):
 
 
 def dashboard_completo_view(request):
-    return render(request, 'etiquetado/pedidos/dashboard_completo_vue.html')
+    return render(request, 'dashboards/dashboard_completo_vue.html')
 
 
 def detalle_dashboard_armados(request):
@@ -2793,7 +2764,7 @@ def dashboard_armados(request):
         'solicitudes':solicitudes
     }
     
-    return render(request, 'etiquetado/pedidos/dashboard_armados.html', context)
+    return render(request, 'dashboards/dashboard_armados.html', context)
 
 
 

@@ -5,6 +5,13 @@ from django.urls import path
 from datos import views
 
 urlpatterns = [
+    
+    # FRON ADMIN ACTULIZACIONES WAREHOUSE
+    path(
+        route = 'admin_actualizar_warehouse_view',
+        view = views.admin_actualizar_warehouse_view,
+        name = 'admin_actualizar_warehouse_view'
+    ),
 
     # EJECUTAR FUNCIÓN STOCK LOTE COMPLETA
     path(

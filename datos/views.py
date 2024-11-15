@@ -74,6 +74,19 @@ from api_mba.tablas_warehouse import (
     )
 
 
+from datos.models import AdminActualizationWarehaouse
+
+# FRON ADMIN ACTULIZACIONES WAREHOUSE
+def admin_actualizar_warehouse_view(request):
+    
+    context = {
+        'tablas': AdminActualizationWarehaouse.objects.all()
+    }
+    
+    return render(request, 'datos/admin_actualizar_warehouse.html', context)
+    
+
+
 # FUNCIONES UTILES
 # Chequear si el usuario tiene permiso
 def user_perm(user_id, permiso_function):
