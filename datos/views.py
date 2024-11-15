@@ -1235,9 +1235,6 @@ def actualizar_imp_llegadas_odbc(request):
 
     api_actualizar_imp_llegadas_warehouse()
 
-    time = str(datetime.now())
-    TimeStamp.objects.create(actualization_imp_llegadas=time)
-
     return HttpResponse('ok')
 
 
