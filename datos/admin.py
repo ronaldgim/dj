@@ -13,6 +13,7 @@ from datos.models import Product, Vehiculos, AdminActualizationWarehaouse , Marc
 @admin.register(AdminActualizationWarehaouse)
 class AdminActualizationWarehaouseAdmin(admin.ModelAdmin):
     list_display = (
+        'orden',
         'table_name',
         'datetime',
         'automatico',

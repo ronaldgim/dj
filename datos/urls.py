@@ -12,6 +12,12 @@ urlpatterns = [
         view = views.admin_actualizar_warehouse_view,
         name = 'admin_actualizar_warehouse_view'
     ),
+    
+    path(
+        route = 'admin_actualizar_warehouse_json_response',
+        view = views.admin_actualizar_warehouse_json_response,
+        name = 'admin_actualizar_warehouse_json_response'
+    ),
 
     # EJECUTAR FUNCIÓN STOCK LOTE COMPLETA
     path(
