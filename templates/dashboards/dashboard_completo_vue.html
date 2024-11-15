@@ -41,7 +41,7 @@
         <div v-if="errorDatos"><i style="color:red" class="bi bi-bug-fill"></i></div>
     </div>
 
-    <h6 class="mt-0 pt-0 text-end fw-bold">{% verbatim %}{{ fechaHoraActual }}{% endverbatim %}</h6>
+    <h6 class="mt-0 pt-0 text-end fw-bold">Actualizado:{% verbatim %}{{ fechaHoraActual }}{% endverbatim %}</h6>
     
     <!-- Botón para actualizar el dashboard -->
     <!--button @click="actualizarDashboard">Actualizar Dashboard</button-->
@@ -212,6 +212,7 @@
 
 <script>
     const dashboardUrl = "{% url 'dashboard_completo_json_response' %}";
+    
     new Vue({
         el: '#app',
         data: {
@@ -235,11 +236,6 @@
             publico:[],
         },
         mounted() {
-            // Muestra la fecha y hora inmediatamente al cargar la página
-            this.actualizarFechaHora();
-            // Actualiza la fecha y hora cada segundo (segundo)
-            setInterval(this.actualizarFechaHora, 30000);
-
             // Datos de dashboard
             this.actualizarDashboard();
             // Actualizar datos de dashboard cada (5 minuto)
@@ -283,28 +279,6 @@
             }
         },
         methods: {
-            actualizarFechaHora() {
-                // Formatea la fecha y hora actual
-                const ahora = new Date();
-                // Formatea la fecha en el formato requerido
-                const opcionesFecha = {
-                    weekday: 'long',   // Día de la semana
-                    day: 'numeric',    // Día del mes
-                    month: 'long',     // Mes completo
-                    year: 'numeric'    // Año
-                };
-                const opcionesHora = {
-                    hour: 'numeric',   // Hora
-                    minute: 'numeric',  // Minuto
-                    //second: 'numeric',  // Segundo
-                };
-                
-                // Combina la fecha y hora en el formato deseado
-                const fecha = ahora.toLocaleDateString('es-ES', opcionesFecha);
-                const hora = ahora.toLocaleTimeString('es-ES', opcionesHora);
-                this.fechaHoraActual = `${fecha} ${hora}`;
-            },
-
             obtenerColorFondoNumeroPedido(fecha_estado) {
                 switch (fecha_estado) {
                     case 'hoy':
@@ -365,12 +339,12 @@
                     if (!response.ok) {
                         throw new Error(response.statusText);
                     }
-                    // const html = await response.text();
                     const data = await response.json();
                     // CONFIG
                     this.config_urgente = data.urgente;
                     this.config_correcto = data.correcto;
                     this.errorDatos = false;
+                    this.fechaHoraActual = new Date().toLocaleDateString('es-Es', {hour:'numeric',minute:'numeric'});
                     // PEDIDOS PENDIENTES
                     this.pedidos_mas_tres_dias = data.pedidos_cerezos_mas3;
                     this.pedidos_ayer = data.pedidos_cerezos_ayer;

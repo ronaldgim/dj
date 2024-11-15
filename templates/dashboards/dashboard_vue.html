@@ -1,0 +1,191 @@
+{% extends 'base_vue.html' %}
+{% block title %}
+<title>PEDIDOS</title>
+{% endblock%}
+
+{#% block navbar %#}
+{#% include 'etiquetado/topnavbar.html' %#}
+{#% endblock %#}
+
+{% block body %}
+<div id="app">
+
+    <div class="text-center mt-2">
+        <h1 class="m-4 text-center fw-bold d-inline">
+            PEDIDOS PENDIENTES {% verbatim %} {{bodega}} {% endverbatim %}
+        </h1>
+        <div v-if="cargandoDashboard" class="spinner-border" role="status"></div>
+        <div v-if="errorDatos"><i style="color:red" class="bi bi-bug-fill"></i></div>
+    </div>
+
+    <h6 class="mt-0 pt-0 text-end fw-bold">Actualizado: {% verbatim %}{{ fechaHoraActual }}{% endverbatim %}</h6>
+
+    <div class="row">
+        <div class="col-4">
+            <div class="card text-white bg-danger">
+                <h5 class="card-header text-center fs-4">PEDIDOS MAS DE 3 DIAS</h5>
+                <div class="card-body">
+                    <h5 class="card-title text-center fs-1">{% verbatim %}{{mas3}}{% endverbatim %}</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="card text-white bg-warning">
+                <h5 class="card-header text-center fs-4">PEDIDOS AYER</h5>
+                <div class="card-body">
+                    <h5 class="card-title text-center fs-1">{% verbatim %}{{ayer}}{% endverbatim %}</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="card text-white bg-success">
+                <h5 class="card-header text-center fs-4">PEDIDOS HOY</h5>
+                <div class="card-body">
+                    <h5 class="card-title text-center fs-1">{% verbatim %}{{hoy}}{% endverbatim %}</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <div class="card mt-4 mb-4">
+            <div class="card-body m-0 p-0">
+                <div class="container table-responsive"> 
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">N° Pedido</th>
+                                <th scope="col">Cliente</th>
+                                <th scope="col">Fecha pedido</th>
+                                <th scope="col">Hora pedido</th>
+                                <th scope="col">Ciudad</th>
+                                <th scope="col">Estado picking</th>
+                                <th scope="col">Operario</th>
+                            </tr>
+                        </thead>
+                        
+                        <tbody style="font-size: small;">
+                            <tr v-for="i in reservasData">
+                                {% verbatim %}
+                                <tH :style="{backgroundColor: obtenerColorFondoNumeroPedido(i.fecha_estado)}">
+                                    <a :href="'/etiquetado/pedidos/' + i.CONTRATO_ID" target="_blank">
+                                        {{i.contrato_id}}
+                                    </a>
+                                    <i v-if="i.DISP" style="color:red;" class="bi bi-file-earmark-x-fill"></i>
+                                    <i v-if="i.CONFIRMED" class="bi bi-check2"></i>
+                                </tH>
+                                <td>{{i.NOMBRE_CLIENTE}}</td>
+                                <td>{{i.FECHA_PEDIDO}}</td>
+                                <td>{{i.HORA_LLEGADA}}</td>
+                                <td>{{i.CIUDAD_PRINCIPAL}}</td>
+                                <td>
+                                    <a :class="obtenerColorFondoEstado(i.estado)" :style="{backgroundColor: obtenerColorFondoEstadoIncompleto(i.estado)}">
+                                        {{i.estado}}
+                                    </a>
+                                </td>
+                                <td v-if="i.first_name != '-' ">{{i.first_name}} {{i.last_name}}</td>
+                                <td v-else>-</td>
+                                {% endverbatim %}
+                            </tr>                        
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    const url = window.location.href;
+    const urlBodega = url.split('/')[6];
+    const dashboardUrl = `/etiquetado/picking/picking_dashboard_json_response/${urlBodega}`;
+
+    new Vue({
+        el:'#app',
+        data:{
+            cargandoDashboard:false,
+            errorDatos:false,
+            fechaHoraActual:'',
+            bodega:'',
+            mas3:'',
+            ayer:'',
+            hoy:'',
+            reservas:[],
+        },
+        mounted(){            
+            this.actualizarDashboard();
+            setInterval(this.actualizarDashboard, 300000);
+        },
+        computed:{
+            reservasData() {
+                return this.reservas.map(i => {
+                    return {
+                        ...i,
+                        contrato_id:i.CONTRATO_ID.slice(0,5),
+                    }
+                })
+            },
+        },
+        methods:{
+            obtenerColorFondoNumeroPedido(fecha_estado) {
+                switch (fecha_estado) {
+                    case 'hoy':
+                        return '#BAF690';
+                    case 'ayer':
+                        return '#F6F490';
+                    case 'mas3':
+                        return '#F6B690';
+                    default:"white"
+                }
+            },
+
+            obtenerColorFondoEstado(estado){
+                switch (estado) {
+                    case 'EN PAUSA':
+                        return 'btn btn-danger btn-sm disabled';
+                    case 'EN TRANSITO':
+                        return 'btn btn-primary btn-sm disabled';
+                    case 'EN PROCESO':
+                        return 'btn btn-warning text-white btn-sm disabled';
+                    case 'FINALIZADO':
+                        return 'btn btn-success btn-sm disabled';
+                    case 'INCOMPLETO':
+                        return 'btn text-white btn-sm disabled';
+                }
+            },
+
+            obtenerColorFondoEstadoIncompleto(estado) {
+                switch (estado) {
+                    case 'INCOMPLETO':
+                        return '#bf03c8';
+                }
+            },
+
+            async actualizarDashboard() {
+                this.cargandoDashboard = true;
+                try {
+                    const response = await fetch(dashboardUrl);
+                    if(!response.ok) {
+                        throw new Error(response.statusText);
+                    }
+                    const data = await response.json();
+                    this.errorDatos = false;
+                    this.fechaHoraActual = new Date().toLocaleDateString('es-Es', {hour: 'numeric', minute: 'numeric'});
+                    this.bodega = data.bodega,
+                    this.mas3 = data.mas3,
+                    this.ayer = data.ayer,
+                    this.hoy = data.hoy,
+                    this.reservas = data.reservas || [];
+                } catch (error) {
+                    this.errorDatos = true;
+                    console.log(error)
+                } finally {
+                    this.cargandoDashboard = false;
+                }
+            }
+        }
+    })
+</script>
+
+{% endblock %}
