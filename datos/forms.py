@@ -2,15 +2,15 @@
 from django import forms
 
 # Models
-from datos.models import MarcaImportExcel, Product
+from datos.models import Product #, MarcaImportExcel, 
 
 # Forms
 
-class MarcaImportExcelForm(forms.ModelForm):
+# class MarcaImportExcelForm(forms.ModelForm):
     
-    class Meta:
-        model = MarcaImportExcel
-        fields = '__all__'
+#     class Meta:
+#         model = MarcaImportExcel
+#         fields = '__all__'
 
 
 class ProductForm(forms.ModelForm):

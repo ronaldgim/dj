@@ -2,13 +2,23 @@
 from django.contrib import admin
 
 # Model
-from datos.models import Marca, Product, Vehiculos, MarcaImportExcel
+from datos.models import Product, Vehiculos, AdminActualizationWarehaouse , Marca #, MarcaImportExcel
 
 
 # Register your models here.
-@admin.register(MarcaImportExcel)
-class MarcaExcelAdmin(admin.ModelAdmin):
-    list_display = ('archivo',)
+# @admin.register(MarcaImportExcel)
+# class MarcaExcelAdmin(admin.ModelAdmin):
+#     list_display = ('archivo',)
+
+@admin.register(AdminActualizationWarehaouse)
+class AdminActualizationWarehaouseAdmin(admin.ModelAdmin):
+    list_display = (
+        'table_name',
+        'datetime',
+        'automatico',
+        'periodicidad',
+        'milisegundos',
+    )
 
 @admin.register(Marca)
 class MarcaAdmin(admin.ModelAdmin):

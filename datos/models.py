@@ -45,19 +45,18 @@ class Product(models.Model):
 class Marca(models.Model):
     
     marca   = models.CharField(verbose_name='Marca', max_length=50)
-    
     description = models.CharField(verbose_name='Descripción', max_length=200)
 
     def __str__(self):
         return f'{self.marca} {self.description}'
 
 
-class MarcaImportExcel(models.Model):
+# class MarcaImportExcel(models.Model):
     
-    archivo = models.FileField(verbose_name='Archivo Marcas Excel', upload_to='marcas_excel_import')
+#     archivo = models.FileField(verbose_name='Archivo Marcas Excel', upload_to='marcas_excel_import')
     
-    def __str__(self):
-        return str(self.archivo)
+#     def __str__(self):
+#         return str(self.archivo)
 
 
 class Vehiculos(models.Model):
@@ -132,6 +131,9 @@ class AdminActualizationWarehaouse(models.Model):
     
     table_name = models.CharField(max_length=50, unique=True)
     datetime = models.DateTimeField()
+    automatico = models.BooleanField(default=False)
+    periodicidad = models.CharField(max_length=20, blank=True)
+    milisegundos = models.IntegerField(null=True)
     
     def __str__(self):
         return self.table_name
