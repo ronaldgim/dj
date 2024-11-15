@@ -70,7 +70,7 @@ from api_mba.tablas_warehouse import (
     api_actualizar_reservas_warehouse,
     api_actualizar_reservas_lotes_warehouse,
     
-    actualizar_stock_lote_odbc
+    odbc_actualizar_stock_lote
     )
 
 
@@ -499,32 +499,49 @@ def actualizar_datos_etiquetado_fun():
 def stock_lote(request):
 
     if request.method == 'GET':
-
-        # 1 ACTUALIZAR PRODUCTOS 
-        api_actualizar_productos_warehouse()
         
-        # 2 Reservas  (Pedidos Abiertos) - (<> MANTEN)
-        api_actualizar_reservas_warehouse()
-
-        # 3 Reservas lotes
-        api_actualizar_reservas_lotes_warehouse()
-
-        # 4 Clientes
+        # 1 Clientes
+        # warehouse.clientes
         api_actualizar_clientes_warehouse()
-
-        # 5 Stock Lotes
-        actualizar_stock_lote_odbc()
-
-        # 6 Facturas (ultimos 2 meses)
+        
+        # 2 Facturas (ultimos 2 meses)
+        # warehouse.facturas
         api_actualizar_facturas_warehouse()
         
-        # 7 Actualizar importaciones en transito
-        api_actualizar_imp_transito_warehouse()
+        # 3 Imp Llegadas
+        # warehouse.imp_llegadas
+        # api_actualizar_imp_llegadas_warehouse()
         
-        # 8 Productos en Transito
+        # 4 Actualizar importaciones en transito
+        # warehouse.imp_transito
+        api_actualizar_imp_transito_warehouse()
+
+        # 5 ACTUALIZAR PRODUCTOS 
+        # warehouse.productos
+        api_actualizar_productos_warehouse()
+
+        # 6 Productos en Transito
+        # warehouse.productos_transito
         api_actualizar_producto_transito_warehouse()
 
-        # 9 tabla de etiquetado estock
+        # 7 ACTUALIZAR PROFORMAS
+        # warehouse.proformas
+        # api_actualizar_proformas_warehouse()
+        
+        # 8 Reservas  (Pedidos Abiertos) - (<> MANTEN)
+        # warehouse.reservas
+        api_actualizar_reservas_warehouse()
+
+        # 9 Reservas lotes
+        # warehouse.reservas_lotes
+        api_actualizar_reservas_lotes_warehouse()
+
+        # 10 Stock Lotes
+        # warehouse.stock_lotes
+        odbc_actualizar_stock_lote()
+
+        ### TABLA DJANGO
+        # 11 tabla de etiquetado estock
         actualizar_datos_etiquetado_fun()
 
         time = str(datetime.now())
