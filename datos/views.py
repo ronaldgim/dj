@@ -561,9 +561,9 @@ def stock_lote(request):
                 api_actualizar_proformas_warehouse()
             elif table_name == "reservas":
                 api_actualizar_reservas_warehouse()
-            elif table_name == "reservas_lotes":
+            elif table_name == "reservas_lote":
                 api_actualizar_reservas_lotes_warehouse()
-            elif table_name == "stock_lotes":
+            elif table_name == "stock_lote":
                 odbc_actualizar_stock_lote()
             elif table_name == "etiquetado_stock":
                 actualizar_datos_etiquetado_fun()
