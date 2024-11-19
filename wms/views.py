@@ -4995,8 +4995,21 @@ def wms_reporte_componentes_armados(request):
     
     if componentes_armados.exists():
         reporte = pd.DataFrame(componentes_armados)
-        print(reporte)
+        reporte = reporte.groupby(by=['product_id', 'nombre', 'marca', 'creado'])['unidades'].sum()
+        reporte = reporte.reset_index()
+        reporte = reporte[['product_id','nombre','marca','unidades']]
+        
+        date_time = str(datetime.now())
+        date_time = date_time[0:16]
+        n = 'Reporte Inventario Completo_' + date_time + '_.xlsx'
+        nombre = 'attachment; filename=' + '"' + n + '"'
+        
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = nombre
+        
+        reporte.to_excel(response, index=False)
+
+        return response    
     
-    
-    return HttpResponse('ok')
-    
+    else:
+        return HttpResponse('No hay componentes armados')
