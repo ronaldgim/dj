@@ -949,7 +949,7 @@ def facturas_proformas_detalle(request, id):
                     procesar_pdf = api_marca_agua(texto=factura_proforma.marca_de_agua, file_path=path)
                     
                     if procesar_pdf.status_code == 200:
-                        pdf_response = requests.get(procesar_pdf.json().get('url_descarga'));print(pdf_response.status_code)
+                        pdf_response = requests.get(procesar_pdf.json().get('url_descarga'))
                         if pdf_response.status_code==200:
                             
                             iso_reg = IsosRegEnviados(
