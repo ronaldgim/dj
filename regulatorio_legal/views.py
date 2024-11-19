@@ -931,42 +931,49 @@ def facturas_proformas_detalle(request, id):
     
     elif request.method == 'POST':
         
-        factura_proforma = FacturaProforma.objects.get(id=id)
-        documentos = json.loads(request.POST.get('documentos'))
-
-        if len(documentos) < 1:
-            return JsonResponse({'alert':'danger', 'msg':'Seleccione documentos que desea procesar'})
-        else:
-            for i in documentos:
-                
-                tipo = i.get('tipo').split('_')[0]
-                desc = i.get('tipo').split('_')[1]
-                path = i.get('doc_path')
-                
-                procesar_pdf = api_marca_agua(texto=factura_proforma.marca_de_agua, file_path=path)
-                if procesar_pdf.status_code == 200:
-                    pdf_response = requests.get(procesar_pdf.json().get('url_descarga'))
-                    if pdf_response.status_code==200:
-                        
-                        iso_reg = IsosRegEnviados(
-                            tipo_documento= tipo,
-                            descripcion= desc,
-                        )
-                        
-                        iso_reg.documento.save(
-                            f'{tipo}-gim.pdf',
-                            ContentFile(pdf_response.content, name=f'{desc}')
-                        )
-                        
-                        factura_proforma.documentos.add(iso_reg)
-            
-            factura_proforma.procesar_docs = True
-            factura_proforma.save()
+        try:
         
-        return JsonResponse({
-            'alert':'success',
-            'msg': f'Documentos procesados exitosamente !!!'
-        })
+            factura_proforma = FacturaProforma.objects.get(id=id)
+            documentos = json.loads(request.POST.get('documentos'))
+
+            if len(documentos) < 1:
+                return JsonResponse({'alert':'danger', 'msg':'Seleccione documentos que desea procesar'})
+            else:
+                for i in documentos:
+                    
+                    tipo = i.get('tipo').split('_')[0]
+                    desc = i.get('tipo').split('_')[1]
+                    path = i.get('doc_path')
+                    
+                    procesar_pdf = api_marca_agua(texto=factura_proforma.marca_de_agua, file_path=path)
+                    if procesar_pdf.status_code == 200:
+                        pdf_response = requests.get(procesar_pdf.json().get('url_descarga'))
+                        if pdf_response.status_code==200:
+                            
+                            iso_reg = IsosRegEnviados(
+                                tipo_documento= tipo,
+                                descripcion= desc,
+                            )
+                            
+                            iso_reg.documento.save(
+                                f'{tipo}-gim.pdf',
+                                ContentFile(pdf_response.content, name=f'{desc}')
+                            )
+                            
+                            factura_proforma.documentos.add(iso_reg)
+                
+                factura_proforma.procesar_docs = True
+                factura_proforma.save()
+            
+            return JsonResponse({
+                'alert':'success',
+                'msg': f'Documentos procesados exitosamente !!!'
+            })
+        except Exception as e:
+            return JsonResponse({
+                'alert':'danger', 
+                'msg':str(e)})
+
 
 
 def eliminar_documento_procesado_ajax(request):

@@ -240,14 +240,7 @@
                 <span style="display:none;" id="alertaTexto" class="text-danger m-2 text-center"></span>
             </div>
             <!-- style="text-align:justify;" -->
-            <textarea 
-                id="id_texto_marca_agua" 
-                name="texto_marca_agua" 
-                class="form-control" 
-                rows="12" 
-                cols="25"
-                {% if factura_proforma.email %} readonly {% endif %}
-                >
+            <textarea id="id_texto_marca_agua" name="texto_marca_agua" class="form-control" rows="12" cols="25">
                 {{factura_proforma.marca_de_agua}}
             </textarea>
         </div>
