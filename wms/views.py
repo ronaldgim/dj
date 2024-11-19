@@ -4388,8 +4388,7 @@ def wms_correo_creacion_armado(orden):
         subject    = f'SOLICITUD DE ARMADO {orden.bodega}',
         from_email = settings.EMAIL_HOST_USER,
         body       = plain_message,
-        #to         = correos
-        to=['egarces@gimpromed.com']
+        to         = correos
     )
     
     email.attach_alternative(html_message, 'text/html')
@@ -4447,12 +4446,37 @@ def wms_correo_finalizado_armado(orden):
     email.send()
 
 
+def wms_correo_anular_armado(orden):
+
+    context = {'orden':orden}
+    html_message  = render_to_string('emails/anular_armado.html', context)
+    plain_message = strip_tags(html_message)
+    
+    email = EmailMultiAlternatives(
+        subject=f'SOLICITUD ARMADO #{orden.enum} - ANULADO',
+        from_email=settings.EMAIL_HOST_USER,
+        body=plain_message,
+        to=[
+            'ncaisapanta@gimpromed.com',
+            'ncastillo@gimpromed.com',
+            'jgualotuna@gimpromed.com',
+            'kenriquez@gimpromed.com',
+            'carcosh@gimpromed.com',
+            'dreyes@gimpromed.com',
+            'bodega2@gimpromed.com',
+            'bcerezos@gimpromed.com'
+            ],
+    )
+    
+    email.attach_alternative(html_message, 'text/html')
+    email.send()
+
 
 @login_required(login_url='login')
 @permisos(['ADMINISTRADOR','OPERACIONES',], '/wms/inventario', 'ingrear a lista de armados')
 def wms_armados_list(request):
     
-    armados = OrdenEmpaque.objects.all().order_by('-id')
+    armados = OrdenEmpaque.objects.all().order_by('-id').exclude(estado='Anulado')
     form_orden = OrdenEmpaqueForm()
     form_nuevo_producto = ProductoNuevoArmadoForm()
     
@@ -4747,7 +4771,7 @@ def wms_armado_picking_list(request):
     
     armados = OrdenEmpaque.objects.filter(
             Q(bodega = 'Cerezos')
-        ).order_by('-id')
+        ).order_by('-id').exclude(estado='Anulado')
     
     context = {
         'armados':armados
@@ -4919,9 +4943,14 @@ def wms_armado_editar_estado(request):
         
         nuevo_estado = request.POST.get('estado')
         
-        if nuevo_estado != 'Finalizado':
+        if nuevo_estado != 'Finalizado' and nuevo_estado != 'Anular':
             orden.estado = nuevo_estado
             orden.save()
+        
+        elif nuevo_estado == 'Anular':
+            orden.estado = 'Anulado'
+            orden.save()
+            wms_correo_anular_armado(orden)
         
         elif nuevo_estado == 'Finalizado':
             
@@ -4965,9 +4994,6 @@ def wms_armado_editar_estado(request):
             'type':'success'
             })
 
-
-
-#@pdf_decorator(pdfname='orden-armado.pdf')
 
 def wms_armado_orden_pdf(request, orden_id):
     

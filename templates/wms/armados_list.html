@@ -69,14 +69,25 @@
                         <td>{{i.nuevo_producto.unidades}}</td>
                         <td>{{i.cliente}}</td>
                         <td>{{i.bodega}}</td>
-                        <td>{{i.estado}}</td>
+                        
+                        <td>
+                            <a class="disabled btn btn-sm 
+                            {% if i.estado == 'En Proceso' %} btn-warning text-white 
+                            {% elif i.estado == 'En Pausa' %} btn-danger
+                            {% elif i.estado == 'Finalizado' %} btn-success
+                            {% elif i.estado == 'Creado' %} btn-primary
+                            {% endif %}">
+                            {{i.estado}}
+                            </a>
+                        </td>
                         <td>{{i.usuario.first_name}} {{i.usuario.last_name}}</td>
                         <td>{{i.creado|date:'Y-m-d'}}</td>
                         <td>{{i.observaciones}}</td>
                         <td>
-                            <a class="btn btn-sm btn-primary" href="{% url 'wms_orden_armado' i.id %}">
-                                Ver
-                            </a>
+                            <div class="btn-group" role="group" aria-label="Basic example">
+                                <a class="btn btn-sm btn-primary" href="{% url 'wms_orden_armado' i.id %}">Ver</a>
+                                <button name="estado-orden" class="btn btn-sm btn-danger" id="{{i.id}}">Anular</button>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
@@ -334,6 +345,47 @@
                 }
             }
         })
+    })
+</script>
+
+
+<!-- Estado Picking -->
+<script>
+    $("button[name='estado-orden']").click(function(){
+        var orden_empaque = $(this).attr('id');
+        var estado = $(this).text();
+        var row = $(this).closest('tr')
+        
+        $.ajax({
+            type:"POST",
+            url:"{% url 'wms_armado_editar_estado' %}",
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'orden_empaque_id':orden_empaque,
+                'estado':estado,
+            },
+
+            success: function(response) {
+            
+            if (response.msg) {
+                $('#msg').html(`<div class="text-center alert alert-${response.type}" role="alert"> ${response.msg} </div>`)
+                row.remove();
+            }
+            
+            setTimeout(function(){
+                window.location.reload();
+            }, 1000)
+        
+            },
+            
+            error: function() {
+                $('#msg').html('<div class="text-center alert alert-danger" role="alert"> Error al hacer el picking !!! </div>')
+                    setTimeout(function(){
+                    window.location.reload();
+                    }, 2000)
+            }
+        })
+        
     })
 </script>
 

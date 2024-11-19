@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitud de armado</title>
+</head>
+<body>
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        };
+        td, th {
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+        td.n {
+            text-align: right;
+        }
+    </style>
+    
+    <h4>Estimados Compañeros:</h4>
+
+    <p>Se informa que la siguiente solicitud de armado ha sido anulada.</p>
+
+    <p><strong>Orden de empaque:</strong> {{orden.enum}}</p>
+
+    <p><strong>Cliente :</strong> {{orden.cliente}}</p>
+    <p><strong>Bodega :</strong> {{orden.bodega}}</p>
+    <p><strong>Producto :</strong> {{orden.nuevo_producto.product_id}} - {{orden.nuevo_producto.nombre}} - {{orden.nuevo_producto.marca}}</p>
+    <p><strong>Cantidad :</strong> {{orden.nuevo_producto.unidades}}</p>
+
+    <p>**** Esta notificación ha sido enviada automáticamente - No responder ****</p>
+</body>
+</html>
