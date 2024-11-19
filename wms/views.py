@@ -1389,7 +1389,7 @@ Realizado por: {user.first_name} {user.last_name}\n
 ***Este mensaje fue enviado automaticamente mediante WMS***
 ''',
         from_email     = settings.EMAIL_HOST_USER,
-        recipient_list = ['dreyes@gimpromed.com','jgualotuna@gimpromed.com','ncaisapanta@gimpromed.com'],
+        recipient_list = ['dreyes@gimpromed.com','jgualotuna@gimpromed.com'],
         fail_silently  = False
         )
 
@@ -4989,5 +4989,14 @@ def wms_armado_orden_pdf(request, orden_id):
     return render(request, 'wms/armado_orden_pdf.html', context)
 
 
-def new_sidebar(request):
-    return render(request, 'sidevar_structura.html')
+def wms_reporte_componentes_armados(request):
+    # Componentes armados
+    componentes_armados = ProductoArmado.objects.filter(componentes__isnull=False).values()
+    
+    if componentes_armados.exists():
+        reporte = pd.DataFrame(componentes_armados)
+        print(reporte)
+    
+    
+    return HttpResponse('ok')
+    
