@@ -27,6 +27,7 @@
 {% endfor %}
 {% endif %}
 
+<div id="msg2" class="alert alert-success" role="alert"></div>
 
 <div class="card mb-2">
     <div class="card-body">
@@ -155,10 +156,13 @@
     </div>
 </div>
 
-<a class="btn btn-primary {#% if orden.estado == 'Finalizado' %} disabled {% endif %#}" href="{% url 'wms_armado_orden_pdf' orden.id %}">
+<!-- a class="btn btn-primary {#% if orden.estado == 'Finalizado' %} disabled {% endif %#}" href="{% url 'wms_armado_orden_pdf' orden.id %}">
     CREAR
-</a>
+</a-->
 
+<button class="btn btn-primary" name="crear_pdf_enviar_email">
+    CREAR
+</button>
 
 <a class="btn btn-danger {#% if orden.estado == 'Finalizado' %} disabled {% endif %#}" href="{% url 'wms_armado_orden_pdf' orden.id %}">
     IMPRIMIR PDF
@@ -398,8 +402,25 @@
     })
 </script>
 
+<!-- crear documento pdf y enviar email  -->
 <script>
-
+    $("button[name='editar-crear_pdf_enviar_email']").on('click', function() {
+        
+        $.ajax({
+            type:"POST",
+            url: "{% url 'wms_armado_orden_pdf' orden.id %}",
+            data: {
+                'csrfmiddlewaretoken': '{{csrf_token}}',
+                // 'product_id': product_id,
+            },
+            success: function(response) {
+                $("#msg2").html(response.msg)
+            },
+            error: function(xhr, status, error) {
+                $("#msg2").html(xhr.responseText);
+            }
+        })
+    })
 </script>
 
 <!-- ADD PRODUCT -->
