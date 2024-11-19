@@ -307,6 +307,7 @@ class OrdenEmpaque(models.Model):
     creado         = models.DateTimeField(verbose_name='Creado', auto_now_add=True)
     actualizado    = models.DateTimeField(verbose_name='Actualizado', auto_now=True)
     observaciones  = models.TextField(blank=True)
+    archivo        = models.FileField(upload_to='orden_empaque', null=True)
     
     @property
     def enum(self):

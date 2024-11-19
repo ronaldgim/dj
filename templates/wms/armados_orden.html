@@ -59,10 +59,6 @@
     Añadir Componente
 </button>
 
-<a class="btn btn-danger {#% if orden.estado == 'Finalizado' %} disabled {% endif %#}" href="{% url 'wms_armado_orden_pdf' orden.id %}">
-    PDF
-</a>
-
 
 <!-- Tabla -->
 <div class="card mt-2 mb-2">
@@ -158,6 +154,16 @@
         </div>
     </div>
 </div>
+
+<a class="btn btn-primary {#% if orden.estado == 'Finalizado' %} disabled {% endif %#}" href="{% url 'wms_armado_orden_pdf' orden.id %}">
+    CREAR
+</a>
+
+
+<a class="btn btn-danger {#% if orden.estado == 'Finalizado' %} disabled {% endif %#}" href="{% url 'wms_armado_orden_pdf' orden.id %}">
+    IMPRIMIR PDF
+</a>
+
 
 <!-- Editar Orden -->
 <div class="modal fade" id="EditarOrden" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="EditarOrdenLabel" aria-hidden="true">

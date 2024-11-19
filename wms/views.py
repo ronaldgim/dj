@@ -4469,7 +4469,7 @@ def wms_armados_list(request):
             orden.save()
             
             # enviar correo electronico
-            wms_correo_creacion_armado(orden)
+            # wms_correo_creacion_armado(orden)
             
             return HttpResponseRedirect(f'/wms/orden-armado/{orden.id}')
         else:
@@ -4961,7 +4961,7 @@ def wms_armado_editar_estado(request):
 
 
 
-@pdf_decorator(pdfname='orden-armado.pdf')
+#@pdf_decorator(pdfname='orden-armado.pdf')
 def wms_armado_orden_pdf(request, orden_id):
     
     # Orden
@@ -4986,7 +4986,24 @@ def wms_armado_orden_pdf(request, orden_id):
         'componente_picking':componente_picking,
     }
     
-    return render(request, 'wms/armado_orden_pdf.html', context)
+    import io
+    output = io.BytesIO()
+    html_string = render_to_string('wms/armado_orden_pdf.html', context)
+    from xhtml2pdf import pisa
+    pdf_status = pisa.CreatePDF(html_string, dest=output)
+    
+    if pdf_status.err:
+        return HttpResponse('Error al generar el PDF')
+    
+    output.seek(0)
+    from django.core.files.base import ContentFile
+    archivo = ContentFile(output.getvalue(), f'Emmpaque_{orden.enum}.pdf')
+    
+    orden.archivo = archivo
+    orden.save()
+    
+    
+    #return render(request, 'wms/armado_orden_pdf.html', context)
 
 
 def wms_reporte_componentes_armados(request):
