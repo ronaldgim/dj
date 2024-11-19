@@ -98,7 +98,7 @@
                 <th class="t_b" rowspan="2">
                     <!--REGISTRO DE MUESTREO DE MERCADERIA-->
                 </th>
-                <th class="t_b">
+                <th class="t_b" style="font-size: 20px">
                     ORDEN DE EMPAQUE <span style="color:red">{{orden.enum}}</span>
                 </th>
             </tr>
@@ -194,7 +194,7 @@
                     <td style="width: auto;" class="t_row">{{orden.nuevo_producto.nombre}}</td>         
                     <td style="width: 7%;" class="t_row">{{orden.nuevo_producto.marca}}</td>           
                     <td style="width: 7%;" class="t_row">{{orden.nuevo_producto.lote_id|default:"-"}}</td>         
-                    <td style="width: 7%;" class="t_row">{{orden.nuevo_producto.fecha_elaboracion|default:"-"}}</td>
+                    <td style="width: 7%;" class="t_row">{{orden.nuevo_producto.fecha_elaboracion|date:'Y-m-d'|default:"-"}}</td>
                     <td style="width: 7%;" class="t_row">{{orden.nuevo_producto.fecha_caducidad|date:'Y-m-d'|default:"-"}}</td>
                     <td style="width: 7%;" class="t_row">{% if orden.nuevo_producto.bodega == "Cerezos" %} {{orden.nuevo_producto.ubicacion}} {% endif %}</td>       
                     <td style="width: 6%;" class="t_row"></td>                                                     
