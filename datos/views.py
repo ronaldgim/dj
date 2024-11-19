@@ -544,13 +544,13 @@ def stock_lote(request):
             actualizar_datos_etiquetado_fun()
             
         elif table_name:
-        
+            
             if table_name == "clientes":
                 api_actualizar_clientes_warehouse()
             elif table_name == "facturas":
                 api_actualizar_facturas_warehouse()
             elif table_name == "imp_llegadas":
-                api_actualizar_imp_llegadas_warehouse
+                api_actualizar_imp_llegadas_warehouse()
             elif table_name == "imp_transito":
                 api_actualizar_imp_transito_warehouse()
             elif table_name == "productos":
