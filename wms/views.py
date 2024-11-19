@@ -1389,7 +1389,7 @@ Realizado por: {user.first_name} {user.last_name}\n
 ***Este mensaje fue enviado automaticamente mediante WMS***
 ''',
         from_email     = settings.EMAIL_HOST_USER,
-        recipient_list = ['dreyes@gimpromed.com','jgualotuna@gimpromed.com','ncaisapanta@gimpromed.com'],
+        recipient_list = ['dreyes@gimpromed.com','jgualotuna@gimpromed.com'],
         fail_silently  = False
         )
 
