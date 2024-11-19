@@ -156,16 +156,11 @@
     </div>
 </div>
 
-<!-- a class="btn btn-primary {#% if orden.estado == 'Finalizado' %} disabled {% endif %#}" href="{% url 'wms_armado_orden_pdf' orden.id %}">
-    CREAR
-</a-->
-
 <div class="mb-4">
     <button class="btn btn-primary" name="crear_pdf_enviar_email">
         CREAR
     </button>
-    
-    <a class="btn btn-danger  {#% if orden.estado == 'Finalizado' %} disabled {% endif %#}" href="{% url 'wms_armado_orden_pdf' orden.id %}">
+    <a id="imprimir_pdf" class="btn btn-danger {% if not orden.archivo %} disabled {% endif %} " href="{% if orden.archivo %} {{ orden.archivo.url }} {% endif %}">
         IMPRIMIR PDF
     </a>
 </div>
@@ -415,8 +410,11 @@
                 // 'product_id': product_id,
             },
             success: function(response) {
+                if (response.type==="success") {
+                    $("#imprimir_pdf").removeClass('disabled');
+                }
+
                 $("#msg2").html(`<div id="msg2" class="text-center alert alert-${response.type}" role="alert">${response.msg}</div>`);
-                
             },
             error: function(xhr, status, error) {
                 $("#msg2").html(`<div id="msg2" class="text-center alert alert-success" role="alert">${xhr.responseText}</div>`);
