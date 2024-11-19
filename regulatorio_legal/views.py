@@ -935,7 +935,7 @@ def facturas_proformas_detalle(request, id):
         
             factura_proforma = FacturaProforma.objects.get(id=id)
             documentos = json.loads(request.POST.get('documentos'))
-            print(documentos)
+            
             if len(documentos) < 1:
                 return JsonResponse({'alert':'danger', 'msg':'Seleccione documentos que desea procesar'})
             
@@ -947,9 +947,9 @@ def facturas_proformas_detalle(request, id):
                     path = i.get('doc_path')
                     
                     procesar_pdf = api_marca_agua(texto=factura_proforma.marca_de_agua, file_path=path)
-                    print(procesar_pdf.status_code)
+                    
                     if procesar_pdf.status_code == 200:
-                        pdf_response = requests.get(procesar_pdf.json().get('url_descarga'))
+                        pdf_response = requests.get(procesar_pdf.json().get('url_descarga'));print(pdf_response.status_code)
                         if pdf_response.status_code==200:
                             
                             iso_reg = IsosRegEnviados(
