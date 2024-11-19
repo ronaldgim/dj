@@ -132,7 +132,7 @@
                                     {% verbatim %}
                                     <td>
                                         <span v-if="i.estado == 'EN PROCESO'"><i class="bi bi-check-circle-fill" style="color:green"></i></span>
-                                        <a :href="'/etiquetado/pedidos/' + i.CONTRATO_ID" class="fs-6" target="_blank">{{i.PRODUCT_ID}}</a>
+                                        <a :href="'/etiquetado/etiquetado-stock-detalle/' + i.PRODUCT_ID" class="fs-6" target="_blank">{{i.PRODUCT_ID}}</a>
                                         <span v-if="i.n_personas" class="bg-info bg-gradient text-white m-2 p-1">{{i.n_personas}}p</span>
                                         <br>
                                         <span style="font-size: small;">{{i.PRODUCT_NAME}}</span> 
