@@ -119,12 +119,16 @@ import pyodbc
 
 # Paginado
 from django.core.paginator import Paginator
+from django.core.files.base import ContentFile
 
 # PDF
-from django_xhtml2pdf.utils import pdf_decorator
+from django_xhtml2pdf.utils import pisa #pdf_decorator
 
 # datos api_mba
 from api_mba.tablas_warehouse import api_actualizar_imp_transito_warehouse
+
+# BYTES
+import io
 
 
 """
@@ -4384,10 +4388,12 @@ def wms_correo_creacion_armado(orden):
         subject    = f'SOLICITUD DE ARMADO {orden.bodega}',
         from_email = settings.EMAIL_HOST_USER,
         body       = plain_message,
-        to         = correos
+        #to         = correos
+        to=['egarces@gimpromed.com']
     )
     
     email.attach_alternative(html_message, 'text/html')
+    email.attach_file(path=orden.archivo.path)
     email.send()
 
 
@@ -4981,29 +4987,28 @@ def wms_armado_orden_pdf(request, orden_id):
         }
         componente_picking.append(c_m)    
         
-    context = {
-        'orden':orden,
-        'componente_picking':componente_picking,
-    }
+    context = {'orden':orden,'componente_picking':componente_picking,}
     
-    import io
+    
     output = io.BytesIO()
     html_string = render_to_string('wms/armado_orden_pdf.html', context)
-    from xhtml2pdf import pisa
+    
     pdf_status = pisa.CreatePDF(html_string, dest=output)
     
     if pdf_status.err:
         return HttpResponse('Error al generar el PDF')
     
     output.seek(0)
-    from django.core.files.base import ContentFile
+    
     archivo = ContentFile(output.getvalue(), f'O_empaque_{orden.enum}.pdf')
     
     orden.archivo = archivo
     orden.save()
     
+    # send email
+    wms_correo_creacion_armado(orden)
     
-    #return render(request, 'wms/armado_orden_pdf.html', context)
+    return JsonResponse({'msg':'correo enviado'})
 
 
 def wms_reporte_componentes_armados(request):
