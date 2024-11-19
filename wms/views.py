@@ -4997,7 +4997,7 @@ def wms_armado_orden_pdf(request, orden_id):
     
     output.seek(0)
     from django.core.files.base import ContentFile
-    archivo = ContentFile(output.getvalue(), f'Emmpaque_{orden.enum}.pdf')
+    archivo = ContentFile(output.getvalue(), f'O_empaque_{orden.enum}.pdf')
     
     orden.archivo = archivo
     orden.save()
