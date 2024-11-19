@@ -288,6 +288,7 @@ class ProductoArmado(models.Model):
     precio_venta      = models.FloatField(verbose_name='Precio de venta', null=True)
     ubicacion         = models.CharField(verbose_name='Ubicacion', max_length=12, blank=True)
     unidades          = models.IntegerField(verbose_name='Cantidad', blank=True)
+    creado            = models.DateField(auto_now_add=True)
     
     def __str__(self):
         return self.product_id

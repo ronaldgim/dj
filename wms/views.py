@@ -4989,5 +4989,14 @@ def wms_armado_orden_pdf(request, orden_id):
     return render(request, 'wms/armado_orden_pdf.html', context)
 
 
-def new_sidebar(request):
-    return render(request, 'sidevar_structura.html')
+def wms_reporte_componentes_armados(request):
+    # Componentes armados
+    componentes_armados = ProductoArmado.objects.filter(componentes__isnull=False).values()
+    
+    if componentes_armados.exists():
+        reporte = pd.DataFrame(componentes_armados)
+        print(reporte)
+    
+    
+    return HttpResponse('ok')
+    

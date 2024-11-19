@@ -576,8 +576,8 @@ urlpatterns = [
     ),
     
     path(
-        route='new_sidebar',
-        view = views.new_sidebar,
-        name = 'new_sidebar'
-    ),
+        route='wms_reporte_componentes_armados',
+        view = views.wms_reporte_componentes_armados,
+        name = 'wms_reporte_componentes_armados'
+    )
 ]
