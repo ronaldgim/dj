@@ -4970,48 +4970,56 @@ def wms_armado_editar_estado(request):
 #@pdf_decorator(pdfname='orden-armado.pdf')
 
 def wms_armado_orden_pdf(request, orden_id):
-
-    if request.method == 'POST':
     
-        # Orden
-        orden = OrdenEmpaque.objects.get(id=orden_id)
-        
-        # Movimientos
-        mov = Movimiento.objects.filter(n_referencia=orden.enum)
-        
-        # Componentes
-        componentes = orden.componentes.all()
-        componente_picking = []
-        for i in componentes:
-            movimiento = mov.filter(product_id=i)
-            c_m = {
-                'componente':i,
-                'movimiento':movimiento
-            }
-            componente_picking.append(c_m)    
+    if request.method == 'POST':
+        try:
+            # Orden
+            orden = OrdenEmpaque.objects.get(id=orden_id)
             
-        context = {'orden':orden,'componente_picking':componente_picking,}
-        
-        
-        output = io.BytesIO()
-        html_string = render_to_string('wms/armado_orden_pdf.html', context)
-        
-        pdf_status = pisa.CreatePDF(html_string, dest=output)
-        
-        if pdf_status.err:
-            return HttpResponse('Error al generar el PDF')
-        
-        output.seek(0)
-        
-        archivo = ContentFile(output.getvalue(), f'O_empaque_{orden.enum}.pdf')
-        
-        orden.archivo = archivo
-        orden.save()
-        
-        # send email
-        wms_correo_creacion_armado(orden)
-        
-        return JsonResponse({'msg':'correo enviado'})
+            # Movimientos
+            mov = Movimiento.objects.filter(n_referencia=orden.enum)
+            
+            # Componentes
+            componentes = orden.componentes.all()
+            componente_picking = []
+            for i in componentes:
+                movimiento = mov.filter(product_id=i)
+                c_m = {
+                    'componente':i,
+                    'movimiento':movimiento
+                }
+                componente_picking.append(c_m)    
+                
+            context = {'orden':orden,'componente_picking':componente_picking,}
+            
+            
+            output = io.BytesIO()
+            html_string = render_to_string('wms/armado_orden_pdf.html', context)
+            
+            pdf_status = pisa.CreatePDF(html_string, dest=output)
+            
+            if pdf_status.err:
+                return HttpResponse('Error al generar el PDF')
+            
+            output.seek(0)
+            
+            archivo = ContentFile(output.getvalue(), f'O_empaque_{orden.enum}.pdf')
+            
+            orden.archivo = archivo
+            orden.save()
+            
+            # send email
+            wms_correo_creacion_armado(orden)
+            
+            return JsonResponse({
+                'type':'success',
+                'msg':'Orden de equiquetado creada exitosamente !!!'
+                })
+        except Exception:
+            return JsonResponse({
+                'type':'danger',
+                'msg':'Error al generar el PDF !!!'
+                })
 
 
 def wms_reporte_componentes_armados(request):

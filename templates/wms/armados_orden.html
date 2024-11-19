@@ -27,7 +27,7 @@
 {% endfor %}
 {% endif %}
 
-<div id="msg2" class="alert alert-success" role="alert"></div>
+<div id="msg2"></div>
 
 <div class="card mb-2">
     <div class="card-body">
@@ -160,14 +160,15 @@
     CREAR
 </a-->
 
-<button class="btn btn-primary" name="crear_pdf_enviar_email">
-    CREAR
-</button>
-
-<a class="btn btn-danger {#% if orden.estado == 'Finalizado' %} disabled {% endif %#}" href="{% url 'wms_armado_orden_pdf' orden.id %}">
-    IMPRIMIR PDF
-</a>
-
+<div class="mb-4">
+    <button class="btn btn-primary" name="crear_pdf_enviar_email">
+        CREAR
+    </button>
+    
+    <a class="btn btn-danger  {#% if orden.estado == 'Finalizado' %} disabled {% endif %#}" href="{% url 'wms_armado_orden_pdf' orden.id %}">
+        IMPRIMIR PDF
+    </a>
+</div>
 
 <!-- Editar Orden -->
 <div class="modal fade" id="EditarOrden" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="EditarOrdenLabel" aria-hidden="true">
@@ -404,7 +405,7 @@
 
 <!-- crear documento pdf y enviar email  -->
 <script>
-    $("button[name='editar-crear_pdf_enviar_email']").on('click', function() {
+    $("button[name='crear_pdf_enviar_email']").on('click', function() {
         
         $.ajax({
             type:"POST",
@@ -414,10 +415,11 @@
                 // 'product_id': product_id,
             },
             success: function(response) {
-                $("#msg2").html(response.msg)
+                $("#msg2").html(`<div id="msg2" class="text-center alert alert-${response.type}" role="alert">${response.msg}</div>`);
+                
             },
             error: function(xhr, status, error) {
-                $("#msg2").html(xhr.responseText);
+                $("#msg2").html(`<div id="msg2" class="text-center alert alert-success" role="alert">${xhr.responseText}</div>`);
             }
         })
     })
