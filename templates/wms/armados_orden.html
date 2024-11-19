@@ -104,7 +104,7 @@
                                     <i class="bi bi-pencil"></i>
                                 </button>
                                 {% if orden.estado == 'Finalizado' %} 
-                                <button type="button" class="btn btn-primary" name="completar-nuevo-producto" id="{{orden.nuevo_producto.id}}" data-bs-toggle="modal" data-bs-target="#CompletarProductoNuevo">
+                                <button type="button" class="btn btn-primary {% if orden.archivo %} disabled {% endif %}" name="completar-nuevo-producto" id="{{orden.nuevo_producto.id}}" data-bs-toggle="modal" data-bs-target="#CompletarProductoNuevo">
                                     <i class="bi bi-text-left"></i>
                                 </button>
                                 {% endif %}
