@@ -54,16 +54,23 @@ def insert_data_warehouse(table_name, data):
         cursor.executemany(sql_insert, data)
 
 
-def admin_warehouse_timestamp(tabla):
+def admin_warehouse_timestamp(tabla, actualizar_datetime, mensaje):
     
     timestamp = AdminActualizationWarehaouse.objects.filter(table_name=tabla)
     
     if timestamp.exists():
-        registro = timestamp.first() 
-        registro.datetime = datetime.now()
-        registro.save()
+        
+        if actualizar_datetime:
+            registro = timestamp.first() 
+            registro.datetime = datetime.now()
+            registro.mensaje = mensaje
+            registro.save()
+        else:
+            registro = timestamp.first()
+            registro.mensaje = mensaje
+            registro.save()
     else:
-        AdminActualizationWarehaouse.objects.create(table_name=tabla, datetime=datetime.now())
+        AdminActualizationWarehaouse.objects.create(table_name=tabla, mensaje=mensaje,datetime=datetime.now())
 
 
 ###### FUNCIONES PARA ACTUALIZAR DATOS EN WAREHOUSE ######
@@ -86,39 +93,15 @@ def api_actualizar_clientes_warehouse():
             # Insertar datos de tabla clientes
             insert_data_warehouse('clientes', data)
             
-            admin_warehouse_timestamp('clientes')
+            admin_warehouse_timestamp(tabla='clientes', actualizar_datetime=True, mensaje='Actualizado correctamente')
             
         else:
             
-            send_mail(
-                subject='Error DB WAREHOUSE',
-                message=f"""
-                
-                TABLA: CLIENTES - 'warehouse.clientes'
-                
-                ERROR : ERROR API - STATUS: {clientes_mba["status"]}
-                
-                """,
-                from_email=settings.EMAIL_HOST_USER,
-                recipient_list=['egarces@gimpromed.com'],
-                fail_silently=False,
-            )
+            admin_warehouse_timestamp(tabla='clientes', actualizar_datetime=False, mensaje=f'Error api: estatus {clientes_mba['estatus']}')
 
     except Exception as e:
         
-        send_mail(
-            subject='Error DB WAREHOUSE',
-            message=f"""
-            
-            TABLA: CLIENTES - 'warehouse.clientes'
-            
-            ERROR : {e}
-            
-            """,
-            from_email=settings.EMAIL_HOST_USER,
-            recipient_list=['egarces@gimpromed.com'],
-            fail_silently=False,
-        )
+        admin_warehouse_timestamp(tabla='clientes', actualizar_datetime=False, mensaje=f'Error exception: {e}')
 
 
 ### 2 ACTUALIZAR FACTURAS WAREHOUSE
