@@ -346,7 +346,7 @@ def api_actualizar_imp_transito_warehouse():
     
         else:
         
-            admin_warehouse_timestamp(tabla='imp_transito', actualizar_datetime=False, mensaje=f'Error api: status {imp_transito_mba['status']}')
+            admin_warehouse_timestamp(tabla='imp_transito', actualizar_datetime=False, mensaje=f'Error api: status {imp_transito_mba["status"]}')
     
     except Exception as e:
         
@@ -447,7 +447,7 @@ def api_actualizar_productos_warehouse():
 
         else:
         
-            admin_warehouse_timestamp(tabla='productos', actualizar_datetime=False, mensaje=f'Error api: status {productos_mba['status']}')
+            admin_warehouse_timestamp(tabla='productos', actualizar_datetime=False, mensaje=f'Error api: status {productos_mba["status"]}')
     
     except Exception as e:
         
@@ -592,7 +592,7 @@ def api_actualizar_proformas_warehouse():
         
         else:
             
-            admin_warehouse_timestamp(tabla='proformas', actualizar_datetime=False, mensaje=f'Error api: status {proformas_mba['status']}')
+            admin_warehouse_timestamp(tabla='proformas', actualizar_datetime=False, mensaje=f'Error api: status {proformas_mba["status"]}')
         
     except Exception as e:
         
