@@ -9,8 +9,9 @@
 <div id="app">
 
     <h5 class="text-center m-4 fw-bold">LISTADO DE TABLAS</h5>
-
-    <button @click="actualizarAutomatica" class="btn btn-primary mb-2">
+    
+    <button @click="actualizarAutomatica" class="btn btn-primary mb-2" type="button">
+        <span v-if="actualizandoTodo" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
         ACTUALIZAR TODO
     </button>
 
@@ -43,6 +44,7 @@
                             <td>{{i.mensaje}}</td>
                             <td class="text-center">
                                 <button @click="actualizarTablaWarehouse(i.table_name)" class="btn btn-sm btn-success">
+                                    <span v-if="i.actualizandoEstaTabla" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                                     <i class="bi bi-arrow-clockwise"></i>
                                 </button>
                             </td>
@@ -57,11 +59,12 @@
 
 <script>
     const adminDataUrl = "{% url 'admin_actualizar_warehouse_json_response' %}";
-    const cadaCincoMin = 300000;
-    const cadaUnaHora = 3600000;
+    const cadaCincoMin = 5 * 60 * 1000;
+    const cadaUnaHora = 60 * 60 * 1000;
     new Vue({
         el: '#app',
         data: {
+            actualizandoTodo:false,
             tablas:[],
         },
         mounted() {
@@ -93,14 +96,23 @@
                         throw new Error(response.statusText);
                     }
                     const data = await response.json();
-                    this.tablas = data || [];
+                    //this.tablas = data || [];
+                    this.tablas = data.map((i) => ({
+                        ...i,
+                        actualizandoEstaTabla: false
+                    }))
+                    
                 } catch (error) {
                     console.error(error);
                 }
             },
 
             async actualizarTablaWarehouse(table_name) {
+                const tabla = this.tablas.find((i) => i.table_name === table_name);
                 
+                if (!tabla) return;
+                this.$set(tabla, 'actualizandoEstaTabla', true);
+
                 try {
                     const response = await fetch("/datos/stocklote", {
                         method: "POST",
@@ -111,13 +123,17 @@
                         throw new Error(response.statusText);
                     }
                     
-                    this.getDatosAdminWarehouse();
+                    await this.getDatosAdminWarehouse();
+                    this.$set(tabla, 'actualizandoEstaTabla', false);
                 } catch {
                     console.error(error);
+                } finally {
+                    this.$set(tabla, 'actualizandoEstaTabla', false);
                 }
             },
 
             async actualizarAutomatica() {
+                this.actualizandoTodo = true;
                 try {
                     const response = await fetch("/datos/stocklote", {
                         method: "POST",
@@ -128,9 +144,12 @@
                         throw new Error(response.statusText);
                     }  
                     this.getDatosAdminWarehouse();
+                    this.actualizandoTodo = false;
                     
                 } catch (error) {
                     console.error(error);
+                } finally {
+                    this.actualizandoTodo = false;
                 }
             },
         },

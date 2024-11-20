@@ -475,7 +475,7 @@ def actualizar_datos_etiquetado_fun():
         REPLACE INTO etiquetado_etiquetadostock (id,PRODUCT_ID,PRODUCT_NAME,GROUP_CODE,Cat,Reservas,Transito,Disp_Reserva,Disp_Total,Mensual,Cuarentena,Tres_Semanas,Stock_Mensual,Meses,O_Etiquetado,actulizado)
         VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""", e)
 
-    admin_warehouse_timestamp('etiquetado_stock')
+    admin_warehouse_timestamp('etiquetado_stock', actualizar_datetime=True, mensaje='Actualizado correctamente')
 
     return print('etiquetado-fun')
 
