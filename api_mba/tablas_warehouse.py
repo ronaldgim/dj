@@ -97,7 +97,7 @@ def api_actualizar_clientes_warehouse():
             
         else:
             
-            admin_warehouse_timestamp(tabla='clientes', actualizar_datetime=False, mensaje=f'Error api: estatus {clientes_mba['estatus']}')
+            admin_warehouse_timestamp(tabla='clientes', actualizar_datetime=False, mensaje=f'Error api: status {clientes_mba["status"]}')
 
     except Exception as e:
         
