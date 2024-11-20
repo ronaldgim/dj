@@ -266,14 +266,14 @@ def api_actualizar_imp_llegadas_warehouse():
             
             data = imp_llegadas.values.tolist()
             
-            # #with transaction.atomic():
-            # # Borrar datos de tabla imp_llegadas
-            # delete_data_warehouse('imp_llegadas')
+            #with transaction.atomic():
+            # Borrar datos de tabla imp_llegadas
+            delete_data_warehouse('imp_llegadas')
             
-            # # Insertar datos de tabla imp_llegadas
-            # insert_data_warehouse('imp_llegadas', data)
+            # Insertar datos de tabla imp_llegadas
+            insert_data_warehouse('imp_llegadas', data)
             
-            # admin_warehouse_timestamp('imp_llegadas', actualizar_datetime=True, mensaje='Actualizado correctamente')
+            admin_warehouse_timestamp('imp_llegadas', actualizar_datetime=True, mensaje='Actualizado correctamente')
         
         else:
             
