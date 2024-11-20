@@ -234,17 +234,19 @@ def api_actualizar_imp_llegadas_warehouse():
         
         if  imp_llegadas_mba['status'] == 200 and proveedor_mba['status'] == 200:
             
-            imp_llegadas_df = pd.DataFrame(imp_llegadas_mba['data']) 
+            imp_llegadas_df = pd.DataFrame(imp_llegadas_mba['data']) #; print(imp_llegadas_df)
             proveedor_df = pd.DataFrame(proveedor_mba['data']).rename(columns={'CONTRATO_ID_CORP':'DOC_ID_CORP'})
             
             # Unir nombre de proveedor
             imp_llegadas = imp_llegadas_df.merge(proveedor_df, on='DOC_ID_CORP', how='left').fillna('')
             
             # Transformar datos de fechas
-            # imp_llegadas['ENTRADA_FECHA'] = pd.to_datetime(imp_llegadas['ENTRADA_FECHA'].str.slice(0, 10)).dt.date
-            imp_llegadas['ENTRADA_FECHA'] = imp_llegadas['ENTRADA_FECHA'].str.slice(0,10)
-            #imp_llegadas['FECHA_CADUCIDAD'] = pd.to_datetime(imp_llegadas['FECHA_CADUCIDAD'].str.slice(0, 10)).dt.date
-            imp_llegadas['FECHA_CADUCIDAD'] = imp_llegadas['FECHA_CADUCIDAD'].str.slice(0, 10)
+            #imp_llegadas['ENTRADA_FECHA'] = imp_llegadas['ENTRADA_FECHA'].str.slice(0,10); 
+            imp_llegadas['ENTRADA_FECHA'] = pd.to_datetime(imp_llegadas['ENTRADA_FECHA'].str.slice(0, 10), format='%d/%m/%Y').dt.date
+            
+            #imp_llegadas['FECHA_CADUCIDAD'] = imp_llegadas['FECHA_CADUCIDAD'].str.slice(0, 10)
+            imp_llegadas['FECHA_CADUCIDAD'] = pd.to_datetime(imp_llegadas['FECHA_CADUCIDAD'].str.slice(0, 10), format='%d/%m/%Y').dt.date
+            imp_llegadas['FECHA_CADUCIDAD'] = imp_llegadas['FECHA_CADUCIDAD'].astype('str')
             
             # Ordenar por fecha de entrada
             imp_llegadas = imp_llegadas.sort_values(by='ENTRADA_FECHA')
