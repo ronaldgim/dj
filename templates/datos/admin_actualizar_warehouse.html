@@ -27,7 +27,7 @@
                             <th scope="col">PERIODICIDAD</th>
                             <th scope="col">MENSAJE</th>
                             <!--th scope="col">MILISEGUNDOS</th-->
-                            <th scope="col">ACTUALIZAR AHORA</th>
+                            <th scope="col">ACTUALIZAR</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -40,7 +40,7 @@
                             <td class="text-center" v-else><i style="color:red" class="bi bi-x-circle"></i></td>
                             <td>{{i.periodicidad}}</td>
                             <!--td>{{i.milisegundos}}</td-->
-                            <td class="text-center">{{i.mensaje}}</td>
+                            <td>{{i.mensaje}}</td>
                             <td class="text-center">
                                 <button @click="actualizarTablaWarehouse(i.table_name)" class="btn btn-sm btn-success">
                                     <i class="bi bi-arrow-clockwise"></i>
