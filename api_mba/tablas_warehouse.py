@@ -234,7 +234,7 @@ def api_actualizar_imp_llegadas_warehouse():
         
         if  imp_llegadas_mba['status'] == 200 and proveedor_mba['status'] == 200:
             
-            imp_llegadas_df = pd.DataFrame(imp_llegadas_mba['data'])
+            imp_llegadas_df = pd.DataFrame(imp_llegadas_mba['data']) 
             proveedor_df = pd.DataFrame(proveedor_mba['data']).rename(columns={'CONTRATO_ID_CORP':'DOC_ID_CORP'})
             
             # Unir nombre de proveedor
@@ -242,7 +242,9 @@ def api_actualizar_imp_llegadas_warehouse():
             
             # Transformar datos de fechas
             # imp_llegadas['ENTRADA_FECHA'] = pd.to_datetime(imp_llegadas['ENTRADA_FECHA'].str.slice(0, 10)).dt.date
-            imp_llegadas['FECHA_CADUCIDAD'] = pd.to_datetime(imp_llegadas['FECHA_CADUCIDAD'].str.slice(0, 10)).dt.date
+            imp_llegadas['ENTRADA_FECHA'] = imp_llegadas['ENTRADA_FECHA'].str.slice(0,10)
+            #imp_llegadas['FECHA_CADUCIDAD'] = pd.to_datetime(imp_llegadas['FECHA_CADUCIDAD'].str.slice(0, 10)).dt.date
+            imp_llegadas['FECHA_CADUCIDAD'] = imp_llegadas['FECHA_CADUCIDAD'].str.slice(0, 10)
             
             # Ordenar por fecha de entrada
             imp_llegadas = imp_llegadas.sort_values(by='ENTRADA_FECHA')
@@ -265,7 +267,6 @@ def api_actualizar_imp_llegadas_warehouse():
             data = imp_llegadas.values.tolist()
             
             #with transaction.atomic():
-
             # Borrar datos de tabla imp_llegadas
             delete_data_warehouse('imp_llegadas')
             
