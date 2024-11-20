@@ -842,7 +842,10 @@ def odbc_actualizar_stock_lote():
             
             admin_warehouse_timestamp(tabla='stock_lote', actualizar_datetime=True, mensaje='Actualizado correctamente')
             
-    
+        else:
+            
+            admin_warehouse_timestamp(tabla='stock_lote', actualizar_datetime=False, mensaje='Error fetch ODBC')
+            
     except Exception as e:
         
         admin_warehouse_timestamp(tabla='stock_lote', actualizar_datetime=False, mensaje=f'Error ODBC exception: {e}')
