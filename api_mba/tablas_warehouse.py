@@ -175,39 +175,15 @@ def api_actualizar_facturas_warehouse():
             # Insertar datos de tabla facturas
             insert_data_warehouse('facturas', data)
     
-            admin_warehouse_timestamp('facturas')
+            admin_warehouse_timestamp('facturas', actualizar_datetime=True, mensaje='Actualizado correctamente')
                 
         else:
             
-            send_mail(
-                subject='Error DB WAREHOUSE',
-                message=f"""
-                
-                TABLA: FACTURAS - 'warehouse.facturas'
-                
-                ERROR : ERROR API - STATUS: {facturas_mba["status"]}
-                
-                """,
-                from_email=settings.EMAIL_HOST_USER,
-                recipient_list=['egarces@gimpromed.com'],
-                fail_silently=False,
-            )
+            admin_warehouse_timestamp(tabla='facturas', actualizar_datetime=False, mensaje=f'Error api: status {facturas_mba["status"]}')
     
     except Exception as e:
         
-        send_mail(
-            subject='Error DB WAREHOUSE',
-            message=f"""
-            
-            TABLA: FACTURAS - 'warehouse.facturas'
-            
-            ERROR : {e}
-            
-            """,
-            from_email=settings.EMAIL_HOST_USER,
-            recipient_list=['egarces@gimpromed.com'],
-            fail_silently=False,
-        )
+        admin_warehouse_timestamp(tabla='facturas', actualizar_datetime=False, mensaje=f'Error exception: {e}')
 
 
 ### 3 ACTUALIZAR IMP LLEGADAS WAREHOUSE
@@ -296,39 +272,15 @@ def api_actualizar_imp_llegadas_warehouse():
             # Insertar datos de tabla imp_llegadas
             insert_data_warehouse('imp_llegadas', data)
             
-            admin_warehouse_timestamp('imp_llegadas')
+            admin_warehouse_timestamp('imp_llegadas', actualizar_datetime=True, mensaje='Actualizado correctamente')
         
         else:
             
-            send_mail(
-                subject='Error DB WAREHOUSE',
-                message=f"""
-                
-                TABLA: IMPORTACIONES LLEGADAS - 'warehouse.imp_llegadas'
-                
-                ERROR : ERROR API - STATUS: imp_llegadas_status:{imp_llegadas_mba['status']}, proveedor_status:{proveedor_mba['status']}
-                
-                """,
-                from_email=settings.EMAIL_HOST_USER,
-                recipient_list=['egarces@gimpromed.com'],
-                fail_silently=False,
-            )
+            admin_warehouse_timestamp(tabla='imp_llegadas', actualizar_datetime=False, mensaje=f"""Error api imp_llegadas: status {imp_llegadas_mba['status']}\nError api proveedor: status{proveedor_mba['status']}""")
             
     except Exception as e:
         
-        send_mail(
-            subject='Error DB WAREHOUSE',
-            message=f"""
-            
-            TABLA: IMPORTACIONES LLEGADAS - 'warehouse.imp_llegadas'
-            
-            ERROR : {e}
-            
-            """,
-            from_email=settings.EMAIL_HOST_USER,
-            recipient_list=['egarces@gimpromed.com'],
-            fail_silently=False,
-        )
+        admin_warehouse_timestamp(tabla='imp_llegadas', actualizar_datetime=False, mensaje=f'Error exception: {e}')
 
 
 ### 4 ACTUALIZAR IMP TRANSITO WAREHOUSE
@@ -390,39 +342,15 @@ def api_actualizar_imp_transito_warehouse():
             # # Insertar datos de tabla imp_transito
             insert_data_warehouse('imp_transito', data)
             
-            admin_warehouse_timestamp('imp_transito')
+            admin_warehouse_timestamp(tabla='imp_transito', actualizar_datetime=True, mensaje='Actualizado correctamente')
     
         else:
         
-            send_mail(
-                subject='Error DB WAREHOUSE',
-                message=f"""
-                
-                TABLA: IMP TRNASITO - 'warehouse.imp_transito'
-                
-                ERROR : ERROR API - STATUS: {imp_transito_mba['status']}
-                
-                """,
-                from_email=settings.EMAIL_HOST_USER,
-                recipient_list=['egarces@gimpromed.com'],
-                fail_silently=False,
-            )
+            admin_warehouse_timestamp(tabla='imp_transito', actualizar_datetime=False, mensaje=f'Error api: status {imp_transito_mba['status']}')
     
     except Exception as e:
         
-        send_mail(
-            subject='Error DB WAREHOUSE',
-            message=f"""
-            
-            TABLA: IMPORTACIONES EN TRANSITO - 'warehouse.imp_transito'
-            
-            ERROR : {e}
-            
-            """,
-            from_email=settings.EMAIL_HOST_USER,
-            recipient_list=['egarces@gimpromed.com'],
-            fail_silently=False,
-        )
+        admin_warehouse_timestamp(tabla='imp_transito', actualizar_datetime=False, mensaje=f'Error exception {e}')
 
 
 ### 5 ACTUALIZAR PRODUCTOS WAREHOUSE POR API DATA
@@ -515,39 +443,15 @@ def api_actualizar_productos_warehouse():
             # Insertar datos de tabla productos
             insert_data_warehouse('productos', data)
             
-            admin_warehouse_timestamp('productos')
+            admin_warehouse_timestamp(tabla='productos', actualizar_datetime=True, mensaje='Actualizado correctamente')
 
         else:
         
-            send_mail(
-                subject='Error DB WAREHOUSE',
-                message=f"""
-                
-                TABLA: PRODUCTOS - 'warehouse.productos'
-                
-                ERROR : ERROR API - STATUS: {productos_mba['status']}
-                
-                """,
-                from_email=settings.EMAIL_HOST_USER,
-                recipient_list=['egarces@gimpromed.com'],
-                fail_silently=False,
-            )
+            admin_warehouse_timestamp(tabla='productos', actualizar_datetime=False, mensaje=f'Error api: status {productos_mba['status']}')
     
     except Exception as e:
         
-        send_mail(
-            subject='Error DB WAREHOUSE',
-            message=f"""
-            
-            TABLA: PRODUCTOS - 'warehouse.productos'
-            
-            ERROR : {e}
-            
-            """,
-            from_email=settings.EMAIL_HOST_USER,
-            recipient_list=['egarces@gimpromed.com'],
-            fail_silently=False,
-        )
+        admin_warehouse_timestamp(tabla='productos', actualizar_datetime=False, mensaje=f'Error exception: {e}')
 
 
 ### 6 ACTUALIZAR PRODUCTOS EN TRANSITO
@@ -604,39 +508,15 @@ def api_actualizar_producto_transito_warehouse():
             # Insertar datos de tabla clientes
             insert_data_warehouse('productos_transito', data)
             
-            admin_warehouse_timestamp('productos_transito')
+            admin_warehouse_timestamp(tabla='productos_transito', actualizar_datetime=True, mensaje='Actualizado correctamente')
     
         else:
         
-            send_mail(
-                subject='Error DB WAREHOUSE',
-                message=f"""
-                
-                TABLA: PRODUCTOS EN TRANSITO - 'warehouse.productos_transito'
-                
-                ERROR : ERROR API - STATUS: {productos_transito_mba["status"]}
-                
-                """,
-                from_email=settings.EMAIL_HOST_USER,
-                recipient_list=['egarces@gimpromed.com'],
-                fail_silently=False,
-            )
+            admin_warehouse_timestamp(tabla='productos_transito', actualizar_datetime=False, mensaje=f'Error api: status {productos_transito_mba["status"]}')
     
     except Exception as e:
         
-        send_mail(
-            subject='Error DB WAREHOUSE',
-            message=f"""
-            
-            TABLA: PRODUCTOS EN TRANSITO - 'warehouse.productos_transito'
-            
-            ERROR : {e}
-            
-            """,
-            from_email=settings.EMAIL_HOST_USER,
-            recipient_list=['egarces@gimpromed.com'],
-            fail_silently=False,
-        )
+        admin_warehouse_timestamp(tabla='productos_transito', actualizar_datetime=False, mensaje=f'Error exception: {e}')
 
 
 ### 7 ACTULIZAR PROFORMAS
@@ -708,39 +588,15 @@ def api_actualizar_proformas_warehouse():
             # Insertar datos de tabla proformas
             insert_data_warehouse('proformas', data)
             
-            admin_warehouse_timestamp('proformas')
+            admin_warehouse_timestamp(tabla='proformas', actualizar_datetime=True, mensaje='Actualizado correctamente')
         
         else:
             
-            send_mail(
-                subject='Error DB WAREHOUSE',
-                message=f"""
-                
-                TABLA: PROFORMAS - 'warehouse.proformas'
-                
-                ERROR : ERROR API - STATUS: {proformas_mba['data']}
-                
-                """,
-                from_email=settings.EMAIL_HOST_USER,
-                recipient_list=['egarces@gimpromed.com'],
-                fail_silently=False,
-            )
+            admin_warehouse_timestamp(tabla='proformas', actualizar_datetime=False, mensaje=f'Error api: status {proformas_mba['status']}')
         
     except Exception as e:
         
-        send_mail(
-            subject='Error DB WAREHOUSE',
-            message=f"""
-            
-            TABLA: PROFORMAS - 'warehouse.proformas'
-            
-            ERROR : {e}
-            
-            """,
-            from_email=settings.EMAIL_HOST_USER,
-            recipient_list=['egarces@gimpromed.com'],
-            fail_silently=False,
-        )
+        admin_warehouse_timestamp(tabla='proformas', actualizar_datetime=False, mensaje=f'Error exepction: {e}')
 
 
 ### 8 ACTUALIZAR RESERVAS WAREHOUSE
@@ -831,39 +687,15 @@ def api_actualizar_reservas_warehouse():
             # Insertar datos de tabla reservas
             insert_data_warehouse('reservas', data)
             
-            admin_warehouse_timestamp('reservas')
+            admin_warehouse_timestamp(tabla='reservas', actualizar_datetime=True, mensaje='Actualizado correctamente')
 
         else:
         
-            send_mail(
-                subject='Error DB WAREHOUSE',
-                message=f"""
-                
-                TABLA: RESERVAS - 'warehouse.reservas'
-                
-                ERROR : ERROR API - STATUS: {reservas_mba["status"]}
-                
-                """,
-                from_email=settings.EMAIL_HOST_USER,
-                recipient_list=['egarces@gimpromed.com'],
-                fail_silently=False,
-            )
+            admin_warehouse_timestamp(tabla='reservas', actualizar_datetime=False, mensaje=f'Error api: status {reservas_mba["status"]}')
 
     except Exception as e:
         
-        send_mail(
-            subject='Error DB WAREHOUSE',
-            message=f"""
-            
-            TABLA: RESERVAS - 'warehouse.reservas'
-            
-            ERROR : {e}
-            
-            """,
-            from_email=settings.EMAIL_HOST_USER,
-            recipient_list=['egarces@gimpromed.com'],
-            fail_silently=False,
-        )
+        admin_warehouse_timestamp(tabla='reservas', actualizar_datetime=False, mensaje=f'Error exception: {e}')
 
 
 ### 9 ACTUALIZAR RESERVAS LOTES WAREHOUSE
@@ -948,39 +780,15 @@ def api_actualizar_reservas_lotes_warehouse():
             # Insertar datos de tabla reservas_lote
             insert_data_warehouse('reservas_lote', data)
             
-            admin_warehouse_timestamp('reservas_lote')
+            admin_warehouse_timestamp(tabla='reservas_lote', actualizar_datetime=True, mensaje='Actualizado correctamente')
 
         else:
         
-            send_mail(
-                subject='Error DB WAREHOUSE',
-                message=f"""
-                
-                TABLA: RESERVAS LOTE - 'warehouse.reservas_lote'
-                
-                ERROR : ERROR API - STATUS: {reservas_lotes_mba["status"]}
-                
-                """,
-                from_email=settings.EMAIL_HOST_USER,
-                recipient_list=['egarces@gimpromed.com'],
-                fail_silently=False,
-            )
+            admin_warehouse_timestamp(tabla='reservas_lote', actualizar_datetime=False, mensaje=f'Error api: status {reservas_lotes_mba["status"]}')
         
     except Exception as e:
         
-        send_mail(
-            subject='Error DB WAREHOUSE',
-            message=f"""
-            
-            TABLA: RESERVAS LOTES - 'warehouse.reservas_lote'
-            
-            ERROR : {e}
-            
-            """,
-            from_email=settings.EMAIL_HOST_USER,
-            recipient_list=['egarces@gimpromed.com'],
-            fail_silently=False,
-        )
+        admin_warehouse_timestamp(tabla='reservas_lote', actualizar_datetime=False, mensaje=f'Error exception: {e}')
 
 
 ### 10 ACTULIZAR STOCK LOTE POR ODBC
@@ -1032,26 +840,12 @@ def odbc_actualizar_stock_lote():
             # Insertar datos de tabla stock_lote
             insert_data_warehouse('stock_lote', data)
             
-            admin_warehouse_timestamp('stock_lote')
+            admin_warehouse_timestamp(tabla='stock_lote', actualizar_datetime=True, mensaje='Actualizado correctamente')
             
     
     except Exception as e:
         
-        send_mail(
-            subject='Error DB WAREHOUSE',
-            message=f"""
-            
-            OJO : REALIZADO CON ODBC
-            
-            TABLA: STOCK LOTE - 'warehouse.stock_lote'
-            
-            ERROR : {e}
-            
-            """,
-            from_email=settings.EMAIL_HOST_USER,
-            recipient_list=['egarces@gimpromed.com'],
-            fail_silently=False,
-        )
+        admin_warehouse_timestamp(tabla='stock_lote', actualizar_datetime=False, mensaje=f'Error ODBC exception: {e}')
 
 
 
