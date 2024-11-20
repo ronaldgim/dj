@@ -135,6 +135,7 @@ class AdminActualizationWarehaouse(models.Model):
     periodicidad = models.CharField(max_length=20, blank=True)
     milisegundos = models.IntegerField(null=True)
     orden = models.IntegerField(null=True)
+    mensaje = models.TextField(blank=True)
     
     def __str__(self):
         return self.table_name

@@ -1,7 +1,7 @@
 {%extends 'base_vue.html' %}
 
 {% block title %}
-<title>Listado de productos</title>
+<title>DB WAREHOUSE</title>
 {% endblock %}
 
 {% block body %}
@@ -25,6 +25,7 @@
                             <th scope="col">ULTIMA ACTUALIZACIÓN</th>
                             <th scope="col">AUTOMATICO</th>
                             <th scope="col">PERIODICIDAD</th>
+                            <th scope="col">MENSAJE</th>
                             <!--th scope="col">MILISEGUNDOS</th-->
                             <th scope="col">ACTUALIZAR AHORA</th>
                         </tr>
@@ -39,6 +40,7 @@
                             <td class="text-center" v-else><i style="color:red" class="bi bi-x-circle"></i></td>
                             <td>{{i.periodicidad}}</td>
                             <!--td>{{i.milisegundos}}</td-->
+                            <td class="text-center">{{i.mensaje}}</td>
                             <td class="text-center">
                                 <button @click="actualizarTablaWarehouse(i.table_name)" class="btn btn-sm btn-success">
                                     <i class="bi bi-arrow-clockwise"></i>
