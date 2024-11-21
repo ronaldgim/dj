@@ -2459,6 +2459,13 @@ def publico_dashboard_fun():
 
     list_reservas = list_reservas.merge(avance_df, on='CONTRATO_ID', how='left')
     
+    # Estados
+    lista_de_reservas_estado = list_reservas['CONTRATO_ID'].unique()
+    estados = pd.DataFrame(EstadoPicking.objects.filter(n_pedido__in=lista_de_reservas_estado).values('n_pedido','estado'))
+    estados = estados.rename(columns={'n_pedido':'CONTRATO_ID','estado':'estado_picking_x'})
+    if not estados.empty:
+        list_reservas = list_reservas.merge(estados, on='CONTRATO_ID', how='left')
+    
     return list_reservas
 
 
