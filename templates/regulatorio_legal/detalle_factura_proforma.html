@@ -116,7 +116,7 @@
                         </td>
                         <td class="text-center">
                             {% if i.documento %} 
-                            <input type="checkbox" class="procesar form-check-input" {% if not factura_proforma.marca_de_agua %} disabled {% endif %} name="iso_{{i.marca}}" value="{{i.documento.path}}">
+                            <input type="checkbox" class="procesar form-check-input" {% if not factura_proforma.marca_de_agua %} disabled {% endif %} name="ISO_{{i.marca}}" value="{{i.documento.path}}">
                             {% else %} 
                             X
                             {% endif %}
@@ -145,7 +145,7 @@
                         </td>
                         <td class="text-center">
                             {% if i.documento %} 
-                            <input type="checkbox" class="procesar form-check-input" {% if not factura_proforma.marca_de_agua %} disabled {% endif %} name="regsan_{{i.n_reg_sanitario}}" value="{{i.documento.path}}">
+                            <input type="checkbox" class="procesar form-check-input" {% if not factura_proforma.marca_de_agua %} disabled {% endif %} name="RegSan_{{i.descripcion}}" value="{{i.documento.path}}">
                             {% else %} 
                             X
                             {% endif %}
