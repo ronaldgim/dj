@@ -972,10 +972,11 @@ def facturas_proformas_detalle(request, id):
                 factura_proforma.procesar_docs = True
                 factura_proforma.save()
             
-            return JsonResponse({
-                'alert':'success',
-                'msg': f'Documentos procesados exitosamente !!!'
-            })
+                return JsonResponse({
+                    'alert':'success',
+                    'msg': f'Documentos procesados exitosamente !!!'
+                })
+            
         except Exception as e:
             return JsonResponse({
                 'alert':'danger', 
