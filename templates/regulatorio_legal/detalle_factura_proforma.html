@@ -203,10 +203,10 @@
                         {% for i in factura_proforma.documentos.all %}
                         <tr class="content documentos">
                             <td id="docs-count"></td>
-                            <td id="tipo">{% if i.tipo_documento == 'iso' %}Iso{% else %}Registro Sanitario{% endif %}</td>
+                            <td id="tipo">{% if i.tipo_documento == 'ISO' %}ISO{% else %}Registro Sanitario{% endif %}</td>
                             <td>{{i.descripcion}}</td>
                             <td>
-                                <a class="btn btn-sm {% if i.tipo_documento == 'iso' %} btn-info text-white {% else %} btn-secondary {% endif %}" href="{{i.documento.url}}" target="_blank">
+                                <a class="btn btn-sm {% if i.tipo_documento == 'ISO' %} btn-info text-white {% else %} btn-secondary {% endif %}" href="{{i.documento.url}}" target="_blank">
                                     <i class="bi bi-filetype-doc"></i>
                                 </a>
                             </td>
@@ -393,8 +393,8 @@
                     }, 3000)
                     $("#spinner-documentos").hide();
                 },
-                error: function(response) {
-                    $('#msg-documentos').html(`<div class="text-center alert alert-${response.alert}" role="alert"> ${response.msg} !!! </div>`);
+                error: function(error) {
+                    $('#msg').html(`<div class="text-center alert alert-danger" role="alert"> ${error} !!! </div>`);
                     $("#spinner-documentos").hide();
                 }
             });
