@@ -902,7 +902,7 @@ def factura_proforma_marca_de_agua_ajax(request):
         'msg': f'Texto de marca de agua agregado !!!'
     })
 
-
+import time
 def facturas_proformas_detalle(request, id):
     
     if request.method == 'GET':
@@ -941,7 +941,6 @@ def facturas_proformas_detalle(request, id):
             
             else:
                 
-                list_paths_no_encontrados = []
                 for i in documentos:
                     
                     tipo = i.get('tipo').split('_')[0]
@@ -965,12 +964,10 @@ def facturas_proformas_detalle(request, id):
                             )
                             
                             factura_proforma.documentos.add(iso_reg)
-                        else:
-                            list_paths_no_encontrados.append(f'Error get url descarga api: {path}')
-                    else:
-                        list_paths_no_encontrados.append(f'Error api estatus: {path}')
+                    
+                    time.sleep(3)
                 
-                print(list_paths_no_encontrados)
+
                 factura_proforma.procesar_docs = True
                 factura_proforma.save()
             
