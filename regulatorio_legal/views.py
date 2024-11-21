@@ -960,7 +960,8 @@ def facturas_proformas_detalle(request, id):
                             
                             iso_reg.documento.save(
                                 f'{tipo}-{desc}.pdf',
-                                ContentFile(pdf_response.content, name=f'{tipo}-{desc}.pdf')
+                                #ContentFile(pdf_response.content, name=f'{tipo}-{desc}.pdf')
+                                ContentFile(pdf_response.content)
                             )
                             
                             factura_proforma.documentos.add(iso_reg)
