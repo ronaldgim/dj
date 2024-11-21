@@ -965,7 +965,7 @@ def facturas_proformas_detalle(request, id):
                             
                             factura_proforma.documentos.add(iso_reg)
                     
-                    time.sleep(3)
+                    time.sleep(2)
                 
 
                 factura_proforma.procesar_docs = True
