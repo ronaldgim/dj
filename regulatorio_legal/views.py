@@ -940,6 +940,8 @@ def facturas_proformas_detalle(request, id):
                 return JsonResponse({'alert':'danger', 'msg':'Seleccione documentos que desea procesar'})
             
             else:
+                
+                list_paths_no_encontrados = []
                 for i in documentos:
                     
                     tipo = i.get('tipo').split('_')[0]
@@ -958,12 +960,17 @@ def facturas_proformas_detalle(request, id):
                             )
                             
                             iso_reg.documento.save(
-                                f'{tipo}-gim.pdf',
-                                ContentFile(pdf_response.content, name=f'{desc}')
+                                f'{tipo}-{desc}.pdf',
+                                ContentFile(pdf_response.content, name=f'{tipo}-{desc}.pdf')
                             )
                             
                             factura_proforma.documentos.add(iso_reg)
+                        else:
+                            list_paths_no_encontrados.append(f'Error get url descarga api: {path}')
+                    else:
+                        list_paths_no_encontrados.append(f'Error api estatus: {path}')
                 
+                print(list_paths_no_encontrados)
                 factura_proforma.procesar_docs = True
                 factura_proforma.save()
             
