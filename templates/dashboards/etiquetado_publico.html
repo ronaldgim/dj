@@ -66,9 +66,12 @@
                             <a href="{% url 'pedidos' i.CONTRATO_ID %}" target="_blank">
                                     {{i.CONTRATO_ID|slice:-2}}
                             </a>
-
+                            
                             {% if i.DISP == 'NOT' %}
                             <i style = "color:red;" class="bi bi-file-earmark-x-fill"></i>
+                            {% endif %}
+                            {% if i.estado_picking_x == 'FINALIZADO' %}
+                            <i style = "color:green;" class="bi bi-check2-square"></i>
                             {% endif %}
 
                         </th>
