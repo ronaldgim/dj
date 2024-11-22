@@ -5071,4 +5071,4 @@ def wms_reporte_componentes_armados(request):
         return response    
     
     else:
-        return HttpResponse('No hay componentes armados')
+        return messages.error(request, 'No hay componentes armados') #HttpResponse('No hay componentes armados')
