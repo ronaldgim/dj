@@ -23,11 +23,13 @@
 
 <div class="container mt-4">
 
+    {% comment %}
     {% if request.user.is_superuser %}
     <button class="btn btn-primary btn-sm mt-2 mb-2 shadow" data-bs-toggle="modal" data-bs-target="#adminWarehouseDB">
         WAREHOUSE DB
     </button>
     {% endif %}
+    {% endcomment %}
 
     {% if messages %}
         {% for message in messages %}
