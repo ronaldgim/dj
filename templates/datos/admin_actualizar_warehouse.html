@@ -35,7 +35,7 @@
                         <tr v-for="i in tablasData">
                             {% verbatim %}
                             <td>{{i.orden}}</td>
-                            <td>{{i.table_name}}</td>
+                            <td><code>{{i.table_name}}</code></td>
                             <td>{{i.datetime}}</td>
                             <td class="text-center" v-if="i.automatico"><i style="color:green" class="bi bi-check-circle"></i></td>
                             <td class="text-center" v-else><i style="color:red" class="bi bi-x-circle"></i></td>
