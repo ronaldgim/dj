@@ -4137,8 +4137,8 @@ def wms_reporte_reposicion_alertas(request):
         existencias_by_product = Existencias.objects.filter(product_id=i).order_by('fecha_caducidad', 'lote_id', 'ubicacion__bodega', 'ubicacion__nivel')
         
         if len(existencias_by_product) == 1 and existencias_by_product.first().ubicacion.nivel == '1':
-            continue
-        
+            pass
+            
         elif len(existencias_by_product) >= 1:
                         
             producto_uno = existencias_by_product[0]
