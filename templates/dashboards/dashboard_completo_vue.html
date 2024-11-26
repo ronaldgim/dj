@@ -157,7 +157,7 @@
                 <h6 class="card-header text-center fs-2">
                     ETIQUETADO PÚBLICO
                     {% if request.user.is_superuser or request.user.id == '16' %}
-                    <button type="button" class="btn btn-sm btn-primary mb-2" data-bs-toggle="modal" data-bs-target="#addPedidoModal">
+                    <button type="button" class="btn btn-sm btn-primary mb-2 pt-0 pb-0 ps-1 pe-1" data-bs-toggle="modal" data-bs-target="#addPedidoModal">
                         <i class="bi bi-plus-circle"></i>
                     </button>
                     {% endif %}
