@@ -6,6 +6,12 @@ from etiquetado import views
 
 urlpatterns = [
     
+    path(
+        route='add_etiquetado_publico',
+        view=views.add_etiquetado_publico,
+        name = 'add_etiquetado_publico'
+    ),
+    
     # Pedidos
     path(
         route='pedidos/list',
