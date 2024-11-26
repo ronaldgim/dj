@@ -45,6 +45,7 @@
     
     <!-- Botón para actualizar el dashboard -->
     <!--button @click="actualizarDashboard">Actualizar Dashboard</button-->
+
     
     <div class="row mb-4">
         <div class="col mb-4">
@@ -153,7 +154,15 @@
 
         <div class="col">
             <div class="card">
-                <h6 class="card-header text-center fs-2">ETIQUETADO PÚBLICO</h6>
+                <h6 class="card-header text-center fs-2">
+                    ETIQUETADO PÚBLICO
+                    {% if request.user.is_superuser or request.user.id == '16' %}
+                    <button type="button" class="btn btn-sm btn-primary mb-2" data-bs-toggle="modal" data-bs-target="#addPedidoModal">
+                        <i class="bi bi-plus-circle"></i>
+                    </button>
+                    {% endif %}
+                </h6>
+                
                 <div class="card-body">
                     <div class="container">
                         <ul class="list-group">
@@ -211,6 +220,33 @@
         </div>
     </div>
     
+    <!-- Modal -->
+    <div class="modal fade" id="addPedidoModal" tabindex="-1" aria-labelledby="addPedidoModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addPedidoModalLabel">Agregar pedido a dashboard público</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form @submit.prevent="addPedidoPublico">
+                <div class="modal-body">
+                    <div class="row g-2">
+                        <div class="col-4">
+                            <label class="pt-2">Número de pedido:</label>
+                        </div>
+                        <div class="col-8">
+                            <input type="number" v-model="formPedido.contrato" class="form-control" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="close-button" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary" :disabled="loading">Agregar</button>
+                </div>
+            </form>
+            </div>
+        </div>
+    </div>
 
 </div>
 
@@ -238,6 +274,11 @@
             // ETIQUETADO publico
             n_publico:'',
             publico:[],
+            // add pedido publico
+            loading:false,
+            formPedido:{
+                contrato:'',
+            }
         },
         mounted() {
             // Datos de dashboard
@@ -365,6 +406,28 @@
                     console.log(error);
                 } finally {
                     this.cargandoDashboard = false;
+                }
+            },
+
+            async addPedidoPublico() {
+                this.cargandoDashboard = true;
+                try {
+                    const response = await fetch('/etiquetado/add_etiquetado_publico', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify(this.formPedido),
+                    });
+                    if (!response.ok) {
+                        throw new Error('Error al enviar los datos');
+                    }
+                    const result = await response.json();
+                    if (result.msg === 'ok') {
+                        this.formPedido.contrato = '';
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('close-button').click());
+                        this.actualizarDashboard();
+                    };
+                } catch (error) {
+                    console.log(error);
                 }
             }
         },

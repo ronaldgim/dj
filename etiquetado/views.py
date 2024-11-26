@@ -26,7 +26,8 @@ from etiquetado.models import (
     EtiquetadoAvance,
     EstadoEtiquetadoStock,
     AnexoDoc, 
-    AnexoGuia
+    AnexoGuia,
+    AddEtiquetadoPublico
     )
 
 from mantenimiento.models import Equipo
@@ -130,6 +131,28 @@ from api_mba.tablas_warehouse import (
     api_actualizar_imp_transito_warehouse
     )
 
+
+def lista_pedidos_agregar_dashboard_publico():
+
+    pedidos = AddEtiquetadoPublico.objects.all()
+    
+    lista_pedidos = []
+    for i in pedidos:
+        pedido = i.contrato_id + '.0'
+        lista_pedidos.append(pedido)
+        
+    return lista_pedidos
+
+
+@csrf_exempt
+def add_etiquetado_publico(request):
+
+    data = json.loads(request.body)
+    contrato = data.get('contrato')
+    if contrato:
+        AddEtiquetadoPublico.objects.create(contrato_id=contrato)
+        return JsonResponse({'msg':'ok'})
+    
 
 # FUNCIONES
 # Consulta tabla de clientes
@@ -846,7 +869,7 @@ def facturas(request, n_factura):
 # Lista de actulización BODEGA
 def pedidos_estado_list(request):
 
-    davimed_list = ['83141.0','83314.0']
+    add_pedidos = lista_pedidos_agregar_dashboard_publico()
     
     if request.user.has_perm('etiquetado.view_pedidosestadoetiquetado'):
 
@@ -890,10 +913,8 @@ def pedidos_estado_list(request):
         reservas['FECHA_PEDIDO'] = reservas['FECHA_PEDIDO'].astype(str)
         reservas = reservas.fillna('-')
         reservas = reservas.sort_values(by='FECHA_PEDIDO', ascending=False)
-
-        # davimed
-        davimed = reservas[reservas.CONTRATO_ID.isin(davimed_list)]
-        # davimed
+        
+        add_pedidos = reservas[reservas.CONTRATO_ID.isin(add_pedidos)]
 
         # Etiquetado especial
         especial = reservas[reservas['CONTRATO_ID']=='69236.0']
@@ -907,7 +928,7 @@ def pedidos_estado_list(request):
         reservas = reservas[reservas.CLIENT_TYPE.isin(tipo_clientes)]
         
 
-        reservas = pd.concat([reservas, eti_p, especial,davimed])
+        reservas = pd.concat([reservas, eti_p, especial,add_pedidos])
         reservas = reservas.drop_duplicates(subset=['CONTRATO_ID'])
 
         # Convertir en lista de diccionarios para pasar al template
@@ -2338,12 +2359,9 @@ def publico_dashboard_fun():
     
     reservas = pd.DataFrame(reservas_table())
     reservas = reservas[reservas['PRODUCT_ID']!='MANTEN']
-    
-    # davimed #
-    davimed_list = ['83141.0','83314.0']
-    
-    davimed = reservas[reservas.CONTRATO_ID.isin(davimed_list)]
-    # davimed #
+
+    add_pedidos = lista_pedidos_agregar_dashboard_publico()
+    nuevos_pedidos = reservas[reservas.CONTRATO_ID.isin(add_pedidos)]
     
     pro = productos_odbc_and_django()[['product_id', 'Unidad_Empaque', 't_etiq_1p', 't_etiq_2p', 't_etiq_3p']]
     estado = pd.DataFrame(PedidosEstadoEtiquetado.objects.all().values('n_pedido','estado__estado','fecha_creado'))
@@ -2352,10 +2370,8 @@ def publico_dashboard_fun():
 
     reservas = reservas[reservas['SEC_NAME_CLIENTE']=='PUBLICO']
     
-    # davimed #
-    if not davimed.empty:
-        reservas = pd.concat([reservas,davimed])
-    # davimed #
+    if not nuevos_pedidos.empty:
+        reservas = pd.concat([reservas, nuevos_pedidos])
     
     reservas = reservas.rename(columns={'PRODUCT_ID':'product_id'})
     reservas = reservas.merge(pro, on='product_id', how='left')

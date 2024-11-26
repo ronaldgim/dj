@@ -14,7 +14,8 @@ from etiquetado.models import (
     InstructivoEtiquetado,
     EtiquetadoAvance,
     AnexoDoc,
-    AnexoGuia
+    AnexoGuia,
+    AddEtiquetadoPublico
 )
 
 # Register your models here.
@@ -76,3 +77,8 @@ class AnexoGuiaAdmin(admin.ModelAdmin):
 @admin.register(AnexoDoc)
 class AnexoDocAdmin(admin.ModelAdmin):
     list_display = ('id', 'tipo_contenido', 'contenido', 'n_guia')
+    
+
+@admin.register(AddEtiquetadoPublico)
+class AddEtiquetadoPublicoAdmin(admin.ModelAdmin):
+    list_display = ('id', 'contrato_id')
