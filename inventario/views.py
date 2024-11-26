@@ -420,19 +420,19 @@ def inventario_agregar(request, bodega, ubicacion):
 
             prod = request.GET.get('producto')
             prod = str(prod)
-            p = Product.objects.get(product_id=prod)
+            p = productos_odbc_and_django()
+            p = p[p['product_id']==prod].to_dict('records')[0]
             
-            if p == '':
-                print('NONE')
+            if not p == '':
 
-            context = {
-            'form':form,
-            'cod':p.product_id,
-            'nom':p.description,
-            'mar':p.marca,
-            'bodega':bodega,
-            'ubicacion':ubicacion
-            }
+                context = {
+                'form':form,
+                'cod':p.get('product_id'), #p.product_id,
+                'nom':p.get('Nombre'), #p.description,
+                'mar':p.get('Marca'), #p.marca,
+                'bodega':bodega,
+                'ubicacion':ubicacion
+                }
 
         elif request.method == 'POST':
             
