@@ -6,6 +6,24 @@ from inventario import views
 
 urlpatterns = [
 
+    path(
+        route = 'andagoya_get_stock',
+        view = views.inventario_andagoya_get_stock,
+        name = 'inventario_andagoya_get_stock',
+    ),
+    
+    path(
+        route = 'andagoya_actualizar_db',
+        view = views.inventario_andagoya_actualizar_db,
+        name = 'inventario_andagoya_actualizar_db',
+    ),
+    
+    path(
+        route = 'andagoya/reportes', 
+        view  = views.inventario_andagoya_reportes, 
+        name='inventario'
+    ),
+
     # Actulizar stock lote TABLA
     path(
         route='actualizar/inventario',
