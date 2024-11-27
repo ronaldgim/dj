@@ -4124,7 +4124,7 @@ def wms_reporte_bodegas457(request):
 
 @login_required(login_url='login')
 @permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'],'/wms/home', 'ingresar a ubicaciones')
-def wms_reporte_reposicion_alertas(request):    
+def wms_reporte_reposicion_alertas_obsoleto(request):    
     
     """Crear un reporte que muestre los productos con mayor frecuencia de ventas para mover al nivel 1 con alertas segun demanda"""
     ventas = frecuancia_ventas()
@@ -4140,7 +4140,7 @@ def wms_reporte_reposicion_alertas(request):
             pass
             
         elif len(existencias_by_product) >= 1:
-                        
+            
             producto_uno = existencias_by_product[0]
             #producto_dos = existencias_by_product[1]            
             
@@ -4186,6 +4186,90 @@ def wms_reporte_reposicion_alertas(request):
         productos = productos_odbc_and_django()[['product_id','Nombre','Marca']]
         reporte = reporte_existencias_df.merge(productos, on='product_id', how='left').sort_values(by='meses')
         reporte['fecha_caducidad'] = reporte['fecha_caducidad'].astype('str')
+    
+    context = {
+        'reporte':de_dataframe_a_template(reporte),
+    }
+    
+    return render(request, 'wms/reporte_reposicion_alertas.html', context)
+
+
+
+@login_required(login_url='login')
+@permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'],'/wms/home', 'ingresar a ubicaciones')
+def wms_reporte_reposicion_alertas(request):    
+    
+    """Crear un reporte que muestre los productos con mayor frecuencia de ventas para mover al nivel 1 con alertas segun demanda"""
+    ventas = frecuancia_ventas()
+    productos_ventas = set(ventas['PRODUCT_ID'].unique())    
+    productos_existencias = set(Existencias.objects.values_list('product_id', flat=True))
+    productos_analisis = productos_ventas.intersection(productos_existencias)
+
+    reporte_existencias_list = []
+    for i in productos_analisis:
+        existencias_by_product = Existencias.objects.filter(product_id=i).order_by('fecha_caducidad', 'lote_id', 'ubicacion__bodega', 'ubicacion__nivel')
+        
+        if len(existencias_by_product) == 1 and existencias_by_product.first().ubicacion.nivel == '1':
+            continue
+            
+        elif len(existencias_by_product) >= 1:
+            nivel_de_productos = []
+            for j in existencias_by_product:
+                if j.ubicacion.nivel == '1':
+                    nivel_de_productos.append(True)
+                else:
+                    nivel_de_productos.append(False)
+            
+            if all(nivel_de_productos):
+                continue
+            
+            else:
+            
+                producto_uno = existencias_by_product[0]
+                #producto_dos = existencias_by_product[1]            
+                
+                total_unidades_nivel_uno_query = existencias_by_product.filter(
+                    Q(ubicacion__nivel='1') & 
+                    Q(lote_id=producto_uno.lote_id)
+                    )
+                
+                if total_unidades_nivel_uno_query.exists():
+                    total_unidades_nivel_uno = total_unidades_nivel_uno_query.aggregate(unidades_nivel_uno=Sum('unidades'))['unidades_nivel_uno']
+                else:
+                    total_unidades_nivel_uno = 0
+                
+                
+                suma_iteracion = 0
+                for j in existencias_by_product:
+                    suma_iteracion += j.unidades
+                    if suma_iteracion > total_unidades_nivel_uno:
+                        producto_dos = j
+                        break
+                
+                ventas_product_mensual = ventas.loc[ventas['PRODUCT_ID']==i, 'ANUAL'].values[0] / 12
+                producto_uno_alerta_mensual = round(total_unidades_nivel_uno / ventas_product_mensual, 1)
+                
+                if producto_uno_alerta_mensual <= 1.5 and producto_dos.ubicacion.nivel != '1':
+                    
+                    product = {
+                        'product_id':producto_uno.product_id,
+                        'lote_id':producto_uno.lote_id,
+                        'fecha_caducidad': producto_uno.fecha_caducidad,
+                        'ubicacion':producto_uno.ubicacion.nombre_completo,
+                        'total_unidades_nivel_uno':total_unidades_nivel_uno,
+                        'ventas_product_mensual':ventas_product_mensual,
+                        'unidades':producto_uno.unidades,
+                        'meses':producto_uno_alerta_mensual,
+                    }
+            
+                    reporte_existencias_list.append(product)
+            
+        reporte_existencias_df = pd.DataFrame(reporte_existencias_list)
+        
+        if not reporte_existencias_df.empty:
+            productos = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+            reporte = reporte_existencias_df.merge(productos, on='product_id', how='left').sort_values(by='meses')
+            reporte['fecha_caducidad'] = reporte['fecha_caducidad'].astype('str')
     
     context = {
         'reporte':de_dataframe_a_template(reporte),
