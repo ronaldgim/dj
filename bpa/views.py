@@ -95,17 +95,18 @@ def importaciones_transito_data(): #request
 def importaciones_compras_df():
     
     imp_llegadas = importaciones_llegadas_odbc() 
-    prod = productos_odbc_and_django()[['product_id', 'description','Nombre','marca2','Marca','Unidad_Empaque','Procedencia']]
+    prod = productos_odbc_and_django()[['product_id','description','Nombre','marca2','Marca','Unidad_Empaque','Procedencia']]
+    # prod = productos_odbc_and_django()[['product_id','Nombre','marca2','Marca','Unidad_Empaque','Procedencia']]
     
-    imp_llegadas['ENTRADA_FECHA'] = pd.to_datetime(imp_llegadas['ENTRADA_FECHA']).dt.strftime('%Y-%m-%d')
+    imp_llegadas['ENTRADA_FECHA'] = pd.to_datetime(imp_llegadas['ENTRADA_FECHA']).dt.strftime('%Y-%m-%d') 
     imp_llegadas = imp_llegadas.sort_values(by='ENTRADA_FECHA', ascending=False)
-    imp_llegadas['ENTRADA_FECHA'] = imp_llegadas['ENTRADA_FECHA'].astype('str')
+    imp_llegadas['ENTRADA_FECHA'] = imp_llegadas['ENTRADA_FECHA'].astype('str') 
     
-    imp_llegadas = imp_llegadas.merge(prod, on='product_id', how='left')
-    imp_llegadas['Procedencia'] = imp_llegadas['Procedencia'].astype('str')
+    imp_llegadas = imp_llegadas.merge(prod, on='product_id', how='left') 
+    imp_llegadas['Procedencia'] = imp_llegadas['Procedencia'].astype('str') 
     
-    imp_llegadas['CARTONES'] = imp_llegadas['OH'] / imp_llegadas['Unidad_Empaque']
-    imp_llegadas = imp_llegadas.drop(['LOTE_ID'], axis=1)
+    imp_llegadas['CARTONES'] = imp_llegadas['OH'] / imp_llegadas['Unidad_Empaque'] 
+    imp_llegadas = imp_llegadas.drop(['LOTE_ID'], axis=1) #;print(imp_llegadas[imp_llegadas['DOC_ID_CORP']=='2151-GIMPR-OC'])
     
     return imp_llegadas.sort_values(by='ENTRADA_FECHA', ascending=False)
     
@@ -115,9 +116,9 @@ def importaciones_compras_df():
 def importaciones(request):
     
     imp = importaciones_compras_df() 
-    imp = imp.dropna()
+    # imp = imp.dropna() 
     
-    imp = imp.drop_duplicates(subset=['DOC_ID_CORP'])
+    imp = imp.drop_duplicates(subset=['DOC_ID_CORP']) 
     imp['tipo'] = 'importaciones_llegadas'
     filtro_1 = imp['Procedencia'].str.contains('NACIONAL')
     filtro_2 = imp['Procedencia'].str.contains('Nacional')
@@ -138,8 +139,8 @@ def importaciones(request):
 def importaciones_transito(request):
     
     prod = productos_odbc_and_django()[['product_id', 'marca2']] 
-    imp_transito = importaciones_tansito_list()
-    imp_transito = imp_transito.drop_duplicates(subset='CONTRATO_ID').sort_values(by='CONTRATO_ID', ascending=False)
+    imp_transito = importaciones_tansito_list() 
+    imp_transito = imp_transito.drop_duplicates(subset='CONTRATO_ID').sort_values(by='CONTRATO_ID', ascending=False) 
     imp_transito = imp_transito.rename(columns={'PRODUCT_ID':'product_id'})
     imp_transito = imp_transito.merge(prod, on='product_id', how='left')
     imp_transito['FECHA_ENTREGA'] = pd.to_datetime(imp_transito['FECHA_ENTREGA'], format='%Y-%m-%d')
@@ -275,7 +276,7 @@ def muestreo_unidades(request, memo):
     imp = imp.sort_values(by='product_id')
 
     proveedor = imp['PROVEEDOR'].dropna().iloc[0]
-    proveedor1 = imp['marca2'].dropna().iloc[0]
+    #proveedor1 = imp['marca2'].dropna().iloc[0]
     proveedor2 = imp['Marca'].dropna().iloc[0]
     n_imp = imp['MEMO'].dropna().iloc[0]
     n_doc = imp['DOC_ID_CORP'].dropna().iloc[0]
@@ -285,7 +286,7 @@ def muestreo_unidades(request, memo):
     context = {
         'imp':imp,
         'proveedor':proveedor,
-        'proveedor1':proveedor1,
+        'proveedor1': '', #proveedor1,
         'proveedor2':proveedor2,
         'n_imp':n_imp,
         'n_doc':n_doc
@@ -303,7 +304,7 @@ def muestreo_cartones(request, memo):
     imp = imp.sort_values(by='product_id')
 
     proveedor = imp['PROVEEDOR'].dropna().iloc[0]
-    proveedor1 = imp['marca2'].dropna().iloc[0]
+    # proveedor1 = imp['marca2'].dropna().iloc[0]
     proveedor2 = imp['Marca'].dropna().iloc[0]
     n_imp = imp['MEMO'].dropna().iloc[0]
     n_doc = imp['DOC_ID_CORP'].dropna().iloc[0]
@@ -313,7 +314,7 @@ def muestreo_cartones(request, memo):
     context = {
         'imp':imp,
         'proveedor':proveedor,
-        'proveedor1':proveedor1,
+        'proveedor1': '', #proveedor1,
         'proveedor2':proveedor2,
         'n_imp':n_imp,
         'n_doc':n_doc
@@ -330,7 +331,7 @@ def muestreo_unidades_transito(request, contrato_id):
     imp = muestreo(data, 'OH')
     imp = imp.sort_values(by='product_id')
 
-    proveedor = imp['marca2'].dropna().iloc[0]
+    #proveedor = imp['marca2'].dropna().iloc[0]
     proveedor2 = imp['Marca'].dropna().iloc[0]
     n_imp = imp['MEMO'].dropna().iloc[0]
     n_doc = imp['CONTRATO_ID'].dropna().iloc[0]
@@ -339,7 +340,7 @@ def muestreo_unidades_transito(request, contrato_id):
 
     context = {
         'imp':imp,
-        'proveedor':proveedor,
+        'proveedor': '', #proveedor,
         'proveedor2':proveedor2,
         'n_imp':n_imp,
         'n_doc':n_doc
@@ -356,7 +357,7 @@ def muestreo_cartones_transito(request, contrato_id):
     imp = muestreo(data, 'CARTONES')
     imp = imp.sort_values(by='product_id')
 
-    proveedor = imp['marca2'].dropna().iloc[0]
+    #proveedor = imp['marca2'].dropna().iloc[0]
     proveedor2 = imp['Marca'].dropna().iloc[0]
     n_imp = imp['MEMO'].dropna().iloc[0]
     n_doc = imp['CONTRATO_ID'].dropna().iloc[0]
@@ -365,7 +366,7 @@ def muestreo_cartones_transito(request, contrato_id):
 
     context = {
         'imp':imp,
-        'proveedor':proveedor,
+        'proveedor': '', #proveedor,
         'proveedor2':proveedor2,
         'n_imp':n_imp,
         'n_doc':n_doc
