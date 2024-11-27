@@ -649,7 +649,7 @@ def stock_por_caducar(request):
 def volumen_bodegas(request):
 
     # Datos
-    stock = stock_lote()
+    stock = stock_lote_inventario_andagoya()
     producto = pd.DataFrame(Product.objects.all().values())
     # pareto = 
 
@@ -726,7 +726,7 @@ def nuevo_arqueo(request):
         if form.is_valid():
             f = form.save()
 
-            stock = stock_lote()[stock_lote().PRODUCT_ID.isin(prod_list)].sort_values(by=['PRODUCT_ID','WARE_CODE','LOCATION','FECHA_CADUCIDAD'])
+            stock = stock_lote_inventario_andagoya()[stock_lote_inventario_andagoya().PRODUCT_ID.isin(prod_list)].sort_values(by=['PRODUCT_ID','WARE_CODE','LOCATION','FECHA_CADUCIDAD'])
             stock['id_arqueo'] = f.id
             stock = stock[[
                 'id_arqueo',
