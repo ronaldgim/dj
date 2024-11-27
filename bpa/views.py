@@ -136,15 +136,18 @@ def importaciones(request):
 
 @login_required(login_url='login')
 def importaciones_transito(request):
-    prod = productos_odbc_and_django()[['product_id', 'marca2']]
+    
+    prod = productos_odbc_and_django()[['product_id', 'marca2']] 
     imp_transito = importaciones_tansito_list()
     imp_transito = imp_transito.drop_duplicates(subset='CONTRATO_ID').sort_values(by='CONTRATO_ID', ascending=False)
     imp_transito = imp_transito.rename(columns={'PRODUCT_ID':'product_id'})
     imp_transito = imp_transito.merge(prod, on='product_id', how='left')
-    #imp_transito['FECHA_ENTREGA'] = imp_transito['FECHA_ENTREGA'].astype('str')
     imp_transito['FECHA_ENTREGA'] = pd.to_datetime(imp_transito['FECHA_ENTREGA'], format='%Y-%m-%d')
+    imp_transito = imp_transito.sort_values(by='FECHA_ENTREGA', ascending=True)
     imp_transito['FECHA_ENTREGA'] = imp_transito['FECHA_ENTREGA'].astype('str')
-    imp_transito = imp_transito.sort_values(by='FECHA_ENTREGA', ascending=False)
+    
+    #imp_transito = imp_transito.sort_values(by='FECHA_ENTREGA', ascending=False)
+    
     imp_transito['tipo'] = 'importaciones_transito'
     imp_transito = de_dataframe_a_template(imp_transito)
     
