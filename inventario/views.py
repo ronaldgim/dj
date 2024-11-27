@@ -47,16 +47,19 @@ from datos.views import (
 # WMS
 from wms.models import InventarioIngresoBodega, Movimiento
 
+# HTTPS
+from django.views.decorators.http import require_GET, require_POST
 
 
 
 # Create your views here.
 # VOLUMEN BODEGAS
 # Consulta a tabla stock
-def stock_lote(): #request
+def stock_lote_inventario_andagoya(): #request
     ''' Colusta de stock '''
     with connections['gimpromed_sql'].cursor() as cursor:
-        cursor.execute("SELECT * FROM stock_lote")
+        #cursor.execute("SELECT * FROM stock_lote")
+        cursor.execute("SELECT * FROM warehouse.stock_lote WHERE WARE_CODE = 'BAN' OR WARE_CODE = 'CUA'")
         columns = [col[0] for col in cursor.description]
         clientes = [
             dict(zip(columns, row))
@@ -64,13 +67,16 @@ def stock_lote(): #request
         ]
         
         stock_lote = pd.DataFrame(clientes)
+        productos = productos_odbc_and_django()[['product_id','Unidad_Empaque']]
+        productos = productos.rename(columns={'product_id':'PRODUCT_ID'})
+        stock_lote = stock_lote.merge(productos, on='PRODUCT_ID', how='left')
         
     return stock_lote 
 
 
 def stock_lote_tupla():
 
-    stock_mba = stock_lote()
+    stock_mba = stock_lote_inventario_andagoya()
     stock_mba = stock_mba.to_dict('records')
     
     lista_stock_mba = []
@@ -92,8 +98,8 @@ def stock_lote_tupla():
         fecha_cadu  = i.get('FECHA_CADUCIDAD')
         ware_code   = i.get('WARE_CODE')
         location    = i.get('LOCATION')
-
-        unidades_caja = 0
+        unidades_caja = i.get('Unidad_Empaque')
+        
         numero_cajas = 0
         unidades_sueltas = 0
         total_unidades = 0
@@ -139,30 +145,30 @@ def stock_lote_tupla():
 @login_required(login_url='login')
 #@permission_required()
 def actualizar_stock_inventario(request):
-    
-    stock = pd.DataFrame(Inventario.objects.all().values())
-    # stock['location'] = stock['location'].replace('N/U', 'NU') 
-    stock['fecha_cadu_lote'] = stock['fecha_cadu_lote'].astype(str)
-    stock = stock.sort_values(['ware_code', 'location', 'group_code', 'product_id'])
-    
-    stock['diff2'] = stock['total_unidades'] - stock['oh2']
-    
-    json_records = stock.reset_index().to_json(orient='records') 
-    stock = json.loads(json_records)
-    
-    bodega = pd.DataFrame(Inventario.objects.all().values())
-    bodega = bodega[['ware_code', 'location', 'product_id']]
-    # bodega['location'] = bodega['location'].replace('N/U', 'NU')
-
-    bodega = bodega.groupby(['ware_code', 'location'])['product_id'].count()
-    bodega = bodega.reset_index()
-    bodega['Bodega'] = bodega.apply(lambda x: 'Andagoya' if x['ware_code'] == 'BAN' else 'Cerezos' if x['ware_code'] == 'BCT' else 'Otras', axis=1)
-    bodega = bodega.sort_values(['Bodega', 'location'])
-    
-    bod = list(bodega['ware_code'].unique())
-    loc = list(bodega['location'].unique())
 
     if request.method == 'GET':
+        
+        stock = pd.DataFrame(Inventario.objects.all().values())
+        # stock['location'] = stock['location'].replace('N/U', 'NU') 
+        stock['fecha_cadu_lote'] = stock['fecha_cadu_lote'].astype(str)
+        stock = stock.sort_values(['ware_code', 'location', 'group_code', 'product_id'])
+        
+        stock['diff2'] = stock['total_unidades'] - stock['oh2']
+        
+        json_records = stock.reset_index().to_json(orient='records') 
+        stock = json.loads(json_records)
+        
+        bodega = pd.DataFrame(Inventario.objects.all().values())
+        bodega = bodega[['ware_code', 'location', 'product_id']]
+        # bodega['location'] = bodega['location'].replace('N/U', 'NU')
+
+        bodega = bodega.groupby(['ware_code', 'location'])['product_id'].count()
+        bodega = bodega.reset_index()
+        bodega['Bodega'] = bodega.apply(lambda x: 'Andagoya' if x['ware_code'] == 'BAN' else 'Cerezos' if x['ware_code'] == 'BCT' else 'Otras', axis=1)
+        bodega = bodega.sort_values(['Bodega', 'location'])
+        
+        bod = list(bodega['ware_code'].unique())
+        loc = list(bodega['location'].unique())
 
         context = {
             'stock':Inventario.objects.all().order_by('group_code', 'ware_code'),
@@ -175,7 +181,7 @@ def actualizar_stock_inventario(request):
         }
         
     elif request.method == 'POST':
-
+        
         with connections['default'].cursor() as cursor:
             cursor.execute(
                 #"REPLACE INTO inventario_inventario (id, product_id, product_name, group_code, um, oh, oh2, commited, quantity, lote_id, fecha_elab_lote, fecha_cadu_lote, ware_code, location, unidades_caja, numero_cajas, unidades_sueltas, total_unidades, diferencia, observaciones, llenado, agregado, user_id) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)", stock_mba
@@ -198,10 +204,10 @@ def actualizar_stock_inventario(request):
         print('Insertar datos de inventario')
 
         messages.success(request, 'Presione el botón azul de refrescar tabla !!!')
-        # GET REFRESH redirect('/inventario/actualizar/inventario')
+        #GET REFRESH redirect('/inventario/actualizar/inventario')
 
         context = {
-            #'stock':Inventario.objects.all().order_by('group_code'),
+            'stock':Inventario.objects.all().order_by('group_code'),
             'stock':stock,
             'total':len(Inventario.objects.all()),
             'procesados':len(Inventario.objects.filter(llenado=True)),
@@ -211,6 +217,83 @@ def actualizar_stock_inventario(request):
         }
         
     return render(request, 'inventario/actualizar_stock.html', context)
+    #return render(request, 'inventario/actualizar_stock.html', {})
+    
+    
+## GET REPORTE
+@require_GET
+def inventario_andagoya_get_stock(request):
+    
+    inventario = Inventario.objects.all().values(
+        'product_id',
+        'product_name',
+        'group_code',
+        'um',
+        'oh',
+        'oh2',
+        'commited',
+        'quantity',
+        'lote_id',
+        'fecha_elab_lote',
+        'fecha_cadu_lote',
+        'ware_code',
+        'location',
+        'unidades_caja',
+        'numero_cajas',
+        'unidades_sueltas',
+        'total_unidades',
+        'diferencia',
+        'observaciones',
+        'llenado',
+        'agregado',
+        'user__username',
+    )
+    
+    total      = len(inventario)
+    procesados = len(inventario.filter(llenado=True))
+    
+    porcentaje_avance = round((procesados / total) * 100, 0)
+    procentaje_falta  = 100 - porcentaje_avance
+    
+    lista_ubicaciones = sorted(list(inventario.filter(ware_code='BAN').values_list('location', flat=True).distinct()))
+    lista_avance = [round((inventario.filter(location=i, llenado=True).count()/inventario.filter(location=i).count())*100,1) for i in lista_ubicaciones]
+    
+    lista_totales = [porcentaje_avance, procentaje_falta]    
+    
+    return JsonResponse({
+        'inventario': list(inventario),
+        'total':total,
+        'procesados':procesados,
+        'ubicaciones': lista_ubicaciones,
+        'avances': lista_avance,
+        'totales': lista_totales
+    })
+
+@require_GET
+def inventario_andagoya_actualizar_db(request):
+
+    with connections['default'].cursor() as cursor:
+        cursor.execute("TRUNCATE TABLE inventario_inventario")
+    
+    
+    with connections['default'].cursor() as cursor:
+        cursor.execute("TRUNCATE TABLE inventario_inventariototale")
+    
+    
+    with connections['default'].cursor() as cursor:
+        stock_mba = stock_lote_tupla()
+        cursor.executemany("""
+            INSERT INTO inventario_inventario 
+            (id, product_id, product_name, group_code, um, oh, oh2, commited, quantity, lote_id, fecha_elab_lote, fecha_cadu_lote, ware_code, location, unidades_caja, numero_cajas, unidades_sueltas, total_unidades, diferencia, observaciones, llenado, agregado, user_id) 
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""", 
+            stock_mba)
+    
+    return JsonResponse({'msg':'ok'})
+    
+
+def inventario_andagoya_reportes(request):
+    return render(request, 'inventario/toma_fisica/reportes_andagoya.html')
+
 
 
 ### Reporte completo ###
@@ -313,15 +396,6 @@ def inventario_update(request, id, bodega, ubicacion):
     if request.method == 'GET':
 
         form = InventarioForm(instance=instancia)
-
-        # inventario_lotes = Inventario.objects.filter(ware_code=bodega).filter(location=ubicacion).filter(product_id=instancia.product_id)
-        # inv_total = []
-        # for i in inventario_lotes:
-        #     t = i.total_unidades
-        #     inv_total.append(t)
-        
-        # t_inv = sum(inv_total)
-        # print(t_inv)
 
         context = {
         'instancia':instancia,
@@ -575,7 +649,7 @@ def stock_por_caducar(request):
 def volumen_bodegas(request):
 
     # Datos
-    stock = stock_lote()
+    stock = stock_lote_inventario_andagoya()
     producto = pd.DataFrame(Product.objects.all().values())
     # pareto = 
 
@@ -652,7 +726,7 @@ def nuevo_arqueo(request):
         if form.is_valid():
             f = form.save()
 
-            stock = stock_lote()[stock_lote().PRODUCT_ID.isin(prod_list)].sort_values(by=['PRODUCT_ID','WARE_CODE','LOCATION','FECHA_CADUCIDAD'])
+            stock = stock_lote_inventario_andagoya()[stock_lote_inventario_andagoya().PRODUCT_ID.isin(prod_list)].sort_values(by=['PRODUCT_ID','WARE_CODE','LOCATION','FECHA_CADUCIDAD'])
             stock['id_arqueo'] = f.id
             stock = stock[[
                 'id_arqueo',
