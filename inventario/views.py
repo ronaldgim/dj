@@ -54,8 +54,7 @@ from django.views.decorators.http import require_GET, require_POST
 def stock_lote(): #request
     ''' Colusta de stock '''
     with connections['gimpromed_sql'].cursor() as cursor:
-        #cursor.execute("SELECT * FROM stock_lote")
-        cursor.execute("SELECT * FROM warehouse.stock_lote WHERE WARE_CODE = 'BAN' OR WARE_CODE = 'CUA'")
+        cursor.execute("SELECT * FROM stock_lote")
         columns = [col[0] for col in cursor.description]
         stock = [
             dict(zip(columns, row))
@@ -73,7 +72,7 @@ def stock_lote(): #request
 def stock_lote_inventario_andagoya(): #request
     ''' Colusta de stock '''
     with connections['gimpromed_sql'].cursor() as cursor:
-        cursor.execute("SELECT * FROM stock_lote")
+        cursor.execute("SELECT * FROM warehouse.stock_lote WHERE WARE_CODE = 'BAN' OR WARE_CODE = 'CUA'")
         columns = [col[0] for col in cursor.description]
         clientes = [
             dict(zip(columns, row))
