@@ -350,6 +350,8 @@ def capacidad_de_bodegas_df():
     # % OCUPACIÓN
     capacidad['ocupacion_porcentaje'] = (capacidad['ocupacion_posicion_m3'] / capacidad['capacidad_posicion_m3']) * 100
     
+    capacidad = capacidad.replace(np.inf, 0)
+    
     return capacidad
 
 
@@ -395,10 +397,11 @@ def kpi_capacidad():
     # SI DISPONIBLE FALSO 
     
     # AGRUPAR POR BODEGA
-    capacidad = capacidad.groupby(by='bodega').sum().reset_index()[[
+    capacidad = capacidad.groupby(by=['bodega']).sum().reset_index()[[
         'bodega','capacidad_posicion_m3','ocupacion_posicion_m3','disponible_posicion_m3'
         ]]
-    # capacidad['ocupacion_posicion_m3_dif'] = capacidad['ocupacion_posicion_m3'] * 0.025
+    #capacidad['ocupacion_posicion_m3_dif'] = capacidad['ocupacion_posicion_m3'] * 0.025
+    #print(capacidad[capacidad['bodega']=='CN6'])
     
     # PORCENTAJE DE OCUPACIÓN
     capacidad['porcentaje_ocupacion'] = round((capacidad['ocupacion_posicion_m3'] / capacidad['capacidad_posicion_m3'])*100, 1)
