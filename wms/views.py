@@ -5119,7 +5119,7 @@ def wms_armado_orden_pdf(request, orden_id):
             orden.save()
             
             # send email
-            #wms_correo_creacion_armado(orden)
+            wms_correo_creacion_armado(orden)
             
             return JsonResponse({
                 'type':'success',
