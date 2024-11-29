@@ -12,14 +12,7 @@ class InventarioAdmin(admin.ModelAdmin):
         'product_name', 
         'group_code',
         'lote_id',
-        #'oh', 
         'oh2',
-        # 'largo',
-        # 'ancho',
-        # 'alto',
-        # 'estado',
-        # 'dias_caducar'
-        'diff2'
         )
     
     list_filter = ('llenado', 'agregado')

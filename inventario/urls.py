@@ -19,22 +19,16 @@ urlpatterns = [
     ),
     
     path(
-        route = 'andagoya/reportes', 
+        route = 'andagoya-reportes', 
         view  = views.inventario_andagoya_reportes, 
-        name='inventario'
+        name='inventario_andagoya_reportes'
     ),
 
-    # Actulizar stock lote TABLA
-    path(
-        route='actualizar/inventario',
-        view = views.actualizar_stock_inventario,
-        name = 'actualizar_stock'
-    ),
 
     path(
-        route='bodegas',
-        view = views.inventario_home,
-        name = 'inv_home'
+        route='andagoya-home',
+        view = views.inventario_andagoya_home,
+        name = 'inventario_andagoya_home'
     ),
 
     # Reporte Inventario Completo EXCEL
@@ -51,13 +45,34 @@ urlpatterns = [
         name = 'reporte_format_excel'
     ), 
 
-
     # BODEGA UBICACIÓN LIST
+    # QUERY DE PRODUCTOS POR BODEGA Y UBICACIÓN
     path(
         route='inv/<str:bodega>/<str:ubicacion>',
         view = views.inventario_por_bodega,
         name = 'inventario_por_bodega'
     ),
+    
+    # LISTA DE PRODUCTOS POR BODEGA
+    path(
+        route='toma-fisica/<str:bodega>/<str:location>',
+        view = views.inventario_toma_fisica_andagoya_vue,
+        name= 'inventario_toma_fisica_andagoya_vue'
+    ),
+
+    # GET ITEM TOMA FISICA
+    path(
+        route='toma-fisica/<int:item_id>',
+        view = views.inventario_toma_fisica_item,
+        name ="inventario_toma_fisica_item"
+    ),
+
+
+
+
+
+
+
 
     # Actulizar stock lote FORM UPDDATE
     path(
@@ -80,29 +95,15 @@ urlpatterns = [
     ),
 
 
-    ### DATOS ###
-    # Stock por caducar
-    path(
-        route='porcaducar/',
-        view = views.stock_por_caducar,
-        name = 'porcaducar'
-    ),
-
-    # Volumen
-    path(
-        route='volumen/',
-        view = views.volumen_bodegas,
-        name = 'volumen'
-    ),
 
 
 
 
-    path(
-        route='inventario/inventario_inicial_wms',
-        view = views.inventario_inicial_wms,
-        name = 'inventario_inicial_wms'
-    ),
+    # path(
+    #     route='inventario/inventario_inicial_wms',
+    #     view = views.inventario_inicial_wms,
+    #     name = 'inventario_inicial_wms'
+    # ),
 
 
 
@@ -113,7 +114,7 @@ urlpatterns = [
             name = 'nuevo_arqueo'
         ),
 
-    ### ARQUEO VIEW
+    # Arqueo view
     path(
             route='arqueos/view/<int:id>',
             view = views.arqueo_view,
@@ -181,7 +182,6 @@ urlpatterns = [
             view = views.arqueo_bodega_view,
             name = 'arqueo_bodega_view'
         ),
-
         
     path(
             route='arqueos/list/bodega/<str:ware_code>',
@@ -195,7 +195,6 @@ urlpatterns = [
             name = 'arqueo_bodega_tomafisica'
         ),
     
-
     path(
             route='arqueos/cambiar_estado',
             view = views.arqueo_cambiar_estado_ajax,
@@ -207,7 +206,6 @@ urlpatterns = [
             view =views.toma_fisica_inventario_ajax,
             name='toma_fisica_inventario_ajax'
         ),
-
 
     path(
             route='arqueos/add_fisica_inventario_ajax',
@@ -222,7 +220,7 @@ urlpatterns = [
             name='add_obs2_ajax'
     ),
 
-    # Trazabilidad
+    ### TRAZABILIDAD
     path(
             route='trazabilidad',
             view =views.trazabilidad,

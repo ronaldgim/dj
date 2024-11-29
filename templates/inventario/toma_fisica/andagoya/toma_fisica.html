@@ -1,0 +1,199 @@
+{% extends 'base_vue.html' %}
+{% block title %}
+<title>T.F Andagoya</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'inventario/topnavbar.html' %} 
+{% endblock %}
+
+{% block body %}
+<div id="app">
+    {% verbatim %}
+    <h5 class="m-4 text-center fw-bold">STOCK BODEGA {{ mi_bodega }} - {{ mi_ubicacion }}</h5>
+    <div id="msg"></div>
+    <h6 class="text-start"><strong># Total de Items: </strong>{{n_inventario}}</h6>
+    <h6 class="text-start"><strong># Items por contabilizar: </strong>{{n_inventario_nollenado}}</h6>
+    <h6 class="text-start"><strong># Items contabilizados: </strong>{{n_inventario_llenado}}</h6>
+    {% endverbatim %}
+
+    <a class="btn btn-primary" href="{#% url 'inventario_agregar_form' bodega ubicacion %#}">
+        <i class="bi bi-plus-circle"></i> Añadir
+    </a>
+
+    <div class="col-12 mt-2">
+        <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+    </div>
+
+
+    {#% verbatim %#}
+    {#{stock}#}
+    {#% endverbatim %#}
+    <div class="card mt-2 mb-2">
+        <div class="card-body m-0 p-0">
+            <div class="container table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th scope="col">Invenario</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pedidosbuscar">
+                        {% verbatim %}
+                        <tr v-for="(i, index) in stock" :style="{backgroundColor:llenadoColor(i.llenado)}">
+                            <td>
+                                <strong>Código:</strong> {{i.product_id}} <br>
+                                <strong>Nombre:</strong> {{i.product_name}}<br>
+                                <strong>Marca: </strong> {{i.group_code}}<br>
+                                <strong>Unidad de Venta:</strong> {{i.um}}<br> 
+                                <label style="background-color: #f5fa8d;"> 
+                                    <strong>Lote:</strong> {{i.lote_id}}
+                                </label> <br>
+                                <strong>Total Unidades Lote:</strong> {{i.total_unidades}}<br> 
+                            </td>
+                            <td>
+                                <button @click="getItem(i.id)" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#tomaFisicaForm">
+                                    <i class="bi bi-boxes"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endverbatim %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="tomaFisicaForm" tabindex="-1" aria-labelledby="tomaFisicaFormLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lx">
+            <div class="modal-content">
+                {% verbatim %}
+                <div class="modal-header">
+                <h5 class="modal-title text-center fw-bold" id="tomaFisicaFormLabel">Toma física de intenvario {{ mi_bodega }} - {{ mi_ubicacion }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <div class="modal-body">
+                <label class="fw-bold m-0 p-0">Código:</label> {{item.product_id}}<br>
+                <label class="fw-bold m-0 p-0">Nombre:</label> {{item.product_name}}<br>
+                <label class="fw-bold m-0 p-0">Marca:</label> {{item.group_code}}<br>
+                
+                <div class="card" style="background-color:  #e5f9fd ;">
+                    <div class="card-body">
+                        <h6 class="text-center fw-bold">TOTAL</h6>
+                        <form @submit.prevent="">
+                            <label>Unidades por cartón:</label>
+                            <input class="form-control form-control-sm" v-model="formTotales.unidades_caja" type="number">
+                            <label>Número de cartones totales:</label>
+                            <input class="form-control form-control-sm" v-model="formTotales.numero_cajas" type="number">
+                            <label>Unidades sueltas totales:</label>
+                            <input class="form-control form-control-sm" v-model="formTotales.unidades_sueltas" type="number">
+                            
+                            <button type="submit" class="btn btn-sm btn-primary float-sm-end mt-2">Agregar</button>
+                        </form>
+                    </div>
+                </div>
+                <br>
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="text-center fw-bold">CONTEO POR LOTE</h6> 
+                        <label class="fw-bold m-0 p-0">Lote:</label> {{item.lote_id}}<br>
+                        <label class="fw-bold m-0 p-0">F.Elab:</label> {{item.fecha_elab_lote}}<br>
+                        <label class="fw-bold m-0 p-0">F.Cadu:</label> {{item.fecha_cadu_lote}}<br>
+                        <form @submit.prevent="">
+                            <label>Unidades por cartón:</label>
+                            <input class="form-control form-control-sm" v-model="formTotales.unidades_caja" type="number">
+                            <label>Número de cartones totales:</label>
+                            <input class="form-control form-control-sm" v-model="formTotales.numero_cajas" type="number">
+                            <label>Unidades sueltas totales:</label>
+                            <input class="form-control form-control-sm" v-model="formTotales.unidades_sueltas" type="number">
+                            <label>Observaciones:</label>
+                            <textarea class="form-control form-control-sm" v-model="formTotales.observaciones"></textarea>
+                            <button type="submit" class="btn btn-sm btn-primary float-sm-end mt-2">Agregar</button>
+                        </form>                      
+                    </div>
+                </div>
+            </div>
+
+            {% endverbatim %}
+        </div>
+    </div>
+
+</div>
+
+<script>
+
+    new Vue({
+        el: '#app',
+        data: {
+            // LISTADO
+            mi_bodega:'',
+            mi_ubicacion:'',
+            n_inventario:'',
+            n_inventario_nollenado:'',
+            n_inventario_llenado:'',
+            stock:[],
+            // ITEM
+            item:'',
+            formTotales:{
+                //item_id:'',
+                product_id_t:'',
+                ware_code_t:'',
+                location_t:'',
+                unidades_caja_t:'',
+                numero_cajas_t:'',
+                unidades_sueltas_t:'',
+            },
+            formTomaFisica:{
+
+            }
+        },
+        mounted() {
+            this.getStock();
+        },
+        computed:{
+
+        },
+        methods:{
+            llenadoColor(llenado) {
+                switch (llenado) {
+                    case true:
+                        return '#BAF690';
+                }
+            },
+            async getStock () {
+                const url = window.location.href;
+                const params = url.split('/');
+                const bodega = params[5];
+                const my_location = params[6];
+                try {
+                    const response = await fetch(`/inventario/inv/${bodega}/${my_location}`);
+                    const data = await response.json();
+                    this.mi_bodega = data.mi_bodega;
+                    this.mi_ubicacion = data.mi_ubicacion;
+                    this.n_inventario = data.n_inventario;
+                    this.n_inventario_nollenado = data.n_inventario_nollenado;
+                    this.n_inventario_llenado = data.n_inventario_llenado;
+                    this.stock = data.inventario || [];
+                } catch (error) {
+                    console.log(error);
+                }
+            },
+            async getItem(item_id) {
+                try {
+                    const response = await fetch(`/inventario/toma-fisica/${item_id}`);
+                    const data = await response.json();
+                    this.item = data.item;
+                    console.log(data);
+                    // Form totales - unidades por carton
+                    this.formTotales.unidades_caja = data.item.unidades_caja;
+                } catch (error) {
+                    console.error(error);
+                }
+            }
+        }
+    })
+</script>
+{% endblock %}
