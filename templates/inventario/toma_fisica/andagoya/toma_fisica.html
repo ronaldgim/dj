@@ -32,7 +32,7 @@
     <div class="card mt-2 mb-2">
         <div class="card-body m-0 p-0">
             <div class="container table-responsive">
-                <table class="table">
+                <table class="table" style="font-size: small;">
                     <thead>
                         <tr>
                             <th>Item</th>
@@ -43,15 +43,14 @@
                         {% verbatim %}
                         <tr v-for="(i, index) in stock" :style="{backgroundColor:llenadoColor(i.llenado)}">
                             <td>
-                                <strong>Código:</strong> {{i.product_id}} <br>
-                                <strong>Nombre:</strong> {{i.product_name}}<br>
-                                <strong>Marca: </strong> {{i.group_code}}<br>
-                                <strong>Unidad de Venta:</strong> {{i.um}}<br> 
-                                <label style="background-color: #f5fa8d;"> 
-                                    <strong>Lote:</strong> {{i.lote_id}}
-                                </label> <br>
-                                <strong>Total Unidades Lote:</strong> {{i.total_unidades}}<br> 
+                                <label class="fw-bold">Código:</label> {{i.product_id}} <br>
+                                <label class="fw-bold">Nombre:</label> {{i.product_name}}<br>
+                                <label class="fw-bold">Marca: </label> {{i.group_code}}<br>
+                                <label class="fw-bold">Unidad de Venta:</label> {{i.um}}<br> 
+                                <label class="fw-bold">Lote:</label>{{i.lote_id}} <br>
+                                <label class="fw-bold">Total Unidades Lote:</label> {{i.total_unidades}}<br> 
                             </td>
+
                             <td>
                                 <button @click="getItem(i.id)" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#tomaFisicaForm">
                                     <i class="bi bi-boxes"></i>
@@ -71,7 +70,7 @@
             <div class="modal-content">
                 {% verbatim %}
                 <div class="modal-header">
-                <h5 class="modal-title text-center fw-bold" id="tomaFisicaFormLabel">Toma física de intenvario {{ mi_bodega }} - {{ mi_ubicacion }}</h5>
+                <h5 class="modal-title text-center fw-bold" id="tomaFisicaFormLabel">INVENTARIO {{ mi_bodega }} - {{ mi_ubicacion }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             
@@ -99,7 +98,7 @@
                 <div class="card">
                     <div class="card-body">
                         <h6 class="text-center fw-bold">CONTEO POR LOTE</h6> 
-                        <label class="fw-bold m-0 p-0">Lote:</label> {{item.lote_id}}<br>
+                        <label class="fw-bold m-0 p-0"><mark>Lote:</mark></label> <mark>{{item.lote_id}}</mark><br>
                         <label class="fw-bold m-0 p-0">F.Elab:</label> {{item.fecha_elab_lote}}<br>
                         <label class="fw-bold m-0 p-0">F.Cadu:</label> {{item.fecha_cadu_lote}}<br>
                         <form @submit.prevent="">
