@@ -32,11 +32,11 @@ class Inventario(models.Model):
     location         = models.CharField(verbose_name='Ubicación', max_length=10, blank=True)
     
     # Inventario Físico
-    unidades_caja    = models.IntegerField(verbose_name='Unidades por caja', blank=True)
-    numero_cajas     = models.IntegerField(verbose_name='Número de cajas', blank=True)
-    unidades_sueltas = models.IntegerField(verbose_name='Unidades sueltas', blank=True)
-    total_unidades   = models.IntegerField(verbose_name='Total de unidades', blank=True)
-    diferencia       = models.IntegerField(verbose_name='Diferencia', blank=True)
+    unidades_caja    = models.IntegerField(verbose_name='Unidades por caja', blank=True)  # default = 0
+    numero_cajas     = models.IntegerField(verbose_name='Número de cajas', blank=True)  # default = 0
+    unidades_sueltas = models.IntegerField(verbose_name='Unidades sueltas', blank=True)  # default = 0
+    total_unidades   = models.IntegerField(verbose_name='Total de unidades', blank=True)  # default = 0
+    diferencia       = models.IntegerField(verbose_name='Diferencia', blank=True)  # default = 0
     observaciones    = models.CharField(verbose_name='Observaciones', max_length=100, blank=True)
 
     # De control
@@ -51,47 +51,8 @@ class Inventario(models.Model):
 
     def save(self, *args, **kwargs):
         self.total_unidades = (self.unidades_caja * self.numero_cajas) + self.unidades_sueltas
-        self.diferencia = self.oh - self.total_unidades
+        self.diferencia = self.total_unidades - self.oh2
         return super().save(*args, **kwargs)
-
-    
-    @property
-    def diff2(self):
-        diff2 = self.total_unidades - self.oh2
-
-        return diff2
-    
-
-    @property
-    def estado(self):
-        #seis_meses = timedelta(365/2)
-        anio = timedelta(365)
-
-        if self.fecha_cadu_lote == None:
-            estado = 'Sin especificar'
-        elif self.fecha_cadu_lote < date.today():
-            estado = 'Caducado'
-        elif (self.fecha_cadu_lote - anio) <= date.today():
-            estado = 'Proximo a caducar'
-        elif (self.fecha_cadu_lote - anio) > date.today():
-            estado = 'Vigente'
-
-        return estado
-    
-
-    @property
-    def dias_caducar(self):
-        if self.fecha_cadu_lote is None:
-            dias = '-'
-        else:
-            dias = (self.fecha_cadu_lote - date.today()).days
-            if dias < 0:
-                dias = 0
-            else:
-                dias = dias
-
-        return dias
-        
 
 
 class InventarioTotale(models.Model):

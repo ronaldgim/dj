@@ -12,51 +12,35 @@
       <ul class="navbar-nav">
 
         <li class="nav-item dropdown">
-          <a class="nav-link" href="{% url 'inv_home' %}">
-            Lista Bodegas 
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Inventario Andagoya 
           </a>
-          <!--ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-            <li><a class="dropdown-item" href="{#% url 'andagoya_an1' %#}">Bodega AN1</a></li>
-            <li><a class="dropdown-item" href="{#% url 'andagoya_bn3' %#}">Bodega BN3</a></li>
-            <li><a class="dropdown-item" href="{% url 'picking' %}">Picking</a></li>
-            <li><a class="dropdown-item" href="{% url 'picking_historial' %}">Picking Historial</a></li>
-            <li><a class="dropdown-item" href="{% url 'calculadora_list' %}">Calculadora</a></li>
-          </ul-->
+          <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+            <li><a class="dropdown-item" href="{% url 'inventario_andagoya_reportes' %}">Reporte</a></li>
+            <li><a class="dropdown-item" href="{% url 'inventario_andagoya_home' %}">Lista de bodegas</a></li>
+          </ul>
         </li>
-        {% if request.user.is_superuser %}
-        <li class="nav-item dropdown">
-          <a class="nav-link" href="{% url 'actualizar_stock' %}">
-            Reportes Inventario (toma física)
-          </a>
-          <!--ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-              <li><a class="dropdown-item" href="{#% url 'andagoya_an1_reporte' %#}">Reporte AN1 Stock</a></li>
-              <li><a class="dropdown-item" href="{% url 'stock_bodega' %}">Etiquetado Stock Bodega</a></li>
-          </ul-->
-        </li>
-        {% endif %}
 
         <li class="nav-item dropdown">
-          <a class="nav-link" href="{% url 'porcaducar' %}">
-            Caducidad de Stock
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Inventario Cerezos 
           </a>
-          <!--ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-              <li><a class="dropdown-item" href="{% url 'pedidos_estado_list' %}">Estado de Etiquetado</a></li>
-              <li><a class="dropdown-item" href="{% url 'picking_estado' %}">Estado de Picking</a></li>
-          </ul-->
+          <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+            <li><a class="dropdown-item" href="{% url 'inventario_andagoya_reportes' %}">Reporte</a></li>
+            <li><a class="dropdown-item" href="{% url 'inventario_andagoya_home' %}">Lista de bodegas</a></li>
+          </ul>
+        </li>
+
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
               Arqueos 
             </a>
             <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
               <li><a class="dropdown-item" href="{% url 'arqueos_list' %}">Listado de arqueos creados</a></li>
-              <!--li><a class="dropdown-item" href="{% url 'arqueos_pendientes_list' %}">Listado de arqueos pendientes</a></li-->
               <li><a class="dropdown-item" href="{% url 'arqueos_list_bodega' 'BAN' %}">TF Andagoya</a></li>
               <li><a class="dropdown-item" href="{% url 'arqueos_list_bodega' 'BCT' %}">TF Cerezos</a></li>
               <li><a class="dropdown-item" href="{% url 'arqueos_list_bodega' 'CUA' %}">TF Cuarentena Andagoya</a></li>
               <li><a class="dropdown-item" href="{% url 'arqueos_list_bodega' 'CUC' %}">TF Cuarentena Cerezos</a></li>
-              <!--li><a class="dropdown-item" href="{% url 'picking' %}">Picking</a></li>
-              <li><a class="dropdown-item" href="{% url 'picking_historial' %}">Picking Historial</a></li>
-              <li><a class="dropdown-item" href="{% url 'calculadora_list' %}">Calculadora</a></li-->
             </ul>
           </li>
 
@@ -64,21 +48,7 @@
             <a class="nav-link" href="{% url 'trazabilidad' %}">
               Trazabilidad
             </a>
-            <!--ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                <li><a class="dropdown-item" href="{#% url 'andagoya_an1_reporte' %#}">Reporte AN1 Stock</a></li>
-                <li><a class="dropdown-item" href="{% url 'stock_bodega' %}">Etiquetado Stock Bodega</a></li>
-            </ul-->
           </li>
-
-        <!--li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            Mantenimiento
-          </a>
-          <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-              <li><a class="dropdown-item" href="{% url 'mantenimientos_list' %}">Lista de mantenimiento</a></li>
-          </ul>
-        </li-->
-
       </ul>
     </div>
     <a class="navbar-brand" href="{% url 'logout' %}">
