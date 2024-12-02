@@ -77,22 +77,27 @@
                 
                 <div class="card" style="background-color:  #e5f9fd ;">
                     <div class="card-body">
-                        <h6 class="text-center fw-bold">TOTAL</h6>
+                        <h6 class="text-center fw-bold">TOTAL AGRUPADO</h6>
                         <form @submit.prevent="">
                             <label>Unidades por cartón:</label>
                             <input class="form-control form-control-sm" v-model="formTotales.unidades_caja_t" type="number">
-                            <label>Número de cartones totales:</label>
-                            <input class="form-control form-control-sm" v-model="formTotales.numero_cajas_t" type="number">
-                            <label>Unidades sueltas totales:</label>
-                            <input class="form-control form-control-sm" v-model="formTotales.unidades_sueltas_t" type="number">
-                            <label class="fw-bold">Total Unidades:</label> {{ unidades_totales }}<br>
-                            <button type="submit" class="btn btn-sm btn-primary float-sm-end mt-2">Agregar</button>
+                            <label>Número de cartones totales:</label><br>
+                            <small style="color: gray;">Este campo puede hacer calulos (+, -)</small><br>
+                            <!--input class="form-control form-control-sm" v-model="formTotales.numero_cajas_t" v-on:input="sumarInput()" type="number"-->
+                            <input class="form-control form-control-sm" v-model="formTotales.numero_cajas_t" @input="sumarInput(formTotales.numero_cajas_t, 'numero_cajas_t')">
+                            
+                            <label>Unidades sueltas totales:</label><br>
+                            <small style="color: gray;">Este campo puede hacer calulos (+, -)</small><br>
+                            <input class="form-control form-control-sm" v-model="formTotales.unidades_sueltas_t" @input="sumarInput(formTotales.unidades_sueltas_t, 'unidades_sueltas_t')">
+                            <label class="fw-bold">Total Unidades:</label> {{ total_agrupado }}<br>
+                            <button type="submit" class="btn btn-sm btn-primary float-sm-end mt-2">GUARDAR</button>
                         </form>
                     </div>
                 </div>
                 <hr>
                 <div class="card">
-                    <div class="card-body d-flex justify-content-center align-items-center">                            
+                    <div class="card-body mb-0 pb-0"> 
+                        <h6 class="fw-bold text-center">DETALLE DE LOTES</h6> 
                         <table class="table">
                             <thead>
                                 <th>Código</th>
@@ -114,13 +119,17 @@
                         </table>                        
                     </div>
                 </div>
-                <div class="card">
+
+                <hr>
+
+                <div class="card" :style="{backgroundColor:diferenciaColor(diferencia)}">
                     <h6 class="text-center fw-bold">DIFERENCIA</h6>
                     <label class="text-center fs-6">T.Lotes - T.Agrupado = Diferencia</label>
                     <div class="fs-1 card-body d-flex justify-content-center align-items-center m-0 p-0">
-                        {{total_lotes}} - {{ unidades_totales}} = {{diferencia}}
+                        {{ total_lotes }} - {{ total_agrupado }} = {{ diferencia }}
                     </div>
                 </div>
+
                 <hr>
 
                 <div class="card">
@@ -138,8 +147,8 @@
                             <input class="form-control form-control-sm" v-model="formLote.unidades_sueltas" type="number">
                             <label>Observaciones:</label>
                             <textarea class="form-control form-control-sm" v-model="formLote.observaciones"></textarea>
-                            <label class="fw-bold">Total Unidades:</label> {{ unidades_lote }}<br>
-                            <button type="submit" class="btn btn-sm btn-primary float-sm-end mt-2">Agregar</button>
+                            <label class="fw-bold">Total Unidades:</label> {{ conteo_fisico_lote }}<br>
+                            <button type="submit" class="btn btn-sm btn-primary float-sm-end mt-2">GUARDAR</button>
                         </form>                      
                     </div>
                 </div>
@@ -174,25 +183,26 @@
             },
             lotes:[],
             total_lotes:'',
-            total_agrupado:'',
-            diferencia:'',
+
+            
             formLote:{
                 unidades_caja:'',
                 numero_cajas:'',
                 unidades_sueltas:'',
             },
+            
         },
         mounted() {
             this.getStock();
         },
         computed: {
-            unidades_totales() {
+            total_agrupado() {
                 const u_cajas_t = this.formTotales.unidades_caja_t ? this.formTotales.unidades_caja_t : 0;
                 const n_cajas_t = this.formTotales.numero_cajas_t ? this.formTotales.numero_cajas_t : 0;
                 const u_sueltas_t = this.formTotales.unidades_sueltas_t ? this.formTotales.unidades_sueltas_t : 0;
                 return Number(u_cajas_t * n_cajas_t) + Number(u_sueltas_t)
             },
-            unidades_lote() {
+            conteo_fisico_lote() {
                 const u_cajas = this.formLote.unidades_caja ? this.formLote.unidades_caja : 0;
                 const n_cajas = this.formLote.numero_cajas ? this.formLote.numero_cajas : 0;
                 const u_sueltas = this.formLote.unidades_sueltas ? this.formLote.unidades_sueltas : 0;
@@ -202,7 +212,7 @@
                 const t_lotes = this.total_lotes ? this.total_lotes : 0;
                 const t_agrupado = this.total_agrupado ? this.total_agrupado : 0;
                 return Number(t_lotes - t_agrupado)
-            }
+            },
         },
         methods: {
             llenadoColor(llenado) {
@@ -211,6 +221,15 @@
                         return '#BAF690';
                 }
             },
+
+            diferenciaColor(diferencia){
+                if (diferencia === 0) {
+                    return '#BAF690';
+                } else {
+                    return '#F6B690';
+                }
+            },
+
             async getStock () {
                 const url = window.location.href;
                 const params = url.split('/');
@@ -229,24 +248,29 @@
                     console.log(error);
                 }
             },
+
             async getItem(item_id) {
                 try {
                     const response = await fetch(`/inventario/toma-fisica/${item_id}`);
                     const data = await response.json();
-                    //console.log(data);
+                    // console.log(data);
                     // Item
                     this.item = data.item;
 
                     // List de lotes
-                    this.lotes = data.item_lotes || [];
-                    this.total_lotes = data.total_lotes;
+                    this.lotes = this.stock.filter(i => 
+                        i.product_id == this.item.product_id &&
+                        i.ware_code == this.item.ware_code &&
+                        i.location == this.item.location);
+                    
+                    // Total lotes
+                    this.total_lotes = this.lotes.reduce((acumulador, unidades) => acumulador + unidades.total_unidades, 0)
 
                     // Form totales - unidades por carton
                     this.formTotales.unidades_caja_t = data.item.unidades_caja;
                     this.formTotales.numero_cajas_t = data.item_totales.numero_cajas_t;
                     this.formTotales.unidades_sueltas_t = data.item_totales.unidades_sueltas_t;
-                    this.total_agrupado = data.item_totales.total_unidades_t;
-                    console.log(data.item_totales.total_unidades_t);
+                    
                     // Form lote 
                     this.formLote.unidades_caja = data.item.unidades_caja;
                     this.formLote.numero_cajas = data.item.numero_cajas;
@@ -254,6 +278,30 @@
                     
                 } catch (error) {
                     console.error(error);
+                }
+            },
+
+            sumarInput(input, name) {
+
+                if (input.includes('+')) {
+                    let array = input.split('+');
+                    let n_uno = array[0];
+                    let n_dos = array[1];
+
+                    if (n_dos) {
+                        let total = Number(n_uno) + Number(n_dos);
+                        this.formTotales[name] = Number(total);
+                    }
+                } else if (input.includes('-')) {
+                    let array = input.split('-');
+                    
+                    let n_uno = array[0];
+                    let n_dos = array[1];
+
+                    if (n_dos) {
+                        let total = Number(n_uno) - Number(n_dos);
+                        this.formTotales[name] = Number(total);
+                    }
                 }
             }
         }

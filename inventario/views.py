@@ -394,27 +394,9 @@ def inventario_toma_fisica_item(request, item_id):
             .filter(location_t=item.location)
         )
         
-        # query lotes
-        item_lotes = (Inventario.objects
-            .filter(product_id=item.product_id)
-            .filter(ware_code=item.ware_code)
-            .filter(location=item.location)
-        )
-        
-        total_lotes = item_lotes.aggregate(Sum('total_unidades')).get('total_unidades__sum')
-        
-        # if item_totales.exists():
-        #     item_totales_dict = model_to_dict(item_totales.first())
-        # else:
-        #     item_totales_dict = {}
-        
         return JsonResponse({
             'item': item_dict,
-            #'item_totales': item_totales_dict,
             'item_totales': model_to_dict(item_totales.first()) if item_totales.first() else {},
-            'item_lotes':list(item_lotes.values()),
-            'total_lotes':total_lotes
-            
             })
 
 
