@@ -8,23 +8,7 @@
 {% endblock %}
 
 {% block body %}
-<style>
-    .fixed-info {
-        position: fixed; /* Fija el div dentro del modal */
-        top: 80px; /* Ajusta para colocarlo debajo del encabezado del modal */
-        width: 88%;
-        z-index: 1055; /* Asegúrate de que esté encima del contenido desplazable */
-    }
-    
-    .modal-body {
-        position: relative; /* Asegúrate de que el modal-body se comporte correctamente */
-        padding-top: 130px;
-    }
-    
-    .scrollable-content {
-        margin-top: 20px; /* Añade espacio para evitar que el contenido se superponga al div fijo */
-    }
-</style>
+
 <div id="app">
     {% verbatim %}
     <h5 class="m-4 text-center fw-bold">STOCK BODEGA {{ mi_bodega }} - {{ mi_ubicacion }}</h5>
@@ -83,111 +67,115 @@
             <div class="modal-content">
                 <input type="hidden" id="user-id" value="{{ request.user.id }}">
                 {% verbatim %}
-                <div class="modal-header">
-                <h5 class="modal-title text-center fw-bold" id="tomaFisicaFormLabel">INVENTARIO {{ mi_bodega }} - {{ mi_ubicacion }}</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            
-            <div class="modal-body">
-                <div class="card fixed-info shadow rounded">
-                    <div class="card-body">
-                        <label class="fw-bold m-0 p-0">Código:</label> {{item.product_id}}<br>
-                        <label class="fw-bold m-0 p-0">Nombre:</label> {{item.product_name}}<br>
-                        <label class="fw-bold m-0 p-0">Marca:</label> {{item.group_code}}<br>
+                <div class="modal-header d-flex flex-column align-items-center">
+                    <div class="d-flex justify-content-between w-100 align-items-center">
+                        <h5 class="modal-title text-center fw-bold" id="tomaFisicaFormLabel">INVENTARIO {{ mi_bodega }} - {{ mi_ubicacion }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="mt-2 w-100">
+                        <div class="card">
+                            <div class="card-body">
+                                <label class="fw-bold m-0 p-0">Código:</label> {{item.product_id}}<br>
+                                <label class="fw-bold m-0 p-0">Nombre:</label> {{item.product_name}}<br>
+                                <label class="fw-bold m-0 p-0">Marca:</label> {{item.group_code}}<br>
+                            </div>
+                        </div>
                     </div>
                 </div>
+            
+                <div class="modal-body">                    
+                    <!-- TOTAL AGRUPADO -->
+                    <div class="card" style="background-color: #e5f9fd;">
+                        <div class="card-body">
+                            <h6 class="text-center fw-bold">TOTAL AGRUPADO</h6>
+                            <div v-if="msg_totales" :class="`alert alert-${type_msg_totales} text-center p-2 m-0`" role="alert" style="font-size: smaller;">
+                                {{msg_totales}}
+                            </div>
+                            <form @submit.prevent="actualizarCrearTotal()">
+                                <label>Unidades por cartón:</label>
+                                <input class="form-control form-control-sm" v-model="formTotales.unidades_caja_t" type="number" required>
+                                <label>Número de cartones totales:</label><br>
+                                <small style="color: gray;">Este campo puede hacer calulos (+, -)</small><br>
+                                <!--input class="form-control form-control-sm" v-model="formTotales.numero_cajas_t" v-on:input="sumarInput()" type="number"-->
+                                <input class="form-control form-control-sm" v-model="formTotales.numero_cajas_t" @input="sumarInput(formTotales.numero_cajas_t, 'numero_cajas_t')" required>
+                                
+                                <label>Unidades sueltas totales:</label><br>
+                                <small style="color: gray;">Este campo puede hacer calulos (+, -)</small><br>
+                                <input class="form-control form-control-sm" v-model="formTotales.unidades_sueltas_t" @input="sumarInput(formTotales.unidades_sueltas_t, 'unidades_sueltas_t')" required>
+                                <label class="fw-bold">Total Unidades:</label> {{ total_agrupado }}<br>
+                                <button type="submit" class="btn btn-sm btn-primary float-sm-end mt-2">GUARDAR</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- DETALLE LOTES -->
+                    <div class="card">
+                        <div class="card-body mb-0 pb-0"> 
+                            <h6 class="fw-bold text-center">DETALLE DE LOTES</h6> 
+                            <table class="table">
+                                <thead>
+                                    <th>Código</th>
+                                    <th>Lote(s)</th>
+                                    <th>Unidades</th>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="(i, index) in lotes">
+                                        <td>{{ i.product_id }}</td>
+                                        <td>{{ i.lote_id }}</td>
+                                        <td class="text-end">{{ i.total_unidades }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>TOTAL</th>
+                                        <td></td>
+                                        <td class="text-end">{{ total_lotes }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>               
+                        </div>
+                    </div>
+
+                    <hr>
+                    <!-- DIFERENCIA -->
+                    <div class="card" :style="{backgroundColor:diferenciaColor(diferencia)}">
+                        <h6 class="text-center fw-bold">DIFERENCIA</h6>
+                        <label class="text-center fs-6">T.Lotes - T.Agrupado = Diferencia</label>
+                        <div class="fs-1 card-body d-flex justify-content-center align-items-center m-0 p-0">
+                            {{ total_lotes }} - {{ total_agrupado }} = {{ diferencia }}
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- CONTEO POR LOTE -->
+                    <div class="card">
+                        <div class="card-body">
+                            <h6 class="text-center fw-bold">CONTEO POR LOTE</h6> 
+                            <div v-if="msg_lote" :class="`alert alert-${type_msg_lote} text-center p-2 m-0`" role="alert" style="font-size: smaller;">
+                                {{msg_lote}}
+                            </div>
+                            <mark><label class="fw-bold m-0 p-0">Lote:</label> {{item.lote_id}}</mark><br>
+                            <label class="fw-bold m-0 p-0">F.Elab:</label> {{item.fecha_elab_lote}}<br>
+                            <label class="fw-bold m-0 p-0">F.Cadu:</label> {{item.fecha_cadu_lote}}<br>
+                            <form @submit.prevent="actualizarItem(formLote.id)">
+                                <label>Unidades por cartón:</label>
+                                <input class="form-control form-control-sm" v-model="formLote.unidades_caja" type="number">
+                                <label>Número de cartones totales:</label>
+                                <input class="form-control form-control-sm" v-model="formLote.numero_cajas" type="number">
+                                <label>Unidades sueltas totales:</label>
+                                <input class="form-control form-control-sm" v-model="formLote.unidades_sueltas" type="number">
+                                <label>Observaciones:</label>
+                                <textarea class="form-control form-control-sm" v-model="formLote.observaciones"></textarea>
+                                <label class="fw-bold">Total Unidades:</label> {{ conteo_fisico_lote }}<br>
+                                <button type="submit" class="btn btn-sm btn-primary float-sm-end mt-2">GUARDAR</button>
+                            </form>                      
+                        </div>
+                    </div>
                 
-                <!-- TOTAL AGRUPADO -->
-                <div class="card" style="background-color: #e5f9fd;">
-                    <div class="card-body">
-                        <h6 class="text-center fw-bold">TOTAL AGRUPADO</h6>
-                        <div v-if="msg_totales" :class="`alert alert-${type_msg_totales} text-center p-2 m-0`" role="alert" style="font-size: smaller;">
-                            {{msg_totales}}
-                        </div>
-                        <form @submit.prevent="actualizarCrearTotal()">
-                            <label>Unidades por cartón:</label>
-                            <input class="form-control form-control-sm" v-model="formTotales.unidades_caja_t" type="number" required>
-                            <label>Número de cartones totales:</label><br>
-                            <small style="color: gray;">Este campo puede hacer calulos (+, -)</small><br>
-                            <!--input class="form-control form-control-sm" v-model="formTotales.numero_cajas_t" v-on:input="sumarInput()" type="number"-->
-                            <input class="form-control form-control-sm" v-model="formTotales.numero_cajas_t" @input="sumarInput(formTotales.numero_cajas_t, 'numero_cajas_t')" required>
-                            
-                            <label>Unidades sueltas totales:</label><br>
-                            <small style="color: gray;">Este campo puede hacer calulos (+, -)</small><br>
-                            <input class="form-control form-control-sm" v-model="formTotales.unidades_sueltas_t" @input="sumarInput(formTotales.unidades_sueltas_t, 'unidades_sueltas_t')" required>
-                            <label class="fw-bold">Total Unidades:</label> {{ total_agrupado }}<br>
-                            <button type="submit" class="btn btn-sm btn-primary float-sm-end mt-2">GUARDAR</button>
-                        </form>
-                    </div>
                 </div>
-
-                <hr>
-
-                <!-- DETALLE LOTES -->
-                <div class="card">
-                    <div class="card-body mb-0 pb-0"> 
-                        <h6 class="fw-bold text-center">DETALLE DE LOTES</h6> 
-                        <table class="table">
-                            <thead>
-                                <th>Código</th>
-                                <th>Lote(s)</th>
-                                <th>Unidades</th>
-                            </thead>
-                            <tbody>
-                                <tr v-for="(i, index) in lotes">
-                                    <td>{{ i.product_id }}</td>
-                                    <td>{{ i.lote_id }}</td>
-                                    <td class="text-end">{{ i.total_unidades }}</td>
-                                </tr>
-                                <tr>
-                                    <th>TOTAL</th>
-                                    <td></td>
-                                    <td class="text-end">{{ total_lotes }}</td>
-                                </tr>
-                            </tbody>
-                        </table>               
-                    </div>
-                </div>
-
-                <hr>
-                <!-- DIFERENCIA -->
-                <div class="card" :style="{backgroundColor:diferenciaColor(diferencia)}">
-                    <h6 class="text-center fw-bold">DIFERENCIA</h6>
-                    <label class="text-center fs-6">T.Lotes - T.Agrupado = Diferencia</label>
-                    <div class="fs-1 card-body d-flex justify-content-center align-items-center m-0 p-0">
-                        {{ total_lotes }} - {{ total_agrupado }} = {{ diferencia }}
-                    </div>
-                </div>
-
-                <hr>
-
-                <!-- CONTEO POR LOTE -->
-                <div class="card">
-                    <div class="card-body">
-                        <h6 class="text-center fw-bold">CONTEO POR LOTE</h6> 
-                        <div v-if="msg_lote" :class="`alert alert-${type_msg_lote} text-center p-2 m-0`" role="alert" style="font-size: smaller;">
-                            {{msg_lote}}
-                        </div>
-                        <mark><label class="fw-bold m-0 p-0">Lote:</label> {{item.lote_id}}</mark><br>
-                        <label class="fw-bold m-0 p-0">F.Elab:</label> {{item.fecha_elab_lote}}<br>
-                        <label class="fw-bold m-0 p-0">F.Cadu:</label> {{item.fecha_cadu_lote}}<br>
-                        <form @submit.prevent="actualizarItem(formLote.id)">
-                            <label>Unidades por cartón:</label>
-                            <input class="form-control form-control-sm" v-model="formLote.unidades_caja" type="number">
-                            <label>Número de cartones totales:</label>
-                            <input class="form-control form-control-sm" v-model="formLote.numero_cajas" type="number">
-                            <label>Unidades sueltas totales:</label>
-                            <input class="form-control form-control-sm" v-model="formLote.unidades_sueltas" type="number">
-                            <label>Observaciones:</label>
-                            <textarea class="form-control form-control-sm" v-model="formLote.observaciones"></textarea>
-                            <label class="fw-bold">Total Unidades:</label> {{ conteo_fisico_lote }}<br>
-                            <button type="submit" class="btn btn-sm btn-primary float-sm-end mt-2">GUARDAR</button>
-                        </form>                      
-                    </div>
-                </div>
-            
+                {% endverbatim %}
             </div>
-            {% endverbatim %}
         </div>
     </div>
 
@@ -299,20 +287,6 @@
                 }
             },
 
-            //lista_lotes(item) {
-            //    return this.stock.filter((i) => {
-            //        return (
-            //            i.product_id === item.product_id &&
-            //            i.ware_code === item.ware_code &&
-            //            i.location === item.location
-            //        );
-            //    });
-            //},
-
-            //actualizarLotes() {
-            //    this.lotes = this.lista_lotes(this.item); // Actualiza 'this.lotes' con la lista filtrada
-            //},
-
             async getStock () {
                 const url = window.location.href;
                 const params = url.split('/');
@@ -333,8 +307,7 @@
             },
 
             async getItem(item_id) {
-                this.msg_lote = '';
-                this.msg_totales = '';
+                
                 try {
                     const response = await fetch(`/inventario/toma-fisica/${item_id}`);
                     const data = await response.json();
@@ -347,8 +320,6 @@
                         i.product_id == this.item.product_id &&
                         i.ware_code == this.item.ware_code &&
                         i.location == this.item.location);
-                    
-                    //this.lotes = this.lista_lotes(this.item);
                     
                     // Total lotes
                     this.total_lotes = this.lotes.reduce((acumulador, unidades) => acumulador + unidades.total_unidades, 0)
@@ -377,6 +348,13 @@
                     this.formLote.unidades_caja = data.item.unidades_caja;
                     this.formLote.numero_cajas = data.item.numero_cajas;
                     this.formLote.unidades_sueltas = data.item.unidades_sueltas;
+
+                    setTimeout(
+                        () => {
+                            this.msg_lote = '';
+                            this.msg_totales = '';
+                        }, 3000)
+
                     
                 } catch (error) {
                     console.error(error);
