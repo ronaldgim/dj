@@ -66,6 +66,12 @@ urlpatterns = [
         view = views.inventario_toma_fisica_item,
         name ="inventario_toma_fisica_item"
     ),
+    
+    path(
+        route='toma-fisica/total-agrupado',
+        view = views.inventario_toma_fisica_total_agrupado,
+        name ="inventario_toma_fisica_total_agrupado"
+    ),
 
 
 

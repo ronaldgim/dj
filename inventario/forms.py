@@ -3,6 +3,7 @@ from django import forms
 
 # Models
 from inventario.models import Inventario, InventarioTotale, Arqueo
+from users.models import User
 
 # MyForms
 # Inventario actualizar toma física 
@@ -34,8 +35,7 @@ class InventarioTotalesForm(forms.ModelForm):
     class Meta:
         model = InventarioTotale
         fields = '__all__'
-
-
+        
 
 # Arqueo
 class ArqueoForm(forms.ModelForm):
