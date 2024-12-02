@@ -8,6 +8,23 @@
 {% endblock %}
 
 {% block body %}
+<style>
+    .fixed-info {
+        position: fixed; /* Fija el div dentro del modal */
+        top: 80px; /* Ajusta para colocarlo debajo del encabezado del modal */
+        width: 88%;
+        z-index: 1055; /* Asegúrate de que esté encima del contenido desplazable */
+    }
+    
+    .modal-body {
+        position: relative; /* Asegúrate de que el modal-body se comporte correctamente */
+        padding-top: 130px;
+    }
+    
+    .scrollable-content {
+        margin-top: 20px; /* Añade espacio para evitar que el contenido se superponga al div fijo */
+    }
+</style>
 <div id="app">
     {% verbatim %}
     <h5 class="m-4 text-center fw-bold">STOCK BODEGA {{ mi_bodega }} - {{ mi_ubicacion }}</h5>
@@ -62,7 +79,7 @@
 
     <!-- Modal -->
     <div class="modal fade" id="tomaFisicaForm" tabindex="-1" aria-labelledby="tomaFisicaFormLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lx">
+        <div class="modal-dialog modal-dialog-scrollable">
             <div class="modal-content">
                 <input type="hidden" id="user-id" value="{{ request.user.id }}">
                 {% verbatim %}
@@ -72,12 +89,16 @@
             </div>
             
             <div class="modal-body">
-                <label class="fw-bold m-0 p-0">Código:</label> {{item.product_id}}<br>
-                <label class="fw-bold m-0 p-0">Nombre:</label> {{item.product_name}}<br>
-                <label class="fw-bold m-0 p-0">Marca:</label> {{item.group_code}}<br>
+                <div class="card fixed-info shadow rounded">
+                    <div class="card-body">
+                        <label class="fw-bold m-0 p-0">Código:</label> {{item.product_id}}<br>
+                        <label class="fw-bold m-0 p-0">Nombre:</label> {{item.product_name}}<br>
+                        <label class="fw-bold m-0 p-0">Marca:</label> {{item.group_code}}<br>
+                    </div>
+                </div>
                 
                 <!-- TOTAL AGRUPADO -->
-                <div class="card" style="background-color: #e5f9fd ;">
+                <div class="card" style="background-color: #e5f9fd;">
                     <div class="card-body">
                         <h6 class="text-center fw-bold">TOTAL AGRUPADO</h6>
                         <div v-if="msg_totales" :class="`alert alert-${type_msg_totales} text-center p-2 m-0`" role="alert" style="font-size: smaller;">
@@ -124,7 +145,7 @@
                                     <td class="text-end">{{ total_lotes }}</td>
                                 </tr>
                             </tbody>
-                        </table>                        
+                        </table>               
                     </div>
                 </div>
 
@@ -164,6 +185,7 @@
                         </form>                      
                     </div>
                 </div>
+            
             </div>
             {% endverbatim %}
         </div>
@@ -252,6 +274,28 @@
                     return '#BAF690';
                 } else {
                     return '#F6B690';
+                }
+            },
+
+            sumarInput(input, name) {
+
+                if (input.includes('+')) {
+                    let array = input.split('+');
+                    let n_uno = array[0];
+                    let n_dos = array[1];
+                    if (n_dos) {
+                        let total = Number(n_uno) + Number(n_dos);
+                        this.formTotales[name] = Number(total);
+                    }
+                } else if (input.includes('-')) {
+                    let array = input.split('-');
+                    
+                    let n_uno = array[0];
+                    let n_dos = array[1];
+                    if (n_dos) {
+                        let total = Number(n_uno) - Number(n_dos);
+                        this.formTotales[name] = Number(total);
+                    }
                 }
             },
 
@@ -348,37 +392,16 @@
                         body: JSON.stringify(this.formLote)
                     });
                     const data = await response.json();
-                    this.type_msg_lote = data.type;
-                    this.msg_lote = data.msg;
                     await this.getItem(item_id);
-                    await this.getStock();                    
+                    await this.getStock(); 
+                    this.type_msg_lote = data.type;
+                    this.msg_lote = data.msg;                   
                 } catch (error) {
                     this.type_msg_lote = 'danger';
                     this.type_msg_item = error;
                 }
             },
 
-            sumarInput(input, name) {
-
-                if (input.includes('+')) {
-                    let array = input.split('+');
-                    let n_uno = array[0];
-                    let n_dos = array[1];
-                    if (n_dos) {
-                        let total = Number(n_uno) + Number(n_dos);
-                        this.formTotales[name] = Number(total);
-                    }
-                } else if (input.includes('-')) {
-                    let array = input.split('-');
-                    
-                    let n_uno = array[0];
-                    let n_dos = array[1];
-                    if (n_dos) {
-                        let total = Number(n_uno) - Number(n_dos);
-                        this.formTotales[name] = Number(total);
-                    }
-                }
-            },
         }
     })
 </script>
