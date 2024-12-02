@@ -25,6 +25,7 @@
         <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
     </div>
 
+    <!-- Lista -->
     <div class="card mt-2 mb-2">
         <div class="card-body m-0 p-0">
             <div class="container table-responsive">
@@ -46,7 +47,6 @@
                                 <label class="fw-bold">Lote:</label>{{i.lote_id}} <br>
                                 <label class="fw-bold">Total Unidades Lote:</label> {{i.total_unidades}}<br> 
                             </td>
-
                             <td>
                                 <button @click="getItem(i.id)" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#tomaFisicaForm">
                                     <i class="bi bi-boxes"></i>
@@ -64,6 +64,7 @@
     <div class="modal fade" id="tomaFisicaForm" tabindex="-1" aria-labelledby="tomaFisicaFormLabel" aria-hidden="true">
         <div class="modal-dialog modal-lx">
             <div class="modal-content">
+                <input type="hidden" id="user-id" value="{{ request.user.id }}">
                 {% verbatim %}
                 <div class="modal-header">
                 <h5 class="modal-title text-center fw-bold" id="tomaFisicaFormLabel">INVENTARIO {{ mi_bodega }} - {{ mi_ubicacion }}</h5>
@@ -75,26 +76,33 @@
                 <label class="fw-bold m-0 p-0">Nombre:</label> {{item.product_name}}<br>
                 <label class="fw-bold m-0 p-0">Marca:</label> {{item.group_code}}<br>
                 
-                <div class="card" style="background-color:  #e5f9fd ;">
+                <!-- TOTAL AGRUPADO -->
+                <div class="card" style="background-color: #e5f9fd ;">
                     <div class="card-body">
                         <h6 class="text-center fw-bold">TOTAL AGRUPADO</h6>
-                        <form @submit.prevent="">
+                        <div v-if="msg_totales" :class="`alert alert-${type_msg_totales} text-center p-2 m-0`" role="alert" style="font-size: smaller;">
+                            {{msg_totales}}
+                        </div>
+                        <form @submit.prevent="actualizarCrearTotal()">
                             <label>Unidades por cartón:</label>
-                            <input class="form-control form-control-sm" v-model="formTotales.unidades_caja_t" type="number">
+                            <input class="form-control form-control-sm" v-model="formTotales.unidades_caja_t" type="number" required>
                             <label>Número de cartones totales:</label><br>
                             <small style="color: gray;">Este campo puede hacer calulos (+, -)</small><br>
                             <!--input class="form-control form-control-sm" v-model="formTotales.numero_cajas_t" v-on:input="sumarInput()" type="number"-->
-                            <input class="form-control form-control-sm" v-model="formTotales.numero_cajas_t" @input="sumarInput(formTotales.numero_cajas_t, 'numero_cajas_t')">
+                            <input class="form-control form-control-sm" v-model="formTotales.numero_cajas_t" @input="sumarInput(formTotales.numero_cajas_t, 'numero_cajas_t')" required>
                             
                             <label>Unidades sueltas totales:</label><br>
                             <small style="color: gray;">Este campo puede hacer calulos (+, -)</small><br>
-                            <input class="form-control form-control-sm" v-model="formTotales.unidades_sueltas_t" @input="sumarInput(formTotales.unidades_sueltas_t, 'unidades_sueltas_t')">
+                            <input class="form-control form-control-sm" v-model="formTotales.unidades_sueltas_t" @input="sumarInput(formTotales.unidades_sueltas_t, 'unidades_sueltas_t')" required>
                             <label class="fw-bold">Total Unidades:</label> {{ total_agrupado }}<br>
                             <button type="submit" class="btn btn-sm btn-primary float-sm-end mt-2">GUARDAR</button>
                         </form>
                     </div>
                 </div>
+
                 <hr>
+
+                <!-- DETALLE LOTES -->
                 <div class="card">
                     <div class="card-body mb-0 pb-0"> 
                         <h6 class="fw-bold text-center">DETALLE DE LOTES</h6> 
@@ -121,7 +129,7 @@
                 </div>
 
                 <hr>
-
+                <!-- DIFERENCIA -->
                 <div class="card" :style="{backgroundColor:diferenciaColor(diferencia)}">
                     <h6 class="text-center fw-bold">DIFERENCIA</h6>
                     <label class="text-center fs-6">T.Lotes - T.Agrupado = Diferencia</label>
@@ -132,13 +140,17 @@
 
                 <hr>
 
+                <!-- CONTEO POR LOTE -->
                 <div class="card">
                     <div class="card-body">
                         <h6 class="text-center fw-bold">CONTEO POR LOTE</h6> 
-                        <label class="fw-bold m-0 p-0"><mark>Lote:</mark></label> <mark>{{item.lote_id}}</mark><br>
+                        <div v-if="msg_lote" :class="`alert alert-${type_msg_lote} text-center p-2 m-0`" role="alert" style="font-size: smaller;">
+                            {{msg_lote}}
+                        </div>
+                        <mark><label class="fw-bold m-0 p-0">Lote:</label> {{item.lote_id}}</mark><br>
                         <label class="fw-bold m-0 p-0">F.Elab:</label> {{item.fecha_elab_lote}}<br>
                         <label class="fw-bold m-0 p-0">F.Cadu:</label> {{item.fecha_cadu_lote}}<br>
-                        <form @submit.prevent="">
+                        <form @submit.prevent="actualizarItem(formLote.id)">
                             <label>Unidades por cartón:</label>
                             <input class="form-control form-control-sm" v-model="formLote.unidades_caja" type="number">
                             <label>Número de cartones totales:</label>
@@ -171,24 +183,37 @@
             n_inventario_nollenado:'',
             n_inventario_llenado:'',
             stock:[],
+
             // ITEM
             item:'',
+
+            // TOTALES
+            type_msg_totales:'',
+            msg_totales:'',
             formTotales:{
-                //product_id_t:'',
-                //ware_code_t:'',
-                //location_t:'',
+                product_id_t:'',
+                ware_code_t:'',
+                location_t:'',
                 unidades_caja_t:'',
                 numero_cajas_t:'',
                 unidades_sueltas_t:'',
+                user_id: Number(document.getElementById("user-id").value)
             },
+
+            // LOTES
             lotes:[],
             total_lotes:'',
-
             
+            // CONTEO LOTE
+            type_msg_lote:'',
+            msg_lote:'',
             formLote:{
                 unidades_caja:'',
                 numero_cajas:'',
                 unidades_sueltas:'',
+                observaciones:'',
+                llenado:true,
+                user_id: Number(document.getElementById("user-id").value)
             },
             
         },
@@ -250,10 +275,12 @@
             },
 
             async getItem(item_id) {
+                this.msg_lote = '';
+                this.msg_totales = '';
                 try {
                     const response = await fetch(`/inventario/toma-fisica/${item_id}`);
                     const data = await response.json();
-                    // console.log(data);
+                    
                     // Item
                     this.item = data.item;
 
@@ -266,12 +293,27 @@
                     // Total lotes
                     this.total_lotes = this.lotes.reduce((acumulador, unidades) => acumulador + unidades.total_unidades, 0)
 
-                    // Form totales - unidades por carton
-                    this.formTotales.unidades_caja_t = data.item.unidades_caja;
-                    this.formTotales.numero_cajas_t = data.item_totales.numero_cajas_t;
-                    this.formTotales.unidades_sueltas_t = data.item_totales.unidades_sueltas_t;
+                    // Form totales
+                    if (data.item_totales){
+                        this.formTotales.id = data.item_totales.id;
+                        this.formTotales.product_id_t = data.item_totales.product_id_t;
+                        this.formTotales.ware_code_t = data.item_totales.ware_code_t;
+                        this.formTotales.location_t = data.item_totales.location_t;
+                        this.formTotales.unidades_caja_t = data.item_totales.unidades_caja_t;
+                        this.formTotales.numero_cajas_t = data.item_totales.numero_cajas_t;
+                        this.formTotales.unidades_sueltas_t = data.item_totales.unidades_sueltas_t;
+                        
+                    } 
+                    else {
+                        this.formTotales.id = null;  
+                        this.formTotales.product_id_t = data.item.product_id;
+                        this.formTotales.ware_code_t = data.item.ware_code;
+                        this.formTotales.location_t = data.item.location;
+                        this.formTotales.unidades_caja_t = data.item.unidades_caja;
+                    }
                     
                     // Form lote 
+                    this.formLote.id = data.item.id;
                     this.formLote.unidades_caja = data.item.unidades_caja;
                     this.formLote.numero_cajas = data.item.numero_cajas;
                     this.formLote.unidades_sueltas = data.item.unidades_sueltas;
@@ -281,13 +323,47 @@
                 }
             },
 
+            async actualizarCrearTotal() {
+                try {
+                    const response = await fetch('/inventario/toma-fisica/total-agrupado', { 
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json',},
+                        body: JSON.stringify(this.formTotales)
+                    });
+                    const data = await response.json();
+                    this.type_msg_totales = data.type;
+                    this.msg_totales = data.msg;
+                    
+                } catch (error) {
+                    this.msg_totales = error;
+                    this.type_msg_totales = 'danger';
+                }
+            },
+            
+            async actualizarItem(item_id) {
+                try {
+                    const response = await fetch(`/inventario/toma-fisica/${item_id}`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json',},
+                        body: JSON.stringify(this.formLote)
+                    });
+                    const data = await response.json();
+                    this.type_msg_lote = data.type;
+                    this.msg_lote = data.msg;
+                    await this.getItem(item_id);
+                    await this.getStock();                    
+                } catch (error) {
+                    this.type_msg_lote = 'danger';
+                    this.type_msg_item = error;
+                }
+            },
+
             sumarInput(input, name) {
 
                 if (input.includes('+')) {
                     let array = input.split('+');
                     let n_uno = array[0];
                     let n_dos = array[1];
-
                     if (n_dos) {
                         let total = Number(n_uno) + Number(n_dos);
                         this.formTotales[name] = Number(total);
@@ -297,13 +373,12 @@
                     
                     let n_uno = array[0];
                     let n_dos = array[1];
-
                     if (n_dos) {
                         let total = Number(n_uno) - Number(n_dos);
                         this.formTotales[name] = Number(total);
                     }
                 }
-            }
+            },
         }
     })
 </script>

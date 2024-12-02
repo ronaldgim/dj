@@ -378,13 +378,15 @@ def inventario_toma_fisica_andagoya_vue(request, bodega, location):
     return render(request, 'inventario/toma_fisica/andagoya/toma_fisica.html')
 
 
+from django.views.decorators.csrf import csrf_exempt
 from django.forms.models import model_to_dict
+@csrf_exempt
 def inventario_toma_fisica_item(request, item_id):
-    
+    item = Inventario.objects.get(id=item_id)
     if request.method == 'GET':
         
         # item
-        item = Inventario.objects.get(id=item_id)
+        #item = Inventario.objects.get(id=item_id)
         item_dict = model_to_dict(item)
         
         # item totales
@@ -396,8 +398,59 @@ def inventario_toma_fisica_item(request, item_id):
         
         return JsonResponse({
             'item': item_dict,
-            'item_totales': model_to_dict(item_totales.first()) if item_totales.first() else {},
+            'item_totales': model_to_dict(item_totales.first()) if item_totales.first() else None,
             })
+    
+    elif request.method == 'POST':
+        
+        data = json.loads(request.body)
+        data['user'] = User.objects.get(id=data.get('user_id'))
+        form = InventarioForm(data, instance=Inventario.objects.get(id=item_id))
+        if form.is_valid():
+            form.save()
+            return JsonResponse({
+                'item':model_to_dict(item),
+                'type':'success',
+                'msg':'Registrado Correctamiente'})
+        else:
+            return JsonResponse({'type':'danger','msg':form.errors})
+
+
+
+@csrf_exempt
+def inventario_toma_fisica_total_agrupado(request):
+    
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        data['user'] = User.objects.get(id=data.get('user_id'))
+        
+        # actualizar registro
+        if data.get('id'):
+            item_totales = InventarioTotale.objects.get(id=data.get('id'))            
+            form = InventarioTotalesForm(data, instance=item_totales)
+            if form.is_valid():                
+                form.save()
+                return JsonResponse({'type':'success','msg':'Actualizado Correctamiente'})
+            else:
+                return JsonResponse({'type':'danger','msg':form.errors})
+        
+        # crear registro
+        else:
+            form = form = InventarioTotalesForm(data)
+            if form.is_valid():
+                form.save()
+                return JsonResponse({'type':'success', 'msg':'Registrado Correctamente'})
+            else:
+                return JsonResponse({'type':'danger','msg':form.errors})
+
+
+# @csrf_exempt
+# def inventario_toma_fisica_conteo_lote(request):
+    
+#     if request.method == 'POST':
+#         data = json.loads(request.body)
+#         print(data)
+#         return JsonResponse({'msg':'ok'})
 
 
 ### INVENTARIO FORM UPDATE ###
