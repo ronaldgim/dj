@@ -244,16 +244,16 @@
                             <form @submit.prevent="">
                                 
                                 <label>Código:</label>
-                                <input class="form-control form-control-sm" v-model="formAgregar.product_id" type="text"required>
+                                <input class="form-control form-control-sm" v-model="formAgregar.product_id" type="text" required>
                                 
                                 <label>Nombre:</label>
-                                <input class="form-control form-control-sm" v-model="formAgregar.product_name" type="text"required>
+                                <input class="form-control form-control-sm" v-model="formAgregar.product_name" type="text" required>
                                 
                                 <label>Marca:</label>
-                                <input class="form-control form-control-sm" v-model="formAgregar.group_code" type="text"required>
+                                <input class="form-control form-control-sm" v-model="formAgregar.group_code" type="text" required>
                                 
                                 <label>Presentación:</label>
-                                <input class="form-control form-control-sm" v-model="formAgregar.um" type="text"required>
+                                <input class="form-control form-control-sm" v-model="formAgregar.um" type="text" required>
 
                                 <label>Lote:</label>
                                 <!--input class="form-control form-control-sm" v-model="formAgregar.lote_id" type="text"required-->
@@ -262,19 +262,19 @@
                                 </select>
 
                                 <label>Fecha elaboración:</label>
-                                <input class="form-control form-control-sm" v-model="formAgregar.fecha_elab_lote" type="date"required>
+                                <input class="form-control form-control-sm" v-model="formAgregar.fecha_elab_lote" onkeydown="return false" type="date" required>
 
                                 <label>Fecha caducidad:</label>
-                                <input class="form-control form-control-sm" v-model="formAgregar.fecha_cadu_lote" type="date"required>
+                                <input class="form-control form-control-sm" v-model="formAgregar.fecha_cadu_lote" type="date" required>
 
                                 <label>Unidades por cartón:</label>
-                                <input class="form-control form-control-sm" v-model="formAgregar.unidades_caja" type="number"required>
+                                <input class="form-control form-control-sm" v-model="formAgregar.unidades_caja" type="number" required>
 
                                 <label>Número de cartones totales:</label>
-                                <input class="form-control form-control-sm" v-model="formAgregar.numero_cajas" type="number"required>
+                                <input class="form-control form-control-sm" v-model="formAgregar.numero_cajas" type="number" required>
 
                                 <label>Unidades sueltas totales:</label>
-                                <input class="form-control form-control-sm" v-model="formAgregar.unidades_sueltas" type="number"required>
+                                <input class="form-control form-control-sm" v-model="formAgregar.unidades_sueltas" type="number" required>
 
                                 <label>Observaciones:</label>
                                 <textarea class="form-control form-control-sm" v-model="formAgregar.observaciones"></textarea>
