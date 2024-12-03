@@ -104,7 +104,8 @@ def stock_lote_tupla():
         oh2         = i.get('OH2')
         commited    = i.get('COMMITED')
         quantity    = i.get('QUANTITY')
-        lote_id     = i.get('LOTE_ID')
+        # lote_id     = i.get('LOTE_ID')
+        lote_id     = i.get('LOTE_ID').replace('.', '') if '.' in i.get('LOTE_ID') else i.get('LOTE_ID')
         fecha_elab  = i.get('Fecha_elaboracion_lote')
         fecha_cadu  = i.get('FECHA_CADUCIDAD')
         ware_code   = i.get('WARE_CODE')
@@ -235,9 +236,8 @@ def inventario_andagoya_home(request):
     
     inv = pd.DataFrame(Inventario.objects.all().values())
     bodega = inv[['ware_code', 'location', 'product_id']]
-
-    bodega = bodega.groupby(['ware_code', 'location'])['product_id'].count()
-    bodega = bodega.reset_index()
+    bodega = bodega.groupby(['ware_code', 'location'])['product_id'].count() 
+    bodega = bodega.reset_index() 
     
     bodega['Bodega'] = bodega.apply(lambda x: 
         'Andagoya' if x['ware_code'] == 'BAN' else 
@@ -247,8 +247,6 @@ def inventario_andagoya_home(request):
     axis=1)
     
     bodega = bodega.sort_values(['Bodega', 'location'])
-    bodega = bodega.drop(index=0)
-
     bodega = de_dataframe_a_template(bodega)
 
     context = {
