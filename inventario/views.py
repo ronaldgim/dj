@@ -407,6 +407,7 @@ def inventario_toma_fisica_item(request, item_id):
         data['user'] = User.objects.get(id=data.get('user_id'))
         my_instance = Inventario.objects.get(id=item_id)
         form = InventarioForm(data, instance = my_instance)
+        
         if form.is_valid():
             form.save()
             return JsonResponse({
@@ -414,7 +415,6 @@ def inventario_toma_fisica_item(request, item_id):
                 'msg':'Registrado Correctamiente'})
         else:
             return JsonResponse({'type':'danger','msg':form.errors})
-
 
 
 @csrf_exempt
@@ -444,13 +444,28 @@ def inventario_toma_fisica_total_agrupado(request):
                 return JsonResponse({'type':'danger','msg':form.errors})
 
 
-# @csrf_exempt
-# def inventario_toma_fisica_conteo_lote(request):
+@csrf_exempt
+def inventario_toma_fisica_buscar_producto(request):
     
-#     if request.method == 'POST':
-#         data = json.loads(request.body)
-#         print(data)
-#         return JsonResponse({'msg':'ok'})
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        product_id = data.get('product_id')
+        product = productos_odbc_and_django()
+        product = product[product['product_id']==product_id]
+        product_lotes = Inventario.objects.filter(product_id=product_id).values('lote_id')
+        
+        if not product.empty:
+            return JsonResponse({
+                'type':'success', 
+                'msg':'Producto encontrado !!!', 
+                'product':product.to_dict(orient='records')[0],
+                'product_lotes':list(product_lotes)
+                })
+        else:
+            return JsonResponse({
+                'type':'danger',
+                'msg':f'No se encuentra resultados para {product_id}'
+                })
 
 
 ### INVENTARIO FORM UPDATE ###

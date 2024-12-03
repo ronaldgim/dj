@@ -12,12 +12,12 @@ class InventarioForm(forms.ModelForm):
     class Meta:
         model = Inventario
         fields = [
-        'unidades_caja', 
-        'numero_cajas', 
-        'unidades_sueltas', 
-        'observaciones',
-        'llenado',
-        'user'
+            'unidades_caja', 
+            'numero_cajas', 
+            'unidades_sueltas', 
+            'observaciones',
+            'llenado',
+            'user'
         ]
 
 

@@ -82,6 +82,17 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- DIFERENCIA -->
+                    <!--div class="mt-2 w-100">
+                        <div class="card" :style="{backgroundColor:diferenciaColor(diferencia)}">
+                            <h6 class="text-center fw-bold">DIFERENCIA</h6>
+                            <label class="text-center fs-6">T.Lotes - T.Agrupado = Diferencia</label>
+                            <div class="fs-1 card-body d-flex justify-content-center align-items-center m-0 p-0">
+                                {{ total_lotes }} - {{ total_agrupado }} = {{ diferencia }}
+                            </div>
+                        </div>
+                    </div-->
                 </div>
             
                 <div class="modal-body">                    
@@ -138,6 +149,7 @@
                     </div>
 
                     <hr>
+
                     <!-- DIFERENCIA -->
                     <div class="card" :style="{backgroundColor:diferenciaColor(diferencia)}">
                         <h6 class="text-center fw-bold">DIFERENCIA</h6>
@@ -191,7 +203,7 @@
                         <h5 class="modal-title text-center fw-bold" id="agregarItemFormLabel">AGREGAR ITEM {{ mi_bodega }} - {{ mi_ubicacion }}</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <div class="mt-2 w-100">
+                    <!--div class="mt-2 w-100">
                         <div class="card">
                             <div class="card-body">
                                 <label class="fw-bold m-0 p-0">Código:</label> {{item.product_id}}<br>
@@ -199,69 +211,24 @@
                                 <label class="fw-bold m-0 p-0">Marca:</label> {{item.group_code}}<br>
                             </div>
                         </div>
-                    </div>
+                    </div-->
                 </div>
             
                 <div class="modal-body">                    
                     <!-- TOTAL AGRUPADO -->
                     <div class="card" style="background-color: #e5f9fd;">
                         <div class="card-body">
-                            <h6 class="text-center fw-bold">TOTAL AGRUPADO</h6>
-                            <div v-if="msg_totales" :class="`alert alert-${type_msg_totales} text-center p-2 m-0`" role="alert" style="font-size: smaller;">
-                                {{msg_totales}}
+                            <h6 class="text-center fw-bold">BUSCAR PRODUCTO</h6>
+                            <div v-if="msg_product" :class="`alert alert-${type_msg_product} text-center p-2 m-0`" role="alert" style="font-size: smaller;">
+                                {{msg_product}}
                             </div>
-                            <form @submit.prevent="actualizarCrearTotal()">
-                                <label>Unidades por cartón:</label>
-                                <input class="form-control form-control-sm" v-model="formTotales.unidades_caja_t" type="number" required>
-                                <label>Número de cartones totales:</label><br>
-                                <small style="color: gray;">Este campo puede hacer calulos (+, -)</small><br>
-                                <!--input class="form-control form-control-sm" v-model="formTotales.numero_cajas_t" v-on:input="sumarInput()" type="number"-->
-                                <input class="form-control form-control-sm" v-model="formTotales.numero_cajas_t" @input="sumarInput(formTotales.numero_cajas_t, 'numero_cajas_t')" required>
-                                
-                                <label>Unidades sueltas totales:</label><br>
-                                <small style="color: gray;">Este campo puede hacer calulos (+, -)</small><br>
-                                <input class="form-control form-control-sm" v-model="formTotales.unidades_sueltas_t" @input="sumarInput(formTotales.unidades_sueltas_t, 'unidades_sueltas_t')" required>
-                                <label class="fw-bold">Total Unidades:</label> {{ total_agrupado }}<br>
-                                <button type="submit" class="btn btn-sm btn-primary float-sm-end mt-2">GUARDAR</button>
+                            <form @submit.prevent="buscarProducto()">
+                                <label>Código de producto:</label>
+                                <div class="input-group mb-3">
+                                    <input type="text" class="form-control" v-model="formBuscar.product_id" required>
+                                    <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button>
+                                </div>
                             </form>
-                        </div>
-                    </div>
-
-                    <hr>
-
-                    <!-- DETALLE LOTES -->
-                    <div class="card">
-                        <div class="card-body mb-0 pb-0"> 
-                            <h6 class="fw-bold text-center">DETALLE DE LOTES</h6> 
-                            <table class="table">
-                                <thead>
-                                    <th>Código</th>
-                                    <th>Lote(s)</th>
-                                    <th>Unidades</th>
-                                </thead>
-                                <tbody>
-                                    <tr v-for="(i, index) in lotes">
-                                        <td>{{ i.product_id }}</td>
-                                        <td>{{ i.lote_id }}</td>
-                                        <td class="text-end">{{ i.total_unidades }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>TOTAL</th>
-                                        <td></td>
-                                        <td class="text-end">{{ total_lotes }}</td>
-                                    </tr>
-                                </tbody>
-                            </table>               
-                        </div>
-                    </div>
-
-                    <hr>
-                    <!-- DIFERENCIA -->
-                    <div class="card" :style="{backgroundColor:diferenciaColor(diferencia)}">
-                        <h6 class="text-center fw-bold">DIFERENCIA</h6>
-                        <label class="text-center fs-6">T.Lotes - T.Agrupado = Diferencia</label>
-                        <div class="fs-1 card-body d-flex justify-content-center align-items-center m-0 p-0">
-                            {{ total_lotes }} - {{ total_agrupado }} = {{ diferencia }}
                         </div>
                     </div>
 
@@ -274,18 +241,44 @@
                             <div v-if="msg_lote" :class="`alert alert-${type_msg_lote} text-center p-2 m-0`" role="alert" style="font-size: smaller;">
                                 {{msg_lote}}
                             </div>
-                            <mark><label class="fw-bold m-0 p-0">Lote:</label> {{item.lote_id}}</mark><br>
-                            <label class="fw-bold m-0 p-0">F.Elab:</label> {{item.fecha_elab_lote}}<br>
-                            <label class="fw-bold m-0 p-0">F.Cadu:</label> {{item.fecha_cadu_lote}}<br>
-                            <form @submit.prevent="actualizarItem(formLote.id)">
+                            <form @submit.prevent="">
+                                
+                                <label>Código:</label>
+                                <input class="form-control form-control-sm" v-model="formAgregar.product_id" type="text"required>
+                                
+                                <label>Nombre:</label>
+                                <input class="form-control form-control-sm" v-model="formAgregar.product_name" type="text"required>
+                                
+                                <label>Marca:</label>
+                                <input class="form-control form-control-sm" v-model="formAgregar.group_code" type="text"required>
+                                
+                                <label>Presentación:</label>
+                                <input class="form-control form-control-sm" v-model="formAgregar.um" type="text"required>
+
+                                <label>Lote:</label>
+                                <!--input class="form-control form-control-sm" v-model="formAgregar.lote_id" type="text"required-->
+                                <select class="form-select form-select-sm" v-model="formAgregar.lote_id">
+                                    <option v-for="i in listaLotesAgregar" :key="listaLotesAgregar.id">{{ i.lote_id }}</option>
+                                </select>
+
+                                <label>Fecha elaboración:</label>
+                                <input class="form-control form-control-sm" v-model="formAgregar.fecha_elab_lote" type="date"required>
+
+                                <label>Fecha caducidad:</label>
+                                <input class="form-control form-control-sm" v-model="formAgregar.fecha_cadu_lote" type="date"required>
+
                                 <label>Unidades por cartón:</label>
-                                <input class="form-control form-control-sm" v-model="formLote.unidades_caja" type="number">
+                                <input class="form-control form-control-sm" v-model="formAgregar.unidades_caja" type="number"required>
+
                                 <label>Número de cartones totales:</label>
-                                <input class="form-control form-control-sm" v-model="formLote.numero_cajas" type="number">
+                                <input class="form-control form-control-sm" v-model="formAgregar.numero_cajas" type="number"required>
+
                                 <label>Unidades sueltas totales:</label>
-                                <input class="form-control form-control-sm" v-model="formLote.unidades_sueltas" type="number">
+                                <input class="form-control form-control-sm" v-model="formAgregar.unidades_sueltas" type="number"required>
+
                                 <label>Observaciones:</label>
-                                <textarea class="form-control form-control-sm" v-model="formLote.observaciones"></textarea>
+                                <textarea class="form-control form-control-sm" v-model="formAgregar.observaciones"></textarea>
+
                                 <label class="fw-bold">Total Unidades:</label> {{ conteo_fisico_lote }}<br>
                                 <button type="submit" class="btn btn-sm btn-primary float-sm-end mt-2">GUARDAR</button>
                             </form>                      
@@ -344,6 +337,32 @@
                 user_id: Number(document.getElementById("user-id").value)
             },
             
+            // AGREGAR ITEM
+            type_msg_product:'',
+            msg_product:'',
+            formBuscar:{
+                product_id:'',
+            },
+            listaLotesAgregar:[],
+
+            formAgregar:{
+                product_id:'',
+                product_name:'',
+                group_code:'',
+                um:'',
+                lote_id:'',
+                fecha_elab_lote:'',
+                fecha_cadu_lote:'',
+                ware_code:'',
+                location:'',
+                unidades_caja:'',
+                numero_cajas:'',
+                unidades_sueltas:'',
+                observaciones:'',
+                llenado:true,
+                agregado:true,
+                user_id: Number(document.getElementById("user-id").value)
+            }
         },
         mounted() {
             this.getStock();
@@ -516,6 +535,45 @@
                     this.type_msg_item = error;
                 }
             },
+
+            async buscarProducto() {
+                try {
+                    const response = await fetch('/inventario/toma-fisica/buscar-producto', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify(this.formBuscar)
+                    });
+                    const data = await response.json();
+                    
+                    // Msg product
+                    this.type_msg_product = data.type;
+                    this.msg_product = data.msg;
+
+                    // Form Agregar
+                    if (data.product) {
+                        this.formAgregar.product_id = data.product.product_id;
+                        this.formAgregar.product_name = data.product.Nombre;
+                        this.formAgregar.group_code = data.product.Marca;
+                        this.formAgregar.um = data.product.Unidad;
+                        this.formAgregar.unidades_caja = data.product.Unidad_Empaque;
+
+                        // agregar lista de lotes
+                        this.listaLotesAgregar = data.product_lotes || [];
+                    } 
+                    else {
+                        this.formAgregar.product_id = '';
+                        this.formAgregar.product_name = '';
+                        this.formAgregar.group_code = '';
+                        this.formAgregar.um = '';
+                        this.formAgregar.unidades_caja = '';
+                        this.listaLotesAgregar = [];
+                    }
+
+
+                } catch (error) {
+                    console.error(error);
+                }
+            }
         }
     })
 </script>
