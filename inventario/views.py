@@ -468,6 +468,22 @@ def inventario_toma_fisica_buscar_producto(request):
                 })
 
 
+@csrf_exempt
+def inventario_toma_fisica_agregar_producto(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        data['user'] = User.objects.get(id=data.get('user_id'))
+        
+        form = InventarioAgregarForm(data)
+        if form.is_valid():
+            #form.save()
+            print(form.cleaned_data)
+            return JsonResponse({'type':'success','msg':'Producto agregado correctamente'})
+        else:
+            print(form.errors)
+            return JsonResponse({'type':'danger','msg':form.errors})
+
+
 ### INVENTARIO FORM UPDATE ###
 @login_required(login_url='login')
 def inventario_update(request, id, bodega, ubicacion):

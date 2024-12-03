@@ -78,6 +78,12 @@ urlpatterns = [
         view = views.inventario_toma_fisica_buscar_producto,
         name ="inventario_toma_fisica_buscar_producto"
     ),
+    
+    path(
+        route='toma-fisica/agregar-producto',
+        view = views.inventario_toma_fisica_agregar_producto,
+        name ="inventario_toma_fisica_agregar_producto"
+    ),
 
 
 
