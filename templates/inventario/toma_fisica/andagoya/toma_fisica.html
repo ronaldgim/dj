@@ -107,12 +107,10 @@
                                 <label>Unidades por cartón:</label>
                                 <input class="form-control form-control-sm" v-model="formTotales.unidades_caja_t" type="number" required>
                                 <label>Número de cartones totales:</label><br>
-                                <small style="color: gray;">Este campo puede hacer calulos (+, -)</small><br>
-                                <!--input class="form-control form-control-sm" v-model="formTotales.numero_cajas_t" v-on:input="sumarInput()" type="number"-->
+                                <small style="color: gray; font-size:smaller">Este campo puede hacer calulos (+, -)</small><br>
                                 <input class="form-control form-control-sm" v-model="formTotales.numero_cajas_t" @input="sumarInput(formTotales.numero_cajas_t, 'numero_cajas_t')" required>
-                                
                                 <label>Unidades sueltas totales:</label><br>
-                                <small style="color: gray;">Este campo puede hacer calulos (+, -)</small><br>
+                                <small style="color: gray; font-size:smaller">Este campo puede hacer calulos (+, -)</small><br>
                                 <input class="form-control form-control-sm" v-model="formTotales.unidades_sueltas_t" @input="sumarInput(formTotales.unidades_sueltas_t, 'unidades_sueltas_t')" required>
                                 <label class="fw-bold">Total Unidades:</label> {{ total_agrupado }}<br>
                                 <button type="submit" class="btn btn-sm btn-primary float-sm-end mt-2">GUARDAR</button>
@@ -176,7 +174,7 @@
                                 <input class="form-control form-control-sm" v-model="formLote.unidades_caja" type="number">
                                 <label>Número total de cartones:</label>
                                 <input class="form-control form-control-sm" v-model="formLote.numero_cajas" type="number">
-                                <label>Unidades sueltas totales:</label>
+                                <label>Unidades sueltas:</label>
                                 <input class="form-control form-control-sm" v-model="formLote.unidades_sueltas" type="number">
                                 <label>Observaciones:</label>
                                 <textarea class="form-control form-control-sm" v-model="formLote.observaciones"></textarea>
