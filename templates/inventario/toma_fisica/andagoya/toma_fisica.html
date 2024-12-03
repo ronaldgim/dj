@@ -241,7 +241,7 @@
                             <div v-if="msg_lote" :class="`alert alert-${type_msg_lote} text-center p-2 m-0`" role="alert" style="font-size: smaller;">
                                 {{msg_lote}}
                             </div>
-                            <form @submit.prevent="">
+                            <form @submit.prevent="agregarProducto()">
                                 
                                 <label>Código:</label>
                                 <input class="form-control form-control-sm" v-model="formAgregar.product_id" type="text" required>
@@ -262,11 +262,12 @@
                                 </select>
 
                                 <label>Fecha elaboración:</label>
-                                <input class="form-control form-control-sm" v-model="formAgregar.fecha_elab_lote" onkeydown="return false" type="date" required>
-
+                                <!--input class="form-control form-control-sm" v-model="formAgregar.fecha_elab_lote" type="text" @input="formatoFecha('fecha_elab_lote')" maxlength="10" placeholder="dd/mm/aaaa" required-->
+                                <input class="form-control form-control-sm" v-model="formAgregar.fecha_elab_lote" type="date" @focus="disabledCalendar" required>
+                                <p v-if="!validDateInputs.fecha_elab_lote" style="color: red; font-size:smaller">Formato inválido (dd/mm/aaaa)</p>
                                 <label>Fecha caducidad:</label>
-                                <input class="form-control form-control-sm" v-model="formAgregar.fecha_cadu_lote" type="date" required>
-
+                                <input class="form-control form-control-sm" v-model="formAgregar.fecha_cadu_lote" type="text" @input="formatoFecha('fecha_cadu_lote')" maxlength="10" placeholder="dd/mm/aaaa" required>
+                                <p v-if="!validDateInputs.fecha_cadu_lote" style="color: red; font-size:smaller">Formato inválido (dd/mm/aaaa)</p>
                                 <label>Unidades por cartón:</label>
                                 <input class="form-control form-control-sm" v-model="formAgregar.unidades_caja" type="number" required>
 
@@ -345,6 +346,15 @@
             },
             listaLotesAgregar:[],
 
+            // input date
+            rawDate:'',
+            //formattedDate: '',
+            validDateInputs: {
+                fecha_elab_lote: true,
+                fecha_cadu_lote: true,
+            },
+
+            // form agregar
             formAgregar:{
                 product_id:'',
                 product_name:'',
@@ -422,6 +432,37 @@
                         this.formTotales[name] = Number(total);
                     }
                 }
+            },
+
+            formatoFecha(name){
+
+                let rawDate = this.formAgregar[name].replace(/\D/g, "");
+                let formatted = "";
+                
+                // Formatear la fecha con '/'
+                if (rawDate.length > 0) {
+                    formatted += rawDate.substring(0, 2);
+                }
+                if (rawDate.length >= 2) {
+                    formatted += "/" + rawDate.substring(2, 4);
+                }
+                if (rawDate.length >= 4) {
+                    formatted += "/" + rawDate.substring(4, 8);
+                }
+                // Actualiza el valor del input
+                this.formAgregar[name] = formatted;
+                // const regex = /^\d{2}\/\d{2}\/\d{4}$/;
+                //const regex = \d{2}/\d{2}/\d{4}; 
+                this.validDateInputs[name] = regex.test(formatted);
+            },
+
+            esFormularioValido() {
+                // Verifica si todos los campos son válidos
+                return Object.values(this.validDateInputs).every((isValid) => isValid);
+            },
+
+            disabledCalendar(event){
+                event.preventDefault();
             },
 
             async getStock () {
@@ -570,6 +611,18 @@
                     }
 
 
+                } catch (error) {
+                    console.error(error);
+                }
+            },
+
+            async agregarProducto() {
+                try {
+                    const response = await fetch('/inventario/toma-fisica/agregar-producto', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify(this.formAgregar)
+                    }); 
                 } catch (error) {
                     console.error(error);
                 }
