@@ -18,9 +18,10 @@
     <h6 class="text-start"><strong># Items contabilizados: </strong>{{n_inventario_llenado}}</h6>
     {% endverbatim %}
 
-    <a class="btn btn-primary" href="{#% url 'inventario_agregar_form' bodega ubicacion %#}">
+
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#agregarItemForm">
         <i class="bi bi-plus-circle"></i> Añadir
-    </a>
+    </button>
 
     <div class="col-12 mt-2">
         <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
@@ -61,7 +62,7 @@
         </div>
     </div>
 
-    <!-- Modal -->
+    <!-- TOMA FISICA -->
     <div class="modal fade" id="tomaFisicaForm" tabindex="-1" aria-labelledby="tomaFisicaFormLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-scrollable">
             <div class="modal-content">
@@ -179,6 +180,123 @@
         </div>
     </div>
 
+    <!-- AGREGAR ITEM -->
+    <div class="modal fade" id="agregarItemForm" tabindex="-1" aria-labelledby="agregarItemFormLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <input type="hidden" id="user-id" value="{{ request.user.id }}">
+                {% verbatim %}
+                <div class="modal-header d-flex flex-column align-items-center">
+                    <div class="d-flex justify-content-between w-100 align-items-center">
+                        <h5 class="modal-title text-center fw-bold" id="agregarItemFormLabel">AGREGAR ITEM {{ mi_bodega }} - {{ mi_ubicacion }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="mt-2 w-100">
+                        <div class="card">
+                            <div class="card-body">
+                                <label class="fw-bold m-0 p-0">Código:</label> {{item.product_id}}<br>
+                                <label class="fw-bold m-0 p-0">Nombre:</label> {{item.product_name}}<br>
+                                <label class="fw-bold m-0 p-0">Marca:</label> {{item.group_code}}<br>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="modal-body">                    
+                    <!-- TOTAL AGRUPADO -->
+                    <div class="card" style="background-color: #e5f9fd;">
+                        <div class="card-body">
+                            <h6 class="text-center fw-bold">TOTAL AGRUPADO</h6>
+                            <div v-if="msg_totales" :class="`alert alert-${type_msg_totales} text-center p-2 m-0`" role="alert" style="font-size: smaller;">
+                                {{msg_totales}}
+                            </div>
+                            <form @submit.prevent="actualizarCrearTotal()">
+                                <label>Unidades por cartón:</label>
+                                <input class="form-control form-control-sm" v-model="formTotales.unidades_caja_t" type="number" required>
+                                <label>Número de cartones totales:</label><br>
+                                <small style="color: gray;">Este campo puede hacer calulos (+, -)</small><br>
+                                <!--input class="form-control form-control-sm" v-model="formTotales.numero_cajas_t" v-on:input="sumarInput()" type="number"-->
+                                <input class="form-control form-control-sm" v-model="formTotales.numero_cajas_t" @input="sumarInput(formTotales.numero_cajas_t, 'numero_cajas_t')" required>
+                                
+                                <label>Unidades sueltas totales:</label><br>
+                                <small style="color: gray;">Este campo puede hacer calulos (+, -)</small><br>
+                                <input class="form-control form-control-sm" v-model="formTotales.unidades_sueltas_t" @input="sumarInput(formTotales.unidades_sueltas_t, 'unidades_sueltas_t')" required>
+                                <label class="fw-bold">Total Unidades:</label> {{ total_agrupado }}<br>
+                                <button type="submit" class="btn btn-sm btn-primary float-sm-end mt-2">GUARDAR</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- DETALLE LOTES -->
+                    <div class="card">
+                        <div class="card-body mb-0 pb-0"> 
+                            <h6 class="fw-bold text-center">DETALLE DE LOTES</h6> 
+                            <table class="table">
+                                <thead>
+                                    <th>Código</th>
+                                    <th>Lote(s)</th>
+                                    <th>Unidades</th>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="(i, index) in lotes">
+                                        <td>{{ i.product_id }}</td>
+                                        <td>{{ i.lote_id }}</td>
+                                        <td class="text-end">{{ i.total_unidades }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>TOTAL</th>
+                                        <td></td>
+                                        <td class="text-end">{{ total_lotes }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>               
+                        </div>
+                    </div>
+
+                    <hr>
+                    <!-- DIFERENCIA -->
+                    <div class="card" :style="{backgroundColor:diferenciaColor(diferencia)}">
+                        <h6 class="text-center fw-bold">DIFERENCIA</h6>
+                        <label class="text-center fs-6">T.Lotes - T.Agrupado = Diferencia</label>
+                        <div class="fs-1 card-body d-flex justify-content-center align-items-center m-0 p-0">
+                            {{ total_lotes }} - {{ total_agrupado }} = {{ diferencia }}
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- CONTEO POR LOTE -->
+                    <div class="card">
+                        <div class="card-body">
+                            <h6 class="text-center fw-bold">CONTEO POR LOTE</h6> 
+                            <div v-if="msg_lote" :class="`alert alert-${type_msg_lote} text-center p-2 m-0`" role="alert" style="font-size: smaller;">
+                                {{msg_lote}}
+                            </div>
+                            <mark><label class="fw-bold m-0 p-0">Lote:</label> {{item.lote_id}}</mark><br>
+                            <label class="fw-bold m-0 p-0">F.Elab:</label> {{item.fecha_elab_lote}}<br>
+                            <label class="fw-bold m-0 p-0">F.Cadu:</label> {{item.fecha_cadu_lote}}<br>
+                            <form @submit.prevent="actualizarItem(formLote.id)">
+                                <label>Unidades por cartón:</label>
+                                <input class="form-control form-control-sm" v-model="formLote.unidades_caja" type="number">
+                                <label>Número de cartones totales:</label>
+                                <input class="form-control form-control-sm" v-model="formLote.numero_cajas" type="number">
+                                <label>Unidades sueltas totales:</label>
+                                <input class="form-control form-control-sm" v-model="formLote.unidades_sueltas" type="number">
+                                <label>Observaciones:</label>
+                                <textarea class="form-control form-control-sm" v-model="formLote.observaciones"></textarea>
+                                <label class="fw-bold">Total Unidades:</label> {{ conteo_fisico_lote }}<br>
+                                <button type="submit" class="btn btn-sm btn-primary float-sm-end mt-2">GUARDAR</button>
+                            </form>                      
+                        </div>
+                    </div>
+                
+                </div>
+                {% endverbatim %}
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
