@@ -111,10 +111,10 @@ def stock_lote_tupla():
         location    = i.get('LOCATION').replace('/','') if '/' in i.get('LOCATION') else i.get('LOCATION')
         unidades_caja = i.get('Unidad_Empaque')
         
-        numero_cajas = 0 #''
-        unidades_sueltas = 0 #''
-        total_unidades = 0 #''
-        diferencia = 0 #''
+        numero_cajas = 0 
+        unidades_sueltas = 0 
+        total_unidades = 0 
+        diferencia = 0 
         
         observaciones = ''
         llenado = False
