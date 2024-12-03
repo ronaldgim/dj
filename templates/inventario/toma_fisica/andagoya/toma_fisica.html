@@ -299,6 +299,20 @@
                 }
             },
 
+            //lista_lotes(item) {
+            //    return this.stock.filter((i) => {
+            //        return (
+            //            i.product_id === item.product_id &&
+            //            i.ware_code === item.ware_code &&
+            //            i.location === item.location
+            //        );
+            //    });
+            //},
+
+            //actualizarLotes() {
+            //    this.lotes = this.lista_lotes(this.item); // Actualiza 'this.lotes' con la lista filtrada
+            //},
+
             async getStock () {
                 const url = window.location.href;
                 const params = url.split('/');
@@ -333,6 +347,8 @@
                         i.product_id == this.item.product_id &&
                         i.ware_code == this.item.ware_code &&
                         i.location == this.item.location);
+                    
+                    //this.lotes = this.lista_lotes(this.item);
                     
                     // Total lotes
                     this.total_lotes = this.lotes.reduce((acumulador, unidades) => acumulador + unidades.total_unidades, 0)
@@ -392,16 +408,18 @@
                         body: JSON.stringify(this.formLote)
                     });
                     const data = await response.json();
-                    await this.getItem(item_id);
-                    await this.getStock(); 
+
                     this.type_msg_lote = data.type;
-                    this.msg_lote = data.msg;                   
+                    this.msg_lote = data.msg; 
+
+                    await this.getStock();
+                    await this.getItem(item_id);        
+                    
                 } catch (error) {
                     this.type_msg_lote = 'danger';
                     this.type_msg_item = error;
                 }
             },
-
         }
     })
 </script>

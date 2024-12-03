@@ -382,11 +382,11 @@ from django.views.decorators.csrf import csrf_exempt
 from django.forms.models import model_to_dict
 @csrf_exempt
 def inventario_toma_fisica_item(request, item_id):
-    item = Inventario.objects.get(id=item_id)
+    
     if request.method == 'GET':
         
         # item
-        #item = Inventario.objects.get(id=item_id)
+        item = Inventario.objects.get(id=item_id)
         item_dict = model_to_dict(item)
         
         # item totales
@@ -405,11 +405,11 @@ def inventario_toma_fisica_item(request, item_id):
         
         data = json.loads(request.body)
         data['user'] = User.objects.get(id=data.get('user_id'))
-        form = InventarioForm(data, instance=Inventario.objects.get(id=item_id))
+        my_instance = Inventario.objects.get(id=item_id)
+        form = InventarioForm(data, instance = my_instance)
         if form.is_valid():
             form.save()
             return JsonResponse({
-                'item':model_to_dict(item),
                 'type':'success',
                 'msg':'Registrado Correctamiente'})
         else:
