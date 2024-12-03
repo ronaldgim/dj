@@ -72,12 +72,12 @@ def stock_lote_inventario_andagoya(): #request
     with connections['gimpromed_sql'].cursor() as cursor:
         cursor.execute("SELECT * FROM warehouse.stock_lote WHERE WARE_CODE = 'BAN' OR WARE_CODE = 'CUA'")
         columns = [col[0] for col in cursor.description]
-        clientes = [
+        stock = [
             dict(zip(columns, row))
             for row in cursor.fetchall()
         ]
         
-        stock_lote = pd.DataFrame(clientes)
+        stock_lote = pd.DataFrame(stock)
         productos = productos_odbc_and_django()[['product_id','Unidad_Empaque']]
         productos = productos.rename(columns={'product_id':'PRODUCT_ID'})
         stock_lote = stock_lote.merge(productos, on='PRODUCT_ID', how='left')
@@ -104,8 +104,8 @@ def stock_lote_tupla():
         oh2         = i.get('OH2')
         commited    = i.get('COMMITED')
         quantity    = i.get('QUANTITY')
-        # lote_id     = i.get('LOTE_ID')
-        lote_id     = i.get('LOTE_ID').replace('.', '') if '.' in i.get('LOTE_ID') else i.get('LOTE_ID')
+        lote_id     = i.get('LOTE_ID')
+        # lote_id     = i.get('LOTE_ID').replace('.', '') if '.' in i.get('LOTE_ID') else i.get('LOTE_ID')
         fecha_elab  = i.get('Fecha_elaboracion_lote')
         fecha_cadu  = i.get('FECHA_CADUCIDAD')
         ware_code   = i.get('WARE_CODE')
@@ -206,7 +206,7 @@ def inventario_andagoya_get_stock(request):
 
 @require_GET
 def inventario_andagoya_actualizar_db(request):
-
+    
     with connections['default'].cursor() as cursor:
         cursor.execute("TRUNCATE TABLE inventario_inventario")
     
