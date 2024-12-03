@@ -648,7 +648,8 @@
                         this.listaLotesAgregar = [];
                     }
                 } catch (error) {
-                    console.error(error);
+                    this.type_msg_product = 'danger';
+                    this.msg_product = error;
                 }
             },
 
@@ -664,7 +665,8 @@
                     this.msg_agregar_lote = data.msg;
                     await this.getStock();
                 } catch (error) {
-                    console.error(error);
+                    this.type_msg_agregar_lote = 'danger';
+                    this.msg_agregar_lote = error;
                 }
             }
         }
