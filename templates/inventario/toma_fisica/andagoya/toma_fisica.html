@@ -107,11 +107,35 @@
                                 <label>Unidades por cartón:</label>
                                 <input class="form-control form-control-sm" v-model="formTotales.unidades_caja_t" type="number" required>
                                 <label>Número de cartones totales:</label><br>
-                                <small style="color: gray; font-size:smaller">Este campo puede hacer calulos (+, -)</small><br>
-                                <input class="form-control form-control-sm" v-model="formTotales.numero_cajas_t" @input="sumarInput(formTotales.numero_cajas_t, 'numero_cajas_t')" required>
+                                <small style="color: gray; font-size:smaller">Este campo puede hacer calulos (+, -)</small> <small style="color: red; font-size:smaller">solo dos números</small><br>
+                                <!--input class="form-control form-control-sm" v-model="formTotales.numero_cajas_t" @input="sumarInput(formTotales.numero_cajas_t, 'numero_cajas_t')" required-->
+                                
+                                <div class="row g-2">
+                                    <div class="col-11">
+                                        <input class="form-control form-control-sm" v-model="formTotales.numero_cajas_t" required>
+                                    </div>
+                                    <div class="col-1">
+                                        <button @click="sumarInput(formTotales.numero_cajas_t, 'numero_cajas_t')" class="btn btn-sm btn-success" type="button">
+                                            =
+                                        </button>
+                                    </div>
+                                </div>                              
+                                
                                 <label>Unidades sueltas totales:</label><br>
-                                <small style="color: gray; font-size:smaller">Este campo puede hacer calulos (+, -)</small><br>
-                                <input class="form-control form-control-sm" v-model="formTotales.unidades_sueltas_t" @input="sumarInput(formTotales.unidades_sueltas_t, 'unidades_sueltas_t')" required>
+                                <small style="color: gray; font-size:smaller">Este campo puede hacer calulos (+, -)</small> <small style="color: red; font-size:smaller">solo dos números</small> <br>
+                                <!--input class="form-control form-control-sm" v-model="formTotales.unidades_sueltas_t" @input="sumarInput(formTotales.unidades_sueltas_t, 'unidades_sueltas_t')" required-->
+                                
+                                <div class="row g-2">
+                                    <div class="col-11">
+                                        <input class="form-control form-control-sm" v-model="formTotales.unidades_sueltas_t" required>
+                                    </div>
+                                    <div class="col-1">
+                                        <button @click="sumarInput(formTotales.unidades_sueltas_t, 'unidades_sueltas_t')" class="btn btn-sm btn-success" type="button">
+                                            =
+                                        </button>
+                                    </div>
+                                </div>
+
                                 <label class="fw-bold">Total Unidades:</label> {{ total_agrupado }}<br>
                                 <button type="submit" class="btn btn-sm btn-primary float-sm-end mt-2">GUARDAR</button>
                             </form>
@@ -255,13 +279,13 @@
 
                                 <label>Lote:</label>
                                 <div class="row g-2">
-                                    <div class="col-10">
+                                    <div class="col-11">
                                         <select v-show="lote_input" class="form-select form-select-sm" v-model="formAgregar.lote_id">
                                             <option v-for="i in listaLotesAgregar" :key="listaLotesAgregar.id">{{ i.lote_id }}</option>
                                         </select>
                                         <input v-show="!lote_input" class="form-control form-control-sm" v-model="formAgregar.lote_id" type="text"required>
                                     </div>
-                                    <div class="col-2 d-flex justify-content-end">
+                                    <div class="col-1 d-flex justify-content-end">
                                         <button @click="lote_input_toggle" class="btn btn-sm btn-secondary" type="button">
                                             <i class="bi bi-pencil-square"></i>
                                         </button>
