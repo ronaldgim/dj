@@ -50,6 +50,9 @@ from wms.models import InventarioIngresoBodega, Movimiento
 # HTTPS
 from django.views.decorators.http import require_GET, require_POST
 
+from django.views.decorators.csrf import csrf_exempt
+from django.forms.models import model_to_dict
+
 
 def stock_lote(): #request
     ''' Colusta de stock '''
@@ -372,13 +375,11 @@ def inventario_por_bodega(request, bodega, ubicacion):
     #return render(request, 'inventario/bodega_ubicacion_list.html', context)
     return JsonResponse(context)
 
-
+@login_required(login_url='login')
 def inventario_toma_fisica_andagoya_vue(request, bodega, location):
     return render(request, 'inventario/toma_fisica/andagoya/toma_fisica.html')
 
 
-from django.views.decorators.csrf import csrf_exempt
-from django.forms.models import model_to_dict
 @csrf_exempt
 def inventario_toma_fisica_item(request, item_id):
     
