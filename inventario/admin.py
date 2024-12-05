@@ -2,7 +2,7 @@
 from django.contrib import admin
 
 # Models
-from inventario.models import Inventario, InventarioTotale, Arqueo, ArqueoFisico, ArqueosCreados
+from inventario.models import Inventario, InventarioTotale, InventarioCerezos, Arqueo, ArqueoFisico, ArqueosCreados
 
 @admin.register(Inventario)
 class InventarioAdmin(admin.ModelAdmin):
@@ -37,6 +37,22 @@ class InventarioTotalesAdmin(admin.ModelAdmin):
     list_display_links = ['product_id_t']
     search_fields = ['product_id_t',]
     ordering = ['product_id_t',]
+
+
+@admin.register(InventarioCerezos)
+class InventarioCerezosAdmin(admin.ModelAdmin):
+    list_display = (
+        'product_id', 
+        'product_name', 
+        'group_code',
+        'lote_id',
+        'oh2',
+    )
+    
+    list_filter = ('llenado', 'agregado')
+    list_display_links = ['product_id']
+    search_fields = ['product_id','lote_id']
+    ordering = ['group_code']
 
 
 @admin.register(ArqueosCreados)

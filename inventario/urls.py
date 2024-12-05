@@ -87,29 +87,51 @@ urlpatterns = [
 
 
 
-
-
-
-
-    # Actulizar stock lote FORM UPDDATE
+    # Inventario Cerezos
     path(
-        route='inventario/<int:id>/<str:bodega>/<str:ubicacion>',
-        view = views.inventario_update,
-        name = 'inventario_update_form'
-    ), #inventario_update_totales
-
-    path(
-        route='inventario/total/update/<int:id>',
-        view = views.inventario_update_totales,
-        name = 'inventario_total_update_form'
-    ), 
-
-    # Agregar stock lote FORM AGREGAR
-    path(
-        route='inventario/new/<str:bodega>/<str:ubicacion>',
-        view = views.inventario_agregar,
-        name = 'inventario_agregar_form'
+        route='cerezos_actualizar_db',
+        view = views.inventario_cerezos_actualizar_db,
+        name = 'inventario_cerezos_actualizar_db'
     ),
+
+    path(
+        route='cerezos_get_stock',
+        view = views.inventario_cerezos_get_stock,
+        name = 'inventario_cerezos_get_stock'
+    ),
+    
+    path(
+        route='cerezos-reporte',
+        view = views.inventario_cerezos_reportes,
+        name = 'inventario_cerezos_reportes'
+    ),
+
+    path(
+        route='cerezos-home',
+        view = views.inventario_cerezos_home,
+        name = 'inventario_cerezos_home'
+    ),
+
+
+    # # Actulizar stock lote FORM UPDDATE
+    # path(
+    #     route='inventario/<int:id>/<str:bodega>/<str:ubicacion>',
+    #     view = views.inventario_update,
+    #     name = 'inventario_update_form'
+    # ), #inventario_update_totales
+
+    # path(
+    #     route='inventario/total/update/<int:id>',
+    #     view = views.inventario_update_totales,
+    #     name = 'inventario_total_update_form'
+    # ), 
+
+    # # Agregar stock lote FORM AGREGAR
+    # path(
+    #     route='inventario/new/<str:bodega>/<str:ubicacion>',
+    #     view = views.inventario_agregar,
+    #     name = 'inventario_agregar_form'
+    # ),
 
 
 
