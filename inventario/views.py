@@ -455,7 +455,9 @@ def inventario_toma_fisica_buscar_producto(request):
         data = json.loads(request.body)
         product_id = data.get('product_id')
         product = productos_odbc_and_django()
-        product = product[product['product_id']==product_id]
+        product = product[product['product_id']==product_id][[
+            'product_id','Nombre','Marca','Unidad','Unidad_Empaque'
+        ]]
         product_lotes = Inventario.objects.filter(product_id=product_id).values('lote_id')
         
         if not product.empty:
@@ -632,7 +634,97 @@ def inventario_cerezos_home(request):
     return render(request, 'inventario/toma_fisica/cerezos/home.html', context)
 
 
+@login_required(login_url='login')
+def inventario_por_bodega_cerezos(request, bodega, ubicacion): 
+    
+    inventario = InventarioCerezos.objects.filter(ubicacion__bodega=bodega, ubicacion__pasillo=ubicacion).order_by('group_code', 'product_id').values(
+        'id',
+        'product_id',
+        'product_name',
+        'group_code',
+        'um',
+        'estado',
+        
+        'oh2',
+        
+        'lote_id',
+        'fecha_elab_lote',
+        'fecha_cadu_lote',
+        
+        'ubicacion__id',
+        'ubicacion__bodega',
+        'ubicacion__pasillo',
+        'ubicacion__modulo',
+        'ubicacion__nivel',
+        
+        'unidades_caja',
+        'numero_cajas',
+        'unidades_sueltas',
+        'total_unidades',
+        'diferencia',
+        'observaciones',
+        
+        'llenado',
+        'agregado',
+        'user__username',
+    )    
 
+    n_inventario =len(inventario)
+    n_inventario_llenado = len(InventarioCerezos.objects.filter(ubicacion__bodega=bodega).filter(ubicacion__pasillo=ubicacion).filter(llenado=True))
+    n_inventario_nollenado = len(InventarioCerezos.objects.filter(ubicacion__bodega=bodega).filter(ubicacion__pasillo=ubicacion).filter(llenado=False))
+
+    context = {
+        'inventario':list(inventario),
+        'mi_bodega':bodega,
+        'mi_ubicacion':ubicacion,
+        'n_inventario':n_inventario,
+        'n_inventario_llenado':n_inventario_llenado,
+        'n_inventario_nollenado':n_inventario_nollenado,
+    }
+
+    return JsonResponse(context)
+
+
+@login_required(login_url='login')
+def inventario_toma_fisica_cerezos_vue(request, bodega, location):
+    return render(request, 'inventario/toma_fisica/cerezos/toma_fisica.html')
+
+
+@csrf_exempt
+def inventario_cerezos_toma_fisica_item(request, item_id):
+    
+    if request.method == 'GET':
+        
+        # item
+        item = InventarioCerezos.objects.get(id=item_id)
+        item_dict = model_to_dict(item)
+        
+        # # item totales
+        # item_totales = (InventarioTotale.objects
+        #     .filter(product_id_t=item.product_id)
+        #     .filter(ware_code_t=item.ware_code)
+        #     .filter(location_t=item.location)
+        # )
+        
+        return JsonResponse({
+            'item': item_dict,
+            #'item_totales': model_to_dict(item_totales.first()) if item_totales.first() else None,
+            })
+    
+    elif request.method == 'POST':
+        
+        data = json.loads(request.body)
+        data['user'] = User.objects.get(id=data.get('user_id'))
+        my_instance = Inventario.objects.get(id=item_id)
+        form = InventarioForm(data, instance = my_instance)
+        
+        if form.is_valid():
+            form.save()
+            return JsonResponse({
+                'type':'success',
+                'msg':'Registrado Correctamiente'})
+        else:
+            return JsonResponse({'type':'danger','msg':form.errors})
 
 
 # ### INVENTARIO FORM UPDATE ###
