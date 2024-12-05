@@ -111,7 +111,26 @@ urlpatterns = [
         view = views.inventario_cerezos_home,
         name = 'inventario_cerezos_home'
     ),
+    
+    path(
+        route='inv-cerezos/<str:bodega>/<str:ubicacion>',
+        view = views.inventario_por_bodega_cerezos,
+        name = 'inventario_por_bodega_cerezos'
+    ),
+    
+    path(
+        route='cerezos/toma-fisica/<str:bodega>/<str:location>',
+        view = views.inventario_toma_fisica_cerezos_vue,
+        name= 'inventario_toma_fisica_cerezos_vue'
+    ),
 
+    # GET ITEM TOMA FISICA
+    path(
+        route='cerezos/toma-fisica/<int:item_id>',
+        view = views.inventario_cerezos_toma_fisica_item,
+        name ="inventario_cerezos_toma_fisica_item"
+    ),
+    
 
     # # Actulizar stock lote FORM UPDDATE
     # path(
