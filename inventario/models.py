@@ -79,7 +79,46 @@ class InventarioTotale(models.Model):
         return super().save(*args, **kwargs)
     
 
+# Inventario Cerezos
+from wms.models import Ubicacion
+class InventarioCerezos(models.Model):
 
+    # MBA
+    product_id       = models.CharField(verbose_name='Product id', max_length=50, blank=True)
+    product_name     = models.CharField(verbose_name='Product name', max_length=200, blank=True)
+    group_code       = models.CharField(verbose_name='Group code', max_length=50, blank=True)
+    um               = models.CharField(verbose_name='Presentación', max_length=50, blank=True)
+    estado           = models.CharField(verbose_name='Estado', max_length=20, blank=True)
+    
+    oh2              = models.IntegerField(verbose_name='OH2', blank=True)
+    
+    lote_id          = models.CharField(verbose_name='Lote', max_length=50, blank=True)
+    fecha_elab_lote  = models.DateField(verbose_name='Fecha elaboración lote', blank=True)
+    fecha_cadu_lote  = models.DateField(verbose_name='Fecha caducidad lote', blank=True)
+    ubicacion       = models.ForeignKey(Ubicacion, verbose_name='Ubicación', max_length=5, on_delete=models.CASCADE, related_name='inventario_ubicacion', blank=True, null=True)
+    
+    # Inventario Físico
+    unidades_caja    = models.IntegerField(verbose_name='Unidades por caja', blank=True)  # default = 0
+    numero_cajas     = models.IntegerField(verbose_name='Número de cajas', blank=True)  # default = 0
+    unidades_sueltas = models.IntegerField(verbose_name='Unidades sueltas', blank=True)  # default = 0
+    total_unidades   = models.IntegerField(verbose_name='Total de unidades', blank=True)  # default = 0
+    diferencia       = models.IntegerField(verbose_name='Diferencia', blank=True)  # default = 0
+    observaciones    = models.CharField(verbose_name='Observaciones', max_length=100, blank=True)
+
+    # De control
+    llenado = models.BooleanField(verbose_name='Llenado', default=False)
+    agregado = models.BooleanField(verbose_name='Añadido', default=False)
+
+    # Usuario
+    user     = models.ForeignKey(User, verbose_name='User', blank=True, null=True, on_delete=models.CASCADE)
+    
+    def __str__(self):
+        return self.product_id
+
+    def save(self, *args, **kwargs):
+        self.total_unidades = (self.unidades_caja * self.numero_cajas) + self.unidades_sueltas
+        self.diferencia = self.total_unidades - self.oh2
+        return super().save(*args, **kwargs)
 
 # Arqueos
 class Arqueo(models.Model):

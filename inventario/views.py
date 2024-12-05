@@ -14,8 +14,11 @@ import json
 
 # Models
 from datos.models import Product
-from .models import Inventario, InventarioTotale, Arqueo, ArqueoFisico, ArqueosCreados
+from .models import Inventario, InventarioTotale, InventarioCerezos, Arqueo, ArqueoFisico, ArqueosCreados
 from users.models import User, UserPerfil
+
+# models WMS
+from wms.models import Existencias, Ubicacion
 
 # Forms
 from .forms import InventarioForm, InventarioAgregarForm, InventarioTotalesForm, ArqueoForm
@@ -251,7 +254,7 @@ def inventario_andagoya_home(request):
     
     bodega = bodega.sort_values(['Bodega', 'location'])
     bodega = de_dataframe_a_template(bodega)
-
+    
     context = {
         'bodega':bodega
     }
@@ -375,6 +378,7 @@ def inventario_por_bodega(request, bodega, ubicacion):
     #return render(request, 'inventario/bodega_ubicacion_list.html', context)
     return JsonResponse(context)
 
+
 @login_required(login_url='login')
 def inventario_toma_fisica_andagoya_vue(request, bodega, location):
     return render(request, 'inventario/toma_fisica/andagoya/toma_fisica.html')
@@ -482,180 +486,320 @@ def inventario_toma_fisica_agregar_producto(request):
             return JsonResponse({'type':'danger','msg':form.errors})
 
 
-### INVENTARIO FORM UPDATE ###
-@login_required(login_url='login')
-def inventario_update(request, id, bodega, ubicacion):
 
-    instancia = Inventario.objects.get(id=id)
-    inventario_totales = InventarioTotalesForm(initial={
-        'unidades_caja_t':0,
-        # 'numero_cajas_t':0,
-        # 'unidades_sueltas_t':0
+
+### INVENTARIO CEREZOS
+def inventario_cerezos_actualizar_db(request):
+    
+    stock = stock_lote()[['PRODUCT_ID','LOTE_ID','Fecha_elaboracion_lote']]
+    stock['l'] = stock['LOTE_ID'].str.replace('.','', regex=False)    
+    stock = stock.drop_duplicates(subset=['PRODUCT_ID','l'])
+    stock = stock.rename(columns={'PRODUCT_ID':'product_id'}) #,'LOTE_ID':'lote_id'})
+    
+    productos = productos_odbc_and_django()[['product_id','Nombre','Marca','Unidad','Unidad_Empaque']]
+    productos = productos.drop_duplicates(subset=['product_id','Nombre','Marca','Unidad','Unidad_Empaque'], keep='first')
+    
+    existencias = Existencias.objects.all().values()
+    existencias_df = pd.DataFrame(existencias)
+    
+    existencias_df['l'] = existencias_df['lote_id'].str.replace('.','', regex=False)
+    #existencias_df = existencias_df.merge(stock, on=['product_id','lote_id'], how='left')
+    existencias_df = existencias_df.merge(stock, on=['product_id','l'], how='left')
+    
+    existencias_df = existencias_df.merge(productos, on='product_id', how='left').fillna('')
+    existencias_df['id'] = range(1, len(existencias_df) + 1)
+    existencias_df['numero_cajas'] = 0
+    existencias_df['unidades_sueltas'] = 0
+    existencias_df['total_unidades'] = 0
+    existencias_df['diferencia'] = 0
+    existencias_df['observaciones'] = ''
+    existencias_df['llenado'] = False
+    existencias_df['agregado'] = False
+    existencias_df['user_id'] = None
+    
+    existencias_df = existencias_df[[
+        'id',
+        'product_id','Nombre','Marca','Unidad','estado','unidades','lote_id',
+        'Fecha_elaboracion_lote','fecha_caducidad','Unidad_Empaque',
+        'numero_cajas','unidades_sueltas','total_unidades','diferencia',
+        'observaciones','llenado','agregado','ubicacion_id','user_id',
+    ]]
+    
+    # print(existencias_df)
+    # existencias_df.to_excel('ext.xlsx')
+
+    data = list(existencias_df.itertuples(index=False, name=None)) 
+    
+    with connections['default'].cursor() as cursor:
+        cursor.execute("TRUNCATE TABLE inventario_inventariocerezos")
+
+    with connections['default'].cursor() as cursor:
+        cursor.executemany("""
+            INSERT INTO inventario_inventariocerezos
+            (id, product_id, product_name, group_code, um, estado, oh2, lote_id, 
+            fecha_elab_lote, fecha_cadu_lote, unidades_caja, 
+            numero_cajas, unidades_sueltas, total_unidades, diferencia, 
+            observaciones, llenado, agregado, ubicacion_id, user_id) 
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""", 
+            data)
+    
+    return JsonResponse({'msg':'ok'})
+    
+
+@require_GET
+def inventario_cerezos_get_stock(request):
+    
+    inventario = InventarioCerezos.objects.all().values(
+        'product_id',
+        'product_name',
+        'group_code',
+        'um',
+        'estado',
+        
+        'oh2',
+        
+        'lote_id',
+        'fecha_elab_lote',
+        'fecha_cadu_lote',
+        
+        'ubicacion__id',
+        'ubicacion__bodega',
+        'ubicacion__pasillo',
+        'ubicacion__modulo',
+        'ubicacion__nivel',
+        
+        'unidades_caja',
+        'numero_cajas',
+        'unidades_sueltas',
+        'total_unidades',
+        'diferencia',
+        'observaciones',
+        
+        'llenado',
+        'agregado',
+        'user__username',
+    )
+    
+    total      = len(inventario)
+    procesados = len(inventario.filter(llenado=True))
+    
+    porcentaje_avance = round((procesados / total) * 100, 0)
+    procentaje_falta  = 100 - porcentaje_avance
+    
+    lista_ubicaciones = sorted(list(inventario.values_list('ubicacion__bodega', flat=True).distinct()))
+    lista_avance = [round((inventario.filter(ubicacion__bodega=i, llenado=True).count()/inventario.filter(ubicacion__bodega=i).count())*100,1) for i in lista_ubicaciones]
+    
+    lista_totales = [porcentaje_avance, procentaje_falta]    
+    
+    return JsonResponse({
+        'inventario': list(inventario),
+        'total':total,
+        'procesados':procesados,
+        'ubicaciones': lista_ubicaciones,
+        'avances': lista_avance,
+        'totales': lista_totales
     })
     
-    productos_total = InventarioTotale.objects.filter(ware_code_t=bodega).filter(location_t=ubicacion).filter(product_id_t=instancia.product_id)
-    total_unds = []
-    for i in productos_total:
-        p_t = i.total_unidades_t
-        total_unds.append(p_t)
-    t_unds = sum(total_unds)
+
+def inventario_cerezos_reportes(request):
+    return render(request, 'inventario/toma_fisica/cerezos/reportes_cerezos.html')
+
+
+def inventario_cerezos_home(request):
     
-
-    inventario_lotes = Inventario.objects.filter(ware_code=bodega).filter(location=ubicacion).filter(product_id=instancia.product_id)
-    total_lotes = []
-    for i in inventario_lotes:
-        t = i.total_unidades
-        total_lotes.append(t)
-    t_lotes = sum(total_lotes)
-    print(inventario_lotes)
-    print(total_lotes)
-
-    diferencia = t_unds - t_lotes
+    bodegas = InventarioCerezos.objects.values_list('ubicacion__bodega', flat=True).distinct()
     
-    if request.method == 'GET':
-
-        form = InventarioForm(instance=instancia)
-
-        context = {
-        'instancia':instancia,
-        'form':form,
-        'inventario_totales':inventario_totales,
-        'bodega':bodega,
-        'ubicacion':ubicacion,
-
-        'productos_total':productos_total,
-        'inventario_lotes':inventario_lotes,
-
-        't_lotes':t_lotes,
-        'diferencia':diferencia
-        }
-
-    elif request.method == 'POST':
-
-        if productos_total.exists(): #or instancia.agregado
-            #inventario_lotes = Inventario.objects.filter(ware_code=bodega).filter(location=ubicacion).filter(product_id=instancia.product_id)
-            form = InventarioForm(request.POST, instance=instancia)
-
-            if form.is_valid():
-                form.save()
-
-                messages.success(request, 'Invenario tomado con éxito !!!')
-                return redirect(f'/inventario/inv/{bodega}/{ubicacion}')
-            else:
-                messages.error(request, 'Error, ingrese nuevamente')
-                return redirect(f'/inventario/inv/{bodega}/{ubicacion}')
-
-        else:
-
-            form = InventarioForm(request.POST, instance=instancia)
-            form_totales = InventarioTotalesForm(request.POST)
-
-            if form.is_valid() and form_totales.is_valid():
-                form.save()
-                form_totales.save()
-
-                messages.success(request, 'Invenario tomado con éxito !!!')
-                return redirect(f'/inventario/inv/{bodega}/{ubicacion}')
-            else:
-                messages.error(request, 'Error, ingrese nuevamente')
-                return redirect(f'/inventario/inv/{bodega}/{ubicacion}')
-
-    return render(request, 'inventario/form_inventario.html', context)
-
-
-### Inventario update totales
-@login_required(login_url='login')
-def inventario_update_totales(request, id):
-    
-    inv_totales_instance = InventarioTotale.objects.get(id=id)
-    form = InventarioTotalesForm(instance=inv_totales_instance)
-    pro = Product.objects.get(product_id=inv_totales_instance.product_id_t)
-
-    if request.method == 'POST':
-        form_update = InventarioTotalesForm(request.POST, instance=inv_totales_instance)
-        if form_update.is_valid():
-            form_update.save()
-            messages.success(request, 'Total de unidades editado con éxito !!!')
-            return redirect(f'/inventario/inv/{inv_totales_instance.ware_code_t}/{inv_totales_instance.location_t}')
-        else:
-            messages.error(request, 'Error, intente nuevamente') 
-            return redirect(f'/inventario/inv/{inv_totales_instance.ware_code_t}/{inv_totales_instance.location_t}')
-
-
-    context = {
-        'inv_totales_instance':inv_totales_instance,
-        'form':form,
-        'instancia':pro
-    }
-
-    return render(request, 'inventario/totales_form_update.html', context)
-
-
-### INVENTARIO FORM AGREGAR ###
-@login_required(login_url='login')
-def inventario_agregar(request, bodega, ubicacion):
-
-    form = InventarioAgregarForm(initial={
-        'unidades_caja':0,
-        'numero_cajas':0,
-        'unidades_sueltas':0
-    })
-    prod = Product.objects.all()
-
-    context = {
-        'form':form,
-        'prod':prod
-    }
-
-    try:
-        if request.method == 'GET':
-
-            prod = request.GET.get('producto')
-            prod = str(prod)
-            p = productos_odbc_and_django()
-            p = p[p['product_id']==prod].to_dict('records')[0]
+    lista_por_bodega = []
+    for bodega in bodegas:
+        pasillos = InventarioCerezos.objects.filter(ubicacion__bodega=bodega).values_list('ubicacion__pasillo', flat=True).distinct()
+        for pasillo in pasillos:
+            items = InventarioCerezos.objects.filter(
+                ubicacion__bodega=bodega, ubicacion__pasillo=pasillo
+            ).count()
+        
+            d = {
+                'bodega': bodega,
+                'pasillo': pasillo,
+                'items': items
+            }
             
-            if not p == '':
+            lista_por_bodega.append(d)
+    
+    context = {
+        'bodega': lista_por_bodega,
+    }
+    
+    return render(request, 'inventario/toma_fisica/cerezos/home.html', context)
 
-                context = {
-                'form':form,
-                'cod':p.get('product_id'), #p.product_id,
-                'nom':p.get('Nombre'), #p.description,
-                'mar':p.get('Marca'), #p.marca,
-                'bodega':bodega,
-                'ubicacion':ubicacion
-                }
 
-        elif request.method == 'POST':
+
+
+
+# ### INVENTARIO FORM UPDATE ###
+# @login_required(login_url='login')
+# def inventario_update(request, id, bodega, ubicacion):
+
+#     instancia = Inventario.objects.get(id=id)
+#     inventario_totales = InventarioTotalesForm(initial={
+#         'unidades_caja_t':0,
+#         # 'numero_cajas_t':0,
+#         # 'unidades_sueltas_t':0
+#     })
+    
+#     productos_total = InventarioTotale.objects.filter(ware_code_t=bodega).filter(location_t=ubicacion).filter(product_id_t=instancia.product_id)
+#     total_unds = []
+#     for i in productos_total:
+#         p_t = i.total_unidades_t
+#         total_unds.append(p_t)
+#     t_unds = sum(total_unds)
+    
+
+#     inventario_lotes = Inventario.objects.filter(ware_code=bodega).filter(location=ubicacion).filter(product_id=instancia.product_id)
+#     total_lotes = []
+#     for i in inventario_lotes:
+#         t = i.total_unidades
+#         total_lotes.append(t)
+#     t_lotes = sum(total_lotes)
+#     print(inventario_lotes)
+#     print(total_lotes)
+
+#     diferencia = t_unds - t_lotes
+    
+#     if request.method == 'GET':
+
+#         form = InventarioForm(instance=instancia)
+
+#         context = {
+#         'instancia':instancia,
+#         'form':form,
+#         'inventario_totales':inventario_totales,
+#         'bodega':bodega,
+#         'ubicacion':ubicacion,
+
+#         'productos_total':productos_total,
+#         'inventario_lotes':inventario_lotes,
+
+#         't_lotes':t_lotes,
+#         'diferencia':diferencia
+#         }
+
+#     elif request.method == 'POST':
+
+#         if productos_total.exists(): #or instancia.agregado
+#             #inventario_lotes = Inventario.objects.filter(ware_code=bodega).filter(location=ubicacion).filter(product_id=instancia.product_id)
+#             form = InventarioForm(request.POST, instance=instancia)
+
+#             if form.is_valid():
+#                 form.save()
+
+#                 messages.success(request, 'Invenario tomado con éxito !!!')
+#                 return redirect(f'/inventario/inv/{bodega}/{ubicacion}')
+#             else:
+#                 messages.error(request, 'Error, ingrese nuevamente')
+#                 return redirect(f'/inventario/inv/{bodega}/{ubicacion}')
+
+#         else:
+
+#             form = InventarioForm(request.POST, instance=instancia)
+#             form_totales = InventarioTotalesForm(request.POST)
+
+#             if form.is_valid() and form_totales.is_valid():
+#                 form.save()
+#                 form_totales.save()
+
+#                 messages.success(request, 'Invenario tomado con éxito !!!')
+#                 return redirect(f'/inventario/inv/{bodega}/{ubicacion}')
+#             else:
+#                 messages.error(request, 'Error, ingrese nuevamente')
+#                 return redirect(f'/inventario/inv/{bodega}/{ubicacion}')
+
+#     return render(request, 'inventario/form_inventario.html', context)
+
+
+# ### Inventario update totales
+# @login_required(login_url='login')
+# def inventario_update_totales(request, id):
+    
+#     inv_totales_instance = InventarioTotale.objects.get(id=id)
+#     form = InventarioTotalesForm(instance=inv_totales_instance)
+#     pro = Product.objects.get(product_id=inv_totales_instance.product_id_t)
+
+#     if request.method == 'POST':
+#         form_update = InventarioTotalesForm(request.POST, instance=inv_totales_instance)
+#         if form_update.is_valid():
+#             form_update.save()
+#             messages.success(request, 'Total de unidades editado con éxito !!!')
+#             return redirect(f'/inventario/inv/{inv_totales_instance.ware_code_t}/{inv_totales_instance.location_t}')
+#         else:
+#             messages.error(request, 'Error, intente nuevamente') 
+#             return redirect(f'/inventario/inv/{inv_totales_instance.ware_code_t}/{inv_totales_instance.location_t}')
+
+
+#     context = {
+#         'inv_totales_instance':inv_totales_instance,
+#         'form':form,
+#         'instancia':pro
+#     }
+
+#     return render(request, 'inventario/totales_form_update.html', context)
+
+
+# ### INVENTARIO FORM AGREGAR ###
+# @login_required(login_url='login')
+# def inventario_agregar(request, bodega, ubicacion):
+
+#     form = InventarioAgregarForm(initial={
+#         'unidades_caja':0,
+#         'numero_cajas':0,
+#         'unidades_sueltas':0
+#     })
+#     prod = Product.objects.all()
+
+#     context = {
+#         'form':form,
+#         'prod':prod
+#     }
+
+#     try:
+#         if request.method == 'GET':
+
+#             prod = request.GET.get('producto')
+#             prod = str(prod)
+#             p = productos_odbc_and_django()
+#             p = p[p['product_id']==prod].to_dict('records')[0]
             
-            form_ag = InventarioAgregarForm(request.POST)
+#             if not p == '':
 
-            if form_ag.is_valid():
-                form_ag.save()
-                messages.success(request, 'Invenario tomado con éxito !!!')
-                return redirect(f'/inventario/inv/{bodega}/{ubicacion}')
-            else:
-                messages.error(request, 'Error, ingrese nuevamente')
-                return redirect(f'/inventario/inv/{bodega}/{ubicacion}')
+#                 context = {
+#                 'form':form,
+#                 'cod':p.get('product_id'), #p.product_id,
+#                 'nom':p.get('Nombre'), #p.description,
+#                 'mar':p.get('Marca'), #p.marca,
+#                 'bodega':bodega,
+#                 'ubicacion':ubicacion
+#                 }
 
-    except:
-        context = {
-            'form':form,
-            'prod':prod,
-            'bodega':bodega,
-            'ubicacion':ubicacion
-        }
+#         elif request.method == 'POST':
+            
+#             form_ag = InventarioAgregarForm(request.POST)
 
-    return render(request, 'inventario/form_agregar_inventario.html', context)
+#             if form_ag.is_valid():
+#                 form_ag.save()
+#                 messages.success(request, 'Invenario tomado con éxito !!!')
+#                 return redirect(f'/inventario/inv/{bodega}/{ubicacion}')
+#             else:
+#                 messages.error(request, 'Error, ingrese nuevamente')
+#                 return redirect(f'/inventario/inv/{bodega}/{ubicacion}')
 
+#     except:
+#         context = {
+#             'form':form,
+#             'prod':prod,
+#             'bodega':bodega,
+#             'ubicacion':ubicacion
+#         }
 
-
-
-
-
-
-
-
+#     return render(request, 'inventario/form_agregar_inventario.html', context)
 
 
 
@@ -680,9 +824,6 @@ def inventario_agregar(request, bodega, ubicacion):
 #     ingreso.save()
     
 #     return JsonResponse({'id':ingreso.id})
-
-
-
 
 
 #### ARQUEOS

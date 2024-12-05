@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}
+<title>I. Cerezos</title>
+{% endblock %}
+
+{% block navbar %}
+{% include 'inventario/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+
+<div class="container mt-4">
+
+    {% if messages %}
+        {% for message in messages %}
+        {% if message.tags == 'success'%}
+        <div class="alert text-center alert-success" role="alert">
+            {{message}}
+        </div>
+        {% elif message.tags == 'error'%}
+        <div class="alert text-center alert-danger" role="alert">
+            {{message}}
+        </div>
+        {%endif%}
+        {% endfor %}
+    {% endif %}
+
+    <div class="row">
+        
+        {% regroup bodega by bodega as bodega_list %}
+        {% for bodega in bodega_list %}
+        <h5 class="m-2"><strong>BODEGA: </strong>{{bodega.grouper}}</h5>
+            {% for i in bodega.list %}
+            <div class="col-xl-4 col-md-6">
+                <div class="card border-primary mb-3">
+                    <div class="card-body text-primary">
+                    <h3 class="card-title text-center">
+                        <i class="bi bi-card-checklist"></i>
+                        {{i.bodega}} - {{i.pasillo}}           
+                    </h3>
+                    <h5 class="text-center">
+                        Cantidad de items: {{i.items}}
+                    </h5>
+                    </div>
+                    <div class="card-footer bg-transparent border-primary">
+                        <a class="btn btn-primary" href="{#% url 'inventario_toma_fisica_andagoya_vue' i.ware_code i.location %#}">
+                            Ingresar <i class="bi bi-box-arrow-in-up-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}

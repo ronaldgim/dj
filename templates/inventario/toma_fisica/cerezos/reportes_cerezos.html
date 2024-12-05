@@ -1,0 +1,288 @@
+{%extends 'base_vue.html' %}
+
+{% block title %}
+<title>Inventario Cerezos</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'inventario/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+
+<div id="app">
+
+    <h5 class="m-4 text-center fw-bold">INVENTARIO CEREZOS</h5>
+    
+    {% verbatim %}
+    <h6 class="text-start">Total de items: {{total}}</h6>
+    <h6 class="text-start">Items procesados: {{procesados}}</h6>
+    {% endverbatim %}
+
+    <div class="mt-2 mb-2">
+        <button @click="getStock()" class="btn btn-primary">
+            <span v-if="actualizandoStock" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            <i v-else class="bi bi-arrow-clockwise"></i> ACTUALIZAR DATOS
+        </button>
+
+        <a class="btn btn-success" href="{% url 'reporte_completo_excel' %}">
+            <i class="bi bi-file-earmark-spreadsheet"></i> COMPLETO
+        </a>
+
+        <a class="btn btn-success" href="{% url 'reporte_format_excel' %}">
+            <i class="bi bi-file-earmark-spreadsheet"></i> AGRUPADO
+        </a>
+
+        {% if request.user.is_superuser %}
+        <button @click="updateDB()" class="btn btn-danger">
+            <span v-if="actualizandoDB" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            <i v-else class="bi bi-arrow-clockwise"></i> ACTUALIZAR DB
+        </button>
+        {% endif %}
+    </div>
+
+    <div class="row g-2 mb-2">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    Avance de toma física por ubicación
+                </div>
+                <div class="card-body d-flex justify-content-center align-items-center" style="height: 300px;">
+                    <canvas id="myBarChart" style="height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    Avance de toma física
+                </div>
+                <div class="card-body d-flex justify-content-center align-items-center" style="height: 300px;">
+                    <canvas id="myPieChart" style="height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>    
+
+    <div class="card">
+        <div class="card-header">TOMA FISICA ANDAGOYA</div>
+        <div class="card-body">
+            <!--div class="row">
+                <div class="col-3">
+                    <label>Bodega</label>
+                    <select class="form-select filter" id="filter-bod">
+                            <option value="0">Todos</option>
+                    </select>
+                </div>
+                <div class="col-3">
+                    <label>Ubicación</label>
+                    <select class="form-select filter" id="filter-loc">
+                        <option value="0">Todos</option>
+                    </select>
+                </div>
+                <div class="col-3">
+                    <label>Llenado:</label>
+                    <select class="form-select filter" id="filter-lle">
+                        <option value="0">Todos</option>
+                        <option value="True">Si</option>
+                        <option value="False">No</option>
+                    </select>
+                </div>
+                <div class="col-3">
+                    <label>Buscar:</label>
+                    <input id="inputbuscar" type="text" placeholder="Buscar..." class="form-control">
+                </div>
+            </div-->
+            <div class="col-4"><input v-model="filtro" placeholder="Buscar..." type="text" class="form-control"></div>
+            <div class="table-responsive">
+                <table class="table" id="inv_table" style="font-size: small;">
+                    <thead>
+                        <tr>
+                            <th scope="col">Código</th>
+                            <th scope="col">Nombre</th>
+                            <th scope="col">Marca</th>
+                            <th scope="col">Lote</th>
+                            <th scope="col">F.Elaboración</th>
+                            <th scope="col">F.Caducidad</th>
+                            <th scope="col">Estado</th>
+                            <th scope="col">Ubicación</th>
+                            <th scope="col">T.F-Unds</th>
+                            <th scope="col">MBA-Unds</th>
+                            <th scope="col">Diferencia</th>
+                            <!--th scope="col">Llenado</th>
+                            <th scope="col">Agregado</th-->
+                            <th scope="col">Usuario</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% verbatim %}
+                        <!--tr v-for="(i, index) in stock" :key="index"-->
+                        <tr v-for="(i, index) in stockFiltrado" :key="index">                            
+                            <td>{{i.product_id}}</td>
+                            <td>{{i.product_name}}</td>
+                            <td>{{i.group_code}}</td>
+                            <td>{{i.lote_id}}</td>
+                            <td>{{i.fecha_elab_lote}}</td>
+                            <td>{{i.fecha_cadu_lote}}</td>
+                            <td>{{i.estado}}</td>
+                            <td>{{i.ubicacion__bodega}}-{{i.ubicacion__pasillo}}-{{i.ubicacion__modulo}}-{{i.ubicacion__nivel}}</td>
+                            
+                            <td class="text-end">{{i.total_unidades}}</td>
+                            <td class="text-end">{{i.oh2}}</td>
+                            <td class="text-end" :style="{backgroundColor:colorDiferencia(i.diferencia)}">{{i.diferencia}}</td>
+                            <!--td class="text-center">
+                                <i v-if="i.llenado" style = "color:green;" class="bi bi-check-square-fill"></i>
+                                <i v-else style = "color:red;" class="bi bi-x-square-fill"></i>
+                            </td-->
+                            <!--td class="text-center">
+                                <i v-if="i.agregado" style = "color:green;" class="bi bi-check-square-fill"></i>
+                                <i v-else style = "color:red;" class="bi bi-x-square-fill"></i>
+                            </td-->
+                            <td>{{i.user__username}}</td>
+                        </tr>
+                        {% endverbatim %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            // FILTRO
+            filtro:'',
+            // STOCK
+            actualizandoStock:false,
+            stock:[],
+            total:'',
+            procesados:'',
+            avance:'',
+            ubicaciones:[],
+            avances:[],
+            chart:null,
+            chartData:{
+                labels:[],
+                datasets:[{
+                    label: 'Avance de toma física de inventario',
+                    data: [],
+                    backgroundColor: ['#BAF690'],
+                }],
+            },
+            chart2:null,
+            chartPie:{
+                labels: ['Avance','Faltante'],
+                datasets: [{
+                    label: 'Avance de toma física de inventario',
+                    data:[],
+                    backgroundColor: ['#BAF690','#E4E4E4'],
+                }]
+            },
+            // DB
+            actualizandoDB: false,
+        },
+        mounted() {
+            this.getStock();
+        },
+        computed:{
+            stockFiltrado() {
+                return this.stock.filter(i => 
+                    i.product_id.toLowerCase().includes(this.filtro.toLowerCase()) |
+                    i.product_name.toLowerCase().includes(this.filtro.toLowerCase()) |
+                    i.group_code.toLowerCase().includes(this.filtro.toLowerCase()) |
+                    i.lote_id.toLowerCase().includes(this.filtro.toLowerCase()) 
+                    // i.ubicacion__bodega.toLowerCase().includes(this.filtro.toLowerCase()) 
+                    // i.ware_code.toLowerCase().includes(this.filtro.toLowerCase()) |
+                    // i.location.toLowerCase().includes(this.filtro.toLowerCase())
+                )
+            }
+        },
+        methods: {
+            async getStock() {
+                this.actualizandoStock = true;
+                try {
+                    const response = await fetch('/inventario/cerezos_get_stock');
+                    const data = await response.json();
+                    
+                    // Actualizar datos
+                    this.stock = data.inventario || [];
+                    this.total = data.total;
+                    this.procesados = data.procesados;
+                    this.avance = data.avance;
+
+                    // Actualizar datos de grafico de barras
+                    this.chartData.labels = data.ubicaciones || [];
+                    this.chartData.datasets[0].data = data.avances || [];
+
+                    // Actualizar datos de garfico de pastel
+                    this.chartPie.datasets[0].data = data.totales || [];
+
+                    this.updateCharts();
+                    
+                } catch (error) {
+                    console.error(error);
+                } finally {
+                    this.actualizandoStock = false
+                }
+            },
+            updateCharts() {
+                if (this.chart) {
+                    this.chart.data = this.chartData;
+                    this.chart.update();
+                } else {
+                    const ctx = document.getElementById('myBarChart').getContext('2d');
+                    this.chart = new Chart(ctx, {
+                        type: 'bar',
+                        data: this.chartData,
+                        options: {
+                            indexAxis:'y',
+                            scales:{
+                                x:{stacked:true, max:100},
+                                y:{stacked:true}
+                            },
+                            plugins:{
+                                legend:{display:false}
+                            }
+                        },
+                    })
+                }
+
+                if (this.chart2) {
+                    this.chart2.data = this.chartPie;
+                    this.chart2.update();
+                } else {
+                    const ctx_pie = document.getElementById('myPieChart').getContext('2d');
+                    this.chart2 = new Chart(ctx_pie, {
+                        type: 'doughnut',
+                        data: this.chartPie,
+                    })
+                }
+            },
+            async updateDB(){
+                this.actualizandoDB = true;
+                try {
+                    const response = await fetch('/inventario/cerezos_actualizar_db');
+                    const data = await response.json();
+                    if (data.msg === 'ok') {
+                        this.getStock();
+                    }
+                } catch (error) {
+                    console.error(error);
+                } finally {
+                    this.actualizandoDB = false
+                }
+            },
+            colorDiferencia(diff) {
+                if (diff != 0){
+                    return '#F6B690'
+                }
+            },
+
+        },
+    })
+</script>
+
+{% endblock %}
