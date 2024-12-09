@@ -1,7 +1,7 @@
 {% extends 'base_vue.html' %}
 {% load static %}
 {% block title %}
-<title>T.F Andagoya</title>
+<title>T.F Cerezos</title>
 {% endblock%}
 
 {% block navbar %}
@@ -9,6 +9,16 @@
 {% endblock %}
 
 {% block body %}
+
+<style>
+    .select2-container .select2-selection--single {
+        height: calc(1.0em + .75rem + 2px) !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: calc(1.0em + .75rem + 2px) !important;
+        right: .75rem !important;
+    }
+</style>
 
 <div id="app">
     {% verbatim %}
