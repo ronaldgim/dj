@@ -19,7 +19,7 @@
     {% endverbatim %}
 
 
-    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#agregarItemForm">
+    <button @click="getUbicaciones(mi_bodega, mi_ubicacion)" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#agregarItemForm">
         <i class="bi bi-plus-circle"></i> Añadir
     </button>
 
@@ -73,7 +73,7 @@
                 {% verbatim %}
                 <div class="modal-header d-flex flex-column align-items-center">
                     <div class="d-flex justify-content-between w-100 align-items-center">
-                        <h5 class="modal-title text-center fw-bold" id="tomaFisicaFormLabel">INVENTARIO {{ mi_bodega }} - {{ mi_ubicacion }}</h5>
+                        <h5 class="modal-title text-center fw-bold" id="tomaFisicaFormLabel">INVENTARIO {{ mi_bodega }}-{{ mi_ubicacion }}-{{ ubicacion.modulo }}-{{ ubicacion.nivel }}</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="mt-2 w-100">
@@ -298,9 +298,17 @@
                                 <label>Fecha elaboración:</label>
                                 <input class="form-control form-control-sm" v-model="formAgregar.fecha_elab_lote" type="text" @input="formatoFecha('fecha_elab_lote')" pattern="\d{2}/\d{2}/\d{4}" maxlength="10" placeholder="dd/mm/aaaa" required>
                                 <p v-if="!validDateInputs.fecha_elab_lote" style="color: red; font-size:smaller">Formato inválido (dd/mm/aaaa)</p>
+                                
                                 <label>Fecha caducidad:</label>
                                 <input class="form-control form-control-sm" v-model="formAgregar.fecha_cadu_lote" type="text" @input="formatoFecha('fecha_cadu_lote')" pattern="\d{2}/\d{2}/\d{4}" maxlength="10" placeholder="dd/mm/aaaa" required>
                                 <p v-if="!validDateInputs.fecha_cadu_lote" style="color: red; font-size:smaller">Formato inválido (dd/mm/aaaa)</p>
+                                
+                                <label>Ubicación:</label>
+                                <select class="form-select form-select-sm">
+                                    <option></option>
+                                    <option v-for="i in ubicaciones" :key="i.id">{{ i.bodega }}-{{i.pasillo}}-{{i.modulo}}-{{i.nivel}}</option>
+                                </select>
+
                                 <label>Unidades por cartón:</label>
                                 <input class="form-control form-control-sm" v-model="formAgregar.unidades_caja" type="number" required>
 
@@ -342,6 +350,7 @@
 
             // ITEM
             item:'',
+            ubicacion:'',
 
             // TOTALES
             type_msg_totales:'',
@@ -416,7 +425,9 @@
                 llenado:true,
                 agregado:true,
                 user_id: Number(document.getElementById("user-id").value)
-            }
+            },
+
+            ubicaciones:[],
         },
         mounted() {
             this.getStock();
@@ -551,9 +562,10 @@
                 try {
                     const response = await fetch(`/inventario/cerezos/toma-fisica/${item_id}`);
                     const data = await response.json();
-                    console.log(data);
+                    
                     // Item
                     this.item = data.item;
+                    this.ubicacion = data.item.ubi
 
                     // List de lotes
                     this.lotes = this.stock.filter(i => 
@@ -649,7 +661,7 @@
                         body: JSON.stringify(this.formBuscar)
                     });
                     const data = await response.json();
-                    console.log(data);
+                    
                     // Msg product
                     this.type_msg_product = data.type;
                     this.msg_product = data.msg;
@@ -692,9 +704,24 @@
                     this.type_msg_agregar_lote = data.type;
                     this.msg_agregar_lote = data.msg;
                     await this.getStock();
+                    
                 } catch (error) {
                     this.type_msg_agregar_lote = 'danger';
                     this.msg_agregar_lote = error;
+                }
+            },
+
+            async getUbicaciones(mi_bodega, mi_ubicacion) {
+                try {
+                    const response = await fetch('/inventario/ubicaciones/wms');
+                    const data = await response.json();
+                    this.ubicaciones = data.ubicaciones.filter(i=>
+                        i.bodega === mi_bodega &&
+                        i.pasillo == mi_ubicacion
+                    ); 
+                } catch (error) {
+                    // this.type_msg_ubicacion = 'danger';
+                    console.error(error);
                 }
             }
         }

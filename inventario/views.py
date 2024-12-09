@@ -696,8 +696,10 @@ def inventario_cerezos_toma_fisica_item(request, item_id):
     if request.method == 'GET':
         
         # item
-        item = InventarioCerezos.objects.get(id=item_id)
+        item = InventarioCerezos.objects.get(id=item_id) 
         item_dict = model_to_dict(item)
+        item_dict['ubi'] = model_to_dict(item.ubicacion)
+        #print(item_dict)
         
         # # item totales
         # item_totales = (InventarioTotale.objects
@@ -725,6 +727,13 @@ def inventario_cerezos_toma_fisica_item(request, item_id):
                 'msg':'Registrado Correctamiente'})
         else:
             return JsonResponse({'type':'danger','msg':form.errors})
+
+
+
+def inventario_ubicaciones_wms(request):
+    return JsonResponse({
+        'ubicaciones': list(Ubicacion.objects.all().values())
+    })
 
 
 # ### INVENTARIO FORM UPDATE ###

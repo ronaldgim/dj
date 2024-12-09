@@ -132,6 +132,13 @@ urlpatterns = [
     ),
     
 
+    path(
+        route='ubicaciones/wms',
+        view = views.inventario_ubicaciones_wms,
+        name = 'inventario_ubicaciones_wms'
+    ),
+
+
     # # Actulizar stock lote FORM UPDDATE
     # path(
     #     route='inventario/<int:id>/<str:bodega>/<str:ubicacion>',
@@ -151,11 +158,6 @@ urlpatterns = [
     #     view = views.inventario_agregar,
     #     name = 'inventario_agregar_form'
     # ),
-
-
-
-
-
 
     # path(
     #     route='inventario/inventario_inicial_wms',
