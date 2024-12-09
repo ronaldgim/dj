@@ -458,14 +458,15 @@ def inventario_toma_fisica_buscar_producto(request):
         product = product[product['product_id']==product_id][[
             'product_id','Nombre','Marca','Unidad','Unidad_Empaque'
         ]]
-        product_lotes = Inventario.objects.filter(product_id=product_id).values('lote_id')
+        
+        data_lotes = Inventario.objects.filter(product_id=product_id).values('lote_id','fecha_elab_lote','fecha_cadu_lote').distinct()
         
         if not product.empty:
             return JsonResponse({
                 'type':'success', 
                 'msg':'Producto encontrado !!!', 
                 'product':product.to_dict(orient='records')[0],
-                'product_lotes':list(product_lotes)
+                'data_lotes':list(data_lotes)
                 })
         else:
             return JsonResponse({
