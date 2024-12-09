@@ -263,7 +263,7 @@
                             <div v-if="msg_agregar_lote" :class="`alert alert-${type_msg_agregar_lote} text-center p-2 m-0`" role="alert" style="font-size: smaller;">
                                 {{msg_agregar_lote}}
                             </div>
-                            <form @submit.prevent="agregarProducto()">
+                            <form @submit.prevent="agregarProducto()" id="form-agregar">
                                 
                                 <label>Código:</label>
                                 <input class="form-control form-control-sm" v-model="formAgregar.product_id" type="text" required>
@@ -280,12 +280,12 @@
                                 <label>Lote:</label>
                                 <div class="row g-2">
                                     <div class="col-11">
-                                        <select v-show="lote_input" class="form-select form-select-sm" v-model="formAgregar.lote_id">
+                                        <select @change="getFechas" v-show="lote_input" class="form-select form-select-sm" v-model="formAgregar.lote_id">
                                             <option v-for="i in listaLotesAgregar" :key="listaLotesAgregar.id">{{ i.lote_id }}</option>
                                         </select>
                                         <input v-show="!lote_input" class="form-control form-control-sm" v-model="formAgregar.lote_id" type="text"required>
                                     </div>
-                                    <div class="col-1 d-flex justify-content-end">
+                                    <div class="col-1">
                                         <button @click="lote_input_toggle" class="btn btn-sm btn-secondary" type="button">
                                             <i class="bi bi-pencil-square"></i>
                                         </button>
@@ -295,9 +295,11 @@
                                 <label>Fecha elaboración:</label>
                                 <input class="form-control form-control-sm" v-model="formAgregar.fecha_elab_lote" type="text" @input="formatoFecha('fecha_elab_lote')" pattern="\d{2}/\d{2}/\d{4}" maxlength="10" placeholder="dd/mm/aaaa" required>
                                 <p v-if="!validDateInputs.fecha_elab_lote" style="color: red; font-size:smaller">Formato inválido (dd/mm/aaaa)</p>
+                                
                                 <label>Fecha caducidad:</label>
                                 <input class="form-control form-control-sm" v-model="formAgregar.fecha_cadu_lote" type="text" @input="formatoFecha('fecha_cadu_lote')" pattern="\d{2}/\d{2}/\d{4}" maxlength="10" placeholder="dd/mm/aaaa" required>
                                 <p v-if="!validDateInputs.fecha_cadu_lote" style="color: red; font-size:smaller">Formato inválido (dd/mm/aaaa)</p>
+                                
                                 <label>Unidades por cartón:</label>
                                 <input class="form-control form-control-sm" v-model="formAgregar.unidades_caja" type="number" required>
 
@@ -661,7 +663,8 @@
                         this.formAgregar.unidades_caja = data.product.Unidad_Empaque;
 
                         // agregar lista de lotes
-                        this.listaLotesAgregar = data.product_lotes || [];
+                        //this.listaLotesAgregar = data.product_lotes || [];
+                        this.listaLotesAgregar = data.data_lotes || [];
                     } 
                     else {
                         this.formAgregar.product_id = '';
@@ -687,11 +690,44 @@
                     const data = await response.json();
                     this.type_msg_agregar_lote = data.type;
                     this.msg_agregar_lote = data.msg;
+
+                    // reset form
+                    this.formAgregar.product_id = '';
+                    this.formAgregar.product_name = '';
+                    this.formAgregar.group_code = '';
+                    this.formAgregar.um = '';
+
+                    this.formAgregar.oh = 0;
+                    this.formAgregar.oh2 = 0;
+                    this.formAgregar.commited = 0;
+                    this.formAgregar.quantity = 0;
+
+                    this.formAgregar.lote_id = '';
+                    this.formAgregar.fecha_elab_lote = '';
+                    this.formAgregar.fecha_cadu_lote = '';
+                    this.formAgregar.ware_code = '';
+                    this.formAgregar.location = '';
+                    this.formAgregar.unidades_caja = '';
+                    this.formAgregar.numero_cajas = '';
+                    this.formAgregar.unidades_sueltas = '';
+                    this.formAgregar.observaciones = '';
+                    
+                    this.formAgregar.lotes = [];
+
                     await this.getStock();
                 } catch (error) {
                     this.type_msg_agregar_lote = 'danger';
                     this.msg_agregar_lote = error;
                 }
+            },
+
+            async getFechas(event) {
+
+                const loteSelected = event.target.value;
+                let fechas = this.listaLotesAgregar.filter(i=>i.lote_id === loteSelected)[0]
+                
+                this.formAgregar.fecha_elab_lote = fechas.fecha_elab_lote.split('-')[2] + '/' + fechas.fecha_elab_lote.split('-')[1] + '/' + fechas.fecha_elab_lote.split('-')[0];
+                this.formAgregar.fecha_cadu_lote = fechas.fecha_cadu_lote.split('-')[2] + '/' + fechas.fecha_cadu_lote.split('-')[1] + '/' + fechas.fecha_cadu_lote.split('-')[0];
             }
         }
     })
