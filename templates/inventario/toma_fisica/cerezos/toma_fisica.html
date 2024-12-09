@@ -1,4 +1,5 @@
 {% extends 'base_vue.html' %}
+{% load static %}
 {% block title %}
 <title>T.F Andagoya</title>
 {% endblock%}
@@ -51,7 +52,7 @@
                             </td>
                             <td>
                                 <label class="fw-bold">Estado:</label> {{i.estado}} <br>
-                                <label class="fw-bold">Ubicación:</label> {{i.ubicacion__bodega}}-{{i.ubicacion__pasillo}}-{{i.ubicacion__modulo}}-{{i.ubicacion__nivel}} <br>
+                                <label class="fw-bold">Ubicación:</label> <br> {{i.ubicacion__bodega}}-{{i.ubicacion__pasillo}}-{{i.ubicacion__modulo}}-{{i.ubicacion__nivel}} <br>
                                 <br>
                                 <button @click="getItem(i.id)" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#tomaFisicaForm">
                                     <i class="bi bi-boxes"></i>
@@ -304,7 +305,7 @@
                                 <p v-if="!validDateInputs.fecha_cadu_lote" style="color: red; font-size:smaller">Formato inválido (dd/mm/aaaa)</p>
                                 
                                 <label>Ubicación:</label>
-                                <select class="form-select form-select-sm">
+                                <select class="form-select form-select-sm" id="ubi">
                                     <option></option>
                                     <option v-for="i in ubicaciones" :key="i.id">{{ i.bodega }}-{{i.pasillo}}-{{i.modulo}}-{{i.nivel}}</option>
                                 </select>
@@ -726,5 +727,12 @@
             }
         }
     })
+</script>
+<script>
+    $(document).ready(function() {
+        $('#ubi').select2({
+            dropdownParent:$('#agregarItemForm')
+        });
+    });
 </script>
 {% endblock %}
