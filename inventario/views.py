@@ -166,18 +166,19 @@ def inventario_home(request):
     
     inventario_andagoya = Inventario.objects.all().count()
     inventario_andagoya_llenado = Inventario.objects.filter(llenado=True).count()
-    
     andagoya = round(inventario_andagoya_llenado / inventario_andagoya, 0)
     
     inventario_cerezos = InventarioCerezos.objects.all().count()
     inventario_cerezos_llenado = InventarioCerezos.objects.filter(llenado=True).count()
-    
     cerezos = round(inventario_cerezos_llenado / inventario_cerezos, 0)
     
     context = {
         'andagoya':inventario_andagoya,
+        'andagoya_llenado':inventario_andagoya_llenado,
         'avance_andagoya':andagoya,
+        
         'cerezos':inventario_cerezos,
+        'cerezos_llenado':inventario_cerezos_llenado,
         'avance_cerezos':cerezos,
     }
     
