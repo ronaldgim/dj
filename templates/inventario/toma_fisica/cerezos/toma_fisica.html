@@ -31,6 +31,10 @@
     {% endverbatim %}
 
 
+    <a class="btn btn-secondary" href="{% url 'inventario_cerezos_home' %}">
+        <i class="bi bi-arrow-bar-left"></i> Lista de bodegas
+    </a>
+
     <button @click="getUbicaciones(mi_bodega, mi_ubicacion)" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#agregarItemForm">
         <i class="bi bi-plus-circle"></i> Añadir
     </button>

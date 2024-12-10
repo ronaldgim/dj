@@ -18,7 +18,10 @@
     <h6 class="text-start"><strong># Items contabilizados: </strong>{{n_inventario_llenado}}</h6>
     {% endverbatim %}
 
-
+    <a class="btn btn-secondary" href="{% url 'inventario_andagoya_home' %}">
+        <i class="bi bi-arrow-bar-left"></i> Lista de bodegas
+    </a>
+    
     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#agregarItemForm">
         <i class="bi bi-plus-circle"></i> Añadir
     </button>
