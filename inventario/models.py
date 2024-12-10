@@ -9,7 +9,7 @@ from datetime import timedelta, date
 
 # Models
 from datos.models import Product
-
+from wms.models import Ubicacion
 
 # Inventario
 class Inventario(models.Model):
@@ -80,7 +80,6 @@ class InventarioTotale(models.Model):
     
 
 # Inventario Cerezos
-from wms.models import Ubicacion
 class InventarioCerezos(models.Model):
 
     # MBA
@@ -119,6 +118,32 @@ class InventarioCerezos(models.Model):
         self.total_unidades = (self.unidades_caja * self.numero_cajas) + self.unidades_sueltas
         self.diferencia = self.total_unidades - self.oh2
         return super().save(*args, **kwargs)
+
+
+
+class InventarioCerezosTotale(models.Model):
+
+    # MBA
+    product_id_t       = models.CharField(verbose_name='Product id', max_length=50, blank=True)
+    ware_code_t        = models.CharField(verbose_name='Bodega', max_length=10, blank=True)
+    location_t         = models.CharField(verbose_name='Ubicación', max_length=10, blank=True)
+    
+    # Inventario Físico
+    unidades_caja_t    = models.IntegerField(verbose_name='Unidades por caja', blank=True)
+    numero_cajas_t     = models.IntegerField(verbose_name='Número de cajas', blank=True)
+    unidades_sueltas_t = models.IntegerField(verbose_name='Unidades sueltas', blank=True)
+
+    total_unidades_t   = models.IntegerField(verbose_name='Total de unidades', blank=True, null=True)
+
+    user     = models.ForeignKey(User, verbose_name='User', blank=True, null=True, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.product_id_t
+
+    def save(self, *args, **kwargs):
+        self.total_unidades_t = (self.unidades_caja_t * self.numero_cajas_t) + self.unidades_sueltas_t
+        return super().save(*args, **kwargs)
+
 
 # Arqueos
 class Arqueo(models.Model):
