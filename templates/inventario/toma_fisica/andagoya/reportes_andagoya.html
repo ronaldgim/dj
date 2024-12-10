@@ -67,32 +67,6 @@
     <div class="card">
         <div class="card-header">TOMA FISICA ANDAGOYA</div>
         <div class="card-body">
-            <!--div class="row">
-                <div class="col-3">
-                    <label>Bodega</label>
-                    <select class="form-select filter" id="filter-bod">
-                            <option value="0">Todos</option>
-                    </select>
-                </div>
-                <div class="col-3">
-                    <label>Ubicación</label>
-                    <select class="form-select filter" id="filter-loc">
-                        <option value="0">Todos</option>
-                    </select>
-                </div>
-                <div class="col-3">
-                    <label>Llenado:</label>
-                    <select class="form-select filter" id="filter-lle">
-                        <option value="0">Todos</option>
-                        <option value="True">Si</option>
-                        <option value="False">No</option>
-                    </select>
-                </div>
-                <div class="col-3">
-                    <label>Buscar:</label>
-                    <input id="inputbuscar" type="text" placeholder="Buscar..." class="form-control">
-                </div>
-            </div-->
             <div class="col-4"><input v-model="filtro" placeholder="Buscar..." type="text" class="form-control"></div>
             <div class="table-responsive">
                 <table class="table" id="inv_table" style="font-size: small;">
@@ -126,9 +100,9 @@
                             <td>{{i.fecha_cadu_lote}}</td>
                             <td>{{i.ware_code}}</td>
                             <td>{{i.location}}</td>
-                            <td class="text-end">{{i.total_unidades}}</td>
-                            <td class="text-end">{{i.oh2}}</td>
-                            <td class="text-end" :style="{backgroundColor:colorDiferencia(i.diferencia)}">{{i.diferencia}}</td>
+                            <td class="text-end">{{i.total_unidades.toLocaleString()}}</td>
+                            <td class="text-end">{{i.oh2.toLocaleString()}}</td>
+                            <td class="text-end" :style="{backgroundColor:colorDiferencia(i.diferencia)}">{{i.diferencia.toLocaleString()}}</td>
                             <!--td class="text-center">
                                 <i v-if="i.llenado" style = "color:green;" class="bi bi-check-square-fill"></i>
                                 <i v-else style = "color:red;" class="bi bi-x-square-fill"></i>
