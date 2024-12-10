@@ -27,12 +27,16 @@
     <!-- my select2 css -->
     <link href="{% static 'css/myselect2.css' %}" rel="stylesheet"/>
 
-    {% block title %}
-    <title>Mi Proyecto</title>
-    {% endblock %}
+    <!-- vue select -->
+    <script src="https://cdn.jsdelivr.net/npm/vue-select@3.20.3/dist/vue-select.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vue-select@3.20.3/dist/vue-select.min.css">
 
     <!-- Incluye la CDN de Vue.js -->
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14"></script>
+
+    {% block title %}
+    <title>Mi Proyecto</title>
+    {% endblock %}
 </head>
 <body style="background-color:#DFEEF7">
     {% block navbar %}

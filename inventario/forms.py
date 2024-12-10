@@ -2,7 +2,7 @@
 from django import forms 
 
 # Models
-from inventario.models import Inventario, InventarioTotale, Arqueo
+from inventario.models import Inventario, InventarioTotale, InventarioCerezos, InventarioCerezosTotale, Arqueo
 from users.models import User
 
 # MyForms
@@ -37,6 +37,34 @@ class InventarioTotalesForm(forms.ModelForm):
         fields = '__all__'
         
 
+class InventarioCerezosForm(forms.ModelForm):
+
+    class Meta:
+        model = InventarioCerezos
+        fields = [
+            'unidades_caja', 
+            'numero_cajas', 
+            'unidades_sueltas', 
+            'observaciones',
+            'llenado',
+            'user'
+        ]
+        
+        
+class InventarioCerezosAgregarForm(forms.ModelForm):
+    
+    class Meta:
+        model = InventarioCerezos
+        fields = '__all__'
+
+
+class InventarioCerezosTotalesForm(forms.ModelForm):
+
+    class Meta:
+        model = InventarioCerezosTotale
+        fields = '__all__'
+        
+        
 # Arqueo
 class ArqueoForm(forms.ModelForm):
 

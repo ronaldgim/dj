@@ -58,7 +58,7 @@
                                 <label class="fw-bold">Nombre:</label> {{i.product_name}}<br>
                                 <label class="fw-bold">Marca: </label> {{i.group_code}}<br>
                                 <label class="fw-bold">Unidad de Venta:</label> {{i.um}}<br> 
-                                <label class="fw-bold">Lote:</label>{{i.lote_id}} <br>
+                                <label class="fw-bold">Lote:</label> {{i.lote_id}} <br>
                                 <label class="fw-bold">Total Unidades Lote:</label> {{i.total_unidades}}<br> 
                             </td>
                             <td>
@@ -97,19 +97,8 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- DIFERENCIA -->
-                    <!--div class="mt-2 w-100">
-                        <div class="card" :style="{backgroundColor:diferenciaColor(diferencia)}">
-                            <h6 class="text-center fw-bold">DIFERENCIA</h6>
-                            <label class="text-center fs-6">T.Lotes - T.Agrupado = Diferencia</label>
-                            <div class="fs-1 card-body d-flex justify-content-center align-items-center m-0 p-0">
-                                {{ total_lotes }} - {{ total_agrupado }} = {{ diferencia }}
-                            </div>
-                        </div>
-                    </div-->
                 </div>
-            
+                
                 <div class="modal-body">                    
                     <!-- TOTAL AGRUPADO -->
                     <div class="card" style="background-color: #e5f9fd;">
@@ -240,17 +229,8 @@
                         <h5 class="modal-title text-center fw-bold" id="agregarItemFormLabel">AGREGAR ITEM {{ mi_bodega }} - {{ mi_ubicacion }}</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <!--div class="mt-2 w-100">
-                        <div class="card">
-                            <div class="card-body">
-                                <label class="fw-bold m-0 p-0">Código:</label> {{item.product_id}}<br>
-                                <label class="fw-bold m-0 p-0">Nombre:</label> {{item.product_name}}<br>
-                                <label class="fw-bold m-0 p-0">Marca:</label> {{item.group_code}}<br>
-                            </div>
-                        </div>
-                    </div-->
                 </div>
-            
+                
                 <div class="modal-body">                    
                     <!-- BUSCAR PRODUCTO -->
                     <div class="card" style="background-color: #e5f9fd;">
@@ -261,8 +241,8 @@
                             </div>
                             <form @submit.prevent="buscarProducto()">
                                 <label>Código de producto:</label>
-                                <div class="input-group mb-3">
-                                    <input type="text" class="form-control" v-model="formBuscar.product_id" required>
+                                <div class="input-group input-group-sm mb-3">
+                                    <input type="text" class="form-control form-control-sm" v-model="formBuscar.product_id" required>
                                     <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button>
                                 </div>
                             </form>
@@ -288,17 +268,14 @@
                                 
                                 <label>Marca:</label>
                                 <input class="form-control form-control-sm" v-model="formAgregar.group_code" type="text" required>
-                                
-                                <!--label>Presentación:</label>
-                                <input class="form-control form-control-sm" v-model="formAgregar.um" type="text" required-->
 
                                 <label>Lote:</label>
                                 <div class="row g-2">
                                     <div class="col-11">
-                                        <select v-show="lote_input" class="form-select form-select-sm" v-model="formAgregar.lote_id">
+                                        <select @change="getFechas" v-show="lote_input" class="form-select form-select-sm" v-model="formAgregar.lote_id">
                                             <option v-for="i in listaLotesAgregar" :key="listaLotesAgregar.id">{{ i.lote_id }}</option>
                                         </select>
-                                        <input v-show="!lote_input" class="form-control form-control-sm" v-model="formAgregar.lote_id" type="text"required>
+                                        <input v-show="!lote_input" class="form-control form-control-sm" v-model="formAgregar.lote_id" type="text">
                                     </div>
                                     <div class="col-1">
                                         <button @click="lote_input_toggle" class="btn btn-sm btn-secondary" type="button">
@@ -316,9 +293,17 @@
                                 <p v-if="!validDateInputs.fecha_cadu_lote" style="color: red; font-size:smaller">Formato inválido (dd/mm/aaaa)</p>
                                 
                                 <label>Ubicación:</label>
-                                <select class="form-select form-select-sm" id="ubi">
+                                <!--select id="ubi" class="form-select form-select-sm" v-model="formAgregar.ubicacion_id" >
+                                    <option v-for="i in ubicaciones" :key="i.id">{{ i.bodega }}-{{ i.pasillo }}-{{ i.modulo }}-{{ i.nivel }}</option>
+                                </select-->
+                                
+                                <v-select :options="ubicaciones" label="full_name" v-model="formAgregar.ubicacion_id" required></v-select>
+
+                                <label>Estado:</label>
+                                <select class="form-select form-select-sm" v-model="formAgregar.estado" required>
                                     <option></option>
-                                    <option v-for="i in ubicaciones" :key="i.id">{{ i.bodega }}-{{i.pasillo}}-{{i.modulo}}-{{i.nivel}}</option>
+                                    <option value="Disponible">Disponible</option>
+                                    <option value="Cuarentena">Cuarentena</option>
                                 </select>
 
                                 <label>Unidades por cartón:</label>
@@ -347,7 +332,7 @@
 </div>
 
 <script>
-
+    Vue.component("v-select", VueSelect.VueSelect);
     new Vue({
         el: '#app',
         data: {
@@ -419,23 +404,20 @@
                 product_name:'',
                 group_code:'',
                 um:'',
+                estado:'',
 
-                oh:0,
                 oh2:0,
-                commited:0,
-                quantity:0,
 
                 lote_id:'',
                 fecha_elab_lote:'',
                 fecha_cadu_lote:'',
-                ware_code:'',
-                location:'',
                 unidades_caja:'',
                 numero_cajas:'',
                 unidades_sueltas:'',
                 observaciones:'',
                 llenado:true,
                 agregado:true,
+                ubicacion_id: '',
                 user_id: Number(document.getElementById("user-id").value)
             },
 
@@ -549,6 +531,15 @@
                 this.lote_input = !this.lote_input
             },
 
+            getFechas(event) {
+                
+                const loteSelected = event.target.value;
+                let fechas = this.listaLotesAgregar.filter(i=>i.lote_id === loteSelected)[0]
+                
+                this.formAgregar.fecha_elab_lote = fechas.fecha_elab_lote.split('-')[2] + '/' + fechas.fecha_elab_lote.split('-')[1] + '/' + fechas.fecha_elab_lote.split('-')[0];
+                this.formAgregar.fecha_cadu_lote = fechas.fecha_cadu_lote.split('-')[2] + '/' + fechas.fecha_cadu_lote.split('-')[1] + '/' + fechas.fecha_cadu_lote.split('-')[0];
+            },
+
             async getStock () {
                 const url = window.location.href;
                 const params = url.split('/');
@@ -592,8 +583,8 @@
                     if (data.item_totales){
                         this.formTotales.id = data.item_totales.id;
                         this.formTotales.product_id_t = data.item_totales.product_id_t;
-                        this.formTotales.ware_code_t = data.item_totales.ware_code_t;
-                        this.formTotales.location_t = data.item_totales.location_t;
+                        this.formTotales.ware_code_t = this.mi_bodega; //data.item_totales.ware_code_t;
+                        this.formTotales.location_t = this.mi_ubicacion; //data.item_totales.location_t;
                         this.formTotales.unidades_caja_t = data.item_totales.unidades_caja_t;
                         this.formTotales.numero_cajas_t = data.item_totales.numero_cajas_t;
                         this.formTotales.unidades_sueltas_t = data.item_totales.unidades_sueltas_t;
@@ -602,8 +593,8 @@
                     else {
                         this.formTotales.id = null;  
                         this.formTotales.product_id_t = data.item.product_id;
-                        this.formTotales.ware_code_t = data.item.ware_code;
-                        this.formTotales.location_t = data.item.location;
+                        this.formTotales.ware_code_t = this.mi_bodega; //data.item.ware_code;
+                        this.formTotales.location_t = this.mi_ubicacion;  //data.item.location;
                         this.formTotales.unidades_caja_t = data.item.unidades_caja;
                         this.formTotales.numero_cajas_t = '';
                         this.formTotales.unidades_sueltas_t = '';
@@ -629,7 +620,7 @@
 
             async actualizarCrearTotal() {
                 try {
-                    const response = await fetch('/inventario/toma-fisica/total-agrupado', { 
+                    const response = await fetch('/inventario/cerezos/toma-fisica/total-agrupado', { 
                         method: 'POST',
                         headers: {'Content-Type': 'application/json',},
                         body: JSON.stringify(this.formTotales)
@@ -646,7 +637,7 @@
             
             async actualizarItem(item_id) {
                 try {
-                    const response = await fetch(`/inventario/toma-fisica/${item_id}`, {
+                    const response = await fetch(`/inventario/cerezos/toma-fisica/${item_id}`, {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json',},
                         body: JSON.stringify(this.formLote)
@@ -667,7 +658,7 @@
 
             async buscarProducto() {
                 try {
-                    const response = await fetch('/inventario/toma-fisica/buscar-producto', {
+                    const response = await fetch('/inventario/cerezos/toma-fisica/buscar-producto', {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify(this.formBuscar)
@@ -677,19 +668,17 @@
                     // Msg product
                     this.type_msg_product = data.type;
                     this.msg_product = data.msg;
-
+                    
                     // Form Agregar
                     if (data.product) {
                         this.formAgregar.product_id = data.product.product_id;
                         this.formAgregar.product_name = data.product.Nombre;
                         this.formAgregar.group_code = data.product.Marca;
                         this.formAgregar.um = data.product.Unidad;
-                        this.formAgregar.ware_code = this.mi_bodega;
-                        this.formAgregar.location = this.mi_ubicacion;
                         this.formAgregar.unidades_caja = data.product.Unidad_Empaque;
 
                         // agregar lista de lotes
-                        this.listaLotesAgregar = data.product_lotes || [];
+                        this.listaLotesAgregar = data.data_lotes || [];
                     } 
                     else {
                         this.formAgregar.product_id = '';
@@ -707,7 +696,7 @@
 
             async agregarProducto() {
                 try {
-                    const response = await fetch('/inventario/toma-fisica/agregar-producto', {
+                    const response = await fetch('/inventario/cerezos/toma-fisica/agregar-producto', {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify(this.formAgregar)
@@ -715,6 +704,28 @@
                     const data = await response.json();
                     this.type_msg_agregar_lote = data.type;
                     this.msg_agregar_lote = data.msg;
+
+                    // reset form
+                    this.formAgregar.product_id = '';
+                    this.formAgregar.product_name = '';
+                    this.formAgregar.group_code = '';
+                    this.formAgregar.um = '';
+                    this.formAgregar.estado='',
+
+                    this.formAgregar.oh2 = 0;
+
+                    this.formAgregar.lote_id = '';
+                    this.formAgregar.fecha_elab_lote = '';
+                    this.formAgregar.fecha_cadu_lote = '';
+                    
+                    this.formAgregar.unidades_caja = '';
+                    this.formAgregar.numero_cajas = '';
+                    this.formAgregar.unidades_sueltas = '';
+                    this.formAgregar.observaciones = '';
+                    this.formAgregar.ubicacion_id='',
+                    
+                    this.formAgregar.lotes = [];
+
                     await this.getStock();
                     
                 } catch (error) {
@@ -735,15 +746,8 @@
                     // this.type_msg_ubicacion = 'danger';
                     console.error(error);
                 }
-            }
+            },
         }
     })
-</script>
-<script>
-    $(document).ready(function() {
-        $('#ubi').select2({
-            dropdownParent:$('#agregarItemForm')
-        });
-    });
 </script>
 {% endblock %}

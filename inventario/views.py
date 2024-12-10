@@ -3,7 +3,9 @@ from django.shortcuts import render, redirect
 
 # BD
 from django.db import connections
-from django.db.models import Sum
+from django.db.models import Sum, F, Value
+from django.db.models.functions import Concat
+
 
 # Pandas
 import pandas as pd
@@ -14,14 +16,14 @@ import json
 
 # Models
 from datos.models import Product
-from .models import Inventario, InventarioTotale, InventarioCerezos, Arqueo, ArqueoFisico, ArqueosCreados
+from .models import Inventario, InventarioTotale, InventarioCerezos, InventarioCerezosTotale, Arqueo, ArqueoFisico, ArqueosCreados
 from users.models import User, UserPerfil
 
 # models WMS
 from wms.models import Existencias, Ubicacion
 
 # Forms
-from .forms import InventarioForm, InventarioAgregarForm, InventarioTotalesForm, ArqueoForm
+from .forms import InventarioForm, InventarioAgregarForm, InventarioTotalesForm,  InventarioCerezosForm, InventarioCerezosAgregarForm, InventarioCerezosTotalesForm, ArqueoForm
 
 # Messages
 from django.contrib import messages
@@ -528,13 +530,13 @@ def inventario_cerezos_actualizar_db(request):
         'observaciones','llenado','agregado','ubicacion_id','user_id',
     ]]
     
-    # print(existencias_df)
-    # existencias_df.to_excel('ext.xlsx')
-
     data = list(existencias_df.itertuples(index=False, name=None)) 
     
     with connections['default'].cursor() as cursor:
         cursor.execute("TRUNCATE TABLE inventario_inventariocerezos")
+        
+    with connections['default'].cursor() as cursor:
+        cursor.execute("TRUNCATE TABLE inventario_inventariocerezostotale")
 
     with connections['default'].cursor() as cursor:
         cursor.executemany("""
@@ -691,6 +693,17 @@ def inventario_toma_fisica_cerezos_vue(request, bodega, location):
     return render(request, 'inventario/toma_fisica/cerezos/toma_fisica.html')
 
 
+def inventario_ubicaciones_wms(request):
+    
+    ubicaciones = Ubicacion.objects.all().annotate(
+        full_name=Concat(F('bodega'),Value('-'),F('pasillo'),Value('-'),F('modulo'),Value('-'),F('nivel'))
+    ).values()
+    
+    return JsonResponse({
+        'ubicaciones': list(ubicaciones) 
+    })
+    
+    
 @csrf_exempt
 def inventario_cerezos_toma_fisica_item(request, item_id):
     
@@ -700,26 +713,25 @@ def inventario_cerezos_toma_fisica_item(request, item_id):
         item = InventarioCerezos.objects.get(id=item_id) 
         item_dict = model_to_dict(item)
         item_dict['ubi'] = model_to_dict(item.ubicacion)
-        #print(item_dict)
-        
-        # # item totales
-        # item_totales = (InventarioTotale.objects
-        #     .filter(product_id_t=item.product_id)
-        #     .filter(ware_code_t=item.ware_code)
-        #     .filter(location_t=item.location)
-        # )
+                
+        # item totales
+        item_totales = (InventarioCerezosTotale.objects
+            .filter(product_id_t=item.product_id)
+            .filter(ware_code_t=item.ubicacion.bodega)
+            .filter(location_t=item.ubicacion.pasillo)
+        )
         
         return JsonResponse({
             'item': item_dict,
-            #'item_totales': model_to_dict(item_totales.first()) if item_totales.first() else None,
+            'item_totales': model_to_dict(item_totales.first()) if item_totales.first() else None,
             })
     
     elif request.method == 'POST':
         
-        data = json.loads(request.body)
+        data = json.loads(request.body) ; print(data)
         data['user'] = User.objects.get(id=data.get('user_id'))
-        my_instance = Inventario.objects.get(id=item_id)
-        form = InventarioForm(data, instance = my_instance)
+        my_instance = InventarioCerezos.objects.get(id=item_id)
+        form = InventarioCerezosForm(data, instance = my_instance)
         
         if form.is_valid():
             form.save()
@@ -730,11 +742,75 @@ def inventario_cerezos_toma_fisica_item(request, item_id):
             return JsonResponse({'type':'danger','msg':form.errors})
 
 
+@csrf_exempt
+def inventario_cerezos_toma_fisica_total_agrupado(request):
+    
+    if request.method == 'POST':
+        data = json.loads(request.body);print(data)
+        data['user'] = User.objects.get(id=data.get('user_id'))
+        
+        # actualizar registro
+        if data.get('id'):
+            item_totales = InventarioCerezosTotale.objects.get(id=data.get('id'))            
+            form = InventarioCerezosTotalesForm(data, instance=item_totales)
+            if form.is_valid():                
+                form.save()
+                return JsonResponse({'type':'success','msg':'Actualizado Correctamiente'})
+            else:
+                return JsonResponse({'type':'danger','msg':form.errors})
+        
+        # crear registro
+        else:
+            form = form = InventarioCerezosTotalesForm(data)
+            if form.is_valid():
+                form.save()
+                return JsonResponse({'type':'success', 'msg':'Registrado Correctamente'})
+            else:
+                return JsonResponse({'type':'danger','msg':form.errors})
 
-def inventario_ubicaciones_wms(request):
-    return JsonResponse({
-        'ubicaciones': list(Ubicacion.objects.all().values())
-    })
+
+
+@csrf_exempt
+def inventario_cerezos_toma_fisica_buscar_producto(request):
+    
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        product_id = data.get('product_id')
+        product = productos_odbc_and_django()
+        product = product[product['product_id']==product_id][[
+            'product_id','Nombre','Marca','Unidad','Unidad_Empaque'
+        ]]
+        
+        data_lotes = InventarioCerezos.objects.filter(product_id=product_id).values('lote_id','fecha_elab_lote','fecha_cadu_lote').distinct()
+        
+        if not product.empty:
+            return JsonResponse({
+                'type':'success', 
+                'msg':'Producto encontrado !!!', 
+                'product':product.to_dict(orient='records')[0],
+                'data_lotes':list(data_lotes)
+                })
+        else:
+            return JsonResponse({
+                'type':'danger',
+                'msg':f'No se encuentra resultados para {product_id}'
+                })
+
+
+@csrf_exempt
+def inventario_cerezos_toma_fisica_agregar_producto(request):
+    if request.method == 'POST':
+        data = json.loads(request.body) 
+        data['user'] = User.objects.get(id=data.get('user_id'))
+        data['ubicacion'] = Ubicacion.objects.get(id=data.get('ubicacion_id').get('id'))
+        
+        form = InventarioCerezosAgregarForm(data)
+        if form.is_valid():
+            form.save()
+            return JsonResponse({'type':'success','msg':'Producto agregado correctamente'})
+        else:
+            return JsonResponse({'type':'danger','msg':form.errors})
+
 
 
 # ### INVENTARIO FORM UPDATE ###

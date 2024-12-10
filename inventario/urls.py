@@ -86,7 +86,6 @@ urlpatterns = [
     ),
 
 
-
     # Inventario Cerezos
     path(
         route='cerezos_actualizar_db',
@@ -124,6 +123,12 @@ urlpatterns = [
         name= 'inventario_toma_fisica_cerezos_vue'
     ),
 
+    path(
+        route='ubicaciones/wms',
+        view = views.inventario_ubicaciones_wms,
+        name = 'inventario_ubicaciones_wms'
+    ),
+    
     # GET ITEM TOMA FISICA
     path(
         route='cerezos/toma-fisica/<int:item_id>',
@@ -131,14 +136,24 @@ urlpatterns = [
         name ="inventario_cerezos_toma_fisica_item"
     ),
     
-
     path(
-        route='ubicaciones/wms',
-        view = views.inventario_ubicaciones_wms,
-        name = 'inventario_ubicaciones_wms'
+        route='cerezos/toma-fisica/total-agrupado',
+        view = views.inventario_cerezos_toma_fisica_total_agrupado,
+        name ="inventario_cerezos_toma_fisica_total_agrupado"
     ),
 
+    path(
+        route='cerezos/toma-fisica/buscar-producto',
+        view = views.inventario_cerezos_toma_fisica_buscar_producto,
+        name ="inventario_cerezos_toma_fisica_buscar_producto"
+    ),
 
+    path(
+        route='cerezos/toma-fisica/agregar-producto',
+        view = views.inventario_cerezos_toma_fisica_agregar_producto,
+        name ="inventario_cerezos_toma_fisica_agregar_producto"
+    ),
+    
     # # Actulizar stock lote FORM UPDDATE
     # path(
     #     route='inventario/<int:id>/<str:bodega>/<str:ubicacion>',
