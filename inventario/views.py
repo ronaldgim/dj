@@ -162,6 +162,28 @@ def stock_lote_tupla():
     return lista_stock_mba
 
 
+def inventario_home(request):
+    
+    inventario_andagoya = Inventario.objects.all().count()
+    inventario_andagoya_llenado = Inventario.objects.filter(llenado=True).count()
+    
+    andagoya = round(inventario_andagoya_llenado / inventario_andagoya, 0)
+    
+    inventario_cerezos = InventarioCerezos.objects.all().count()
+    inventario_cerezos_llenado = InventarioCerezos.objects.filter(llenado=True).count()
+    
+    cerezos = round(inventario_cerezos_llenado / inventario_cerezos, 0)
+    
+    context = {
+        'andagoya':inventario_andagoya,
+        'avance_andagoya':andagoya,
+        'cerezos':inventario_cerezos,
+        'avance_cerezos':cerezos,
+    }
+    
+    return render(request, 'inventario/toma_fisica/home.html', context)
+
+
 ## GET REPORTE
 @require_GET
 def inventario_andagoya_get_stock(request):
@@ -491,8 +513,6 @@ def inventario_toma_fisica_agregar_producto(request):
             return JsonResponse({'type':'danger','msg':form.errors})
 
 
-
-
 ### INVENTARIO CEREZOS
 def inventario_cerezos_actualizar_db(request):
     
@@ -702,8 +722,8 @@ def inventario_ubicaciones_wms(request):
     return JsonResponse({
         'ubicaciones': list(ubicaciones) 
     })
-    
-    
+
+
 @csrf_exempt
 def inventario_cerezos_toma_fisica_item(request, item_id):
     
@@ -767,7 +787,6 @@ def inventario_cerezos_toma_fisica_total_agrupado(request):
                 return JsonResponse({'type':'success', 'msg':'Registrado Correctamente'})
             else:
                 return JsonResponse({'type':'danger','msg':form.errors})
-
 
 
 @csrf_exempt

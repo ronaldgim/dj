@@ -7,6 +7,12 @@ from inventario import views
 urlpatterns = [
 
     path(
+        route = 'home',
+        view = views.inventario_home,
+        name = 'inventario_home'
+    ),
+
+    path(
         route = 'andagoya_get_stock',
         view = views.inventario_andagoya_get_stock,
         name = 'inventario_andagoya_get_stock',
