@@ -59,7 +59,7 @@
                                 <label class="fw-bold">Marca: </label> {{i.group_code}}<br>
                                 <label class="fw-bold">Unidad de Venta:</label> {{i.um}}<br> 
                                 <label class="fw-bold">Lote:</label> {{i.lote_id}} <br>
-                                <label class="fw-bold">Total Unidades Lote:</label> {{i.total_unidades}}<br> 
+                                <label class="fw-bold">Total Unidades Lote:</label> {{i.total_unidades.toLocaleString()}}<br> 
                             </td>
                             <td>
                                 <label class="fw-bold">Estado:</label> {{i.estado}} <br>
@@ -140,7 +140,7 @@
                                     </div>
                                 </div>
 
-                                <label class="fw-bold">Total Unidades:</label> {{ total_agrupado }}<br>
+                                <label class="fw-bold">Total Unidades:</label> {{ total_agrupado.toLocaleString() }}<br>
                                 <button type="submit" class="btn btn-sm btn-primary float-sm-end mt-2">GUARDAR</button>
                             </form>
                         </div>
@@ -162,12 +162,12 @@
                                     <tr v-for="(i, index) in lotes">
                                         <td>{{ i.product_id }}</td>
                                         <td>{{ i.lote_id }}</td>
-                                        <td class="text-end">{{ i.total_unidades }}</td>
+                                        <td class="text-end">{{ i.total_unidades.toLocaleString() }}</td>
                                     </tr>
                                     <tr>
                                         <th>TOTAL</th>
                                         <td></td>
-                                        <td class="text-end">{{ total_lotes }}</td>
+                                        <td class="text-end">{{ total_lotes.toLocaleString() }}</td>
                                     </tr>
                                 </tbody>
                             </table>               
@@ -181,7 +181,7 @@
                         <h6 class="text-center fw-bold">DIFERENCIA</h6>
                         <label class="text-center fs-6">T.Lotes - T.Agrupado = Diferencia</label>
                         <div class="fs-1 card-body d-flex justify-content-center align-items-center m-0 p-0">
-                            {{ total_lotes }} - {{ total_agrupado }} = {{ diferencia }}
+                            {{ total_lotes.toLocaleString() }} - {{ total_agrupado.toLocaleString() }} = {{ diferencia.toLocaleString() }}
                         </div>
                     </div>
 
@@ -206,7 +206,7 @@
                                 <input class="form-control form-control-sm" v-model="formLote.unidades_sueltas" type="number" required>
                                 <label>Observaciones:</label>
                                 <textarea class="form-control form-control-sm" v-model="formLote.observaciones"></textarea>
-                                <label class="fw-bold">Total Unidades:</label> {{ conteo_fisico_lote }}<br>
+                                <label class="fw-bold">Total Unidades:</label> {{ conteo_fisico_lote.toLocaleString() }}<br>
                                 <button type="submit" class="btn btn-sm btn-primary float-sm-end mt-2">GUARDAR</button>
                             </form>                      
                         </div>
@@ -318,7 +318,7 @@
                                 <label>Observaciones:</label>
                                 <textarea class="form-control form-control-sm" v-model="formAgregar.observaciones"></textarea>
 
-                                <label class="fw-bold">Total Unidades:</label> {{ conteo_fisico_agregar_lote }}<br>
+                                <label class="fw-bold">Total Unidades:</label> {{ conteo_fisico_agregar_lote.toLocaleString() }}<br>
                                 <button type="submit" class="btn btn-sm btn-primary float-sm-end mt-2">GUARDAR</button>
                             </form>                      
                         </div>
