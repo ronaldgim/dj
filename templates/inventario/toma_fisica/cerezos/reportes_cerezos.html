@@ -25,11 +25,11 @@
             <i v-else class="bi bi-arrow-clockwise"></i> ACTUALIZAR DATOS
         </button>
 
-        <a class="btn btn-success disabled" href="{#% url 'reporte_completo_excel' %#}">
+        <a class="btn btn-success" href="{% url 'reporte_cerezos_completo' %}">
             <i class="bi bi-file-earmark-spreadsheet"></i> COMPLETO
         </a>
 
-        <a class="btn btn-success disabled" href="{#% url 'reporte_format_excel' %#}">
+        <a class="btn btn-success" href="{% url 'reporte_cerezos_agrupado' %}">
             <i class="bi bi-file-earmark-spreadsheet"></i> AGRUPADO
         </a>
 

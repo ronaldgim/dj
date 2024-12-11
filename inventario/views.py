@@ -833,6 +833,127 @@ def inventario_cerezos_toma_fisica_agregar_producto(request):
 
 
 
+def reporte_cerezos_completo(request):
+    
+    inv = InventarioCerezos.objects.all().values(
+        'product_id',
+        'product_name',
+        'group_code',
+        'um',
+        'estado',
+        'oh2',
+        'lote_id',
+        'fecha_elab_lote',
+        'fecha_cadu_lote',        
+        'ubicacion__bodega',
+        'ubicacion__pasillo',
+        'ubicacion__modulo',
+        'ubicacion__nivel',
+        'unidades_caja',
+        'numero_cajas',
+        'unidades_sueltas',
+        'total_unidades',
+        'diferencia',
+        'observaciones',
+        'llenado',
+        'agregado',
+        'user__username',
+    )
+    
+    inv_df = pd.DataFrame(inv)
+    
+    inv_df['ubicacion'] = inv_df['ubicacion__bodega'] + '-' + inv_df['ubicacion__pasillo'] + '-' + inv_df['ubicacion__modulo'] + '-' + inv_df['ubicacion__nivel']
+    inv_df['fecha_elab_lote'] = inv_df['fecha_elab_lote'].astype('str')
+    inv_df['fecha_cadu_lote'] = inv_df['fecha_cadu_lote'].astype('str')
+    
+    inv_df['#'] = inv_df.reset_index().index + 1
+    
+    inv_df = inv_df[[
+        '#',
+        'product_id',
+        'product_name',
+        'group_code',
+        'um',
+        'estado',
+        'oh2',
+        'lote_id',
+        'fecha_elab_lote',
+        'fecha_cadu_lote',
+        'ubicacion',
+        'unidades_caja',
+        'numero_cajas',
+        'unidades_sueltas',
+        'total_unidades',
+        'diferencia',
+        'observaciones',
+        'llenado',
+        'agregado',
+        'user__username',
+    ]]
+    
+    date_time = str(datetime.now())
+    date_time = date_time[0:16]
+    n = 'inventario_cerezos_completo' + date_time + '_.xlsx'
+    nombre = 'attachment; filename=' + '"' + n + '"'
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = nombre
+    
+    inv_df.to_excel(response, index=False)
+    
+    return response
+
+
+def reporte_cerezos_agrupado(request):
+    
+    inv = InventarioCerezos.objects.all().values(
+        'product_id',
+        # 'product_name',
+        # 'group_code',
+        # 'um',
+        # 'estado',
+        'oh2',
+        'lote_id',
+        # 'fecha_elab_lote',
+        # 'fecha_cadu_lote',        
+        'ubicacion__bodega',
+        # 'ubicacion__pasillo',
+        # 'ubicacion__modulo',
+        # 'ubicacion__nivel',
+        # 'unidades_caja',
+        # 'numero_cajas',
+        # 'unidades_sueltas',
+        'total_unidades',
+        # 'diferencia',
+        # 'observaciones',
+        # 'llenado',
+        # 'agregado',
+        # 'user__username',
+    )
+    
+    inv_df = pd.DataFrame(inv)
+    
+    inv_df = inv_df.groupby(by=[
+        'product_id',
+        'lote_id',
+        'ubicacion__bodega',
+    ]).sum().reset_index()
+    
+    inv_df['diferencia'] = inv_df['total_unidades'] - inv_df['oh2']
+    
+    date_time = str(datetime.now())
+    date_time = date_time[0:16]
+    n = 'inventario_cerezos_agrupado_' + date_time + '_.xlsx'
+    nombre = 'attachment; filename=' + '"' + n + '"'
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = nombre
+    
+    inv_df.to_excel(response, index=False)
+    
+    return response
+
+
 # ### INVENTARIO FORM UPDATE ###
 # @login_required(login_url='login')
 # def inventario_update(request, id, bodega, ubicacion):
