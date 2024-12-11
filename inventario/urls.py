@@ -160,6 +160,18 @@ urlpatterns = [
         name ="inventario_cerezos_toma_fisica_agregar_producto"
     ),
     
+    path(
+        route='cerezos/toma-fisica/reporte-completo',
+        view = views.reporte_cerezos_completo,
+        name ="reporte_cerezos_completo"
+    ),
+    
+    path(
+        route='cerezos/toma-fisica/reporte-agrupado',
+        view = views.reporte_cerezos_agrupado,
+        name ="reporte_cerezos_agrupado"
+    ),
+    
     # # Actulizar stock lote FORM UPDDATE
     # path(
     #     route='inventario/<int:id>/<str:bodega>/<str:ubicacion>',
