@@ -171,6 +171,12 @@ urlpatterns = [
         view = views.reporte_cerezos_agrupado,
         name ="reporte_cerezos_agrupado"
     ),
+
+    path(
+        route='cerezos/toma-fisica/reporte-tf-mba',
+        view = views.reporte_cerezos_tf_mba,
+        name ="reporte_cerezos_tf_mba"
+    ),
     
     # # Actulizar stock lote FORM UPDDATE
     # path(

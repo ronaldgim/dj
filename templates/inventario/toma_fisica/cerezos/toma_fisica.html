@@ -120,7 +120,7 @@
                                 
                                 <div class="row g-2">
                                     <div class="col-11">
-                                        <input class="form-control form-control-sm" v-model="formTotales.numero_cajas_t" required>
+                                        <input class="form-control form-control-sm" v-model="formTotales.numero_cajas_t">
                                     </div>
                                     <div class="col-1">
                                         <button @click="sumarInput(formTotales.numero_cajas_t, 'numero_cajas_t')" class="btn btn-sm btn-success" type="button">
@@ -135,7 +135,7 @@
                                 
                                 <div class="row g-2">
                                     <div class="col-11">
-                                        <input class="form-control form-control-sm" v-model="formTotales.unidades_sueltas_t" required>
+                                        <input class="form-control form-control-sm" v-model="formTotales.unidades_sueltas_t">
                                     </div>
                                     <div class="col-1">
                                         <button @click="sumarInput(formTotales.unidades_sueltas_t, 'unidades_sueltas_t')" class="btn btn-sm btn-success" type="button">
@@ -205,9 +205,9 @@
                                 <label>Unidades por cartón:</label>
                                 <input class="form-control form-control-sm" v-model="formLote.unidades_caja" type="number" required>
                                 <label>Número total de cartones:</label>
-                                <input class="form-control form-control-sm" v-model="formLote.numero_cajas" type="number" required>
+                                <input class="form-control form-control-sm" v-model="formLote.numero_cajas" type="number">
                                 <label>Unidades sueltas:</label>
-                                <input class="form-control form-control-sm" v-model="formLote.unidades_sueltas" type="number" required>
+                                <input class="form-control form-control-sm" v-model="formLote.unidades_sueltas" type="number">
                                 <label>Observaciones:</label>
                                 <textarea class="form-control form-control-sm" v-model="formLote.observaciones"></textarea>
                                 <label class="fw-bold">Total Unidades:</label> {{ conteo_fisico_lote.toLocaleString() }}<br>
@@ -314,10 +314,10 @@
                                 <input class="form-control form-control-sm" v-model="formAgregar.unidades_caja" type="number" required>
 
                                 <label>Número total de cartones:</label>
-                                <input class="form-control form-control-sm" v-model="formAgregar.numero_cajas" type="number" required>
+                                <input class="form-control form-control-sm" v-model="formAgregar.numero_cajas" type="number">
 
                                 <label>Unidades sueltas:</label>
-                                <input class="form-control form-control-sm" v-model="formAgregar.unidades_sueltas" type="number" required>
+                                <input class="form-control form-control-sm" v-model="formAgregar.unidades_sueltas" type="number">
 
                                 <label>Observaciones:</label>
                                 <textarea class="form-control form-control-sm" v-model="formAgregar.observaciones"></textarea>
@@ -358,8 +358,7 @@
             msg_totales:'',
             formTotales:{
                 product_id_t:'',
-                ware_code_t:'',
-                location_t:'',
+                ubicacion_id:'',
                 unidades_caja_t:'',
                 numero_cajas_t:'',
                 unidades_sueltas_t:'',
@@ -581,10 +580,10 @@
                     this.ubicacion = data.item.ubi
 
                     // List de lotes
-                    this.lotes = this.stock.filter(i => 
-                        i.product_id == this.item.product_id &&
-                        i.ware_code == this.item.ware_code &&
-                        i.location == this.item.location);
+                    this.lotes = this.stock.filter(i =>
+                        i.product_id == this.item.product_id && 
+                        i.ubicacion__id == this.item.ubicacion
+                    )
                     
                     // Total lotes
                     this.total_lotes = this.lotes.reduce((acumulador, unidades) => acumulador + unidades.total_unidades, 0)
@@ -593,18 +592,16 @@
                     if (data.item_totales){
                         this.formTotales.id = data.item_totales.id;
                         this.formTotales.product_id_t = data.item_totales.product_id_t;
-                        this.formTotales.ware_code_t = this.mi_bodega; //data.item_totales.ware_code_t;
-                        this.formTotales.location_t = this.mi_ubicacion; //data.item_totales.location_t;
+                        this.formTotales.ubicacion_id = data.item.ubicacion;
                         this.formTotales.unidades_caja_t = data.item_totales.unidades_caja_t;
-                        this.formTotales.numero_cajas_t = data.item_totales.numero_cajas_t;
-                        this.formTotales.unidades_sueltas_t = data.item_totales.unidades_sueltas_t;
+                        this.formTotales.numero_cajas_t = (data.item_totales.numero_cajas_t === 0) ? '' : data.item_totales.numero_cajas_t;
+                        this.formTotales.unidades_sueltas_t = (data.item_totales.unidades_sueltas_t === 0) ? '' : data.item_totales.unidades_sueltas_t;
                         
                     } 
                     else {
                         this.formTotales.id = null;  
                         this.formTotales.product_id_t = data.item.product_id;
-                        this.formTotales.ware_code_t = this.mi_bodega; //data.item.ware_code;
-                        this.formTotales.location_t = this.mi_ubicacion;  //data.item.location;
+                        this.formTotales.ubicacion_id = data.item.ubicacion;
                         this.formTotales.unidades_caja_t = data.item.unidades_caja;
                         this.formTotales.numero_cajas_t = '';
                         this.formTotales.unidades_sueltas_t = '';
@@ -613,8 +610,8 @@
                     // Form lote 
                     this.formLote.id = data.item.id;
                     this.formLote.unidades_caja = data.item.unidades_caja;
-                    this.formLote.numero_cajas = (!data.item.llenado && data.item.numero_cajas === 0) ? '' : data.item.numero_cajas;
-                    this.formLote.unidades_sueltas = (!data.item.llenado && data.item.unidades_sueltas === 0) ? '' :data.item.unidades_sueltas;
+                    this.formLote.numero_cajas = (data.item.numero_cajas === 0) ? '' : data.item.numero_cajas;
+                    this.formLote.unidades_sueltas = (data.item.unidades_sueltas === 0) ? '' : data.item.unidades_sueltas;
 
                     setTimeout(
                         () => {
@@ -633,7 +630,7 @@
                     const response = await fetch('/inventario/cerezos/toma-fisica/total-agrupado', { 
                         method: 'POST',
                         headers: {'Content-Type': 'application/json',},
-                        body: JSON.stringify(this.formTotales)
+                        body:JSON.stringify(this.formTotales)
                     });
                     const data = await response.json();
                     this.type_msg_totales = data.type;
