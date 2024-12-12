@@ -69,8 +69,9 @@ class InventarioCerezosTotalesAdmin(admin.ModelAdmin):
 
     list_display = (
         'product_id_t', 
-        'ware_code_t',
-        'location_t',
+        'ubicacion',
+        # 'ware_code_t',
+        # 'location_t',
         'unidades_caja_t',
         'numero_cajas_t',
         'unidades_sueltas_t',

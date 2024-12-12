@@ -49,18 +49,28 @@ class Inventario(models.Model):
     def __str__(self):
         return self.product_id
 
+    # def save(self, *args, **kwargs):
+    #     self.total_unidades = (self.unidades_caja * self.numero_cajas) + self.unidades_sueltas
+    #     self.diferencia = self.total_unidades - self.oh2
+    #     return super().save(*args, **kwargs)
+    
     def save(self, *args, **kwargs):
+        
+        self.numero_cajas = 0 if not self.numero_cajas else self.numero_cajas
+        self.unidades_sueltas = 0 if not self.unidades_sueltas else self.unidades_sueltas
+        
         self.total_unidades = (self.unidades_caja * self.numero_cajas) + self.unidades_sueltas
         self.diferencia = self.total_unidades - self.oh2
+        
         return super().save(*args, **kwargs)
 
 
 class InventarioTotale(models.Model):
 
     # MBA
-    product_id_t       = models.CharField(verbose_name='Product id', max_length=50, blank=True)
-    ware_code_t        = models.CharField(verbose_name='Bodega', max_length=10, blank=True)
-    location_t         = models.CharField(verbose_name='Ubicación', max_length=10, blank=True)
+    product_id_t       = models.CharField(verbose_name='Product id', max_length=50)
+    ware_code_t        = models.CharField(verbose_name='Bodega', max_length=10)
+    location_t         = models.CharField(verbose_name='Ubicación', max_length=10)
     
     # Inventario Físico
     unidades_caja_t    = models.IntegerField(verbose_name='Unidades por caja', blank=True)
@@ -74,10 +84,15 @@ class InventarioTotale(models.Model):
     def __str__(self):
         return self.product_id_t
 
-    def save(self, *args, **kwargs):
-        self.total_unidades_t = (self.unidades_caja_t * self.numero_cajas_t) + self.unidades_sueltas_t
-        return super().save(*args, **kwargs)
     
+    def save(self, *args, **kwargs):
+        
+        self.numero_cajas_t = 0 if not self.numero_cajas_t else self.numero_cajas_t
+        self.unidades_sueltas_t = 0 if not self.unidades_sueltas_t else self.unidades_sueltas_t
+        self.total_unidades_t = (self.unidades_caja_t * self.numero_cajas_t) + self.unidades_sueltas_t
+        
+        return super().save(*args, **kwargs)
+
 
 # Inventario Cerezos
 class InventarioCerezos(models.Model):
@@ -115,8 +130,13 @@ class InventarioCerezos(models.Model):
         return self.product_id
 
     def save(self, *args, **kwargs):
+        
+        self.numero_cajas = 0 if not self.numero_cajas else self.numero_cajas
+        self.unidades_sueltas = 0 if not self.unidades_sueltas else self.unidades_sueltas
+        
         self.total_unidades = (self.unidades_caja * self.numero_cajas) + self.unidades_sueltas
         self.diferencia = self.total_unidades - self.oh2
+        
         return super().save(*args, **kwargs)
 
 
@@ -124,24 +144,25 @@ class InventarioCerezos(models.Model):
 class InventarioCerezosTotale(models.Model):
 
     # MBA
-    product_id_t       = models.CharField(verbose_name='Product id', max_length=50, blank=True)
-    ware_code_t        = models.CharField(verbose_name='Bodega', max_length=10, blank=True)
-    location_t         = models.CharField(verbose_name='Ubicación', max_length=10, blank=True)
+    product_id_t       = models.CharField(verbose_name='Product id', max_length=50)
+    ubicacion          = models.ForeignKey(Ubicacion, verbose_name='Ubicación', max_length=5, on_delete=models.CASCADE, related_name='inventario_totales_ubicacion')
     
     # Inventario Físico
-    unidades_caja_t    = models.IntegerField(verbose_name='Unidades por caja', blank=True)
-    numero_cajas_t     = models.IntegerField(verbose_name='Número de cajas', blank=True)
-    unidades_sueltas_t = models.IntegerField(verbose_name='Unidades sueltas', blank=True)
-
-    total_unidades_t   = models.IntegerField(verbose_name='Total de unidades', blank=True, null=True)
-
-    user     = models.ForeignKey(User, verbose_name='User', blank=True, null=True, on_delete=models.CASCADE)
+    unidades_caja_t    = models.IntegerField(verbose_name='Unidades por caja')
+    numero_cajas_t     = models.IntegerField(verbose_name='Número de cajas', blank=True, default=0)
+    unidades_sueltas_t = models.IntegerField(verbose_name='Unidades sueltas', blank=True, default=0)
+    total_unidades_t   = models.IntegerField(verbose_name='Total de unidades', blank=True)
+    user               = models.ForeignKey(User, verbose_name='User', on_delete=models.CASCADE)
 
     def __str__(self):
         return self.product_id_t
 
     def save(self, *args, **kwargs):
+        
+        self.numero_cajas_t = 0 if not self.numero_cajas_t else self.numero_cajas_t
+        self.unidades_sueltas_t = 0 if not self.unidades_sueltas_t else self.unidades_sueltas_t
         self.total_unidades_t = (self.unidades_caja_t * self.numero_cajas_t) + self.unidades_sueltas_t
+        
         return super().save(*args, **kwargs)
 
 

@@ -515,6 +515,24 @@ def inventario_toma_fisica_agregar_producto(request):
 
 
 ### INVENTARIO CEREZOS
+def stock_lote_inventario_cerezos(): #request
+    ''' Colusta de stock '''
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute("SELECT * FROM warehouse.stock_lote WHERE WARE_CODE = 'BCT' OR WARE_CODE = 'CUC'")
+        columns = [col[0] for col in cursor.description]
+        stock = [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+        
+        stock_lote = pd.DataFrame(stock)
+        productos = productos_odbc_and_django()[['product_id','Unidad_Empaque']]
+        productos = productos.rename(columns={'product_id':'PRODUCT_ID'})
+        stock_lote = stock_lote.merge(productos, on='PRODUCT_ID', how='left')
+        
+    return stock_lote 
+
+
 def inventario_cerezos_actualizar_db(request):
     
     stock = stock_lote()[['PRODUCT_ID','LOTE_ID','Fecha_elaboracion_lote']]
@@ -738,8 +756,7 @@ def inventario_cerezos_toma_fisica_item(request, item_id):
         # item totales
         item_totales = (InventarioCerezosTotale.objects
             .filter(product_id_t=item.product_id)
-            .filter(ware_code_t=item.ubicacion.bodega)
-            .filter(location_t=item.ubicacion.pasillo)
+            .filter(ubicacion=item.ubicacion)
         )
         
         return JsonResponse({
@@ -749,7 +766,7 @@ def inventario_cerezos_toma_fisica_item(request, item_id):
     
     elif request.method == 'POST':
         
-        data = json.loads(request.body) ; print(data)
+        data = json.loads(request.body)
         data['user'] = User.objects.get(id=data.get('user_id'))
         my_instance = InventarioCerezos.objects.get(id=item_id)
         form = InventarioCerezosForm(data, instance = my_instance)
@@ -767,8 +784,9 @@ def inventario_cerezos_toma_fisica_item(request, item_id):
 def inventario_cerezos_toma_fisica_total_agrupado(request):
     
     if request.method == 'POST':
-        data = json.loads(request.body);print(data)
-        data['user'] = User.objects.get(id=data.get('user_id'))
+        data = json.loads(request.body)
+        data['user'] = User.objects.get(id=data.get('user_id')) 
+        data['ubicacion'] = Ubicacion.objects.get(id=data.get('ubicacion_id'))
         
         # actualizar registro
         if data.get('id'):
@@ -830,7 +848,6 @@ def inventario_cerezos_toma_fisica_agregar_producto(request):
             return JsonResponse({'type':'success','msg':'Producto agregado correctamente'})
         else:
             return JsonResponse({'type':'danger','msg':form.errors})
-
 
 
 def reporte_cerezos_completo(request):
@@ -941,6 +958,90 @@ def reporte_cerezos_agrupado(request):
     
     inv_df['diferencia'] = inv_df['total_unidades'] - inv_df['oh2']
     
+    date_time = str(datetime.now())
+    date_time = date_time[0:16]
+    n = 'inventario_cerezos_agrupado_' + date_time + '_.xlsx'
+    nombre = 'attachment; filename=' + '"' + n + '"'
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = nombre
+    
+    inv_df.to_excel(response, index=False)
+    
+    return response
+
+
+def reporte_cerezos_tf_mba(request):
+    
+    inv = InventarioCerezos.objects.all().values(
+        'product_id',
+        'estado',
+        'oh2',
+        'lote_id',       
+        'ubicacion__bodega',
+        'total_unidades',
+    )
+    
+    inv_df = pd.DataFrame(inv)
+    
+    inv_df = inv_df.groupby(by=[
+        'product_id',
+        'estado',
+        'lote_id',
+        'ubicacion__bodega',
+    ]).sum().reset_index()
+    inv_df['WARE_CODE'] = inv_df.apply(lambda x: 'BCT' if x['estado'] == 'Disponible' else 'CUC', axis=1)
+    inv_df = inv_df.rename(columns={
+        'product_id': 'PRODUCT_ID',
+        'lote_id': 'LOTE_ID',
+        'ubicacion__bodega': 'LOCATION',
+        'oh2': 'UNDS-WMS',
+        'total_unidades': 'UNDS-TF',
+    })
+
+    stock = stock_lote_inventario_cerezos()[['PRODUCT_ID','LOTE_ID','OH2','WARE_CODE','LOCATION']]
+    stock = stock.groupby(by=[
+        'PRODUCT_ID',
+        'LOTE_ID',
+        'WARE_CODE',
+        'LOCATION',
+    ]).sum().reset_index()
+
+    inv_df = inv_df.merge(stock, on=[
+        'PRODUCT_ID',
+        'LOTE_ID',
+        'WARE_CODE',
+        # 'LOCATION'
+    #], how='left')
+    ], how='outer')
+    
+    inv_df = inv_df.rename(columns={
+        'LOCATION_x':'LOCATION_WMS',
+        'LOCATION_y':'LOCATION_MBA',
+        'OH2':'UNDS-MBA'
+    })
+    
+    inv_df['DIFERENCIA (WMS-TF)'] = inv_df['UNDS-WMS'] - inv_df['UNDS-TF']
+    inv_df['DIFERENCIA (MBA-TF)'] = inv_df['UNDS-MBA'] - inv_df['UNDS-TF']
+    inv_df['DIFERENCIA (WMS-MBA)'] = inv_df['UNDS-WMS'] - inv_df['UNDS-MBA']
+    
+    inv_df['#'] = inv_df.reset_index().index + 1
+    
+    inv_df = inv_df[[
+        '#',
+        'PRODUCT_ID',
+        'LOTE_ID',
+        'WARE_CODE',
+        'LOCATION_WMS',
+        'LOCATION_MBA',
+        'UNDS-WMS',
+        'UNDS-MBA',
+        'UNDS-TF',
+        'DIFERENCIA (WMS-TF)',
+        'DIFERENCIA (MBA-TF)',
+        'DIFERENCIA (WMS-MBA)'
+    ]]
+
     date_time = str(datetime.now())
     date_time = date_time[0:16]
     n = 'inventario_cerezos_agrupado_' + date_time + '_.xlsx'

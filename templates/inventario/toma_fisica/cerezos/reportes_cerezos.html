@@ -26,11 +26,15 @@
         </button>
 
         <a class="btn btn-success" href="{% url 'reporte_cerezos_completo' %}">
-            <i class="bi bi-file-earmark-spreadsheet"></i> COMPLETO
+            <i class="bi bi-file-earmark-spreadsheet"></i> COMPLETO WMS-TOMA FÍSICA
         </a>
 
         <a class="btn btn-success" href="{% url 'reporte_cerezos_agrupado' %}">
-            <i class="bi bi-file-earmark-spreadsheet"></i> AGRUPADO
+            <i class="bi bi-file-earmark-spreadsheet"></i> AGRUPADO WMS-TOMA FÍSICA
+        </a>
+
+        <a class="btn btn-success" href="{% url 'reporte_cerezos_tf_mba' %}">
+            <i class="bi bi-file-earmark-spreadsheet"></i> AGRUPADO MBA-TOMA FÍSICA
         </a>
 
         {% if request.user.is_superuser %}
@@ -81,7 +85,7 @@
                             <th scope="col">Estado</th>
                             <th scope="col">Ubicación</th>
                             <th scope="col">T.F-Unds</th>
-                            <th scope="col">MBA-Unds</th>
+                            <th scope="col">WMS-Unds</th>
                             <th scope="col">Diferencia</th>
                             <!--th scope="col">Llenado</th>
                             <th scope="col">Agregado</th-->
