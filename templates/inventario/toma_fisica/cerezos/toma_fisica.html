@@ -66,7 +66,7 @@
                                 <label class="fw-bold">Total Unidades Lote:</label> {{i.total_unidades.toLocaleString()}}<br> 
                             </td>
                             <td>
-                                <label class="fw-bold">Estado:</label> {{i.estado}} <br>
+                                <label class="fw-bold">Estado:</label> <span :class="estadoColor(i.estado)">{{i.estado}}</span> <br>
                                 <label class="fw-bold">Ubicación:</label> <br> {{i.ubicacion__bodega}}-{{i.ubicacion__pasillo}}-{{i.ubicacion__modulo}}-{{i.ubicacion__nivel}} <br>
                                 <br>
                                 <button @click="getItem(i.id)" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#tomaFisicaForm">
@@ -307,7 +307,7 @@
                                 <select class="form-select form-select-sm" v-model="formAgregar.estado" required>
                                     <option></option>
                                     <option value="Disponible">Disponible</option>
-                                    <option value="Cuarentena">Cuarentena</option>
+                                    <option value="Cuarentena" class="text-danger">Cuarentena</option>
                                 </select>
 
                                 <label>Unidades por cartón:</label>
@@ -480,6 +480,12 @@
                     return '#BAF690';
                 } else {
                     return '#F6B690';
+                }
+            },
+
+            estadoColor(estado){
+                if (estado==="Cuarentena") {
+                    return "text-danger"
                 }
             },
 
