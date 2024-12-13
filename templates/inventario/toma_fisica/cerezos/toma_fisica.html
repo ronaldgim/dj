@@ -503,24 +503,10 @@
                     filtrada = filtrada.filter((item) =>
                         ["1", "2"].includes(item.ubicacion__nivel)
                     );
-                    this.n_inventario = filtrada.length;
-                    this.n_inventario_nollenado = filtrada.filter((item)=>
-                        item.llenado === false
-                    ).length;
-                    this.n_inventario_llenado = filtrada.filter((item)=>
-                        item.llenado === true
-                    ).length;
                 } else if (this.filtroActivo === 2) {
                     filtrada = filtrada.filter((item) =>
                         ["3", "4"].includes(item.ubicacion__nivel)
                     );
-                    this.n_inventario = filtrada.length;
-                    this.n_inventario_nollenado = filtrada.filter((item)=>
-                        item.llenado === false
-                    ).length;
-                    this.n_inventario_llenado = filtrada.filter((item)=>
-                        item.llenado === true
-                    ).length;
                 }
                 
                 // Aplicar filtro de texto si el input no está vacío
@@ -532,15 +518,24 @@
                     )
                 );
                 }
-                
-                this.n_inventario = filtrada.length;
-                this.n_inventario_nollenado = filtrada.filter((item)=>
-                    item.llenado === false
-                ).length;
-                this.n_inventario_llenado = filtrada.filter((item)=>
-                    item.llenado === true
-                ).length;
 
+                let todo = this.stock
+                let filtro_1 = this.stock.filter((item) => ["1", "2"].includes(item.ubicacion__nivel));
+                let filtro_2 = this.stock.filter((item) => ["3", "4"].includes(item.ubicacion__nivel));
+                if (this.filtroActivo === 0) {
+                    this.n_inventario = todo.length;
+                    this.n_inventario_nollenado = todo.filter((item) => item.llenado === false).length;
+                    this.n_inventario_llenado = todo.filter((item) => item.llenado === true).length;
+                } else if(this.filtroActivo === 1) {
+                    this.n_inventario = filtro_1.length;
+                    this.n_inventario_nollenado = filtro_1.filter((item) => item.llenado === false).length;
+                    this.n_inventario_llenado = filtro_1.filter((item) => item.llenado === true).length;
+                } else if(this.filtroActivo === 2) {
+                    this.n_inventario = filtro_2.length;
+                    this.n_inventario_nollenado = filtro_2.filter((item) => item.llenado === false).length;
+                    this.n_inventario_llenado = filtro_2.filter((item) => item.llenado === true).length;
+                }
+                
                 // Devolver la lista filtrada
                 return filtrada;
             }
