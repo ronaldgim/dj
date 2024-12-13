@@ -39,6 +39,22 @@
         <i class="bi bi-plus-circle"></i> Añadir
     </button>
 
+    <hr>
+
+    <div v-if="mi_bodega == 'CN6'">
+        <button @click="activarFiltro(0)" class="btn btn-success">
+            <i class="bi bi-layers"></i> Todo <i v-if="filtroActivo === 0" class="bi bi-check-circle-fill"></i>
+        </button>
+
+        <button @click="activarFiltro(1)" class="btn btn-warning text-white">
+            <i class="bi bi-layers"></i> Nivel 1-2 <i v-if="filtroActivo === 1" class="bi bi-check-circle-fill"></i>
+        </button>
+
+        <button @click="activarFiltro(2)" class="btn btn-info text-white">
+            <i class="bi bi-layers"></i> Nivel 3-4 <i v-if="filtroActivo === 2" class="bi bi-check-circle-fill"></i>
+        </button>
+    </div>
+
     <div class="col-12 mt-2">
         <input v-model="filtro" placeholder="Buscar..." type="text" class="form-control">
     </div>
@@ -67,7 +83,7 @@
                             </td>
                             <td>
                                 <label class="fw-bold">Estado:</label> <span :class="estadoColor(i.estado)">{{i.estado}}</span> <br>
-                                <label class="fw-bold">Ubicación:</label> <br> {{i.ubicacion__bodega}}-{{i.ubicacion__pasillo}}-{{i.ubicacion__modulo}}-{{i.ubicacion__nivel}} <br>
+                                <label class="fw-bold">Ubicación:</label> <br> {{i.ubi_full_name}} <br>
                                 <br>
                                 <button @click="getItem(i.id)" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#tomaFisicaForm">
                                     <i class="bi bi-boxes"></i>
@@ -346,7 +362,9 @@
             n_inventario:'',
             n_inventario_nollenado:'',
             n_inventario_llenado:'',
+            
             filtro:'',
+            filtroActivo:0,
             stock:[],
 
             // ITEM
@@ -457,16 +475,73 @@
                 return Number(t_lotes - t_agrupado)
             },
 
+            //stockFiltrado() {
+            //    return this.stock.filter((i) =>
+            //        i.product_id.toLowerCase().includes(this.filtro.toLowerCase()) ||
+            //        i.product_name.toLowerCase().includes(this.filtro.toLowerCase()) ||
+            //        i.group_code.toLowerCase().includes(this.filtro.toLowerCase()) ||
+            //        i.lote_id.toLowerCase().includes(this.filtro.toLowerCase()) ||
+            //        i.ubi_full_name.toLowerCase().includes(this.filtro.toLowerCase())
+            //    )
+            //},
+
             stockFiltrado() {
-                return this.stock.filter(i =>
-                    i.product_id.toLowerCase().includes(this.filtro.toLowerCase()) |
-                    i.product_name.toLowerCase().includes(this.filtro.toLowerCase()) |
-                    i.group_code.toLowerCase().includes(this.filtro.toLowerCase()) |
-                    i.lote_id.toLowerCase().includes(this.filtro.toLowerCase())
-                )
+                // Copia inicial de la lista original para aplicar filtros
+                let filtrada = [...this.stock];
+                
+                // Aplicar filtro por ubicación según el filtro activo
+                if (this.filtroActivo === 1) {
+                    filtrada = filtrada.filter((item) =>
+                        ["1", "2"].includes(item.ubicacion__nivel)
+                    );
+                    this.n_inventario = filtrada.length;
+                    this.n_inventario_nollenado = filtrada.filter((item)=>
+                        item.llenado === false
+                    ).length;
+                    this.n_inventario_llenado = filtrada.filter((item)=>
+                        item.llenado === true
+                    ).length;
+                } else if (this.filtroActivo === 2) {
+                    filtrada = filtrada.filter((item) =>
+                        ["3", "4"].includes(item.ubicacion__nivel)
+                    );
+                    this.n_inventario = filtrada.length;
+                    this.n_inventario_nollenado = filtrada.filter((item)=>
+                        item.llenado === false
+                    ).length;
+                    this.n_inventario_llenado = filtrada.filter((item)=>
+                        item.llenado === true
+                    ).length;
+                }
+                
+                // Aplicar filtro de texto si el input no está vacío
+                if (this.filtro.trim() !== "") {
+                    const texto = this.filtro.trim().toLowerCase();
+                    filtrada = filtrada.filter((item) =>
+                        ["product_id", "product_name", "group_code", "lote_id", "ubi_full_name"].some((key) =>
+                        item[key]?.toLowerCase().includes(texto)
+                    )
+                );
+                }
+                
+                this.n_inventario = filtrada.length;
+                this.n_inventario_nollenado = filtrada.filter((item)=>
+                    item.llenado === false
+                ).length;
+                this.n_inventario_llenado = filtrada.filter((item)=>
+                    item.llenado === true
+                ).length;
+
+                // Devolver la lista filtrada
+                return filtrada;
             }
+
         },
         methods: {
+            activarFiltro(boton) {
+                this.filtroActivo = boton;
+            },
+
             llenadoColor(llenado) {
                 switch (llenado) {
                     case true:
@@ -565,7 +640,7 @@
                     this.n_inventario_llenado = data.n_inventario_llenado;
                     this.stock = data.inventario || [];
                 } catch (error) {
-                    console.log(error);
+                    console.error(error);
                 }
             },
 

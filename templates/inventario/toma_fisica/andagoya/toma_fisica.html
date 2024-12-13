@@ -433,9 +433,9 @@
 
             stockFiltrado() {
                 return this.stock.filter(i =>
-                    i.product_id.toLowerCase().includes(this.filtro.toLowerCase()) |
-                    i.product_name.toLowerCase().includes(this.filtro.toLowerCase()) |
-                    i.group_code.toLowerCase().includes(this.filtro.toLowerCase()) |
+                    i.product_id.toLowerCase().includes(this.filtro.toLowerCase()) ||
+                    i.product_name.toLowerCase().includes(this.filtro.toLowerCase()) ||
+                    i.group_code.toLowerCase().includes(this.filtro.toLowerCase()) ||
                     i.lote_id.toLowerCase().includes(this.filtro.toLowerCase())
                 )
             }
