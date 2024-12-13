@@ -116,6 +116,15 @@
                                 <label class="fw-bold m-0 p-0">Marca:</label> {{item.group_code}}<br>
                             </div>
                         </div>
+                        <!--hr-->
+                        <!-- DIFERENCIA -->
+                        <div class="card" :style="{backgroundColor:diferenciaColor(diferencia)}">
+                            <!--h6 class="text-center fw-bold">DIFERENCIA</h6-->
+                            <label class="text-center fs-6">T.Lotes - T.Agrupado = Diferencia</label>
+                            <div class="fs-6 card-body d-flex justify-content-center align-items-center m-0 p-0">
+                                {{ total_lotes.toLocaleString() }} - {{ total_agrupado.toLocaleString() }} = {{ diferencia.toLocaleString() }}
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
@@ -197,13 +206,13 @@
                     <hr>
 
                     <!-- DIFERENCIA -->
-                    <div class="card" :style="{backgroundColor:diferenciaColor(diferencia)}">
+                    <!--div class="card" :style="{backgroundColor:diferenciaColor(diferencia)}">
                         <h6 class="text-center fw-bold">DIFERENCIA</h6>
                         <label class="text-center fs-6">T.Lotes - T.Agrupado = Diferencia</label>
                         <div class="fs-1 card-body d-flex justify-content-center align-items-center m-0 p-0">
                             {{ total_lotes.toLocaleString() }} - {{ total_agrupado.toLocaleString() }} = {{ diferencia.toLocaleString() }}
                         </div>
-                    </div>
+                    </div-->
 
                     <hr>
 
