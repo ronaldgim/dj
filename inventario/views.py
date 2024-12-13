@@ -649,6 +649,7 @@ def inventario_cerezos_reportes(request):
     return render(request, 'inventario/toma_fisica/cerezos/reportes_cerezos.html')
 
 
+@login_required(login_url='login')
 def inventario_cerezos_home(request):
     
     bodegas = InventarioCerezos.objects.values_list('ubicacion__bodega', flat=True).distinct()
@@ -864,7 +865,7 @@ def inventario_cerezos_toma_fisica_agregar_producto(request):
         else:
             return JsonResponse({'type':'danger','msg':form.errors})
 
-
+@login_required(login_url='login')
 def reporte_cerezos_completo(request):
     
     inv = InventarioCerezos.objects.all().values(
@@ -936,6 +937,7 @@ def reporte_cerezos_completo(request):
     return response
 
 
+@login_required(login_url='login')
 def reporte_cerezos_agrupado(request):
     
     inv = InventarioCerezos.objects.all().values(
@@ -986,6 +988,7 @@ def reporte_cerezos_agrupado(request):
     return response
 
 
+@login_required(login_url='login')
 def reporte_cerezos_tf_mba(request):
     
     inv = InventarioCerezos.objects.all().values(
