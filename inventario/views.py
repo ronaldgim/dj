@@ -709,7 +709,22 @@ def inventario_por_bodega_cerezos(request, bodega, ubicacion):
         'llenado',
         'agregado',
         'user__username',
-    )    
+    ).order_by(
+        'ubicacion__bodega',
+        'ubicacion__pasillo',
+        'ubicacion__modulo',
+        'ubicacion__nivel',
+        'product_id'
+    ).annotate(
+        ubi_full_name=
+            Concat(F('ubicacion__bodega'),
+            Value('-'),
+            F('ubicacion__pasillo'),
+            Value('-'),
+            F('ubicacion__modulo'),
+            Value('-'),
+            F('ubicacion__nivel'))
+    )
 
     n_inventario =len(inventario)
     n_inventario_llenado = len(InventarioCerezos.objects.filter(ubicacion__bodega=bodega).filter(ubicacion__pasillo=ubicacion).filter(llenado=True))
