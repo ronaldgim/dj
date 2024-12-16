@@ -62,7 +62,7 @@
 
 <form method='POST'>
     {% csrf_token %}
-    <button class="btn btn-primary mt-2 mb-2 {% if estado == 'Liberado' %} disabled {% endif %}" type="submit">
+    <button class="btn btn-primary mt-2 mb-2 {#% if estado == 'Liberado' %} disabled {% endif %#}" type="submit">
         Confirmar liberación
     </button>
 </form>
