@@ -178,11 +178,11 @@ urlpatterns = [
         name ="reporte_cerezos_tf_mba"
     ),
     
-    path(
-        route='cerezos/toma-fisica/reporte-bpa',
-        view = views.reporte_cerezos_bpa,
-        name ="reporte_cerezos_bpa"
-    ),
+    # path(
+    #     route='cerezos/toma-fisica/reporte-bpa',
+    #     view = views.reporte_cerezos_bpa,
+    #     name ="reporte_cerezos_bpa"
+    # ),
     
     # # Actulizar stock lote FORM UPDDATE
     # path(
