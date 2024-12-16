@@ -58,7 +58,7 @@
             <i class="bi bi-layers"></i> Nivel 3 <i v-if="filtroActivo === 3" class="bi bi-check-circle-fill"></i>
         </button>
 
-        <button v-if="mi_ubicacion == 'C' | mi_ubicacion == 'D'" @click="activarFiltro(4)" class="btn btn-danger text-white">
+        <button v-if="mi_ubicacion == 'C' || mi_ubicacion == 'D'" @click="activarFiltro(4)" class="btn btn-danger text-white">
             <i class="bi bi-layers"></i> Nivel 4 <i v-if="filtroActivo === 4" class="bi bi-check-circle-fill"></i>
         </button>
     </div>
