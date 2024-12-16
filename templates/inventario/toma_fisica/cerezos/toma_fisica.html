@@ -42,16 +42,24 @@
     <hr>
 
     <div v-if="mi_bodega == 'CN6'">
-        <button @click="activarFiltro(0)" class="btn btn-success">
+        <button @click="activarFiltro(0)" class="btn btn-light">
             <i class="bi bi-layers"></i> Todo <i v-if="filtroActivo === 0" class="bi bi-check-circle-fill"></i>
         </button>
 
         <button @click="activarFiltro(1)" class="btn btn-warning text-white">
-            <i class="bi bi-layers"></i> Nivel 1-2 <i v-if="filtroActivo === 1" class="bi bi-check-circle-fill"></i>
+            <i class="bi bi-layers"></i> Nivel 1 <i v-if="filtroActivo === 1" class="bi bi-check-circle-fill"></i>
         </button>
 
-        <button @click="activarFiltro(2)" class="btn btn-info text-white">
-            <i class="bi bi-layers"></i> Nivel 3-4 <i v-if="filtroActivo === 2" class="bi bi-check-circle-fill"></i>
+        <button @click="activarFiltro(2)" class="btn btn-success text-white">
+            <i class="bi bi-layers"></i> Nivel 2 <i v-if="filtroActivo === 2" class="bi bi-check-circle-fill"></i>
+        </button>
+
+        <button @click="activarFiltro(3)" class="btn btn-info text-white">
+            <i class="bi bi-layers"></i> Nivel 3 <i v-if="filtroActivo === 3" class="bi bi-check-circle-fill"></i>
+        </button>
+
+        <button v-if="mi_ubicacion == 'C' | mi_ubicacion == 'D'" @click="activarFiltro(4)" class="btn btn-danger text-white">
+            <i class="bi bi-layers"></i> Nivel 4 <i v-if="filtroActivo === 4" class="bi bi-check-circle-fill"></i>
         </button>
     </div>
 
@@ -484,16 +492,6 @@
                 return Number(t_lotes - t_agrupado)
             },
 
-            //stockFiltrado() {
-            //    return this.stock.filter((i) =>
-            //        i.product_id.toLowerCase().includes(this.filtro.toLowerCase()) ||
-            //        i.product_name.toLowerCase().includes(this.filtro.toLowerCase()) ||
-            //        i.group_code.toLowerCase().includes(this.filtro.toLowerCase()) ||
-            //        i.lote_id.toLowerCase().includes(this.filtro.toLowerCase()) ||
-            //        i.ubi_full_name.toLowerCase().includes(this.filtro.toLowerCase())
-            //    )
-            //},
-
             stockFiltrado() {
                 // Copia inicial de la lista original para aplicar filtros
                 let filtrada = [...this.stock];
@@ -501,11 +499,19 @@
                 // Aplicar filtro por ubicación según el filtro activo
                 if (this.filtroActivo === 1) {
                     filtrada = filtrada.filter((item) =>
-                        ["1", "2"].includes(item.ubicacion__nivel)
+                        ["1",].includes(item.ubicacion__nivel)
                     );
                 } else if (this.filtroActivo === 2) {
                     filtrada = filtrada.filter((item) =>
-                        ["3", "4"].includes(item.ubicacion__nivel)
+                        ["2",].includes(item.ubicacion__nivel)
+                    );
+                } else if (this.filtroActivo === 3) {
+                    filtrada = filtrada.filter((item) =>
+                        ["3"].includes(item.ubicacion__nivel)
+                    );
+                } else if (this.filtroActivo === 4) {
+                    filtrada = filtrada.filter((item) =>
+                        ["4",].includes(item.ubicacion__nivel)
                     );
                 }
                 
@@ -520,8 +526,10 @@
                 }
 
                 let todo = this.stock
-                let filtro_1 = this.stock.filter((item) => ["1", "2"].includes(item.ubicacion__nivel));
-                let filtro_2 = this.stock.filter((item) => ["3", "4"].includes(item.ubicacion__nivel));
+                let filtro_1 = this.stock.filter((item) => ["1",].includes(item.ubicacion__nivel));
+                let filtro_2 = this.stock.filter((item) => ["2",].includes(item.ubicacion__nivel));
+                let filtro_3 = this.stock.filter((item) => ["3",].includes(item.ubicacion__nivel));
+                let filtro_4 = this.stock.filter((item) => ["4",].includes(item.ubicacion__nivel));
                 if (this.filtroActivo === 0) {
                     this.n_inventario = todo.length;
                     this.n_inventario_nollenado = todo.filter((item) => item.llenado === false).length;
@@ -534,6 +542,14 @@
                     this.n_inventario = filtro_2.length;
                     this.n_inventario_nollenado = filtro_2.filter((item) => item.llenado === false).length;
                     this.n_inventario_llenado = filtro_2.filter((item) => item.llenado === true).length;
+                } else if(this.filtroActivo === 3) {
+                    this.n_inventario = filtro_3.length;
+                    this.n_inventario_nollenado = filtro_3.filter((item) => item.llenado === false).length;
+                    this.n_inventario_llenado = filtro_3.filter((item) => item.llenado === true).length;
+                } else if(this.filtroActivo === 4) {
+                    this.n_inventario = filtro_4.length;
+                    this.n_inventario_nollenado = filtro_4.filter((item) => item.llenado === false).length;
+                    this.n_inventario_llenado = filtro_4.filter((item) => item.llenado === true).length;
                 }
                 
                 // Devolver la lista filtrada
