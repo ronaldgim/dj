@@ -865,6 +865,7 @@ def inventario_cerezos_toma_fisica_agregar_producto(request):
         else:
             return JsonResponse({'type':'danger','msg':form.errors})
 
+
 @login_required(login_url='login')
 def reporte_cerezos_completo(request):
     
@@ -991,6 +992,7 @@ def reporte_cerezos_agrupado(request):
 @login_required(login_url='login')
 def reporte_cerezos_tf_mba(request):
     
+    # INV TOMA FISICA
     inv = InventarioCerezos.objects.all().values(
         'product_id',
         'estado',
@@ -1001,6 +1003,9 @@ def reporte_cerezos_tf_mba(request):
     )
     
     inv_df = pd.DataFrame(inv)
+    
+    inv_df['lote_id'] = inv_df['lote_id'].str.replace(pat='.', repl='', regex=False)
+    
     
     inv_df = inv_df.groupby(by=[
         'product_id',
@@ -1017,7 +1022,12 @@ def reporte_cerezos_tf_mba(request):
         'total_unidades': 'UNDS-TF',
     })
 
+
+    # INV STOCK
     stock = stock_lote_inventario_cerezos()[['PRODUCT_ID','LOTE_ID','OH2','WARE_CODE','LOCATION']]
+    stock['LOTE_ID'] = stock['LOTE_ID'].str.replace(pat='.', repl='', regex=False)
+
+
     stock = stock.groupby(by=[
         'PRODUCT_ID',
         'LOTE_ID',
@@ -1060,6 +1070,7 @@ def reporte_cerezos_tf_mba(request):
         'DIFERENCIA (WMS-MBA)'
     ]]
 
+
     date_time = str(datetime.now())
     date_time = date_time[0:16]
     n = 'inventario_cerezos_agrupado_' + date_time + '_.xlsx'
@@ -1071,6 +1082,170 @@ def reporte_cerezos_tf_mba(request):
     inv_df.to_excel(response, index=False)
     
     return response
+
+
+# def reporte_cerezos_bpa(request):
+    
+#     # INV TOMA FISICA
+#     inv = InventarioCerezos.objects.all().values(
+#         'product_id',
+#         'estado',
+#         'oh2',
+#         'lote_id',
+#         'fecha_elab_lote',
+#         'fecha_cadu_lote',
+#         'ubicacion__bodega',
+#         #'unidades_caja',
+#         'numero_cajas',
+#         'unidades_sueltas',
+#         'total_unidades',
+#         #'diferencia',
+#         'observaciones',
+#         'user__first_name',
+#         'user__last_name'
+#     )
+    
+#     inv_df = pd.DataFrame(inv)
+    
+#     inv_df['user'] = inv_df['user__first_name'].astype('str') + ' ' + inv_df['user__last_name'].astype('str') 
+    
+#     inv_df['lote_id'] = inv_df['lote_id'].str.replace(pat='.', repl='', regex=False)
+    
+#     inv_unidades_df = inv_df.pivot_table(
+#         index=[        
+#             'product_id',
+#             'estado',
+
+#             'lote_id',
+#             'fecha_elab_lote',
+#             'fecha_cadu_lote',
+#             'ubicacion__bodega',
+
+#             # 'observaciones',
+#             # 'user__first_name',
+#             # 'user__last_name'
+#         ],
+#         values=[
+#             'oh2',
+#             #'numero_cajas',
+#             'unidades_sueltas',
+#             'total_unidades',
+#             #'diferencia',
+#         ],
+#         aggfunc='sum'
+#     ).reset_index()
+    
+#     inv_unidades_df['WARE_CODE'] = inv_unidades_df.apply(lambda x: 'BCT' if x['estado'] == 'Disponible' else 'CUC', axis=1)
+    
+#     # print(inv_unidades_df)
+    
+#     inv_data_str_df = inv_df.fillna('')
+#     inv_data_str_df = inv_df.pivot_table(
+#         index=[        
+#             'product_id',
+#             'estado',
+
+#             'lote_id',
+#             'fecha_elab_lote',
+#             'fecha_cadu_lote',
+#             'ubicacion__bodega',
+
+#             # 'observaciones',
+#             # 'user__first_name',
+#             # 'user__last_name'
+#         ],
+#         values=[
+#             # 'observaciones',
+#             # 'user__first_name',
+#             # 'user__last_name'
+#             'user'
+#         ],
+#         aggfunc=lambda x: ', '.join(x)
+#     ).reset_index()
+    
+#     print(inv_data_str_df)
+
+    
+#     # inv_data_str_df.to_excel('inv_data_str_df.xlsx')
+    
+    
+#     # inv_df = inv_df.groupby(by=[
+#     #     'product_id',
+#     #     'estado',
+#     #     'lote_id',
+#     #     'ubicacion__bodega',
+#     # ]).sum().reset_index()
+#     # inv_df['WARE_CODE'] = inv_df.apply(lambda x: 'BCT' if x['estado'] == 'Disponible' else 'CUC', axis=1)
+#     # inv_df = inv_df.rename(columns={
+#     #     'product_id': 'PRODUCT_ID',
+#     #     'lote_id': 'LOTE_ID',
+#     #     'ubicacion__bodega': 'LOCATION',
+#     #     'oh2': 'UNDS-WMS',
+#     #     'total_unidades': 'UNDS-TF',
+#     # })
+
+
+#     # # INV STOCK
+#     # stock = stock_lote_inventario_cerezos()[['PRODUCT_ID','LOTE_ID','OH2','WARE_CODE','LOCATION']]
+#     # stock['LOTE_ID'] = stock['LOTE_ID'].str.replace(pat='.', repl='', regex=False)
+
+
+#     # stock = stock.groupby(by=[
+#     #     'PRODUCT_ID',
+#     #     'LOTE_ID',
+#     #     'WARE_CODE',
+#     #     'LOCATION',
+#     # ]).sum().reset_index()
+
+#     # inv_df = inv_df.merge(stock, on=[
+#     #     'PRODUCT_ID',
+#     #     'LOTE_ID',
+#     #     'WARE_CODE',
+#     #     # 'LOCATION'
+#     # #], how='left')
+#     # ], how='outer')
+    
+#     # inv_df = inv_df.rename(columns={
+#     #     'LOCATION_x':'LOCATION_WMS',
+#     #     'LOCATION_y':'LOCATION_MBA',
+#     #     'OH2':'UNDS-MBA'
+#     # })
+    
+#     # inv_df['DIFERENCIA (WMS-TF)'] = inv_df['UNDS-WMS'] - inv_df['UNDS-TF']
+#     # inv_df['DIFERENCIA (MBA-TF)'] = inv_df['UNDS-MBA'] - inv_df['UNDS-TF']
+#     # inv_df['DIFERENCIA (WMS-MBA)'] = inv_df['UNDS-WMS'] - inv_df['UNDS-MBA']
+    
+#     # inv_df['#'] = inv_df.reset_index().index + 1
+    
+#     # inv_df = inv_df[[
+#     #     '#',
+#     #     'PRODUCT_ID',
+#     #     'LOTE_ID',
+#     #     'WARE_CODE',
+#     #     'LOCATION_WMS',
+#     #     'LOCATION_MBA',
+#     #     'UNDS-WMS',
+#     #     'UNDS-MBA',
+#     #     'UNDS-TF',
+#     #     'DIFERENCIA (WMS-TF)',
+#     #     'DIFERENCIA (MBA-TF)',
+#     #     'DIFERENCIA (WMS-MBA)'
+#     # ]]
+
+
+#     # date_time = str(datetime.now())
+#     # date_time = date_time[0:16]
+#     # n = 'inventario_cerezos_agrupado_' + date_time + '_.xlsx'
+#     # nombre = 'attachment; filename=' + '"' + n + '"'
+
+#     # response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+#     # response['Content-Disposition'] = nombre
+    
+#     # inv_df.to_excel(response, index=False)
+    
+#     # return response
+
+#     return HttpResponse('ok')
 
 
 # ### INVENTARIO FORM UPDATE ###
