@@ -3840,85 +3840,6 @@ def wms_ajuste_liberacion_input_ajax(request):
             })
 
 
-# @login_required(login_url='login')
-# @permisos(['ADMINISTRADOR','OPERACIONES'],'/wms/home', 'ingresar a ajuste liberaciones')
-# def wms_ajuste_liberacion_detalle(request, n_liberacion):
-    
-#     prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
-#     ubi  = pd.DataFrame(Ubicacion.objects.filter(disponible=True).values())
-#     ubi  = ubi.rename(columns={'id':'ubicacion_id'})
-    
-#     ajuste = pd.DataFrame(AjusteLiberacion.objects.filter(doc_id=n_liberacion).values())
-#     ajuste['fecha_caducidad'] = ajuste['fecha_caducidad'].astype('str')
-#     ajuste = ajuste.merge(prod, on='product_id', how='left')[[
-#         'tipo','product_id','lote_id','fecha_caducidad','egreso_temp','estado','ubicacion_id', 'unidades_cuc',
-#     ]]
-    
-#     ajuste = ajuste.merge(prod, on='product_id', how='left')
-#     ajuste = ajuste.merge(ubi, on='ubicacion_id', how='left')
-
-#     ajuste['ubicacion_liberacion'] = ajuste.apply(
-#         lambda x: '606' if x['tipo'] == 'Liberación Acondicionamiento' else x['ubicacion_id'], axis=1
-#     )
-    
-#     ajuste['unidades_cuc'] = ajuste.apply(
-#         lambda x: x['egreso_temp'] if x['tipo'] == 'Liberación Acondicionamiento' else x['unidades_cuc'], axis=1
-#     )
-    
-#     tipo = ajuste.iloc[0]['tipo']
-#     estado = ajuste.iloc[0]['estado']
-    
-#     ajuste = de_dataframe_a_template(ajuste)
-    
-#     if request.method == 'POST':
-#         for i in ajuste:
-#             mov_eg = Movimiento(
-#                 tipo            = 'Egreso',
-#                 unidades        = int(i['unidades_cuc']) *-1,
-#                 descripcion     = 'N/A' ,
-#                 n_referencia    = n_liberacion,
-#                 referencia      = 'Liberación',
-#                 usuario_id      = int(request.user.id),
-#                 fecha_caducidad = i['fecha_caducidad'],
-#                 lote_id         = i['lote_id'],
-#                 product_id      = i['product_id'],
-#                 estado          = 'Cuarentena',
-#                 ubicacion_id    = int(i['ubicacion_id']),
-#             )
-#             #mov_eg.save()
-            
-#             mov_in = Movimiento(
-#                 tipo            = 'Ingreso',
-#                 unidades        = int(i['unidades_cuc']),
-#                 descripcion     = 'N/A' ,
-#                 n_referencia    = n_liberacion,
-#                 referencia      = 'Liberación',
-#                 usuario_id      = int(request.user.id),
-#                 fecha_caducidad = i['fecha_caducidad'],
-#                 lote_id         = i['lote_id'],
-#                 product_id      = i['product_id'],
-#                 estado          = 'Disponible',
-#                 ubicacion_id    = int(i['ubicacion_liberacion']),
-#             )
-#             #mov_in.save()
-            
-#             #wms_existencias_query_product_lote(product_id=mov_in.product_id, lote_id=mov_in.lote_id)
-            
-#         AjusteLiberacion.objects.filter(doc_id=n_liberacion).update(estado='Liberado')
-    
-#         return HttpResponseRedirect(f'/wms/ajuste-liberacion/detalle/{n_liberacion}') 
-    
-#     context = {
-#         'ajuste':ajuste,
-#         'n_liberacion':n_liberacion,
-#         'tipo':tipo,
-#         'estado':estado
-#     }
-
-#     return render(request, 'wms/ajuste_liberacion_detalle.html', context)
-
-
-
 @login_required(login_url='login')
 @permisos(['ADMINISTRADOR','OPERACIONES'],'/wms/home', 'ingresar a ajuste liberaciones')
 def wms_ajuste_liberacion_detalle(request, n_liberacion):
@@ -3933,19 +3854,16 @@ def wms_ajuste_liberacion_detalle(request, n_liberacion):
         'tipo','product_id','lote_id','fecha_caducidad','egreso_temp','estado','ubicacion_id', 'unidades_cuc',
     ]]
     
-    ajuste['unidades_quedan_cuarentena'] = ajuste['unidades_cuc'] - ajuste['egreso_temp']
-    ajuste['unidades_liberadas'] = ajuste['unidades_cuc'] - ajuste['unidades_quedan_cuarentena']
-    
     ajuste = ajuste.merge(prod, on='product_id', how='left')
     ajuste = ajuste.merge(ubi, on='ubicacion_id', how='left')
+
+    ajuste['ubicacion_liberacion'] = ajuste.apply(
+        lambda x: '606' if x['tipo'] == 'Liberación Acondicionamiento' else x['ubicacion_id'], axis=1
+    )
     
-    # ajuste['ubicacion_liberacion'] = ajuste.apply(
-    #     lambda x: '606' if x['tipo'] == 'Liberación Acondicionamiento' else x['ubicacion_id'], axis=1
-    # )
-    
-    # ajuste['unidades_cuc'] = ajuste.apply(
-    #     lambda x: x['egreso_temp'] if x['tipo'] == 'Liberación Acondicionamiento' else x['unidades_cuc'], axis=1
-    # )
+    ajuste['unidades_cuc'] = ajuste.apply(
+        lambda x: x['egreso_temp'] if x['tipo'] == 'Liberación Acondicionamiento' else x['unidades_cuc'], axis=1
+    )
     
     tipo = ajuste.iloc[0]['tipo']
     estado = ajuste.iloc[0]['estado']
@@ -3954,13 +3872,10 @@ def wms_ajuste_liberacion_detalle(request, n_liberacion):
     
     if request.method == 'POST':
         for i in ajuste:
-            
-            # mov liberado
-            
             mov_eg = Movimiento(
                 tipo            = 'Egreso',
-                # unidades        = int(i['unidades_cuc']) *-1,
-                unidades        = int(i['unidades_liberadas']) *-1,
+                #unidades        = int(i['unidades_cuc']) *-1,
+                unidades        = int(i['egreso_temp']) *-1,
                 descripcion     = 'N/A' ,
                 n_referencia    = n_liberacion,
                 referencia      = 'Liberación',
@@ -3975,8 +3890,8 @@ def wms_ajuste_liberacion_detalle(request, n_liberacion):
             
             mov_in = Movimiento(
                 tipo            = 'Ingreso',
-                # unidades        = int(i['unidades_cuc']),
-                unidades        = int(i['unidades_liberadas']) *-1,
+                #unidades        = int(i['unidades_cuc']),
+                unidades        = int(i['egreso_temp']),
                 descripcion     = 'N/A' ,
                 n_referencia    = n_liberacion,
                 referencia      = 'Liberación',
