@@ -235,11 +235,11 @@ def inventario_home(request):
     
     inventario_andagoya = Inventario.objects.all().count()
     inventario_andagoya_llenado = Inventario.objects.filter(llenado=True).count()
-    andagoya = round(inventario_andagoya_llenado / inventario_andagoya, 0)
+    andagoya = 0 if inventario_andagoya == 0 else round(inventario_andagoya_llenado / inventario_andagoya, 0)
     
     inventario_cerezos = InventarioCerezos.objects.all().count()
     inventario_cerezos_llenado = InventarioCerezos.objects.filter(llenado=True).count()
-    cerezos = round(inventario_cerezos_llenado / inventario_cerezos, 0)
+    cerezos = 0 if inventario_cerezos == 0 else round(inventario_cerezos_llenado / inventario_cerezos, 0)
     
     context = {
         'andagoya':inventario_andagoya,
@@ -286,7 +286,7 @@ def inventario_andagoya_get_stock(request):
     total      = len(inventario)
     procesados = len(inventario.filter(llenado=True))
     
-    porcentaje_avance = round((procesados / total) * 100, 0)
+    porcentaje_avance = 0 if total == 0 else round((procesados / total) * 100, 0)
     procentaje_falta  = 100 - porcentaje_avance
     
     lista_ubicaciones = sorted(list(inventario.filter(ware_code='BAN').values_list('location', flat=True).distinct()))
@@ -713,7 +713,7 @@ def inventario_cerezos_get_stock(request):
     total      = len(inventario)
     procesados = len(inventario.filter(llenado=True))
     
-    porcentaje_avance = 1 if total == 0 else round((procesados / total) * 100, 0)
+    porcentaje_avance = 0 if total == 0 else round((procesados / total) * 100, 0)
     procentaje_falta  = 100 - porcentaje_avance
     
     lista_ubicaciones = sorted(list(inventario.values_list('ubicacion__bodega', flat=True).distinct()))
@@ -1107,8 +1107,7 @@ def reporte_cerezos_tf_mba(request):
     inv_df = pd.DataFrame(inv)
     
     inv_df['lote_id'] = inv_df['lote_id'].str.replace(pat='.', repl='', regex=False)
-    
-    
+    inv_df['lote_id'] = inv_df['lote_id'].str.strip()
     inv_df = inv_df.groupby(by=[
         'product_id',
         'estado',
@@ -1128,7 +1127,7 @@ def reporte_cerezos_tf_mba(request):
     # INV STOCK
     stock = stock_lote_inventario_cerezos()[['PRODUCT_ID','LOTE_ID','OH2','WARE_CODE','LOCATION']]
     stock['LOTE_ID'] = stock['LOTE_ID'].str.replace(pat='.', repl='', regex=False)
-
+    stock['LOTE_ID'] = stock['LOTE_ID'].str.strip()
 
     stock = stock.groupby(by=[
         'PRODUCT_ID',
