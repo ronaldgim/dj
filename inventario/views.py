@@ -93,15 +93,84 @@ def stock_lote_inventario_andagoya(): #request
     return stock_lote 
 
 
-def stock_lote_tupla():
+def stock_lote_inventario_andagoya_agrupado():
 
     stock_mba = stock_lote_inventario_andagoya()
-    stock_mba = stock_mba.to_dict('records')
+
+    stock_mba['LOTE_ID'] = stock_mba['LOTE_ID'].str.replace('.','',regex=False)
+    stock_mba['LOTE_ID'] = stock_mba['LOTE_ID'].str.strip()    
+    
+    stock_mba_group = stock_mba.copy()
+    stock_mba_group = stock_mba_group.groupby(by=[
+        'PRODUCT_ID',
+        'LOTE_ID',
+        'WARE_CODE',
+        'LOCATION',
+        'Fecha_elaboracion_lote',
+        'FECHA_CADUCIDAD',
+    ])[['OH2','OH','COMMITED','QUANTITY']].sum().reset_index()
+    
+    stock_mba_str = stock_mba.copy()
+    stock_mba_str = stock_mba_str[[
+            'PRODUCT_ID',
+            'PRODUCT_NAME',
+            'GROUP_CODE',
+            'UM',
+            'Unidad_Empaque',
+            'LOTE_ID',
+            # 'Fecha_elaboracion_lote',
+            # 'FECHA_CADUCIDAD',
+            'WARE_CODE',
+            'LOCATION',
+    ]]
+    stock_mba_str = stock_mba_str.drop_duplicates(subset=[
+            'PRODUCT_ID',
+            'PRODUCT_NAME',
+            'GROUP_CODE',
+            'UM',
+            'Unidad_Empaque',
+            'LOTE_ID',
+            # 'Fecha_elaboracion_lote',
+            # 'FECHA_CADUCIDAD',
+            'WARE_CODE',
+            'LOCATION',
+        ], 
+        keep='first')
+    
+    stock_mba_final = stock_mba_group.merge(stock_mba_str, on=[
+        'PRODUCT_ID',
+        'LOTE_ID',
+        'WARE_CODE',
+        'LOCATION',
+    ], how='left')
+    stock_mba_final = stock_mba_final[[
+        'PRODUCT_ID',
+        'PRODUCT_NAME',
+        'GROUP_CODE',
+        'UM',
+        'OH',
+        'OH2',
+        'COMMITED',
+        'QUANTITY',
+        'LOTE_ID',
+        'Fecha_elaboracion_lote',
+        'FECHA_CADUCIDAD',
+        'WARE_CODE',
+        'LOCATION',
+        'Unidad_Empaque',
+    ]]
+    
+    return stock_mba_final
+
+
+def stock_lote_tupla():
+
+    stock_mba_final = stock_lote_inventario_andagoya_agrupado()
+    stock_mba_final = stock_mba_final.to_dict('records')
     
     lista_stock_mba = []
     pk = 0
-
-    for i in stock_mba:
+    for i in stock_mba_final:
         
         pk += 1
         prod_id     = i.get('PRODUCT_ID')
@@ -238,23 +307,26 @@ def inventario_andagoya_get_stock(request):
 @require_GET
 def inventario_andagoya_actualizar_db(request):
     
-    with connections['default'].cursor() as cursor:
-        cursor.execute("TRUNCATE TABLE inventario_inventario")
-    
-    
-    with connections['default'].cursor() as cursor:
-        cursor.execute("TRUNCATE TABLE inventario_inventariototale")
-    
-    
-    with connections['default'].cursor() as cursor:
-        stock_mba = stock_lote_tupla()
-        cursor.executemany("""
-            INSERT INTO inventario_inventario 
-            (id, product_id, product_name, group_code, um, oh, oh2, commited, quantity, lote_id, fecha_elab_lote, fecha_cadu_lote, ware_code, location, unidades_caja, numero_cajas, unidades_sueltas, total_unidades, diferencia, observaciones, llenado, agregado, user_id) 
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""", 
-            stock_mba)
-    
-    return JsonResponse({'msg':'ok'})
+    try:
+        with connections['default'].cursor() as cursor:
+            cursor.execute("TRUNCATE TABLE inventario_inventario")
+        
+        
+        with connections['default'].cursor() as cursor:
+            cursor.execute("TRUNCATE TABLE inventario_inventariototale")
+        
+        
+        with connections['default'].cursor() as cursor:
+            stock_mba = stock_lote_tupla()
+            cursor.executemany("""
+                INSERT INTO inventario_inventario 
+                (id, product_id, product_name, group_code, um, oh, oh2, commited, quantity, lote_id, fecha_elab_lote, fecha_cadu_lote, ware_code, location, unidades_caja, numero_cajas, unidades_sueltas, total_unidades, diferencia, observaciones, llenado, agregado, user_id) 
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""", 
+                stock_mba)
+        
+        return JsonResponse({'msg':'ok'})
+    except Exception as e:
+        return JsonResponse({'msg': str(e)})
 
 
 def inventario_andagoya_reportes(request):
@@ -535,41 +607,55 @@ def stock_lote_inventario_cerezos(): #request
 
 def inventario_cerezos_actualizar_db(request):
     
-    stock = stock_lote()[['PRODUCT_ID','LOTE_ID','Fecha_elaboracion_lote']]
-    stock['l'] = stock['LOTE_ID'].str.replace('.','', regex=False)    
-    stock = stock.drop_duplicates(subset=['PRODUCT_ID','l'])
-    stock = stock.rename(columns={'PRODUCT_ID':'product_id'}) #,'LOTE_ID':'lote_id'})
-    
     productos = productos_odbc_and_django()[['product_id','Nombre','Marca','Unidad','Unidad_Empaque']]
     productos = productos.drop_duplicates(subset=['product_id','Nombre','Marca','Unidad','Unidad_Empaque'], keep='first')
     
+    stock_bct = stock_lote()[['PRODUCT_ID','LOTE_ID','Fecha_elaboracion_lote']]
+    stock_bct['LOTE_ID'] = stock_bct['LOTE_ID'].str.replace('.','',regex=False)
+    stock_bct['LOTE_ID'] = stock_bct['LOTE_ID'].str.strip()
+    stock_bct = stock_bct.drop_duplicates(subset=['PRODUCT_ID','LOTE_ID','Fecha_elaboracion_lote'], keep='first')
+    stock_bct = stock_bct.rename(columns={'PRODUCT_ID':'product_id','LOTE_ID':'lote_id'})
+    
     existencias = Existencias.objects.all().values()
     existencias_df = pd.DataFrame(existencias)
+    existencias_df['lote_id'] = existencias_df['lote_id'].str.replace('.','', regex=False)
+    existencias_df['lote_id'] = existencias_df['lote_id'].str.strip()
     
-    existencias_df['l'] = existencias_df['lote_id'].str.replace('.','', regex=False)
-    #existencias_df = existencias_df.merge(stock, on=['product_id','lote_id'], how='left')
-    existencias_df = existencias_df.merge(stock, on=['product_id','l'], how='left')
+    existencias_df_agrupado = existencias_df.copy()
+    existencias_df_agrupado = existencias_df_agrupado.groupby(by=[
+        'product_id',
+        'lote_id',
+        'fecha_caducidad',
+        'ubicacion_id',
+        'estado'
+    ])[['unidades']].sum().reset_index() #.fillna(0)
     
-    existencias_df = existencias_df.merge(productos, on='product_id', how='left').fillna('')
-    existencias_df['id'] = range(1, len(existencias_df) + 1)
-    existencias_df['numero_cajas'] = 0
-    existencias_df['unidades_sueltas'] = 0
-    existencias_df['total_unidades'] = 0
-    existencias_df['diferencia'] = 0
-    existencias_df['observaciones'] = ''
-    existencias_df['llenado'] = False
-    existencias_df['agregado'] = False
-    existencias_df['user_id'] = None
+    existencias_df_agrupado = existencias_df_agrupado.merge(stock_bct, on=[
+        'product_id',
+        'lote_id'
+    ], how='left')
     
-    existencias_df = existencias_df[[
+    existencias_df_agrupado = existencias_df_agrupado.merge(productos, on='product_id', how='left')    
+    
+    existencias_df_agrupado['id'] = range(1, len(existencias_df_agrupado) + 1)
+    existencias_df_agrupado['numero_cajas'] = 0
+    existencias_df_agrupado['unidades_sueltas'] = 0
+    existencias_df_agrupado['total_unidades'] = 0
+    existencias_df_agrupado['diferencia'] = 0
+    existencias_df_agrupado['observaciones'] = ''
+    existencias_df_agrupado['llenado'] = False
+    existencias_df_agrupado['agregado'] = False
+    existencias_df_agrupado['user_id'] = None
+    
+    existencias_df_agrupado = existencias_df_agrupado[[
         'id',
         'product_id','Nombre','Marca','Unidad','estado','unidades','lote_id',
         'Fecha_elaboracion_lote','fecha_caducidad','Unidad_Empaque',
         'numero_cajas','unidades_sueltas','total_unidades','diferencia',
         'observaciones','llenado','agregado','ubicacion_id','user_id',
     ]]
-    
-    data = list(existencias_df.itertuples(index=False, name=None)) 
+
+    data = list(existencias_df_agrupado.itertuples(index=False, name=None)) 
     
     with connections['default'].cursor() as cursor:
         cursor.execute("TRUNCATE TABLE inventario_inventariocerezos")
@@ -586,7 +672,7 @@ def inventario_cerezos_actualizar_db(request):
             observaciones, llenado, agregado, ubicacion_id, user_id) 
             VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""", 
             data)
-    
+
     return JsonResponse({'msg':'ok'})
     
 
@@ -627,7 +713,7 @@ def inventario_cerezos_get_stock(request):
     total      = len(inventario)
     procesados = len(inventario.filter(llenado=True))
     
-    porcentaje_avance = round((procesados / total) * 100, 0)
+    porcentaje_avance = 1 if total == 0 else round((procesados / total) * 100, 0)
     procentaje_falta  = 100 - porcentaje_avance
     
     lista_ubicaciones = sorted(list(inventario.values_list('ubicacion__bodega', flat=True).distinct()))
