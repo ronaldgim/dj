@@ -159,6 +159,12 @@ urlpatterns = [
         view = views.inventario_cerezos_toma_fisica_agregar_producto,
         name ="inventario_cerezos_toma_fisica_agregar_producto"
     ),
+
+    path(
+        route='cerezos/toma-fisica/eliminar-item-agregado',#/<int:item_id>',
+        view = views.inventario_cerezos_eliminar_item_agregado,
+        name ="inventario_cerezos_eliminar_item_agregado"
+    ),
     
     path(
         route='cerezos/toma-fisica/reporte-completo',

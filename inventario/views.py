@@ -866,6 +866,22 @@ def inventario_cerezos_toma_fisica_agregar_producto(request):
             return JsonResponse({'type':'danger','msg':form.errors})
 
 
+@csrf_exempt
+def inventario_cerezos_eliminar_item_agregado(request):
+    
+    if request.method == 'POST':
+
+        data = json.loads(request.body)
+        
+        item_id = data.get('item_id')
+        item = InventarioCerezos.objects.get(id=item_id)
+        item.delete()
+        
+        return JsonResponse({'type':'success','msg':'Item eliminado correctamente'})
+    else:
+        return JsonResponse({'type':'danger','msg':'Error al eliminar item'})
+
+
 @login_required(login_url='login')
 def reporte_cerezos_completo(request):
     
