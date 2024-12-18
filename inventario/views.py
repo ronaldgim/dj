@@ -1185,62 +1185,43 @@ def reporte_cerezos_tf_mba(request):
     return response
 
 
-
+@login_required(login_url='login')
 def reporte_cerezos_bpa(request):
     
     # INV TOMA FISICA
     inv = InventarioCerezos.objects.all().values(
         'product_id',
+        'product_name',
+        'group_code',
+        'um',
         'estado',
         'oh2',
         'lote_id',
         'fecha_elab_lote',
         'fecha_cadu_lote',
         'ubicacion__bodega',
-        #'unidades_caja',
+        'unidades_caja',
         'numero_cajas',
         'unidades_sueltas',
         'total_unidades',
-        #'diferencia',
+        'diferencia',
         'observaciones',
-        'user__first_name',
-        'user__last_name'
+        'user__username',
+        # 'user__first_name',
+        # 'user__last_name'
     )
     
     inv_df = pd.DataFrame(inv)
     
-    # inv_users_df = inv_df.copy().fillna('')
-    # inv_users_df['user'] = inv_users_df['user__first_name'] + ' ' + inv_users_df['user__last_name'] 
-    # inv_users_df = inv_users_df.pivot_table(
-    #     index=[
-    #         'product_id',
-    #         'estado',
-    #         'lote_id',
-    #         'fecha_elab_lote',
-    #         'fecha_cadu_lote',
-    #         'ubicacion__bodega',
-    #         #'user'
-    #     ],
-    #     values= ['user', 'observaciones'],
-    #     aggfunc=lambda x: ' '.join(x)
-    # ).reset_index()
-    # inv_users_df = inv_users_df.drop_duplicates(subset=[            
-    #         'product_id',
-    #         'estado',
-    #         'lote_id',
-    #         'fecha_elab_lote',
-    #         'fecha_cadu_lote',
-    #         'ubicacion__bodega']
-    #     )
-    # print(inv_users_df)
-    
     inv_unidades_df = inv_df.copy()
-    inv_unidades_df['lote_id'] = inv_unidades_df['lote_id'].str.replace(pat='.', repl='', regex=False)
-    inv_unidades_df['WARE_CODE'] = inv_unidades_df.apply(lambda x: 'BCT' if x['estado'] == 'Disponible' else 'CUC', axis=1)
+    inv_unidades_df['ware_code'] = inv_unidades_df.apply(lambda x: 'BCT' if x['estado'] == 'Disponible' else 'CUC', axis=1)
     inv_unidades_df = inv_unidades_df.pivot_table(
         index=[        
             'product_id',
-            'estado',
+            'product_name',
+            'group_code',
+            'um',
+            'ware_code',
             'lote_id',
             'fecha_elab_lote',
             'fecha_cadu_lote',
@@ -1251,117 +1232,152 @@ def reporte_cerezos_bpa(request):
             'numero_cajas',
             'unidades_sueltas',
             'total_unidades',
+            'diferencia'
         ],
         aggfunc='sum'
     ).reset_index()
     
-    print(inv_unidades_df)
-    
-    # inv_data_str_df = inv_df.fillna('')
-    # inv_data_str_df = inv_df.pivot_table(
-    #     index=[        
-    #         'product_id',
-    #         'estado',
+    # USER
+    df_str_users = inv_df.copy()
+    df_str_users = df_str_users[[
+        'product_id',
+        'lote_id',
+        'estado',
+        'fecha_elab_lote',
+        'fecha_cadu_lote',
+        'ubicacion__bodega',
+        'user__username'
+    ]]    
+    df_str_users['user__username'] = df_str_users['user__username'].fillna('')
+    df_str_users['ware_code'] = df_str_users.apply(lambda x: 'BCT' if x['estado'] == 'Disponible' else 'CUC', axis=1)
+    df_str_users = df_str_users.pivot_table(
+        index=[
+            'product_id',
+            'ware_code',
+            'lote_id',
+            'fecha_elab_lote',
+            'fecha_cadu_lote',
+            'ubicacion__bodega',
+            'user__username'
+        ],
+        values=['user__username'],
+        aggfunc=lambda x: ', '.join(set(x))
+    ).reset_index()
 
-    #         'lote_id',
-    #         'fecha_elab_lote',
-    #         'fecha_cadu_lote',
-    #         'ubicacion__bodega',
-
-    #         # 'observaciones',
-    #         # 'user__first_name',
-    #         # 'user__last_name'
-    #     ],
-    #     values=[
-    #         # 'observaciones',
-    #         # 'user__first_name',
-    #         # 'user__last_name'
-    #         'user'
-    #     ],
-    #     aggfunc=lambda x: ', '.join(x)
-    # ).reset_index()
+    # OBS
+    df_str_obs = inv_df.copy()
+    df_str_obs = df_str_obs[[
+        'product_id',
+        'lote_id',
+        'estado',
+        'fecha_elab_lote',
+        'fecha_cadu_lote',
+        'ubicacion__bodega',
+        'observaciones'
+    ]]    
+    df_str_obs['observaciones'] = df_str_obs['observaciones'].fillna('')
+    df_str_obs['ware_code'] = df_str_obs.apply(lambda x: 'BCT' if x['estado'] == 'Disponible' else 'CUC', axis=1)
+    df_str_obs = df_str_obs.pivot_table(
+        index=[
+            'product_id',
+            'ware_code',
+            'lote_id',
+            'fecha_elab_lote',
+            'fecha_cadu_lote',
+            'ubicacion__bodega',
+            'observaciones'
+        ],
+        values=['observaciones'],
+        aggfunc=lambda x: ', '.join(set(x))
+    ).reset_index()
     
-    # print(inv_data_str_df)
-
+    # STR FINAL
+    df_str = df_str_users.merge(df_str_obs, on=[
+        'product_id',
+        'lote_id',
+        'estado',
+        'ware_code',
+        'fecha_elab_lote',
+        'fecha_cadu_lote',
+        'ubicacion__bodega',
+    ], how='left')
     
-    # # inv_data_str_df.to_excel('inv_data_str_df.xlsx')
+    # DF UNIDO
+    df_unido = inv_unidades_df.merge(df_str, on=[
+        'product_id',
+        'ware_code',
+        'lote_id',
+        'fecha_elab_lote',
+        'fecha_cadu_lote',
+        'ubicacion__bodega',
+    ], how='left').sort_values(by=['ware_code','ubicacion__bodega','product_id','fecha_elab_lote'])
     
+    # DF FINAL
+    df_list = []
+    for i in inv_df['product_id'].unique():
+        
+        df_by_product = df_unido[df_unido['product_id']==i]
+        
+        df_by_product = df_by_product.pivot_table(
+            index=[        
+                'product_id',
+                'product_name',
+                'group_code',
+                'um',
+                'ware_code',
+                'lote_id',
+                'fecha_elab_lote',
+                'fecha_cadu_lote',
+                'ubicacion__bodega',
+                'observaciones',
+                'user__username'
+            ],
+            values=[
+                'oh2',
+                'numero_cajas',
+                'unidades_sueltas',
+                'total_unidades',
+                'diferencia'
+            ],
+            aggfunc='sum',
+            margins = True,
+            margins_name = f'Total: {i}',
+            ).reset_index()
+        
+        df_by_product['fecha_elab_lote'] = df_by_product['fecha_elab_lote'].astype('str')
+        df_by_product['fecha_cadu_lote'] = df_by_product['fecha_cadu_lote'].astype('str')
+        df_by_product = df_by_product[[
+                'product_id',
+                'product_name',
+                'group_code',
+                'um',
+                'lote_id',
+                'fecha_elab_lote',
+                'fecha_cadu_lote',
+                'ware_code',
+                'ubicacion__bodega',
+                'oh2',
+                'numero_cajas',
+                'unidades_sueltas',
+                'total_unidades',
+                'diferencia',
+                'observaciones',
+                'user__username'
+        ]]
+        
+        df_list.append(df_by_product)
     
-    # # inv_df = inv_df.groupby(by=[
-    # #     'product_id',
-    # #     'estado',
-    # #     'lote_id',
-    # #     'ubicacion__bodega',
-    # # ]).sum().reset_index()
-    # # inv_df['WARE_CODE'] = inv_df.apply(lambda x: 'BCT' if x['estado'] == 'Disponible' else 'CUC', axis=1)
-    # # inv_df = inv_df.rename(columns={
-    # #     'product_id': 'PRODUCT_ID',
-    # #     'lote_id': 'LOTE_ID',
-    # #     'ubicacion__bodega': 'LOCATION',
-    # #     'oh2': 'UNDS-WMS',
-    # #     'total_unidades': 'UNDS-TF',
-    # # })
-
-
-    # # # INV STOCK
-    # # stock = stock_lote_inventario_cerezos()[['PRODUCT_ID','LOTE_ID','OH2','WARE_CODE','LOCATION']]
-    # # stock['LOTE_ID'] = stock['LOTE_ID'].str.replace(pat='.', repl='', regex=False)
-
-
-    # # stock = stock.groupby(by=[
-    # #     'PRODUCT_ID',
-    # #     'LOTE_ID',
-    # #     'WARE_CODE',
-    # #     'LOCATION',
-    # # ]).sum().reset_index()
-
-    # # inv_df = inv_df.merge(stock, on=[
-    # #     'PRODUCT_ID',
-    # #     'LOTE_ID',
-    # #     'WARE_CODE',
-    # #     # 'LOCATION'
-    # # #], how='left')
-    # # ], how='outer')
+    df_final = pd.concat(df_list).fillna('')
     
-    # # inv_df = inv_df.rename(columns={
-    # #     'LOCATION_x':'LOCATION_WMS',
-    # #     'LOCATION_y':'LOCATION_MBA',
-    # #     'OH2':'UNDS-MBA'
-    # # })
-    
-    # # inv_df['DIFERENCIA (WMS-TF)'] = inv_df['UNDS-WMS'] - inv_df['UNDS-TF']
-    # # inv_df['DIFERENCIA (MBA-TF)'] = inv_df['UNDS-MBA'] - inv_df['UNDS-TF']
-    # # inv_df['DIFERENCIA (WMS-MBA)'] = inv_df['UNDS-WMS'] - inv_df['UNDS-MBA']
-    
-    # # inv_df['#'] = inv_df.reset_index().index + 1
-    
-    # # inv_df = inv_df[[
-    # #     '#',
-    # #     'PRODUCT_ID',
-    # #     'LOTE_ID',
-    # #     'WARE_CODE',
-    # #     'LOCATION_WMS',
-    # #     'LOCATION_MBA',
-    # #     'UNDS-WMS',
-    # #     'UNDS-MBA',
-    # #     'UNDS-TF',
-    # #     'DIFERENCIA (WMS-TF)',
-    # #     'DIFERENCIA (MBA-TF)',
-    # #     'DIFERENCIA (WMS-MBA)'
-    # # ]]
+    date_time = str(datetime.now())
+    date_time = date_time[0:16]
+    n = 'inventario_cerezos_agrupado_' + date_time + '_.xlsx'
+    nombre = 'attachment; filename=' + '"' + n + '"'
 
-
-    # # date_time = str(datetime.now())
-    # # date_time = date_time[0:16]
-    # # n = 'inventario_cerezos_agrupado_' + date_time + '_.xlsx'
-    # # nombre = 'attachment; filename=' + '"' + n + '"'
-
-    # # response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    # # response['Content-Disposition'] = nombre
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = nombre
     
-    # # inv_df.to_excel(response, index=False)
-    
-    # # return response
+    df_final.to_excel(response, index=False)
 
     return HttpResponse('ok')
 
