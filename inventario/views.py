@@ -359,98 +359,6 @@ def inventario_andagoya_home(request):
     return render(request, 'inventario/toma_fisica/andagoya/home.html', context)
 
 
-## Reporte completo excel ###
-@login_required(login_url='login')
-def reporte_completo_excel(request):
-    
-    # Conf Usuario
-    users    = pd.DataFrame(User.objects.all().values())
-    users = users.rename(columns={'id':'user_id'})
-    users = users[['user_id', 'first_name', 'last_name']]
-    users['usuario'] = users['first_name'] + ' ' + users['last_name']
-    users = users[['user_id', 'usuario']]
-    users['user_id'] = users['user_id'].astype(int)
-
-    # Reporte 
-    reporte_completo_excel = pd.DataFrame(Inventario.objects.all().values().order_by('group_code', 'product_id', 'fecha_cadu_lote'))
-    reporte_completo_excel = reporte_completo_excel.fillna(0)
-    reporte_completo_excel['user_id'] = reporte_completo_excel['user_id'].astype(int)
-    reporte_completo_excel = reporte_completo_excel.merge(users, on='user_id', how='left')
-    reporte_completo_excel = reporte_completo_excel.drop(['id', 'user_id'], axis=1)
-    reporte_completo_excel = reporte_completo_excel.set_index('product_id')
-
-    reporte_completo_excel['diferencia_ok'] = reporte_completo_excel['total_unidades'] - reporte_completo_excel['oh2']
-
-    reporte_completo_excel = reporte_completo_excel[[
-        'product_name', 'group_code', 'um', 'oh', 'oh2', 'commited', 
-        'quantity', 
-        'lote_id', 'fecha_elab_lote','fecha_cadu_lote', 'ware_code', 'location', 'unidades_caja', 'numero_cajas', 'unidades_sueltas', 'total_unidades',
-        'diferencia_ok', 'observaciones', 'llenado', 'agregado', 'usuario'
-    ]]
-
-    reporte_completo_excel['fecha_elab_lote'] = reporte_completo_excel['fecha_elab_lote'].astype(str)
-    reporte_completo_excel['fecha_cadu_lote'] = reporte_completo_excel['fecha_cadu_lote'].astype(str)
-
-    date_time = str(datetime.now())
-    date_time = date_time[0:16]
-    n = 'Reporte Inventario Completo_' + date_time + '_.xlsx'
-    nombre = 'attachment; filename=' + '"' + n + '"'
-
-    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    response['Content-Disposition'] = nombre
-
-    reporte_completo_excel.to_excel(response)
-
-    return response
-
-
-
-@login_required(login_url='login')
-def reporte_format_excel(request):
-
-    reporte_completo_excel = pd.DataFrame(Inventario.objects.all().values())
-    reporte_completo_excel = reporte_completo_excel[[
-        'product_id', 
-        'product_name', 
-        'group_code', 
-        'lote_id', 
-        
-        'fecha_cadu_lote', 
-        'unidades_caja',
-        'oh2'
-        ]]
-    
-    reporte_completo_excel = reporte_completo_excel.fillna(0)
-    reporte_completo_excel = reporte_completo_excel.sort_values(by=['group_code'])
-    reporte_completo_excel = reporte_completo_excel.groupby([
-        'product_id', 
-        'product_name', 
-        'group_code', 
-        'lote_id', 
-        
-        'fecha_cadu_lote', 
-        'unidades_caja',
-
-        ])['oh2'].sum()
-    
-    # reporte_completo_excel.assign(total=reporte_completo_excel.sum(1).to_frame('oh2'))
-    # reporte_completo_excel.stack(level='product_id')# total=reporte_completo_excel.sum(1).to_frame('oh2'))
-
-    date_time = str(datetime.now())
-    date_time = date_time[0:16]
-    n = 'Reporte Format Completo_' + date_time + '_.xlsx'
-    nombre = 'attachment; filename=' + '"' + n + '"'
-
-    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    response['Content-Disposition'] = nombre
-
-    reporte_completo_excel.to_excel(response)
-
-    return response
-
-
-
-# Bodega
 @login_required(login_url='login')
 def inventario_por_bodega(request, bodega, ubicacion): 
     
@@ -584,6 +492,172 @@ def inventario_toma_fisica_agregar_producto(request):
             return JsonResponse({'type':'success','msg':'Producto agregado correctamente'})
         else:
             return JsonResponse({'type':'danger','msg':form.errors})
+
+
+## Reporte completo excel ###
+@login_required(login_url='login')
+def reporte_completo_excel(request):
+    
+    # Conf Usuario
+    users    = pd.DataFrame(User.objects.all().values())
+    users = users.rename(columns={'id':'user_id'})
+    users = users[['user_id', 'first_name', 'last_name']]
+    users['usuario'] = users['first_name'] + ' ' + users['last_name']
+    users = users[['user_id', 'usuario']]
+    users['user_id'] = users['user_id'].astype(int)
+
+    # Reporte 
+    reporte_completo_excel = pd.DataFrame(Inventario.objects.all().values().order_by('group_code', 'product_id', 'fecha_cadu_lote'))
+    reporte_completo_excel = reporte_completo_excel.fillna(0)
+    reporte_completo_excel['user_id'] = reporte_completo_excel['user_id'].astype(int)
+    reporte_completo_excel = reporte_completo_excel.merge(users, on='user_id', how='left')
+    reporte_completo_excel = reporte_completo_excel.drop(['id', 'user_id'], axis=1)
+    reporte_completo_excel = reporte_completo_excel.set_index('product_id')
+
+    reporte_completo_excel['diferencia_ok'] = reporte_completo_excel['total_unidades'] - reporte_completo_excel['oh2']
+
+    reporte_completo_excel = reporte_completo_excel[[
+        'product_name', 'group_code', 'um', 'oh', 'oh2', 'commited', 
+        'quantity', 
+        'lote_id', 'fecha_elab_lote','fecha_cadu_lote', 'ware_code', 'location', 'unidades_caja', 'numero_cajas', 'unidades_sueltas', 'total_unidades',
+        'diferencia_ok', 'observaciones', 'llenado', 'agregado', 'usuario'
+    ]]
+
+    reporte_completo_excel['fecha_elab_lote'] = reporte_completo_excel['fecha_elab_lote'].astype(str)
+    reporte_completo_excel['fecha_cadu_lote'] = reporte_completo_excel['fecha_cadu_lote'].astype(str)
+
+    date_time = str(datetime.now())
+    date_time = date_time[0:16]
+    n = 'Reporte Inventario Completo_' + date_time + '_.xlsx'
+    nombre = 'attachment; filename=' + '"' + n + '"'
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = nombre
+
+    reporte_completo_excel.to_excel(response)
+
+    return response
+
+
+@login_required(login_url='login')
+def reporte_format_excel(request):
+
+    reporte_completo_excel = pd.DataFrame(Inventario.objects.all().values())
+    reporte_completo_excel = reporte_completo_excel[[
+        'product_id', 
+        'product_name', 
+        'group_code', 
+        'lote_id', 
+        
+        'fecha_cadu_lote', 
+        'unidades_caja',
+        'oh2'
+        ]]
+    
+    reporte_completo_excel = reporte_completo_excel.fillna(0)
+    reporte_completo_excel = reporte_completo_excel.sort_values(by=['group_code'])
+    reporte_completo_excel = reporte_completo_excel.groupby([
+        'product_id', 
+        'product_name', 
+        'group_code', 
+        'lote_id', 
+        
+        'fecha_cadu_lote', 
+        'unidades_caja',
+
+        ])['oh2'].sum()
+    
+    # reporte_completo_excel.assign(total=reporte_completo_excel.sum(1).to_frame('oh2'))
+    # reporte_completo_excel.stack(level='product_id')# total=reporte_completo_excel.sum(1).to_frame('oh2'))
+
+    date_time = str(datetime.now())
+    date_time = date_time[0:16]
+    n = 'Reporte Format Completo_' + date_time + '_.xlsx'
+    nombre = 'attachment; filename=' + '"' + n + '"'
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = nombre
+
+    reporte_completo_excel.to_excel(response)
+
+    return response
+
+
+@login_required(login_url='login')
+def reporte_andagoya_bpa(request):
+    
+    inv = Inventario.objects.all().values(
+        'product_id',
+        'product_name',
+        'group_code',
+        'um',
+        'oh2',
+        'commited',
+        'quantity',
+        'lote_id',
+        'fecha_elab_lote',
+        'fecha_cadu_lote',
+        'ware_code',
+        'location',
+        'unidades_caja',
+        'numero_cajas',
+        'unidades_sueltas',
+        'total_unidades',
+        'diferencia',
+        'observaciones',
+        'user__username'
+    )
+
+    inv_df = pd.DataFrame(inv).sort_values(by=['ware_code','location','product_id','lote_id','fecha_elab_lote'])
+    inv_df['fecha_elab_lote'] = inv_df['fecha_elab_lote'].astype('str')
+    inv_df['fecha_cadu_lote'] = inv_df['fecha_cadu_lote'].astype('str')
+    
+    
+    df_list = []
+    for i in inv_df['product_id'].unique():
+        
+        df_product = inv_df[inv_df['product_id']==i]#.fillna('')      
+        df_product = df_product[[
+            'product_id',
+            'product_name',
+            'group_code',
+            'um',
+            'lote_id',
+            'fecha_elab_lote',
+            'fecha_cadu_lote',
+            'ware_code',
+            'location',
+            'oh2',
+            'numero_cajas',
+            'unidades_sueltas',
+            'total_unidades',
+            'diferencia',
+            'observaciones',
+            'user__username'
+        ]]
+                
+        df_totales = df_product.select_dtypes(include='number').sum()
+        df_totales['product_id'] = f'Total: {i}'
+        df_totales = pd.DataFrame([df_totales])
+        
+        df_product_final = pd.concat([df_product, df_totales], ignore_index=True).fillna('')
+        
+        df_list.append(df_product_final)
+        
+    df_final = pd.concat(df_list, ignore_index=True)
+    
+    date_time = str(datetime.now())
+    date_time = date_time[0:16]
+    n = 'inventario_andagoya_bpa_' + date_time + '_.xlsx'
+    nombre = 'attachment; filename=' + '"' + n + '"'
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = nombre
+    
+    df_final.to_excel(response, index=False)
+
+    return response
+
 
 
 ### INVENTARIO CEREZOS
@@ -1310,7 +1384,7 @@ def reporte_cerezos_bpa(request):
         'fecha_elab_lote',
         'fecha_cadu_lote',
         'ubicacion__bodega',
-    ], how='left').sort_values(by=['ware_code','ubicacion__bodega','product_id','fecha_elab_lote'])
+    ], how='left').sort_values(by=['ware_code','ubicacion__bodega','product_id','lote_id','fecha_elab_lote'])
     
     # DF FINAL
     df_list = []
@@ -1371,7 +1445,7 @@ def reporte_cerezos_bpa(request):
     
     date_time = str(datetime.now())
     date_time = date_time[0:16]
-    n = 'inventario_cerezos_agrupado_' + date_time + '_.xlsx'
+    n = 'inventario_cerezos_bpa_' + date_time + '_.xlsx'
     nombre = 'attachment; filename=' + '"' + n + '"'
 
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
@@ -1379,7 +1453,7 @@ def reporte_cerezos_bpa(request):
     
     df_final.to_excel(response, index=False)
 
-    return HttpResponse('ok')
+    return response
 
 
 

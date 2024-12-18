@@ -42,24 +42,24 @@
     <hr>
 
     <div v-if="mi_bodega == 'CN6'">
-        <button @click="activarFiltro(0)" class="btn btn-light">
+        <button @click="activarFiltro(0)" class="btn btn-sm btn-light">
             <i class="bi bi-layers"></i> Todo <i v-if="filtroActivo === 0" class="bi bi-check-circle-fill"></i>
         </button>
 
-        <button @click="activarFiltro(1)" class="btn btn-warning text-white">
-            <i class="bi bi-layers"></i> Nivel 1 <i v-if="filtroActivo === 1" class="bi bi-check-circle-fill"></i>
+        <button @click="activarFiltro(1)" class="btn btn-sm btn-warning text-white">
+            <i class="bi bi-layers"></i> N-1 <i v-if="filtroActivo === 1" class="bi bi-check-circle-fill"></i>
         </button>
 
-        <button @click="activarFiltro(2)" class="btn btn-success text-white">
-            <i class="bi bi-layers"></i> Nivel 2 <i v-if="filtroActivo === 2" class="bi bi-check-circle-fill"></i>
+        <button @click="activarFiltro(2)" class="btn btn-sm btn-success text-white">
+            <i class="bi bi-layers"></i> N-2 <i v-if="filtroActivo === 2" class="bi bi-check-circle-fill"></i>
         </button>
 
-        <button @click="activarFiltro(3)" class="btn btn-info text-white">
-            <i class="bi bi-layers"></i> Nivel 3 <i v-if="filtroActivo === 3" class="bi bi-check-circle-fill"></i>
+        <button @click="activarFiltro(3)" class="btn btn-sm btn-info text-white">
+            <i class="bi bi-layers"></i> N-3 <i v-if="filtroActivo === 3" class="bi bi-check-circle-fill"></i>
         </button>
 
-        <button v-if="mi_ubicacion == 'C' || mi_ubicacion == 'D'" @click="activarFiltro(4)" class="btn btn-danger text-white">
-            <i class="bi bi-layers"></i> Nivel 4 <i v-if="filtroActivo === 4" class="bi bi-check-circle-fill"></i>
+        <button v-if="mi_ubicacion == 'C' || mi_ubicacion == 'D'" @click="activarFiltro(4)" class="btn btn-sm btn-danger text-white">
+            <i class="bi bi-layers"></i> N-4 <i v-if="filtroActivo === 4" class="bi bi-check-circle-fill"></i>
         </button>
     </div>
 

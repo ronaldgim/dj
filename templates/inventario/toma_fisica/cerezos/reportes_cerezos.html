@@ -20,10 +20,12 @@
     {% endverbatim %}
 
     <div class="mt-2 mb-2">
-        <button @click="getStock()" class="btn btn-primary">
+        <button @click="getStock()" class="btn btn-primary mb-2">
             <span v-if="actualizandoStock" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
             <i v-else class="bi bi-arrow-clockwise"></i> ACTUALIZAR DATOS
         </button>
+        
+        <br>
 
         <a class="btn btn-success" href="{% url 'reporte_cerezos_completo' %}">
             <i class="bi bi-file-earmark-spreadsheet"></i> COMPLETO WMS-TOMA FÍSICA
