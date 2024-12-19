@@ -748,7 +748,7 @@ def inventario_cerezos_actualizar_db(request):
             data)
 
     return JsonResponse({'msg':'ok'})
-    
+
 
 @require_GET
 def inventario_cerezos_get_stock(request):
@@ -803,7 +803,7 @@ def inventario_cerezos_get_stock(request):
         'avances': lista_avance,
         'totales': lista_totales
     })
-    
+
 
 def inventario_cerezos_reportes(request):
     return render(request, 'inventario/toma_fisica/cerezos/reportes_cerezos.html')
@@ -1454,6 +1454,9 @@ def reporte_cerezos_bpa(request):
     df_final.to_excel(response, index=False)
 
     return response
+
+
+
 
 
 
