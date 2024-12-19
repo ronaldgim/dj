@@ -48,11 +48,6 @@ class Inventario(models.Model):
     
     def __str__(self):
         return self.product_id
-
-    # def save(self, *args, **kwargs):
-    #     self.total_unidades = (self.unidades_caja * self.numero_cajas) + self.unidades_sueltas
-    #     self.diferencia = self.total_unidades - self.oh2
-    #     return super().save(*args, **kwargs)
     
     def save(self, *args, **kwargs):
         

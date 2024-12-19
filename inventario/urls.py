@@ -37,20 +37,6 @@ urlpatterns = [
         name = 'inventario_andagoya_home'
     ),
 
-    # Reporte Inventario Completo EXCEL
-    path(
-        route='reporte/completo/excel',
-        view = views.reporte_completo_excel,
-        name = 'reporte_completo_excel'
-    ), 
-
-    # Reporte formato EXCEL
-    path(
-        route='reporte/format/excel',
-        view = views.reporte_format_excel,
-        name = 'reporte_format_excel'
-    ), 
-
     # BODEGA UBICACIÓN LIST
     # QUERY DE PRODUCTOS POR BODEGA Y UBICACIÓN
     path(
@@ -91,7 +77,27 @@ urlpatterns = [
         name ="inventario_toma_fisica_agregar_producto"
     ),
 
+    # Reporte Inventario Completo EXCEL
+    path(
+        route='reporte/completo/excel',
+        view = views.reporte_completo_excel,
+        name = 'reporte_completo_excel'
+    ), 
 
+    # Reporte formato EXCEL
+    path(
+        route='reporte/format/excel',
+        view = views.reporte_format_excel,
+        name = 'reporte_format_excel'
+    ), 
+    
+    # Reporte formato bpa
+    path(
+        route='reporte/format/bpa',
+        view = views.reporte_andagoya_bpa,
+        name = 'reporte_andagoya_bpa'
+    ), 
+    
     # Inventario Cerezos
     path(
         route='cerezos_actualizar_db',
@@ -158,6 +164,12 @@ urlpatterns = [
         route='cerezos/toma-fisica/agregar-producto',
         view = views.inventario_cerezos_toma_fisica_agregar_producto,
         name ="inventario_cerezos_toma_fisica_agregar_producto"
+    ),
+
+    path(
+        route='cerezos/toma-fisica/eliminar-item-agregado',#/<int:item_id>',
+        view = views.inventario_cerezos_eliminar_item_agregado,
+        name ="inventario_cerezos_eliminar_item_agregado"
     ),
     
     path(

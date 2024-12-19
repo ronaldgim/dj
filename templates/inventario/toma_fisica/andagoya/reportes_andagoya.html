@@ -20,21 +20,25 @@
     {% endverbatim %}
 
     <div class="mt-2 mb-2">
-        <button @click="getStock()" class="btn btn-primary">
+        <button @click="getStock()" class="btn btn-sm btn-primary">
             <span v-if="actualizandoStock" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
             <i v-else class="bi bi-arrow-clockwise"></i> ACTUALIZAR DATOS
         </button>
 
-        <a class="btn btn-success" href="{% url 'reporte_completo_excel' %}">
+        <a class="btn btn-sm btn-success" href="{% url 'reporte_completo_excel' %}">
             <i class="bi bi-file-earmark-spreadsheet"></i> COMPLETO
         </a>
 
-        <a class="btn btn-success" href="{% url 'reporte_format_excel' %}">
+        <a class="btn btn-sm btn-success" href="{% url 'reporte_format_excel' %}">
             <i class="bi bi-file-earmark-spreadsheet"></i> AGRUPADO
         </a>
 
+        <a class="btn btn-sm btn-success" href="{% url 'reporte_andagoya_bpa' %}">
+            <i class="bi bi-file-earmark-spreadsheet"></i> FORMATO BPA
+        </a>
+
         {% if request.user.is_superuser %}
-        <button @click="updateDB()" class="btn btn-danger">
+        <button @click="updateDB()" class="btn btn-sm btn-danger">
             <span v-if="actualizandoDB" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
             <i v-else class="bi bi-arrow-clockwise"></i> ACTUALIZAR DB
         </button>

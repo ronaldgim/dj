@@ -42,24 +42,24 @@
     <hr>
 
     <div v-if="mi_bodega == 'CN6'">
-        <button @click="activarFiltro(0)" class="btn btn-light">
+        <button @click="activarFiltro(0)" class="btn btn-sm btn-light">
             <i class="bi bi-layers"></i> Todo <i v-if="filtroActivo === 0" class="bi bi-check-circle-fill"></i>
         </button>
 
-        <button @click="activarFiltro(1)" class="btn btn-warning text-white">
-            <i class="bi bi-layers"></i> Nivel 1 <i v-if="filtroActivo === 1" class="bi bi-check-circle-fill"></i>
+        <button @click="activarFiltro(1)" class="btn btn-sm btn-warning text-white">
+            <i class="bi bi-layers"></i> N-1 <i v-if="filtroActivo === 1" class="bi bi-check-circle-fill"></i>
         </button>
 
-        <button @click="activarFiltro(2)" class="btn btn-success text-white">
-            <i class="bi bi-layers"></i> Nivel 2 <i v-if="filtroActivo === 2" class="bi bi-check-circle-fill"></i>
+        <button @click="activarFiltro(2)" class="btn btn-sm btn-success text-white">
+            <i class="bi bi-layers"></i> N-2 <i v-if="filtroActivo === 2" class="bi bi-check-circle-fill"></i>
         </button>
 
-        <button @click="activarFiltro(3)" class="btn btn-info text-white">
-            <i class="bi bi-layers"></i> Nivel 3 <i v-if="filtroActivo === 3" class="bi bi-check-circle-fill"></i>
+        <button @click="activarFiltro(3)" class="btn btn-sm btn-info text-white">
+            <i class="bi bi-layers"></i> N-3 <i v-if="filtroActivo === 3" class="bi bi-check-circle-fill"></i>
         </button>
 
-        <button v-if="mi_ubicacion == 'C' || mi_ubicacion == 'D'" @click="activarFiltro(4)" class="btn btn-danger text-white">
-            <i class="bi bi-layers"></i> Nivel 4 <i v-if="filtroActivo === 4" class="bi bi-check-circle-fill"></i>
+        <button v-if="mi_ubicacion == 'C' || mi_ubicacion == 'D'" @click="activarFiltro(4)" class="btn btn-sm btn-danger text-white">
+            <i class="bi bi-layers"></i> N-4 <i v-if="filtroActivo === 4" class="bi bi-check-circle-fill"></i>
         </button>
     </div>
 
@@ -95,6 +95,10 @@
                                 <br>
                                 <button @click="getItem(i.id)" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#tomaFisicaForm">
                                     <i class="bi bi-boxes"></i>
+                                </button>
+
+                                <button v-show="i.agregado" @click="eliminarAgregado(i.id)" class="btn btn-sm btn-danger">
+                                    <i class="bi bi-trash"></i>
                                 </button>
                             </td>
                         </tr>
@@ -266,6 +270,9 @@
                         <h5 class="modal-title text-center fw-bold" id="agregarItemFormLabel">AGREGAR ITEM {{ mi_bodega }} - {{ mi_ubicacion }}</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
+                    <div v-if="msg_agregar_lote" :class="`alert alert-${type_msg_agregar_lote} text-center p-2 m-0`" role="alert" style="font-size: smaller;">
+                        {{msg_agregar_lote}}
+                    </div>
                 </div>
                 
                 <div class="modal-body">                    
@@ -292,9 +299,9 @@
                     <div class="card">
                         <div class="card-body">
                             <h6 class="text-center fw-bold">CONTEO POR LOTE</h6> 
-                            <div v-if="msg_agregar_lote" :class="`alert alert-${type_msg_agregar_lote} text-center p-2 m-0`" role="alert" style="font-size: smaller;">
+                            <!--div v-if="msg_agregar_lote" :class="`alert alert-${type_msg_agregar_lote} text-center p-2 m-0`" role="alert" style="font-size: smaller;">
                                 {{msg_agregar_lote}}
-                            </div>
+                            </div-->
                             <form @submit.prevent="agregarProducto()">
                                 
                                 <label>Código:</label>
@@ -379,7 +386,7 @@
             n_inventario:'',
             n_inventario_nollenado:'',
             n_inventario_llenado:'',
-            
+
             filtro:'',
             filtroActivo:0,
             stock:[],
@@ -847,6 +854,21 @@
                 } catch (error) {
                     // this.type_msg_ubicacion = 'danger';
                     console.error(error);
+                }
+            },
+            
+            async eliminarAgregado(item_id) {
+                try {
+                    const response = await fetch(`/inventario/cerezos/toma-fisica/eliminar-item-agregado`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json',},
+                        body: JSON.stringify({'item_id':item_id})  
+                    });
+            
+                    const data = await response.json();
+                    this.stock = this.stock.filter((item) => item.id !== item_id);
+                } catch(error) {
+                    console.log(error);
                 }
             },
         }
