@@ -1461,11 +1461,6 @@ def reporte_cerezos_bpa(request):
 
 
 
-
-
-
-
-
 # ### INVENTARIO FORM UPDATE ###
 # @login_required(login_url='login')
 # def inventario_update(request, id, bodega, ubicacion):
