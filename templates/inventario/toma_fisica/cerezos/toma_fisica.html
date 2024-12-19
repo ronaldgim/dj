@@ -814,6 +814,11 @@
                     this.type_msg_agregar_lote = data.type;
                     this.msg_agregar_lote = data.msg;
 
+                    // set form buscarProducto
+                    this.formBuscar.product_id = '';
+                    this.type_msg_product='',
+                    this.msg_product='';
+
                     // reset form
                     this.formAgregar.product_id = '';
                     this.formAgregar.product_name = '';
@@ -836,6 +841,11 @@
                     this.formAgregar.lotes = [];
 
                     await this.getStock();
+
+                    setTimeout(
+                        () => {
+                            this.msg_agregar_lote = '';
+                        }, 2000)
                     
                 } catch (error) {
                     this.type_msg_agregar_lote = 'danger';
