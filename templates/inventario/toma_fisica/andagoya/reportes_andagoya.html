@@ -188,14 +188,11 @@
                     this.total = data.total;
                     this.procesados = data.procesados;
                     this.avance = data.avance;
-
                     // Actualizar datos de grafico de barras
                     this.chartData.labels = data.ubicaciones || [];
                     this.chartData.datasets[0].data = data.avances || [];
-
                     // Actualizar datos de garfico de pastel
                     this.chartPie.datasets[0].data = data.totales || [];
-
                     this.updateCharts();
                     
                 } catch (error) {
@@ -225,7 +222,6 @@
                         },
                     })
                 }
-
                 if (this.chart2) {
                     this.chart2.data = this.chartPie;
                     this.chart2.update();
@@ -256,9 +252,7 @@
                     return '#F6B690'
                 }
             },
-
         },
     })
 </script>
-
 {% endblock %}
