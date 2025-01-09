@@ -330,7 +330,12 @@ def capacidad_de_bodegas_df():
     existencias = existencias.merge(productos, on='product_id', how='left')
     existencias['cartones'] = existencias['unidades'] / existencias['Unidad_Empaque']
     existencias['ocupacion_posicion_m3'] = existencias['cartones'] * (existencias['Volumen'] / 1000000)
-    existencias = existencias.groupby(by=['ubicacion_id']).sum().reset_index()    
+    #existencias = existencias.groupby(by=['ubicacion_id']).sum().reset_index()    
+    
+    existencias = existencias.groupby(by='ubicacion_id').agg({
+        'unidades': 'sum',
+        'ocupacion_posicion_m3': 'sum',
+    }).reset_index()
     
     # MERGE CALCULO CON UBICACIÓN
     capacidad = ubicaciones.merge(existencias, on='ubicacion_id', how='left').fillna(0)
@@ -1192,7 +1197,9 @@ def wms_inventario(request): #OK
         # INV DETALLE
         products = productos_odbc_and_django()[['product_id','Unidad_Empaque','UnidadesPorPallet','Volumen']]
         
-        inv_detalle = pd.DataFrame(ex).groupby(by=['estado','product_id','lote_id','fecha_caducidad']).sum().reset_index().sort_values(by='fecha_caducidad')
+        # inv_detalle = pd.DataFrame(ex).groupby(by=['estado','product_id','lote_id','fecha_caducidad']).sum().reset_index().sort_values(by='fecha_caducidad')
+        inv_detalle = pd.DataFrame(ex).groupby(by=['estado','product_id','lote_id','fecha_caducidad']).agg({'unidades':'sum'}).reset_index().sort_values(by='fecha_caducidad')
+        
         inv_detalle = inv_detalle.merge(products, on='product_id', how='left')
         inv_detalle['cartones'] = inv_detalle['unidades'] / inv_detalle['Unidad_Empaque']
         inv_detalle['volumen']  = inv_detalle['cartones'] * (inv_detalle['Volumen'] / 1000000)
