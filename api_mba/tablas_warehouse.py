@@ -30,7 +30,7 @@ def delete_data_warehouse(table_name):
     try:
         with connections['gimpromed_sql'].cursor() as cursor:
             cursor.execute(f"DELETE FROM {table_name}")
-            print("Deleting datawarehouse " + table_name)
+            print("Borrando tabla datawarehouse " + table_name)
     except Exception as e:
         print(e)
 
