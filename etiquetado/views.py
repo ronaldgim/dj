@@ -2385,6 +2385,8 @@ def publico_dashboard_fun():
     reservas['t_2p'] = (reservas['cartones'] * reservas['t_etiq_2p']).round(0)
     reservas['t_3p'] = (reservas['cartones'] * reservas['t_etiq_3p']).round(0)
     
+    reservas['FECHA_PEDIDO'] = reservas['FECHA_PEDIDO'].astype('str')
+    
     ### CONF TIEMPOS
     contratos = reservas['CONTRATO_ID'].unique()
     
@@ -2423,7 +2425,7 @@ def publico_dashboard_fun():
     tiempos_df = pd.DataFrame()
     tiempos_df['CONTRATO_ID'] = cont
     tiempos_df['TIEMPOS'] = tiempos
-
+    
     data = reservas.groupby('CONTRATO_ID').sum()
     data = data.reset_index()[['CONTRATO_ID', 't_1p', 't_2p', 't_3p']]
 
@@ -2482,8 +2484,9 @@ def publico_dashboard_fun():
     if not estados.empty:
         list_reservas = list_reservas.merge(estados, on='CONTRATO_ID', how='left')
     
-    return list_reservas
+        return list_reservas
 
+    return list_reservas
 
 def publico_dashboard(request):
 

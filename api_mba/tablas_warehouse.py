@@ -27,8 +27,13 @@ from datos.models import AdminActualizationWarehaouse
 # eliminar datos de tablas en wharehouse
 def delete_data_warehouse(table_name):
     
-    with connections['gimpromed_sql'].cursor() as cursor:
-        cursor.execute(f"DELETE FROM {table_name}")
+    try:
+        with connections['gimpromed_sql'].cursor() as cursor:
+            cursor.execute(f"DELETE FROM {table_name}")
+            print("Deleting datawarehouse " + table_name)
+    except Exception as e:
+        print(e)
+
 
 
 # obtener columnas de tabla por nombre de la tabla
@@ -44,14 +49,18 @@ def get_columns_table_warehouse(table_name):
 # insertar datos en tabla de warehouse
 def insert_data_warehouse(table_name, data):   
     
-    get_columns = get_columns_table_warehouse(table_name)
-    
-    columnas = ", ".join(get_columns)
-    valores  = ", ".join(["%s"] * len(get_columns))
-    sql_insert = f"INSERT INTO {table_name} ({columnas}) VALUES ({valores})"
-    
-    with connections['gimpromed_sql'].cursor() as cursor:
-        cursor.executemany(sql_insert, data)
+    try:
+        get_columns = get_columns_table_warehouse(table_name)
+        
+        columnas = ", ".join(get_columns)
+        valores  = ", ".join(["%s"] * len(get_columns))
+        sql_insert = f"INSERT INTO {table_name} ({columnas}) VALUES ({valores})"
+        
+        with connections['gimpromed_sql'].cursor() as cursor:
+            cursor.executemany(sql_insert, data)
+            print("Insertando datos en warehouse " + table_name)
+    except Exception as e:
+        print(e)
 
 
 def admin_warehouse_timestamp(tabla, actualizar_datetime, mensaje):

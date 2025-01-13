@@ -964,7 +964,7 @@ def stock_disponible(bodega, items_list): #request
             for row in cursor.fetchall()
         ]
         stock_disp = pd.DataFrame(stock_disp)
-        stock_disp = stock_disp[stock_disp['PRODUCT_ID'].isin(items_list)]
+        stock_disp = stock_disp[stock_disp['PRODUCT_ID'].isin(items_list)][['PRODUCT_ID','PRODUCT_NAME','GROUP_CODE','UM','OH','OH2','COMMITED','QUANTITY','LOTE_ID','WARE_CODE','LOCATION']]
         stock_disp = stock_disp.groupby('PRODUCT_ID').sum().reset_index()[['PRODUCT_ID','OH2']]
         
     return stock_disp
