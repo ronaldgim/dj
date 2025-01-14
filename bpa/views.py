@@ -33,6 +33,8 @@ from django.contrib import messages
 # Url
 from django.http import HttpResponseRedirect
 
+# Datetime
+import datetime 
 
 # TRANSFERENCIA ODBC
 from datos.views import (
@@ -547,7 +549,7 @@ def revision_tecnica_transferencia(request, doc):
         'Unidad_Empaque'
         ]]
 
-    trans = trans.groupby(['product_id', 'documento']).sum()
+    trans = trans.groupby(['product_id', 'documento'])['unidades'].sum()
     trans = trans.reset_index()
     
     muest = muestreo(trans, 'unidades')
@@ -574,13 +576,19 @@ def revision_tecnica_transferencia(request, doc):
     
     muest = empaque(muest)
     muest = de_dataframe_a_template(muest)
+    
+    # version 07
+    trasf_date = Trasferencia.objects.filter(documento=doc).first().creado.date()
+    actualizacion_date = datetime.datetime.strptime('2025-01-15', '%Y-%m-%d').date()
+    version07 = False if trasf_date < actualizacion_date else True
 
     context = {
         'muestreo':muest,
         'documento':docum,
         'bodega_salida':bodega_salida,
         'bodega_entrada':bodega_entrada,
-        'n_lineas':range(5)
+        'n_lineas':range(5),
+        'version07':version07
     }
 
     return render(request, 'bpa/muestreos/revision_tecnica_transferencias.html', context)
