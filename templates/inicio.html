@@ -7,9 +7,9 @@
 {% block navbar %}
 <nav class="navbar navbar-light bg-light">
     <div class="container-fluid">
-        <a class="navbar-brand" href="{% url 'inicio' %}">
+        <a class="navbar-brand fw-bold" href="{% url 'inicio' %}">
             <img src="{% static 'fondo.png' %}" alt="" width="45" height="32" class="d-inline-block align-text-top">
-            <strong>GIM - Operaciones</strong>
+            GIM - OPERACIONES
         </a>
         <a class="navbar-brand" href="{% url 'logout' %}">
             {{request.user}} <i class="bi bi-box-arrow-right"></i>
