@@ -9,8 +9,7 @@
 {% endblock %}
 
 {% block body %}
-<h5 class="m-4 text-center"><strong>LISTADO DE TRASFERENCIAS</strong></h5>
-<!--h6 class="m-4 text-end"><strong>Actulizado: </strong>{{actualizado|slice:':-7'}}</h6-->
+<h5 class="m-4 text-center fw-bold">LISTADO DE TRASFERENCIAS</h5>
 
 {% if messages %}
 {% for message in messages %}
@@ -36,36 +35,15 @@
     </div>
 </form>
 
-<!--div class="col-4 mt-2">
-    <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
-</div-->
-
 <div class="card mt-2 mb-2">
     <div class="card-body m-0 p-0">
         <div class="container table-responsive">
-            <table class="table">
+            <table class="table" style="font-size:small">
                 <thead>
                     <tr>
-                        <!--th scope="col">Proveedor</th>
-                        <th scope="col">Tipo</th>
-                        <th scope="col">
-                            <select class="form-select filter" id="filter-tipo">
-                                <option value="TODOS">TODOS</option>
-                                <option value="STOCK">STOCK</option>
-                                <option value="CLINI">CLINI</option>
-                                <option value="CONSU">CONSU</option>
-                                <option value="DISTR">DISTR</option>
-                                <option value="HOSPI">HOSPI</option>
-                                <option value="HOSPU">HOSPU</option>
-                                <option value="INVER">INVER</option>
-                                <option value="VARDE">VARDE</option>
-                            </select>
-                        </th-->
                         <th scope="col">Proveedor</th>
-                        <!--th scope="col">Fecha de entrega</th-->
                         <th scope="col">Documento</th>
                         <th scope="col">M. Unidades.</th>
-                        <!--th scope="col">M. Cartones.</th-->
                         <th scope="col">R. Técnica.</th>
                     </tr>
                 </thead>
@@ -74,7 +52,6 @@
                     <tr>
                         <td>{{i.proveedor}}</td>
                         <td>{{i.documento}}</td>
-                        <!--td>{{i.MEMO}}</td-->
                         <td>
                             <a class="btn btn-primary btn-sm" href="{% url 'muestreo_transferencias' i.documento %}" target="_blank">
                                 <i class="bi bi-box"></i>
@@ -92,6 +69,7 @@
         </div>
     </div>
 </div>
+
 <!--filtro buscar-->
 <script>
     $(document).ready(function() {
@@ -103,71 +81,5 @@
             });
         });
     });
-</script>
-<!-- Filtro de columna -->
-<script>
-    $('.filter').change(function(){
-        filter_function(); //calling filter function each select box value change
-    });
-      
-    $('table tbody tr').show(); //intially all rows will be shown
-      
-    function filter_function(){
-        $('table tbody tr').hide(); //hide all rows
-        
-        var tipoFlag = 'TODOS';
-        var tipoValue = $('#filter-tipo').val();
-        
-       //traversing each row one by one
-        $('table tr').each(function() {  
-          if(tipoValue == 'TODOS'){
-            tipoFlag = 1;
-          }
-          else if(tipoValue == $(this).find('td.tipo').data('tipo')){
-            tipoFlag = 1;
-          }
-          else{
-            tipoFlag = 0;
-          }
-
-         if(tipoFlag){
-            $(this).show();
-         }
-      
-      });
-    }
-</script>
-<!-- Filtro estado de etiquetado -->
-<script>
-    $('.filter-est').change(function(){
-        filter_function_estado(); //calling filter function each select box value change
-    });
-      
-    $('table tbody tr').show(); //intially all rows will be shown
-      
-    function filter_function_estado(){
-        $('table tbody tr').hide(); //hide all rows
-        
-        var tipoFlag = 'ESTADO';
-        var tipoValue = $('#filter-estado').val();
-        
-       //traversing each row one by one
-        $('table tr').each(function() {  
-          if(tipoValue == 'ESTADO'){
-            tipoFlag = 1;
-          }
-          else if(tipoValue == $(this).find('td.estado').data('estado')){
-            tipoFlag = 1;
-          }
-          else{
-            tipoFlag = 0;
-          }
-
-         if(tipoFlag){
-            $(this).show();
-         }
-      
-      });
-    }
 </script>
 {% endblock %}

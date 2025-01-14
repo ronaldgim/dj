@@ -175,7 +175,7 @@
             </tr>
             <tr>
                 <th class="t_title">
-                    Versión 06
+                    Versión {% if version07 %} 07 {% else %} 06 {% endif %}
                 </th>
             </tr>
         </table>
@@ -223,7 +223,7 @@
             </tr>
             <tr>
                 <th class="t_col_2_1" rowspan="2">No. Ref.</th>
-                <th class="t_col_2_2" rowspan="2">Nombre Producto</th>
+                <th class="t_col_2_2" rowspan="2">Nombre Producto {% if version07 %}y Medida{% endif %}</th>
                 <th class="t_col_2_1" rowspan="2">Fecha Fabr. y Exp.</th>
                 <th class="t_col_2_1" rowspan="2">Reg. San.</th>
                 <th class="t_col_2_1" rowspan="2">Lote</th>
@@ -233,7 +233,7 @@
                 <th class="t_col_2_4">Etiquetas</th>
 
                 <th class="t_col_2_1" rowspan="2">No. Ref.</th>
-                <th class="t_col_2_2" rowspan="2">Nombre Producto</th>
+                <th class="t_col_2_2" rowspan="2">Nombre Producto {% if version07 %}y Medida{% endif %}</th>
                 <th class="t_col_2_1" rowspan="2">Fecha Fabr. y Exp.</th>
                 <th class="t_col_2_1" rowspan="2">Reg. San.</th>
                 <th class="t_col_2_1" rowspan="2">Lote</th>
@@ -243,7 +243,7 @@
                 <th class="t_col_2_4">Etiquetas</th>
 
                 <th class="t_col_2_1" rowspan="2">No. Ref.</th>
-                <th class="t_col_2_2" rowspan="2">Nombre Producto</th>
+                <th class="t_col_2_2" rowspan="2">Nombre Producto {% if version07 %}y Medida{% endif %}</th>
                 <th class="t_col_2_1" rowspan="2">Fecha Fabr. y Exp.</th>
                 <th class="t_col_2_1" rowspan="2">Reg. San.</th>
                 <th class="t_col_2_1" rowspan="2">Lote</th>

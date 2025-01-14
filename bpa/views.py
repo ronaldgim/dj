@@ -416,9 +416,9 @@ def revision_tecnica(request, doc_id):
     
     prod = productos_odbc_and_django()[[
         'product_id',
-        'Nombre',
-        'Marca',
-        'marca2',
+        #'Nombre',
+        #'Marca',
+        #'marca2',
         'Reg_San',
         'Unidad',
         'Unidad_Box',
@@ -437,16 +437,25 @@ def revision_tecnica(request, doc_id):
         'PROVEEDOR'
         ]).sum().reset_index()
     
-    data = data.merge(prod, on='product_id', how='left')
+    data = data.merge(prod, on=['product_id'], how='left')
     data['Reg_San'] = data['Reg_San'].apply(quitar_prefijo)      
     
     fecha_entrada = data['ENTRADA_FECHA'].iloc[0]
     bodega_llegada = data['WARE_COD_CORP'].iloc[0]
     proveedor = data['PROVEEDOR'].dropna().loc[0]
-    proveedor1 = data['marca2'].dropna().iloc[0]
+    
+    try:
+        proveedor1 = data['marca2'].dropna().iloc[0]
+    except:
+        proveedor1 = '-'
+    
     n_imp = data['MEMO'].iloc[0]
 
     data = empaque(data)
+    
+    imp_date = datetime.datetime.strptime(data['ENTRADA_FECHA'].iloc[0], '%Y-%m-%d').date()
+    actualizacion_date = datetime.datetime.strptime('2025-01-09', '%Y-%m-%d').date()
+    version07 = False if imp_date < actualizacion_date else True
     
     data = de_dataframe_a_template(data)
     
@@ -457,7 +466,8 @@ def revision_tecnica(request, doc_id):
         'proveedor':proveedor,
         'proveedor1':proveedor1,
         'n_imp':n_imp,
-        'n_lineas':range(5)
+        'n_lineas':range(5),
+        'version07':version07
     }
 
     return render(request, 'bpa/muestreos/revision_tecnica_importaciones.html', context)
