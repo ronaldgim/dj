@@ -2456,9 +2456,9 @@ def wms_armar_codigo_factura(n_factura):
 
         try:
             picking = pd.DataFrame(Movimiento.objects.filter(n_referencia = fn_pedido).values())
-            picking['lote_wms'] = picking['lote_id']
+            picking['lote_wms'] = picking['lote_id'] 
             picking['lote_id'] = quitar_puntos(picking['lote_id'])
-            picking = picking.groupby(by=['product_id','lote_id','estado_picking','lote_wms']).sum().reset_index()
+            picking = picking.groupby(by=['product_id','lote_id','estado_picking','lote_wms'])['unidades'].sum().reset_index() 
             
             factura = factura.merge(picking, on=['product_id','lote_id'], how='left').fillna(0)
             factura['unidades'] = factura['unidades'].abs()
