@@ -18,6 +18,7 @@ class Trasferencia(models.Model):
     product_id      = models.CharField(verbose_name='Product id', max_length=50)
     lote            = models.CharField(verbose_name='Lote', max_length=50)
     unidades        = models.IntegerField(verbose_name='Unidades')
+    creado          = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
         return self.documento
