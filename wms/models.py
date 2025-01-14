@@ -92,6 +92,11 @@ class InventarioIngresoBodega(models.Model):
     def __str__(self):
         return f"código:{self.product_id} - unidades: {self.unidades_ingresadas}" 
 
+    def save(self, *args, **kwargs):
+        if self.lote_id:
+            self.lote_id = self.lote_id.replace('.', '')
+        super().save(*args, **kwargs)
+
 
 class Ubicacion(models.Model):
 
@@ -144,6 +149,11 @@ class Movimiento(models.Model):
         enum = f'{total_registros:06d}'
         return enum 
 
+    def save(self, *args, **kwargs):
+        if self.lote_id:
+            self.lote_id = self.lote_id.replace('.', '')
+        super().save(*args, **kwargs)
+
 
 class Existencias(models.Model):
     
@@ -173,6 +183,11 @@ class Transferencia(models.Model):
     
     def __str__(self):
         return self.n_transferencia
+
+    def save(self, *args, **kwargs):
+        if self.lote_id:
+            self.lote_id = self.lote_id.replace('.', '')
+        super().save(*args, **kwargs)
     
     
 class TransferenciaStatus(models.Model):
@@ -217,6 +232,11 @@ class NotaEntrega(models.Model):
 
     def __str__(self):
         return self.doc_id
+    
+    def save(self, *args, **kwargs):
+        if self.lote_id:
+            self.lote_id = self.lote_id.replace('.', '')
+        super().save(*args, **kwargs)
 
 
 class NotaEntregaStatus(models.Model):
@@ -263,6 +283,11 @@ class AjusteLiberacion(models.Model):
     def __str__(self):
         return self.product_id
     
+    def save(self, *args, **kwargs):
+        if self.lote_id:
+            self.lote_id = self.lote_id.replace('.', '')
+        super().save(*args, **kwargs)
+        
 
 class DespachoCarton(models.Model):
     
@@ -293,6 +318,10 @@ class ProductoArmado(models.Model):
     def __str__(self):
         return self.product_id
     
+    def save(self, *args, **kwargs):
+        if self.lote_id:
+            self.lote_id = self.lote_id.replace('.', '')
+        super().save(*args, **kwargs)
     
 class OrdenEmpaque(models.Model):
 
