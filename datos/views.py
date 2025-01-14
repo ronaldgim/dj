@@ -55,6 +55,9 @@ from functools import wraps
 # rexex
 import re
 
+# API MBA
+from api_mba.mba import api_mba_sql
+
 # ACTUALIZAR WAREHOUSER POR API DATA
 from api_mba.tablas_warehouse import (
     admin_warehouse_timestamp,
@@ -1894,19 +1897,23 @@ def wms_reservas_lote_consulta(product_id, lote_id):
 
 def wms_detalle_factura(n_factura):
 
-    cnxn = pyodbc.connect('DSN=mba3;PWD=API')
+    # cnxn = pyodbc.connect('DSN=mba3;PWD=API')
     
     query = ("SELECT CLNT_Factura_Principal.CODIGO_FACTURA, CLNT_Factura_Principal.CODIGO_CLIENTE, CLNT_Factura_Principal.FECHA_FACTURA, INVT_Ficha_Principal.PRODUCT_ID, INVT_Ficha_Principal.PRODUCT_NAME, INVT_Ficha_Principal.GROUP_CODE, INVT_Lotes_Trasabilidad.EGRESO_TEMP, INVT_Lotes_Trasabilidad.LOTE_ID, INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD, INVT_Ficha_Principal.Custom_Field_1, CLNT_Factura_Principal.NUMERO_PEDIDO_SISTEMA "
     "FROM CLNT_Factura_Principal CLNT_Factura_Principal, INVT_Ficha_Principal INVT_Ficha_Principal, INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad "
     # "WHERE INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP = INVT_Ficha_Principal.PRODUCT_ID_CORP AND CLNT_Factura_Principal.CODIGO_FACTURA = INVT_Lotes_Trasabilidad.DOC_ID_CORP AND ((CLNT_Factura_Principal.CODIGO_FACTURA='FCSRI-1001000080547-GIMPR') AND (CLNT_Factura_Principal.ANULADA=FALSE))")
     f"WHERE INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP = INVT_Ficha_Principal.PRODUCT_ID_CORP AND CLNT_Factura_Principal.CODIGO_FACTURA = INVT_Lotes_Trasabilidad.DOC_ID_CORP AND ((CLNT_Factura_Principal.CODIGO_FACTURA='{n_factura}') AND (CLNT_Factura_Principal.ANULADA=FALSE))")
     
-    df = pd.read_sql_query(query, cnxn)
+    df = api_mba_sql(query)
+    df = pd.DataFrame(df['data']) 
+    
+    # df = pd.read_sql_query(query, cnxn)
     cli = clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE','IDENTIFICACION_FISCAL']]
-    df = df.merge(cli, on='CODIGO_CLIENTE', how='left')
-    df['FECHA_FACTURA']   = df['FECHA_FACTURA'].astype(str)
-    df['FECHA_CADUCIDAD'] = df['FECHA_CADUCIDAD'].astype(str)
-    df['NUMERO_PEDIDO_SISTEMA'] = df['NUMERO_PEDIDO_SISTEMA'].astype(str) + '.0'
+    df = df.merge(cli, on='CODIGO_CLIENTE', how='left') 
+    df['FECHA_FACTURA']   = df['FECHA_FACTURA'].astype('str').str[:10]
+    df['FECHA_CADUCIDAD'] = df['FECHA_CADUCIDAD'].astype('str').str[:10]
+    df['NUMERO_PEDIDO_SISTEMA'] = df['NUMERO_PEDIDO_SISTEMA'].astype('str') + '.0'
+    df['EGRESO_TEMP'] = df['EGRESO_TEMP'].astype('int')
     df = df.rename(columns={
             'PRODUCT_ID':'product_id',
             'LOTE_ID':'lote_id'
