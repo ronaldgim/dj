@@ -496,22 +496,26 @@ def transferencias(request):
                 messages.error(request, 'Ya existe un muestreo de esta transferencia, use el buscador !!!')
 
             else:
-                transf = doc_transferencia_odbc(n)
+                transf = doc_transferencia_odbc(n) ; transf
                 documento = list(map(lambda x:x[7:-6], list(transf['doc'])))
                 transf['documento'] = documento
                 transf = transf[['documento', 'product_id', 'lote_id', 'unidades']]
-                transf = [tuple(i) for i in transf.values]
                 
-                with connections['default'].cursor() as cursor:
-                    cursor.executemany(
-                        """ INSERT INTO bpa_trasferencia (documento, product_id, lote, unidades) VALUES (%s,%s,%s,%s)""", transf
+                for index, row in transf.iterrows():
+                    
+                    tr = Trasferencia(
+                        documento  = row['documento'],
+                        product_id = row['product_id'],
+                        lote       = row['lote_id'],
+                        unidades   = row['unidades'],
                     )
+                    tr.save()
 
                 messages.success(request, f'La transferencia número {n} se añadio correctamente !!!')
             return redirect('/bpa/muestreos/transferencias')
 
-        except:
-            messages.error(request, 'No existe ese número de transferencia !!!')
+        except Exception as e:
+            messages.error(request, f'Error {e} !!!')
 
     return render(request, 'bpa/muestreos/lista_trasferencias.html', context)
 
@@ -524,7 +528,7 @@ def muestreo_transferencia(request, doc):
     trans = pd.DataFrame(Trasferencia.objects.filter(documento=doc).values())    
     prod = productos_odbc_and_django()[['product_id','Nombre']]
     
-    trans = trans.groupby(['product_id', 'documento']).sum()
+    trans = trans.groupby(['product_id', 'documento'])['unidades'].sum()
     trans = trans.reset_index()
 
     docum = trans['documento'].iloc[0]
