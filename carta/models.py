@@ -96,28 +96,41 @@ class CartaGeneral(models.Model):
         
         self.oficio = f'GIM-GF-CD-CG-{y}-{n_of_f}'
         
-        qr_text = '{oficio}{cliente}{ruc}{f_em}{v_h_m} {v_h_a}\n{slug}'.format(
-            oficio  =   self.oficio,
-            cliente =   self.cliente, 
-            ruc     =   self.ruc,
-            f_em    =   f, 
-            v_h_m   =   self.valido_hasta_mes,
-            v_h_a   =   self.valido_hasta_anio,
-            slug    =   self.slug
+        qr_text = f'{self.oficio}{self.cliente}{self.ruc}{self.f}{self.valido_hasta_mes}{self.valido_hasta_anio}\n{self.slug}'
+        
+        qr = qrcode.QRCode(
+            version=1,  # Controla el tamaño del QR (1 es el más pequeño)
+            error_correction=qrcode.constants.ERROR_CORRECT_H,  # Alta corrección de errores
+            box_size=10,  # Tamaño de cada cuadro en el código QR
+            border=4,  # Bordes del QR
         )
-        
-        qrcode_img=qrcode.make(qr_text)
-        canvas=Image.new('RGB', (650,650), 'white') #, 'green'
-        draw=ImageDraw.Draw(canvas)
-        canvas.paste(qrcode_img)
-        buffer=BytesIO()
-        canvas.save(buffer,"PNG")
-        self.qr_code.save(f'{self.slug}' + '.png', File(buffer), save=False)
-        canvas.close()
-        
-        return super().save(*args, **kwargs)
-    
+        qr.add_data(qr_text)
+        qr.make(fit=True)
 
+        # Crear la imagen QR
+        qr_img = qr.make_image(fill_color="black", back_color="white").convert("RGB")
+
+        # Crear un canvas en blanco y pegar la imagen QR
+        canvas = Image.new('RGB', (650, 650), 'white')
+        qr_width, qr_height = qr_img.size
+        offset = ((canvas.size[0] - qr_width) // 2, (canvas.size[1] - qr_height) // 2)
+        canvas.paste(qr_img, offset)
+
+        # Guardar la imagen en un buffer de memoria
+        buffer = BytesIO()
+        canvas.save(buffer, format="PNG")
+        buffer.seek(0)  # Reiniciar el puntero del buffer
+
+        # Guardar la imagen en el campo `qr_code` del modelo
+        filename = f"{self.slug}.png"  # Nombre del archivo basado en `slug`
+        self.qr_code.save(filename, File(buffer), save=False)
+
+        # Limpiar recursos
+        buffer.close()
+        canvas.close()
+
+        # Llamar al método `save` del modelo base
+        return super().save(*args, **kwargs)
 class CartaProcesos(models.Model):
     
     n_ofocio            = models.IntegerField(verbose_name='N° Oficio', null=True)
@@ -168,28 +181,8 @@ class CartaProcesos(models.Model):
         
         self.oficio = f'GIM-GF-CD-CP-{y}-{n_of_f}'
         
-        # qr_text = '{oficio}{cliente}{ruc}{f_em}{hosp}{proc}\n{slug}'.format(
-        #     oficio  =   self.oficio,
-        #     cliente =   self.cliente, 
-        #     ruc     =   self.ruc,
-        #     f_em    =   f, 
-        #     hosp    =   self.hospital,
-        #     proc    =   self.proceso,
-        #     slug    =   self.slug
-        # )
-        
         qr_text = f"{self.oficio}{self.cliente}{self.ruc}{self.hospital}{self.proceso}\n{self.slug}"
         
-        # qrcode_img=qrcode.make(qr_text)
-        # canvas=Image.new('RGB', (650,650), 'white') #, 'green white'
-        # draw=ImageDraw.Draw(canvas)
-        # canvas.paste(qrcode_img)
-        # buffer=BytesIO()
-        # canvas.save(buffer,"PNG")
-        # self.qr_code.save(f'{self.slug}' + '.png', File(buffer), save=False)
-        # canvas.close()
-        
-        # return super().save(*args, **kwargs)
         qr = qrcode.QRCode(
             version=1,  # Controla el tamaño del QR (1 es el más pequeño)
             error_correction=qrcode.constants.ERROR_CORRECT_H,  # Alta corrección de errores
@@ -272,25 +265,40 @@ class CartaItem(models.Model):
         
         self.oficio = f'GIM-GF-CD-CI-{y}-{n_of_f}'
         
-        qr_text = '{oficio}{cliente}{ruc}{f_em}{hosp}{proc}\n{slug}'.format(
-            oficio  =   self.oficio,
-            cliente =   self.cliente, 
-            ruc     =   self.ruc,
-            f_em    =   f, 
-            hosp    =   self.hospital,
-            proc    =   self.proceso,
-            slug    =   self.slug
+        qr_text = f'{self.oficio}{self.cliente}{self.ruc}{self.f}{self.hospital}{self.proceso}\n{self.slug}'
+        
+        qr = qrcode.QRCode(
+            version=1,  # Controla el tamaño del QR (1 es el más pequeño)
+            error_correction=qrcode.constants.ERROR_CORRECT_H,  # Alta corrección de errores
+            box_size=10,  # Tamaño de cada cuadro en el código QR
+            border=4,  # Bordes del QR
         )
-        
-        qrcode_img=qrcode.make(qr_text)
-        canvas=Image.new('RGB', (650,650), 'white') #, 'green white'
-        draw=ImageDraw.Draw(canvas)
-        canvas.paste(qrcode_img)
-        buffer=BytesIO()
-        canvas.save(buffer,"PNG")
-        self.qr_code.save(f'{self.slug}' + '.png', File(buffer), save=False)
+        qr.add_data(qr_text)
+        qr.make(fit=True)
+
+        # Crear la imagen QR
+        qr_img = qr.make_image(fill_color="black", back_color="white").convert("RGB")
+
+        # Crear un canvas en blanco y pegar la imagen QR
+        canvas = Image.new('RGB', (650, 650), 'white')
+        qr_width, qr_height = qr_img.size
+        offset = ((canvas.size[0] - qr_width) // 2, (canvas.size[1] - qr_height) // 2)
+        canvas.paste(qr_img, offset)
+
+        # Guardar la imagen en un buffer de memoria
+        buffer = BytesIO()
+        canvas.save(buffer, format="PNG")
+        buffer.seek(0)  # Reiniciar el puntero del buffer
+
+        # Guardar la imagen en el campo `qr_code` del modelo
+        filename = f"{self.slug}.png"  # Nombre del archivo basado en `slug`
+        self.qr_code.save(filename, File(buffer), save=False)
+
+        # Limpiar recursos
+        buffer.close()
         canvas.close()
-        
+
+        # Llamar al método `save` del modelo base
         return super().save(*args, **kwargs)
     
 
