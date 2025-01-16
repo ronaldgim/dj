@@ -92,11 +92,11 @@ class InventarioIngresoBodega(models.Model):
     def __str__(self):
         return f"código:{self.product_id} - unidades: {self.unidades_ingresadas}" 
 
-    def save(self, *args, **kwargs):
-        if self.lote_id:
-            self.lote_id = self.lote_id.replace('.', '')
-        super().save(*args, **kwargs)
 
+    def save(self, *args, **kwargs):
+        if '.' in self.lote_id:
+            self.lote_id = self.lote_id.replace('.', '')
+        super(InventarioIngresoBodega, self).save(*args, **kwargs)
 
 class Ubicacion(models.Model):
 
@@ -149,11 +149,11 @@ class Movimiento(models.Model):
         enum = f'{total_registros:06d}'
         return enum 
 
-    def save(self, *args, **kwargs):
-        if self.lote_id:
-            self.lote_id = self.lote_id.replace('.', '')
-        super().save(*args, **kwargs)
 
+    def save(self, *args, **kwargs):
+        if '.' in self.lote_id:
+            self.lote_id = self.lote_id.replace('.', '')
+        super(Movimiento, self).save(*args, **kwargs)
 
 class Existencias(models.Model):
     
@@ -184,12 +184,12 @@ class Transferencia(models.Model):
     def __str__(self):
         return self.n_transferencia
 
+    
     def save(self, *args, **kwargs):
-        if self.lote_id:
+        if '.' in self.lote_id:
             self.lote_id = self.lote_id.replace('.', '')
-        super().save(*args, **kwargs)
-    
-    
+        super(Transferencia, self).save(*args, **kwargs)
+        
 class TransferenciaStatus(models.Model):
     
     n_transferencia = models.CharField(verbose_name='Número de trasferencia', max_length=50, unique=True)
@@ -233,11 +233,11 @@ class NotaEntrega(models.Model):
     def __str__(self):
         return self.doc_id
     
+    
     def save(self, *args, **kwargs):
-        if self.lote_id:
+        if '.' in self.lote_id:
             self.lote_id = self.lote_id.replace('.', '')
-        super().save(*args, **kwargs)
-
+        super(NotaEntrega, self).save(*args, **kwargs)
 
 class NotaEntregaStatus(models.Model):
     
@@ -284,10 +284,10 @@ class AjusteLiberacion(models.Model):
         return self.product_id
     
     def save(self, *args, **kwargs):
-        if self.lote_id:
+        if '.' in self.lote_id:
             self.lote_id = self.lote_id.replace('.', '')
-        super().save(*args, **kwargs)
-        
+        super(AjusteLiberacion, self).save(*args, **kwargs)
+    
 
 class DespachoCarton(models.Model):
     
@@ -318,10 +318,11 @@ class ProductoArmado(models.Model):
     def __str__(self):
         return self.product_id
     
+    
     def save(self, *args, **kwargs):
-        if self.lote_id:
+        if '.' in self.lote_id:
             self.lote_id = self.lote_id.replace('.', '')
-        super().save(*args, **kwargs)
+        super(ProductoArmado, self).save(*args, **kwargs)
     
 class OrdenEmpaque(models.Model):
 

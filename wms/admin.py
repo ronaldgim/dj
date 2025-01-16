@@ -13,10 +13,20 @@ from wms.models import (
     NotaEntregaStatus,
     AnulacionPicking,
     ProductoArmado,
-    OrdenEmpaque
+    OrdenEmpaque,
+    Existencias
     )
 
-
+# EXISTENCIAS
+@admin.register(Existencias)
+class ExistenciasAdmin(admin.ModelAdmin):
+    
+    list_display = ('id', 'product_id', 'lote_id')
+    list_filter = ('product_id',)
+    search_fields = ['product_id',]
+    
+    
+    
 # INVENTARIO
 @admin.register(InventarioIngresoBodega)
 class InventarioIngresoBodegaAdmin(admin.ModelAdmin):

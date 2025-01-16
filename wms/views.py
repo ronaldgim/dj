@@ -1130,7 +1130,7 @@ def wms_existencias_query_product_lote(product_id, lote_id):
         existencias_list.append(ex)
     
     # for i in existencias_list:
-    #     print(i.product_id, i.lote_id, i.unidades)
+    #     print(i.product_id, i.lote_id, i.fecha_caducidad, i.ubicacion_id, i.unidades, i.estado)
     
     Existencias.objects.filter(product_id=product_id, lote_id=lote_id).delete()
     Existencias.objects.bulk_create(existencias_list)
