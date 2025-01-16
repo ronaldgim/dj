@@ -2426,6 +2426,9 @@ def publico_dashboard_fun():
     tiempos_df['CONTRATO_ID'] = cont
     tiempos_df['TIEMPOS'] = tiempos
     
+    data = reservas
+    data['FECHA_PEDIDO'] = data['FECHA_PEDIDO'].astype('str')
+    data['HORA_LLEGADA'] = data['HORA_LLEGADA'].astype('str')
     data = reservas.groupby('CONTRATO_ID').sum()
     data = data.reset_index()[['CONTRATO_ID', 't_1p', 't_2p', 't_3p']]
 
