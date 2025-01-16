@@ -2426,6 +2426,9 @@ def publico_dashboard_fun():
     tiempos_df['CONTRATO_ID'] = cont
     tiempos_df['TIEMPOS'] = tiempos
     
+    data = reservas
+    data['FECHA_PEDIDO'] = data['FECHA_PEDIDO'].astype('str')
+    data['HORA_LLEGADA'] = data['HORA_LLEGADA'].astype('str')
     data = reservas.groupby('CONTRATO_ID').sum()
     data = data.reset_index()[['CONTRATO_ID', 't_1p', 't_2p', 't_3p']]
 
@@ -3465,19 +3468,48 @@ def detalle_proforma(request, contrato_id):
 
 
 
+from .transferencia_data import sugerencia, andagoya_saldos, pedidos_reservas
+def analisis_transferencia(request):
+    
+    saldos_ban = andagoya_saldos()
+    sugerencia_ban = sugerencia()
+    
+    context = {
+        'saldos_ban': de_dataframe_a_template(saldos_ban),
+        'sugerencia_ban': de_dataframe_a_template(sugerencia_ban)
+    }
+    
+    
+    return render(request, 'etiquetado/analisis_transferencia/analisis_transferencia.html', context)
 
-from .tasks import enviar_correos_prueba, prueba_sleep
-def mov_prueba(request):
 
-    result = enviar_correos_prueba.delay(email='egarces@gimpromed.com')
+def pedidos_reservas_request(request):
+    
+    if request.method == 'POST':
+        
+        data = pedidos_reservas(request.POST.get('prod_id')) 
+        if not data.empty:
+            data = de_dataframe_a_template(data)
+            return JsonResponse({'data':data})
+        
+        else:
+            return JsonResponse({'error':'No hay datos'})
+    
+    
+
+
+# from .tasks import enviar_correos_prueba, prueba_sleep
+# def mov_prueba(request):
+
+#     result = enviar_correos_prueba.delay(email='egarces@gimpromed.com')
 
     
-    return HttpResponse(f'{request.user} - {result}')
+#     return HttpResponse(f'{request.user} - {result}')
 
 
-def sleep_prueba(request):
+# def sleep_prueba(request):
 
-    result = prueba_sleep.delay()
+#     result = prueba_sleep.delay()
 
     
-    return HttpResponse(f'{request.user} - {result}')
+#     return HttpResponse(f'{request.user} - {result}')

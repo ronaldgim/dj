@@ -387,18 +387,32 @@ urlpatterns = [
         name  = 'detalle_proforma'
     ),
     
+    # path(
+    #     route='mov_prueba',
+    #     view = views.mov_prueba,
+    #     name = 'mov_prueba'
+    # ),
+    
+    # path(
+    #     route='sleep_prueba',
+    #     view = views.sleep_prueba,
+    #     name = 'sleep_prueba'
+    # ),
+    
+    
+    # analisis transferencia
     path(
-        route='mov_prueba',
-        view = views.mov_prueba,
-        name = 'mov_prueba'
+        route='analisis_transferencia',
+        view=views.analisis_transferencia,
+        name='analisis_transferencia'
     ),
     
+    # pedidos_reservas_request
     path(
-        route='sleep_prueba',
-        view = views.sleep_prueba,
-        name = 'sleep_prueba'
-    ),
-    
+        route='pedidos_reservas_request',
+        view=views.pedidos_reservas_request,
+        name='pedidos_reservas_request'
+    )
     
     # # DASHBOARDS VUE JS
     # path(
