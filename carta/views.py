@@ -99,14 +99,15 @@ def carta_general(request):
                 
                 if form.is_valid():
                     form.save()
-                    
                     return redirect('general_list')
+                else:
+                    messages.error(request, f"Error {form.errors}")
                 
             else:
                 context = {'form':form}
         
-        except:
-            context = {'form':form}
+        except Exception as e:
+            messages.error(request, f"Error {e}")
 
     else:
         messages.error(request, 'No tienes los permisos necesarios !!!')
@@ -168,6 +169,9 @@ def anular_cartageneral(request, slug):
             if form.is_valid():
                 form.save()
                 return redirect('anular_general_list')
+            
+            else:
+                messages.error(request, f'Error {form.errors} !!!')
 
     else:
         messages.error(request, 'No tienes los permisos necesarios !!!')
@@ -243,6 +247,8 @@ def carta_procesos(request):
                 if form.is_valid():
                     form.save()
                     return redirect('procesos_list')
+                else:
+                    messages.error(request, f'Error {form.errors} !!!')
             else:
 
                 context = {
@@ -250,8 +256,8 @@ def carta_procesos(request):
                     'errors':form.errors                        
                 }
         
-        except:
-            context = {'form':form}
+        except Exception as e:
+            messages.error(request, f'Error {e} !!!')
     else:
         messages.error(request, 'No tienes los permisos necesarios !!!')
         return HttpResponseRedirect('list')
@@ -309,6 +315,8 @@ def anular_cartaprocesos(request, slug):
             if form.is_valid():
                 form.save()
                 return redirect('anular_procesos_list')
+            else:
+                messages.error(request, f'Error {form.errors} !!!')
     
     else:
         messages.error(request, 'No tienes los permisos necesarios !!!')
@@ -383,11 +391,15 @@ def carta_items(request):
                 if form.is_valid():
                     form.save()
                     return redirect('items_list')
+                
+                else:
+                    messages.error(request, f'Error {form.errors} !!!')
+                
             else:
                 context = {'form':form}
         
-        except:
-            context = {'form':form}
+        except Exception as e:
+            messages.error(request, f'Error {e} !!!')
 
     else:
         messages.error(request, 'No tienes los permisos necesarios !!!')

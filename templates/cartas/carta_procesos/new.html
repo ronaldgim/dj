@@ -27,6 +27,20 @@
     </div>
     {% endif %}
 
+
+    {% if messages %}
+    {% for message in messages %}
+        {% if message.tags == 'success'%}
+        <div class="alert text-center alert-success" role="alert">
+            {{message}}
+        </div>
+        {% elif message.tags == 'error'%}
+        <div class="alert text-center alert-danger" role="alert">
+            {{message}}
+        </div>
+        {%endif%}
+    {% endfor %}
+    {% endif %}
     <label class="form-label">Buscar cliente</label>
     <div class="row">
         <form method="GET">
