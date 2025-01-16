@@ -94,7 +94,7 @@ class InventarioIngresoBodega(models.Model):
 
 
     def save(self, *args, **kwargs):
-        if '.' in self.lote_id:
+        if self.lote_id and '.' in self.lote_id:
             self.lote_id = self.lote_id.replace('.', '')
         super(InventarioIngresoBodega, self).save(*args, **kwargs)
 
@@ -151,7 +151,7 @@ class Movimiento(models.Model):
 
 
     def save(self, *args, **kwargs):
-        if '.' in self.lote_id:
+        if self.lote_id and '.' in self.lote_id:
             self.lote_id = self.lote_id.replace('.', '')
         super(Movimiento, self).save(*args, **kwargs)
 
@@ -186,7 +186,7 @@ class Transferencia(models.Model):
 
     
     def save(self, *args, **kwargs):
-        if '.' in self.lote_id:
+        if self.lote_id and '.' in self.lote_id:
             self.lote_id = self.lote_id.replace('.', '')
         super(Transferencia, self).save(*args, **kwargs)
         
@@ -235,7 +235,7 @@ class NotaEntrega(models.Model):
     
     
     def save(self, *args, **kwargs):
-        if '.' in self.lote_id:
+        if self.lote_id and '.' in self.lote_id:
             self.lote_id = self.lote_id.replace('.', '')
         super(NotaEntrega, self).save(*args, **kwargs)
 
@@ -284,7 +284,7 @@ class AjusteLiberacion(models.Model):
         return self.product_id
     
     def save(self, *args, **kwargs):
-        if '.' in self.lote_id:
+        if self.lote_id and '.' in self.lote_id:
             self.lote_id = self.lote_id.replace('.', '')
         super(AjusteLiberacion, self).save(*args, **kwargs)
     
