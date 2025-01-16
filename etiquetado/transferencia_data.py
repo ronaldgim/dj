@@ -245,7 +245,8 @@ def sugerencia():
     # Cálculos intermedios
     # data['DISPONIBLE_MENOS_RESERVAS'] = data['TOTAL_DISPONIBLE'] - data['RESERVAS']
     data['DISPONIBLE_MENOS_RESERVAS'] = data['TOTAL_DISPONIBLE'] - data['RESERVAS'] - data['PEDIDOS']
-    data['STOCK_SEGURIDAD'] = data['PEDIDOS'] + (data['CONSUMO_SEMANAL'] * 2)
+    #data['STOCK_SEGURIDAD'] = data['PEDIDOS'] + (data['CONSUMO_SEMANAL'] * 2)
+    data['STOCK_SEGURIDAD'] = data['CONSUMO_SEMANAL']
     
     # Evitar división por cero en STOCK_SEGURIDAD
     data['STOCK_SEGURIDAD'] = data['STOCK_SEGURIDAD'].replace(0, np.nan)  # Reemplazar 0 por NaN para evitar errores en la división
@@ -261,10 +262,16 @@ def sugerencia():
     data['TOTAL_DISPONIBLE_CARTONES'] = data['TOTAL_DISPONIBLE'] / data['Unidad_Empaque']
     data['DISPONIBLE_MENOS_RESERVAS_CARTONES'] = data['DISPONIBLE_MENOS_RESERVAS'] / data['Unidad_Empaque']
     
+    # # Ordenar resultados
+    # data = data.sort_values(
+    #     by=['NIVEL_ABASTECIMIENTO', 'F_ACUMULADA', 'CONSUMO_SEMANAL'], 
+    #     ascending=[True, False, False]
+    # )
+    
     # Ordenar resultados
     data = data.sort_values(
-        by=['NIVEL_ABASTECIMIENTO', 'F_ACUMULADA', 'CONSUMO_SEMANAL'], 
-        ascending=[True, False, False]
+        by=['NIVEL_ABASTECIMIENTO', 'STOCK_SEGURIDAD', 'F_ACUMULADA', 'CONSUMO_SEMANAL'], 
+        ascending=[True, False, False, False]
     )
     
     # Filtrar productos con stock disponible en 'Cerezos'
