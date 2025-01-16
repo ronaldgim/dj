@@ -191,16 +191,16 @@ class CartaProcesos(models.Model):
         
         # return super().save(*args, **kwargs)
         qr = qrcode.QRCode(
-        version=1,  # Controla el tamaño del QR (1 es el más pequeño)
-        error_correction=qrcode.constants.ERROR_CORRECT_H,  # Alta corrección de errores
-        box_size=10,  # Tamaño de cada cuadro en el código QR
-        border=4,  # Bordes del QR
+            version=1,  # Controla el tamaño del QR (1 es el más pequeño)
+            error_correction=qrcode.constants.ERROR_CORRECT_H,  # Alta corrección de errores
+            box_size=10,  # Tamaño de cada cuadro en el código QR
+            border=4,  # Bordes del QR
         )
         qr.add_data(qr_text)
         qr.make(fit=True)
 
         # Crear la imagen QR
-        qr_img = qr.make_image(fill_color="black", back_color="white")
+        qr_img = qr.make_image(fill_color="black", back_color="white").convert("RGB")
 
         # Crear un canvas en blanco y pegar la imagen QR
         canvas = Image.new('RGB', (650, 650), 'white')
