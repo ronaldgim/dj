@@ -301,7 +301,7 @@ def carta_procesos(request):
         form = CartaProcesosForm(request.POST)
         if form.is_valid():
             try:
-                #form.save()
+                form.save()
                 messages.success(request, 'El objeto CartaProcesos se creó correctamente.')
                 return redirect('procesos_list')
             except Exception as e:
