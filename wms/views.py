@@ -3912,7 +3912,7 @@ def wms_ajuste_liberacion_detalle(request, n_liberacion):
             mov_in.save()
             
             wms_existencias_query_product_lote(product_id=mov_in.product_id, lote_id=mov_in.lote_id)
-            
+        
         AjusteLiberacion.objects.filter(doc_id=n_liberacion).update(estado='Liberado')
     
         return HttpResponseRedirect(f'/wms/ajuste-liberacion/detalle/{n_liberacion}') 

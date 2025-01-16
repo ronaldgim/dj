@@ -1,0 +1,275 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>TRANSFERENCIA ANDAGOYA</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'wms/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+
+<h5 class="m-4 text-center fw-bold">ANALISIS TRANSFERENCIA</h5>
+
+<div class="text-end">
+    <button class="btn btn-sm btn-primary mb-2" name="actualizar_get">
+        <i class="bi bi-arrow-clockwise"></i> Actuaizar
+    </button>
+</div>
+
+<div id="msg"></div>
+
+<h6 class="fw-bold">SALDOS ANDAGOYA - (Productos menos un cartón) 
+    {% if cero_ban %}
+        <i style="color:red" class="bi bi-exclamation-octagon-fill"></i>
+    {% endif %}
+</h6>
+
+<h6 class="list-group-item mt-2 mb-2 active" type="button" name="detalle">TABLA DE SALDOS
+    <i class="bi bi-caret-down-fill" style="float: right"></i>
+</h6>
+
+<div class="card mb-2" id="detalle" style="display:none">
+    <div class="container table-responsive">
+        <div class="col-6 mt-2">
+            <input id="saldos_andagoya_input" type="text" placeholder="Buscar..." class="form-control">
+        </div>
+        <table class="table table-hover" style="font-size: small;">
+            <thead>
+                <tr>
+                    <th scope="col">CÓDIGO</th>
+                    <th scope="col">NOMBRE</th>
+                    <th scope="col">MARCA</th>
+                    <th class="text-center" scope="col">UNDS CARTON</th>
+                    <th class="text-center" scope="col">%PICKING</th>
+                    <th class="text-center" scope="col">STOCK ANDAGOYA</th>
+                    <th class="text-center" scope="col">TRANSITO</th>
+                    <th class="text-center" scope="col" style="background-color:rgb(215, 237, 255)">TOTAL STOCK ANDAGOYA</th>
+                    <th class="text-center" scope="col" style="background-color:rgb(231, 255, 217)">STOCK CEREZOS</th>
+                    <th class="text-center" scope="col">CONSUMO SEMANAL</th>
+                    <!--th scope="col">CONSUMO MENSUAL</th-->
+                    <th class="text-center" scope="col">% (TOTAL DISPONIBLE / UNDS CARTON)</th>
+                </tr>
+            </thead>
+            <tbody id="saldos_andagoya_table">
+                {% for i in saldos_ban %}
+                <tr>
+                    <td>{{i.PRODUCT_ID}}</td>
+                    <td>{{i.Nombre}}</td>
+                    <td>{{i.Marca}}</td>
+                    <td class="text-end">{{i.Unidad_Empaque|floatformat:"0g"}}</td>
+                    <td class="text-end">{{i.F_ACUMULADA|floatformat:"2g"}} %</td>
+                    <td class="text-end">{{i.STOCK_ANDAGOYA|floatformat:"0g"}}</td>
+                    <td class="text-end">{{i.TRANSITO|floatformat:"0g"}}</td>
+                    <td class="text-end" style="background-color:rgb(215, 237, 255)">{{i.TOTAL_DISPONIBLE|floatformat:"0g"}}</td>
+                    <td class="text-end" style="background-color:rgb(231, 255, 217)">{{i.STOCK_CEREZOS|floatformat:"0g"}}</td>
+                    <td class="text-end">{{i.CONSUMO_SEMANAL|floatformat:"0g"}}</td>
+                    <!--td class="text-end">{{i.CONSUMO_MENSUAL|floatformat:"0g"}}</td-->
+                    <td class="text-end"
+                    {% if i.TOTAL_DISPONIBLE_UNDS_CARTON < 11 %}
+                        style="background-color: #F6B690;"
+                    {% elif i.TOTAL_DISPONIBLE_UNDS_CARTON > 50  %}
+                        style="background-color: #BAF690;"
+                    {% else %}
+                        style="background-color: #F6F490;"
+                    {% endif %}
+                    >
+                        {{i.TOTAL_DISPONIBLE_UNDS_CARTON|floatformat:"2g"}} %
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<hr>
+
+<h6 class="fw-bold">SUGERENCIA ANDAGOYA</h6>
+
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <div class="col-6 mt-2">
+                <input id="sugerencia_input" type="text" placeholder="Filtro" class="form-control">
+            </div>
+            <table class="table table-hover" style="font-size: small;">
+                <thead>
+                    <tr>
+                        <th scope="col">CÓDIGO</th>
+                        <th scope="col">NOMBRE</th>
+                        <th scope="col">MARCA</th>
+                        <th class="text-center" scope="col">%PICKING</th>
+                        <th class="text-center" scope="col">STOCK ANDAGOYA</th>
+                        <th class="text-center" scope="col">TRANSITO</th>
+                        <th class="text-center" scope="col">PEDIDOS</th>
+                        <th class="text-center" scope="col">RESERVAS</th>
+                        <th class="text-center" scope="col" style="background-color:rgb(215, 237, 255)">T.STOCK ANDAGOYA</th>
+                        <th class="text-center" scope="col" style="background-color:rgb(244, 255, 215)">T.S.A - RESERVAS</th>
+                        <th class="text-center" scope="col" style="background-color:rgb(231, 255, 217)">STOCK CEREZOS</th>
+                        <th class="text-center" scope="col">CONSUMO SEMANAL</th>
+                        <th class="text-center" scope="col">STOCK DE SEGURIDAD</th>
+                        <th class="text-center" scope="col">%STOCK</th>
+                        <th class="text-center" scope="col">DETALLE</th>
+                    </tr>
+                </thead>
+                <tbody id="sugerencia_table">
+                    {% for i in sugerencia_ban %}
+                    <tr>
+                        <td>{{i.PRODUCT_ID}}</td>
+                        <td>{{i.Nombre}}</td>
+                        <td>{{i.Marca}}</td>
+                        <td class="text-end">{{i.F_ACUMULADA|floatformat:"2g"}} %</td>
+                        <td class="text-end">{{i.STOCK_ANDAGOYA|floatformat:"0g"}}</td>
+                        <td class="text-end">{{i.TRANSITO|floatformat:"0g"}}</td>
+                        <td class="text-end">{{i.PEDIDOS|floatformat:"0g"}}</td>
+                        <td class="text-end">{{i.RESERVAS|floatformat:"0g"}}</td>
+                        <td class="text-end" style="background-color:rgb(215, 237, 255)">
+                            {{i.TOTAL_DISPONIBLE|floatformat:"0g"}}
+                            <br>
+                            <small style="color:grey">{{i.TOTAL_DISPONIBLE_CARTONES|floatformat:"2g"}}</small>
+                        </td>
+                        <td class="text-end" style="background-color:rgb(244, 255, 215)">
+                            {{i.DISPONIBLE_MENOS_RESERVAS|floatformat:"0g"}}
+                            <br>
+                            <small style="color:grey">{{i.DISPONIBLE_MENOS_RESERVAS_CARTONES|floatformat:"2g"}}</small>
+                        </td>
+                        <td class="text-end" style="background-color:rgb(231, 255, 217)">
+                            {{i.STOCK_CEREZOS|floatformat:"0g"}}
+                            <br>
+                            <small style="color:grey">{{i.STOCK_CEREZOS_CARTONES|floatformat:"2g"}}</small>
+                        </td>
+
+                        <td class="text-end">{{i.CONSUMO_SEMANAL|floatformat:"0g"}}</td>
+                        <td class="text-end">{{i.STOCK_SEGURIDAD|floatformat:"0g"|default:"0"}}</td>
+
+                        <td class="text-end"
+                        {% if i.NIVEL_ABASTECIMIENTO < 11 %}
+                            style="background-color: #F6B690;"
+                        {% elif i.NIVEL_ABASTECIMIENTO > 50  %}
+                            style="background-color: #BAF690;"
+                        {% else %}
+                            style="background-color: #F6F490;"
+                        {% endif %}
+                        >
+                            {{i.NIVEL_ABASTECIMIENTO|floatformat:"2g"}}%
+                        </td>
+
+                        <td class="text-center">
+                            <button type="button" class="btn btn-sm btn-primary" name="pedido_reserva" id="{{i.PRODUCT_ID}}" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                                <i class="bi bi-list-task"></i>
+                            </button>
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">PEDIDOS Y RESERVAS CODIGO <span style="color:grey" id="producto"><span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                ...
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!--filtro buscar-->
+<script>
+    $(document).ready(function() {
+        $("#saldos_andagoya_input").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#saldos_andagoya_table tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+
+<script>
+    $(document).ready(function() {
+        $("#sugerencia_input").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#sugerencia_table tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+
+<!-- Actualizar lista -->
+<script>
+$("button[name='actualizar_get']").click(function(){
+    window.location.reload();
+    $('#msg').html('<div class="text-center alert alert-success" role="alert"> Inventario Actualizado !!! </div>')
+})
+</script>
+
+<!-- Detalle -->
+<script>
+    $(document).ready(function() {
+        $("h6[name='detalle']").click(function(){
+            $("#detalle").toggle();
+            $(this).find("i").toggleClass("bi-caret-down-fill bi-caret-up-fill");
+        })
+    })
+</script>
+
+<!-- Actualizar lista -->
+<script>
+    $("button[name='actualizar_get']").click(function(){
+        window.location.reload();
+        $('#msg').html('<div class="text-center alert alert-success" role="alert"> Inventario Actualizado !!! </div>')
+    })
+</script>
+
+
+<script>
+    $("button[name='pedido_reserva']").click(function(){
+        var prod_id = $(this).attr('id');
+        
+        $.ajax({
+            type:"POST",
+            url:"{% url 'pedidos_reservas_request' %}",
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'prod_id':prod_id,
+            },
+
+            success: function(response) {
+                $('#producto').html(prod_id)
+                var data = response.data
+                if (!data){
+                    $('.modal-body').html('<div class="text-center alert alert-warning" role="alert"> No hay pedidos ni reservas para este producto </div>')
+                } else if (data){
+                    var html = '<table class="table table-bordered table-hover"><thead><tr><th>CLIENTE</th><th>BODEGA</th><th>N.PEDIDO</th><th>TIPO</th><th>UNIDADES</th></tr></thead><tbody>';
+                    for(var i = 0; i < data.length; i++){
+                        html += '<tr><td>' + data[i].NOMBRE_CLIENTE + '</td><td>' + data[i].WARE_CODE + '</td><td class="text-end">' + data[i].CONTRATO_ID + '</td><td>' + data[i].TIPO + '</td><td class="text-end">' + data[i].QUANTITY.toLocaleString() + '</td></tr>';
+                    }
+                    html += '</tbody></table>';
+                    $('.modal-body').html(html)
+                }
+
+            },
+            error: function(error) {
+                console.log(error)
+            }
+        })
+    })
+</script>
+
+{% endblock %}
