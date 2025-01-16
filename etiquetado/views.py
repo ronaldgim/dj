@@ -2682,27 +2682,32 @@ def detalle_dashboard_armados(request):
         'QUANTITY':'VENTAS',
         'NOMBRE_CLIENTE':'CLIENTE'
     })
-    ventas['VENTAS'] = ventas['VENTAS'].astype(int)
+    ventas['VENTAS'] = ventas['VENTAS'].astype('int')
 
     # Dataframe to complete the dates
     un_anio = datetime.now() - timedelta(days=365)
-    periodo_gim = pd.date_range(start=datetime.now(), end=un_anio, periods=11)
+    periodo_gim = pd.date_range(start=datetime.now(), end=un_anio, periods=11) 
     df = pd.DataFrame()
     df.index = periodo_gim
     df['FECHA'] = periodo_gim
-    df['CLIENTE']='GIM'
+    df['CLIENTE'] = 'GIM'
     df['CODIGO_CLIENTE'] = 'GIM0001'
     df['VENTAS'] = 0
 
-    ventas = pd.concat([ventas, df])
+    ventas = pd.concat([ventas, df]).sort_values(by='FECHA')
     
     ventas['PERIODO'] = ventas['FECHA'].dt.to_period('M')
-
+    
     ventas = ventas.pivot_table(
-        index=['CLIENTE'], values=['VENTAS'], columns=['PERIODO'], aggfunc='sum',
-        margins=True, margins_name='TOTAL', sort=False
+        index=['CLIENTE'], 
+        values=['VENTAS'], 
+        columns=['PERIODO'], 
+        aggfunc='sum',
+        margins=True, 
+        margins_name='TOTAL', 
+        sort=False
     )
-
+        
     ventas = ventas.sort_values(by=('VENTAS','TOTAL'), ascending=False).fillna('-').replace(0,'-')
     
     ventas = ventas.to_html(
