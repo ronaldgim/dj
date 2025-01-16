@@ -209,60 +209,108 @@ class CartaGeneralAnuladaDetailView(PermissionRequiredMixin, LoginRequiredMixin,
         return HttpResponseRedirect(reverse_lazy('general_list'))
 
 
-# Carta Procesos
+# # Carta Procesos
+# @login_required(login_url='login')
+# def carta_procesos(request):
+#     ''' Llenar campos de carga general y crear objeto '''
+#     form = CartaProcesosForm()
+    
+#     context = {
+#         'form':form,
+#     }
+    
+#     if request.user.has_perm('carta.add_cartaprocesos'):
+
+#         try:
+#             if request.method == 'GET':
+#                 ruc = request.GET['buscar_cliente']
+#                 ruc = str(ruc)
+                
+#                 cliente_dict = tabla_clientes(ruc)[0]
+#                 identificacion_fiscal = cliente_dict.get('IDENTIFICACION_FISCAL')
+#                 nombre_cliente = cliente_dict.get('NOMBRE_CLIENTE')
+#                 if identificacion_fiscal == '':
+#                     context = {
+#                         'error':'El Ruc no coincide con ningun cliente, por favor intente nuevamente!!!'
+#                     }
+#                 else:
+#                     context = {
+#                         'ruc':identificacion_fiscal, 
+#                         'nombre_cliente':nombre_cliente, 
+#                         'form':form,
+#                     }
+
+#             elif request.method == 'POST':
+                    
+#                 form = CartaProcesosForm(request.POST)
+                
+#                 if form.is_valid():
+#                     #form.save()
+#                     return redirect('procesos_list')
+#                 else:
+#                     messages.error(request, f'Error {form.errors} !!!')
+#             else:
+
+#                 context = {
+#                     'form':form,
+#                     'errors':form.errors                        
+#                 }
+        
+#         except Exception as e:
+#             print(e)
+#             messages.error(request, f'Error {e} !!!')
+#     else:
+#         messages.error(request, 'No tienes los permisos necesarios !!!')
+#         return HttpResponseRedirect('list')
+        
+#     return render(request, 'cartas/carta_procesos/new.html', context)
+
+# Función auxiliar para buscar cliente
+from django.http import JsonResponse
+def buscar_cliente_por_ruc_ajax(request):
+    """
+    Busca un cliente por su RUC y devuelve un diccionario con los datos.
+    """
+    ruc = request.POST.get('ruc')
+    
+    try:
+        resultado = tabla_clientes(ruc)
+        if resultado:
+            return JsonResponse({'ruc':resultado[0]})  # Retorna el primer cliente encontrado
+        return None
+    except Exception as e:
+        print(f'Error al buscar cliente: {e}')
+        return None
+    
+
 @login_required(login_url='login')
 def carta_procesos(request):
-    ''' Llenar campos de carga general y crear objeto '''
+    """
+    Vista para manejar la creación de un objeto CartaProcesos.
+    """
+    # Validar permisos
+    if not request.user.has_perm('carta.add_cartaprocesos'):
+        messages.error(request, 'No tienes los permisos necesarios para realizar esta acción.')
+        return redirect('procesos_list')
+
+    # Inicializar formulario y contexto
     form = CartaProcesosForm()
-    
-    context = {
-        'form':form,
-    }
-    
-    if request.user.has_perm('carta.add_cartaprocesos'):
+    context = {'form': form}
 
-        try:
-            if request.method == 'GET':
-                ruc = request.GET['buscar_cliente']
-                ruc = str(ruc)
-                
-                cliente_dict = tabla_clientes(ruc)[0]
-                identificacion_fiscal = cliente_dict.get('IDENTIFICACION_FISCAL')
-                nombre_cliente = cliente_dict.get('NOMBRE_CLIENTE')
-                if identificacion_fiscal == '':
-                    context = {
-                        'error':'El Ruc no coincide con ningun cliente, por favor intente nuevamente!!!'
-                    }
-                else:
-                    context = {
-                        'ruc':identificacion_fiscal, 
-                        'nombre_cliente':nombre_cliente, 
-                        'form':form,
-                    }
+    if request.method == 'POST':
+        form = CartaProcesosForm(request.POST)
+        if form.is_valid():
+            try:
+                form.save()
+                messages.success(request, 'El objeto CartaProcesos se creó correctamente.')
+                return redirect('procesos_list')
+            except Exception as e:
+                messages.error(request, f'Ocurrió un error al guardar: {e}')
+        else:
+            messages.error(request, f'Error en el formulario: {form.errors}')
 
-            elif request.method == 'POST':
-                    
-                form = CartaProcesosForm(request.POST)
-                
-                if form.is_valid():
-                    form.save()
-                    return redirect('procesos_list')
-                else:
-                    messages.error(request, f'Error {form.errors} !!!')
-            else:
-
-                context = {
-                    'form':form,
-                    'errors':form.errors                        
-                }
-        
-        except Exception as e:
-            messages.error(request, f'Error {e} !!!')
-    else:
-        messages.error(request, 'No tienes los permisos necesarios !!!')
-        return HttpResponseRedirect('list')
-        
     return render(request, 'cartas/carta_procesos/new.html', context)
+
 
 
 class CartaProcesosPDF(PermissionRequiredMixin, LoginRequiredMixin, PdfMixin ,DetailView):
