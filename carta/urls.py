@@ -121,12 +121,10 @@ urlpatterns = [
         view =views.CartaItemAnuladaDetailView.as_view(),
         name = 'anular_items_detail'
     ),
-
     
-    # path(
-    #     route='ajax',
-    #     view = views.form_ajax,
-    #     name = 'ajax'
-    # ),
-    
+    path(
+        route='buscar_cliente_por_ruc_ajax',
+        view = views.buscar_cliente_por_ruc_ajax,
+        name = 'buscar_cliente_por_ruc_ajax'
+    ),
 ]
