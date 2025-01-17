@@ -67,12 +67,12 @@
           {% endif %}
 
           <td class="text-left">
-            <a href="{% url 'procesos_detail' i.slug %}" target="_blank">
+            <a href="{% url 'procesos_detail' i.slug %}" class="btn btn-sm btn-primary" target="_blank">
               <i class="bi bi-file-text-fill"></i>
             <a>
           </td>
           <td>
-            <a class="text-danger" href="{% url 'anular_cartaprocesos' i.slug %}" target="_blank">
+            <a href="{% url 'anular_cartaprocesos' i.slug %}" class="btn btn-sm btn-danger" target="_blank">
               <i class="bi bi-file-earmark-x-fill"></i>
             <a>
           </td>
