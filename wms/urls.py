@@ -583,9 +583,9 @@ urlpatterns = [
     
     
     
-    path(
-        route='quitar_puntos_de_existencias_y_movimientos',
-        view = views.quitar_puntos_de_existencias_y_movimientos,
-        name = 'quitar_puntos_de_existencias_y_movimientos'
-    )
+    # path(
+    #     route='quitar_puntos_de_existencias_y_movimientos',
+    #     view = views.quitar_puntos_de_existencias_y_movimientos,
+    #     name = 'quitar_puntos_de_existencias_y_movimientos'
+    # )
 ]
