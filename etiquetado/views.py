@@ -2451,9 +2451,9 @@ def publico_dashboard_fun():
 
     list_reservas = list_reservas.merge(fecha_entrega, on='CONTRATO_ID', how='left') #;print(list_reservas)
 
-    # hoy = datetime.now() #;print(hoy)
-    # list_reservas['dias_faltantes'] = (list_reservas['fecha_hora'] - hoy).dt.days  #;print(type(list_reservas['dias_faltantes'][0]))
-    # list_reservas['dias_faltantes'] = list_reservas['dias_faltantes'].astype(int)
+    hoy = datetime.now() #;print(hoy)
+    list_reservas['dias_faltantes'] = (list_reservas['fecha_hora'] - hoy).dt.days  #;print(type(list_reservas['dias_faltantes'][0]))
+    list_reservas['dias_faltantes'] = list_reservas['dias_faltantes'].astype(int)
     
     hoy_2 = date.today()
     
@@ -2488,7 +2488,7 @@ def publico_dashboard_fun():
         list_reservas = list_reservas.merge(estados, on='CONTRATO_ID', how='left')
     
         return list_reservas
-
+    
     return list_reservas
 
 def publico_dashboard(request):
