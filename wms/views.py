@@ -1154,6 +1154,7 @@ def wms_inventario(request): #OK
         Suma de ingresos y egresos que dan el total de todo el inventario
     """
     # wms_existencias_query_product_lote("2014","476790")
+    #wms_existencias_query_product_lote("011065","22042365")
     
     prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     productos = pd.DataFrame(Existencias.objects.all().values('product_id'))
@@ -5168,3 +5169,33 @@ def wms_reporte_componentes_armados(request):
     
     else:
         return messages.error(request, 'No hay componentes armados') #HttpResponse('No hay componentes armados')
+
+
+
+def quitar_puntos_de_existencias_y_movimientos(request):
+    
+    codigo = '011065'
+    lote = '22042365.'
+    lote_sin_punto = '22042365'
+    
+    existencias = Existencias.objects.filter(
+        Q(product_id=codigo) & Q(lote_id=lote)
+    ).order_by('id')
+    
+    for i in existencias:
+        print(i.id, i.product_id, i.lote_id)
+    
+    # existencias.update(lote_id=lote_sin_punto)
+    
+        
+    movimientos = Movimiento.objects.filter(
+        Q(product_id=codigo) & Q(lote_id=lote)
+    ).order_by('id')
+    
+    # movimientos.update(lote_id=lote_sin_punto)
+    
+    for i in movimientos:
+        print(i.id, i.product_id, i.lote_id)
+        
+    return HttpResponse('ok')
+    
