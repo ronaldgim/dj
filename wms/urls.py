@@ -579,5 +579,13 @@ urlpatterns = [
         route='wms_reporte_componentes_armados',
         view = views.wms_reporte_componentes_armados,
         name = 'wms_reporte_componentes_armados'
+    ),
+    
+    
+    
+    path(
+        route='quitar_puntos_de_existencias_y_movimientos',
+        view = views.quitar_puntos_de_existencias_y_movimientos,
+        name = 'quitar_puntos_de_existencias_y_movimientos'
     )
 ]
