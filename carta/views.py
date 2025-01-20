@@ -472,7 +472,7 @@ class CartaItemsPDF(PermissionRequiredMixin, LoginRequiredMixin, PdfMixin ,Detai
         context = super().get_context_data(**kwargs)
         # obtener el valor items_mba de la base de datos del detial
         items_mba_completo = self.object.items_mba
-        print(items_mba_completo)
+        
         if items_mba_completo:
             items_mba_completo = ast.literal_eval(items_mba_completo)
             df = pd.DataFrame(list(items_mba_completo.items()), columns=['index', 'product_id'])
