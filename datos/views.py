@@ -293,10 +293,27 @@ def frecuancia_ventas():
     open_ssh_tunnel()
     mysql_connect()
     
-    df = run_query("SELECT T.PRODUCT_ID, T.ANUAL, R.rpm, A.F_ACUMULADA FROM (SELECT PRODUCT_ID, SUM(QUANTITY) as ANUAL FROM consumo_anual GROUP BY PRODUCT_ID) AS T "
-                    "LEFT JOIN alertas_reservas R ON T.PRODUCT_ID = R.PRODUCT_ID LEFT JOIN analisis_abc A on R.PRODUCT_ID = A.PRODUCT_ID;")
+    df = run_query(
+        "SELECT T.PRODUCT_ID, T.ANUAL, R.rpm, A.F_ACUMULADA FROM (SELECT PRODUCT_ID, SUM(QUANTITY) as ANUAL FROM consumo_anual GROUP BY PRODUCT_ID) AS T "
+        "LEFT JOIN alertas_reservas R ON T.PRODUCT_ID = R.PRODUCT_ID LEFT JOIN analisis_abc A on R.PRODUCT_ID = A.PRODUCT_ID;"
+        )
 
-    # df = run_query("SELECT product_id, sum(quantity) as anual FROM gimpromed_api.consumo_anual group by product_id;")
+    
+    mysql_disconnect()
+    close_ssh_tunnel()
+
+    return df
+
+
+def stock_de_seguridad():
+
+    open_ssh_tunnel()
+    mysql_connect()
+    
+    df = run_query("SELECT product_id, sum(sum_quantity) FROM gimpromed_api.output_ventasTotales group by product_id;")
+    df['stock_seguridad_mensual'] = round(df['sum(sum_quantity)'] / 12, 0)
+    df['stock_seguridad_semanal'] = round(df['stock_seguridad_mensual'] / 4, 0)
+    df = df.rename(columns={'product_id':'PRODUCT_ID'})
     
     mysql_disconnect()
     close_ssh_tunnel()

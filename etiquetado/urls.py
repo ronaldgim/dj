@@ -402,7 +402,7 @@ urlpatterns = [
     
     # analisis transferencia
     path(
-        route='analisis_transferencia',
+        route='analisis-transferencia',
         view=views.analisis_transferencia,
         name='analisis_transferencia'
     ),

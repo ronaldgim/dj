@@ -12,7 +12,8 @@ from wms.models import Existencias
 
 
 # Data
-from datos.views import frecuancia_ventas, productos_odbc_and_django
+from datos.views import frecuancia_ventas, productos_odbc_and_django, stock_de_seguridad
+
 
 def stock_andagoya(): 
     
@@ -33,7 +34,7 @@ def productos_transferencia():
     
     with connections['gimpromed_sql'].cursor() as cursor:
         # cursor.execute("SELECT * FROM warehouse.productos_transito")
-        cursor.execute("SELECT PRODUCT_ID, OH FROM warehouse.productos_transito")
+        cursor.execute("SELECT PRODUCT_ID, OH FROM warehouse.productos_transito WHERE Bod_Trf_OrigDest = 'BAN'")
         columns = [col[0] for col in cursor.description]
         data = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
@@ -236,23 +237,20 @@ def sugerencia():
     cerezos = stock_cerezos_wms()  # Stock en la bodega 'Cerezos'
     pedidos_df = pedidos_andagoya().rename(columns={'QUANTITY': 'PEDIDOS'})  # Pedidos pendientes
     reservas_df = reservas_andagoya().rename(columns={'QUANTITY': 'RESERVAS', 'SEC_NAME_CLIENTE': 'RESERVA_INDICADOR'})  # Reservas
+    stock_seguridad = stock_de_seguridad()
     
     # Merge de datos
     data = pd.merge(data, pedidos_df, how='left', on='PRODUCT_ID').fillna(0)
     data = pd.merge(data, reservas_df, how='left', on='PRODUCT_ID').fillna(0)
     data = pd.merge(data, cerezos, how='left', on='PRODUCT_ID').fillna(0)
+    data = pd.merge(data, stock_seguridad, how='left', on='PRODUCT_ID').fillna(0)
     
     # Cálculos intermedios
     # data['DISPONIBLE_MENOS_RESERVAS'] = data['TOTAL_DISPONIBLE'] - data['RESERVAS']
     data['DISPONIBLE_MENOS_RESERVAS'] = data['TOTAL_DISPONIBLE'] - data['RESERVAS'] - data['PEDIDOS']
-    #data['STOCK_SEGURIDAD'] = data['PEDIDOS'] + (data['CONSUMO_SEMANAL'] * 2)
-    data['STOCK_SEGURIDAD'] = data['CONSUMO_SEMANAL']
-    
-    # Evitar división por cero en STOCK_SEGURIDAD
-    data['STOCK_SEGURIDAD'] = data['STOCK_SEGURIDAD'].replace(0, np.nan)  # Reemplazar 0 por NaN para evitar errores en la división
     
     # Cálculo del nivel de abastecimiento con límites
-    data['NIVEL_ABASTECIMIENTO'] = (data['DISPONIBLE_MENOS_RESERVAS'] / data['STOCK_SEGURIDAD']) * 100
+    data['NIVEL_ABASTECIMIENTO'] = (data['DISPONIBLE_MENOS_RESERVAS'] / data['stock_seguridad_semanal']) * 100
     data['NIVEL_ABASTECIMIENTO'] = data['NIVEL_ABASTECIMIENTO'].clip(lower=0, upper=100)  # Limitar valores entre 0% y 100%
     data['NIVEL_ABASTECIMIENTO'] = data['NIVEL_ABASTECIMIENTO'].fillna(0)  # Reemplazar NaN por 0 para niveles no calculables
     
@@ -270,7 +268,7 @@ def sugerencia():
     
     # Ordenar resultados
     data = data.sort_values(
-        by=['NIVEL_ABASTECIMIENTO', 'STOCK_SEGURIDAD', 'F_ACUMULADA', 'CONSUMO_SEMANAL'], 
+        by=['NIVEL_ABASTECIMIENTO', 'stock_seguridad_semanal', 'CONSUMO_SEMANAL', 'F_ACUMULADA'], 
         ascending=[True, False, False, False]
     )
     

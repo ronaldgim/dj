@@ -3477,6 +3477,7 @@ def detalle_proforma(request, contrato_id):
 
 
 from .transferencia_data import sugerencia, andagoya_saldos, pedidos_reservas
+
 def analisis_transferencia(request):
     
     saldos_ban = andagoya_saldos()
