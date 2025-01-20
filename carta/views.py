@@ -492,7 +492,7 @@ class CartaItemsList(PermissionRequiredMixin, LoginRequiredMixin, ListView):
     ordering = ['-pk']
 
     permission_required = 'carta.view_cartaitem'
- 
+
     def handle_no_permission(self):
         if self.raise_exception:
             raise PermissionDenied(self.get_permission_denied_message())
@@ -531,25 +531,37 @@ def anular_cartaitem(request, slug):
 class AnularCartaItemList(PermissionRequiredMixin, LoginRequiredMixin, ListView):
     model = AnularCartaItem
     template_name = 'cartas/carta_items/list_items_anulada.html'
-
     permission_required = 'carta.view_anularcartaitem'
- 
+
     def handle_no_permission(self):
         if self.raise_exception:
             raise PermissionDenied(self.get_permission_denied_message())
         messages.error(self.request, 'No tienes los permisos necesarios !!!')
         return HttpResponseRedirect(reverse_lazy('items_list'))
- 
+
 
 class CartaItemAnuladaDetailView(PermissionRequiredMixin, LoginRequiredMixin, DetailView):
     model = AnularCartaItem
     template_name = 'cartas/carta_items/anular_cartaitems_detail.html'
-
-
     permission_required = 'carta.view_anularcartaitem'
- 
+
     def handle_no_permission(self):
         if self.raise_exception:
             raise PermissionDenied(self.get_permission_denied_message())
         messages.error(self.request, 'No tienes los permisos necesarios !!!')
         return HttpResponseRedirect(reverse_lazy('items_list'))
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # obtener el valor items_mba de la base de datos del detial
+        items_mba_completo = self.object.cartaitem.items_mba
+        
+        if items_mba_completo:
+            items_mba_completo = ast.literal_eval(items_mba_completo)
+            df = pd.DataFrame(list(items_mba_completo.items()), columns=['index', 'product_id'])
+            df = df.merge(productos_odbc_and_django()[['product_id','Nombre','MarcaDet']], on='product_id', how='left')
+            context['items_mba_completo'] = de_dataframe_a_template(df)
+            return context
+        else:
+            context['items_mba_completo'] = None
+            return context
