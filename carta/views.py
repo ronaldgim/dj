@@ -382,7 +382,6 @@ class AnularCartaProcesosList(PermissionRequiredMixin, LoginRequiredMixin, ListV
     model = AnularCartaProcesos
     template_name = 'cartas/carta_procesos/list_procesos_anuladas.html'
     ordering = ['-pk']
-
     permission_required = 'carta.view_anularcartaprocesos'
 
     def handle_no_permission(self):
@@ -532,6 +531,7 @@ class AnularCartaItemList(PermissionRequiredMixin, LoginRequiredMixin, ListView)
     model = AnularCartaItem
     template_name = 'cartas/carta_items/list_items_anulada.html'
     permission_required = 'carta.view_anularcartaitem'
+    ordering = ['-pk']
 
     def handle_no_permission(self):
         if self.raise_exception:
