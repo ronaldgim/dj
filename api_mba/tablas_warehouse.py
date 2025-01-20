@@ -320,6 +320,7 @@ def api_actualizar_imp_transito_warehouse():
                 (CLNT_Pedidos_Principal.CONFIRMED=false) AND 
                 (CLNT_Pedidos_Principal.VOID=false))
             """
+            
         )
         
         if imp_transito_mba['status'] == 200:
@@ -473,6 +474,21 @@ def api_actualizar_producto_transito_warehouse():
     try:
     
         productos_transito_mba = api_mba_sql(
+            # """
+            # SELECT 
+            #     INVT_Ficha_Principal.PRODUCT_ID, 
+            #     INVT_Producto_Lotes.OH, 
+            #     INVT_Producto_Lotes.LOTE_ID, 
+            #     INVT_Producto_Lotes.Fecha_elaboracion_lote, 
+            #     INVT_Producto_Lotes.FECHA_CADUCIDAD, 
+            #     INVT_Producto_Lotes.WARE_CODE_CORP 
+            # FROM 
+            #     INVT_Ficha_Principal INVT_Ficha_Principal, 
+            #     INVT_Producto_Lotes INVT_Producto_Lotes 
+            # WHERE 
+            #     INVT_Ficha_Principal.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND ((INVT_Producto_Lotes.WARE_CODE_CORP='TRN'))
+            # """
+            
             """
             SELECT 
                 INVT_Ficha_Principal.PRODUCT_ID, 
@@ -480,12 +496,19 @@ def api_actualizar_producto_transito_warehouse():
                 INVT_Producto_Lotes.LOTE_ID, 
                 INVT_Producto_Lotes.Fecha_elaboracion_lote, 
                 INVT_Producto_Lotes.FECHA_CADUCIDAD, 
-                INVT_Producto_Lotes.WARE_CODE_CORP 
+                INVT_Producto_Lotes.WARE_CODE_CORP, 
+                INVT_Producto_Movimientos.WAR_CODE, 
+                INVT_Producto_Movimientos.Bod_Trf_OrigDest 
             FROM 
                 INVT_Ficha_Principal INVT_Ficha_Principal, 
-                INVT_Producto_Lotes INVT_Producto_Lotes 
+                INVT_Producto_Lotes INVT_Producto_Lotes, 
+                INVT_Producto_Movimientos 
+                INVT_Producto_Movimientos 
             WHERE 
-                INVT_Ficha_Principal.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND ((INVT_Producto_Lotes.WARE_CODE_CORP='TRN'))
+                INVT_Ficha_Principal.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND 
+                INVT_Producto_Movimientos.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND 
+                INVT_Producto_Lotes.ENTRADA_DOC_REFERENCIA = INVT_Producto_Movimientos.ORIGIN_REF AND 
+                ((INVT_Producto_Lotes.WARE_CODE_CORP='TRN') AND (INVT_Producto_Movimientos.ADJUSTMENT_TYPE='TE'))
             """
         )
     
