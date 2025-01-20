@@ -275,5 +275,5 @@ def sugerencia():
     
     # Filtrar productos con stock disponible en 'Cerezos'
     data = data[data['STOCK_CEREZOS'] > 0]
-    print(data)
+    
     return data
