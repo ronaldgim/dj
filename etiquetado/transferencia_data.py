@@ -271,8 +271,9 @@ def sugerencia():
         by=['NIVEL_ABASTECIMIENTO', 'stock_seguridad_semanal', 'CONSUMO_SEMANAL', 'F_ACUMULADA'], 
         ascending=[True, False, False, False]
     )
+    data = data.replace([np.inf, -np.inf], np.nan).fillna(0)
     
     # Filtrar productos con stock disponible en 'Cerezos'
     data = data[data['STOCK_CEREZOS'] > 0]
-    
+    print(data)
     return data
