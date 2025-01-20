@@ -32,29 +32,25 @@
 {% endif %}
 
 <label class="form-label">Buscar cliente</label>
-<div class="row">
-    <form method="GET">
-        {% csrf_token %}
 
-        <div class="row mb-3">
-            <div class="col-md-3">
-                <div class="input-group mb-2">
-                    <span class="input-group-text" for="buscar_cliente_id">Ruc:</span>
-                    
-                    <input class="form-control" id="buscar_cliente_id" name="buscar_cliente" type="text">
-                
-                    <button class="btn btn-primary" type="submit" >
-                        <i class="bi bi-search"></i>
-                    </button>
-                    <a href="{% url 'items_new' %}" class="btn btn-secondary" type="submit" >
-                        <i class="bi bi-arrow-clockwise"></i>
-                    </a>
-                </div>
-            </div>
+<div class="row mb-3">
+    <div class="col-lg-4 col-md-6 col-sm-12">
+        <div class="input-group mb-2">
+            <span class="input-group-text" for="buscar_cliente_id">Ruc:</span>
+            
+            <input class="form-control" id="buscar_cliente_id" name="ruc" type="text">
+        
+            <button class="btn btn-primary" type="submit" name="buscar_cliente" >
+                <i class="bi bi-search"></i>
+            </button>
+            <a href="{% url 'items_new' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-clockwise"></i>
+            </a>
         </div>
-
-    </form>
+    </div>
 </div>
+
+
 <div class="row">
     <form method="POST">
         {% csrf_token %}
@@ -64,11 +60,11 @@
         <div class="row mb-3">
             <div class="col-md-3">
                 <label class="form-label">Ruc:</label>
-                <input class="form-control" name="ruc" type="text" value="{{ruc}}" required>
+                <input class="form-control" name="ruc" type="text" id="ruc_cliente" required>
             </div>
             <div class="col-md-9">
                 <label class="form-label">Cliente:</label>
-                <input class="form-control" name="cliente" type="text" value="{{nombre_cliente}}" maxlength="150" required><br>
+                <input class="form-control" name="cliente" type="text" id="nombre_cliente" maxlength="150" required><br>
             </div>
             <div class="col-md-6">
                 <label class="form-label">Hospital:</label>
@@ -78,14 +74,27 @@
                 <label class="form-label">Proceso:</label>
                 <input class="form-control" id="proceso" name="proceso" type="text" maxlength="50">
             </div>
+
+            {% comment %}
             <div class="col-12 mt-4">
                 <label class="form-label">Items:</label>
-                <select class="form-select select2" data-placeholder="Busque los items por código..." name="items" multiple>
+                <select class="form-select select2" data-placeholder="Busque los items por código..." multiple>
                     {% for i in form.items %}
                         {{i}}
                     {% endfor %}
                 </select>
             </div>
+            {% endcomment %}
+
+            <div class="col-12 mt-4">
+                <label class="form-label">Items MBA:</label>
+                <select class="form-select select2" data-placeholder="Busque los items por código..." name="items_mba" multiple>
+                    {% for i in productos_mba %}
+                        <option value="{{i.product_id}}">{{i.nombre_completo}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
             <div class="col-12 mt-4">
                 <label class="form-label">Autorización a terceros:</label>
                 <textarea class="form-control" name="autorizacion" rows="3" maxlength="450"></textarea>
@@ -117,6 +126,37 @@
 <script>
     $(document).ready(function() {
         $('.select2').select2(); //id="chosen-select"
+    })
+</script>
+
+
+<script>
+    $("button[name='buscar_cliente']").click(function(){
+        var ruc = $("input[name='ruc']").val();
+
+        $.ajax({
+            type:"POST",
+            url:"{% url 'buscar_cliente_por_ruc_ajax' %}",
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'ruc': ruc
+            },
+
+            success: function(response) {
+                console.log(response.ruc)
+                if (response.ruc) {
+                    console.log(response.ruc);
+                    $("input[name='ruc']").val(response.ruc.IDENTIFICACION_FISCAL);
+                    $("input[name='cliente']").val(response.ruc.NOMBRE_CLIENTE);
+                } else {
+                    alert("Cliente no encontrado.")
+                }
+            },
+
+            error: function(error) {
+                alert("Error al buscar el cliente." + error.message);
+            }
+        })
     })
 </script>
 

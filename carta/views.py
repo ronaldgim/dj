@@ -4,7 +4,6 @@ from django.db import connections
 # Shortcuts
 from django.shortcuts import redirect, render
 
-
 # Models
 from carta.models import (
     CartaGeneral, 
@@ -49,6 +48,11 @@ from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
 
+# Django products
+from datos.views import productos_odbc_and_django, de_dataframe_a_template
+
+import ast
+import pandas as pd
 
 # Clientes
 def tabla_clientes(ruc):
@@ -302,7 +306,7 @@ def carta_procesos(request):
         if form.is_valid():
             try:
                 form.save()
-                messages.success(request, 'El objeto CartaProcesos se creó correctamente.')
+                messages.success(request, 'La carta por procesos se creó correctamente.')
                 return redirect('procesos_list')
             except Exception as e:
                 messages.error(request, f'Ocurrió un error al guardar: {e}')
@@ -380,20 +384,20 @@ class AnularCartaProcesosList(PermissionRequiredMixin, LoginRequiredMixin, ListV
     ordering = ['-pk']
 
     permission_required = 'carta.view_anularcartaprocesos'
- 
+
     def handle_no_permission(self):
         if self.raise_exception:
             raise PermissionDenied(self.get_permission_denied_message())
         messages.error(self.request, 'No tienes los permisos necesarios !!!')
         return HttpResponseRedirect(reverse_lazy('procesos_list'))
- 
+
 
 class CartaProcesosAnuladaDetailView(PermissionRequiredMixin, LoginRequiredMixin, DetailView):
     model = AnularCartaProcesos
     template_name = 'cartas/carta_procesos/anular_cartaprocesos_detail.html'
     
     permission_required = 'carta.view_anularcartaprocesos'
- 
+
     def handle_no_permission(self):
         if self.raise_exception:
             raise PermissionDenied(self.get_permission_denied_message())
@@ -401,58 +405,53 @@ class CartaProcesosAnuladaDetailView(PermissionRequiredMixin, LoginRequiredMixin
         return HttpResponseRedirect(reverse_lazy('procesos_list'))
 
 
-# Carta Items
 @login_required(login_url='login')
 def carta_items(request):
-    ''' Llenar campos de carga general y crear objeto '''
+    """
+    Vista para manejar la creación de un objeto CartaItems.
+    """
+    # Validar permisos
+    if not request.user.has_perm('carta.add_cartaitem'):
+        messages.error(request, 'No tienes los permisos necesarios para realizar esta acción.')
+        return redirect('items_list')
+
+    # Inicializar formulario y contexto
     form = CartaItemForm()
+    productos_mba = productos_odbc_and_django().drop_duplicates()[['product_id','Nombre','MarcaDet']]
+    productos_mba['nombre_completo'] = productos_mba['product_id'] + ' - ' + productos_mba['Nombre'] + ' - ' + productos_mba['MarcaDet']
     
     context = {
-        'form':form,
-    }
-    
-    if request.user.has_perm('carta.add_cartaitem'):
+        'form': form,
+        'productos_mba': de_dataframe_a_template(productos_mba)
+        }
 
-        try:
-            if request.method == 'GET':
-                ruc = request.GET['buscar_cliente']
-                ruc = str(ruc)
-                
-                cliente_dict = tabla_clientes(ruc)[0]
-                identificacion_fiscal = cliente_dict.get('IDENTIFICACION_FISCAL')
-                nombre_cliente = cliente_dict.get('NOMBRE_CLIENTE')
-                if identificacion_fiscal == '':
-                    context = {
-                        'error':'El Ruc no coincide con ningun cliente, por favor intente nuevamente!!!'
-                    }
-                else:
-                    context = {
-                        'ruc':identificacion_fiscal, 
-                        'nombre_cliente':nombre_cliente, 
-                        'form':form,
-                    }
-
-            elif request.method == 'POST':
-                    
-                form = CartaItemForm(request.POST)
-                
-                if form.is_valid():
-                    form.save()
-                    return redirect('items_list')
-                
-                else:
-                    messages.error(request, f'Error {form.errors} !!!')
-                
-            else:
-                context = {'form':form}
+    if request.method == 'POST':
         
-        except Exception as e:
-            messages.error(request, f'Error {e} !!!')
-
-    else:
-        messages.error(request, 'No tienes los permisos necesarios !!!')
-        return HttpResponseRedirect('list')
+        # Copia el QueryDict y hazlo mutable temporalmente
+        data = request.POST.copy()
+        form = CartaItemForm(data)
         
+        # Obtener la lista y transformarla como necesites
+        p_mba = request.POST.getlist('items_mba')
+        p_mba = dict(enumerate(p_mba))  # Convierte a diccionario enumerado
+        p_mba = str(p_mba)  # Convierte a string (si es necesario)
+
+        # Agrega el nuevo campo al QueryDict mutable
+        data['items_mba'] = p_mba
+        
+        # Usa el nuevo QueryDict en el formulario
+        form = CartaItemForm(data)
+        
+        if form.is_valid():
+            try:
+                form.save()
+                messages.success(request, 'La carta por items se creó correctamente.')
+                return redirect('items_list')
+            except Exception as e:
+                messages.error(request, f'Ocurrió un error al guardar: {e}')
+        else:
+            messages.error(request, f'Error en el formulario: {form.errors}')
+
     return render(request, 'cartas/carta_items/new.html', context)
 
 
@@ -460,14 +459,27 @@ class CartaItemsPDF(PermissionRequiredMixin, LoginRequiredMixin, PdfMixin ,Detai
     ''' Detail view o pdf view de carga general creada '''
     model = CartaItem
     template_name = 'cartas/carta_items/detail.html'
-
     permission_required = 'carta.add_cartaitem'
- 
+
     def handle_no_permission(self):
         if self.raise_exception:
             raise PermissionDenied(self.get_permission_denied_message())
         messages.error(self.request, 'No tienes los permisos necesarios !!!')
         return HttpResponseRedirect(reverse_lazy('items_list'))
+    
+    #  añadir un contexto adicional
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # obtener el valor items_mba de la base de datos del detial
+        if self.object.items_mba:
+            items_mba_completo = self.object.items_mba
+            items_mba_completo = ast.literal_eval(items_mba_completo)
+            df = pd.DataFrame(list(items_mba_completo.items()), columns=['index', 'product_id'])
+            df = df.merge(productos_odbc_and_django()[['product_id','Nombre','MarcaDet']], on='product_id', how='left')
+            context['items_mba_completo'] = de_dataframe_a_template(df)
+            return context
+        else:
+            return context
 
 
 class CartaItemsList(PermissionRequiredMixin, LoginRequiredMixin, ListView):

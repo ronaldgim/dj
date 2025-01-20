@@ -223,7 +223,8 @@ class CartaItem(models.Model):
     oficio              = models.CharField(verbose_name='Oficio', max_length=30)
     ruc                 = models.CharField(verbose_name='Ruc', max_length=13)
     cliente             = models.CharField(verbose_name='Cliente', max_length=150)
-    items               = models.ManyToManyField(Product, verbose_name='Productos')
+    items               = models.ManyToManyField(Product, verbose_name='Productos', blank=True)
+    items_mba           = models.TextField()
     hospital            = models.CharField(verbose_name='Hospital', max_length=100)
     proceso             = models.CharField(verbose_name='N° Proceso', max_length=50)
     fecha_emision       = models.DateField(verbose_name='Fecha', auto_now_add=True)
@@ -265,7 +266,8 @@ class CartaItem(models.Model):
         
         self.oficio = f'GIM-GF-CD-CI-{y}-{n_of_f}'
         
-        qr_text = f'{self.oficio}{self.cliente}{self.ruc}{self.f}{self.hospital}{self.proceso}\n{self.slug}'
+        # qr_text = f'{self.oficio}{self.cliente}{self.ruc}{self.f}{self.hospital}{self.proceso}\n{self.slug}'
+        qr_text = f'{self.oficio}{self.cliente}{self.ruc}{date.today()}{self.hospital}{self.proceso}\n{self.slug}'
         
         qr = qrcode.QRCode(
             version=1,  # Controla el tamaño del QR (1 es el más pequeño)
