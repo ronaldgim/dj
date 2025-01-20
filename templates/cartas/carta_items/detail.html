@@ -67,6 +67,7 @@
                 <th class="t_b" style="width:270px;">Detalle</th>
                 <th class="t_b" style="width:170px;">Marca</th>
             </tr>
+            {% if object.items %}
             {% for i in object.items.all %}
             <tr>
                 <td class="t_b">{{i.product_id}}</td>
@@ -74,6 +75,15 @@
                 <td class="t_b">{{i.marca2}}</td>
             </tr>
             {% endfor %}
+            {% else %}
+            {% for i in items_mba_completo %}
+            <tr>
+                <td class="t_b">{{i.product_id}}</td>
+                <td class="t_b">{{i.Nombre}}</td>
+                <td class="t_b">{{i.MarcaDet}}</td>
+            </tr>
+            {% endfor %}
+            {% endif %}
         </table>
 
         <p style="text-align:justify; font-size:10px">
