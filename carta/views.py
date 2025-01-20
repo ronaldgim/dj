@@ -471,14 +471,16 @@ class CartaItemsPDF(PermissionRequiredMixin, LoginRequiredMixin, PdfMixin ,Detai
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # obtener el valor items_mba de la base de datos del detial
-        if self.object.items_mba:
-            items_mba_completo = self.object.items_mba
+        items_mba_completo = self.object.items_mba
+        print(items_mba_completo)
+        if items_mba_completo:
             items_mba_completo = ast.literal_eval(items_mba_completo)
             df = pd.DataFrame(list(items_mba_completo.items()), columns=['index', 'product_id'])
             df = df.merge(productos_odbc_and_django()[['product_id','Nombre','MarcaDet']], on='product_id', how='left')
             context['items_mba_completo'] = de_dataframe_a_template(df)
             return context
         else:
+            context['items_mba_completo'] = None
             return context
 
 
