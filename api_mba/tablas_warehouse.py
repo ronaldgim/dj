@@ -524,6 +524,8 @@ def api_actualizar_producto_transito_warehouse():
                 fecha_elaboracion_lote = i['FECHA_ELABORACION_LOTE'][:10] # cortar formato de fecha que trae la api
                 fecha_caducidad = i['FECHA_CADUCIDAD'][:10] # cortar formato de fecha que trae la api
                 ware_code_corp = i['WARE_CODE_CORP']
+                ware_code = i['WAR_CODE']
+                bod_trans_oring_destino = i['BOD_TRF_ORIGDEST']
 
                 row = (
                     product_id, 
@@ -531,12 +533,13 @@ def api_actualizar_producto_transito_warehouse():
                     lote_id, 
                     fecha_elaboracion_lote, 
                     fecha_caducidad,
-                    ware_code_corp
+                    ware_code_corp,
+                    ware_code,
+                    bod_trans_oring_destino
                 )
-
+                
                 data.append(row)
                 
-            
             #with transaction.atomic():
             # Borrar datos de tabla clientes
             delete_data_warehouse('productos_transito')
