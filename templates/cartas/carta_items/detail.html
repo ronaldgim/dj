@@ -76,6 +76,7 @@
             </tr>
             {% endfor %}
             
+            {% if items_mba_completo %}
             {% for i in items_mba_completo %}
             <tr>
                 <td class="t_b">{{i.product_id}}</td>
@@ -83,7 +84,7 @@
                 <td class="t_b">{{i.MarcaDet}}</td>
             </tr>
             {% endfor %}
-            
+            {% endif %}
         </table>
 
         <p style="text-align:justify; font-size:10px">
