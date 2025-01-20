@@ -530,7 +530,7 @@ def api_actualizar_producto_transito_warehouse():
                 row = (
                     product_id, 
                     oh, 
-                    lote_id, 
+                    lote_id.replace('.',''), 
                     fecha_elaboracion_lote, 
                     fecha_caducidad,
                     ware_code_corp,
