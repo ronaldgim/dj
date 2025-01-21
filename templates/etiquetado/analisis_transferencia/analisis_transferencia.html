@@ -95,16 +95,17 @@
             <table class="table table-hover" style="font-size: small;">
                 <thead>
                     <tr>
+                        <th scope="col">#</th>
                         <th scope="col">CÓDIGO</th>
                         <th scope="col">NOMBRE</th>
                         <th scope="col">MARCA</th>
-                        <th class="text-center" scope="col">%PICKING</th>
+                        <th class="text-center" scope="col">% PICKING</th>
                         <th class="text-center" scope="col">STOCK ANDAGOYA</th>
                         <th class="text-center" scope="col">TRANSITO</th>
                         <th class="text-center" scope="col">PEDIDOS</th>
                         <th class="text-center" scope="col">RESERVAS</th>
-                        <th class="text-center" scope="col" style="background-color:rgb(215, 237, 255)">T.STOCK ANDAGOYA</th>
-                        <th class="text-center" scope="col" style="background-color:rgb(244, 255, 215)">T.S.A - RESERVAS</th>
+                        <th class="text-center" scope="col">T.STOCK ANDAGOYA</th>
+                        <th class="text-center" scope="col" style="background-color:rgb(215, 237, 255)">T.S.A - RESERVAS</th>
                         <th class="text-center" scope="col" style="background-color:rgb(231, 255, 217)">STOCK CEREZOS</th>
                         <th class="text-center" scope="col">CONSUMO SEMANAL</th>
                         <th class="text-center" scope="col">STOCK DE SEGURIDAD(S)</th>
@@ -115,6 +116,7 @@
                 <tbody id="sugerencia_table">
                     {% for i in sugerencia_ban %}
                     <tr>
+                        <td>{{i.n_fila}}</td>
                         <td>{{i.PRODUCT_ID}}</td>
                         <td>{{i.Nombre}}</td>
                         <td>{{i.Marca}}</td>
@@ -123,12 +125,12 @@
                         <td class="text-end">{{i.TRANSITO|floatformat:"0g"}}</td>
                         <td class="text-end">{{i.PEDIDOS|floatformat:"0g"}}</td>
                         <td class="text-end">{{i.RESERVAS|floatformat:"0g"}}</td>
-                        <td class="text-end" style="background-color:rgb(215, 237, 255)">
+                        <td class="text-end"> <!-- style="background-color:rgb(215, 237, 255)" -->
                             {{i.TOTAL_DISPONIBLE|floatformat:"0g"}}
                             <br>
                             <small style="color:grey">{{i.TOTAL_DISPONIBLE_CARTONES|floatformat:"2g"}}</small>
                         </td>
-                        <td class="text-end" style="background-color:rgb(244, 255, 215)">
+                        <td class="text-end" style="background-color:rgb(215, 237, 255)"> <!-- style="background-color:rgb(244, 255, 215)" -->
                             {{i.DISPONIBLE_MENOS_RESERVAS|floatformat:"0g"}}
                             <br>
                             <small style="color:grey">{{i.DISPONIBLE_MENOS_RESERVAS_CARTONES|floatformat:"2g"}}</small>
@@ -157,9 +159,9 @@
                         <td class="text-center">
                             <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
                                 <button type="button" class="btn btn-sm btn-primary" name="pedido_reserva" id="{{i.PRODUCT_ID}}" data-bs-toggle="modal" data-bs-target="#exampleModal">
-                                    PR
+                                    PyR
                                 </button>
-                                <button type="button" class="btn btn-sm btn-success" name="pedido_reserva" id="{{i.PRODUCT_ID}}" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                                <button type="button" class="btn btn-sm btn-success" name="wms_existencias" id="{{i.PRODUCT_ID}}" data-bs-toggle="modal" data-bs-target="#wmsExistencia">
                                     WMS
                                 </button>
                             </div>
@@ -179,6 +181,22 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="exampleModalLabel">PEDIDOS Y RESERVAS CODIGO <span style="color:grey" id="producto"><span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                ...
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal -->
+<div class="modal fade" id="wmsExistencia" tabindex="-1" aria-labelledby="wmsExistencia" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="wmsExistenciaLabel">WMS EXISTENCIAS <span style="color:grey" id="wms_producto"><span></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -212,14 +230,6 @@
             });
         });
     });
-</script>
-
-<!-- Actualizar lista -->
-<script>
-$("button[name='actualizar_get']").click(function(){
-    window.location.reload();
-    $('#msg').html('<div class="text-center alert alert-success" role="alert"> Inventario Actualizado !!! </div>')
-})
 </script>
 
 <!-- Detalle -->
@@ -275,4 +285,39 @@ $("button[name='actualizar_get']").click(function(){
     })
 </script>
 
+
+<script>
+    $("button[name='wms_existencias']").click(function(){
+        var prod_id = $(this).attr('id');
+        
+        $.ajax({
+            type:"POST",
+            url:"{% url 'existencias_wms_analisis_transferencia' %}",
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'prod_id':prod_id,
+            },
+
+            success: function(response) {
+                $('#wms_producto').html(prod_id)
+                var data = response.data
+                console.log(data);
+                if (!data){
+                    $('.modal-body').html('<div class="text-center alert alert-warning" role="alert"> No hay pedidos ni reservas para este producto </div>')
+                } else if (data){
+                    var html = '<table class="table table-bordered table-hover"><thead><tr><th>LOTE</th><th>F.CADUCIDAD</th><th>UBICACIÓN</th><th>ESTADO</th><th>UNIDADES</th></tr></thead><tbody>';
+                    for(var i = 0; i < data.length; i++){
+                        html += '<tr><td>' + data[i].lote_id + '</td><td>' + data[i].fecha_caducidad + '</td><td class="text-end">' + data[i].ubicacion__bodega + '-' + data[i].ubicacion__pasillo + '-' + data[i].ubicacion__modulo + '-' + data[i].ubicacion__nivel + '</td><td>' + data[i].estado + '</td><td class="text-end">' + data[i].unidades.toLocaleString() + '</td></tr>';
+                    }
+                    html += '</tbody></table>';
+                    $('.modal-body').html(html)
+                }
+
+            },
+            error: function(error) {
+                console.log(error)
+            }
+        })
+    })
+</script>
 {% endblock %}

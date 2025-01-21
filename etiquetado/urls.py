@@ -412,6 +412,13 @@ urlpatterns = [
         route='pedidos_reservas_request',
         view=views.pedidos_reservas_request,
         name='pedidos_reservas_request'
+    ),
+    
+    # existencias_wms_analisis_transferencia
+    path(
+        route='existencias_wms_analisis_transferencia',
+        view=views.existencias_wms_analisis_transferencia,
+        name='existencias_wms_analisis_transferencia'
     )
     
     # # DASHBOARDS VUE JS
