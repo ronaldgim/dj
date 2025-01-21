@@ -89,7 +89,8 @@ class UbicacionAndagoyaForm(forms.ModelForm):
     
     class Meta:
         model = UbicacionAndagoya
-        fields = '__all__'
+        # fields = '__all__'
+        fields = ['bodega','pasillo','estanteria','modulo','nivel']
 
 
 class ProductoUbicacionForm(forms.ModelForm):

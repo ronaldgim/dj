@@ -27,7 +27,9 @@ from etiquetado.models import (
     EstadoEtiquetadoStock,
     AnexoDoc, 
     AnexoGuia,
-    AddEtiquetadoPublico
+    AddEtiquetadoPublico,
+    UbicacionAndagoya,
+    ProductoUbicacion,
     )
 
 from mantenimiento.models import Equipo
@@ -42,7 +44,9 @@ from etiquetado.forms import (
     PedidosEstadoEtiquetadoForm,
     RegistroGuiaForm,
     AnexoGuiaForm, 
-    AnexoDocForm
+    AnexoDocForm,
+    UbicacionAndagoyaForm,
+    ProductoUbicacionForm,
 )
 
 # Json
@@ -3543,7 +3547,40 @@ def existencias_wms_analisis_transferencia(request):
             
         else:
             return JsonResponse({'error':'No hay datos'})
-        
+
+
+# UbicacionAndagoya
+# ProductoUbicacion
+
+def ubicaciones_andagoya_list(request):
+    
+    ubicaciones = UbicacionAndagoya.objects.all()
+    form = UbicacionAndagoyaForm()
+    
+    if request.method == 'POST':
+        form = UbicacionAndagoyaForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('ubicaciones_andagoya_list')
+        else:
+            messages.error(request, f'Error: {form.errors}')
+            return redirect('ubicaciones_andagoya_list')
+    
+    context = {
+        'ubicaciones':ubicaciones,
+        'form': form,
+    }
+    
+    return render(request, 'etiquetado/ubicaciones_andagoya/ubicaciones_list.html', context)
+
+
+
+
+
+
+
+
+
 
 # from .tasks import enviar_correos_prueba, prueba_sleep
 # def mov_prueba(request):

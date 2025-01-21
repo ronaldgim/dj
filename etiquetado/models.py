@@ -245,10 +245,18 @@ BODEGA = [
     ('BN4', 'BN4'),
 ]
 
+PASILLO_BLOQUE = [
+    ('A', 'A'),
+    ('B', 'B'),
+    ('C', 'C'),
+    ('D', 'D'),
+    ('E', 'E'),
+    ('F', 'F'),
+]
 class UbicacionAndagoya(models.Model):
     
     bodega     = models.CharField(verbose_name='Bodega', choices=BODEGA, max_length=10)
-    pasillo    = models.CharField(verbose_name='Pasillo/Bloque', max_length=10)
+    pasillo    = models.CharField(verbose_name='Pasillo/Bloque', choices=PASILLO_BLOQUE, max_length=10)
     modulo     = models.CharField(verbose_name='Modulo', max_length=10, default='1', blank=True)
     nivel      = models.CharField(verbose_name='Nivel', max_length=10, default='1', blank=True)
     estanteria = models.BooleanField(default=False)

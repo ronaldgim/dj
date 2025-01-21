@@ -419,7 +419,17 @@ urlpatterns = [
         route='existencias_wms_analisis_transferencia',
         view=views.existencias_wms_analisis_transferencia,
         name='existencias_wms_analisis_transferencia'
+    ),
+    
+    
+    # ubicaciones
+    path(
+        route = 'ubicaciones-andagoya-list',
+        view  = views.ubicaciones_andagoya_list,
+        name  = 'ubicaciones_andagoya_list'
     )
+    
+    
     
     # # DASHBOARDS VUE JS
     # path(

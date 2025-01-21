@@ -1,0 +1,137 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Etiquetado por pedido</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'etiquetado/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+<h5 class="m-4 text-center fw-bold">LISTA DE UBICACIONES ANDAGOYA</h5>
+
+<button type="button" class="btn btn-success mt-4" data-bs-toggle="modal" data-bs-target="#addUbicacion">Añadir Ubicación</button>
+
+<div class="card mt-2 mb-2">
+    <div class="card-body">
+        <div class="container table-responsive">
+            <div class="col-4">
+                <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control mb-2">
+            </div>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th rowspan="2">Bodega</th>
+                        <th rowspan="2">Bloque-Pasillo</th>
+                        <th class="text-center" colspan="2">Estanteria</th>
+                        <th rowspan="2">Editar</th>
+                    </tr>
+                    <tr>
+                        <th>Modulo</th>
+                        <th>Nivel</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in ubicaciones %}
+                    <tr>
+                        <td>{{i.bodega}}</td>
+                        <td>{{i.pasillo}}</td>
+                        <td>
+                            {% if i.estanteria %}
+                                {{i.modulo}}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if i.estanteria %}
+                                {{i.nivel}}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a class="btn btn-sm btn-secondary" href="{#% url 'etiquetado:etiqueta_imprimir' i.id %#}">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="addUbicacion" tabindex="-1" aria-labelledby="addUbicacionLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="addUbicacionLabel">Agregar Ubicación</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            
+            <form method="POST" id="add_ubicacion">
+                {% csrf_token %}
+                {{form}}
+            </form>
+
+        </div>
+        <div class="modal-footer">
+            <button type="submit" form="add_ubicacion" class="btn btn-primary">Guardar</button>
+        </div>
+        </div>
+    </div>
+</div>
+
+<!--filtro buscar-->
+<script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+
+<!--script para editar ubicacion-->
+<script>
+    $(document).ready(function() {
+
+        $("#id_bodega").addClass('form-select');
+        $("#id_pasillo").addClass('form-select');
+        $("#id_estanteria").addClass('form-check-input');
+        $("#id_estanteria").prop('checked', false);
+
+        $("#id_modulo").addClass('form-control').hide();
+        $("label[for='id_modulo']").hide();
+        $("#id_nivel").addClass('form-control').hide();
+        $("label[for='id_nivel']").hide();
+        
+
+        $("#id_estanteria").on('change', function() {
+            console.log($(this).prop('checked'));
+            if ($(this).prop('checked')){
+                $("#id_modulo").show();
+                $("label[for='id_modulo']").show();
+                $("#id_nivel").show();
+                $("label[for='id_nivel']").show();
+            } else {
+                $("#id_modulo").hide();
+                $("label[for='id_modulo']").hide();
+                $("#id_nivel").hide();
+                $("label[for='id_nivel']").hide();
+            }
+
+        });
+
+    });
+</script>
+{% endblock %}
