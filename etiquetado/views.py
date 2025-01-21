@@ -3504,21 +3504,52 @@ def pedidos_reservas_request(request):
         else:
             return JsonResponse({'error':'No hay datos'})
     
-    
 
+def existencias_wms_analisis_transferencia(request):
+    
+    if request.method == 'POST':
+        existencias = (
+            Existencias.objects
+            .filter(product_id=request.POST.get('prod_id'))
+            .order_by(
+                '-estado',
+                'product_id',
+                'fecha_caducidad',
+                'lote_id',
+                'ubicacion__bodega',
+                'ubicacion__nivel'
+                )
+        )
+        
+        if existencias.exists():
+            # convertir queryset django a json
+            existencias = existencias.values(
+                'product_id',
+                'lote_id',
+                'fecha_caducidad',
+                'ubicacion__bodega',
+                'ubicacion__pasillo',
+                'ubicacion__modulo',
+                'ubicacion__nivel',
+                'estado',
+                'unidades'
+                )
+            existencias = list(existencias)
+            
+            return JsonResponse({
+                'data':existencias,
+                'error':False
+            })
+            
+        else:
+            return JsonResponse({'error':'No hay datos'})
+        
 
 # from .tasks import enviar_correos_prueba, prueba_sleep
 # def mov_prueba(request):
 
 #     result = enviar_correos_prueba.delay(email='egarces@gimpromed.com')
-
-    
 #     return HttpResponse(f'{request.user} - {result}')
-
-
 # def sleep_prueba(request):
-
 #     result = prueba_sleep.delay()
-
-    
 #     return HttpResponse(f'{request.user} - {result}')

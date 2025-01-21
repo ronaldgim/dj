@@ -251,7 +251,7 @@ def sugerencia():
     
     # Cálculo del nivel de abastecimiento con límites
     data['NIVEL_ABASTECIMIENTO'] = (data['DISPONIBLE_MENOS_RESERVAS'] / data['stock_seguridad_semanal']) * 100
-    data['NIVEL_ABASTECIMIENTO'] = data['NIVEL_ABASTECIMIENTO'].clip(lower=0, upper=100)  # Limitar valores entre 0% y 100%
+    #data['NIVEL_ABASTECIMIENTO'] = data['NIVEL_ABASTECIMIENTO'].clip(lower=0, upper=100)  # Limitar valores entre 0% y 100%
     data['NIVEL_ABASTECIMIENTO'] = data['NIVEL_ABASTECIMIENTO'].fillna(0)  # Reemplazar NaN por 0 para niveles no calculables
     
     # Cartones
@@ -259,12 +259,6 @@ def sugerencia():
     data['STOCK_CEREZOS_CARTONES'] = data['STOCK_CEREZOS'] / data['Unidad_Empaque']
     data['TOTAL_DISPONIBLE_CARTONES'] = data['TOTAL_DISPONIBLE'] / data['Unidad_Empaque']
     data['DISPONIBLE_MENOS_RESERVAS_CARTONES'] = data['DISPONIBLE_MENOS_RESERVAS'] / data['Unidad_Empaque']
-    
-    # # Ordenar resultados
-    # data = data.sort_values(
-    #     by=['NIVEL_ABASTECIMIENTO', 'F_ACUMULADA', 'CONSUMO_SEMANAL'], 
-    #     ascending=[True, False, False]
-    # )
     
     # Ordenar resultados
     data = data.sort_values(
@@ -275,5 +269,7 @@ def sugerencia():
     
     # Filtrar productos con stock disponible en 'Cerezos'
     data = data[data['STOCK_CEREZOS'] > 0]
+    
+    data['n_fila'] = range(1, len(data) + 1)
     
     return data
