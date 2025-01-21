@@ -232,3 +232,55 @@ class EstadoEtiquetadoStock(models.Model):
 class AddEtiquetadoPublico(models.Model):
     
     contrato_id = models.CharField(max_length=10)
+
+
+
+# UBICACIONES DE BODEGA ANDAGOYA
+BODEGA = [
+    ('AN1', 'AN1'),
+    ('AN4', 'AN4'),
+    ('BN1', 'BN1'),
+    ('BN2', 'BN2'),
+    ('BN3', 'BN3'),
+    ('BN4', 'BN4'),
+]
+
+class UbicacionAndagoya(models.Model):
+    
+    bodega     = models.CharField(verbose_name='Bodega', choices=BODEGA, max_length=10)
+    pasillo    = models.CharField(verbose_name='Pasillo/Bloque', max_length=10)
+    modulo     = models.CharField(verbose_name='Modulo', max_length=10, default='1', blank=True)
+    nivel      = models.CharField(verbose_name='Nivel', max_length=10, default='1', blank=True)
+    estanteria = models.BooleanField(default=False)
+    
+    def __str__(self):
+        return f'{self.bodega} - {self.pasillo} - {self.modulo} - {self.nivel}'
+    
+    
+    @property
+    def nombre(self):
+        if self.estanteria:
+            return f"{self.bodega}-{self.pasillo}-{self.modulo}-{self.nivel}"
+        else:
+            return f"{self.bodega}-{self.pasillo}"
+    
+    
+class ProductoUbicacion(models.Model):
+    
+    product_id = models.CharField(
+        verbose_name='ID del Producto',
+        max_length=50,
+        unique=True,  # Opcional, pero recomendado si el `product_id` debe ser único
+    )
+    ubicaciones = models.ManyToManyField(
+        'UbicacionAndagoya',
+        verbose_name='Ubicaciones',
+        related_name='productos',
+    )
+
+    def __str__(self):
+        ubicaciones_str = ", ".join([f"{ubicacion.bodega}-{ubicacion.pasillo}-{ubicacion.modulo}-{ubicacion.nivel}" for ubicacion in self.ubicaciones.all()])
+        return f"Producto: {self.product_id} | Ubicaciones: {ubicaciones_str}"
+    
+    # @property
+    # def ubicaciones_str(self):
