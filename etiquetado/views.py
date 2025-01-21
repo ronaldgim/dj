@@ -1047,14 +1047,14 @@ def estado_etiquetado(request, n_pedido, id):
             avance = avance.rename(columns={'id':'avance'})
             pedido = pedido.merge(avance, on='PRODUCT_ID', how='left')
         
-        product = productos_odbc_and_django()[['product_id','marca','unidad_empaque']] 
+        product = productos_odbc_and_django()[['product_id','marca','Unidad_Empaque']] 
         product = product.rename(columns={'product_id':'PRODUCT_ID'})
 
         # Merge Dataframes
         pedido = pedido.merge(product, on='PRODUCT_ID', how='left').sort_values(by='PRODUCT_ID').fillna('')
 
         # Calculos
-        pedido['Cartones'] = pedido['QUANTITY'] / pedido['unidad_empaque']
+        pedido['Cartones'] = pedido['QUANTITY'] / pedido['Unidad_Empaque']
         
         # Totales de tabla
         cliente = pedido['NOMBRE_CLIENTE'].iloc[0]
@@ -1079,7 +1079,7 @@ def estado_etiquetado(request, n_pedido, id):
         }
 
         if request.method == 'POST':
-            #id_estado = int(float(id))
+            
             estado_registro = PedidosEstadoEtiquetado.objects.get(id=id_estado)
             form_update = PedidosEstadoEtiquetadoForm(request.POST, instance=estado_registro)
             if form_update.is_valid():
