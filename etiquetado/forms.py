@@ -11,7 +11,9 @@ from etiquetado.models import (
     FechaEntrega, 
     InstructivoEtiquetado,
     AnexoGuia,
-    AnexoDoc
+    AnexoDoc,
+    UbicacionAndagoya,
+    ProductoUbicacion
     )
 
 # MyForms
@@ -38,6 +40,7 @@ class RowItemForm(forms.ModelForm):
     class Meta:
         model = RowItem
         fields = '__all__'
+
 
 class CalculadoraForm(forms.ModelForm):
     
@@ -73,9 +76,25 @@ class FechaEntregaForm(forms.ModelForm):
         model = FechaEntrega
         fields = '__all__'
         
+        
 ## Instructivo etiquetado
 class InstructivoEtiquetadoForm(forms.ModelForm):
     
     class Meta:
         model = InstructivoEtiquetado
         fields = '__all__'
+
+
+class UbicacionAndagoyaForm(forms.ModelForm):
+    
+    class Meta:
+        model = UbicacionAndagoya
+        fields = '__all__'
+
+
+class ProductoUbicacionForm(forms.ModelForm):
+    
+    class Meta:
+        model = ProductoUbicacion
+        fields = '__all__'
+        
