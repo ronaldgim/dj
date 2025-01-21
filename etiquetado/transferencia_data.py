@@ -251,7 +251,7 @@ def sugerencia():
     
     # Cálculo del nivel de abastecimiento con límites
     data['NIVEL_ABASTECIMIENTO'] = (data['DISPONIBLE_MENOS_RESERVAS'] / data['stock_seguridad_semanal']) * 100
-    #data['NIVEL_ABASTECIMIENTO'] = data['NIVEL_ABASTECIMIENTO'].clip(lower=0, upper=100)  # Limitar valores entre 0% y 100%
+    data['NIVEL_ABASTECIMIENTO'] = data['NIVEL_ABASTECIMIENTO'].clip(lower=0, upper=100)  # Limitar valores entre 0% y 100%
     data['NIVEL_ABASTECIMIENTO'] = data['NIVEL_ABASTECIMIENTO'].fillna(0)  # Reemplazar NaN por 0 para niveles no calculables
     
     # Cartones
