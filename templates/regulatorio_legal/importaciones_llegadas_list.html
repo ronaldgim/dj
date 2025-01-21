@@ -71,12 +71,13 @@
                 <tbody id="pedidosbuscar">
                     {% for i in imp %}
                     <tr>
-                        <td>{{i.marca2}}</td>
+                        <!--td>{{i.marca2}}</td-->
+                        <td>{{i.MarcaDet}}</td>
                         <td>{{i.DOC_ID_CORP}}</td>
                         <td>{{i.ENTRADA_FECHA}}</td>
                         <td>{{i.WARE_COD_CORP}}</td>
 
-                        {% if i.marca2 == 'ARMADOS' %}
+                        {% if i.MarcaDet == 'ARMADOS' %}
                         <td>
                             <a class="btn btn-secondary btn-sm" href="{% url 'armados_list_imp' %}">
                                 Armados

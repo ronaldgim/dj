@@ -84,7 +84,8 @@ def importaciones_llegadas_list(request):
         'WARE_COD_CORP',
         # 'product_id',
         # 'Nombre',
-        'marca2'
+        # 'marca2'
+        'MarcaDet'
     ]]
 
     # Borrar duplicados
@@ -106,13 +107,15 @@ def importaciones_llegadas_list(request):
     armados['DOC_ID_CORP']   = 'ARMADOS'
     armados['ENTRADA_FECHA'] = '-'
     armados['WARE_COD_CORP'] = '-'
-    armados['marca2']        = 'ARMADOS'
+    # armados['marca2']        = 'ARMADOS'
+    armados['MarcaDet']        = 'ARMADOS'
     armados                  = armados.drop_duplicates(subset=['DOC_ID_CORP'])
     armados['documento']     = n_armados
     armados['sin_documento'] = 0.0
     armados['con_documento'] = n_armados
     armados['completado']    = ((armados['con_documento'] / armados['documento']) * 100).round(0)
-    armados = armados[['DOC_ID_CORP','ENTRADA_FECHA','WARE_COD_CORP','marca2','lote_id','documento','sin_documento','con_documento','completado']]
+    # armados = armados[['DOC_ID_CORP','ENTRADA_FECHA','WARE_COD_CORP','marca2','lote_id','documento','sin_documento','con_documento','completado']]
+    armados = armados[['DOC_ID_CORP','ENTRADA_FECHA','WARE_COD_CORP','MarcaDet','lote_id','documento','sin_documento','con_documento','completado']]
     
     # lista de documentos lote NUMERO DE DOCUMENTOS POR IMPORTACIÓN
     n_docs = pd.DataFrame(DocumentoLote.objects.all().values()) 
