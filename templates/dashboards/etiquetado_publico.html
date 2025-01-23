@@ -103,49 +103,43 @@
                         <td class="text-start">-</td>
                         <td class="text-start">-</td>
                         {% endif %}
-                       
+                    
                         {% if i.dias_faltantes == '-' %}
                         <td class="text-end">-</td>
                         {% else %}
                         <td class="text-end">{{i.dias_faltantes|floatformat:0}} días</td>
                         {% endif %}
 
-                        <!--td class="text-start">{{i.fecha_creado|slice:-7}}</td-->
-                        <!--td class="text-start">{{i.estado}}</td-->
-
                         <td class="estado text-start" data-estado="{{i.estado}}">
+
                             {% if i.estado == 'EN PAUSA' %}
-                            <a class="btn btn-danger btn-sm disabled">{{i.estado}}</a><!--target="_blank"-->
+                            <!--a class="btn btn-danger btn-sm disabled">{{i.estado}}</a-->
+                            <h6 class="p-0 m-0"><span class="badge bg-danger">{{i.estado}}</span></h6>
                             {% elif i.estado == 'EN TRANSITO' %}
-                            <a class="btn btn-danger btn-sm disabled">{{i.estado}}</a><!--target="_blank"-->
+                            <!--a class="btn btn-danger btn-sm disabled">{{i.estado}}</a-->
+                            <h6 class="p-0 m-0"><span class="badge bg-primary">{{i.estado}}</span></h6>
                             {% elif i.estado == 'EN PROCESO' %}
-                            <a class="btn btn-warning text-white btn-sm disabled">{{i.estado}}</a> <!-- target="_blank"-->
+                            <!--a class="btn btn-warning text-white btn-sm disabled">{{i.estado}}</a-->
+                            <h6 class="p-0 m-0"><span class="badge bg-warning">{{i.estado}}</span></h6>
                             {% elif i.estado == 'INCOMPLETO' %}
-                            <a class="btn btn-danger btn-sm disabled">{{i.estado}}</a><!--target="_blank"-->
+                            <!--a class="btn btn-danger btn-sm disabled">{{i.estado}}</a-->
+                            <h6 class="p-0 m-0"><span class="badge" style="background: #bf03c8">{{i.estado}}</span></h6>
                             {% elif i.estado == 'FINALIZADO' %}
-                            <a class="btn btn-success btn-sm disabled">{{i.estado}}</a><!--target="_blank"-->
+                            <!--a class="btn btn-success btn-sm disabled">{{i.estado}}</a-->
+                            <h6 class="p-0 m-0"><span class="badge bg-success">{{i.estado}}</span></h6>
                             {% else %}
                             -
                             {% endif %}
 
+
+
                             {% if i.estado != '-' %}
-                            <span class="mt-2 ps-1 pe-1" style="background-color: #BAF690;">
+                            <span class="badge text-dark" style="background-color: #BAF690;" style="background-color: #BAF690;">
                                 {{i.avance}}%
                             </span>
                             {% endif %}
                             
                         </td>
-                        {% comment %}
-                        <td class="estado text-start" data-estado="{{i.estado}}">
-                            {% if i.estado == 'EN PROCESO' %}
-                            <a class="btn btn-warning text-white btn-sm disabled">PENDIENTE</a> <!-- target="_blank"-->
-                            {% elif i.estado == 'FINALIZADO' %}
-                            <a class="btn btn-success btn-sm disabled">ENTREGADO</a><!--target="_blank"-->
-                            {% else %}
-                            -
-                            {% endif %}
-                        </td>
-                        {% endcomment %}
 
                         <td class="estado text-start">
                             -
@@ -157,7 +151,7 @@
                     </tr>
                     {% endfor %}
 
-                    <tr class="bg-info text-dark"> <!--  style="background-color: #013483;" -->
+                    <tr class="bg-info text-dark">
                         <td colspan="10" class="text-center text-light">PENDIETES POR ENTREGAR</td>
                     </tr>
 
@@ -172,15 +166,8 @@
 
                         <td class="text-start">{{i.NOMBRE_CLIENTE}}</td>
                         
-                        <!--td class="text-start">{{i.FECHA_PEDIDO}}</td>
-                        <td class="text-start">{{i.HORA_LLEGADA}}</td-->
-
                             
                         {% if i.fecha_hora %}
-                        
-                        <!--td class="text-start"
-                        {% if i.estado_entrega == 'CONFIRMADO' %} style="background-color: #AED6F1;"{% endif %}
-                        >{{i.fecha_hora|slice:'0:10'}}</td-->
 
                         <td class="text-start"
                         {% if i.estado_entrega == 'CONFIRMADO' %} style="background-color: #AED6F1;"{% endif %}
@@ -193,28 +180,24 @@
                         <td class="text-start">-</td>
                         <td class="text-start">-</td>
                         {% endif %}
-                       
-                        {% comment %}
-                        {% if i.dias_faltantes == '-' %}
-                        <td class="text-end">-</td>
-                        {% else %}
-                        <td class="text-end">{{i.dias_faltantes|floatformat:0}} días</td>
-                        {% endif %}
-                        {% endcomment %}
-
                         <td class="text-end">-</td>                       
 
                         <td class="estado text-start" data-estado="{{i.estado}}">
                             {% if i.estado == 'EN PAUSA' %}
-                            <a class="btn btn-danger btn-sm disabled">{{i.estado}}</a><!--target="_blank"-->
+                            <!--a class="btn btn-danger btn-sm disabled">{{i.estado}}</a-->
+                            <h6 class="p-0 m-0"><span class="badge bg-danger">{{i.estado}}</span></h6>
                             {% elif i.estado == 'EN TRANSITO' %}
-                            <a class="btn btn-danger btn-sm disabled">{{i.estado}}</a><!--target="_blank"-->
+                            <!--a class="btn btn-danger btn-sm disabled">{{i.estado}}</a-->
+                            <h6 class="p-0 m-0"><span class="badge bg-primary">{{i.estado}}</span></h6>
                             {% elif i.estado == 'EN PROCESO' %}
-                            <a class="btn btn-warning text-white btn-sm disabled">{{i.estado}}</a> <!-- target="_blank"-->
+                            <!--a class="btn btn-warning text-white btn-sm disabled">{{i.estado}}</a-->
+                            <h6 class="p-0 m-0"><span class="badge bg-warning">{{i.estado}}</span></h6>
                             {% elif i.estado == 'INCOMPLETO' %}
-                            <a class="btn btn-danger btn-sm disabled">{{i.estado}}</a><!--target="_blank"-->
+                            <!--a class="btn btn-danger btn-sm disabled">{{i.estado}}</a-->
+                            <h6 class="p-0 m-0"><span class="badge" style="background: #bf03c8">{{i.estado}}</span></h6>
                             {% elif i.estado == 'FINALIZADO' %}
-                            <a class="btn btn-success btn-sm disabled">{{i.estado}}</a><!--target="_blank"-->
+                            <!--a class="btn btn-success btn-sm disabled">{{i.estado}}</a-->
+                            <h6 class="p-0 m-0"><span class="badge bg-success">{{i.estado}}</span></h6>
                             {% else %}
                             -
                             {% endif %}
@@ -222,11 +205,14 @@
 
                         <td class="estado text-start" data-estado="{{i.estado}}">
                             {% if i.est_entrega == 'PENDIENTE' %}
-                            <a class="btn btn-warning text-white btn-sm disabled">PENDIENTE</a>
+                            <!--a class="btn btn-warning text-white btn-sm disabled">PENDIENTE</a-->
+                            <h6 class="p-0 m-0"><span class="badge bg-warning">PENDIENTE</span></h6>
                             {% elif not i.est_entrega %}
-                            <a class="btn btn-warning text-white btn-sm disabled">PENDIENTE</a> <!-- target="_blank"-->
+                            <!--a class="btn btn-warning text-white btn-sm disabled">PENDIENTE</a-->
+                            <h6 class="p-0 m-0"><span class="badge bg-warning">PENDIENTE</span></h6>
                             {% elif i.est_entrega == 'ENTREGADO' %}
-                            <a class="btn btn-success btn-sm disabled">ENTREGADO</a><!--target="_blank"-->
+                            <!--a class="btn btn-success btn-sm disabled">ENTREGADO</a-->
+                            <h6 class="p-0 m-0"><span class="badge bg-success">ENTREGADO</span></h6>
                             {% else %}
                             -
                             {% endif %}
