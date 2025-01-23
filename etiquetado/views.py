@@ -3526,7 +3526,7 @@ def productos_ubicacion_lista_template():
         product_id = i['product_id']        
         for j in productos:
             if j.product_id == product_id:
-                i['ubicaciones'] = list(j.ubicaciones.all())
+                i['ubicaciones'] = list(j.ubicaciones.all().order_by('bodega','pasillo','modulo','nivel'))
                 
     return productos_completo
 
