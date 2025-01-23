@@ -89,8 +89,14 @@ class UbicacionAndagoyaForm(forms.ModelForm):
     
     class Meta:
         model = UbicacionAndagoya
-        # fields = '__all__'
         fields = ['bodega','pasillo','estanteria','modulo','nivel']
+        widgets = {
+            'bodega': forms.Select(attrs={'class': 'form-select'}),
+            'pasillo': forms.Select(attrs={'class': 'form-select'}),
+            'estanteria': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'modulo': forms.TextInput(attrs={'class': 'form-control'}),
+            'nivel': forms.TextInput(attrs={'class': 'form-control'}),
+        }
 
 
 class ProductoUbicacionForm(forms.ModelForm):

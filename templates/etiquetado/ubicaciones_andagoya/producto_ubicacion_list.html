@@ -9,7 +9,21 @@
 {% endblock %}
 
 {% block body %}
-<h5 class="m-4 text-center fw-bold">LISTA DE UBICACIONES ANDAGOYA</h5>
+<h5 class="m-4 text-center fw-bold">LISTA DE PRODUCTO Y SUS UBICACIONES EN ANDAGOYA</h5>
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
 
 <button type="button" class="btn btn-success mt-4" data-bs-toggle="modal" data-bs-target="#addUbicacion">Añadir Ubicación</button>
 
@@ -22,34 +36,31 @@
             <table class="table table-bordered">
                 <thead>
                     <tr>
-                        <th rowspan="2">Bodega</th>
-                        <th rowspan="2">Bloque-Pasillo</th>
-                        <th class="text-center" colspan="2">Estanteria</th>
-                        <th rowspan="2">Editar</th>
-                    </tr>
-                    <tr>
-                        <th>Modulo</th>
-                        <th>Nivel</th>
+                        <th>Código</th>
+                        <th>Nombre</th>
+                        <th>Marca</th>
+                        <th>Ubicaciones</th>
+                        <th>Editar</th>
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
-                    {% for i in ubicaciones %}
+                    {% for i in productos_completo %}
                     <tr>
-                        <td>{{i.bodega}}</td>
-                        <td>{{i.pasillo}}</td>
+                        <td id="codigo">{{i.product_id}}</td>
+                        <td id="nombre">{{i.Nombre}}</td>
+                        <td id="marca">{{i.Marca}}</td>
                         <td>
-                            {% if i.estanteria %}
-                                {{i.modulo}}
-                            {% else %}
-                                -
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if i.estanteria %}
-                                {{i.nivel}}
-                            {% else %}
-                                -
-                            {% endif %}
+                            {% for j in i.ubicaciones %}
+                                {% if j.estanteria %}
+                                <button class="btn btn-sm btn-warning disabled">
+                                    {{j.nombre}}
+                                </button>
+                                {% else %}
+                                <button class="btn btn-sm btn-info disabled">
+                                    {{j.nombre}}
+                                </button>
+                                {% endif %}
+                            {% endfor %}
                         </td>
                         <td>
                             <button class="btn btn-sm btn-secondary" name="editar" id="{{i.id}}" data-bs-toggle="modal" data-bs-target="#editarUbicacion">
@@ -74,14 +85,26 @@
         </div>
         <div class="modal-body">
             
-            <form method="POST" id="add_ubicacion">
+            <form method="POST" id="add_prod_ubi">
                 {% csrf_token %}
-                {{form}}
+                <label>Producto:</label>
+                <select class="form-select select2" name="product_id">
+                    <option value="">-----------</option>
+                    {% for i in prods %}
+                    <option value="{{i.product_id}}">{{i.product_id}} - {{i.Nombre}} - {{i.Marca}}</option>
+                    {% endfor %}
+                </select>
+                <label>Ubicaciones:</label>
+                <select class="form-select select2" name="ubicaciones" multiple>
+                    {% for i in ubs %}
+                    <option value="{{i.id}}">{{i.nombre}}</option>
+                    {% endfor %}
+                </select>
             </form>
 
         </div>
         <div class="modal-footer">
-            <button type="submit" form="add_ubicacion" class="btn btn-primary">Guardar</button>
+            <button type="submit" form="add_prod_ubi" class="btn btn-primary">Guardar</button>
         </div>
         </div>
     </div>
@@ -97,19 +120,25 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-            <form method="POST" action="{% url 'editar_ubicacion_andagoya' %}" id="editar_ubi_form">
+            <form method="POST" action="{% url 'editar_producto_ubicacion' %}" id="edit_prod_ubi">
                 {% csrf_token %}
-                <div id="editar_ubi"></div>
-                <input type="hidden" id="ubi_id" name="ubi_id">
+                <label>Producto:</label>
+                <input class="form-control" id="product_name_marca" readonly>
+                <input class="form-control" id="product_id_edit" name="product_id" hidden>
+                <label>Ubicaciones:</label>
+                <select class="form-select select2_2" name="ubicaciones" multiple>
+                    {% for i in ubs %}
+                    <option value="{{i.id}}">{{i.nombre}}</option>
+                    {% endfor %}
+                </select>
             </form>
         </div>
         <div class="modal-footer">
-            <button type="submit" form="editar_ubi_form" class="btn btn-primary">Guardar</button>
+            <button type="submit" form="edit_prod_ubi" class="btn btn-primary">Guardar</button>
         </div>
         </div>
     </div>
 </div>
-
 
 <!--filtro buscar-->
 <script>
@@ -138,59 +167,70 @@
         $("#id_nivel").addClass('form-control').hide();
         $("label[for='id_nivel']").hide();
         
+
         $("#id_estanteria").on('change', function() {
-            
+            console.log($(this).prop('checked'));
             if ($(this).prop('checked')){
                 $("#id_modulo").show();
-                $("#id_modulo").prop(required, true);
                 $("label[for='id_modulo']").show();
                 $("#id_nivel").show();
-                $("#id_nivel").prop(required, true);
                 $("label[for='id_nivel']").show();
             } else {
                 $("#id_modulo").hide();
-                $("#id_modulo").prop(required, false);
                 $("label[for='id_modulo']").hide();
                 $("#id_nivel").hide();
-                $("#id_nivel").prop(required, false);
                 $("label[for='id_nivel']").hide();
             }
+
         });
+
     });
 </script>
 
+<script>
+    $(document).ready(function() {
+        $('.select2').select2({dropdownParent:$('#addUbicacion')});
+    });
+
+    $(document).ready(function() {
+        $('.select2_2').select2({dropdownParent:$('#editarUbicacion')});
+    });
+</script>
 
 <script>
     $(document).ready(function() {
         $("button[name='editar']").click(function() {
             var id = $(this).attr('id');
+            var codigo = $(this).closest('tr').find('#codigo').text();
+            var nombre = $(this).closest('tr').find('#nombre').text();
+            var marca = $(this).closest('tr').find('#marca').text();
+            
+            $("#product_name_marca").val(codigo + ' - ' + nombre + ' - ' + marca);
+            $("#product_id_edit").val(codigo);
+
+            var $ubicacionesSelect = $("#editarUbicacion select[name='ubicaciones']");
+            $ubicacionesSelect.val(null).trigger("change");
 
             $.ajax({
                 type:"GET",
-                url:"{% url 'editar_ubicacion_andagoya' %}",
+                url:"{% url 'editar_producto_ubicacion' %}",
                 data:{
                     'id': id
                 },
                 success: function(response) {
-                    $("#editar_ubi").html(response.form);
-                    $("#ubi_id").val(response.ubi_id);
-                    $("#editar_ubi #id_estanteria").on('change', function() {
-                        if ($(this).prop('checked')){
-                            $("#editar_ubi #id_modulo").show();
-                            $("#editar_ubi #id_modulo").prop('required', true);
-                            $("label[for='id_modulo']").show();
-                            $("#editar_ubi #id_nivel").show();
-                            $("#editar_ubi #id_nivel").prop('required', true);
-                            $("label[for='id_nivel']").show();
-                        } else {
-                            $("#editar_ubi #id_modulo").hide();
-                            $("#editar_ubi #id_modulo").prop('required', false);
-                            $("label[for='id_modulo']").hide();
-                            $("#editar_ubi #id_nivel").hide();
-                            $("#editar_ubi #id_nivel").prop('required', false);
-                            $("label[for='id_nivel']").hide();
-                        }
+                    // Limpiar las opciones actuales del select
+                    $ubicacionesSelect.find("option").prop("selected", false);
+
+                    // Recorrer las ubicaciones del servidor y marcarlas como seleccionadas
+                    response.producto_ubicaciones.forEach(function (ubicacion) {
+                        $ubicacionesSelect
+                            .find("option[value='" + ubicacion.id + "']")
+                            .prop("selected", true);
                     });
+
+                    // Refrescar Select2 para reflejar los cambios
+                    $ubicacionesSelect.trigger("change");
+                    
                 },
                 error: function(response) {
                     console.log(response);

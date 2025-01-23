@@ -7,6 +7,8 @@ from datetime import datetime, date, timedelta
 # Shorcuts
 from django.shortcuts import render, redirect
 
+from django.shortcuts import get_object_or_404
+
 # Pandas
 import pandas as pd
 import numpy as np
@@ -3574,12 +3576,132 @@ def ubicaciones_andagoya_list(request):
     return render(request, 'etiquetado/ubicaciones_andagoya/ubicaciones_list.html', context)
 
 
+# def editar_ubicacion_andagoya(request):
+    
+#     if request.method == 'GET':
+#         id = request.GET.get('id')
+#         ubicacion = UbicacionAndagoya.objects.get(id=id)
+#         form = UbicacionAndagoyaForm(instance=ubicacion)
+        
+#         return JsonResponse({'form':form})
+    
+#     if request.method == 'POST':
+#         form = UbicacionAndagoyaForm(request.POST, instance=ubicacion)
+#         if form.is_valid():
+#             form.save()
+#             return redirect('ubicaciones_andagoya_list')
+#         else:
+#             messages.error(request, f'Error: {form.errors}')
+#             return redirect('editar_ubicacion_andagoya', id=id)
+        
+
+def editar_ubicacion_andagoya(request):
+    
+    if request.method == 'GET':
+        id = request.GET.get('id')
+        ubicacion = UbicacionAndagoya.objects.get(id=id)
+        form = UbicacionAndagoyaForm(instance=ubicacion).as_div()
+        print(ubicacion.id)
+        return JsonResponse({
+            'form': form,
+            'ubi_id':ubicacion.id
+        })
+
+    if request.method == 'POST':
+        id = request.POST.get('ubi_id')
+        ubicacion = UbicacionAndagoya.objects.get(id=id)  # Ensure `ubicacion` is retrieved here
+        form = UbicacionAndagoyaForm(request.POST, instance=ubicacion)
+        if form.is_valid():
+            form.save()
+            return redirect('ubicaciones_andagoya_list')
+        else:
+            messages.error(request, f'Error: {form.errors}')
+            return redirect('editar_ubicacion_andagoya', id=id)
+
+
+def productos_ubicacion_lista_template():
+    productos_mba = productos_odbc_and_django()[['product_id', 'Nombre', 'Marca']]
+    productos = ProductoUbicacion.objects.all()
+    
+    productos_df = pd.DataFrame(productos.values())
+    productos_completo = productos_df.merge(productos_mba, on='product_id', how='left')
+    productos_completo = de_dataframe_a_template(productos_completo)   
+    
+    for i in productos_completo:
+        product_id = i['product_id']        
+        for j in productos:
+            if j.product_id == product_id:
+                i['ubicaciones'] = list(j.ubicaciones.all())
+                
+    return productos_completo
+
+
+def producto_ubicacion_lista(request):
+    
+    productos_mba = productos_odbc_and_django()[['product_id', 'Nombre', 'Marca']]
+    productos = ProductoUbicacion.objects.all()
+    form = ProductoUbicacionForm()
+    
+    productos_completo = productos_ubicacion_lista_template()
+    
+    productos_form = set(productos.values_list('product_id', flat=True))
+    productos_form_mba = set(productos_mba['product_id'].unique())
+    productos_input = list(productos_form_mba.difference(productos_form))
+    
+    prods = productos_odbc_and_django()[['product_id', 'Nombre', 'Marca']]
+    prods = prods[prods['product_id'].isin(productos_input)]
+    prods = de_dataframe_a_template(prods)
+    
+    if request.method == 'POST':
+        form = ProductoUbicacionForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Producto y ubicacion guardado exitosamente')
+            return redirect('producto_ubicacion_lista')
+        else:
+            messages.error(request, f'Error: {form.errors}')
+            return redirect('producto_ubicacion_lista')
+    
+    context = {
+        'prods': prods,
+        'ubs':UbicacionAndagoya.objects.all(),
+        'productos_completo': productos_completo,
+        'form': form,
+    }
+    
+    return render(request, 'etiquetado/ubicaciones_andagoya/producto_ubicacion_list.html', context)
 
 
 
+def editar_producto_ubicacion(request):
+    
+    if request.method == 'GET':
 
+        # Obtener el producto por ID
+        producto_id = request.GET.get('id')
+        producto = get_object_or_404(ProductoUbicacion, id=producto_id)
 
+        todas_ubicaciones = UbicacionAndagoya.objects.values() 
+        ubicaciones_seleccionadas = producto.ubicaciones.all().values()
 
+        # Devolver todas las ubicaciones y las seleccionadas en formato JSON
+        return JsonResponse({
+            'todas_ubicaciones': list(todas_ubicaciones),
+            'producto_ubicaciones': list(ubicaciones_seleccionadas),
+        })
+    
+    if request.method == 'POST':
+        
+        prod = ProductoUbicacion.objects.get(product_id=request.POST.get('product_id')) ; print(prod)
+        form = ProductoUbicacionForm(request.POST, instance=prod)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Producto y ubicacion actualizado exitosamente')
+            return redirect('producto_ubicacion_lista')
+        else:
+            messages.error(request, f'Error: {form.errors}')
+            return redirect('producto_ubicacion_lista')
+        
 
 
 # from .tasks import enviar_correos_prueba, prueba_sleep
