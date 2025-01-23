@@ -13,7 +13,7 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 
-<h5 class="m-4 text-center"><strong>ESTADO DE PICKING DE PEDIDO</strong></h5>
+<h5 class="m-4 text-center fw-bold">ESTADO DE PICKING DE PEDIDO</h5>
 
 <div class="row">
     <div class="col-6">
@@ -23,34 +23,6 @@
         <h6><strong>Fecha de pedido: </strong> {{fecha_pedido|date:'d-M-Y'}}</h6>
     </div>
 </div>
-
-<!--form method="POST">
-    {% csrf_token %}
-    <input type="hidden" name="n_pedido" value="{{pedido}}">
-    <input type="hidden" name="user" value="{{request.user.userperfil.id}}"> 
-    <input type="hidden" name="detalle" value="{{detalle}}">
-    <input type="hidden" name="fecha_pedido" value="{{f_pedido}}">
-    <input type="hidden" name="tipo_cliente" value="{{tipo_cliente}}">
-    <input type="hidden" name="bodega" value="{{bodega}}">
-    <input type="hidden" name="cliente" value="{{cliente}}">
-    <input type="hidden" name="codigo_cliente" value="{{codigo_cliente}}">
-
-    <div class="row">
-
-        <div class="col-12">
-            <label><strong>Estado:</strong></label><br>
-            <select class="form-select" name="estado" id="estado_id">
-                <option value="">---------</option>
-                {% for i in estados %}
-                    <option value="{{i}}">{{i}}</option>
-                {% endfor %}
-            </select>
-        </div>
-    </div>
-    <button type="submit" class="btn btn-primary mt-2">
-        <i class="bi bi-box-seam"></i> Picking
-    </button>
-</form-->
 
 <div class="text-end mb-2">
     <button type="button" class="btn btn-sm btn-info disabled">Estado: {{estado}}</button>
@@ -107,13 +79,13 @@
     <div class="card mt-2 mb-2">
         <div class="card-body m-0 p-0">
             <div class="container table-responsive">
-                <table class="table">
+                <table class="table" style="font-size: small;">
                     <thead>
-                    <tr>
-                        <th scope="col">Item</th>
-                        <th scope="col">Unidades</th>
-                        <th scope="col">Cartones</th>
-                    </tr>
+                        <tr>
+                            <th scope="col">Item</th>
+                            <th scope="col">Unidades</th>
+                            <th scope="col">Ubicaciones</th>
+                        </tr>
                     </thead>
                     
                     <tbody>
@@ -127,15 +99,33 @@
                             <span id="nombre">{{i.PRODUCT_NAME}}</span><br>
                             <span id="marca">{{i.marca2}}</span><br>
                         </td>
-                        <td id="p_unds" class="text-end">{{i.QUANTITY|floatformat:"0g"}}</td>
-                        <td class="text-end">{{i.Cartones|floatformat:"2g"}}</td>
+                        <td class="text-end">
+                            <span id="p_unds">{{i.QUANTITY|floatformat:"0g"}}</span> <br>
+                            <span style="color:grey">{{i.Cartones|floatformat:"2g"}}</span>
+                        </td>
+                        <td class="text-end">
+                            {% for j in i.ubicaciones %}
+                                {% if j.estanteria %}
+                                <button class="btn btn-sm btn-warning disabled mb-2">
+                                    {{j.nombre}}
+                                </button>
+                                {% else %}
+                                <button class="btn btn-sm btn-info disabled mb-2">
+                                    {{j.nombre}}
+                                </button>
+                                {% endif %}
+                            {% endfor %}
+                        </td>
                     </tr>
                     {% endfor %}
                     </tbody>
                     <tr>
                         <th scope="row"></th>
-                        <td class="text-end">{{t_unidades|floatformat:"0g"}}</td>
-                        <td class="text-end">{{t_cartones|floatformat:"2g"}}</td>
+                        <td class="text-end">
+                            {{t_unidades|floatformat:"0g"}} <br> 
+                            <span style="color:grey">{{t_cartones|floatformat:"2g"}}</span>
+                        </td>
+                        <td class="text-end">--</td>
                         
                     </tr>
                 </table>
