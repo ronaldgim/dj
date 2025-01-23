@@ -190,6 +190,7 @@ class Transferencia(models.Model):
             self.lote_id = self.lote_id.replace('.', '')
         super(Transferencia, self).save(*args, **kwargs)
         
+        
 class TransferenciaStatus(models.Model):
     
     n_transferencia = models.CharField(verbose_name='Número de trasferencia', max_length=50, unique=True)
