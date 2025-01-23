@@ -64,26 +64,26 @@
                             <span class="fw-bold">Unidades:</span> {{i.OH2|floatformat:"0g"}}<br>
                             <span class="fw-bold">Estado:</span> 
                                 {% if i.WARE_CODE == 'BAN' %}
-                                <span class="badge bg-success">Disponible</span>
+                                <span class="badge bg-success" style="font-size:12px">Disponible</span>
                                 {% elif i.WARE_CODE == 'CUA' %}
-                                <span class="badge bg-danger">Cuarentena</span>
+                                <span class="badge bg-danger" style="font-size:12px">Cuarentena</span>
                                 {% endif %}
                             <br>
                             <span class="fw-bold">Ubicación(es):</span><br>
                             {% if i.ubicaciones %}
-                                {% for j in i.ubicaciones %}
-                                    {% if j.estanteria %}
-                                    <button class="btn btn-sm btn-warning disabled">
-                                        {{j.nombre}}
-                                    </button>
-                                    {% else %}
-                                    <button class="btn btn-sm btn-info disabled">
-                                        {{j.nombre}}
-                                    </button>
-                                    {% endif %}
-                                {% endfor %}
+                            {% for j in i.ubicaciones %}
+                                {% if j.estanteria %}
+                                <span class="badge bg-warning" style="font-size:14px">
+                                    {{j.nombre}}
+                                </span>
+                                {% else %}
+                                <span class="badge bg-info" style="font-size:14px">
+                                    {{j.nombre}}
+                                </span>
+                                {% endif %}
+                            {% endfor %}
                             {% else %}
-                                <span class="badge bg-secondary">Sin ubicación</span>
+                                <span class="badge bg-secondary" style="font-size:12px">Sin ubicación(es)</span>
                             {% endif %}
                         </td>
                     </tr>
