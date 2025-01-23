@@ -79,9 +79,10 @@
                                 <td>{{i.HORA_LLEGADA}}</td>
                                 <td>{{i.CIUDAD_PRINCIPAL}}</td>
                                 <td>
-                                    <a :class="obtenerColorFondoEstado(i.estado)" :style="{backgroundColor: obtenerColorFondoEstadoIncompleto(i.estado)}">
+                                    <!--a :class="obtenerColorFondoEstado(i.estado)" :style="{backgroundColor: obtenerColorFondoEstadoIncompleto(i.estado)}">
                                         {{i.estado}}
-                                    </a>
+                                    </a-->
+                                    <h6 class="p-0 m-0"><span :class="obtenerColorFondoEstado(i.estado)" :style="{backgroundColor: obtenerColorFondoEstadoIncompleto(i.estado)}">{{i.estado}}</span></h6>
                                 </td>
                                 <td v-if="i.first_name != '-' ">{{i.first_name}} {{i.last_name}}</td>
                                 <td v-else>-</td>
@@ -140,18 +141,33 @@
                 }
             },
 
+            // obtenerColorFondoEstado(estado){
+            //     switch (estado) {
+            //         case 'EN PAUSA':
+            //             return 'btn btn-danger btn-sm disabled';
+            //         case 'EN TRANSITO':
+            //             return 'btn btn-primary btn-sm disabled';
+            //         case 'EN PROCESO':
+            //             return 'btn btn-warning text-white btn-sm disabled';
+            //         case 'FINALIZADO':
+            //             return 'btn btn-success btn-sm disabled';
+            //         case 'INCOMPLETO':
+            //             return 'btn text-white btn-sm disabled';
+            //     }
+            // },
+
             obtenerColorFondoEstado(estado){
                 switch (estado) {
                     case 'EN PAUSA':
-                        return 'btn btn-danger btn-sm disabled';
+                        return 'badge bg-danger text-wrap';
                     case 'EN TRANSITO':
-                        return 'btn btn-primary btn-sm disabled';
+                        return 'badge bg-primary text-wrap';
                     case 'EN PROCESO':
-                        return 'btn btn-warning text-white btn-sm disabled';
+                        return 'badge bg-warning text-wrap'; // text-dark
                     case 'FINALIZADO':
-                        return 'btn btn-success btn-sm disabled';
+                        return 'badge bg-success text-wrap';
                     case 'INCOMPLETO':
-                        return 'btn text-white btn-sm disabled';
+                        return 'badge';
                 }
             },
 
