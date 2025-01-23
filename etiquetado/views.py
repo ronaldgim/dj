@@ -3671,7 +3671,9 @@ def transferencia_ingres_andagoya_detalle(request, n_transferencia):
     
     transferencia = Transferencia.objects.filter(n_transferencia=n_transferencia).values()
     transferencia = pd.DataFrame(transferencia)
-    transferencia['fecha_caducidad'] = transferencia['fecha_caducidad'].astype('str')
+    transferencia = transferencia.groupby(by=['product_id'])['unidades'].sum().reset_index()
+    
+    # transferencia['fecha_caducidad'] = transferencia['fecha_caducidad'].astype('str')
     productos = productos_odbc_and_django()[['product_id','Nombre','Marca','Unidad_Empaque']]
     transferencia = transferencia.merge(productos, on='product_id', how='left')
     transferencia['cartones'] = transferencia['unidades'] / transferencia['Unidad_Empaque']

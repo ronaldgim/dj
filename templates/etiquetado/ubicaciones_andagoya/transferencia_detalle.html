@@ -20,7 +20,7 @@
                     <thead>
                         <tr>
                             <th scope="col">Item</th>
-                            <th scope="col">Lote</th>
+                            <!--th scope="col">Lote</th-->
                             <th scope="col">Unidades</th>
                             <th scope="col">Ubicación(es)</th>
                         </tr>
@@ -34,10 +34,10 @@
                             <span>{{i.Nombre}}</span><br>
                             <span>{{i.Marca}}</span><br>
                         </td>
-                        <td scope="row">
+                        <!--td scope="row">
                             <span>{{i.lote_id}}</span><br>
                             <span>{{i.fecha_caducidad}}</span><br>
-                        </td>
+                        </td-->
                         <td class="text-end">
                             <span>{{i.unidades|floatformat:"0g"}}</span> <br>
                             <span style="color:grey">{{i.cartones|floatformat:"2g"}}</span>
@@ -67,11 +67,12 @@
                             <span class="fw-bold">T.Unidades:</span><br>
                             <span class="fw-bold">T.Cartones:</span>
                         </td>
+                        <!--td class="text-end">-</td-->
                         <td class="text-end">
                             {{t_unidades|floatformat:"0g"}} <br> 
                             <span style="color:grey">{{t_cartones|floatformat:"2g"}}</span>
                         </td>
-                        <td class="text-end"></td>
+                        <td class="text-end">-</td>
                     </tr>
                 </table>
             </div>
