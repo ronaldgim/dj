@@ -3598,6 +3598,56 @@ def editar_producto_ubicacion(request):
             return redirect('producto_ubicacion_lista')
         
 
+def stock_lote_andagoya_ban_cua(): 
+    
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute(
+        """
+            SELECT * 
+            FROM 
+                warehouse.stock_lote 
+            WHERE 
+                WARE_CODE = 'BAN' OR WARE_CODE = 'CUA'
+        """)
+        columns = [col[0] for col in cursor.description]
+        data = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        data = pd.DataFrame(data)
+        data['LOTE_ID'] = data['LOTE_ID'].str.replace('.', '', regex=False)
+        data = data.groupby(by=[
+            'PRODUCT_ID',
+            'PRODUCT_NAME',
+            'GROUP_CODE',
+            'LOTE_ID',
+            'WARE_CODE',
+            'Fecha_elaboracion_lote',
+            'FECHA_CADUCIDAD'
+        ])['OH2'].sum().reset_index()
+        
+        data['Fecha_elaboracion_lote'] = data['Fecha_elaboracion_lote'].astype('str')
+        data['FECHA_CADUCIDAD'] = data['FECHA_CADUCIDAD'].astype('str')
+        
+    return data
+
+
+def inventario_andagoya_ubicaciones(request):
+    # Obtenemos la lista de ubicaciones
+    stock = stock_lote_andagoya_ban_cua()
+    stock = de_dataframe_a_template(stock)
+    
+    ubicaciones = productos_ubicacion_lista_template()
+    
+    for i in stock:
+        for j in ubicaciones:
+            if j['product_id'] == i['PRODUCT_ID']:
+                i['ubicaciones'] = list(j['ubicaciones'])
+    
+    context = {
+        'stock': stock,
+    }
+    
+    return render(request, 'etiquetado/ubicaciones_andagoya/inventario_andagoya_ubicaciones.html', context)
+
+
 
 # from .tasks import enviar_correos_prueba, prueba_sleep
 # def mov_prueba(request):

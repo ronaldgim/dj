@@ -267,7 +267,11 @@ class UbicacionAndagoya(models.Model):
     
     
     def __str__(self):
-        return f'{self.bodega} - {self.pasillo} - {self.modulo} - {self.nivel}'
+        
+        if self.estanteria:
+            return f'{self.bodega} - {self.pasillo} - {self.modulo} - {self.nivel}'
+        else:   
+            return f'{self.bodega} - {self.pasillo}'
     
     
     @property

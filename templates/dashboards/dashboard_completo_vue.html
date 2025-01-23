@@ -92,7 +92,10 @@
                                     </td>
                                     <td>{{i.FECHA_PEDIDO}} {{i.HORA_LLEGADA}}</td>
                                     <td>{{i.CIUDAD_PRINCIPAL}}</td>
-                                    <td><a :class="obtenerColorFondoEstado(i.estado)" :style="{backgroundColor: obtenerColorFondoEstadoIncompleto(i.estado)}">{{i.estado}}</a></td>
+                                    <td>
+                                        <a :class="obtenerColorFondoEstado(i.estado)" :style="{backgroundColor: obtenerColorFondoEstadoIncompleto(i.estado)}">{{i.estado}}</a>
+                                        <!--h6><span :class="obtenerColorFondoEstado(i.estado)" :style="{backgroundColor: obtenerColorFondoEstadoIncompleto(i.estado)}">{{i.estado}}</span></h6-->
+                                    </td>
                                     <td v-if="i.first_name != '-'">{{i.first_name}}.{{i.last_name}}</td>
                                     <td v-else>-</td>
                                     {% endverbatim %}
@@ -207,7 +210,9 @@
                                     </td>
                                     <td>
                                         <a :class="obtenerColorFondoEstado(i.estado)" :style="{backgroundColor: obtenerColorFondoEstadoIncompleto(i.estado)}">{{i.estado}}</a>
-                                        <span v-if="i.estado != '-'" class="mt-2 ps-1 pe-1" style="background-color: #BAF690;">{{i.avance}}%</span>
+                                        <!--h6><span :class="obtenerColorFondoEstado(i.estado)" :style="{backgroundColor: obtenerColorFondoEstadoIncompleto(i.estado)}">{{i.estado}}</span></h6-->
+                                        <!--span v-if="i.estado != '-'" class="mt-2 ps-1 pe-1" style="background-color: #BAF690;">{{i.avance}}%</span-->
+                                        <span v-if="i.estado != '-'" class="badge text-dark" style="background-color: #BAF690;">{{i.avance}}%</span>
                                     </td>
                                     {% endverbatim %}
                                 </tr>
@@ -367,6 +372,21 @@
                         return 'btn text-white btn-sm disabled';
                 }
             },
+
+            // obtenerColorFondoEstado(estado){
+            //     switch (estado) {
+            //         case 'EN PAUSA':
+            //             return 'badge bg-danger';
+            //         case 'EN TRANSITO':
+            //             return 'badge bg-primary';
+            //         case 'EN PROCESO':
+            //             return 'badge bg-warning'; // text-dark
+            //         case 'FINALIZADO':
+            //             return 'badge bg-success';
+            //         case 'INCOMPLETO':
+            //             return 'badge';
+            //     }
+            // },
 
             obtenerColorFondoEstadoIncompleto(estado) {
                 switch (estado) {

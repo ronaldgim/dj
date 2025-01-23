@@ -447,6 +447,12 @@ urlpatterns = [
         name  = 'editar_producto_ubicacion'
     ),
     
+    path(
+        route = 'inventario-andagoya-ubicaciones',
+        view  = views.inventario_andagoya_ubicaciones,
+        name  = 'inventario_andagoya_ubicaciones'
+    ),
+    
     # # DASHBOARDS VUE JS
     # path(
     #     route='picking_dashboard_vue_ban',
