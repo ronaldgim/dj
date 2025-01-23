@@ -427,9 +427,25 @@ urlpatterns = [
         route = 'ubicaciones-andagoya-list',
         view  = views.ubicaciones_andagoya_list,
         name  = 'ubicaciones_andagoya_list'
-    )
+    ),
     
+    path(
+        route = 'editar-ubicacion-andagoya',
+        view  = views.editar_ubicacion_andagoya,
+        name  = 'editar_ubicacion_andagoya'
+    ),
     
+    path(
+        route = 'producto-ubicacion-lista',
+        view  = views.producto_ubicacion_lista,
+        name  = 'producto_ubicacion_lista'
+    ),
+    
+    path(
+        route = 'editar-producto-ubicacion',
+        view  = views.editar_producto_ubicacion,
+        name  = 'editar_producto_ubicacion'
+    ),
     
     # # DASHBOARDS VUE JS
     # path(

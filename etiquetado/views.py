@@ -7,6 +7,8 @@ from datetime import datetime, date, timedelta
 # Shorcuts
 from django.shortcuts import render, redirect
 
+from django.shortcuts import get_object_or_404
+
 # Pandas
 import pandas as pd
 import numpy as np
@@ -1593,12 +1595,7 @@ def lista_correos(n_cliente):
 @login_required(login_url='login')
 @csrf_exempt
 def picking_estado_bodega(request, n_pedido):
-# def picking_estado_bodega(request, n_pedido, id):
-    
-    # if id == '-':
-        # Form
-        # form = EstadoPickingForm()
-        
+
     estado_picking = EstadoPicking.objects.filter(n_pedido=n_pedido).exists()
     if estado_picking:
         est = EstadoPicking.objects.get(n_pedido=n_pedido)
@@ -1610,6 +1607,8 @@ def picking_estado_bodega(request, n_pedido):
 
     pedido = pedido_por_cliente(n_pedido)
     
+    ubicaciones_andagoya = productos_ubicacion_lista_template()
+
     cliente = clientes_table()[['CODIGO_CLIENTE','CLIENT_TYPE']]
     pedido = pedido.merge(cliente, on='CODIGO_CLIENTE', how='left')
     p_json = (pedido[['PRODUCT_ID', 'QUANTITY']]).to_dict()
@@ -1626,11 +1625,15 @@ def picking_estado_bodega(request, n_pedido):
     f_pedido = str(pedido['FECHA_PEDIDO'].iloc[0])
     t_cartones = pedido['Cartones'].sum()
     t_unidades = pedido['QUANTITY'].sum()
-
-    # Trasformar datos para pasar al template
-    json_records = pedido.sort_values(by='PRODUCT_ID').reset_index().to_json(orient='records')
-    data = []
-    data = json.loads(json_records)
+    
+    data = de_dataframe_a_template(pedido)
+    
+    for i in data:
+        product_id = i['PRODUCT_ID']
+        for j in ubicaciones_andagoya:
+            if j['product_id'] == product_id:
+                i['ubicaciones'] = j['ubicaciones']
+                break
 
     # Datos
     cliente        = pedido['NOMBRE_CLIENTE'].iloc[0]
@@ -1663,94 +1666,6 @@ def picking_estado_bodega(request, n_pedido):
         'estado':estado,
         'estado_id':estado_id
     }
-
-    #     if request.method == 'POST':
-    #         form = EstadoPickingForm(request.POST)
-    #         if form.is_valid():
-    #             form.save()
-                
-    #             return redirect(f'/etiquetado/picking/estado')
-    #         else:
-    #             messages.error(request, 'Error !!! Actulize su listado de picking')
-
-    # else:
-        
-    #     id_estado = int(float(id))
-    #     estado_registro = EstadoPicking.objects.get(id=id_estado)
-    #     form_update = EstadoPickingForm(instance=estado_registro)
-
-    #     # Dataframes
-    #     pedido = pedido_por_cliente(n_pedido)
-    #     cliente = clientes_table()[['CODIGO_CLIENTE','CLIENT_TYPE']]
-    #     pedido = pedido.merge(cliente, on='CODIGO_CLIENTE', how='left')
-    #     p_json = (pedido[['PRODUCT_ID', 'QUANTITY']]).to_dict()
-    #     p_str = json.dumps(p_json)
-
-    #     product = productos_odbc_and_django()[['product_id','Unidad_Empaque','Marca']]
-    #     product = product.rename(columns={'product_id':'PRODUCT_ID','Marca':'marca2'})
-
-    #     # Merge
-    #     pedido = pedido.merge(product, on='PRODUCT_ID', how='left')
-
-    #     # Calculos
-    #     pedido['Cartones'] = pedido['QUANTITY'] / pedido['Unidad_Empaque']
-    #     f_pedido = str(pedido['FECHA_PEDIDO'].iloc[0])
-    #     t_cartones = pedido['Cartones'].sum()
-    #     t_unidades = pedido['QUANTITY'].sum()
-        
-    #     # Trasformar datos para pasar al template
-    #     json_records = pedido.sort_values(by='PRODUCT_ID').reset_index().to_json(orient='records')
-    #     data = []
-    #     data = json.loads(json_records)
-
-
-    #     # Datos
-    #     cliente        = pedido['NOMBRE_CLIENTE'].iloc[0]
-    #     fecha_pedido   = pedido['FECHA_PEDIDO'].iloc[0]
-    #     tipo_cliente   = pedido['CLIENT_TYPE'].iloc[0]
-    #     bodega         = pedido['WARE_CODE'].iloc[0]
-    #     codigo_cliente = pedido['CODIGO_CLIENTE'].iloc[0]
-        
-    #     estados_list_finalizado = ['EN PROCESO', 'EN PAUSA', 'INCOMPLETO', 'EN TRANSITO', 'FINALIZADO']
-
-    #     context = {
-    #         'reservas':data,
-    #         'pedido':n_pedido,
-    #         'cliente':cliente,
-    #         'fecha_pedido':fecha_pedido,
-    #         'tipo_cliente':tipo_cliente,
-    #         'bodega':bodega,
-    #         'codigo_cliente':codigo_cliente,
-    #         'f_pedido':f_pedido,
-
-    #         't_cartones':t_cartones,
-    #         't_unidades':t_unidades,
-
-    #         'detalle':p_str,
-
-    #         'form':form_update,
-
-    #         'estados':estados_list_finalizado
-    #     }
-
-    #     if request.method == 'POST':
-    #         estado_registro = EstadoPicking.objects.get(id=id_estado)
-    #         form_update = EstadoPickingForm(request.POST, instance=estado_registro)
-
-    #         h = datetime.now() 
-    #         #est = request.POST.get('estado') 
-
-    #         if form_update.is_valid():
-    #             form_update.clean()
-    #             form_update.save()
-                
-    #             if  form_update.clean()['estado'] == 'FINALIZADO':
-    #                 estado_registro.fecha_actualizado = h
-    #                 estado_registro.save()
-
-    #             return redirect(f'/etiquetado/picking/estado')
-    #         else:
-    #             messages.warning(request, 'Error !!! Actulize su lista de pedidos')
 
     return render(request, 'etiquetado/picking_estado/picking_estado_bodega.html', context)
 
@@ -3574,12 +3489,132 @@ def ubicaciones_andagoya_list(request):
     return render(request, 'etiquetado/ubicaciones_andagoya/ubicaciones_list.html', context)
 
 
+# def editar_ubicacion_andagoya(request):
+    
+#     if request.method == 'GET':
+#         id = request.GET.get('id')
+#         ubicacion = UbicacionAndagoya.objects.get(id=id)
+#         form = UbicacionAndagoyaForm(instance=ubicacion)
+        
+#         return JsonResponse({'form':form})
+    
+#     if request.method == 'POST':
+#         form = UbicacionAndagoyaForm(request.POST, instance=ubicacion)
+#         if form.is_valid():
+#             form.save()
+#             return redirect('ubicaciones_andagoya_list')
+#         else:
+#             messages.error(request, f'Error: {form.errors}')
+#             return redirect('editar_ubicacion_andagoya', id=id)
+        
+
+def editar_ubicacion_andagoya(request):
+    
+    if request.method == 'GET':
+        id = request.GET.get('id')
+        ubicacion = UbicacionAndagoya.objects.get(id=id)
+        form = UbicacionAndagoyaForm(instance=ubicacion).as_div()
+        print(ubicacion.id)
+        return JsonResponse({
+            'form': form,
+            'ubi_id':ubicacion.id
+        })
+
+    if request.method == 'POST':
+        id = request.POST.get('ubi_id')
+        ubicacion = UbicacionAndagoya.objects.get(id=id)  # Ensure `ubicacion` is retrieved here
+        form = UbicacionAndagoyaForm(request.POST, instance=ubicacion)
+        if form.is_valid():
+            form.save()
+            return redirect('ubicaciones_andagoya_list')
+        else:
+            messages.error(request, f'Error: {form.errors}')
+            return redirect('editar_ubicacion_andagoya', id=id)
+
+
+def productos_ubicacion_lista_template():
+    productos_mba = productos_odbc_and_django()[['product_id', 'Nombre', 'Marca']]
+    productos = ProductoUbicacion.objects.all()
+    
+    productos_df = pd.DataFrame(productos.values())
+    productos_completo = productos_df.merge(productos_mba, on='product_id', how='left')
+    productos_completo = de_dataframe_a_template(productos_completo)   
+    
+    for i in productos_completo:
+        product_id = i['product_id']        
+        for j in productos:
+            if j.product_id == product_id:
+                i['ubicaciones'] = list(j.ubicaciones.all())
+                
+    return productos_completo
+
+
+def producto_ubicacion_lista(request):
+    
+    productos_mba = productos_odbc_and_django()[['product_id', 'Nombre', 'Marca']]
+    productos = ProductoUbicacion.objects.all()
+    form = ProductoUbicacionForm()
+    
+    productos_completo = productos_ubicacion_lista_template()
+    
+    productos_form = set(productos.values_list('product_id', flat=True))
+    productos_form_mba = set(productos_mba['product_id'].unique())
+    productos_input = list(productos_form_mba.difference(productos_form))
+    
+    prods = productos_odbc_and_django()[['product_id', 'Nombre', 'Marca']]
+    prods = prods[prods['product_id'].isin(productos_input)]
+    prods = de_dataframe_a_template(prods)
+    
+    if request.method == 'POST':
+        form = ProductoUbicacionForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Producto y ubicacion guardado exitosamente')
+            return redirect('producto_ubicacion_lista')
+        else:
+            messages.error(request, f'Error: {form.errors}')
+            return redirect('producto_ubicacion_lista')
+    
+    context = {
+        'prods': prods,
+        'ubs':UbicacionAndagoya.objects.all(),
+        'productos_completo': productos_completo,
+        'form': form,
+    }
+    
+    return render(request, 'etiquetado/ubicaciones_andagoya/producto_ubicacion_list.html', context)
 
 
 
+def editar_producto_ubicacion(request):
+    
+    if request.method == 'GET':
 
+        # Obtener el producto por ID
+        producto_id = request.GET.get('id')
+        producto = get_object_or_404(ProductoUbicacion, id=producto_id)
 
+        todas_ubicaciones = UbicacionAndagoya.objects.values() 
+        ubicaciones_seleccionadas = producto.ubicaciones.all().values()
 
+        # Devolver todas las ubicaciones y las seleccionadas en formato JSON
+        return JsonResponse({
+            'todas_ubicaciones': list(todas_ubicaciones),
+            'producto_ubicaciones': list(ubicaciones_seleccionadas),
+        })
+    
+    if request.method == 'POST':
+        
+        prod = ProductoUbicacion.objects.get(product_id=request.POST.get('product_id')) ; print(prod)
+        form = ProductoUbicacionForm(request.POST, instance=prod)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Producto y ubicacion actualizado exitosamente')
+            return redirect('producto_ubicacion_lista')
+        else:
+            messages.error(request, f'Error: {form.errors}')
+            return redirect('producto_ubicacion_lista')
+        
 
 
 # from .tasks import enviar_correos_prueba, prueba_sleep
