@@ -3489,24 +3489,6 @@ def ubicaciones_andagoya_list(request):
     return render(request, 'etiquetado/ubicaciones_andagoya/ubicaciones_list.html', context)
 
 
-# def editar_ubicacion_andagoya(request):
-    
-#     if request.method == 'GET':
-#         id = request.GET.get('id')
-#         ubicacion = UbicacionAndagoya.objects.get(id=id)
-#         form = UbicacionAndagoyaForm(instance=ubicacion)
-        
-#         return JsonResponse({'form':form})
-    
-#     if request.method == 'POST':
-#         form = UbicacionAndagoyaForm(request.POST, instance=ubicacion)
-#         if form.is_valid():
-#             form.save()
-#             return redirect('ubicaciones_andagoya_list')
-#         else:
-#             messages.error(request, f'Error: {form.errors}')
-#             return redirect('editar_ubicacion_andagoya', id=id)
-        
 
 def editar_ubicacion_andagoya(request):
     
@@ -3514,7 +3496,7 @@ def editar_ubicacion_andagoya(request):
         id = request.GET.get('id')
         ubicacion = UbicacionAndagoya.objects.get(id=id)
         form = UbicacionAndagoyaForm(instance=ubicacion).as_div()
-        print(ubicacion.id)
+        
         return JsonResponse({
             'form': form,
             'ubi_id':ubicacion.id
@@ -3605,7 +3587,7 @@ def editar_producto_ubicacion(request):
     
     if request.method == 'POST':
         
-        prod = ProductoUbicacion.objects.get(product_id=request.POST.get('product_id')) ; print(prod)
+        prod = ProductoUbicacion.objects.get(product_id=request.POST.get('product_id')) 
         form = ProductoUbicacionForm(request.POST, instance=prod)
         if form.is_valid():
             form.save()

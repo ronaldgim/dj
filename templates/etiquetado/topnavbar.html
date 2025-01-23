@@ -61,7 +61,15 @@
               <li><a class="dropdown-item" href="{% url 'preventivo__por_realizar_list' %}">Realizar M. Preventivo</a></li>
           </ul>
         </li>
-
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Ubicaciones Andagoya
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+              <li><a class="dropdown-item" href="{% url 'ubicaciones_andagoya_list' %}">Lista de Ubicaciones</a></li>
+              <li><a class="dropdown-item" href="{% url 'producto_ubicacion_lista' %}">Producto-Ubicaciones</a></li>
+          </ul>
+        </li>
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             Control de guias 
