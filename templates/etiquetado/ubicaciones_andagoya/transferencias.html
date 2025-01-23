@@ -1,0 +1,92 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Inventario</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'etiquetado/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+
+<h5 class="m-4 text-center fw-bold">TRASFERENCIAS INGRESO ANDAGOYA</h5>
+
+<div id="msg"></div>
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
+<div class="text-end">
+    <button class="btn btn-sm btn-primary mb-2" name="actualizar_get">
+        <i class="bi bi-arrow-clockwise"></i> Actuaizar
+    </button>
+</div>
+
+<div class="col-12 mt-2">
+    <input id="inputbuscar" type="text" placeholder="Filtro" class="form-control">
+</div>
+
+
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table" style="font-size: small;">
+                <thead>
+                    <tr>
+                        <th scope="col">DESDE</th>
+                        <th scope="col">N°. TRASNFERENCIA</th>
+                        <th scope="col">VER</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in transferencias %}
+                    <tr>
+                        <td>BODEGA CEREZOS</td>
+                        <td>{{i.n_transferencia}}</td>
+                        <td>
+                            <a class="btn btn-sm btn-primary" href="{% url 'transferencia_ingres_andagoya_detalle' i.n_transferencia %}">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!--filtro buscar-->
+<script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+
+<!-- Actualizar lista -->
+<script>
+$("button[name='actualizar_get']").click(function(){
+    window.location.reload();
+    $('#msg').html('<div class="text-center alert alert-success" role="alert"> Inventario Actualizado !!! </div>')
+})
+</script>
+
+{% endblock %}

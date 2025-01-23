@@ -453,6 +453,18 @@ urlpatterns = [
         name  = 'inventario_andagoya_ubicaciones'
     ),
     
+    path(
+        route = 'transferencias-ingreso-andagoya',
+        view  = views.transferencias_ingreso_andagoya,
+        name  = 'transferencias_ingreso_andagoya'
+    ),
+    
+    path(
+        route = 'transferencia-ingres-andagoya-detalle/<str:n_transferencia>',
+        view  = views.transferencia_ingres_andagoya_detalle,
+        name  = 'transferencia_ingres_andagoya_detalle'
+    ),
+    
     # # DASHBOARDS VUE JS
     # path(
     #     route='picking_dashboard_vue_ban',

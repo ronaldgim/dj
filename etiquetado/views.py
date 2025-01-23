@@ -15,6 +15,7 @@ import numpy as np
 
 # Datos Models
 from datos.models import Product, Vehiculos, TimeStamp, StockConsulta
+from wms.models import Transferencia
 from etiquetado.models import (
     Calculadora,
     PedidosEstadoEtiquetado,
@@ -3646,6 +3647,56 @@ def inventario_andagoya_ubicaciones(request):
     }
     
     return render(request, 'etiquetado/ubicaciones_andagoya/inventario_andagoya_ubicaciones.html', context)
+
+
+
+def transferencias_ingreso_andagoya(request):
+    
+    desde = datetime.today() - timedelta(days=15)
+    transferencias = Transferencia.objects.filter(
+        fecha_hora__gte=desde,
+        bodega_salida = 'BCT'
+    ).order_by('-fecha_hora').values()
+    
+    transferencias = pd.DataFrame(transferencias).drop_duplicates(subset='n_transferencia')
+    
+    context = {
+        'transferencias':de_dataframe_a_template(transferencias)
+    } 
+    
+    return render(request, 'etiquetado/ubicaciones_andagoya/transferencias.html', context)
+
+
+def transferencia_ingres_andagoya_detalle(request, n_transferencia):
+    
+    transferencia = Transferencia.objects.filter(n_transferencia=n_transferencia).values()
+    transferencia = pd.DataFrame(transferencia)
+    transferencia['fecha_caducidad'] = transferencia['fecha_caducidad'].astype('str')
+    productos = productos_odbc_and_django()[['product_id','Nombre','Marca','Unidad_Empaque']]
+    transferencia = transferencia.merge(productos, on='product_id', how='left')
+    transferencia['cartones'] = transferencia['unidades'] / transferencia['Unidad_Empaque']
+    
+    t_unidades = transferencia['unidades'].sum()
+    t_cartones = transferencia['cartones'].sum()
+    
+    transferencia = de_dataframe_a_template(transferencia)
+    
+    ubicaciones = productos_ubicacion_lista_template()
+    
+    for i in transferencia:
+        for j in ubicaciones:
+            if j['product_id'] == i['product_id']:
+                i['ubicaciones'] = list(j['ubicaciones'])
+    
+    context = {
+        'n_transferencia':n_transferencia,
+        't_unidades':t_unidades,
+        't_cartones':t_cartones,
+        'transferencia': transferencia
+    }
+    
+    return render(request, 'etiquetado/ubicaciones_andagoya/transferencia_detalle.html', context)
+
 
 
 
