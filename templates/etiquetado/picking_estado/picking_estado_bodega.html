@@ -84,7 +84,7 @@
                         <tr>
                             <th scope="col">Item</th>
                             <th scope="col">Unidades</th>
-                            <th scope="col">Ubicaciones</th>
+                            <!--th scope="col">Ubicaciones</th-->
                         </tr>
                     </thead>
                     
@@ -103,7 +103,7 @@
                             <span id="p_unds">{{i.QUANTITY|floatformat:"0g"}}</span> <br>
                             <span style="color:grey">{{i.Cartones|floatformat:"2g"}}</span>
                         </td>
-                        <td class="text-end">
+                        <!--td class="text-end">
                             {% for j in i.ubicaciones %}
                                 {% if j.estanteria %}
                                 <button class="btn btn-sm btn-warning disabled mb-2">
@@ -115,7 +115,7 @@
                                 </button>
                                 {% endif %}
                             {% endfor %}
-                        </td>
+                        </td-->
                     </tr>
                     {% endfor %}
                     </tbody>
@@ -125,8 +125,7 @@
                             {{t_unidades|floatformat:"0g"}} <br> 
                             <span style="color:grey">{{t_cartones|floatformat:"2g"}}</span>
                         </td>
-                        <td class="text-end">--</td>
-                        
+                        <!--td class="text-end">-</td-->
                     </tr>
                 </table>
             </div>
