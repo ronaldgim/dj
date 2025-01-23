@@ -1,0 +1,118 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Inventario</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'etiquetado/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+
+<h5 class="m-4 text-center fw-bold">INVENTARIO - ANDAGOYA</h5>
+
+<div id="msg"></div>
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
+<div class="text-end">
+    <button class="btn btn-sm btn-primary mb-2" name="actualizar_get">
+        <i class="bi bi-arrow-clockwise"></i> Actuaizar
+    </button>
+</div>
+
+<div class="col-12 mt-2">
+    <input id="inputbuscar" type="text" placeholder="Filtro" class="form-control">
+</div>
+
+
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table" style="font-size: small;">
+                <thead>
+                    <tr>
+                        <th scope="col">Item</th>
+                        <th scope="col">Ubicación</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in stock %}
+                    <tr>
+                        <td>
+                            <span class="fw-bold">Código:</span> <span id="prod">{{i.PRODUCT_ID}}</span><br>
+                            <span class="fw-bold">Nombre:</span> {{i.PRODUCT_NAME}}<br>
+                            <span class="fw-bold">Marca:</span> {{i.GROUP_CODE}}<br>
+                            <span class="fw-bold">Lote:</span> <span id="lote">{{i.LOTE_ID}}</span> <br>
+                            <span class="fw-bold">FElab:</span> {{i.Fecha_elaboracion_lote}} <br>
+                            <span class="fw-bold">FExp:</span> {{i.FECHA_CADUCIDAD}}
+                        </td>
+                        <td>
+                            <span class="fw-bold">Unidades:</span> {{i.OH2|floatformat:"0g"}}<br>
+                            <span class="fw-bold">Estado:</span> 
+                                {% if i.WARE_CODE == 'BAN' %}
+                                <span class="badge bg-success">Disponible</span>
+                                {% elif i.WARE_CODE == 'CUA' %}
+                                <span class="badge bg-danger">Cuarentena</span>
+                                {% endif %}
+                            <br>
+                            <span class="fw-bold">Ubicación(es):</span><br>
+                            {% if i.ubicaciones %}
+                                {% for j in i.ubicaciones %}
+                                    {% if j.estanteria %}
+                                    <button class="btn btn-sm btn-warning disabled">
+                                        {{j.nombre}}
+                                    </button>
+                                    {% else %}
+                                    <button class="btn btn-sm btn-info disabled">
+                                        {{j.nombre}}
+                                    </button>
+                                    {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                <span class="badge bg-secondary">Sin ubicación</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!--filtro buscar-->
+<script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+
+<!-- Actualizar lista -->
+<script>
+$("button[name='actualizar_get']").click(function(){
+    window.location.reload();
+    $('#msg').html('<div class="text-center alert alert-success" role="alert"> Inventario Actualizado !!! </div>')
+})
+</script>
+
+{% endblock %}
