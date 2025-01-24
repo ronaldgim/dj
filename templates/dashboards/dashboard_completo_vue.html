@@ -195,7 +195,6 @@
                                         <i v-if="i.estado_picking_x == 'FINALIZADO'" style="color:green;" class="bi bi-check2-square"></i>
                                         <br>
                                         <span>{{i.NOMBRE_CLIENTE}}</span> <br>
-                                        <span>{{i.CIUDAD_PRINCIPAL}}</span>
                                     </td>
                                     <td v-if="i.dia"  :style="{backgroundColor: obtenerColorFondoEntrega(i.estado_entrega)}">
                                         {{i.dia}} {{i.dia_mes}}.{{i.mes}} {{i.hora}}
@@ -207,7 +206,8 @@
                                         <span v-if="i.TIEMPOS == 't1'">{{i.t_1p_str}}</span>
                                         <span v-if="i.TIEMPOS == 't2'">{{i.t_2p_str}}</span>
                                         <span v-if="i.TIEMPOS == 't3'">{{i.t_3p_str}}</span>
-                                        <span v-if="i.TIEMPOS == 'F'">F</span>
+                                        <span v-if="i.TIEMPOS == 'F'">F</span><br>
+                                        <span>{{i.CIUDAD_PRINCIPAL}}</span>
                                     </td>
                                     <td>
                                         <!--a :class="obtenerColorFondoEstado(i.estado)" :style="{backgroundColor: obtenerColorFondoEstadoIncompleto(i.estado)}">{{i.estado}}</a-->
