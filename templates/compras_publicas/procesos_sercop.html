@@ -11,7 +11,7 @@
 {% block body_2 %}
 
 
-<h5 class="m-4 text-center"><strong>PROCESOS SERCOP</strong></h5>
+<h5 class="m-4 text-center fw-bold">PROCESOS SERCOP</h5>
 
 
 {% if messages %}
@@ -178,9 +178,10 @@
 
                 // ADD CLASES AN ATRIBUTOS
                 var proceso_input = $("input[name='proceso']").addClass('form-control').attr('required', true);
-                var participa_input = $("#id_participa").addClass('form-select').attr('required', true);
+                var participa_input = $("#id_participa").addClass('form-select') //.attr('required', true);
                 var estado_participacion_input = $("#id_estado_participacion").addClass('form-select')
                 var observaciones_input = $("#id_observaciones").addClass('form-control').attr('rows', 2);
+                var descripcion_input = $("#id_descripcion").addClass('form-control').attr('rows', 2);
 
                 // REMOVE NO PARTICIPADO DE INITIAL OPTIONS
                 $('#id_estado_participacion option').filter(function() {
@@ -199,7 +200,7 @@
                         $("label[for='id_estado_participacion']").after('<input type="text" id="input_estado" name="estado_participacion" class="form-control" value="NO PARTICIPADO" readonly >')
 
                         // Hacer obligatorias las observaciones
-                        $("#id_observaciones").attr('required', true);
+                        //$("#id_observaciones").attr('required', true);
 
 
                     } else if (participa==='SI') {
@@ -208,10 +209,10 @@
                         // Quitar input text
                         $("#input_estado").remove()
                         // Hacer obligatorio el select estado
-                        $("#id_estado_participacion").attr('required', true);
+                        //$("#id_estado_participacion").attr('required', true);
 
                     } else {
-                        $("#id_observaciones").attr('required', false);
+                        //$("#id_observaciones").attr('required', false);
                         $("#input_estado").remove()
                         estado.attr('name', 'estado_participacion').show()
                     }
@@ -220,9 +221,11 @@
                 $("#id_estado_participacion").on('change', function() {
                     var estado = $(this).val();
                     if (estado === '') {
-                        $("#id_observaciones").attr('required', false);
+                        console.log('-')
+                        //$("#id_observaciones").attr('required', false);
                     } else {
-                        $("#id_observaciones").attr('required', true);
+                        console.log('-')
+                        //$("#id_observaciones").attr('required', true);
                     }
                 })
 
