@@ -3470,7 +3470,7 @@ def existencias_wms_analisis_transferencia(request):
 
 def ubicaciones_andagoya_list(request):
     
-    ubicaciones = UbicacionAndagoya.objects.all()
+    ubicaciones = UbicacionAndagoya.objects.all().order_by('bodega','pasillo','modulo','nivel')
     form = UbicacionAndagoyaForm()
     
     if request.method == 'POST':
