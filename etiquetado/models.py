@@ -263,7 +263,7 @@ class UbicacionAndagoya(models.Model):
     
     
     class Meta:
-        unique_together = ('bodega', 'pasillo', 'modulo')
+        unique_together = ('bodega', 'pasillo', 'modulo', 'nivel')
     
     
     def __str__(self):
