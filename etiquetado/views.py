@@ -3512,7 +3512,7 @@ def editar_ubicacion_andagoya(request):
             return redirect('ubicaciones_andagoya_list')
         else:
             messages.error(request, f'Error: {form.errors}')
-            return redirect('editar_ubicacion_andagoya', id=id)
+            return redirect('ubicaciones_andagoya_list')
 
 
 def productos_ubicacion_lista_template():
