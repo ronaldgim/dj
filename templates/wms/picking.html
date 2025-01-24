@@ -26,9 +26,10 @@
 <hr>
 
 <div class="text-end mb-2">
-<button type="button" class="btn btn-sm btn-info disabled">Estado: {{estado}}</button>
+    <button type="button" class="btn btn-sm btn-info disabled">Estado: {{estado}}</button>
 </div>
 
+{% comment %}
 <div class="text-end">
     <!--div class="btn-group btn-group-sm" role="group" aria-label="Basic example"-->
         {% if estado == 'SIN ESTADO' %}
@@ -60,7 +61,44 @@
         <!--button type="button" class="btn btn-primary">Right</button-->
         
     <!--/div-->
+</div>
+{% endcomment %}
 
+
+<div class="text-end">
+    {% if estado == 'SIN ESTADO' %}
+        <button type="button" id="{{n_ped}}" name="estado_picking" class="btn btn-warning">EN PROCESO</button>
+    {% elif estado == 'FINALIZADO' %}
+        <button type="button" id="{{n_ped}}" name="estado_picking" class="btn btn-success disabled">FINALIZADO</button>
+    {% elif estado == 'EN TRANSITO' %}
+    <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
+        <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-warning">EN PROCESO</button>
+    </div>
+    <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
+        <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-danger">EN PAUSA</button>
+        <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn text-white" style="background-color:#bf03c8 ;">INCOMPLETO</button>
+        <button type="button" class="btn btn-success">FINALIZADO</button>
+    </div>
+    {% elif estado == 'EN PAUSA' %}
+    <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
+        <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-warning">EN PROCESO</button>
+        <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-primary">EN TRANSITO</button>
+    </div>
+    <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
+        <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn text-white" style="background-color:#bf03c8 ;">INCOMPLETO</button>
+        <button type="button" class="btn btn-success">FINALIZADO</button>
+    </div>
+    {% elif estado == 'INCOMPLETO' %}
+    {% else %}
+        <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
+            <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-warning">EN PROCESO</button>
+            <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-primary">EN TRANSITO</button>
+        </div>
+        <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
+            <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-danger">EN PAUSA</button>
+            <button type="button" class="btn btn-success">FINALIZADO</button>
+        </div>
+    {% endif %}
 </div>
 <hr>
 
