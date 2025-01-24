@@ -2400,8 +2400,12 @@ def publico_dashboard_fun():
     except:
         pass
     list_reservas['mes'] = list_reservas['fh'].dt.month_name(locale='es_EC.utf-8')
-
     list_reservas = list_reservas.merge(avance_df, on='CONTRATO_ID', how='left')
+    
+    # Clientes
+    cli = clientes_table()[['CODIGO_CLIENTE','CIUDAD_PRINCIPAL']]    
+    if not list_reservas.empty:
+        list_reservas = list_reservas.merge(cli, on='CODIGO_CLIENTE', how='left')
     
     # Estados
     lista_de_reservas_estado = list_reservas['CONTRATO_ID'].unique()
@@ -2409,8 +2413,7 @@ def publico_dashboard_fun():
     estados = estados.rename(columns={'n_pedido':'CONTRATO_ID','estado':'estado_picking_x'})
     if not estados.empty:
         list_reservas = list_reservas.merge(estados, on='CONTRATO_ID', how='left')
-    
-        return list_reservas
+        
     
     return list_reservas
 
@@ -2515,7 +2518,7 @@ def dashboard_completo(request):
 
 
 def dashboard_completo_json_response(request):
-
+    
     # PEDIDOS CEREZOS
     pedidos_cerezos = estado_pedidos_dashboard_fun('BCT')
     contratos_pedidos = list(pedidos_cerezos['CONTRATO_ID'].unique())
