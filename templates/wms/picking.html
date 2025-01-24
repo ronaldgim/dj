@@ -77,7 +77,7 @@
     <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
         <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-danger">EN PAUSA</button>
         <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn text-white" style="background-color:#bf03c8 ;">INCOMPLETO</button>
-        <button type="button" class="btn btn-success">FINALIZADO</button>
+        <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-success">FINALIZADO</button>
     </div>
     {% elif estado == 'EN PAUSA' %}
     <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
@@ -86,7 +86,7 @@
     </div>
     <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
         <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn text-white" style="background-color:#bf03c8 ;">INCOMPLETO</button>
-        <button type="button" class="btn btn-success">FINALIZADO</button>
+        <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-success">FINALIZADO</button>
     </div>
     {% elif estado == 'INCOMPLETO' %}
     {% else %}
@@ -96,7 +96,7 @@
         </div>
         <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
             <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-danger">EN PAUSA</button>
-            <button type="button" class="btn btn-success">FINALIZADO</button>
+            <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-success">FINALIZADO</button>
         </div>
     {% endif %}
 </div>
