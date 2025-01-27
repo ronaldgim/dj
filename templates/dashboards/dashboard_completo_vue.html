@@ -207,13 +207,13 @@
                                         <span v-if="i.TIEMPOS == 't2'">{{i.t_2p_str}}</span>
                                         <span v-if="i.TIEMPOS == 't3'">{{i.t_3p_str}}</span>
                                         <span v-if="i.TIEMPOS == 'F'">F</span><br>
-                                        <span>{{i.CIUDAD_PRINCIPAL}}</span>
+                                        <span>{{i.ciudad}}</span>
                                     </td>
                                     <td>
                                         <!--a :class="obtenerColorFondoEstado(i.estado)" :style="{backgroundColor: obtenerColorFondoEstadoIncompleto(i.estado)}">{{i.estado}}</a-->
                                         <h6 class="p-0 m-0"><span :class="obtenerColorFondoEstado(i.estado)" :style="{backgroundColor: obtenerColorFondoEstadoIncompleto(i.estado)}">{{i.estado}}</span></h6>
                                         <!--span v-if="i.estado != '-'" class="mt-2 ps-1 pe-1" style="background-color: #BAF690;">{{i.avance}}%</span-->
-                                        <span v-if="i.estado != '-'" class="badge text-dark" style="background-color: #BAF690;">{{i.avance}}%</span>
+                                        <span v-if="i.estado != '-'" class="badge text-dark" style="background-color: #BAF690; font-size: 12px">{{i.avance}}%</span>
                                     </td>
                                     {% endverbatim %}
                                 </tr>
@@ -320,6 +320,7 @@
                     return {
                         ...i,
                         contrato_id:i.CONTRATO_ID.slice(0,5),
+                        ciudad:i.CIUDAD_PRINCIPAL.slice(0,3),
                         dia: i.dia ? i.dia.slice(0, 4) : '',
                         dia_mes: i.fecha_hora ? i.fecha_hora.slice(8,10) : '',
                         mes: i.mes ? i.mes.slice(0,3) : '',
