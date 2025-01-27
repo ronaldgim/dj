@@ -2611,15 +2611,16 @@ def detalle_dashboard_armados(request):
     ventas['VENTAS'] = ventas['VENTAS'].astype('int')
 
     # Dataframe to complete the dates
-    un_anio = datetime.now() - timedelta(days=365)
-    periodo_gim = pd.date_range(start=datetime.now(), end=un_anio, periods=11) 
+    un_anio = datetime.now() - timedelta(days=375)
+    periodo_gim = pd.date_range(start=datetime.now(), end=un_anio, periods=12)
     df = pd.DataFrame()
     df.index = periodo_gim
     df['FECHA'] = periodo_gim
     df['CLIENTE'] = 'GIM'
     df['CODIGO_CLIENTE'] = 'GIM0001'
     df['VENTAS'] = 0
-
+    df = df.sort_values(by='FECHA')
+    
     ventas = pd.concat([ventas, df]).sort_values(by='FECHA')
     
     ventas['PERIODO'] = ventas['FECHA'].dt.to_period('M')
