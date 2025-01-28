@@ -356,7 +356,7 @@ def fecha_entrega_ajax(request):
 # Lista de pickings
 def etiquetado_pedidos(request, n_pedido):
 
-    try:
+    # try:
         
         vehiculo = Vehiculos.objects.filter(activo=True).order_by('transportista')
         
@@ -421,9 +421,7 @@ def etiquetado_pedidos(request, n_pedido):
         items = pedido['PRODUCT_ID'].unique()
         items = list(items) 
         bodega = pedido['WARE_CODE'].unique()[0] 
-        
         stock = stock_disponible(bodega=bodega, items_list=items)
-        stock = stock.rename(columns={'OH2':'stock_disp'})
         
         pedido = pedido.merge(stock, on='PRODUCT_ID', how='left').fillna(0)
         pedido['disp'] = pedido['stock_disp']>pedido['QUANTITY']
@@ -488,11 +486,11 @@ def etiquetado_pedidos(request, n_pedido):
 
         return render(request, 'etiquetado/pedidos/pedido.html', context)
     
-    except Exception as e:
-        context = {
-            'error':f'Error !!! carga nuevamente la página. {e}'
-        }
-        return render(request, 'etiquetado/pedidos/pedido.html', context)
+    # except Exception as e:
+        # context = {
+        #     'error':f'Error !!! carga nuevamente la página. {e}'
+        # }
+        # return render(request, 'etiquetado/pedidos/pedido.html', context)
 
 
 def pedido_lotes(request, n_pedido):
