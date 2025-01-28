@@ -273,3 +273,25 @@ def sugerencia():
     data['n_fila'] = range(1, len(data) + 1)
     
     return data
+
+
+
+
+
+def stock_andagoya(): 
+    
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute("SELECT * FROM warehouse.stock_lote")
+        columns = [col[0] for col in cursor.description]
+        data = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+        data = pd.DataFrame(data)
+        
+        
+        
+    return data
+
+
+def excel_stock_transferencia(request):
+    
+    return 'ok' # HttpResponse('ok')

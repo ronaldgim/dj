@@ -3780,7 +3780,8 @@ def wms_ajuste_liberacion_input_ajax(request):
     tipo_liberacion = request.POST['tipo']
     n_liberacion = request.POST['n_liberacion']
     
-    liberacion_data = wms_ajuste_query_odbc(n_liberacion)
+    liberacion_data = wms_ajuste_query_odbc(n_liberacion) 
+    liberacion_data['LOTE_ID'] = liberacion_data['LOTE_ID'].str.replace('.', '') 
     liberacion_data = liberacion_data[liberacion_data['EGRESO_TEMP']!=0]
     
     liberacion_data['doc_id'] = n_liberacion
