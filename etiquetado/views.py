@@ -356,7 +356,7 @@ def fecha_entrega_ajax(request):
 # Lista de pickings
 def etiquetado_pedidos(request, n_pedido):
 
-    # try:
+    try:
         
         vehiculo = Vehiculos.objects.filter(activo=True).order_by('transportista')
         
@@ -486,11 +486,9 @@ def etiquetado_pedidos(request, n_pedido):
 
         return render(request, 'etiquetado/pedidos/pedido.html', context)
     
-    # except Exception as e:
-        # context = {
-        #     'error':f'Error !!! carga nuevamente la página. {e}'
-        # }
-        # return render(request, 'etiquetado/pedidos/pedido.html', context)
+    except Exception as e:
+        context = {'error':f'Error !!! carga nuevamente la página. {e}'}
+        return render(request, 'etiquetado/pedidos/pedido.html', context)
 
 
 def pedido_lotes(request, n_pedido):
