@@ -1,5 +1,6 @@
 # DB
 from django.db import connections, transaction
+from django.db.models import Q
 
 # Shortcuts
 from django.shortcuts import render, redirect
@@ -14,6 +15,7 @@ from django.views.generic import TemplateView
 # Models
 from datos.models import TimeStamp, Product, AdminActualizationWarehaouse, Vehiculos #,MarcaImportExcel
 from etiquetado.models import EtiquetadoAvance
+from wms.models import Existencias
 
 # Autentication
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -974,20 +976,28 @@ def reservas_lotes_group():
 
 
 def stock_disponible(bodega, items_list): #request
-    with connections['gimpromed_sql'].cursor() as cursor:
-        cursor.execute(
-            f"SELECT * FROM stock_lote where WARE_CODE = '{bodega}'"
-        )
-        columns = [col[0] for col in cursor.description]
-        stock_disp = [
-            dict(zip(columns, row))
-            for row in cursor.fetchall()
-        ]
-        stock_disp = pd.DataFrame(stock_disp)
-        stock_disp = stock_disp[stock_disp['PRODUCT_ID'].isin(items_list)][['PRODUCT_ID','PRODUCT_NAME','GROUP_CODE','UM','OH','OH2','COMMITED','QUANTITY','LOTE_ID','WARE_CODE','LOCATION']]
-        stock_disp = stock_disp.groupby('PRODUCT_ID').sum().reset_index()[['PRODUCT_ID','OH2']]
-        
-    return stock_disp
+    
+    if bodega == 'BAN':
+        with connections['gimpromed_sql'].cursor() as cursor:
+            cursor.execute(
+                f"SELECT * FROM stock_lote where WARE_CODE = '{bodega}'"
+            )
+            columns = [col[0] for col in cursor.description]
+            stock_disp = [
+                dict(zip(columns, row))
+                for row in cursor.fetchall()
+            ]
+            stock_disp = pd.DataFrame(stock_disp)
+            stock_disp = stock_disp[stock_disp['PRODUCT_ID'].isin(items_list)][['PRODUCT_ID','PRODUCT_NAME','GROUP_CODE','UM','OH','OH2','COMMITED','QUANTITY','LOTE_ID','WARE_CODE','LOCATION']]
+            stock_disp = stock_disp.groupby('PRODUCT_ID').sum().reset_index()[['PRODUCT_ID','OH2']]
+            
+        return stock_disp
+    
+    elif bodega == 'BCT':
+        stock_disp = Existencias.objects.filter(Q(estado='Disponible') & Q(product_id__in=items_list)).values('product_id', 'unidades')
+        stock_disp = pd.DataFrame(stock_disp).groupby(by='product_id')['unidades'].sum().reset_index()
+        stock_disp = stock_disp.rename(columns={'product_id':'PRODUCT_ID','unidades':'OH2'})
+        return stock_disp
 
 
 def stock_total(): #request
@@ -1288,7 +1298,11 @@ def stock_faltante_contrato(contratos, bodega):
     for i in contratos:
         res = pedido_por_cliente(i)[['PRODUCT_ID','QUANTITY']]
         items = list(res['PRODUCT_ID'].unique())
+        
+        
         stock = stock_disponible(bodega, items)
+        
+        
         res = res.merge(stock, on='PRODUCT_ID', how='left').fillna(0)        
         res['disp'] = res.apply(lambda x: 'OK' if x['OH2']>x['QUANTITY'] else 'NOT', axis=1)
         res = res[res['PRODUCT_ID']!='MANTEN']
