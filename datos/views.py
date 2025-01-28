@@ -1302,7 +1302,7 @@ def stock_faltante_contrato(contratos, bodega):
     sto = pd.DataFrame()
     sto['CONTRATO_ID'] = cont
     sto['DISP'] = disp
-
+    
     return sto
 
 
