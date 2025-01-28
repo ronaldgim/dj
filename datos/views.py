@@ -989,15 +989,24 @@ def stock_disponible(bodega, items_list): #request
             ]
             stock_disp = pd.DataFrame(stock_disp)
             stock_disp = stock_disp[stock_disp['PRODUCT_ID'].isin(items_list)][['PRODUCT_ID','PRODUCT_NAME','GROUP_CODE','UM','OH','OH2','COMMITED','QUANTITY','LOTE_ID','WARE_CODE','LOCATION']]
-            stock_disp = stock_disp.groupby('PRODUCT_ID').sum().reset_index()[['PRODUCT_ID','OH2']]
+            stock_disp = stock_disp.groupby(by='PRODUCT_ID')['OH2'].sum().reset_index()[['PRODUCT_ID','OH2']]
+            stock_disp = stock_disp.rename(columns={'OH2':'stock_disp'})
             
         return stock_disp
     
     elif bodega == 'BCT':
-        stock_disp = Existencias.objects.filter(Q(estado='Disponible') & Q(product_id__in=items_list)).values('product_id', 'unidades')
-        stock_disp = pd.DataFrame(stock_disp).groupby(by='product_id')['unidades'].sum().reset_index()
-        stock_disp = stock_disp.rename(columns={'product_id':'PRODUCT_ID','unidades':'OH2'})
-        return stock_disp
+
+        stock_disp = Existencias.objects.filter(Q(estado='Disponible') & Q(product_id__in=items_list)) 
+        if stock_disp.exists():
+            stock_disp = pd.DataFrame(stock_disp.values('product_id', 'unidades')).groupby(by='product_id')['unidades'].sum().reset_index() 
+            stock_disp = stock_disp.rename(columns={'product_id':'PRODUCT_ID','unidades':'stock_disp'})
+            return stock_disp
+        
+        else:
+            stock_disp = pd.DataFrame()
+            stock_disp['PRODUCT_ID'] = items_list
+            stock_disp['stock_disp'] = 0
+            return stock_disp
 
 
 def stock_total(): #request
