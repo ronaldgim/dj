@@ -421,10 +421,15 @@ def etiquetado_pedidos(request, n_pedido):
         items = pedido['PRODUCT_ID'].unique()
         items = list(items) 
         bodega = pedido['WARE_CODE'].unique()[0] 
-
+        
         # STOCK DISPONIBLE POR PEDIDO
-        stock = stock_disponible(bodega=bodega, items_list=items)
-        stock = stock.rename(columns={'OH2':'stock_disp'})
+        if bodega == 'BAN':
+            stock = stock_disponible(bodega=bodega, items_list=items)
+            stock = stock.rename(columns={'OH2':'stock_disp'})
+        else:
+            stock = Existencias.objects.filter(Q(estado='Disponible') & Q(product_id__in=items)).values('product_id', 'unidades')
+            stock = pd.DataFrame(stock).groupby(by='product_id')['unidades'].sum().reset_index()
+            stock = stock.rename(columns={'product_id':'PRODUCT_ID','unidades':'stock_disp'})
         
         pedido = pedido.merge(stock, on='PRODUCT_ID', how='left').fillna(0)
         pedido['disp'] = pedido['stock_disp']>pedido['QUANTITY']
@@ -483,7 +488,8 @@ def etiquetado_pedidos(request, n_pedido):
             'fecha_entrega':fecha_entrega,
             
             'estado':estado,
-            'p_cero':p_cero
+            'p_cero':p_cero,
+            'bodega':bodega,
         }
 
         return render(request, 'etiquetado/pedidos/pedido.html', context)

@@ -245,7 +245,8 @@
                         <th scope="col">Marca</th>
                         <th scope="col">Unidades</th>
                         <th scope="col">Cartones</th>
-                        <th scope="col">Stock {{bodega}}</th>
+                        <!-- th scope="col">Stock {{bodega}}</th -->
+                        <th scope="col">Stock {% if bodega == 'BAN' %} MBA {% elif bodega == 'BCT' %} WMS {% endif %}</th>
                         <th scope="col">T.P. 1P (h:m:s)</th>
                         <th scope="col">T.P. 2P (h:m:s)</th>
                         <th scope="col">T.P. 3P (h:m:s)</th>
