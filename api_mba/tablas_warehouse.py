@@ -682,43 +682,47 @@ def api_actualizar_reservas_warehouse():
             
             data = []
             for i in reservas_mba['data']:
-                fecha_pedido = datetime.strptime(i['FECHA_PEDIDO'][:10], '%d/%m/%Y') # date
-                contrato_id = str(i['CONTRATO_ID']) + '.0' # str
-                codigo_cliente = i['CODIGO_CLIENTE']
-                nombre_cliente = i['NOMBRE_CLIENTE']
-                product_id = i['PRODUCT_ID']
-                product_name = i['PRODUCT_NAME']
-                quantity = i['QUANTITY']
-                despachado = i['DESPACHADOS']
-                ware_code = i['WARE_CODE']
-                confirmed = 0 if i['CONFIRMED'] == 'false' else 1
-                hora_llegada = i['HORA_LLEGADA'] # time
                 
-                #sec_name_cliente = i['SEC_NAME_CLIENTE']
-                s_n_c = i['SEC_NAME_CLIENTE']
-                if s_n_c.startswith('P'):
-                    sec_name_cliente = 'PUBLICO'
-                elif s_n_c.startswith('R'):
-                    sec_name_cliente = 'RESERVA'
+                if i['PRODUCT_ID'] == 'ETIQUE' or i['PRODUCT_ID'] == 'MANTEN':
+                    continue
                 else:
-                    sec_name_cliente = ''
-                
-                row = (
-                    fecha_pedido,
-                    contrato_id,
-                    codigo_cliente,
-                    nombre_cliente,
-                    product_id,
-                    product_name,
-                    quantity,
-                    despachado,
-                    ware_code,
-                    confirmed,
-                    hora_llegada,
-                    sec_name_cliente,
-                )
-                
-                data.append(row)
+                    fecha_pedido = datetime.strptime(i['FECHA_PEDIDO'][:10], '%d/%m/%Y') # date
+                    contrato_id = str(i['CONTRATO_ID']) + '.0' # str
+                    codigo_cliente = i['CODIGO_CLIENTE']
+                    nombre_cliente = i['NOMBRE_CLIENTE']
+                    product_id = i['PRODUCT_ID']
+                    product_name = i['PRODUCT_NAME']
+                    quantity = i['QUANTITY']
+                    despachado = i['DESPACHADOS']
+                    ware_code = i['WARE_CODE']
+                    confirmed = 0 if i['CONFIRMED'] == 'false' else 1
+                    hora_llegada = i['HORA_LLEGADA'] # time
+                    
+                    #sec_name_cliente = i['SEC_NAME_CLIENTE']
+                    s_n_c = i['SEC_NAME_CLIENTE']
+                    if s_n_c.startswith('P'):
+                        sec_name_cliente = 'PUBLICO'
+                    elif s_n_c.startswith('R'):
+                        sec_name_cliente = 'RESERVA'
+                    else:
+                        sec_name_cliente = ''
+                    
+                    row = (
+                        fecha_pedido,
+                        contrato_id,
+                        codigo_cliente,
+                        nombre_cliente,
+                        product_id,
+                        product_name,
+                        quantity,
+                        despachado,
+                        ware_code,
+                        confirmed,
+                        hora_llegada,
+                        sec_name_cliente,
+                    )
+                    
+                    data.append(row)
             
             # with transaction.atomic():
             # Borrar datos de tabla reservas
