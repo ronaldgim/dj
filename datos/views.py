@@ -996,7 +996,10 @@ def stock_disponible(bodega, items_list): #request
     
     elif bodega == 'BCT':
 
-        stock_disp = Existencias.objects.filter(Q(estado='Disponible') & Q(product_id__in=items_list)) 
+        stock_disp = Existencias.objects.filter(
+            Q(estado='Disponible') & 
+            Q(product_id__in=items_list)
+        )
         if stock_disp.exists():
             stock_disp = pd.DataFrame(stock_disp.values('product_id', 'unidades')).groupby(by='product_id')['unidades'].sum().reset_index() 
             stock_disp = stock_disp.rename(columns={'product_id':'PRODUCT_ID','unidades':'stock_disp'})
@@ -1313,7 +1316,7 @@ def stock_faltante_contrato(contratos, bodega):
         
         
         res = res.merge(stock, on='PRODUCT_ID', how='left').fillna(0)        
-        res['disp'] = res.apply(lambda x: 'OK' if x['OH2']>x['QUANTITY'] else 'NOT', axis=1)
+        res['disp'] = res.apply(lambda x: 'OK' if x['stock_disp']>x['QUANTITY'] else 'NOT', axis=1)
         res = res[res['PRODUCT_ID']!='MANTEN']
 
         dis = 'NOT' in list(res['disp'])
