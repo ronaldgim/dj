@@ -422,14 +422,8 @@ def etiquetado_pedidos(request, n_pedido):
         items = list(items) 
         bodega = pedido['WARE_CODE'].unique()[0] 
         
-        # STOCK DISPONIBLE POR PEDIDO
-        if bodega == 'BAN':
-            stock = stock_disponible(bodega=bodega, items_list=items)
-            stock = stock.rename(columns={'OH2':'stock_disp'})
-        else:
-            stock = Existencias.objects.filter(Q(estado='Disponible') & Q(product_id__in=items)).values('product_id', 'unidades')
-            stock = pd.DataFrame(stock).groupby(by='product_id')['unidades'].sum().reset_index()
-            stock = stock.rename(columns={'product_id':'PRODUCT_ID','unidades':'stock_disp'})
+        stock = stock_disponible(bodega=bodega, items_list=items)
+        stock = stock.rename(columns={'OH2':'stock_disp'})
         
         pedido = pedido.merge(stock, on='PRODUCT_ID', how='left').fillna(0)
         pedido['disp'] = pedido['stock_disp']>pedido['QUANTITY']
@@ -494,9 +488,9 @@ def etiquetado_pedidos(request, n_pedido):
 
         return render(request, 'etiquetado/pedidos/pedido.html', context)
     
-    except:
+    except Exception as e:
         context = {
-            'error':'Error !!! carga nuevamente la página.'
+            'error':f'Error !!! carga nuevamente la página. {e}'
         }
         return render(request, 'etiquetado/pedidos/pedido.html', context)
 
@@ -2430,7 +2424,7 @@ def publico_dashboard(request):
     pub = list_reservas[list_reservas['estado']!='FINALIZADO']
     contratos = list(pub['CONTRATO_ID'].unique())
     sto = stock_faltante_contrato(contratos, 'BCT')
-
+    
     if not sto.empty:
         pub = pub.merge(sto, on='CONTRATO_ID', how='left')
 
