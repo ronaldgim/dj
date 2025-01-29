@@ -276,7 +276,7 @@ def muestreo_unidades(request, memo):
     data = importaciones_llegadas_por_docid_odbc(memo) 
     imp = muestreo(data, 'OH')
     imp = imp.sort_values(by='product_id')
-    print(imp)
+    
     proveedor = imp['PROVEEDOR'].dropna().iloc[0]
     #proveedor1 = imp['marca2'].dropna().iloc[0]
     proveedor2 = imp['Marca'].dropna().iloc[0]

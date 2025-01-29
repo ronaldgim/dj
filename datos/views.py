@@ -742,7 +742,7 @@ def importaciones_llegadas_por_docid_odbc(doc_id):
         
         importaciones_llegadas = importaciones_llegadas.merge(prod, on='product_id', how='left')
         importaciones_llegadas['CARTONES'] = importaciones_llegadas['OH']/importaciones_llegadas['Unidad_Empaque']
-        print(importaciones_llegadas)
+        
     return importaciones_llegadas
 
 
