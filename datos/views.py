@@ -738,11 +738,11 @@ def importaciones_llegadas_por_docid_odbc(doc_id):
 
         importaciones_llegadas = pd.DataFrame(importaciones_llegadas)
         importaciones_llegadas['product_id'] = list(map(lambda x:x[:-6], list(importaciones_llegadas['PRODUCT_ID_CORP'])))
-        importaciones_llegadas = importaciones_llegadas.groupby(by=['DOC_ID_CORP', 'PROVEEDOR', 'MEMO','product_id']).sum().reset_index()
+        importaciones_llegadas = importaciones_llegadas.groupby(by=['DOC_ID_CORP', 'PROVEEDOR', 'MEMO','product_id'])['OH'].sum().reset_index()
         
         importaciones_llegadas = importaciones_llegadas.merge(prod, on='product_id', how='left')
         importaciones_llegadas['CARTONES'] = importaciones_llegadas['OH']/importaciones_llegadas['Unidad_Empaque']
-        
+        print(importaciones_llegadas)
     return importaciones_llegadas
 
 
