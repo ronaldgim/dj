@@ -445,9 +445,17 @@ def etiquetado_pedidos(request, n_pedido):
 
         if PedidosEstadoEtiquetado.objects.filter(n_pedido=n_pedido).exists():
             estado = PedidosEstadoEtiquetado.objects.get(n_pedido=n_pedido).estado
-            estado = str(estado)
+            estado = str(estado) 
         else:
             estado = 'None'
+        
+        # Estado Picking
+        estado_picking = EstadoPicking.objects.filter(n_pedido=n_pedido) #.first().estado
+        if estado_picking.exists():
+            estado_picking = True if estado_picking.first().estado == 'FINALIZADO' else False
+        else:
+            estado_picking = False
+        
         
         # Totales de tabla
         t_total_1p_hor = pedido['t_una_p_hor'].sum()
@@ -482,6 +490,8 @@ def etiquetado_pedidos(request, n_pedido):
             'estado':estado,
             'p_cero':p_cero,
             'bodega':bodega,
+            
+            'estado_picking':estado_picking
         }
 
         return render(request, 'etiquetado/pedidos/pedido.html', context)
