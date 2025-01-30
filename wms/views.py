@@ -4462,7 +4462,7 @@ def wms_correo_creacion_armado(orden):
         'dreyes@gimpromed.com',
     ]
     
-    lista_cooreos_cerezos = [
+    lista_correos_cerezos = [
         'ncaisapanta@gimpromed.com',
         'ncastillo@gimpromed.com',
         'jgualotuna@gimpromed.com',
@@ -4475,7 +4475,7 @@ def wms_correo_creacion_armado(orden):
     if orden.bodega=='Andagoya':
         correos = lista_correos_andagoya
     elif orden.bodega=='Cerezos':
-        correos = lista_cooreos_cerezos
+        correos = lista_correos_cerezos
 
     
     context = {'orden':orden}
@@ -4537,6 +4537,7 @@ def wms_correo_finalizado_armado(orden):
             'carcosh@gimpromed.com',
             'dreyes@gimpromed.com',
             'bodega2@gimpromed.com',
+            'bcerezos@gimpromed.com',
             ],
     )
     

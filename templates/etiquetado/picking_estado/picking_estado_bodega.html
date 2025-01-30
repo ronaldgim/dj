@@ -59,9 +59,9 @@
 {% endcomment %}
 <div class="text-end">
     {% if estado == 'SIN ESTADO' %}
-        <button type="button" id="{{n_ped}}" name="estado_picking" class="btn btn-warning">EN PROCESO</button>
+        <button type="button" id="{{pedido}}" name="estado_picking" class="btn btn-warning">EN PROCESO</button>
     {% elif estado == 'FINALIZADO' %}
-        <button type="button" id="{{n_ped}}" name="estado_picking" class="btn btn-success disabled">FINALIZADO</button>
+        <button type="button" id="{{pedido}}" name="estado_picking" class="btn btn-success disabled">FINALIZADO</button>
     {% elif estado == 'EN TRANSITO' %}
     <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
         <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-warning">EN PROCESO</button>
