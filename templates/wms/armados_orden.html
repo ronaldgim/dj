@@ -103,11 +103,11 @@
                                 <button type="button" class="btn btn-warning {% if orden.estado == 'Finalizado' %} disabled {% endif %}" name="editar-nuevo-producto" id="{{orden.nuevo_producto.id}}" data-bs-toggle="modal" data-bs-target="#EditarNuevoProducto">
                                     <i class="bi bi-pencil"></i>
                                 </button>
-                                {% if orden.estado == 'Finalizado' %} 
-                                <button type="button" class="btn btn-primary {% if orden.archivo %} disabled {% endif %}" name="completar-nuevo-producto" id="{{orden.nuevo_producto.id}}" data-bs-toggle="modal" data-bs-target="#CompletarProductoNuevo">
+                                {#% if orden.estado == 'Finalizado' %#}
+                                <button type="button" class="btn btn-primary {% if orden.estado == 'Finalizado' %} disabled {% endif %}" name="completar-nuevo-producto" id="{{orden.nuevo_producto.id}}" data-bs-toggle="modal" data-bs-target="#CompletarProductoNuevo">
                                     <i class="bi bi-text-left"></i>
                                 </button>
-                                {% endif %}
+                                {#% endif %#}
                             </div>
                         </td>
                     </tr>

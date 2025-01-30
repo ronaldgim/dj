@@ -32,12 +32,12 @@
 <button type="button" class="btn btn-primary mb-2" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
     Añadir Armado
 </button>
+
 <div id="msg"></div>
 
 <div class="col-12">
     <input id="inputbuscar" type="text" placeholder="Filtro" class="form-control">
 </div>
-
 
 <div class="card mt-2 mb-2">
     <div class="card-body m-0 p-0">
@@ -69,16 +69,26 @@
                         <td>{{i.nuevo_producto.unidades}}</td>
                         <td>{{i.cliente}}</td>
                         <td>{{i.bodega}}</td>
-                        
                         <td>
-                            <a class="disabled btn btn-sm 
-                            {% if i.estado == 'En Proceso' %} btn-warning text-white 
-                            {% elif i.estado == 'En Pausa' %} btn-danger
-                            {% elif i.estado == 'Finalizado' %} btn-success
-                            {% elif i.estado == 'Creado' %} btn-primary
-                            {% endif %}">
-                            {{i.estado}}
-                            </a>
+                            <h6 class="p-0 m-0">
+                                <span                            
+                                    {% if i.estado == 'Creado' %}
+                                    class="badge bg-primary rounded-pill text-wrap"
+                                    {% elif i.estado == 'En Picking' %}
+                                    class="badge bg-info rounded-pill text-wrap"
+                                    {% elif i.estado == 'En Proceso' %}
+                                    class="badge bg-warning rounded-pill text-wrap"
+                                    {% elif i.estado == 'En Pausa' %}
+                                    class="badge bg-danger rounded-pill text-wrap"
+                                    {% elif i.estado == 'Finalizado' %}
+                                    class="badge bg-success rounded-pill text-wrap"
+                                    {% elif i.estado == 'Anulado' %}
+                                    class="badge bg-dark rounded-pill text-wrap"
+                                    {% endif %}
+                                    >
+                                    {{i.estado}}
+                                </span>
+                            </h6>
                         </td>
                         <td>{{i.usuario.first_name}} {{i.usuario.last_name}}</td>
                         <td>{{i.creado|date:'Y-m-d'}}</td>
@@ -86,7 +96,12 @@
                         <td>
                             <div class="btn-group" role="group" aria-label="Basic example">
                                 <a class="btn btn-sm btn-primary" href="{% url 'wms_orden_armado' i.id %}">Ver</a>
-                                <button name="estado-orden" class="btn btn-sm btn-danger" id="{{i.id}}">Anular</button>
+                                <button 
+                                    name="estado-orden" 
+                                    class="btn btn-sm btn-danger {% if i.estado == 'En Proceso' or i.estado == 'Anulado' %} disabled {% endif %}" 
+                                    id="{{i.id}}">
+                                    Anular
+                                </button>
                             </div>
                         </td>
                     </tr>
