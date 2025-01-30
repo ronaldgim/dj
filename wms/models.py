@@ -69,6 +69,7 @@ ESTADO_ARMADO = [
     ('En Proceso', 'En Proceso'),
     ('En Pausa', 'En Pausa'),
     ('Finalizado', 'Finalizado'),
+    ('Anulado', 'Anulado'),
 ]
 
 BODEGA_ARMADO = [

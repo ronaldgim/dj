@@ -4512,6 +4512,7 @@ def wms_correo_editar_bodega_armado(orden):
             'carcosh@gimpromed.com',
             'dreyes@gimpromed.com',
             'bodega2@gimpromed.com',
+            'bcerezos@gimpromed.com'
             ],
     )
     
@@ -4575,7 +4576,7 @@ def wms_correo_anular_armado(orden):
 @permisos(['ADMINISTRADOR','OPERACIONES',], '/wms/inventario', 'ingrear a lista de armados')
 def wms_armados_list(request):
     
-    armados = OrdenEmpaque.objects.all().order_by('-id').exclude(estado='Anulado')
+    armados = OrdenEmpaque.objects.all().order_by('-id')#.exclude(estado='Anulado')
     form_orden = OrdenEmpaqueForm()
     form_nuevo_producto = ProductoNuevoArmadoForm()
     
