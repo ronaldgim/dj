@@ -185,19 +185,19 @@
                         <td class="estado text-start" data-estado="{{i.estado}}">
                             {% if i.estado == 'EN PAUSA' %}
                             <!--a class="btn btn-danger btn-sm disabled">{{i.estado}}</a-->
-                            <h6 class="p-0 m-0"><span class="badge bg-danger rounded-pill">{{i.estado}}</span></h6>
+                            <h6 class="p-0 m-0"><span class="badge bg-danger rounded-pill shadow rounded">{{i.estado}}</span></h6>
                             {% elif i.estado == 'EN TRANSITO' %}
                             <!--a class="btn btn-danger btn-sm disabled">{{i.estado}}</a-->
-                            <h6 class="p-0 m-0"><span class="badge bg-primary rounded-pill">{{i.estado}}</span></h6>
+                            <h6 class="p-0 m-0"><span class="badge bg-primary rounded-pill shadow rounded">{{i.estado}}</span></h6>
                             {% elif i.estado == 'EN PROCESO' %}
                             <!--a class="btn btn-warning text-white btn-sm disabled">{{i.estado}}</a-->
-                            <h6 class="p-0 m-0"><span class="badge bg-warning rounded-pill">{{i.estado}}</span></h6>
+                            <h6 class="p-0 m-0"><span class="badge bg-warning rounded-pill shadow rounded">{{i.estado}}</span></h6>
                             {% elif i.estado == 'INCOMPLETO' %}
                             <!--a class="btn btn-danger btn-sm disabled">{{i.estado}}</a-->
-                            <h6 class="p-0 m-0"><span class="badge rounded-pill" style="background: #bf03c8">{{i.estado}}</span></h6>
+                            <h6 class="p-0 m-0"><span class="badge rounded-pill shadow rounded" style="background: #bf03c8">{{i.estado}}</span></h6>
                             {% elif i.estado == 'FINALIZADO' %}
                             <!--a class="btn btn-success btn-sm disabled">{{i.estado}}</a-->
-                            <h6 class="p-0 m-0"><span class="badge bg-success rounded-pill">{{i.estado}}</span></h6>
+                            <h6 class="p-0 m-0"><span class="badge bg-success rounded-pill shadow rounded">{{i.estado}}</span></h6>
                             {% else %}
                             -
                             {% endif %}
@@ -206,13 +206,13 @@
                         <td class="estado text-start" data-estado="{{i.estado}}">
                             {% if i.est_entrega == 'PENDIENTE' %}
                             <!--a class="btn btn-warning text-white btn-sm disabled">PENDIENTE</a-->
-                            <h6 class="p-0 m-0"><span class="badge bg-warning rounded-pill">PENDIENTE</span></h6>
+                            <h6 class="p-0 m-0"><span class="badge bg-warning rounded-pill shadow rounded">PENDIENTE</span></h6>
                             {% elif not i.est_entrega %}
                             <!--a class="btn btn-warning text-white btn-sm disabled">PENDIENTE</a-->
-                            <h6 class="p-0 m-0"><span class="badge bg-warning rounded-pill">PENDIENTE</span></h6>
+                            <h6 class="p-0 m-0"><span class="badge bg-warning rounded-pill shadow rounded">PENDIENTE</span></h6>
                             {% elif i.est_entrega == 'ENTREGADO' %}
                             <!--a class="btn btn-success btn-sm disabled">ENTREGADO</a-->
-                            <h6 class="p-0 m-0"><span class="badge bg-success rounded-pill">ENTREGADO</span></h6>
+                            <h6 class="p-0 m-0"><span class="badge bg-success rounded-pill shadow rounded">ENTREGADO</span></h6>
                             {% else %}
                             -
                             {% endif %}
