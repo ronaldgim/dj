@@ -378,15 +378,15 @@
             obtenerColorFondoEstado(estado){
                 switch (estado) {
                     case 'EN PAUSA':
-                        return 'badge bg-danger text-wrap';
+                        return 'badge bg-danger rounded-pill text-wrap';
                     case 'EN TRANSITO':
-                        return 'badge bg-primary text-wrap';
+                        return 'badge bg-primary rounded-pill text-wrap';
                     case 'EN PROCESO':
-                        return 'badge bg-warning text-wrap'; // text-dark
+                        return 'badge bg-warning rounded-pill text-wrap'; // text-dark
                     case 'FINALIZADO':
-                        return 'badge bg-success text-wrap';
+                        return 'badge bg-success rounded-pill text-wrap';
                     case 'INCOMPLETO':
-                        return 'badge';
+                        return 'badge rounded-pill';
                 }
             },
 
