@@ -954,10 +954,10 @@ def anexo_edit_product_ajax(request):
 def anexo_formato_general_agrupado(request, anexo_id):
     
     anexo = Anexo.objects.get(id=anexo_id)
-    anexo_prod_list = anexo.product_list.all()
+    anexo_prod_list = anexo.product_list.all().order_by('product_id')
     
     prods_list =[]
-    for i in anexo.product_list.all().values_list('product_id', flat=True).distinct():
+    for i in anexo.product_list.all().order_by('product_id').values_list('product_id', flat=True).distinct():
         prods = {}
         prods['product_id'] = i
         prods['products'] = anexo_prod_list.filter(product_id=i) 
@@ -996,11 +996,11 @@ def anexo_formato_general_agrupado(request, anexo_id):
 def anexo_formato_hbo(request, anexo_id):
     
     anexo = Anexo.objects.get(id=anexo_id)
-    anexo_prod_list = anexo.product_list.all()
+    anexo_prod_list = anexo.product_list.all().order_by('product_id')
     
     prods_list =[]
     
-    for i in anexo.product_list.all().values_list('product_id', flat=True).distinct():
+    for i in anexo.product_list.all().order_by('product_id').values_list('product_id', flat=True).distinct():
         prods = {}
         prods['product_id'] = i
         prods['products'] = anexo_prod_list.filter(product_id=i) 
@@ -1047,10 +1047,10 @@ def anexo_formato_hbo(request, anexo_id):
 @pdf_decorator(pdfname='anexo_formato_hcam.pdf')
 def anexo_formato_hcam(request, anexo_id):
     anexo = Anexo.objects.get(id=anexo_id)
-    anexo_prod_list = anexo.product_list.all()
+    anexo_prod_list = anexo.product_list.all().order_by('product_id')
     
     prods_list =[]
-    for i in anexo.product_list.all().values_list('product_id', flat=True).distinct():
+    for i in anexo.product_list.all().order_by('product_id').values_list('product_id', flat=True).distinct():
         prods = {}
         prods['product_id'] = i
         prods['products'] = anexo_prod_list.filter(product_id=i) 
@@ -1114,10 +1114,10 @@ def anexo_formato_hcam(request, anexo_id):
 def anexo_formato_hpas(request, anexo_id):
     
     anexo = Anexo.objects.get(id=anexo_id)
-    anexo_prod_list = anexo.product_list.all()
+    anexo_prod_list = anexo.product_list.all().order_by('product_id')
     
     prods_list =[]
-    for i in anexo.product_list.all().values_list('product_id', flat=True).distinct():
+    for i in anexo.product_list.all().order_by('product_id').values_list('product_id', flat=True).distinct():
         prods = {}
         prods['product_id'] = i
         prods['products'] = anexo_prod_list.filter(product_id=i) 
