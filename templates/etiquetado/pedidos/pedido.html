@@ -12,7 +12,10 @@
 
 <!-- ENCABEZADO -->
 <div class="row">
-    <h5 class="m-4 text-center fw-bold">PEDIDO {{cabecera.CONTRATO_ID|slice:':-2'}}</h5>
+    <h5 class="m-4 text-center fw-bold">
+        PEDIDO {{cabecera.CONTRATO_ID|slice:':-2'}}
+        {% if estado_picking %} <i style="color:green;" class="bi bi-check2-square"></i> {% endif %}
+    </h5>
     <div class="col-6" id="print_area_cabecera">
         <h6><strong>Bodega: </strong><span id="bodega">{{cabecera.WARE_CODE}}</span></h6>
         <h6><strong>N. Pedido: </strong>{{cabecera.CONTRATO_ID|slice:':-2'}}</h6>
