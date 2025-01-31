@@ -158,9 +158,15 @@
 
 <div class="mb-4">
     <button class="btn btn-primary" name="crear_pdf_enviar_email">
-        CREAR
+        
+        {% if not orden.archivo %}
+        CREAR PDF
+        {% elif orden.archivo %}
+        ACTUALIZAR PDF
+        {% endif %}
+
     </button>
-    <a id="imprimir_pdf" class="btn btn-danger {% if not orden.archivo %} disabled {% endif %} " href="{% if orden.archivo %} {{ orden.archivo.url }} {% endif %}">
+    <a id="imprimir_pdf" class="btn btn-danger {% if not orden.archivo %} disabled {% endif %} " href="{% if orden.archivo %} {{ orden.archivo.url }} {% endif %}" target="_blank">
         IMPRIMIR PDF
     </a>
 </div>
