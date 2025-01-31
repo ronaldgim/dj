@@ -783,6 +783,54 @@ def round_cinco_al_siguiente(n, decimals=0):
     return int(n * multiplier + 0.5001) / multiplier
 
 
+def query_numero_autorizacion_factura(n_factura):
+
+    with connections['gimpromed_sql'].cursor() as cursor:
+        
+        cursor.execute(f"SELECT CODIGO_FACTURA, AUTO_XML FROM warehouse.venta_facturas WHERE CODIGO_FACTURA = '{n_factura}'")
+        columns = [col[0] for col in cursor.description]
+        data = [dict(zip(columns, row)) for row in cursor.fetchall()][0]
+        
+        return data.get('AUTO_XML', '')
+
+
+def anexo_obtener_numero_acutorizacion_ajax(request):
+    
+    try:
+        anexo = Anexo.objects.get(id=int(request.GET.get('id_anexo')))
+        n_factura = anexo.n_factura.split('-')[2]
+        n_factura = int(n_factura)
+        
+        if n_factura == 0:
+            return JsonResponse({
+                'msg': 'fail', 
+                'text': 'Agrege un número de factura válido'})
+        else:
+            
+            n_factura = f'FCSRI-1001{n_factura:09d}-GIMPR'
+            n_autorizacion = query_numero_autorizacion_factura(n_factura)
+            anexo.n_autorizacion = n_autorizacion
+            anexo.save()
+            
+            if n_autorizacion:
+                return JsonResponse({
+                    'msg':'success',
+                    'text':'N. Autorización agregado exitosamente !!!',
+                    'n_autorizacion': n_autorizacion
+                })
+            else:
+                return JsonResponse({
+                    'msg': 'fail',
+                    'text': 'No se pudo obtener el número de autorización'
+                })
+        
+    except Exception as e:
+        return JsonResponse({
+            'msg': 'fail', 
+            'text': str(e)
+        })
+
+
 @login_required(login_url='login')
 def anexo_edit_product_ajax(request):
     

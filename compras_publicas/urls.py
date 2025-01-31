@@ -67,6 +67,13 @@ urlpatterns = [
         name='anexo_cabecera_edit_ajax'
     ),
     
+    #anexo_cabecera_edit_ajax
+    path(
+        route='anexos/anexo_obtener_numero_acutorizacion_ajax', 
+        view = views.anexo_obtener_numero_acutorizacion_ajax, 
+        name='anexo_obtener_numero_acutorizacion_ajax'
+    ),
+    
     #anexo_get_product_ajax
     path(
         route='anexos/anexo_edit_product_ajax', 

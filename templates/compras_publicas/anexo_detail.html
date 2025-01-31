@@ -232,7 +232,7 @@
             <label for="n_autorizacion" class="col-form-label fw-bold">N°.Autorización:</label>
         </div>
         <div class="col-4">
-            <input type="text" name="n_autorizacion" class="form-control form-control-sm" value="{{anexo.n_autorizacion}}" aria-describedby="passwordHelpInline" readonly>
+            <input type="text" id="id_n_autorizacion" name="n_autorizacion" class="form-control form-control-sm" value="{{anexo.n_autorizacion}}" aria-describedby="passwordHelpInline" readonly>
         </div>
         <div class="col-auto">
             <button class="btn btn-sm btn-secondary" name="edit_anexo">
@@ -244,12 +244,13 @@
             </button>
             <!---->
             <!-- Obtener numero de autorización -->
-            <button class="btn btn-sm btn-primary" name="get_n_autorizacion">
+            <button class="btn btn-sm btn-primary" name="get_n_autorizacion" id="{{anexo.id}}">
                 <i class="bi bi-file-earmark-binary-fill"></i>
             </button>
             <!---->
             <i class="bi bi-check-lg" style="color:green; display:none"></i>
             <i class="bi bi-x-lg" style="color:red; display:none"></i>
+            <small id="n_autorizacion_alert" role="alert"></small>
         </div>
     </div>
 
@@ -752,4 +753,35 @@
 
 </script>
 
+
+<!-- OBTENER NUMERO DE AUTORIZACIÓN -->
+<script>
+    $("button[name='get_n_autorizacion']").click(function(){
+        var id_anexo = $(this).attr('id');
+        
+        $.ajax({
+            type:"GET",
+            url:"{% url 'anexo_obtener_numero_acutorizacion_ajax' %}",
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'id_anexo':id_anexo,
+            },
+
+            success: function(response) {
+                
+                if (response.msg === 'success') {
+                    $("#id_n_autorizacion").val(response.n_autorizacion);
+                    $("#n_autorizacion_alert").html(response.text).addClass("text-success");
+                } else {
+                    $("#n_autorizacion_alert").html(response.text).addClass("text-danger");
+                };
+
+            },
+            error: function() {
+                $("#n_autorizacion_alert").html(response.text).addClass("Error !!!");
+            }
+        })
+
+    })
+</script>
 {% endblock %}
