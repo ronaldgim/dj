@@ -26,16 +26,3 @@ class ProductoForm(forms.ModelForm):
     class Meta:
         model = Producto
         fields = '__all__'
-        # fields = [
-        #     'product_id',
-        #     'nombre',
-        #     'nombre_generico',
-        #     'presentacion',
-        #     'marca',
-        #     'procedencia',
-        #     'r_sanitario',
-        #     'lote_id',
-        #     'f_elaboracion',
-        #     'f_caducidad',
-        #     'cantidad',
-        #     ]

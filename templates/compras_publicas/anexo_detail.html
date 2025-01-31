@@ -30,10 +30,8 @@
 
 
 <div id="msg"></div>
-<!--div id="msg_ss"></div-->
 
-
-<section id="anexo" class="ms-2 mt-2 mb-2">
+<section id="anexo" class="ms-2 mt-2 mb-2 col-sm-12 col-md-12 col-lx-6">
 
     <div class="row g-3 align-items-center">
         <div class="col-2">
@@ -232,7 +230,7 @@
             <label for="n_autorizacion" class="col-form-label fw-bold">N°.Autorización:</label>
         </div>
         <div class="col-4">
-            <input type="text" name="n_autorizacion" class="form-control form-control-sm" value="{{anexo.n_autorizacion}}" aria-describedby="passwordHelpInline" readonly>
+            <input type="text" id="id_n_autorizacion" name="n_autorizacion" class="form-control form-control-sm" value="{{anexo.n_autorizacion}}" aria-describedby="passwordHelpInline" readonly>
         </div>
         <div class="col-auto">
             <button class="btn btn-sm btn-secondary" name="edit_anexo">
@@ -243,8 +241,14 @@
                 <i class="bi bi-send"></i>
             </button>
             <!---->
+            <!-- Obtener numero de autorización -->
+            <button class="btn btn-sm btn-primary" name="get_n_autorizacion" id="{{anexo.id}}">
+                <i class="bi bi-file-earmark-binary-fill"></i>
+            </button>
+            <!---->
             <i class="bi bi-check-lg" style="color:green; display:none"></i>
             <i class="bi bi-x-lg" style="color:red; display:none"></i>
+            <small id="n_autorizacion_alert" role="alert"></small>
         </div>
     </div>
 
@@ -370,7 +374,7 @@
             <form method="post" action="{% url 'anexo_edit_product_ajax' %}">
                 {% csrf_token %}
                 <input type="hidden" name="id_anexo" value="{{anexo.id}}">
-                <div id="mymodal"></div>
+                <div id="edita_producto_form"></div> <!--class="modal-body" -->
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-success">Guardar</button>
                 </div>
@@ -694,7 +698,21 @@
             },
 
             success: function(response) {
-                $("#mymodal").html(response)
+                // $("#edita_producto_form").html(response)
+                var edita_producto_form = $("#edita_producto_form");
+                edita_producto_form.html(response);
+
+                var formato_fecha_value = $("#fecha_formato_value").val();
+                console.log(formato_fecha_value);
+
+                var select_fecha_formato = $("#fecha_formato_selected");
+                select_fecha_formato.find("option").each(function(){
+                    console.log($(this).val());
+                    if ($(this).val() == formato_fecha_value) {
+                        $(this).attr("selected", "selected");
+                    }
+                });
+
             },
             error: function() {
                 $("input[name='" + name + "']").attr("readonly", true);
@@ -733,4 +751,35 @@
 
 </script>
 
+
+<!-- OBTENER NUMERO DE AUTORIZACIÓN -->
+<script>
+    $("button[name='get_n_autorizacion']").click(function(){
+        var id_anexo = $(this).attr('id');
+        
+        $.ajax({
+            type:"GET",
+            url:"{% url 'anexo_obtener_numero_acutorizacion_ajax' %}",
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'id_anexo':id_anexo,
+            },
+
+            success: function(response) {
+                
+                if (response.msg === 'success') {
+                    $("#id_n_autorizacion").val(response.n_autorizacion);
+                    $("#n_autorizacion_alert").html(response.text).addClass("text-success");
+                } else {
+                    $("#n_autorizacion_alert").html(response.text).addClass("text-danger");
+                };
+
+            },
+            error: function() {
+                $("#n_autorizacion_alert").html(response.text).addClass("Error !!!");
+            }
+        })
+
+    })
+</script>
 {% endblock %}
