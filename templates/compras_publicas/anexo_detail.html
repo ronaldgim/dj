@@ -243,6 +243,11 @@
                 <i class="bi bi-send"></i>
             </button>
             <!---->
+            <!-- Obtener numero de autorización -->
+            <button class="btn btn-sm btn-primary" name="get_n_autorizacion">
+                <i class="bi bi-file-earmark-binary-fill"></i>
+            </button>
+            <!---->
             <i class="bi bi-check-lg" style="color:green; display:none"></i>
             <i class="bi bi-x-lg" style="color:red; display:none"></i>
         </div>
@@ -370,7 +375,7 @@
             <form method="post" action="{% url 'anexo_edit_product_ajax' %}">
                 {% csrf_token %}
                 <input type="hidden" name="id_anexo" value="{{anexo.id}}">
-                <div id="mymodal"></div>
+                <div id="edita_producto_form"></div> <!--class="modal-body" -->
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-success">Guardar</button>
                 </div>
@@ -694,7 +699,21 @@
             },
 
             success: function(response) {
-                $("#mymodal").html(response)
+                // $("#edita_producto_form").html(response)
+                var edita_producto_form = $("#edita_producto_form");
+                edita_producto_form.html(response);
+
+                var formato_fecha_value = $("#fecha_formato_value").val();
+                console.log(formato_fecha_value);
+
+                var select_fecha_formato = $("#fecha_formato_selected");
+                select_fecha_formato.find("option").each(function(){
+                    console.log($(this).val());
+                    if ($(this).val() == formato_fecha_value) {
+                        $(this).attr("selected", "selected");
+                    }
+                });
+
             },
             error: function() {
                 $("input[name='" + name + "']").attr("readonly", true);

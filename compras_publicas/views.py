@@ -867,6 +867,25 @@ def anexo_edit_product_ajax(request):
 
                 <div class="row g-3 align-items-center">
                     <div class="col-4">
+                        <label for="f_caducidad" class="col-form-label fw-bold">Formato Fecha:</label>
+                    </div>
+                    <div class="col-8">
+                        <input value="{producto.fecha_formato}" type="hidden" id="fecha_formato_value">
+                        <select name="fecha_formato" class="form-select form-select-sm" id="fecha_formato_selected">
+                            <option value="Y-m-d">aaaa-mm-dd</option>
+                            <option value="Y-m">aaaa-mm</option>
+                            <option value="d-m-Y">dd-mm-aaaa</option>
+                            <option value="m-Y">mm-aaaa</option>
+                            <option value="Y/m/d">aaaa/mm/dd</option>
+                            <option value="Y/m">aaaa/mm</option>
+                            <option value="d/m/Y">dd/mm/aaaa</option>
+                            <option value="m/Y">mm/aaaa</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row g-3 align-items-center">
+                    <div class="col-4">
                         <label for="f_elaboracion" class="col-form-label fw-bold">F.Elaboración:</label>
                     </div>
                     <div class="col-8">
@@ -922,6 +941,7 @@ def anexo_edit_product_ajax(request):
     
         if form.is_valid():
             form.save()
+            messages.success(request, 'Producto editado correctamente !!!')
             return redirect('anexo_detail', anexo.id)
         else:
             messages.error(request, form.errors)
