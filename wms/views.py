@@ -4821,14 +4821,18 @@ def wms_completar_componente_ajax(request):
             form.save()
             messages.success(request, 'Nuevo producto editado con exito !!!')
             if tipo_request == 'nuevo':
-                return HttpResponseRedirect(f'/wms/orden-armado/{orden.id}')
+                # return HttpResponseRedirect(f'/wms/orden-armado/{orden.id}')
+                return HttpResponseRedirect(f'/wms/armados-picking/{orden.id}')
             else:
+                # return HttpResponseRedirect(f'/wms/armados-picking/{orden.id}')
                 return HttpResponseRedirect(f'/wms/armados-picking/{orden.id}')
         else:
             messages.error(request, form.errors)
             if tipo_request == 'nuevo':
-                return HttpResponseRedirect(f'/wms/orden-armado/{orden.id}')
+                # return HttpResponseRedirect(f'/wms/orden-armado/{orden.id}')
+                return HttpResponseRedirect(f'/wms/armados-picking/{orden.id}')
             else:
+                # return HttpResponseRedirect(f'/wms/armados-picking/{orden.id}')
                 return HttpResponseRedirect(f'/wms/armados-picking/{orden.id}')
 
 
