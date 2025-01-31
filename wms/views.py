@@ -5141,10 +5141,8 @@ def wms_armado_orden_pdf(request, orden_id):
             # send email
             wms_correo_creacion_armado(orden)
             
-            return JsonResponse({
-                'type':'success',
-                'msg':'Orden de equiquetado creada exitosamente !!!'
-                })
+            return HttpResponseRedirect(f'/wms/orden-armado/{orden.id}')
+            
         except Exception:
             return JsonResponse({
                 'type':'danger',
