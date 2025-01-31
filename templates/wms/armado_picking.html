@@ -17,18 +17,49 @@
 
 <h5 class="mt-2 text-center fw-bold">{{orden.cliente}}</h5>
 
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
+<div id="msg"></div>
+
 <div class="mt-2 mb-2">   
     <span class="fw-bold" style="font-size: small;">Orden de empaque: </span> <span style="font-size: small;" id="orden_empaque">{{orden.enum}}</span> <br>
     <span class="fw-bold" style="font-size: small;">Fecha-Hora: </span> <span style="font-size: small;"> {{orden.creado|date:'Y-m-d'}} {{hora}}</span> <br>
-    <span class="fw-bold" style="font-size: small;">Nuevo producto: </span> <span style="font-size: small;"> {{orden.nuevo_producto.product_id}} </span> 
+    <span class="fw-bold" style="font-size: small;">Nuevo producto: </span> <br>
+    
+    <ul>
+        <li><span class="fw-bold" style="font-size: small;">Código: </span> <span style="font-size: small;">{{orden.nuevo_producto.product_id}}</span></li>
+        <li><span class="fw-bold" style="font-size: small;">Nombre: </span> <span style="font-size: small;">{{orden.nuevo_producto.nombre}}</span></li>
+        <li><span class="fw-bold" style="font-size: small;">Marca: </span> <span style="font-size: small;">{{orden.nuevo_producto.marca}}</span></li>
+        <li><span class="fw-bold" style="font-size: small;">Lote: </span> <span style="font-size: small;">{{orden.nuevo_producto.lote_id | default:"-"}}</span></li>
+        <li><span class="fw-bold" style="font-size: small;">FElab: </span> <span style="font-size: small;">{{orden.nuevo_producto.fecha_elaboracion | default:"-" | date:"Y-m-d"}}</span></li>
+        <li><span class="fw-bold" style="font-size: small;">FCadu: </span> <span style="font-size: small;">{{orden.nuevo_producto.fecha_caducidad | default:"-" | date:"Y-m-d"}}</span></li>
+    </ul>
+
+    <button type="button" id="{{orden.nuevo_producto.id}}" name="completar-nuevo-producto" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#CompletarProductoNuevo">
+        Completar datos
+    </button>
+
 </div>
+
+
 
 <hr>
 
 <div class="text-end mb-2">
 <button type="button" class="btn btn-info disabled">Estado: {{orden.estado}}</button> 
 </div>
-
 
 {% if total_unidades_picking_todos == total_componentes %}
 {% if orden.estado == 'En Proceso' or orden.estado == 'En Picking' or orden.estado == 'En Pausa' %}
@@ -45,23 +76,6 @@
 {% endif %}
 {% endif %}
 
-
-{% if messages %}
-{% for message in messages %}
-{% if message.tags == 'success'%}
-<div class="alert text-center alert-success" role="alert">
-    {{message}}
-</div>
-{% elif message.tags == 'error'%}
-<div class="alert text-center alert-danger" role="alert">
-    {{message}}
-</div>
-{%endif%}
-{% endfor %}
-{% endif %}
-
-
-<div id="msg"></div>
 
 <div class="card mb-2">
     <div class="card-body m-0 p-0">
