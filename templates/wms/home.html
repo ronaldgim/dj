@@ -1,3 +1,4 @@
+{#% extends 'base_side_navbar.html' %#}
 {% extends 'base_vue.html' %}
 {#% extends 'base_dos.html' %#}
 
@@ -5,9 +6,17 @@
 <title>WMS Home</title>
 {% endblock%}
 
+
 {% block navbar %}
 {% include 'wms/topnavbar.html' %}
 {% endblock %}
+
+
+{% comment %}
+{% block menu_app %}
+{% include 'wms/z_menu_app.html' %}
+{% endblock %}
+{% endcomment %}
 
 {% block body %}
 

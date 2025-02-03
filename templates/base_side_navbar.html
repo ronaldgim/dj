@@ -1,0 +1,239 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.3/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>
+
+    <!-- Dropdown -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.min.js" integrity="sha384-Atwg2Pkwv9vp0ygtn1JAojH0nYbwNJLPhwyoVbhoPwBhjQPR5VtM2+xf0Uwh9KtT" crossorigin="anonymous"></script>
+
+    <!-- Ajax -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+
+    <!-- Select2 -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    
+    <!-- my select2 css -->
+    <link href="{% static 'css/myselect2.css' %}" rel="stylesheet"/>
+
+    <!-- vue select -->
+    <script src="https://cdn.jsdelivr.net/npm/vue-select@3.20.3/dist/vue-select.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vue-select@3.20.3/dist/vue-select.min.css">
+
+    <!-- Incluye la CDN de Vue.js -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14"></script>
+
+    {% block title %}
+    
+    {% endblock %}
+
+    <!-- Bootstrap CSS -->
+    <!--link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"-->
+
+    <!-- Estilos personalizados -->
+    <style>
+        /* Sidebar */
+        #sidebar {
+            height: 100vh;
+            width: 250px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background:rgba(35, 52, 83, 0.83);
+            color: white;
+            transition: all 0.3s ease;
+            overflow-y: auto;
+            padding-top: 0;
+            margin-top: 54px;
+        }
+
+        /* Contenido Principal */
+        #content {
+            height: 100vh;
+            margin-left: 250px;
+            transition: all 0.3s ease;
+            padding: 20px;
+            width: calc(100% - 250px);
+        }
+
+        /* Ocultar sidebar cuando está contraído */
+        #sidebar.collapsed {
+            width: 0;
+            padding: 0;
+        }
+
+        #content.expanded {
+            margin-left: 0;
+            width: 100%;
+        }
+
+        /* Botón hamburguesa */
+        .toggle-btn {
+            position: fixed;
+            top: 75px;
+            /*margin-top: 100px;*/
+            left: 10px;
+            background: white;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            cursor: pointer;
+            z-index: 1000;
+            border-radius: 5px;
+        }
+
+        /*.toggle-btn:hover {
+            background:rgba(143, 143, 143, 0.9);
+        }*/
+
+        /* Navbar fija dentro del contenido */
+        .top-navbar {
+            position: fixed;
+            top: 0;
+            /*left: 250px;*/
+            left: 0;
+            /*width: calc(100% - 250px);*/
+            width: 100%;
+            background: #f8f9fa;
+            padding: 10px 20px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        /* Ajustar navbar cuando el menú está contraído */
+        .top-navbar.expanded {
+            left: 0;
+            width: 100%;
+        }
+
+        /* Ajustar contenido con la navbar */
+        .main-content {
+            margin-top: 55px;
+            /*padding: 20px;*/
+        }
+
+        /* Ocultar sidebar en móviles por defecto */
+        @media (max-width: 768px) {
+            #sidebar {
+                left: -250px;
+            }
+            
+            #sidebar.active {
+                left: 0;
+                z-index: 1050;
+            }
+            
+            #content {
+                margin-left: 0;
+                width: 100%;
+            }
+            
+            .top-navbar {
+                left: 0;
+                width: 100%;
+            }
+            
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Botón hamburguesa -->
+    <!--button class="toggle-btn" id="toggleSidebar">☰</button-->
+
+    <!-- Sidebar -->
+    <div id="sidebar">
+        <button class="toggle-btn btn btn-sm shadow rounded" id="toggleSidebar">
+            <i id="side-nav-bar-btn" class="text-dark"></i>
+        </button>
+
+        {% block menu_app %}
+        {% endblock %}
+        
+    </div>
+
+    <!-- Contenedor Principal -->
+    <div id="content" style="background-color:#DFEEF7">
+        
+        <!-- Top Navbar -->
+        <div class="container-fluid"> <!-- class="top-navbar" -->
+            <!--button class="toggle-btn" id="toggleSidebar">☰</button-->
+            <!--h5>Panel de Control</h5-->
+            <nav class="top-navbar navbar navbar-light bg-light"> 
+                <!--div class="container-fluid"-->
+                    <a class="navbar-brand fw-bold" href="{% url 'inicio' %}">
+                        <img src="{% static 'fondo.png' %}" alt="" width="45" height="32" class="d-inline-block align-text-top">
+                        GIM - OPERACIONES
+                    </a>
+                    <a class="navbar-brand text-end m-0 p-0" href="{% url 'logout' %}">
+                        {{request.user}} <i class="bi bi-box-arrow-right"></i>
+                    </a>
+                    <!--p>{{request.user}} <i class="bi bi-box-arrow-right"></i> </p-->
+                <!--/div-->
+            </nav>
+        </div>
+
+        <!-- Contenido Principal -->
+        <div class="main-content">
+            
+            <div class="container">
+                {% block body %}
+                <h1 class="text-center">Bienvenido al Dashboard</h1>
+                <p>Este es el contenido principal de la página.</p>
+                {% endblock %}
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        $(document).ready(function() {
+
+            function ajustarSidebar() {
+                if ($(window).width() > 768) {
+                    $("#sidebar").addClass("expanded"); // Expandido por defecto
+                    $("#side-nav-bar-btn").addClass("bi-arrow-bar-left").removeClass("bi-arrow-bar-right");
+                } else {
+                    $("#sidebar").removeClass("collapsed"); // Contraído por defecto
+                    $("#sidebar").removeClass("active"); // Contraído por defecto
+                    $("#side-nav-bar-btn").addClass("bi-arrow-bar-right").removeClass("bi-arrow-bar-left");
+                }
+            }
+
+            // Detectar cambio de tamaño de pantalla
+            ajustarSidebar();
+            $(window).resize(ajustarSidebar);
+
+            $("#toggleSidebar").click(function() {
+                $("#sidebar").toggleClass("collapsed");
+                $("#content").toggleClass("expanded");
+                $(".top-navbar").toggleClass("expanded");
+                
+                if ($("#sidebar").hasClass("collapsed")) {
+                    $("#side-nav-bar-btn").addClass("bi-arrow-bar-right").removeClass("bi-arrow-bar-left");
+                } else {
+                    $("#side-nav-bar-btn").addClass("bi-arrow-bar-left").removeClass("bi-arrow-bar-right");
+                }
+                if($(window).width() < 768) {
+                    $("#sidebar").addClass("active"); 
+                } else {
+                    $("#sidebar").removeClass("active");
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>

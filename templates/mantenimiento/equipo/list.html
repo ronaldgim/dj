@@ -1,12 +1,21 @@
-{%extends 'base.html' %}
+{% extends 'base_side_navbar.html' %}
+{#%extends 'base.html' %#}
 
 {% block title %}
 <title>Listado de cartas generales</title>
 {% endblock%}
 
+{% comment %}
 {% block navbar %}
 {% include 'mantenimiento/topnavbar.html' %}
 {% endblock %}
+{% endcomment %}
+
+
+{% block menu_app %}
+{% include 'mantenimiento/z_menu_app.html' %}
+{% endblock %}
+
 
 {% block body %}
 
