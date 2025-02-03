@@ -1,0 +1,92 @@
+<h4 class="text-center py-4 fw-bold">WMS</h4>
+
+<ul class="list-unstyled px-3 navbar-nav">
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle text-white" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Importaciones 
+        </a>
+        <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+            <li><a class="dropdown-item" href="{% url 'wms_importaciones_list' %}">Importaciones llegadas</a></li>
+            <li><a class="dropdown-item" href="{% url 'wms_imp_ingresadas' %}">Importaciones ingresadas</a></li>
+            <li><a class="dropdown-item" href="{% url 'wms_importaciones_transito_list' %}">Importaciones en transito</a></li>
+        </ul>
+    </li>
+
+    <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle text-white text-justified" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Inventario
+            </a>
+        <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+            <li><a class="dropdown-item" href="{% url 'wms_inventario' %}">Inventario</a></li>  
+            <!--li><a class="dropdown-item" href="{% url 'wms_inventario_inicial_list_bodega' %}">Inventario Inicial</a></li-->
+            <li><a class="dropdown-item" href="{% url 'wms_movimientos_list' %}">Kardex</a></li>
+            <li><a class="dropdown-item" href="{% url 'wms_movimiento_ajuste' %}">Ajustes</a></li>
+            <!--li><a class="dropdown-item" href="{% url 'wms_ingreso_ajuste' %}">Ajuste Liberaciones</a></li-->
+            <li><a class="dropdown-item" href="{% url 'wms_ajuste_liberacion_list' %}">Ajuste Liberaciones</a></li>
+            <li><a class="dropdown-item" href="{% url 'wms_movimiento_grupal' %}">Movimiento Grupal</a></li>
+        </ul>
+    </li>
+
+    <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle text-white" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Picking
+        </a>
+        <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+            <li><a class="dropdown-item" href="{% url 'wms_listado_pedidos' %}">Lista de pedidos</a></li>
+            <li><a class="dropdown-item" href="{% url 'wms_picking_en_despacho_list' %}">Picking en despacho</a></li>
+            <li><a class="dropdown-item" href="{% url 'wms_productos_en_despacho_list' %}">Productos en despacho</a></li>
+            <li><a class="dropdown-item" href="{% url 'wms_cruce_picking_factura' %}">Cruce Picking-Factura</a></li>
+            <li><a class="dropdown-item" href="{% url 'wms_anulacion_picking_list' %}">Reemplazar picking</a></li>
+            <li><a class="dropdown-item" href="{% url 'wms_retiro_producto_despacho' %}">Retirar producto de despacho</a></li>
+        </ul>
+    </li>
+
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle text-white" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Transferencias
+        </a>
+        <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+            <li><a class="dropdown-item" href="{% url 'wms_transferencias_list' %}">Lista de transferencias</a></li>
+            <!--li><a class="dropdown-item" href="{% url 'wms_revision_transferencia' %}">Revisión Trasferencia</a></li-->
+            <li><a class="dropdown-item" href="{% url 'wms_transferencia_ingreso_cerezos_list' %}">Ingreso Trasferencia a Cerezos</a></li>
+        </ul>
+    </li>
+
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle text-white" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Notas de entrega
+        </a>
+        <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+            <li><a class="dropdown-item" href="{% url 'wms_nota_entrega_list' %}">Lista de notas de entrega</a></li>
+            <!--li><a class="dropdown-item" href="{#% url '' %#}">Revisión Trasferencia</a></li>
+            <li><a class="dropdown-item" href="{#% url '' %#}">Ingreso Trasferencia a Cerezos</a></li-->
+        </ul>
+    </li>
+
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle text-white" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Reportes
+        </a>
+        <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+            <!--li><a class="dropdown-item" href="{% url 'wms_resposicion_rm' %}">Reporte reposición</a></li-->
+            <li><a class="dropdown-item" href="{% url 'wms_reporte_reposicion' %}">Reposición bodega 6</a></li>
+            <li><a class="dropdown-item" href="{% url 'wms_reporte_nivelunovacio_rm' %}">Nivel uno vacio</a></li> 
+            <li><a class="dropdown-item" href="{% url 'wms_ubicaciones_list' %}">Ubicaciones</a></li>
+            <li><a class="dropdown-item" href="{% url 'wms_reporte_bodegas457' %}">Reposición bodega 4,5,7</a></li>
+            <li><a class="dropdown-item" href="{% url 'wms_reporte_reposicion_alertas' %}">Reposición alertas</a></li>
+        </ul>
+    </li>
+
+
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle text-white" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Etiquetado
+        </a>
+        <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+            <li><a class="dropdown-item" href="{% url 'wms_armados_list' %}">Armados</a></li>
+            <li><a class="dropdown-item" href="{% url 'wms_armado_picking_list' %}">Procesar Armados</a></li>
+            <li><a class="dropdown-item" href="{% url 'wms_reporte_componentes_armados' %}">Reporte Componentes</a></li>
+        </ul>
+    </li>
+
+</ul>
