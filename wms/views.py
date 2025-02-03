@@ -675,6 +675,8 @@ def wms_detalle_imp(request, o_compra): #OK
         .filter(n_referencia=o_compra)
         .values('product_id','lote_id','unidades_ingresadas','n_referencia')
         )
+
+    imp_wms['lote_id'] = imp_wms['lote_id'].replace('.','')
     
     imp_wms = imp_wms.rename(columns={
         'lote_id':'LOTE_ID',

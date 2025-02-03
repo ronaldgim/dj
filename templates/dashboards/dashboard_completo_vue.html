@@ -209,11 +209,11 @@
                                         <span v-if="i.TIEMPOS == 'F'">F</span><br>
                                         <span>{{i.ciudad}}</span>
                                     </td>
-                                    <td>
+                                    <td class="text-center">
                                         <!--a :class="obtenerColorFondoEstado(i.estado)" :style="{backgroundColor: obtenerColorFondoEstadoIncompleto(i.estado)}">{{i.estado}}</a-->
                                         <h6 class="p-0 m-0"><span :class="obtenerColorFondoEstado(i.estado)" :style="{backgroundColor: obtenerColorFondoEstadoIncompleto(i.estado)}">{{i.estado}}</span></h6>
                                         <!--span v-if="i.estado != '-'" class="mt-2 ps-1 pe-1" style="background-color: #BAF690;">{{i.avance}}%</span-->
-                                        <span v-if="i.estado != '-'" class="badge text-dark" style="background-color: #BAF690; font-size: 12px">{{i.avance}}%</span>
+                                        <span v-if="i.estado != '-'" class="badge text-dark rounded-pill mt-2" style="background-color: #BAF690; font-size: 12px">{{i.avance}}%</span>
                                     </td>
                                     {% endverbatim %}
                                 </tr>
