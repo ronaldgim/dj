@@ -1082,62 +1082,67 @@ def wms_existencias_query(): #OK
 @transaction.atomic
 def wms_existencias_query_product_lote(product_id, lote_id):
 
-    exitencias = Movimiento.objects.filter(
-        product_id=product_id,
-        lote_id=lote_id
-    ).values(
-        # 'id',
-        'product_id',
-        'lote_id',
-        'fecha_caducidad',
-        # 'item__product_id',
-        # 'item__nombre',
-        # 'item__marca2',
-        # 'item__lote_id',
-        # 'item__fecha_caducidad',
-        'ubicacion'        ,
-        'ubicacion__bodega',
-        'ubicacion__pasillo',
-        'ubicacion__modulo',
-        'ubicacion__nivel',
-        'estado'
-    ).annotate(total_unidades=Sum('unidades')).order_by(
-        # 'item__product_id',
-        # 'item__marca2',
-        # 'item__fecha_caducidad',
-        'ubicacion__bodega',
-        'ubicacion__pasillo',
-        'ubicacion__modulo',
-        'ubicacion__nivel',
-    ).exclude(total_unidades = 0)
+    try:
 
-    existencias_list = []
-    for i in exitencias:
-        prod = i['product_id']
-        lote = i['lote_id']
-        fcad = i['fecha_caducidad']
-        ubi  = i['ubicacion']
-        und  = i['total_unidades']
-        est  = i['estado']
+        exitencias = Movimiento.objects.filter(
+            product_id=product_id,
+            lote_id=lote_id
+        ).values(
+            # 'id',
+            'product_id',
+            'lote_id',
+            'fecha_caducidad',
+            # 'item__product_id',
+            # 'item__nombre',
+            # 'item__marca2',
+            # 'item__lote_id',
+            # 'item__fecha_caducidad',
+            'ubicacion'        ,
+            'ubicacion__bodega',
+            'ubicacion__pasillo',
+            'ubicacion__modulo',
+            'ubicacion__nivel',
+            'estado'
+        ).annotate(total_unidades=Sum('unidades')).order_by(
+            # 'item__product_id',
+            # 'item__marca2',
+            # 'item__fecha_caducidad',
+            'ubicacion__bodega',
+            'ubicacion__pasillo',
+            'ubicacion__modulo',
+            'ubicacion__nivel',
+        ).exclude(total_unidades = 0)
+        
+        existencias_list = []
+        for i in exitencias:
+            prod = i['product_id']
+            lote = i['lote_id']
+            fcad = i['fecha_caducidad']
+            ubi  = i['ubicacion']
+            und  = i['total_unidades']
+            est  = i['estado']
+            
+            ex = Existencias(
+                product_id      = prod,
+                lote_id         = lote,
+                fecha_caducidad = fcad,
+                ubicacion_id    = ubi,
+                unidades        = und,
+                estado          = est
+            )
 
-        ex = Existencias(
-            product_id      = prod,
-            lote_id         = lote,
-            fecha_caducidad = fcad,
-            ubicacion_id    = ubi,
-            unidades        = und,
-            estado          = est
-        )
+            existencias_list.append(ex)
+        
+        # for i in existencias_list:
+        #     print(i.id, i.product_id, i.lote_id, i.fecha_caducidad, i.ubicacion_id, i.unidades, i.estado)
+        
+        Existencias.objects.filter(product_id=product_id, lote_id=lote_id).delete()
+        Existencias.objects.bulk_create(existencias_list)
 
-        existencias_list.append(ex)
-    
-    # for i in existencias_list:
-    #     print(i.product_id, i.lote_id, i.fecha_caducidad, i.ubicacion_id, i.unidades, i.estado)
-    
-    Existencias.objects.filter(product_id=product_id, lote_id=lote_id).delete()
-    Existencias.objects.bulk_create(existencias_list)
+        return exitencias
 
-    return exitencias
+    except Exception as e:
+        return HttpResponse(f'{e}')
 
 
 # Actualizar toda la tabla existencias
@@ -1156,6 +1161,7 @@ def wms_inventario(request): #OK
         Suma de ingresos y egresos que dan el total de todo el inventario
     """
     # wms_existencias_query_product_lote("2014","476790")
+    wms_existencias_query_product_lote("CAM02","SCM010924")
     
     prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     productos = pd.DataFrame(Existencias.objects.all().values('product_id'))
