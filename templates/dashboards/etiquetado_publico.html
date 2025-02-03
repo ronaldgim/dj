@@ -110,31 +110,29 @@
                         <td class="text-end">{{i.dias_faltantes|floatformat:0}} días</td>
                         {% endif %}
 
-                        <td class="estado text-start" data-estado="{{i.estado}}">
+                        <td class="estado text-center" data-estado="{{i.estado}}">
 
                             {% if i.estado == 'EN PAUSA' %}
                             <!--a class="btn btn-danger btn-sm disabled">{{i.estado}}</a-->
-                            <h6 class="p-0 m-0"><span class="badge bg-danger">{{i.estado}}</span></h6>
+                            <h6 class="p-0 m-0"><span class="badge bg-danger rounded-pill">{{i.estado}}</span></h6>
                             {% elif i.estado == 'EN TRANSITO' %}
                             <!--a class="btn btn-danger btn-sm disabled">{{i.estado}}</a-->
-                            <h6 class="p-0 m-0"><span class="badge bg-primary">{{i.estado}}</span></h6>
+                            <h6 class="p-0 m-0"><span class="badge bg-primary rounded-pill">{{i.estado}}</span></h6>
                             {% elif i.estado == 'EN PROCESO' %}
                             <!--a class="btn btn-warning text-white btn-sm disabled">{{i.estado}}</a-->
-                            <h6 class="p-0 m-0"><span class="badge bg-warning">{{i.estado}}</span></h6>
+                            <h6 class="p-0 m-0"><span class="badge bg-warning rounded-pill">{{i.estado}}</span></h6>
                             {% elif i.estado == 'INCOMPLETO' %}
                             <!--a class="btn btn-danger btn-sm disabled">{{i.estado}}</a-->
-                            <h6 class="p-0 m-0"><span class="badge" style="background: #bf03c8">{{i.estado}}</span></h6>
+                            <h6 class="p-0 m-0"><span class="badge rounded-pill" style="background: #bf03c8">{{i.estado}}</span></h6>
                             {% elif i.estado == 'FINALIZADO' %}
                             <!--a class="btn btn-success btn-sm disabled">{{i.estado}}</a-->
-                            <h6 class="p-0 m-0"><span class="badge bg-success">{{i.estado}}</span></h6>
+                            <h6 class="p-0 m-0"><span class="badge bg-success rounded-pill">{{i.estado}}</span></h6>
                             {% else %}
                             -
                             {% endif %}
 
-
-
                             {% if i.estado != '-' %}
-                            <span class="badge text-dark" style="background-color: #BAF690;" style="background-color: #BAF690;">
+                            <span class="badge text-dark rounded-pill" style="background-color: #BAF690; font-size: 12px">
                                 {{i.avance}}%
                             </span>
                             {% endif %}
@@ -182,7 +180,7 @@
                         {% endif %}
                         <td class="text-end">-</td>                       
 
-                        <td class="estado text-start" data-estado="{{i.estado}}">
+                        <td class="estado text-center" data-estado="{{i.estado}}">
                             {% if i.estado == 'EN PAUSA' %}
                             <!--a class="btn btn-danger btn-sm disabled">{{i.estado}}</a-->
                             <h6 class="p-0 m-0"><span class="badge bg-danger rounded-pill shadow rounded">{{i.estado}}</span></h6>
@@ -203,7 +201,7 @@
                             {% endif %}
                         </td>
 
-                        <td class="estado text-start" data-estado="{{i.estado}}">
+                        <td class="estado text-center" data-estado="{{i.estado}}">
                             {% if i.est_entrega == 'PENDIENTE' %}
                             <!--a class="btn btn-warning text-white btn-sm disabled">PENDIENTE</a-->
                             <h6 class="p-0 m-0"><span class="badge bg-warning rounded-pill shadow rounded">PENDIENTE</span></h6>
