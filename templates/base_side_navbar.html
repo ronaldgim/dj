@@ -36,11 +36,7 @@
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14"></script>
 
     {% block title %}
-    
     {% endblock %}
-
-    <!-- Bootstrap CSS -->
-    <!--link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"-->
 
     <!-- Estilos personalizados -->
     <style>
@@ -56,7 +52,7 @@
             transition: all 0.3s ease;
             overflow-y: auto;
             padding-top: 0;
-            margin-top: 54px;
+            margin-top: 63px;
         }
 
         /* Contenido Principal */
@@ -79,6 +75,12 @@
             width: 100%;
         }
 
+        #content.disabled-content {
+            margin-left: 0;
+            width: 100%;
+            opacity: 0.5;
+        }
+
         /* Botón hamburguesa */
         .toggle-btn {
             position: fixed;
@@ -94,9 +96,9 @@
             border-radius: 5px;
         }
 
-        /*.toggle-btn:hover {
-            background:rgba(143, 143, 143, 0.9);
-        }*/
+        .toggle-btn:hover {
+            background:rgb(226, 226, 226);
+        }
 
         /* Navbar fija dentro del contenido */
         .top-navbar {
@@ -150,9 +152,6 @@
 </head>
 <body>
 
-    <!-- Botón hamburguesa -->
-    <!--button class="toggle-btn" id="toggleSidebar">☰</button-->
-
     <!-- Sidebar -->
     <div id="sidebar">
         <button class="toggle-btn btn btn-sm shadow rounded" id="toggleSidebar">
@@ -168,30 +167,22 @@
     <div id="content" style="background-color:#DFEEF7">
         
         <!-- Top Navbar -->
-        <div class="container-fluid"> <!-- class="top-navbar" -->
-            <!--button class="toggle-btn" id="toggleSidebar">☰</button-->
-            <!--h5>Panel de Control</h5-->
+        <div class="container-fluid">
             <nav class="top-navbar navbar navbar-light bg-light"> 
-                <!--div class="container-fluid"-->
-                    <a class="navbar-brand fw-bold" href="{% url 'inicio' %}">
-                        <img src="{% static 'fondo.png' %}" alt="" width="45" height="32" class="d-inline-block align-text-top">
-                        GIM - OPERACIONES
-                    </a>
-                    <a class="navbar-brand text-end m-0 p-0" href="{% url 'logout' %}">
-                        {{request.user}} <i class="bi bi-box-arrow-right"></i>
-                    </a>
-                    <!--p>{{request.user}} <i class="bi bi-box-arrow-right"></i> </p-->
-                <!--/div-->
+                <a class="navbar-brand fw-bold" href="{% url 'inicio' %}">
+                    <img src="{% static 'fondo.png' %}" alt="" width="45" height="32" class="d-inline-block align-text-top">
+                    GIM - OPERACIONES
+                </a>
+                <a class="navbar-brand text-end m-0 p-0" href="{% url 'logout' %}">
+                    {{request.user}} <i class="bi bi-box-arrow-right"></i>
+                </a>
             </nav>
         </div>
 
         <!-- Contenido Principal -->
         <div class="main-content">
-            
             <div class="container">
                 {% block body %}
-                <h1 class="text-center">Bienvenido al Dashboard</h1>
-                <p>Este es el contenido principal de la página.</p>
                 {% endblock %}
             </div>
         </div>
@@ -204,27 +195,25 @@
             $("#toggleSidebar").click(function() {
                 $("#sidebar").toggleClass("collapsed");
                 $("#content").toggleClass("expanded");
-                $(".top-navbar").toggleClass("expanded");
                 
                 if ($("#sidebar").hasClass("collapsed")) {
                     $("#side-nav-bar-btn").addClass("bi-arrow-bar-right").removeClass("bi-arrow-bar-left");
                 } else {
                     $("#side-nav-bar-btn").addClass("bi-arrow-bar-left").removeClass("bi-arrow-bar-right");
                 }
+
                 if($(window).width() < 768) {
                     $("#sidebar").addClass("active"); 
                 } else {
                     $("#sidebar").removeClass("active");
                 }
             });
-            
+
             function ajustarSidebar() {
                 if ($(window).width() > 768) {
                     $("#sidebar").addClass("expanded"); // Expandido por defecto
                     $("#side-nav-bar-btn").addClass("bi-arrow-bar-left").removeClass("bi-arrow-bar-right");
                 } else {
-                    $("#sidebar").removeClass("collapsed"); // Contraído por defecto
-                    $("#sidebar").removeClass("active"); // Contraído por defecto
                     $("#side-nav-bar-btn").addClass("bi-arrow-bar-right").removeClass("bi-arrow-bar-left");
                 }
             }
