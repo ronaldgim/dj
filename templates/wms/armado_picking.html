@@ -53,7 +53,9 @@
 
 </div>
 
-
+<a id="imprimir_pdf" class="btn btn-sm btn-danger {% if not orden.archivo %} disabled {% endif %} " href="{% if orden.archivo %} {{ orden.archivo.url }} {% endif %}" target="_blank">
+    IMPRIMIR PDF
+</a>
 
 <hr>
 
@@ -75,7 +77,6 @@
 <hr>
 {% endif %}
 {% endif %}
-
 
 <div class="card mb-2">
     <div class="card-body m-0 p-0">
