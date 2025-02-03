@@ -615,6 +615,10 @@ def anexo_detail(request, anexo_id):
                 'key':'mm-aaaa',
                 'value':'m-Y'
             },
+            {
+                'key':'dd-MM-aaaa',
+                'value':'d-M-Y'
+            },
             ## /
             {
                 'key':'aaaa/mm/dd',
@@ -631,7 +635,11 @@ def anexo_detail(request, anexo_id):
             {
                 'key':'mm/aaaa',
                 'value':'m/Y'
-            }
+            },
+            {
+                'key':'dd/MM/aaaa',
+                'value':'d/M/Y'
+            },
     ]
     
     dd = [
@@ -923,10 +931,13 @@ def anexo_edit_product_ajax(request):
                             <option value="Y-m-d">aaaa-mm-dd</option>
                             <option value="Y-m">aaaa-mm</option>
                             <option value="d-m-Y">dd-mm-aaaa</option>
-                            <option value="m-Y">mm-aaaa</option>
+                            <option value="d-M-Y">dd-MM-aaaa</option>
+                            <option value="m-Y">mm-aaaa</option>                            
+                            
                             <option value="Y/m/d">aaaa/mm/dd</option>
                             <option value="Y/m">aaaa/mm</option>
                             <option value="d/m/Y">dd/mm/aaaa</option>
+                            <option value="d/M/Y">dd/MM/aaaa</option>
                             <option value="m/Y">mm/aaaa</option>
                         </select>
                     </div>
