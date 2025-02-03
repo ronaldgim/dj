@@ -201,21 +201,6 @@
     <script>
         $(document).ready(function() {
 
-            function ajustarSidebar() {
-                if ($(window).width() > 768) {
-                    $("#sidebar").addClass("expanded"); // Expandido por defecto
-                    $("#side-nav-bar-btn").addClass("bi-arrow-bar-left").removeClass("bi-arrow-bar-right");
-                } else {
-                    $("#sidebar").removeClass("collapsed"); // Contraído por defecto
-                    $("#sidebar").removeClass("active"); // Contraído por defecto
-                    $("#side-nav-bar-btn").addClass("bi-arrow-bar-right").removeClass("bi-arrow-bar-left");
-                }
-            }
-
-            // Detectar cambio de tamaño de pantalla
-            ajustarSidebar();
-            $(window).resize(ajustarSidebar);
-
             $("#toggleSidebar").click(function() {
                 $("#sidebar").toggleClass("collapsed");
                 $("#content").toggleClass("expanded");
@@ -232,6 +217,22 @@
                     $("#sidebar").removeClass("active");
                 }
             });
+            
+            function ajustarSidebar() {
+                if ($(window).width() > 768) {
+                    $("#sidebar").addClass("expanded"); // Expandido por defecto
+                    $("#side-nav-bar-btn").addClass("bi-arrow-bar-left").removeClass("bi-arrow-bar-right");
+                } else {
+                    $("#sidebar").removeClass("collapsed"); // Contraído por defecto
+                    $("#sidebar").removeClass("active"); // Contraído por defecto
+                    $("#side-nav-bar-btn").addClass("bi-arrow-bar-right").removeClass("bi-arrow-bar-left");
+                }
+            }
+
+            // Detectar cambio de tamaño de pantalla
+            ajustarSidebar();
+            $(window).resize(ajustarSidebar);
+
         });
     </script>
 
