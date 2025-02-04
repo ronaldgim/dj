@@ -141,19 +141,21 @@
         $("#id_estanteria").on('change', function() {
             
             if ($(this).prop('checked')){
-                $("#id_modulo").show();
-                $("#id_modulo").prop(required, true);
                 $("label[for='id_modulo']").show();
-                $("#id_nivel").show();
-                $("#id_nivel").prop(required, true);
+                $("#id_modulo").show();
+                //$("#id_modulo").prop(required, true);
+                
                 $("label[for='id_nivel']").show();
+                $("#id_nivel").show();
+                //$("#id_nivel").prop(required, true);
             } else {
-                $("#id_modulo").hide();
-                $("#id_modulo").prop(required, false);
                 $("label[for='id_modulo']").hide();
-                $("#id_nivel").hide();
-                $("#id_nivel").prop(required, false);
+                $("#id_modulo").hide();
+                //$("#id_modulo").prop(required, false);
+                
                 $("label[for='id_nivel']").hide();
+                $("#id_nivel").hide();
+                //$("#id_nivel").prop(required, false);
             }
         });
     });
