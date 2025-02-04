@@ -1714,6 +1714,34 @@ def revision_reservas_fun():
     
     # 2.6 Reservas agrupadas
     reservas_agrupadas = reservas_agrupadas_cantidad.merge(reservas_agrupadas_contratos, on=['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD'], how='left')
+    
+    # 3.0 Stock MBA
+    stock = stock_lote_odbc()
+    stock['LOTE_ID'] = stock['LOTE_ID'].str.replace('.', '')
+    stock = stock[stock['PRODUCT_ID'].isin(reservas_agrupadas['PRODUCT_ID'].unique())]
+    stock = stock.groupby(by=['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD'])['OH2'].sum().reset_index()
+    
+    # 4 Reporte
+    for index, row in reservas_agrupadas.iterrows():
+    
+        producto = row['PRODUCT_ID']
+        sto = stock[stock['PRODUCT_ID']==producto]
+        
+        # Si hay más de un lote, evaluar si el lote actual es el último y comparar las fechas de caducidad de cada lote
+        if sto.shape[0] > 1:
+            sto = sto.sort_values(by='FECHA_CADUCIDAD', ascending=False)
+            sto_lote = sto.merge()
+            
+            
+            #sto_lote = sto[sto['LOTE_ID']==row['LOTE_ID']].index[0]
+            # ultimo_lote_index = len(sto) - 1
+            # if ubicacion_lote < ultimo_lote_index:
+            #     sto = sto.iloc[ubicacion_lote:ultimo_lote_index+1]
+                
+                
+        
+            
+    
     return reservas_agrupadas    
     # # iterar y crear reporte
     # resultados = []
