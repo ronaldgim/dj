@@ -254,6 +254,8 @@ PASILLO_BLOQUE = [
     ('F', 'F'),
     ('G', 'G'),
     ('H', 'H'),
+    ('I', 'I'),
+    ('J', 'J'),
 ]
 class UbicacionAndagoya(models.Model):
     
