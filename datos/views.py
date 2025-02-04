@@ -1692,79 +1692,81 @@ def revision_reservas_fun():
     contratos_list = list(map(lambda x: int(float(x)), contratos_list))
 
     # 2.4 Reservas lote filtradas
+    df_reservas_lote['LOTE_ID'] = df_reservas_lote['LOTE_ID'].str.replace('.', '')
     reservas = df_reservas_lote[df_reservas_lote.CONTRATO_ID.isin(contratos_list)]
     
     # 2.4.1 Clientes reservas
     cli_res = reservas.copy()
-    cli_res = cli_res.merge(cli, on='CODIGO_CLIENTE', how='left')[['NOMBRE_CLIENTE','CONTRATO_ID']]    
+    cli_res = cli_res.merge(cli, on='CODIGO_CLIENTE', how='left')[['NOMBRE_CLIENTE','CONTRATO_ID']]
     cli_res = cli_res.drop_duplicates(subset='NOMBRE_CLIENTE')
     
     # 2.5 Filtrar en reservas con lotes por lista de contratos    
     reservas_agrupadas_cantidad = reservas.copy()
-    reservas_agrupadas_cantidad = reservas_agrupadas_cantidad.groupby(by=['PRODUCT_ID','LOTE_ID'])['EGRESO_TEMP'].sum().reset_index()
+    reservas_agrupadas_cantidad = reservas_agrupadas_cantidad.groupby(by=['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD'])['EGRESO_TEMP'].sum().reset_index()
     reservas_agrupadas_contratos = reservas.copy()
     reservas_agrupadas_contratos['CONTRATO_ID'] = reservas_agrupadas_contratos['CONTRATO_ID'].astype('str')
     reservas_agrupadas_contratos = reservas_agrupadas_contratos.pivot_table(
         index=[
             'PRODUCT_ID',
-            'LOTE_ID'
+            'LOTE_ID',
+            'FECHA_CADUCIDAD',
         ], values='CONTRATO_ID', aggfunc = lambda x: ' - '.join(x)).reset_index()
     
     # 2.6 Reservas agrupadas
-    reservas_agrupadas = reservas_agrupadas_cantidad.merge(reservas_agrupadas_contratos, on=['PRODUCT_ID','LOTE_ID'], how='left')
-    
-    # iterar y crear reporte
-    resultados = []
-    for index, row in reservas_agrupadas.iterrows():
+    reservas_agrupadas = reservas_agrupadas_cantidad.merge(reservas_agrupadas_contratos, on=['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD'], how='left')
+    return reservas_agrupadas    
+    # # iterar y crear reporte
+    # resultados = []
+    # for index, row in reservas_agrupadas.iterrows():
         
-        stock = inventario[inventario['PRODUCT_ID']==row['PRODUCT_ID']].copy()
-        stock['LOTE_ID'] = quitar_puntos(stock['LOTE_ID'])
-        stock = stock.groupby(by=['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD'])['OH2'].sum()
-        stock = pd.DataFrame(stock).reset_index()
-        stock = stock.sort_values(by='FECHA_CADUCIDAD').reset_index(drop=True)
+    #     stock = inventario[inventario['PRODUCT_ID']==row['PRODUCT_ID']].copy()
+    #     stock['LOTE_ID'] = quitar_puntos(stock['LOTE_ID'])
+    #     stock = stock.groupby(by=['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD'])['OH2'].sum()
+    #     stock = pd.DataFrame(stock).reset_index()
+    #     stock = stock.sort_values(by='FECHA_CADUCIDAD').reset_index(drop=True)
         
-        if len(stock) > 1:
+    #     if len(stock) > 1:
             
-            row_lote_id = row['LOTE_ID'].replace('.','')
-            row_lote_id = row_lote_id.rstrip()
-            row_lote_id = row_lote_id.lstrip()
+    #         row_lote_id = row['LOTE_ID'].replace('.','')
+    #         row_lote_id = row_lote_id.rstrip()
+    #         row_lote_id = row_lote_id.lstrip()
             
-            ubicacion_lote = stock[stock['LOTE_ID']==row_lote_id].index[0]
-            ultimo_lote_index = len(stock) - 1
+    #         ubicacion_lote = stock[stock['LOTE_ID']==row_lote_id].index[0]
+    #         ultimo_lote_index = len(stock) - 1
             
-            if ubicacion_lote < ultimo_lote_index:
-                reserva_product_lote = df_reservas_lote[
-                    (df_reservas_lote['PRODUCT_ID'] == row['PRODUCT_ID']) &
-                    (df_reservas_lote['LOTE_ID'] == row['LOTE_ID'])
-                ][[
-                    'CONTRATO_ID', 
-                    'PRODUCT_ID', 
-                    'LOTE_ID', 
-                    'FECHA_CADUCIDAD', 
-                    'EGRESO_TEMP', 
-                    'WARE_CODE'
-                ]]
+    #         if ubicacion_lote < ultimo_lote_index:
+    #             reserva_product_lote = df_reservas_lote[
+    #                 (df_reservas_lote['PRODUCT_ID'] == row['PRODUCT_ID']) &
+    #                 (df_reservas_lote['LOTE_ID'] == row['LOTE_ID'])
+    #             ][[
+    #                 'CONTRATO_ID', 
+    #                 'PRODUCT_ID', 
+    #                 'LOTE_ID', 
+    #                 'FECHA_CADUCIDAD', 
+    #                 'EGRESO_TEMP', 
+    #                 'WARE_CODE'
+    #             ]]
                 
-                resultados.append(reserva_product_lote)
+    #             resultados.append(reserva_product_lote)
             
-    if resultados:
-        reporte_final = pd.concat(resultados, ignore_index=True)
-        reporte_final['FECHA_CADUCIDAD'] = reporte_final['FECHA_CADUCIDAD'].astype('str')
-        reporte_final = reporte_final.merge(cli_res, on='CONTRATO_ID', how='left')
-        reporte_final = reporte_final[[
-            'NOMBRE_CLIENTE',
-            'CONTRATO_ID',
-            'PRODUCT_ID',
-            'LOTE_ID',
-            'FECHA_CADUCIDAD',
-            'EGRESO_TEMP',
-            'WARE_CODE'
-        ]]
+    # if resultados:
+    #     reporte_final = pd.concat(resultados, ignore_index=True)
+    #     reporte_final['FECHA_CADUCIDAD'] = reporte_final['FECHA_CADUCIDAD'].astype('str')
+    #     reporte_final = reporte_final.merge(cli_res, on='CONTRATO_ID', how='left')
+    #     reporte_final = reporte_final[[
+    #         'NOMBRE_CLIENTE',
+    #         'CONTRATO_ID',
+    #         'PRODUCT_ID',
+    #         'LOTE_ID',
+    #         'FECHA_CADUCIDAD',
+    #         'EGRESO_TEMP',
+    #         'WARE_CODE'
+    #     ]]
         
-        return reporte_final
+    #     return reporte_final
 
-    else:
-        return pd.DataFrame()
+    # else:
+    #     return pd.DataFrame()
 
 
 ### Consulta de productos en cuarentena para etiquetado stock
