@@ -1661,6 +1661,114 @@ def revision_reservas_fun_obsoleta_dos():
 
 
 
+def revision_reservas_fun_antigua():
+    
+    # 1. Obtener datos
+    df_reservas_lote    = reservas_lote()
+    df_reservas_sinlote = reservas_sinlote()
+    cli                 = clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE']]
+    clientes            = clientes_warehouse()[['CODIGO_CLIENTE','CLIENT_TYPE']]
+    inventario          = stock_lote_odbc()
+
+    # 2.0 Filtrar por SEC_NAME_CLIENTE 
+    # solo reserva yu reservado
+    df_reservas_sinlote = df_reservas_sinlote[
+        (df_reservas_sinlote['SEC_NAME_CLIENTE']=='RESERVA') |
+        (df_reservas_sinlote['SEC_NAME_CLIENTE']=='RESERVADO')
+        ]
+    
+    # 2.1 Filtrar reservas por gimpromed y cliente hospital
+    df_reservas_sinlote = df_reservas_sinlote.merge(clientes, on='CODIGO_CLIENTE', how='left')
+    df_reservas_sinlote = df_reservas_sinlote[
+        (df_reservas_sinlote['CLIENT_TYPE'] == 'HOSPU') |
+        (df_reservas_sinlote['CODIGO_CLIENTE'] == 'CLI01002') 
+    ]    
+    
+    # 2.2 Filtrar por ware_code BCT
+    df_reservas_sinlote = df_reservas_sinlote[df_reservas_sinlote['WARE_CODE'] == 'BCT']
+    
+    # 2.3 Obtener lista de contratos
+    contratos_list = df_reservas_sinlote['CONTRATO_ID'].unique()
+    contratos_list = list(map(lambda x: int(float(x)), contratos_list))
+
+    # 2.4 Reservas lote filtradas
+    df_reservas_lote['LOTE_ID'] = df_reservas_lote['LOTE_ID'].str.replace('.', '')
+    reservas = df_reservas_lote[df_reservas_lote.CONTRATO_ID.isin(contratos_list)]
+    
+    # 2.4.1 Clientes reservas
+    cli_res = reservas.copy()
+    cli_res = cli_res.merge(cli, on='CODIGO_CLIENTE', how='left')[['NOMBRE_CLIENTE','CONTRATO_ID']]
+    cli_res = cli_res.drop_duplicates(subset='NOMBRE_CLIENTE')
+    
+    # 2.5 Filtrar en reservas con lotes por lista de contratos    
+    reservas_agrupadas_cantidad = reservas.copy()
+    reservas_agrupadas_cantidad = reservas_agrupadas_cantidad.groupby(by=['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD'])['EGRESO_TEMP'].sum().reset_index()
+    reservas_agrupadas_contratos = reservas.copy()
+    reservas_agrupadas_contratos['CONTRATO_ID'] = reservas_agrupadas_contratos['CONTRATO_ID'].astype('str')
+    reservas_agrupadas_contratos = reservas_agrupadas_contratos.pivot_table(
+        index=[
+            'PRODUCT_ID',
+            'LOTE_ID',
+            'FECHA_CADUCIDAD',
+        ], values='CONTRATO_ID', aggfunc = lambda x: ' - '.join(x)).reset_index()
+    
+    # 2.6 Reservas agrupadas
+    reservas_agrupadas = reservas_agrupadas_cantidad.merge(reservas_agrupadas_contratos, on=['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD'], how='left')
+    
+    # iterar y crear reporte
+    resultados = []
+    for index, row in reservas_agrupadas.iterrows():
+        
+        stock = inventario[inventario['PRODUCT_ID']==row['PRODUCT_ID']].copy()
+        stock['LOTE_ID'] = quitar_puntos(stock['LOTE_ID'])
+        stock = stock.groupby(by=['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD'])['OH2'].sum()
+        stock = pd.DataFrame(stock).reset_index()
+        stock = stock.sort_values(by='FECHA_CADUCIDAD').reset_index(drop=True)
+        
+        if len(stock) > 1:
+            
+            row_lote_id = row['LOTE_ID'].replace('.','')
+            row_lote_id = row_lote_id.rstrip()
+            row_lote_id = row_lote_id.lstrip()
+            
+            ubicacion_lote = stock[stock['LOTE_ID']==row_lote_id].index[0]
+            ultimo_lote_index = len(stock) - 1
+            
+            if ubicacion_lote < ultimo_lote_index:
+                reserva_product_lote = df_reservas_lote[
+                    (df_reservas_lote['PRODUCT_ID'] == row['PRODUCT_ID']) &
+                    (df_reservas_lote['LOTE_ID'] == row['LOTE_ID'])
+                ][[
+                    'CONTRATO_ID', 
+                    'PRODUCT_ID', 
+                    'LOTE_ID', 
+                    'FECHA_CADUCIDAD', 
+                    'EGRESO_TEMP', 
+                    'WARE_CODE'
+                ]]
+                
+                resultados.append(reserva_product_lote)
+            
+    if resultados:
+        reporte_final = pd.concat(resultados, ignore_index=True)
+        reporte_final['FECHA_CADUCIDAD'] = reporte_final['FECHA_CADUCIDAD'].astype('str')
+        reporte_final = reporte_final.merge(cli_res, on='CONTRATO_ID', how='left')
+        reporte_final = reporte_final[[
+            'NOMBRE_CLIENTE',
+            'CONTRATO_ID',
+            'PRODUCT_ID',
+            'LOTE_ID',
+            'FECHA_CADUCIDAD',
+            'EGRESO_TEMP',
+            'WARE_CODE'
+        ]]
+        
+        return reporte_final
+
+    else:
+        return pd.DataFrame()
+
+
 def revision_reservas_fun():
     
     # 1. Obtener datos
@@ -1723,6 +1831,7 @@ def revision_reservas_fun():
     
     # 4 Reporte
     # for index, row in reservas_agrupadas.iterrows():
+    df_list = []
     for i in reservas_agrupadas['PRODUCT_ID'].unique():
     
         producto = i
@@ -1738,34 +1847,21 @@ def revision_reservas_fun():
             sto_lote['siguiente_vacia'] = sto_lote[cl].isna().all(axis=1).shift(-1, fill_value=False)
             
             #if producto == 'SP6246':
-            print('1 | --------- COLUMNA PREV LLENO --------- |')
-            print(sto_lote)
+            # print('1 | --------- COLUMNA PREV LLENO --------- |')
+            # print(sto_lote)
             
-            print('2 | --------- DATAFRAME FILTRADO --------- |')
+            #print('2 | --------- DATAFRAME FILTRADO --------- |')
             sto_lote = sto_lote[sto_lote['fila_llena'] & sto_lote['siguiente_vacia']]
-            print(sto_lote)
+            #print(sto_lote)
             
-            
-            # sto_lote['prev_lleno'] = sto_lote[['FECHA_CADUCIDAD_y','EGRESO_TEMP','CONTRATO_ID']].notna().all(axis=1).shift(-1)#.shift(-1, fill_value=True)
-            # print('1--------- COLUMNA PREV LLENO --------- ')
-            # print(sto_lote)
-            # print('2--------- DATAFRAME FILTRADO --------- ')
-            # # sto_lote = sto_lote[sto_lote[['FECHA_CADUCIDAD_y','EGRESO_TEMP','CONTRATO_ID']].isna().any(axis=1) & sto_lote['prev_lleno']]#.copy()
-            # sto_lote = sto_lote[sto_lote[['FECHA_CADUCIDAD_y','EGRESO_TEMP','CONTRATO_ID']].notna().any(axis=1) & sto_lote['prev_lleno']]#.copy()
-            # #sto_lote = sto_lote.drop(columns=['prev_lleno'], inplace=True)
-            # print(sto_lote)
-            
-            
-            #sto_lote = sto[sto['LOTE_ID']==row['LOTE_ID']].index[0]
-            # ultimo_lote_index = len(sto) - 1
-            # if ubicacion_lote < ultimo_lote_index:
-            #     sto = sto.iloc[ubicacion_lote:ultimo_lote_index+1]
-                
-                
-        
+            if not sto_lote.empty:
+                df_list.append(sto_lote)
+    
+    df_reporte = pd.concat(df_list)
+    return df_reporte
             
 
-            # return reservas_agrupadas    
+    #         # return reservas_agrupadas    
     # # iterar y crear reporte
     # resultados = []
     # for index, row in reservas_agrupadas.iterrows():
@@ -1818,7 +1914,6 @@ def revision_reservas_fun():
 
     # else:
     #     return pd.DataFrame()
-
 
 ### Consulta de productos en cuarentena para etiquetado stock
 def stock_lote_cuc_etiquetado_detalle_odbc(): 

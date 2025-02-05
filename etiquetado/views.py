@@ -3530,16 +3530,19 @@ def productos_ubicacion_lista_template():
     productos = ProductoUbicacion.objects.all()
     
     productos_df = pd.DataFrame(productos.values())
-    productos_completo = productos_df.merge(productos_mba, on='product_id', how='left').sort_values(by=['Marca','product_id'], ascending=[True, True])
-    productos_completo = de_dataframe_a_template(productos_completo)   
-    
-    for i in productos_completo:
-        product_id = i['product_id']        
-        for j in productos:
-            if j.product_id == product_id:
-                i['ubicaciones'] = list(j.ubicaciones.all().order_by('bodega','pasillo','modulo','nivel'))
-                
-    return productos_completo
+    if not productos_df.empty:
+        productos_completo = productos_df.merge(productos_mba, on='product_id', how='left').sort_values(by=['Marca','product_id'], ascending=[True, True])
+        productos_completo = de_dataframe_a_template(productos_completo)   
+        
+        for i in productos_completo:
+            product_id = i['product_id']        
+            for j in productos:
+                if j.product_id == product_id:
+                    i['ubicaciones'] = list(j.ubicaciones.all().order_by('bodega','pasillo','modulo','nivel'))
+                    
+        return productos_completo
+    else:
+        return []
 
 
 def producto_ubicacion_lista(request):
