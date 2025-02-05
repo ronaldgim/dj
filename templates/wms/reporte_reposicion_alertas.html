@@ -64,7 +64,15 @@
                 <tbody id="pedidosbuscar">
                     {% for i in reporte %}
                     <tr>
-                        <td class="enum"></td>
+                        <td class="enum"
+                        {% if i.meses <= 0.49 %}
+                            style="background-color: #F6B690;"
+                        {% elif i.meses <= 0.9 and i.meses >= 0.49 %}
+                            style="background-color: #F6F490;"
+                        {% elif i.meses > 0.9 %}
+                            style="background-color: #BAF690;"
+                        {% endif %}
+                        ></td>
                         <td>
                             <form method="POST" action="/wms/inventario">
                                 {% csrf_token %}

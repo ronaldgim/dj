@@ -1722,15 +1722,38 @@ def revision_reservas_fun():
     stock = stock.groupby(by=['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD'])['OH2'].sum().reset_index()
     
     # 4 Reporte
-    for index, row in reservas_agrupadas.iterrows():
+    # for index, row in reservas_agrupadas.iterrows():
+    for i in reservas_agrupadas['PRODUCT_ID'].unique():
     
-        producto = row['PRODUCT_ID']
+        producto = i
         sto = stock[stock['PRODUCT_ID']==producto]
+        rsv = reservas_agrupadas[reservas_agrupadas['PRODUCT_ID']==producto]
         
-        # Si hay más de un lote, evaluar si el lote actual es el último y comparar las fechas de caducidad de cada lote
-        if sto.shape[0] > 1:
-            sto = sto.sort_values(by='FECHA_CADUCIDAD', ascending=False)
-            sto_lote = sto.merge()
+        if len(sto) > 1:
+            sto = sto.sort_values(by='FECHA_CADUCIDAD', ascending=True)
+            sto_lote = sto.merge(rsv, on=['PRODUCT_ID','LOTE_ID'], how='left').reset_index()
+
+            cl = ['FECHA_CADUCIDAD_y','EGRESO_TEMP','CONTRATO_ID']
+            sto_lote['fila_llena'] = sto_lote[cl].notna().all(axis=1)
+            sto_lote['siguiente_vacia'] = sto_lote[cl].isna().all(axis=1).shift(-1, fill_value=False)
+            
+            #if producto == 'SP6246':
+            print('1 | --------- COLUMNA PREV LLENO --------- |')
+            print(sto_lote)
+            
+            print('2 | --------- DATAFRAME FILTRADO --------- |')
+            sto_lote = sto_lote[sto_lote['fila_llena'] & sto_lote['siguiente_vacia']]
+            print(sto_lote)
+            
+            
+            # sto_lote['prev_lleno'] = sto_lote[['FECHA_CADUCIDAD_y','EGRESO_TEMP','CONTRATO_ID']].notna().all(axis=1).shift(-1)#.shift(-1, fill_value=True)
+            # print('1--------- COLUMNA PREV LLENO --------- ')
+            # print(sto_lote)
+            # print('2--------- DATAFRAME FILTRADO --------- ')
+            # # sto_lote = sto_lote[sto_lote[['FECHA_CADUCIDAD_y','EGRESO_TEMP','CONTRATO_ID']].isna().any(axis=1) & sto_lote['prev_lleno']]#.copy()
+            # sto_lote = sto_lote[sto_lote[['FECHA_CADUCIDAD_y','EGRESO_TEMP','CONTRATO_ID']].notna().any(axis=1) & sto_lote['prev_lleno']]#.copy()
+            # #sto_lote = sto_lote.drop(columns=['prev_lleno'], inplace=True)
+            # print(sto_lote)
             
             
             #sto_lote = sto[sto['LOTE_ID']==row['LOTE_ID']].index[0]
@@ -1741,8 +1764,8 @@ def revision_reservas_fun():
                 
         
             
-    
-    return reservas_agrupadas    
+
+            # return reservas_agrupadas    
     # # iterar y crear reporte
     # resultados = []
     # for index, row in reservas_agrupadas.iterrows():
