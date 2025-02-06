@@ -278,20 +278,20 @@ def sugerencia():
 
 
 
-def stock_andagoya(): 
+# def stock_andagoya(): 
     
-    with connections['gimpromed_sql'].cursor() as cursor:
-        cursor.execute("SELECT * FROM warehouse.stock_lote")
-        columns = [col[0] for col in cursor.description]
-        data = [dict(zip(columns, row)) for row in cursor.fetchall()]
+#     with connections['gimpromed_sql'].cursor() as cursor:
+#         cursor.execute("SELECT * FROM warehouse.stock_lote")
+#         columns = [col[0] for col in cursor.description]
+#         data = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
-        data = pd.DataFrame(data)
+#         data = pd.DataFrame(data)
         
         
         
-    return data
+#     return data
 
 
-def excel_stock_transferencia(request):
+# def excel_stock_transferencia(request):
     
-    return 'ok' # HttpResponse('ok')
+#     return 'ok' # HttpResponse('ok')
