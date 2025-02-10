@@ -23,7 +23,7 @@ from etiquetado.models import (
 # Register your models here.
 @admin.register(RowItem)
 class RowItemAdmin(admin.ModelAdmin):
-    list_display = ('item', 'lote', 'cant')
+    list_display = ('id', 'item', 'lote', 'cant')
     
 @admin.register(Calculadora)
 class CalculadoraAdmin(admin.ModelAdmin):
