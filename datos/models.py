@@ -41,6 +41,9 @@ class Product(models.Model):
     def __str__(self):
         return f'{self.product_id} {self.description} {self.marca}'
     
+    class Meta:
+        ordering = ('product_id',)
+    
 
 class Marca(models.Model):
     
