@@ -4950,11 +4950,11 @@ def wms_armado_picking(request, id):
                         ubi_list.append(k)
                 for k in movimientos:
                     if k['product_id'] == i:
-                        pik_list.append(k)        
+                        pik_list.append(k)
                 for l in total_picking:
                     if l['product_id'] == i:
                         j['total_picking'] = l['total_picking']
-
+    
     # Total Unidades Picking
     total_unidades_picking_todos = [(i['unidades'] * -1) for i in movimientos]
     total_unidades_picking_todos = sum(total_unidades_picking_todos)
