@@ -117,18 +117,16 @@
 
                             <td class="text-end">
                                 <div class="btn-group btn-group-sm" role="group" aria-label="Basic mixed styles example">
-                                <button class="btn btn-primary btn-sm {% if estado == 'SIN ESTADO' %} disabled {% endif %}" name="boton_ubicaciones"> 
-                                    <i class="bi bi-geo-fill"></i>
-                                </button>
+                                    <button class="btn btn-primary btn-sm {% if estado == 'SIN ESTADO' %} disabled {% endif %}" name="boton_ubicaciones"> 
+                                        <i class="bi bi-geo-fill"></i>
+                                    </button>
 
-                                {#% if i.total_picking == i.unidades %#}
-                                <!--button type="button" class="btn btn-warning" name="completar-nuevo-producto" id="{{i.id}}" data-bs-toggle="modal" data-bs-target="#CompletarProductoNuevo">
-                                    <i class="bi bi-text-left"></i>
-                                </button-->
-                                {#% endif %#}
-
+                                    {#% if i.total_picking == i.unidades %#}
+                                    <!--button type="button" class="btn btn-warning" name="completar-nuevo-producto" id="{{i.id}}" data-bs-toggle="modal" data-bs-target="#CompletarProductoNuevo">
+                                        <i class="bi bi-text-left"></i>
+                                    </button-->
+                                    {#% endif %#}
                                 </div>
-
                             </td>
                         </tr>
 
@@ -147,36 +145,40 @@
                                     </thead>
                                     <tbody>
                                         {# TABLA DE INVENTARIO #}
-                                        {% if i.ubi %}
-                                        {% for i in i.ubi %}
-                                            {% if not i.tipo %}
-                                            <tr {% if not i.tipo %} style="background-color: #e6e6e6;" {% else %} style="background-color: #e3fde6;" {% endif %}>
-                                                <td>
-                                                    <span style="background-color:#37F8F5">{{i.lote_id}}</span><br>
-                                                    <span>{{i.fecha_caducidad|date:'Y-d-m'}}</span>
-                                                </td>
-                                                
-                                                <td class="{% if i.estado == 'Cuarentena' %}text-danger{% endif %}">{% if i.estado == 'Cuarentena' %}CUC-{% endif %}
-                                                    <span>{{i.ubicacion__bodega}}-{{i.ubicacion__pasillo}}-{{i.ubicacion__modulo}}{% if i.ubicacion__bodega == 'CN6' %}-{{i.ubicacion__nivel}}{% else %}{% endif %}</span><br>
-                                                    <span class="fw-bold">Disp:</span> {{i.unidades|floatformat:"0g"}}
-                                                </td>
+                                        {% if not i.ubi %}
+                                        <tr style="background-color:  #fde6e3 ;">
+                                            <td colspan="7" class="text-center"> No hay existencias en inventario !!! </td> 
+                                        </tr>
+                                        {% else %}
 
-                                                <td>
-                                                    {% if i.tipo == 'Egreso' %}
-                                                    {% else %}
-                                                    <input id="picking_cantidad" type="number" class="form-control" {% if i.estado == 'Cuarentena' %} disabled {% endif %}>
-                                                    {% endif %}
-                                                </td>
-                                                
-                                                <td class="text-center">
-                                                    <button name="pick" type="button" class="btn btn-success btn-sm {% if i.estado == 'Cuarentena' %} disabled {% endif %}" id="{{i.id}}">
-                                                        <i class="bi bi-arrow-bar-right"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                            {% endif %}
-                                        {% endfor %}
-                                
+                                            {% for i in i.ubi %}
+                                                <tr {% if not i.tipo %} style="background-color: #e6e6e6;" {% else %} style="background-color: #e3fde6;" {% endif %}>
+                                                    <td>
+                                                        <span style="background-color:#37F8F5">{{i.lote_id}}</span><br>
+                                                        <span>{{i.fecha_caducidad|date:'Y-d-m'}}</span>
+                                                    </td>
+                                                    
+                                                    <td class="{% if i.estado == 'Cuarentena' %}text-danger{% endif %}">{% if i.estado == 'Cuarentena' %}CUC-{% endif %}
+                                                        <span>{{i.ubicacion__bodega}}-{{i.ubicacion__pasillo}}-{{i.ubicacion__modulo}}{% if i.ubicacion__bodega == 'CN6' %}-{{i.ubicacion__nivel}}{% else %}{% endif %}</span><br>
+                                                        <span class="fw-bold">Disp:</span> {{i.unidades|floatformat:"0g"}}
+                                                    </td>
+
+                                                    <td>
+                                                        {% if i.tipo == 'Egreso' %}
+                                                        {% else %}
+                                                        <input id="picking_cantidad" type="number" class="form-control" {% if i.estado == 'Cuarentena' %} disabled {% endif %}>
+                                                        {% endif %}
+                                                    </td>
+                                                    
+                                                    <td class="text-center">
+                                                        <button name="pick" type="button" class="btn btn-success btn-sm {% if i.estado == 'Cuarentena' %} disabled {% endif %}" id="{{i.id}}">
+                                                            <i class="bi bi-arrow-bar-right"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        {% endif %}
+
                                         {# TABLA DE ELEMENTOS PICKEADOS #}
                                         {% if i.pik %}
                                         <tr>
@@ -211,13 +213,6 @@
                                             </td>
                                         <tr>
                                         {% endif %}
-
-                                    {% else %}
-                                        <tr style="background-color:  #fde6e3 ;">
-                                            <td colspan="7" class="text-center"> No hay existencias en inventario !!! </td> 
-                                        </tr>
-                                    {% endif %}
-                                    
                                     </tbody>
                                 </table>
                             </td>
