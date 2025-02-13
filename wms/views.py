@@ -2559,7 +2559,12 @@ def wms_cruce_check_despacho(request):
         )
 
     if items.exists():
-        items.update(estado_picking='Despachado', n_factura=n_factura)
+        # items.update(estado_picking='Despachado', n_factura=n_factura)
+        # 13/02/2025
+        for i in items:
+            i.estado_picking = 'Despachado'
+            i.n_factura = n_factura
+            i.save()
 
         return JsonResponse({
             'msg':'OK',
@@ -5164,6 +5169,7 @@ def wms_armado_editar_estado(request):
 #             #     })
 
 
+@login_required(login_url='login')
 @pdf_decorator(pdfname='orden_armado.pdf')
 def wms_armado_orden_pdf(request, orden_id):
     
@@ -5192,7 +5198,7 @@ def wms_armado_orden_pdf(request, orden_id):
     return render(request, 'wms/armado_orden_pdf.html', context)
 
 
-
+@login_required(login_url='login')
 def wms_reporte_componentes_armados(request):
     # Componentes armados
     componentes_armados = ProductoArmado.objects.filter(componentes__isnull=False).values()
@@ -5220,30 +5226,80 @@ def wms_reporte_componentes_armados(request):
 
 
 
-# def quitar_puntos_de_existencias_y_movimientos(request):
+def split_factura_movimiento(n_factura):
     
-#     codigo = '162040'
-#     lote = '23111840.'
-#     lote_sin_punto = '23111840'
+    if '-' in n_factura:
+        factura = n_factura.split('-')[1][4:]
+        factura = int(factura)
+        return str(factura)
+    else:
+        return n_factura
     
-#     existencias = Existencias.objects.filter(
-#         Q(product_id=codigo) & Q(lote_id=lote)
-#     ).order_by('id')
     
-#     for i in existencias:
-#         print(i.id, i.product_id, i.lote_id)
+@login_required(login_url='login')
+def wms_picking_list(request, estado_de_picking):
     
-#     existencias.update(lote_id=lote_sin_punto)
-    
+    try:
+        # Picking y facturas
+        picking_factura = Movimiento.objects.filter(
+            Q(referencia='Picking') &
+            Q(estado_picking=estado_de_picking)
+        )
         
-#     movimientos = Movimiento.objects.filter(
-#         Q(product_id=codigo) & Q(lote_id=lote)
-#     ).order_by('id')
-    
-#     movimientos.update(lote_id=lote_sin_punto)
-    
-#     for i in movimientos:
-#         print(i.id, i.product_id, i.lote_id)
+        picking_factura_df = pd.DataFrame(picking_factura.values(
+            'referencia',
+            'n_referencia',
+            'n_factura',
+            'fecha_hora',
+            'actualizado',
+            'usuario__first_name',
+            'usuario__last_name',
+            )).drop_duplicates(subset='n_referencia').sort_values(by='n_referencia', ascending=False)
+        picking_factura_df['picking'] = picking_factura_df['n_referencia'].str.slice(0,-2)
+        picking_factura_df['factura'] = picking_factura_df['n_factura'].apply(split_factura_movimiento)
+        picking_factura_df['actualizado'] = picking_factura_df['actualizado'].astype('str').str.slice(0,16)
         
-#     return HttpResponse('ok')
+        context = {
+            'picking_factura_df': de_dataframe_a_template(picking_factura_df),
+            'titulo': 'LISTA DE PICKING - FACTURA' if estado_de_picking == 'Despachado' else 'LISTA DE PICKING - PRODUCTOS NO DESPACHADOS'
+        }
+        
+        return render(request, 'wms/cruce_picking_factura_list.html', context)
     
+    except Exception as e:
+        context = {'error':str(e)}
+        return render(request, 'wms/cruce_picking_factura_list.html', context)
+
+
+@login_required(login_url='login')
+def wms_referenica_detalle(request, referencia, n_referencia):
+    
+    try:
+        # Picking
+        picking = Movimiento.objects.filter(
+            Q(referencia=referencia) &
+            Q(n_referencia=n_referencia)
+            )
+        
+        picking_df = pd.DataFrame(picking.values(
+            'product_id',
+            'lote_id',
+            'unidades',
+            'estado_picking',
+            'usuario__first_name',
+            'usuario__last_name'
+        ))
+        productos = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+        picking_df = picking_df.merge(productos, on='product_id', how='left')
+        picking_df['unidades'] = picking_df['unidades'] * -1 
+        
+        context = {
+            'picking' : picking.first(),
+            'picking_df': de_dataframe_a_template(picking_df)
+        }
+        
+        return render(request, 'wms/picking_detalle.html', context)
+    
+    except Exception as e:
+        context = {'error':str(e)}
+        return render(request, 'wms/picking_detalle.html', context)
