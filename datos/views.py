@@ -1880,7 +1880,7 @@ def revision_reservas_fun():
         df_reservas_lote    = reservas_lote_2()
         df_reservas_sinlote = reservas_sinlote()
         cli                 = clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE']]
-        clientes            = clientes_warehouse()[['CODIGO_CLIENTE','CLIENT_TYPE']]
+        # clientes            = clientes_warehouse()[['CODIGO_CLIENTE','CLIENT_TYPE']]
         inventario          = stock_lote_odbc()
 
         # 2.0 Filtrar por SEC_NAME_CLIENTE 
@@ -1891,11 +1891,11 @@ def revision_reservas_fun():
             ]
         
         # 2.1 Filtrar reservas por gimpromed y cliente hospital
-        df_reservas_sinlote = df_reservas_sinlote.merge(clientes, on='CODIGO_CLIENTE', how='left')
-        df_reservas_sinlote = df_reservas_sinlote[
-            (df_reservas_sinlote['CLIENT_TYPE'] == 'HOSPU') |
-            (df_reservas_sinlote['CODIGO_CLIENTE'] == 'CLI01002') 
-        ]    
+        # df_reservas_sinlote = df_reservas_sinlote.merge(clientes, on='CODIGO_CLIENTE', how='left')
+        # df_reservas_sinlote = df_reservas_sinlote[
+        #     (df_reservas_sinlote['CLIENT_TYPE'] == 'HOSPU') |
+        #     (df_reservas_sinlote['CODIGO_CLIENTE'] == 'CLI01002') 
+        # ]    
         
         # 2.2 Filtrar por ware_code BCT
         df_reservas_sinlote = df_reservas_sinlote[df_reservas_sinlote['WARE_CODE'] == 'BCT']
@@ -1946,7 +1946,7 @@ def revision_reservas_fun():
             if len(sto) > 1:
                 sto = sto.sort_values(by='FECHA_CADUCIDAD', ascending=True)
                 sto_lote = sto.merge(rsv, on=['PRODUCT_ID','LOTE_ID'], how='left').reset_index()
-
+                
                 cl = ['FECHA_CADUCIDAD_y','EGRESO_TEMP','CONTRATO_ID']
                 sto_lote['fila_llena'] = sto_lote[cl].notna().all(axis=1)
                 sto_lote['siguiente_vacia'] = sto_lote[cl].isna().all(axis=1).shift(-1, fill_value=False)
