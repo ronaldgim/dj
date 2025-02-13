@@ -1857,13 +1857,27 @@ def revision_reservas_fun_antiguo_dos():
 
 
 
+def reservas_lote_2():
+
+    ''' Colusta de clientes por ruc a la base de datos '''
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute("SELECT * FROM reservas_lote_2")
+        columns = [col[0] for col in cursor.description]
+        reservas_lote = [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+        reservas_lote = pd.DataFrame(reservas_lote) 
+    return reservas_lote
+
 
 def revision_reservas_fun():
     
     try:
     
         # 1. Obtener datos
-        df_reservas_lote    = reservas_lote()
+        # df_reservas_lote    = reservas_lote()
+        df_reservas_lote    = reservas_lote_2()
         df_reservas_sinlote = reservas_sinlote()
         cli                 = clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE']]
         clientes            = clientes_warehouse()[['CODIGO_CLIENTE','CLIENT_TYPE']]
@@ -1969,7 +1983,8 @@ def revision_reservas_fun():
         
         return df_reporte
 
-    except:
+    except Exception as e:
+        print(e)
         return pd.DataFrame()
 
 
