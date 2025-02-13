@@ -157,16 +157,20 @@
 </div>
 
 <div class="mb-4">
+    {% comment %}
     <button class="btn btn-primary" name="crear_pdf_enviar_email">
-        
         {% if not orden.archivo %}
         CREAR PDF
         {% elif orden.archivo %}
         ACTUALIZAR PDF
         {% endif %}
-
     </button>
-    <a id="imprimir_pdf" class="btn btn-danger {% if not orden.archivo %} disabled {% endif %} " href="{% if orden.archivo %} {{ orden.archivo.url }} {% endif %}" target="_blank">
+    {% endcomment %}
+
+    <!--a id="imprimir_pdf" class="btn btn-danger {% if not orden.archivo %} disabled {% endif %} " href="{% if orden.archivo %} {{ orden.archivo.url }} {% endif %}" target="_blank">
+        IMPRIMIR PDF
+    </a-->
+    <a id="imprimir_pdf" class="btn btn-danger" href="{% url 'wms_armado_orden_pdf' orden.id %}" target="_blank">
         IMPRIMIR PDF
     </a>
 </div>
