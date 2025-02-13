@@ -95,7 +95,9 @@
                         <td>{{i.observaciones}}</td>
                         <td>
                             <div class="btn-group" role="group" aria-label="Basic example">
-                                <a class="btn btn-sm btn-primary" href="{% url 'wms_orden_armado' i.id %}">Ver</a>
+                                <a class="btn btn-sm btn-primary" href="{% url 'wms_orden_armado' i.id %}">
+                                    <i class="bi bi-eye"></i>
+                                </a>
                                 <button 
                                     name="estado-orden" 
                                     class="btn btn-sm btn-danger {% if i.estado != 'Creado' %} disabled {% endif %}" 

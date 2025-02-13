@@ -581,11 +581,15 @@ urlpatterns = [
         name = 'wms_reporte_componentes_armados'
     ),
     
+    path(
+        route='picking-list/<str:estado_de_picking>', 
+        view = views.wms_picking_list,
+        name = 'wms_picking_list'
+    ),
     
-    
-    # path(
-    #     route='quitar_puntos_de_existencias_y_movimientos',
-    #     view = views.quitar_puntos_de_existencias_y_movimientos,
-    #     name = 'quitar_puntos_de_existencias_y_movimientos'
-    # )
+        path(
+        route='detalle/<str:referencia>/<str:n_referencia>', 
+        view = views.wms_referenica_detalle,
+        name = 'wms_referenica_detalle'
+    ),
 ]
