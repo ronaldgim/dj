@@ -53,10 +53,12 @@
 
 </div>
 
-<a id="imprimir_pdf" class="btn btn-sm btn-danger {% if not orden.archivo %} disabled {% endif %} " href="{% if orden.archivo %} {{ orden.archivo.url }} {% endif %}" target="_blank">
+<!--a id="imprimir_pdf" class="btn btn-sm btn-danger {% if not orden.archivo %} disabled {% endif %} " href="{#% if orden.archivo %} {{ orden.archivo.url }} {% endif %#}" target="_blank">
     IMPRIMIR PDF
+</a-->
+<a id="imprimir_pdf" class="btn btn-danger" href="{% url 'wms_armado_orden_pdf' orden.id %}" target="_blank">
+    IMPRIMIR PDF .
 </a>
-
 <hr>
 
 <div class="text-end mb-2">
@@ -120,12 +122,6 @@
                                     <button class="btn btn-primary btn-sm {% if estado == 'SIN ESTADO' %} disabled {% endif %}" name="boton_ubicaciones"> 
                                         <i class="bi bi-geo-fill"></i>
                                     </button>
-
-                                    {#% if i.total_picking == i.unidades %#}
-                                    <!--button type="button" class="btn btn-warning" name="completar-nuevo-producto" id="{{i.id}}" data-bs-toggle="modal" data-bs-target="#CompletarProductoNuevo">
-                                        <i class="bi bi-text-left"></i>
-                                    </button-->
-                                    {#% endif %#}
                                 </div>
                             </td>
                         </tr>
