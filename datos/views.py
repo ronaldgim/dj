@@ -73,6 +73,7 @@ from api_mba.tablas_warehouse import (
     api_actualizar_proformas_warehouse,
     api_actualizar_reservas_warehouse,
     api_actualizar_reservas_lotes_warehouse,
+    api_actualizar_reservas_lotes_2_warehouse,
     
     odbc_actualizar_stock_lote
     )
@@ -556,6 +557,10 @@ def stock_lote(request):
             # 9 Reservas lotes
             # warehouse.reservas_lotes
             api_actualizar_reservas_lotes_warehouse()
+            
+            # 9 Reservas lotes
+            # warehouse.reservas_lotes
+            api_actualizar_reservas_lotes_2_warehouse()
 
             # 10 Stock Lotes
             # warehouse.stock_lotes
@@ -585,6 +590,8 @@ def stock_lote(request):
                 api_actualizar_reservas_warehouse()
             elif table_name == "reservas_lote":
                 api_actualizar_reservas_lotes_warehouse()
+            elif table_name == "reservas_lote_2":
+                api_actualizar_reservas_lotes_2_warehouse()
             elif table_name == "stock_lote":
                 odbc_actualizar_stock_lote()
             elif table_name == "etiquetado_stock":
