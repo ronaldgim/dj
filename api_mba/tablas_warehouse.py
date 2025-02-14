@@ -39,12 +39,14 @@ def delete_data_warehouse(table_name):
 # obtener columnas de tabla por nombre de la tabla
 def get_columns_table_warehouse(table_name):
     
-    with connections['gimpromed_sql'].cursor() as cursor:
-        cursor.execute(f"SHOW COLUMNS FROM {table_name}")
-        columns = [row[0] for row in cursor.fetchall()]
-        
-    return columns
-
+    try:
+        with connections['gimpromed_sql'].cursor() as cursor:
+            cursor.execute(f"SHOW COLUMNS FROM {table_name}")
+            columns = [row[0] for row in cursor.fetchall()]
+            
+        return columns
+    except Exception as e:
+        print(e)
 
 # insertar datos en tabla de warehouse
 def insert_data_warehouse(table_name, data):   
@@ -899,12 +901,12 @@ def api_actualizar_reservas_lotes_2_warehouse():
                     egreso_temp,
                     lote_id,
                     fecha_caducidad,
-                    fecha_elaboracion_lote,
                     confirmed,
+                    fecha_elaboracion_lote,
                 )
                 
                 data.append(row)
-                
+            
             #with transaction.atomic():
             # Borrar datos de tabla reservas_lote
             delete_data_warehouse('reservas_lote_2')
