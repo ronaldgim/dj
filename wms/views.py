@@ -1164,7 +1164,8 @@ def wms_inventario(request): #OK
         Suma de ingresos y egresos que dan el total de todo el inventario
     """
     # wms_existencias_query_product_lote("2014","476790")
-    
+    from api_mba.tablas_warehouse import api_actualizar_reservas_lotes_2_warehouse
+    print(api_actualizar_reservas_lotes_2_warehouse())
     prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     productos = pd.DataFrame(Existencias.objects.all().values('product_id'))
     productos = productos.merge(prod, on='product_id', how='left').sort_values('product_id')

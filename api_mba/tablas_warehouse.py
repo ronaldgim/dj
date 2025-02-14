@@ -835,6 +835,91 @@ def api_actualizar_reservas_lotes_warehouse():
         admin_warehouse_timestamp(tabla='reservas_lote', actualizar_datetime=False, mensaje=f'Error exception: {e}')
 
 
+
+def api_actualizar_reservas_lotes_2_warehouse():
+    
+    try:
+    
+        reservas_lotes_2_mba = api_mba_sql(
+            """
+            SELECT 
+                CLNT_Pedidos_Principal.FECHA_PEDIDO, 
+                CLNT_Pedidos_Principal.CONTRATO_ID, 
+                CLNT_Ficha_Principal.CODIGO_CLIENTE, 
+                INVT_Ficha_Principal.PRODUCT_ID,
+                CLNT_Pedidos_Principal.WARE_CODE, 
+                INVT_Lotes_Trasabilidad.EGRESO_TEMP, 
+                INVT_Lotes_Trasabilidad.LOTE_ID, 
+                INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD,
+                INVT_Producto_Lotes.Fecha_elaboracion_lote, 
+                CLNT_Pedidos_Principal.CONFIRMED
+            
+            FROM 
+                CLNT_Ficha_Principal CLNT_Ficha_Principal, 
+                INVT_Ficha_Principal INVT_Ficha_Principal, 
+                CLNT_Pedidos_Principal CLNT_Pedidos_Principal,
+                INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad, 
+                INVT_Producto_Lotes INVT_Producto_Lotes
+            
+            WHERE 
+                CLNT_Ficha_Principal.CODIGO_CLIENTE = CLNT_Pedidos_Principal.CLIENT_ID AND 
+                INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND 
+                INVT_Lotes_Trasabilidad.LOTE_ID = INVT_Producto_Lotes.LOTE_ID AND
+                INVT_Lotes_Trasabilidad.WARE_COD_CORP = INVT_Producto_Lotes.WARE_CODE_CORP AND 
+                INVT_Lotes_Trasabilidad.DOC_ID_CORP = CLNT_Pedidos_Principal.CONTRATO_ID_CORP AND
+                INVT_Ficha_Principal.PRODUCT_ID_CORP = INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP AND 
+                ((CLNT_Pedidos_Principal.PEDIDO_CERRADO=false)) 
+            
+            ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID
+            """
+        )
+        
+        if reservas_lotes_2_mba["status"] == 200:
+            
+            #data = [tuple(i.values()) for i in reservas_lotes_mba['data']]
+            data = []
+            for i in reservas_lotes_2_mba['data']:
+                fecha_pedido = datetime.strptime(i['FECHA_PEDIDO'][:10], '%d/%m/%Y') # date
+                contrato_id = i['CONTRATO_ID']
+                codigo_cliente = i['CODIGO_CLIENTE']
+                product_id = i['PRODUCT_ID']
+                ware_code = i['WARE_CODE']
+                egreso_temp = i['EGRESO_TEMP']
+                lote_id = i['LOTE_ID']
+                fecha_caducidad = datetime.strptime(i['FECHA_CADUCIDAD'][:10], '%d/%m/%Y') # date
+                fecha_elaboracion_lote = datetime.strptime(i['FECHA_ELABORACION_LOTE'][:10], '%d/%m/%Y') # date
+                confirmed = 0 if i['CONFIRMED'] == 'false' else 1
+                
+                row = (
+                    fecha_pedido,
+                    contrato_id,
+                    codigo_cliente,
+                    product_id,
+                    ware_code,
+                    egreso_temp,
+                    lote_id,
+                    fecha_caducidad,
+                    fecha_elaboracion_lote,
+                    confirmed,
+                )
+                
+                data.append(row)
+                
+            #with transaction.atomic():
+            # Borrar datos de tabla reservas_lote
+            delete_data_warehouse('reservas_lote_2')
+            
+            # Insertar datos de tabla reservas_lote
+            insert_data_warehouse('reservas_lote_2', data)
+            
+            admin_warehouse_timestamp(tabla='reservas_lote_2', actualizar_datetime=True, mensaje='Actualizado correctamente')
+        else:
+            admin_warehouse_timestamp(tabla='reservas_lote_2', actualizar_datetime=False, mensaje=f'Error api: status {reservas_lotes_2_mba["status"]}')
+    except Exception as e:
+        admin_warehouse_timestamp(tabla='reservas_lote_2', actualizar_datetime=False, mensaje=f'Error exception: {e}')
+
+
+
 ### 10 ACTULIZAR STOCK LOTE POR ODBC
 import pyodbc
 def odbc_actualizar_stock_lote():
