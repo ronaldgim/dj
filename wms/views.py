@@ -4983,6 +4983,7 @@ def wms_armado_picking(request, id):
     return render(request, 'wms/armado_picking.html', context)
 
 
+@login_required(login_url='login')
 def wms_armado_movimiento_egreso(request):
     
     # Verificar si se ingresaron unidades
@@ -5054,6 +5055,7 @@ def wms_armado_movimiento_egreso(request):
     return JsonResponse({'msg':'❌Error !!!'})
 
 
+@login_required(login_url='login')
 def wms_armado_editar_estado(request):
     
     if request.method == 'POST':
@@ -5115,7 +5117,7 @@ def wms_armado_editar_estado(request):
             })
 
 
-
+@login_required(login_url='login')
 def wms_armado_orden_pdf(request, orden_id):
     
     if request.method == 'POST':
