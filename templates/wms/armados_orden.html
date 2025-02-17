@@ -158,14 +158,14 @@
 
 <div class="mb-4">
     <button class="btn btn-primary" name="crear_pdf_enviar_email">
-        CREAR PDF Y ENVIAR CORREO
+        Crear Pdf y enviar email
     </button>
 
     <!--a id="imprimir_pdf" class="btn btn-danger {% if not orden.archivo %} disabled {% endif %} " href="{% if orden.archivo %} {{ orden.archivo.url }} {% endif %}" target="_blank">
         IMPRIMIR PDF
     </a-->
     <a id="imprimir_pdf" class="btn btn-danger" href="{% url 'wms_armado_orden_pdf_view' orden.id %}" target="_blank">
-        IMPRIMIR PDF
+        Imprimir Pdf
     </a>
 </div>
 
