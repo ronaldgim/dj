@@ -408,7 +408,7 @@
         
         $.ajax({
             type:"POST",
-            url: "{% url 'wms_armado_orden_pdf_view' orden.id %}",
+            url: "{% url 'wms_armado_orden_pdf' orden.id %}",
             data: {
                 'csrfmiddlewaretoken': '{{csrf_token}}',
                 // 'product_id': product_id,
@@ -418,10 +418,10 @@
                     $("#imprimir_pdf").removeClass('disabled');
                 }
 
-                $("#msg2").html(`<div id="msg2" class="text-center alert alert-${response.type}" role="alert">${response.msg}</div>`);
+                window.location.href="/wms/armados-list"
             },
             error: function(xhr, status, error) {
-                $("#msg2").html(`<div id="msg2" class="text-center alert alert-success" role="alert">${xhr.responseText}</div>`);
+                $("#msg2").html(`<div id="msg2" class="text-center alert alert-danger" role="alert">Error</div>`);
             }
         })
     })
