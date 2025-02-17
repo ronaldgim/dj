@@ -590,7 +590,7 @@ def wms_home(request):
 @permisos(['ADMINISTRADOR','OPERACIONES'], '/wms/home', 'Importaciones llegadas')
 def wms_importaciones_list(request): #OK
     """ Lista de importaciones llegadas """
-
+    
     imp = importaciones_llegadas_odbc()
     imp = imp[imp['WARE_COD_CORP']=='CUC']
     imp['ENTRADA_FECHA'] = pd.to_datetime(imp['ENTRADA_FECHA'])
@@ -664,7 +664,7 @@ def wms_detalle_imp(request, o_compra): #OK
         Una vez ingresada la importación desaparece de la lista de importaciones por llegar
         y aparece en la lista de importaciones ingresadas
     """
-
+    print('asdfasdf     mjmjmjmjmj')
     imp = importaciones_llegadas_ocompra_odbc(o_compra)
     pro = productos_odbc_and_django()[['product_id', 'Nombre', 'marca','marca2']]
     imp = imp.merge(pro, on='product_id', how='left')
@@ -679,7 +679,8 @@ def wms_detalle_imp(request, o_compra): #OK
         .values('product_id','lote_id','unidades_ingresadas','n_referencia')
         )
 
-    imp_wms['lote_id'] = imp_wms['lote_id'].replace('.','')
+    if not imp_wms.empty:
+        imp_wms['lote_id'] = imp_wms['lote_id'].replace('.','')
     
     imp_wms = imp_wms.rename(columns={
         'lote_id':'LOTE_ID',
@@ -702,9 +703,16 @@ def wms_detalle_imp(request, o_compra): #OK
         
         imp_ing = []
         for i in de_dataframe_a_template(d):
+            
+            if '.' in i['LOTE_ID']:
+                lote_imp = i['LOTE_ID'].replace('.', '')
+            else:
+                lote_imp = i['LOTE_ID']
+            
             imp = InventarioIngresoBodega(
                 product_id          = i['product_id'],
-                lote_id             = i['LOTE_ID'],
+                #lote_id             = i['LOTE_ID'],
+                lote_id             = lote_imp,
                 fecha_caducidad     = i['FECHA_CADUCIDAD'],
                 bodega              = i['bodega'],
                 unidades_ingresadas = i['OH'],
