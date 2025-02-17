@@ -576,6 +576,12 @@ urlpatterns = [
     ),
     
     path(
+        route='wms_armado_orden_pdf_view/<int:orden_id>',
+        view = views.wms_armado_orden_pdf_view,
+        name = 'wms_armado_orden_pdf_view'
+    ),
+    
+    path(
         route='wms_reporte_componentes_armados',
         view = views.wms_reporte_componentes_armados,
         name = 'wms_reporte_componentes_armados'

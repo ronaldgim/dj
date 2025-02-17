@@ -48,7 +48,7 @@
     </ul>
 
     <button type="button" id="{{orden.nuevo_producto.id}}" name="completar-nuevo-producto" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#CompletarProductoNuevo">
-        Completar datos
+        COMPLETAR DATOS
     </button>
 
 </div>
@@ -56,8 +56,8 @@
 <!--a id="imprimir_pdf" class="btn btn-sm btn-danger {% if not orden.archivo %} disabled {% endif %} " href="{#% if orden.archivo %} {{ orden.archivo.url }} {% endif %#}" target="_blank">
     IMPRIMIR PDF
 </a-->
-<a id="imprimir_pdf" class="btn btn-danger" href="{% url 'wms_armado_orden_pdf' orden.id %}" target="_blank">
-    IMPRIMIR PDF .
+<a id="imprimir_pdf" class="btn btn-sm btn-danger" href="{% url 'wms_armado_orden_pdf' orden.id %}" target="_blank">
+    IMPRIMIR PDF
 </a>
 <hr>
 
