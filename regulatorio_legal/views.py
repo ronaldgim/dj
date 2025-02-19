@@ -968,6 +968,9 @@ def facturas_proformas_detalle(request, id):
                             )
                             
                             factura_proforma.documentos.add(iso_reg)
+                            
+                        else:
+                            return JsonResponse({'alert':'danger', 'msg':'Error al descargar el archivo'})
                     
                     else:
                         return JsonResponse({
