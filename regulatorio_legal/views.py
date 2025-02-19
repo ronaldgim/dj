@@ -969,9 +969,13 @@ def facturas_proformas_detalle(request, id):
                             
                             factura_proforma.documentos.add(iso_reg)
                     
+                    else:
+                        return JsonResponse({
+                            'alert':'danger', 
+                            'msg':f'Error procesando documento {desc} con tipo {tipo}'
+                        })
                     time.sleep(2)
                 
-
                 factura_proforma.procesar_docs = True
                 factura_proforma.save()
             
@@ -981,6 +985,7 @@ def facturas_proformas_detalle(request, id):
                 })
             
         except Exception as e:
+            print(e)
             return JsonResponse({
                 'alert':'danger', 
                 'msg':str(e)})
