@@ -935,7 +935,7 @@ def facturas_proformas_detalle(request, id):
     elif request.method == 'POST':
         
         try:
-        
+            print('api marca de agua')
             factura_proforma = FacturaProforma.objects.get(id=id)
             documentos = json.loads(request.POST.get('documentos'))
             
