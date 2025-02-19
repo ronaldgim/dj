@@ -63,6 +63,7 @@ from django.contrib.auth.decorators import login_required
 from api_mba.api_marca_agua import api_marca_agua
 from django.core.files.base import ContentFile
 import requests
+import time
 
 
 # Lista de importaciones
@@ -905,7 +906,97 @@ def factura_proforma_marca_de_agua_ajax(request):
         'msg': f'Texto de marca de agua agregado !!!'
     })
 
-import time
+# import time
+# def facturas_proformas_detalle(request, id):
+    
+#     if request.method == 'GET':
+#         factura_proforma = FacturaProforma.objects.get(id=id) 
+#         detalle = json.loads(factura_proforma.detalle.replace("'", '"'))
+#         detalle = pd.DataFrame(detalle)
+#         detalle = detalle.groupby(by='product_id').sum().reset_index()
+#         detalle = detalle.merge(productos_odbc_and_django()[['product_id','Nombre','Marca']])
+        
+#         # ISOS
+#         marcas = detalle['Marca'].unique()
+#         isos_query =  DocumentosLegales.objects.filter(marca__in = list(marcas)).distinct()
+        
+#         # REGISTROS SANITARIOS
+#         productos = detalle['product_id'].unique()        
+#         registros_sanitarios = RegistroSanitario.objects.filter(productos__product_id__in = list(productos)).distinct()
+        
+#         context = {
+#             'factura_proforma': factura_proforma,
+#             'detalle':de_dataframe_a_template(detalle),
+#             'isos':isos_query,
+#             'registros_sanitarios':registros_sanitarios,
+#             #'correo':correos_notificacion_factura(factura_proforma.nombre_cliente)[0]
+#         }
+#         return render(request, 'regulatorio_legal/detalle_factura_proforma.html', context)
+    
+#     elif request.method == 'POST':
+        
+#         try:
+#             print('api marca de agua')
+#             factura_proforma = FacturaProforma.objects.get(id=id)
+#             documentos = json.loads(request.POST.get('documentos'))
+            
+#             if len(documentos) < 1:
+#                 return JsonResponse({'alert':'danger', 'msg':'Seleccione documentos que desea procesar'})
+            
+#             else:
+                
+#                 for i in documentos:
+                    
+#                     tipo = i.get('tipo').split('_')[0]
+#                     desc = i.get('tipo').split('_')[1]
+#                     path = i.get('doc_path')
+                    
+#                     procesar_pdf = api_marca_agua(texto=factura_proforma.marca_de_agua, file_path=path)
+                    
+#                     if procesar_pdf.status_code == 200:
+#                         pdf_response = requests.get(procesar_pdf.json().get('url_descarga'))
+#                         if pdf_response.status_code==200:
+                            
+#                             iso_reg = IsosRegEnviados(
+#                                 tipo_documento= tipo,
+#                                 descripcion= desc,
+#                             )
+                            
+#                             iso_reg.documento.save(
+#                                 f'{tipo}-{desc}.pdf',
+#                                 #ContentFile(pdf_response.content, name=f'{tipo}-{desc}.pdf')
+#                                 ContentFile(pdf_response.content)
+#                             )
+                            
+#                             factura_proforma.documentos.add(iso_reg)
+                            
+#                         else:
+#                             return JsonResponse({'alert':'danger', 'msg':'Error al descargar el archivo'})
+                    
+#                     else:
+#                         return JsonResponse({
+#                             'alert':'danger', 
+#                             'msg':f'Error procesando documento {desc} con tipo {tipo}'
+#                         })
+#                     time.sleep(2)
+                
+#                 factura_proforma.procesar_docs = True
+#                 factura_proforma.save()
+            
+#                 return JsonResponse({
+#                     'alert':'success',
+#                     'msg': f'Documentos procesados exitosamente !!!'
+#                 })
+            
+#         except Exception as e:
+#             print(e)
+#             return JsonResponse({
+#                 'alert':'danger', 
+#                 'msg':str(e)})
+
+
+
+
 def facturas_proformas_detalle(request, id):
     
     if request.method == 'GET':
@@ -934,26 +1025,27 @@ def facturas_proformas_detalle(request, id):
     
     elif request.method == 'POST':
         
-        try:
-            print('api marca de agua')
-            factura_proforma = FacturaProforma.objects.get(id=id)
-            documentos = json.loads(request.POST.get('documentos'))
+        factura_proforma = FacturaProforma.objects.get(id=id)
+        documentos = json.loads(request.POST.get('documentos'))
+        
+        if len(documentos) < 1:
+            return JsonResponse({'alert':'danger', 'msg':'Seleccione documentos que desea procesar'})
+        
+        else:
             
-            if len(documentos) < 1:
-                return JsonResponse({'alert':'danger', 'msg':'Seleccione documentos que desea procesar'})
-            
-            else:
-                
+            try:
                 for i in documentos:
-                    
+                    print(i)
                     tipo = i.get('tipo').split('_')[0]
                     desc = i.get('tipo').split('_')[1]
                     path = i.get('doc_path')
+                    
                     
                     procesar_pdf = api_marca_agua(texto=factura_proforma.marca_de_agua, file_path=path)
                     
                     if procesar_pdf.status_code == 200:
                         pdf_response = requests.get(procesar_pdf.json().get('url_descarga'))
+                        
                         if pdf_response.status_code==200:
                             
                             iso_reg = IsosRegEnviados(
@@ -968,7 +1060,6 @@ def facturas_proformas_detalle(request, id):
                             )
                             
                             factura_proforma.documentos.add(iso_reg)
-                            
                         else:
                             return JsonResponse({'alert':'danger', 'msg':'Error al descargar el archivo'})
                     
@@ -981,17 +1072,16 @@ def facturas_proformas_detalle(request, id):
                 
                 factura_proforma.procesar_docs = True
                 factura_proforma.save()
-            
+            except Exception as e:
+                print(e)
                 return JsonResponse({
-                    'alert':'success',
-                    'msg': f'Documentos procesados exitosamente !!!'
-                })
-            
-        except Exception as e:
-            print(e)
+                    'alert':'danger', 
+                    'msg':str(e)})
+        
             return JsonResponse({
-                'alert':'danger', 
-                'msg':str(e)})
+                'alert':'success',
+                'msg': f'Documentos procesados exitosamente !!!'
+            })
 
 
 
