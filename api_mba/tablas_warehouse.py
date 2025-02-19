@@ -980,6 +980,9 @@ def odbc_actualizar_stock_lote():
     except Exception as e:
         
         admin_warehouse_timestamp(tabla='stock_lote', actualizar_datetime=False, mensaje=f'Error ODBC exception: {e}')
+        
+    finally:
+        cnxn.close()
 
 
 
