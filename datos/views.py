@@ -1067,42 +1067,62 @@ def factura_detalle_odbc(n_factura):
 
 def factura_lote_odbc(n_factura):
 
-    cnxn = pyodbc.connect('DSN=mba3;PWD=API')
-    cursorOdbc = cnxn.cursor()
+    # cnxn = pyodbc.connect('DSN=mba3;PWD=API')
+    # cursorOdbc = cnxn.cursor()
 
-    cursorOdbc.execute(
+    # cursorOdbc.execute(
 
-        f"""SELECT CLNT_Factura_Principal.CODIGO_FACTURA, CLNT_Factura_Principal.CODIGO_CLIENTE, CLNT_Factura_Principal.FECHA_FACTURA, INVT_Ficha_Principal.PRODUCT_ID,
+    #     f"""SELECT CLNT_Factura_Principal.CODIGO_FACTURA, CLNT_Factura_Principal.CODIGO_CLIENTE, CLNT_Factura_Principal.FECHA_FACTURA, INVT_Ficha_Principal.PRODUCT_ID,
+    #     INVT_Ficha_Principal.PRODUCT_NAME, INVT_Ficha_Principal.GROUP_CODE, INVT_Lotes_Trasabilidad.EGRESO_TEMP, INVT_Lotes_Trasabilidad.LOTE_ID, INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD,
+    #     INVT_Ficha_Principal.Custom_Field_1
+    #     FROM CLNT_Factura_Principal CLNT_Factura_Principal, INVT_Ficha_Principal INVT_Ficha_Principal, INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad
+    #     WHERE INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP = INVT_Ficha_Principal.PRODUCT_ID_CORP AND CLNT_Factura_Principal.CODIGO_FACTURA = INVT_Lotes_Trasabilidad.DOC_ID_CORP AND
+    #     ((CLNT_Factura_Principal.CODIGO_FACTURA='{n_factura}') AND (CLNT_Factura_Principal.ANULADA=FALSE))
+    #     """
+    # )
+
+    # lote_factura = cursorOdbc.fetchall()
+
+    # lote_factura = [list(rows) for rows in lote_factura]
+    # lote_factura = pd.DataFrame(lote_factura)
+    
+    # lote_factura = lote_factura.rename(columns={
+    #     0:'CODIGO_FACTURA',
+    #     1:'CODIGO_CLIENTE',
+    #     2:'FECHA_FACTURA',
+    #     3:'PRODUCT_ID',
+    #     4:'PRODUCT_NAME',
+    #     5:'PRODUCT_GROUP',   # GROUP_CODE
+    #     6:'QUANTITY',        # EGRESO_TEMP
+    #     7:'LOTE_ID',
+    #     8:'FECHA_CADUCIDAD', 
+    #     9:'REG_SANITARIO'    # CUSTOM_FIELD_1
+    # })
+
+    # lote_factura['FECHA_FACTURA'] = lote_factura['FECHA_FACTURA'].astype(str)
+    # lote_factura['FECHA_CADUCIDAD'] = lote_factura['FECHA_CADUCIDAD'].astype(str)
+
+    # return lote_factura
+    
+    fac = api_mba_sql(f"""
+        SELECT CLNT_Factura_Principal.CODIGO_FACTURA, CLNT_Factura_Principal.CODIGO_CLIENTE, CLNT_Factura_Principal.FECHA_FACTURA, INVT_Ficha_Principal.PRODUCT_ID,
         INVT_Ficha_Principal.PRODUCT_NAME, INVT_Ficha_Principal.GROUP_CODE, INVT_Lotes_Trasabilidad.EGRESO_TEMP, INVT_Lotes_Trasabilidad.LOTE_ID, INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD,
         INVT_Ficha_Principal.Custom_Field_1
         FROM CLNT_Factura_Principal CLNT_Factura_Principal, INVT_Ficha_Principal INVT_Ficha_Principal, INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad
         WHERE INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP = INVT_Ficha_Principal.PRODUCT_ID_CORP AND CLNT_Factura_Principal.CODIGO_FACTURA = INVT_Lotes_Trasabilidad.DOC_ID_CORP AND
         ((CLNT_Factura_Principal.CODIGO_FACTURA='{n_factura}') AND (CLNT_Factura_Principal.ANULADA=FALSE))
-        """
-    )
-
-    lote_factura = cursorOdbc.fetchall()
-
-    lote_factura = [list(rows) for rows in lote_factura]
-    lote_factura = pd.DataFrame(lote_factura)
+    """)
     
-    lote_factura = lote_factura.rename(columns={
-        0:'CODIGO_FACTURA',
-        1:'CODIGO_CLIENTE',
-        2:'FECHA_FACTURA',
-        3:'PRODUCT_ID',
-        4:'PRODUCT_NAME',
-        5:'PRODUCT_GROUP',
-        6:'QUANTITY',
-        7:'LOTE_ID',
-        8:'FECHA_CADUCIDAD',
-        9:'REG_SANITARIO'
-    })
-
-    lote_factura['FECHA_FACTURA'] = lote_factura['FECHA_FACTURA'].astype(str)
-    lote_factura['FECHA_CADUCIDAD'] = lote_factura['FECHA_CADUCIDAD'].astype(str)
-
-    return lote_factura
+    if fac['status'] == 200:
+        factura = pd.DataFrame(fac['data'])
+        factura['FECHA_FACTURA'] = factura['FECHA_FACTURA'].str.slice(0, 10)
+        factura['FECHA_CADUCIDAD'] = factura['FECHA_CADUCIDAD'].str.slice(0, 10)
+        factura = factura.rename(columns={'GROUP_CODE':'PRODUCT_GROUP'}) 
+        
+        return factura
+    
+    else:
+        return pd.DataFrame()
 
 
 

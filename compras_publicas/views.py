@@ -343,15 +343,46 @@ def procesos_sercop_sql():
         return procesos
 
 
+def procesos_sercop_results_sql():
+    with connections['procesos_sercop'].cursor() as cursor:
+        cursor.execute("""
+            SELECT codigo, ganador, valor
+            FROM result_procesos
+            """)
+
+        columns  = [col[0] for col in cursor.description]
+        procesos = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+        procesos = pd.DataFrame(procesos)
+
+        return procesos
+
+
+def nombre_del_mes(mes):
+    index = int(mes) - 1 
+    meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+    return meses[index]
+
 
 def procesos_sercop(request):
 
     procesos = pd.DataFrame(ProcesosSercop.objects.all().order_by('-fecha_hora').values())
-    procesos_sql = procesos_sercop_sql()
-    procesos_sql = procesos_sql.rename(columns={'Codigo':'proceso'})
+    procesos_sql = procesos_sercop_sql() 
+    procesos_sql = procesos_sql.rename(columns={'Codigo':'proceso'}) 
+    resultados_sql = procesos_sercop_results_sql() 
+    resultados_sql = resultados_sql.rename(columns={'codigo':'proceso'}) 
 
     procesos = procesos.merge(procesos_sql, on='proceso', how='left')
+    procesos = procesos.merge(resultados_sql, on='proceso', how='left') ; 
     procesos = procesos.sort_values(by=['fecha_hora','Fecha_Puja','Hora_Puja'], ascending=[False,False,True])
+    procesos['Fecha_Publicacion'] = pd.to_datetime(procesos['Fecha_Publicacion']).dt.month 
+    procesos['Fecha_Publicacion_Mes'] = procesos['Fecha_Publicacion'].apply(nombre_del_mes)
+    
+    procesos['Presupuesto'] = procesos['Presupuesto'].str.replace('"', '')
+    procesos['Presupuesto'] = procesos['Presupuesto'].str.replace('$', '')
+    procesos['Presupuesto'] = procesos['Presupuesto'].str.replace(',', '')
+    
+    procesos['Presupuesto'] = procesos['Presupuesto'].astype('float')    
     
     procesos = de_dataframe_a_template(procesos)
 
