@@ -33,8 +33,10 @@
     <div class="row">
         <div class="col-auto">
             <h6 class="fw-bold">Añadir un proceso:</h6>
-            {{form.as_p}}
-            <button class="btn btn-primary btn-sm" type="submit">Añadir</button>        
+            <div class="input-group">
+                {{form}}
+                <button class="btn btn-primary btn-sm" type="submit">Añadir</button>
+            </div>
         </div>
     </div>
 </form>
@@ -47,53 +49,70 @@
     <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
 </div>
 
+<button class="btn btn-sm btn-primary mt-2" id="actualizar">
+    <i class="bi bi-arrow-clockwise"></i> Actualizar
+</button>
+
 <div class="card mt-2 mb-2">
     <div class="card-body m-0 p-0">
         <div class="table-responsive">
             <table class="table" style="font-size: small; width: 100%" id="id_table">
                 <thead>
                     <tr>
-                        <th scope="col">Proceso</th>
-                        <th scope="col">Estado Proceso</th>
-                        <th scope="col">
+                        <th scope="col">CÓDIGO DE PROCESO</th>
+                        <th scope="col">HOSPITAL</th>
+                        <th scope="col">MES</th>
+                        <th scope="col">INSUMOS PARTICIPANTES</th>
+                        <th scope="col">PRESUPUESTO REFERENCIAL</th>
+                        <th scope="col">FECHA PUJA</th>
+                        <th scope="col">ESTADO PROCESO</th>
+                        <th scope="col">VALOR ADJUDICADO</th>
+                        <th scope="col">RESULTADO DEL PROCESO</th>
+                        <th scope="col">EMPRESA GANADORA</th>
+                        <th scope="col">OBSERVACIONES</th>
+                        <th scope="col">ACCIONES</th>
+
+                        <!--th scope="col">
                             <select class="form-select" style="font-size:small; width: 125px;" id="filter-estado">
                                 <option value="">Participa GIM</option> 
                                 <option value="SI">SI</option>
                                 <option value="NO">NO</option>
                             </select>
                         </th>
-                        <th scope="col">Estado Participación</th>
-                        <th scope="col">Observaciones</th>
-                        <th scope="col">Entidad</th>
                         <th scope="col">Objeto</th>
-                        <th scope="col">Publicación</th>
-                        <th scope="col">Fecha Puja</th>
-                        <th scope="col">Link</th>
-                        <th scope="col">Editar</th>
+                        <th scope="col">Fecha Puja</th-->
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
                     {% for i in procesos %}
                     <tr {% if i.participa == 'SI' %} style="background-color: #BAF690;" {% endif %}>
                         <td>{{i.proceso}}</td>
-                        <td>{{i.Estado|default:"-"}}</td>
-                        <td style="width: 125px;" class="estado">{{i.participa|default:"-"}}</td>
-                        <td>{{i.estado_participacion|default:"-"}}</td>
-                        <td>{{i.observaciones|default:"-"}}</td>
                         <td>{{i.Entidad|default:"-"}}</td>
-                        <td>{{i.Objeto|default:"-"|truncatechars:80}}</td>
-                        <td>{{i.Fecha_Publicacion|default:"-"}}</td>
+                        <td>{{i.Fecha_Publicacion_Mes|default:"-"}}</td>
+                        <td>{{i.descripcion|default:"-"}}</td>
+                        <td class="text-end">$ {{i.Presupuesto|floatformat:"2g"|default:"-"}}</td>
                         <td>{{i.Fecha_Puja|default:"-"}}<br>{% if i.Hora_Puja %}{{i.Hora_Puja}}{% endif %}</td>
+                        <td>{{i.Estado|default:"-"|upper}}</td>
+                        <td class="text-end">$ {{i.valor|floatformat:"2g"|default:"-"}}</td>
+                        <td>{{i.estado_participacion|default:"-"}}</td>
+                        <td>{{i.ganador|default:"-"}}</td>
+                        <td>{{i.observaciones|default:"-"}}</td>
+                        
+
+                        <!--td style="width: 125px;" class="estado">{{i.participa|default:"-"}}</td>        
+                        <td>{{i.Objeto|default:"-"|truncatechars:80}}</td>
+                        <td>{{i.Fecha_Puja|default:"-"}}<br>{% if i.Hora_Puja %}{{i.Hora_Puja}}{% endif %}</td-->
+
                         <td>
-                            <a class="btn btn-sm btn-primary {% if not i.Html %} disabled {% endif %}"                           
-                                href="{{i.Html}}" 
-                                target="_blank"><i class="bi bi-link"></i>
-                            </a>
-                        </td>
-                        <td>
-                            <button class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#staticBackdrop" name="proceso" id="{{i.id}}">
-                                <i class="bi bi-pencil"></i>
-                            </button>
+                            <div class="btn-group" role="group" aria-label="Basic example">
+                                <a class="btn btn-sm btn-primary {% if not i.Html %} disabled {% endif %}"                           
+                                    href="{{i.Html}}" 
+                                    target="_blank"><i class="bi bi-link"></i>
+                                </a>
+                                <button class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#staticBackdrop" name="proceso" id="{{i.id}}">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
@@ -124,8 +143,20 @@
     </div>
 </div>
 
-<!--filtro buscar-->
 <script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+
+<!--filtro buscar-->
+<!--script>
     $(document).ready(function() {
         function filterCombinado() {
             var inputValue = $("#inputbuscar").val().toLowerCase();
@@ -150,13 +181,14 @@
             filterCombinado();
         });
     
-</script>
+</script-->
 
 <!-- css in form procesos -->
 <script>
     $(document).ready(function(){
         // ADD CLASES AN ATRIBUTOS
         var proceso_input = $("#id_proceso").addClass('form-control')
+        $("label[for='id_proceso']").remove();
     })
 </script>
 
@@ -268,6 +300,12 @@
     })
 </script>
 
-
+<script>
+    $(document).ready(function(){
+        $("#actualizar").on("click", function(){
+            window.location.reload();
+        })
+    });
+</script>
 
 {% endblock %}
