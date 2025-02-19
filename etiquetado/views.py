@@ -1563,6 +1563,11 @@ def picking_estado(request):
 
                 except:
                     print('NO SE ACTULIZO')
+                    
+                finally:
+                    cnxn.close()
+                    cursorOdbc.close()
+                    
             else:
                 print('menos 1 min - RESERVAS')
 
@@ -1839,74 +1844,81 @@ def picking_historial_pdf(request):
 
 
 def inventario_bodega_consulta():
+    
+    try:
 
-    cnxn = pyodbc.connect('DSN=mba3;PWD=API')
-    cursor = cnxn.cursor()
-    stock = cursor.execute(
-        "SELECT INVT_Ficha_Principal.PRODUCT_ID, INVT_Ficha_Principal.PRODUCT_NAME, INVT_Ficha_Principal.GROUP_CODE, "
-        "INVT_Ficha_Principal.UM, INVT_Producto_Lotes.OH, INVT_Producto_Lotes_Bodegas.OH, INVT_Producto_Lotes_Bodegas.COMMITED, "
-        "INVT_Producto_Lotes_Bodegas.QUANTITY, INVT_Producto_Lotes.LOTE_ID, INVT_Producto_Lotes.Fecha_elaboracion_lote, INVT_Producto_Lotes.FECHA_CADUCIDAD, "
-        "INVT_Producto_Lotes_Bodegas.WARE_CODE, INVT_Producto_Lotes_Bodegas.LOCATION "
-        "FROM INVT_Ficha_Principal INVT_Ficha_Principal, INVT_Producto_Lotes INVT_Producto_Lotes, INVT_Producto_Lotes_Bodegas INVT_Producto_Lotes_Bodegas "
-        "WHERE INVT_Ficha_Principal.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND "
-        "INVT_Producto_Lotes_Bodegas.PRODUCT_ID_CORP = INVT_Ficha_Principal.PRODUCT_ID_CORP AND "
-        "INVT_Producto_Lotes.LOTE_ID = INVT_Producto_Lotes_Bodegas.LOTE_ID AND INVT_Producto_Lotes.WARE_CODE_CORP = INVT_Producto_Lotes_Bodegas.WARE_CODE AND "
-        "((INVT_Producto_Lotes.OH>0) AND (INVT_Producto_Lotes_Bodegas.OH>0))"
-    )
+        cnxn = pyodbc.connect('DSN=mba3;PWD=API')
+        cursor = cnxn.cursor()
+        stock = cursor.execute(
+            "SELECT INVT_Ficha_Principal.PRODUCT_ID, INVT_Ficha_Principal.PRODUCT_NAME, INVT_Ficha_Principal.GROUP_CODE, "
+            "INVT_Ficha_Principal.UM, INVT_Producto_Lotes.OH, INVT_Producto_Lotes_Bodegas.OH, INVT_Producto_Lotes_Bodegas.COMMITED, "
+            "INVT_Producto_Lotes_Bodegas.QUANTITY, INVT_Producto_Lotes.LOTE_ID, INVT_Producto_Lotes.Fecha_elaboracion_lote, INVT_Producto_Lotes.FECHA_CADUCIDAD, "
+            "INVT_Producto_Lotes_Bodegas.WARE_CODE, INVT_Producto_Lotes_Bodegas.LOCATION "
+            "FROM INVT_Ficha_Principal INVT_Ficha_Principal, INVT_Producto_Lotes INVT_Producto_Lotes, INVT_Producto_Lotes_Bodegas INVT_Producto_Lotes_Bodegas "
+            "WHERE INVT_Ficha_Principal.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND "
+            "INVT_Producto_Lotes_Bodegas.PRODUCT_ID_CORP = INVT_Ficha_Principal.PRODUCT_ID_CORP AND "
+            "INVT_Producto_Lotes.LOTE_ID = INVT_Producto_Lotes_Bodegas.LOTE_ID AND INVT_Producto_Lotes.WARE_CODE_CORP = INVT_Producto_Lotes_Bodegas.WARE_CODE AND "
+            "((INVT_Producto_Lotes.OH>0) AND (INVT_Producto_Lotes_Bodegas.OH>0))"
+        )
 
-    stock = stock.fetchall()
-    stock = pd.DataFrame.from_records(
-        stock,
-        columns=[
-            'PRODUCT_ID',
-            'PRODUCT_NAME',
-            'GROUP_CODE',
-            'UM',
-            'OH',
-            'OH2',
-            'COMMITED',
-            'QUANTITY',
-            'LOTE_ID',
-            'FECHA_ELABORACION',
-            'FECHA_CADUCIDAD',
-            'WARE_CODE',
-            'LOCATION'
-        ])
+        stock = stock.fetchall()
+        stock = pd.DataFrame.from_records(
+            stock,
+            columns=[
+                'PRODUCT_ID',
+                'PRODUCT_NAME',
+                'GROUP_CODE',
+                'UM',
+                'OH',
+                'OH2',
+                'COMMITED',
+                'QUANTITY',
+                'LOTE_ID',
+                'FECHA_ELABORACION',
+                'FECHA_CADUCIDAD',
+                'WARE_CODE',
+                'LOCATION'
+            ])
 
-    stock['FECHA_ELABORACION'] = stock['FECHA_ELABORACION'].astype(str)
-    stock['FECHA_CADUCIDAD'] = stock['FECHA_CADUCIDAD'].astype(str)
+        stock['FECHA_ELABORACION'] = stock['FECHA_ELABORACION'].astype(str)
+        stock['FECHA_CADUCIDAD'] = stock['FECHA_CADUCIDAD'].astype(str)
 
-    stock = stock.sort_values(by=['GROUP_CODE', 'PRODUCT_ID'])
+        stock = stock.sort_values(by=['GROUP_CODE', 'PRODUCT_ID'])
 
-    stock_id = []
+        stock_id = []
 
-    for i in range(0, len(stock['PRODUCT_ID'])+1):
-        if i != 0:
-            stock_id.append(i)
+        for i in range(0, len(stock['PRODUCT_ID'])+1):
+            if i != 0:
+                stock_id.append(i)
 
-    stock['ID'] = stock_id
+        stock['ID'] = stock_id
 
-    stock = stock[[
-            'ID',
-            'PRODUCT_ID',
-            'PRODUCT_NAME',
-            'GROUP_CODE',
-            'UM',
-            'OH',
-            'OH2',
-            'COMMITED',
-            'QUANTITY',
-            'LOTE_ID',
-            'FECHA_ELABORACION',
-            'FECHA_CADUCIDAD',
-            'WARE_CODE',
-            'LOCATION'
-        ]]
+        stock = stock[[
+                'ID',
+                'PRODUCT_ID',
+                'PRODUCT_NAME',
+                'GROUP_CODE',
+                'UM',
+                'OH',
+                'OH2',
+                'COMMITED',
+                'QUANTITY',
+                'LOTE_ID',
+                'FECHA_ELABORACION',
+                'FECHA_CADUCIDAD',
+                'WARE_CODE',
+                'LOCATION'
+            ]]
 
-    stock = [tuple(x) for x in stock.values]
+        stock = [tuple(x) for x in stock.values]
 
-    return stock
+        return stock
 
+    except Exception as e:
+        print(e)
+    finally:
+        cursor.close()
+        cnxn.close()
 
 
 @login_required(login_url='login')

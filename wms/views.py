@@ -3159,7 +3159,7 @@ def wms_busqueda_ajuste(request, n_ajuste):
         ajuste = [tuple(row) for row in cursorOdbc.fetchall()]
 
         ajuste_df = pd.DataFrame(ajuste, columns=['DOC_ID_CORP', 'PRODUCT_ID_CORP', 'LOTE_ID', 'WARE_CODE', 'LOCATION']) if ajuste else pd.DataFrame()
-        print(ajuste_df)
+        
         # Segunda consulta
         cursorOdbc.execute(
             "SELECT INVT_Lotes_Ubicacion.DOC_ID_CORP, INVT_Lotes_Ubicacion.PRODUCT_ID_CORP, INVT_Lotes_Ubicacion.LOTE_ID, "
@@ -3172,7 +3172,7 @@ def wms_busqueda_ajuste(request, n_ajuste):
         )
         inventario = [tuple(row) for row in cursorOdbc.fetchall()]
         inventario_df = pd.DataFrame(inventario, columns=['DOC_ID_CORP', 'PRODUCT_ID_CORP', 'LOTE_ID', 'EGRESO_TEMP', 'COMMITED', 'WARE_CODE_CORP', 'UBICACION', 'Fecha_elaboracion_lote', 'FECHA_CADUCIDAD']) if inventario else pd.DataFrame()
-        print(inventario_df)
+        
         # Unión (merge) de los DataFrames en los campos comunes
         if not ajuste_df.empty and not inventario_df.empty:
             resultado_df = pd.merge(ajuste_df, inventario_df, on=['DOC_ID_CORP', 'PRODUCT_ID_CORP', 'LOTE_ID'], how='inner')
@@ -3182,7 +3182,7 @@ def wms_busqueda_ajuste(request, n_ajuste):
                 resultado_df['Fecha_elaboracion_lote'] = resultado_df['Fecha_elaboracion_lote'].apply(lambda x: x.strftime('%Y-%m-%d') if pd.notnull(x) else x)
             if 'FECHA_CADUCIDAD' in resultado_df.columns:
                 resultado_df['FECHA_CADUCIDAD'] = resultado_df['FECHA_CADUCIDAD'].apply(lambda x: x.strftime('%Y-%m-%d') if pd.notnull(x) else x)
-            print(resultado_df)
+            
             #eliminar por DOC_ID_CORP
             LiberacionCuarentena.objects.filter(doc_id_corp = n ).delete(),
             
@@ -3234,6 +3234,10 @@ def wms_busqueda_ajuste(request, n_ajuste):
         print(e)
         return JsonResponse({'error': str(e)}, status=500)      
 
+    finally:
+        # Cerrar la conexión con el ODBC
+        cnxn.close()
+        cursorOdbc.close()
 
 
 def wms_get_existencias(row,n_ajuste,user):
