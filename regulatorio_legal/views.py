@@ -996,7 +996,6 @@ def factura_proforma_marca_de_agua_ajax(request):
 
 
 
-
 def facturas_proformas_detalle(request, id):
     
     if request.method == 'GET':
@@ -1035,14 +1034,11 @@ def facturas_proformas_detalle(request, id):
             
             try:
                 for i in documentos:
-                    print(i)
                     tipo = i.get('tipo').split('_')[0]
                     desc = i.get('tipo').split('_')[1]
                     path = i.get('doc_path')
                     
-                    
                     procesar_pdf = api_marca_agua(texto=factura_proforma.marca_de_agua, file_path=path)
-                    print(procesar_pdf.json())
                     if procesar_pdf.status_code == 200:
                         pdf_response = requests.get(procesar_pdf.json().get('url_descarga'))
                         
@@ -1062,7 +1058,6 @@ def facturas_proformas_detalle(request, id):
                             factura_proforma.documentos.add(iso_reg)
                         else:
                             return JsonResponse({'alert':'danger', 'msg':'Error al descargar el archivo'})
-                    
                     else:
                         return JsonResponse({
                             'alert':'danger', 
@@ -1073,7 +1068,7 @@ def facturas_proformas_detalle(request, id):
                 factura_proforma.procesar_docs = True
                 factura_proforma.save()
             except Exception as e:
-                print(e)
+
                 return JsonResponse({
                     'alert':'danger', 
                     'msg':str(e)})
