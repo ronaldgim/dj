@@ -1938,7 +1938,7 @@ def revision_reservas_fun():
         # ]    
         
         # 2.2 Filtrar por ware_code BCT
-        df_reservas_sinlote = df_reservas_sinlote[df_reservas_sinlote['WARE_CODE'] == 'BCT']
+        #df_reservas_sinlote = df_reservas_sinlote[df_reservas_sinlote['WARE_CODE'] == 'BCT']
         
         # 2.3 Obtener lista de contratos
         contratos_list = df_reservas_sinlote['CONTRATO_ID'].unique()
@@ -1978,7 +1978,7 @@ def revision_reservas_fun():
         # for index, row in reservas_agrupadas.iterrows():
         df_list = []
         for i in reservas_agrupadas['PRODUCT_ID'].unique():
-        
+
             producto = i
             sto = stock[stock['PRODUCT_ID']==producto]
             rsv = reservas_agrupadas[reservas_agrupadas['PRODUCT_ID']==producto]
@@ -2020,6 +2020,8 @@ def revision_reservas_fun():
         df_reporte = pd.concat(df_list)[['CONTRATO_ID','PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD_x', 'OH2', 'EGRESO_TEMP','OBSERVACIONES']]
         df_reporte['FECHA_CADUCIDAD_x'] = df_reporte['FECHA_CADUCIDAD_x'].astype('str')
         df_reporte = df_reporte.rename(columns={'FECHA_CADUCIDAD_x':'FECHA_CADUCIDAD','OH2':'UNDS-DISPONIBLE', 'EGRESO_TEMP':'UNDS-RESERVA'})
+        
+        df_reporte = df_reporte.drop_duplicates(subset=['CONTRATO_ID', 'PRODUCT_ID', 'LOTE_ID'])
         
         return df_reporte
 
