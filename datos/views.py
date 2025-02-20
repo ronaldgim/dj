@@ -1938,7 +1938,7 @@ def revision_reservas_fun():
         # ]    
         
         # 2.2 Filtrar por ware_code BCT
-        df_reservas_sinlote = df_reservas_sinlote[df_reservas_sinlote['WARE_CODE'] == 'BCT']
+        #df_reservas_sinlote = df_reservas_sinlote[df_reservas_sinlote['WARE_CODE'] == 'BCT']
         
         # 2.3 Obtener lista de contratos
         contratos_list = df_reservas_sinlote['CONTRATO_ID'].unique()
@@ -1978,7 +1978,7 @@ def revision_reservas_fun():
         # for index, row in reservas_agrupadas.iterrows():
         df_list = []
         for i in reservas_agrupadas['PRODUCT_ID'].unique():
-        
+
             producto = i
             sto = stock[stock['PRODUCT_ID']==producto]
             rsv = reservas_agrupadas[reservas_agrupadas['PRODUCT_ID']==producto]
