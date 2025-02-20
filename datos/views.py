@@ -2021,6 +2021,8 @@ def revision_reservas_fun():
         df_reporte['FECHA_CADUCIDAD_x'] = df_reporte['FECHA_CADUCIDAD_x'].astype('str')
         df_reporte = df_reporte.rename(columns={'FECHA_CADUCIDAD_x':'FECHA_CADUCIDAD','OH2':'UNDS-DISPONIBLE', 'EGRESO_TEMP':'UNDS-RESERVA'})
         
+        df_reporte = df_reporte.drop_duplicates(subset=['CONTRATO_ID', 'PRODUCT_ID', 'LOTE_ID'])
+        
         return df_reporte
 
     except Exception as e:
