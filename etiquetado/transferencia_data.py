@@ -161,11 +161,12 @@ def andagoya_saldos():
     data['SALDOS'] = data.apply(lambda x: x['TOTAL_DISPONIBLE'] < x['Unidad_Empaque'], axis=1)
     data = data[data['SALDOS']==True]
     data['TOTAL_DISPONIBLE_UNDS_CARTON'] = round(((data['TOTAL_DISPONIBLE'] / data['Unidad_Empaque']) * 100), 2)
+    data['TOTAL_DISPONIBLE_VS_CONSUMO_MENSUAL'] = round(((data['TOTAL_DISPONIBLE'] / data['CONSUMO_MENSUAL']) * 100), 2)
     data = data.replace([np.inf, -np.inf], np.nan).fillna(0)
     
     # merge cerezos
     data = data.merge(cerezos, how='left', on='PRODUCT_ID').fillna(0)
-    data = data.sort_values(by=['TOTAL_DISPONIBLE_UNDS_CARTON', 'CONSUMO_SEMANAL', 'F_ACUMULADA'], ascending=[True, False, False])
+    data = data.sort_values(by=['TOTAL_DISPONIBLE_UNDS_CARTON', 'CONSUMO_MENSUAL', 'TOTAL_DISPONIBLE_VS_CONSUMO_MENSUAL', 'F_ACUMULADA'], ascending=[True, False, False, False])
     # data = data.sort_values(by=['F_ACUMULADA', 'TOTAL_DISPONIBLE_UNDS_CARTON', 'CONSUMO_SEMANAL'], ascending=[False, True, False])
     data = data[data['STOCK_CEREZOS'] > 0]
     data['F_ACUMULADA'] = round(data['F_ACUMULADA'], 2) 
@@ -179,9 +180,10 @@ def andagoya_saldos():
         'TRANSITO', 
         'TOTAL_DISPONIBLE',
         'STOCK_CEREZOS',
-        'CONSUMO_SEMANAL',
-        #'CONSUMO_MENSUAL',
-        'TOTAL_DISPONIBLE_UNDS_CARTON'
+        #'CONSUMO_SEMANAL',
+        'CONSUMO_MENSUAL',
+        'TOTAL_DISPONIBLE_UNDS_CARTON',
+        'TOTAL_DISPONIBLE_VS_CONSUMO_MENSUAL'
     ]]
     
     return data
