@@ -46,7 +46,7 @@
                         <th class="text-center" scope="col" style="background-color:rgb(231, 255, 217)">STOCK CEREZOS</th>
                         <!--th class="text-center" scope="col">CONSUMO SEMANAL</th-->
                         <th class="text-center" scope="col">CONSUMO MENSUAL</th>
-                        <th class="text-center" scope="col">TOTAL DISPONIBLE VS CONSUMO MENSUAL</th>
+                        <th class="text-center" scope="col">% (TOTAL DISPONIBLE / CONSUMO MENSUAL)</th>
                         <th class="text-center" scope="col">% (TOTAL DISPONIBLE / UNDS CARTON)</th>
                     </tr>
                 </thead>
@@ -60,10 +60,19 @@
                         <td class="text-end">{{i.F_ACUMULADA|floatformat:"2g"}} %</td>
                         <td class="text-end">{{i.STOCK_ANDAGOYA|floatformat:"0g"}}</td>
                         <td class="text-end">{{i.TRANSITO|floatformat:"0g"}}</td>
-                        <td class="text-end" style="background-color:rgb(215, 237, 255)">{{i.TOTAL_DISPONIBLE|floatformat:"0g"}}</td>
-                        <td class="text-end" style="background-color:rgb(231, 255, 217)">{{i.STOCK_CEREZOS|floatformat:"0g"}}</td>
+                        <td class="text-end" style="background-color:rgb(215, 237, 255)">
+                            {{i.TOTAL_DISPONIBLE|floatformat:"0g"}} <br/>
+                            <small style="color:grey">{{i.TOTAL_DISPONIBLE_CARTONES|floatformat:"2g"}} </small>
+                        </td>
+                        <td class="text-end" style="background-color:rgb(231, 255, 217)">
+                            {{i.STOCK_CEREZOS|floatformat:"0g"}} <br/>
+                            <small style="color:grey">{{i.STOCK_CEREZOS_CARTONES|floatformat:"2g"}} </small>
+                        </td>
                         <!--td class="text-end">{{i.CONSUMO_SEMANAL|floatformat:"0g"}}</td-->
-                        <td class="text-end">{{i.CONSUMO_MENSUAL|floatformat:"0g"}}</td>
+                        <td class="text-end">
+                            {{i.CONSUMO_MENSUAL|floatformat:"0g"}} <br/>
+                            <small style="color:grey">{{i.CONSUMO_MENSUAL_CARTONES|floatformat:"2g"}}</small>
+                        </td>
                         
                         <td class="text-end"
                         {% if i.TOTAL_DISPONIBLE_VS_CONSUMO_MENSUAL < 11 %}
@@ -74,7 +83,7 @@
                             style="background-color: #F6F490;"
                         {% endif %}
                         >
-                            {{i.TOTAL_DISPONIBLE_VS_CONSUMO_MENSUAL|floatformat:"2g"}} 
+                            {{i.TOTAL_DISPONIBLE_VS_CONSUMO_MENSUAL|floatformat:"2g"}} %
                         </td>
                         
                         <td class="text-end"
