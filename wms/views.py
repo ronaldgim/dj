@@ -4981,7 +4981,6 @@ def wms_armado_picking(request, id):
         'componentes_template':componentes_template,
         'total_unidades_picking_todos':total_unidades_picking_todos,
         'total_componentes':total_componentes
-
     }
     
     return render(request, 'wms/armado_picking.html', context)
@@ -5114,7 +5113,7 @@ def wms_armado_editar_estado(request):
                     'msg':f'❌ No puede finalizar la Orden N° {orden.enum} hasta completar los lotes y fechas de los productos',
                     'type':'danger'
                     })
-    
+                
         return JsonResponse({
             'msg':f'✅ Orden N° {orden.enum} {orden.estado}',
             'type':'success'
