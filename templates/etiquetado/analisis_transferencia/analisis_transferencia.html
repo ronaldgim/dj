@@ -32,7 +32,7 @@
             <div class="col-4 mt-2">
                 <input id="saldos_andagoya_input" type="text" placeholder="Buscar..." class="form-control">
             </div>
-            <table class="table table-hover" style="font-size: small;">
+            <table class="table table-hover" style="font-size: small;" id="tabla_saldos">
                 <thead>
                     <tr>
                         <th scope="col">CÓDIGO</th>
@@ -343,4 +343,26 @@
         })
     })
 </script>
+
+{% comment %} <!-- datatable -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.css" />  
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.js"></script>
+<script>
+    $(document).ready(function(){
+        $('#tabla_saldos').DataTable({
+            //"ordering":false,
+            "order":[],
+            "searching":false,
+            "show":false,
+            "paging":false,
+            "info":false,
+            // columnDefs:[
+            //     {
+            //         "orderable": false,  // Desactiva el ordenamiento
+            //         "targets": [2, 9, 10]       // Especifica el índice de la columna
+            //     }
+            // ]
+    })
+    })
+</script> {% endcomment %}
 {% endblock %}
