@@ -203,6 +203,8 @@ def andagoya_saldos():
         'filtro'
     ]]
     
+    data['n_fila'] = range(1, len(data) + 1)
+    
     return data
 
 

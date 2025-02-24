@@ -35,6 +35,7 @@
             <table class="table table-hover" style="font-size: small;" id="tabla_saldos">
                 <thead>
                     <tr>
+                        <th scope="col">#</th>
                         <th scope="col">CÓDIGO</th>
                         <th scope="col">NOMBRE</th>
                         <th scope="col">MARCA</th>
@@ -55,6 +56,7 @@
                 <tbody id="saldos_andagoya_table">
                     {% for i in saldos_ban %}
                     <tr>
+                        <td>{{i.n_fila}}</td>
                         <td>{{i.PRODUCT_ID}}</td>
                         <td>{{i.Nombre}}</td>
                         <td>{{i.Marca}}</td>
