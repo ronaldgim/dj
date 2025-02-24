@@ -46,8 +46,10 @@
                         <th class="text-center" scope="col" style="background-color:rgb(231, 255, 217)">STOCK CEREZOS</th>
                         <!--th class="text-center" scope="col">CONSUMO SEMANAL</th-->
                         <th class="text-center" scope="col">CONSUMO MENSUAL</th>
-                        <th class="text-center" scope="col">% (TOTAL DISPONIBLE / CONSUMO MENSUAL)</th>
-                        <th class="text-center" scope="col">% (TOTAL DISPONIBLE / UNDS CARTON)</th>
+                        <th class="text-center" scope="col">% (T.DISP/C.MENSUAL)</th>
+                        <th class="text-center" scope="col">RATE</th>
+                        <!--th class="text-center" scope="col">% (T.DISP/UNDS.CARTON)</th-->
+                        <th>filtro</th>
                     </tr>
                 </thead>
                 <tbody id="saldos_andagoya_table">
@@ -87,6 +89,22 @@
                         </td>
                         
                         <td class="text-end"
+                        {% if i.RATE < 3 %}
+                            style="background-color: #F6B690;"
+                        {% elif i.RATE >= 3  %}
+                            style="background-color: #BAF690;"
+                        {% else %}
+                            style="background-color: #F6F490;"
+                        {% endif %}
+                        >
+                            {{i.RATE|floatformat:"2g"}} %
+                        </td>
+
+                        <td>{{i.filtro}}</td>
+                        
+                    
+                        {% comment %}
+                        <td class="text-end"
                         {% if i.TOTAL_DISPONIBLE_UNDS_CARTON < 11 %}
                             style="background-color: #F6B690;"
                         {% elif i.TOTAL_DISPONIBLE_UNDS_CARTON > 50  %}
@@ -97,6 +115,7 @@
                         >
                             {{i.TOTAL_DISPONIBLE_UNDS_CARTON|floatformat:"2g"}} %
                         </td>
+                        {% endcomment %}
                     </tr>
                     {% endfor %}
                 </tbody>

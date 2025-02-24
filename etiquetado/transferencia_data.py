@@ -166,14 +166,21 @@ def andagoya_saldos():
     
     # merge cerezos
     data = data.merge(cerezos, how='left', on='PRODUCT_ID').fillna(0)
-    # data = data.sort_values(by=['TOTAL_DISPONIBLE_UNDS_CARTON', 'CONSUMO_MENSUAL', 'TOTAL_DISPONIBLE_VS_CONSUMO_MENSUAL', 'F_ACUMULADA'], ascending=[True, False, False, False])
-    data = data.sort_values(by=['TOTAL_DISPONIBLE_VS_CONSUMO_MENSUAL'], ascending=[True])
-    data = data[data['STOCK_CEREZOS'] > 0]
+    
     
     data['F_ACUMULADA'] = round(data['F_ACUMULADA'], 2) 
     data['TOTAL_DISPONIBLE_CARTONES'] = round(data['TOTAL_DISPONIBLE'] / data['Unidad_Empaque'], 2)
     data['STOCK_CEREZOS_CARTONES']   = round(data['STOCK_CEREZOS'] / data['Unidad_Empaque'], 2)
     data['CONSUMO_MENSUAL_CARTONES'] = round(data['CONSUMO_MENSUAL'] / data['Unidad_Empaque'], 2)
+    data['RATE'] = round(data['TOTAL_DISPONIBLE'] / data['STOCK_CEREZOS'], 2)
+    
+    # data = data.sort_values(by=['TOTAL_DISPONIBLE_UNDS_CARTON', 'CONSUMO_MENSUAL', 'TOTAL_DISPONIBLE_VS_CONSUMO_MENSUAL', 'F_ACUMULADA'], ascending=[True, False, False, False])
+    data = data.sort_values(by=['TOTAL_DISPONIBLE_VS_CONSUMO_MENSUAL', 'RATE',], ascending=[True, True])
+    data = data[data['STOCK_CEREZOS'] > 0]
+    
+    data['filtro'] = data.apply(lambda x: 'OCULTAR' if x['TOTAL_DISPONIBLE_VS_CONSUMO_MENSUAL'] == 0 and x['TOTAL_DISPONIBLE'] == 0 else 'MOSTRAR', axis=1)
+    
+    # data = data[data['filtro']=='MOSTRAR']
     
     data = data[[
         'PRODUCT_ID',
@@ -191,7 +198,9 @@ def andagoya_saldos():
         'TOTAL_DISPONIBLE_VS_CONSUMO_MENSUAL',
         'TOTAL_DISPONIBLE_CARTONES',
         'STOCK_CEREZOS_CARTONES',
-        'CONSUMO_MENSUAL_CARTONES'
+        'CONSUMO_MENSUAL_CARTONES',
+        'RATE',
+        'filtro'
     ]]
     
     return data
