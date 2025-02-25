@@ -18,8 +18,8 @@ class Product(models.Model):
     marca           = models.CharField(verbose_name='Marca', max_length=50, blank=True)
     marca2          = models.CharField(verbose_name='Marca', max_length=50, blank=True)
     
-    unidad_empaque  = models.IntegerField(verbose_name='Unidad Empaque', blank=True)
-    unidad_empaque_box  = models.IntegerField(verbose_name='Unidad Empaque Box', null=True, blank=True)
+    unidad_empaque  = models.IntegerField(verbose_name='Unidad Empaque', default=0, blank=True)
+    unidad_empaque_box  = models.IntegerField(verbose_name='Unidad Empaque Box', default=0, null=True, blank=True)
     largo           = models.FloatField(verbose_name='Caja master largo (m)', default=0.0, null=True, blank=True)
     ancho           = models.FloatField(verbose_name='Caja master ancho (m)', default=0.0, null=True, blank=True)
     alto            = models.FloatField(verbose_name='Caja master alto (m)', default=0.0, null=True, blank=True)
