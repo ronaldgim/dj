@@ -50,7 +50,7 @@
                         <th class="text-center" scope="col">% (T.DISP/C.MENSUAL)</th>
                         <th class="text-center" scope="col">RATE</th>
                         <!--th class="text-center" scope="col">% (T.DISP/UNDS.CARTON)</th-->
-                        <th>filtro</th>
+                        <!-- th>filtro</th -->
                     </tr>
                 </thead>
                 <tbody id="saldos_andagoya_table">
@@ -77,7 +77,7 @@
                             {{i.CONSUMO_MENSUAL|floatformat:"0g"}} <br/>
                             <small style="color:grey">{{i.CONSUMO_MENSUAL_CARTONES|floatformat:"2g"}}</small>
                         </td>
-                        
+
                         <td class="text-end"
                         {% if i.TOTAL_DISPONIBLE_VS_CONSUMO_MENSUAL < 11 %}
                             style="background-color: #F6B690;"
@@ -87,24 +87,23 @@
                             style="background-color: #F6F490;"
                         {% endif %}
                         >
-                            {{i.TOTAL_DISPONIBLE_VS_CONSUMO_MENSUAL|floatformat:"2g"}} %
+                            {{i.TOTAL_DISPONIBLE_VS_CONSUMO_MENSUAL}} % <!-- |floatformat:"2g" -->
                         </td>
-                        
+
                         <td class="text-end"
                         {% if i.RATE < 3 %}
                             style="background-color: #F6B690;"
-                        {% elif i.RATE >= 3  %}
-                            style="background-color: #BAF690;"
-                        {% else %}
+                        {% elif i.RATE >= 3 and i.RATE < 10 %}
                             style="background-color: #F6F490;"
+                        {% else %}
+                            style="background-color: #BAF690;"
                         {% endif %}
                         >
-                            {{i.RATE|floatformat:"2g"}} %
+                            {{i.RATE}} % <!-- |floatformat:"2g" -->
                         </td>
 
-                        <td>{{i.filtro}}</td>
-                        
-                    
+                        <!-- td>{{i.filtro}}</td -->
+
                         {% comment %}
                         <td class="text-end"
                         {% if i.TOTAL_DISPONIBLE_UNDS_CARTON < 11 %}
@@ -298,7 +297,7 @@
 <script>
     $("button[name='pedido_reserva']").click(function(){
         var prod_id = $(this).attr('id');
-        
+
         $.ajax({
             type:"POST",
             url:"{% url 'pedidos_reservas_request' %}",
@@ -333,7 +332,7 @@
 <script>
     $("button[name='wms_existencias']").click(function(){
         var prod_id = $(this).attr('id');
-        
+
         $.ajax({
             type:"POST",
             url:"{% url 'existencias_wms_analisis_transferencia' %}",
@@ -366,7 +365,7 @@
 </script>
 
 <!-- datatable -->
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.css" />  
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.css" />
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.js"></script>
 <script>
     $(document).ready(function(){
@@ -377,19 +376,24 @@
             "show":false,
             "paging":false,
             "info":false,
-            // columnDefs:[
-            //     {
-            //         "orderable": false,  // Desactiva el ordenamiento
-            //         "targets": [2, 9, 10]       // Especifica el índice de la columna
-            //     }
-            // ]
+            //columnDefs:[
+            //    {
+            //        "targets": [11, 12],
+            //        "type": "num",
+            //        "render": function(data, type, row){
+            //            if (typeof data === "string") {
+            //                data = data.replace(/\s/g, '').replace(',', '.') //.replace('%', '')//.replace(' ', '');
+            //                // data = data.replace(/\s/g, '').replace(' ', '.') //.replace('%', '')//.replace(' ', '');
+            //            }
+            //            return parseFloat(data) || 0;
+            //        }
+            //    }
+            //]
+        })
     })
-    })
-</script> 
+</script>
 
 <!-- datatable -->
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.css" />  
-<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.js"></script>
 <script>
     $(document).ready(function(){
         $('#tabla_sugerencia').DataTable({
@@ -405,7 +409,19 @@
             //         "targets": [2, 9, 10]       // Especifica el índice de la columna
             //     }
             // ]
+            //columnDefs:[
+            //    {
+            //        "type": "num",
+            //        "render": function(data, type, row){
+            //            if (typeof data === "string") {
+            //                data = data.replace(/\s/g, '').replace(',', '.').replace('%', '').replace(' ', '');
+            //                // data = data.replace(/\s/g, '').replace(' ', ',') //.replace('%', '') //.replace(' ', '');
+            //            }
+            //            return parseFloat(data) || 0;
+            //        }
+            //    }
+            //]
+        })
     })
-    })
-</script> 
+</script>
 {% endblock %}

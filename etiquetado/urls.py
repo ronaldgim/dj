@@ -465,6 +465,12 @@ urlpatterns = [
         name  = 'transferencia_ingres_andagoya_detalle'
     ),
     
+    path(
+        route = 'dashboards-powerbi',
+        view  = views.dashboards_powerbi,
+        name  = 'dashboards_powerbi'
+    ),
+    
     # # DASHBOARDS VUE JS
     # path(
     #     route='picking_dashboard_vue_ban',

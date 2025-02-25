@@ -1,0 +1,16 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Power BI</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'etiquetado/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+
+<h5 class="m-4 text-center fw-bold">POWER BI</h5>
+
+<iframe title="facturas" width="100%" height="541.25" src="https://app.powerbi.com/reportEmbed?reportId=56aaded5-4df2-4115-9acc-404b15799d53&autoAuth=true&ctid=af3c3f62-7cc7-4722-835f-829c94633382" frameborder="0" allowFullScreen="true"></iframe>
+{% endblock %}
