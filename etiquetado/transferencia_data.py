@@ -167,7 +167,6 @@ def andagoya_saldos():
     # merge cerezos
     data = data.merge(cerezos, how='left', on='PRODUCT_ID').fillna(0)
     
-    
     data['F_ACUMULADA'] = round(data['F_ACUMULADA'], 2) 
     data['TOTAL_DISPONIBLE_CARTONES'] = round(data['TOTAL_DISPONIBLE'] / data['Unidad_Empaque'], 2)
     data['STOCK_CEREZOS_CARTONES']   = round(data['STOCK_CEREZOS'] / data['Unidad_Empaque'], 2)
@@ -181,7 +180,10 @@ def andagoya_saldos():
     # data['filtro'] = data.apply(lambda x: 'OCULTAR' if x['TOTAL_DISPONIBLE_VS_CONSUMO_MENSUAL'] == 0 and x['TOTAL_DISPONIBLE'] == 0 else 'MOSTRAR', axis=1)
     data['filtro'] = data.apply(lambda x: 'OCULTAR' if x['TOTAL_DISPONIBLE'] > 0 and x['TOTAL_DISPONIBLE_VS_CONSUMO_MENSUAL'] == 0 else 'MOSTRAR', axis=1)
     
-    # data = data[data['filtro']=='MOSTRAR']
+    data = data[data['filtro']=='MOSTRAR']
+    
+    #data['TOTAL_DISPONIBLE'] = data['TOTAL_DISPONIBLE'].apply(lambda x: '{:,.2f}'.format(x))
+    #data['STOCK_ANDAGOYA'] = pd.to_numeric(data['STOCK_ANDAGOYA'], errors='coerce').map('{:,.2f}'.format)
     
     data = data[[
         'PRODUCT_ID',

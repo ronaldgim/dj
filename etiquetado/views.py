@@ -3735,3 +3735,7 @@ def transferencia_ingres_andagoya_detalle(request, n_transferencia):
 # def sleep_prueba(request):
 #     result = prueba_sleep.delay()
 #     return HttpResponse(f'{request.user} - {result}')
+
+
+def dashboards_powerbi(request):
+    return render(request, 'etiquetado/powerbi/dashboard_uno.html')
