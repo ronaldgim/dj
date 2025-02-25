@@ -48,7 +48,7 @@
                         <!--th class="text-center" scope="col">CONSUMO SEMANAL</th-->
                         <th class="text-center" scope="col">CONSUMO MENSUAL</th>
                         <th class="text-center" scope="col">% (T.DISP/C.MENSUAL)</th>
-                        <th class="text-center" scope="col">RATE</th>
+                        <th class="text-center" scope="col">% RATE</th>
                         <!--th class="text-center" scope="col">% (T.DISP/UNDS.CARTON)</th-->
                         <!-- th>filtro</th -->
                     </tr>
@@ -87,7 +87,7 @@
                             style="background-color: #F6F490;"
                         {% endif %}
                         >
-                            {{i.TOTAL_DISPONIBLE_VS_CONSUMO_MENSUAL}} % <!-- |floatformat:"2g" -->
+                            {{i.TOTAL_DISPONIBLE_VS_CONSUMO_MENSUAL|floatformat:2}} <!-- |floatformat:"2g" -->
                         </td>
 
                         <td class="text-end"
@@ -99,7 +99,7 @@
                             style="background-color: #BAF690;"
                         {% endif %}
                         >
-                            {{i.RATE}} % <!-- |floatformat:"2g" -->
+                            {{i.RATE|floatformat:2}}<!-- |floatformat:"2g" -->
                         </td>
 
                         <!-- td>{{i.filtro}}</td -->
@@ -391,6 +391,13 @@
             //]
         })
     })
+    // aplicar formato .QUANTITY.toLocaleString() en columan de data 
+    //var table = $('#tabla_saldos').DataTable();
+    //table.column(11).visible(false);
+    //table.column(12).visible(false);
+    //table.column(11).visible(true);
+    //table.column(12).visible(true);
+    //table.columns.adjust().draw();
 </script>
 
 <!-- datatable -->

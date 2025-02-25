@@ -78,6 +78,7 @@
 </div>
 
 <!-- Modal -->
+{% comment %}
 <div class="modal fade" id="addUbicacion" tabindex="-1" aria-labelledby="addUbicacionLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -103,7 +104,6 @@
                     {% endfor %}
                 </select>
             </form>
-
         </div>
         <div class="modal-footer">
             <button type="submit" form="add_prod_ubi" class="btn btn-primary">Guardar</button>
@@ -111,6 +111,42 @@
         </div>
     </div>
 </div>
+{% endcomment %}
+
+<!-- Modal -->
+<div class="modal fade" id="addUbicacion" tabindex="-1" aria-labelledby="addUbicacionLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="addUbicacionLabel">Añadir Producto-Ubicación --- </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            
+            <form method="POST" id="add_prod_ubi">
+                {% csrf_token %}
+                <label>Producto:</label>
+                <select class="form-select select2" name="product_id" multiple>
+                    <option value="">-----------</option>
+                    {% for i in prods %}
+                    <option value="{{i.product_id}}">{{i.product_id}} - {{i.Nombre}} - {{i.Marca}}</option>
+                    {% endfor %}
+                </select>
+                <label>Ubicaciones:</label>
+                <select class="form-select select2" name="ubicaciones">
+                    {% for i in ubs %}
+                    <option value="{{i.id}}">{{i.nombre}}</option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="submit" form="add_prod_ubi" class="btn btn-primary">Guardar</button>
+        </div>
+        </div>
+    </div>
+</div>
+
 
 
 <!-- editar -->
