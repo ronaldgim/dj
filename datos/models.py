@@ -14,12 +14,12 @@ PERSONAS_CHOICES = [
 class Product(models.Model):
     
     product_id      = models.CharField(verbose_name='Product id', max_length=50)
-    description     = models.CharField(verbose_name='Descripción', max_length=200)
-    marca           = models.CharField(verbose_name='Marca', max_length=50)
+    description     = models.CharField(verbose_name='Descripción', max_length=200, blank=True)
+    marca           = models.CharField(verbose_name='Marca', max_length=50, blank=True)
     marca2          = models.CharField(verbose_name='Marca', max_length=50, blank=True)
     
-    unidad_empaque  = models.IntegerField(verbose_name='Unidad Empaque')
-    unidad_empaque_box  = models.IntegerField(verbose_name='Unidad Empaque Box', null=True)
+    unidad_empaque  = models.IntegerField(verbose_name='Unidad Empaque', blank=True)
+    unidad_empaque_box  = models.IntegerField(verbose_name='Unidad Empaque Box', null=True, blank=True)
     largo           = models.FloatField(verbose_name='Caja master largo (m)', default=0.0, null=True, blank=True)
     ancho           = models.FloatField(verbose_name='Caja master ancho (m)', default=0.0, null=True, blank=True)
     alto            = models.FloatField(verbose_name='Caja master alto (m)', default=0.0, null=True, blank=True)
