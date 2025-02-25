@@ -1927,7 +1927,8 @@ def revision_reservas_fun():
         # solo reserva yu reservado
         df_reservas_sinlote = df_reservas_sinlote[
             (df_reservas_sinlote['SEC_NAME_CLIENTE']=='RESERVA') |
-            (df_reservas_sinlote['SEC_NAME_CLIENTE']=='RESERVADO')
+            (df_reservas_sinlote['SEC_NAME_CLIENTE']=='RESERVADO') |
+            (df_reservas_sinlote['SEC_NAME_CLIENTE']=='PUBLICO') 
             ]
         
         # 2.1 Filtrar reservas por gimpromed y cliente hospital
