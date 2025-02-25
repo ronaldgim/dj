@@ -288,7 +288,7 @@ class UbicacionAndagoya(models.Model):
     
 class ProductoUbicacion(models.Model):
     
-    product_id = models.CharField(verbose_name='ID del Producto', max_length=50, unique=True )  # Opcional, pero recomendado si el `product_id` debe ser único
+    product_id = models.CharField(verbose_name='ID del Producto', max_length=50, unique=True )
     ubicaciones = models.ManyToManyField('UbicacionAndagoya', verbose_name='Ubicaciones',related_name='productos')
 
     def __str__(self):
