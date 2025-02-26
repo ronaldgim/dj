@@ -1,0 +1,209 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Etiquetado por pedido</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'etiquetado/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+<h5 class="m-4 text-center fw-bold">LISTADO DE PEDIDOS TEMPORALES</h5>
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+<div id="msg"></div>
+
+<!-- Button trigger modal -->
+<button type="button" class="btn btn-primary mt-4 mb-2" data-bs-toggle="modal" data-bs-target="#addPedidoTemporal">
+    Añadir Pedido Temporal
+</button>
+
+<div class="col-4">
+    <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+</div>
+
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col"># Pedido</th>
+                        <th scope="col">Cliente</th>
+                        <th scope="col">Ruc</th>
+                        <th scope="col">Estado</th>
+                        <th scope="col">Fecha de creación</th>
+                        <th scope="col">Fecha de entrega</th>
+                        <th scope="col">Creado por</th>
+                        <th scope="col">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in pedidos %}
+                    <tr>
+                        <td>{{i.enum}}</td>
+                        <td>{{i.cliente}}</td>
+                        <td>{{i.ruc}}</td>
+                        <td><span class="badge text-white rounded-pill {% if i.estado == 'PENDIENTE' %} bg-warning {% else %} bg-success {% endif %} ">{{i.estado}}</span></td>
+                        <td>{{i.creado | date:"d-m-Y H:i"}}</td>
+                        <td>{{i.entrega | date:"d-m-Y H:i"}}</td>
+                        <td>{{i.usuario.first_name}} {{i.usuario.last_name}}</td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a class="btn btn-primary btn-sm" href="{% url 'pedido_temporal' i.id %}">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                {% if i.estado == 'PENDIENTE' %}
+                                <button type="button" class="btn btn-sm btn-success" name="estado_pedido_temporal" value="{{i.id}}">CERRADO</button>
+                                {% elif i.estado == 'CERRADO' %}
+                                <button type="button" class="btn btn-sm btn-warning" name="estado_pedido_temporal" value="{{i.id}}">PENDIENTE</button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal -->
+<div class="modal fade" id="addPedidoTemporal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="addPedidoTemporal" aria-hidden="true">
+    <div class="modal-dialog modal-lg"> <!-- modal-lg -->
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="staticBackdropLabel">Añadir Pedido Temporal</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body mb-0 pb-0">
+                <div id="error_modal"></div>
+                <form action="{% url 'lista_pedidos_temporales' %}" method="POST" id="pedido-temporal-form">
+                    {% csrf_token %}
+                    <!--input type="hidden" name="usuario" value="{{request.user}}"-->
+                    <input type="hidden" value="{{request.user.id}}" name="usuario">
+                    <input type="hidden" name="estado" value="PENDIENTE">
+                    <div class="row g-2">
+                        <!-- Código -->
+                        <div class="col-4">
+                            Cliente:
+                        </div>
+                        <div class="col-8">
+                            <select class="form-select select2" id="id_cliente" name="cliente" required>
+                                <option>-----------</option>
+                                {% for i in clientes %}
+                                <option value="{{i.NOMBRE_CLIENTE}}">{{i.NOMBRE_CLIENTE}}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="col-4">
+                            RUC:
+                        </div>
+                        <div class="col-8">
+                            <input name="ruc" id="id_ruc" class="form-control" type="text" required />
+                        </div>
+
+                        <div class="col-4">
+                            Fecha de entrega:
+                        </div>
+                        <div class="col-8 mb-4">
+                            <input name="entrega" class="form-control" type="datetime-local" required />
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" form="pedido-temporal-form" class="btn btn-primary">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--filtro buscar-->
+<script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+
+
+<!-- Select2 -->
+<script>
+    $(document).ready(function() {
+        $(".select2").select2({
+            dropdownParent: $('#addPedidoTemporal'), //opciones ancladas al modal
+        })
+    })
+</script>
+
+
+<script>
+    $("#id_cliente").on('change', function() {
+        var cliente_name = $("#id_cliente").val();
+        console.log(cliente_name);
+        $.ajax({
+            type:"POST",
+            url: "{% url 'get_ruc_by_name_client_ajax' %}",
+            data: {
+                'csrfmiddlewaretoken': '{{csrf_token}}',
+                'cliente_name': cliente_name 
+            },
+            success: function(data) {
+                $("#id_ruc").val(data.ruc);
+                $("#id_codigo_cliente").val(data.codigo_cliente);
+                if (data.error) {
+                    $("#error_modal").html(
+                        `<div class="alert alert-warning alert-dismissible fade show" role="alert">
+                        ${data.error}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>`
+                    )
+                }
+            }
+        })
+    })
+</script>
+
+<!-- Editar Estado -->
+<script>
+    $('button[name="estado_pedido_temporal"]').click(function() {
+        
+        var pedido_id = $(this).val();
+        var estado = $(this).text();
+        
+        $.ajax({
+            type:"POST",
+            url: "{% url 'editar_producto_pedido_temporal' %}",
+            data: {
+                'csrfmiddlewaretoken': '{{csrf_token}}',
+                'pedido_id': pedido_id,
+                'estado': estado
+            },
+            success: function() {
+                window.location.reload();
+            }
+        })
+    })
+</script>
+{% endblock %}

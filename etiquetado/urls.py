@@ -477,4 +477,29 @@ urlpatterns = [
     #     view=views.picking_dashboard_vue_ban,
     #     name='picking_dashboard_vue_ban'
     # )
+    
+    path(
+        route = 'pedidos-temporales/lista',
+        view  = views.lista_pedidos_temporales,
+        name  = 'lista_pedidos_temporales'
+    ),
+    
+    path(
+        route = 'pedidos-temporales/<int:pedido_id>',
+        view  = views.pedido_temporal,
+        name  = 'pedido_temporal'
+    ),
+
+    path(
+        route = 'eliminar_producto_pedido_temporal',
+        view  = views.eliminar_producto_pedido_temporal,
+        name  = 'eliminar_producto_pedido_temporal'
+    ),
+    
+    path(
+        route = 'editar_producto_pedido_temporal',
+        view  = views.editar_producto_pedido_temporal,
+        name  = 'editar_producto_pedido_temporal'
+    ),
+    
 ]

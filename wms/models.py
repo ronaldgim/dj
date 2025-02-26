@@ -77,6 +77,12 @@ BODEGA_ARMADO = [
     ('Cerezos', 'Cerezos'),
 ]
 
+ESTADO_ANULACION_FACTURA = [
+    ('Confirmado', 'Confirmado'),
+    ('Pendiente', 'Pendiente'),
+    ('Cancelado', 'Cancelado'),
+]
+
 # Create your models here.
 class InventarioIngresoBodega(models.Model):
     
@@ -346,3 +352,16 @@ class OrdenEmpaque(models.Model):
         enum = OrdenEmpaque.objects.filter(id__lte=self.id).count() + 1520
         enum = f'{enum:07d}'
         return enum 
+
+
+class FacturaAnulada(models.Model):
+    
+    n_factura  = models.CharField(verbose_name='Factura', max_length=13)
+    n_picking  = models.CharField(verbose_name='Picking', max_length=13)
+    motivo     = models.TextField(verbose_name='Motivo', max_length=50)
+    fecha_hora = models.DateTimeField(verbose_name='Fecha Hora', auto_now_add=True)
+    estado     = models.CharField(verbose_name='Estado', choices=ESTADO_ANULACION_FACTURA, max_length=20)
+    usuario    = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.CASCADE)
+    
+    def __str__(self):
+        return self.n_factura
