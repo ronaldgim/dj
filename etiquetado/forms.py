@@ -13,7 +13,9 @@ from etiquetado.models import (
     AnexoGuia,
     AnexoDoc,
     UbicacionAndagoya,
-    ProductoUbicacion
+    ProductoUbicacion,
+    PedidoTemporal,
+    ProductosPedidoTemporal
     )
 
 # MyForms
@@ -104,4 +106,17 @@ class ProductoUbicacionForm(forms.ModelForm):
     class Meta:
         model = ProductoUbicacion
         fields = '__all__'
-        
+
+class PedidoTemporalForm(forms.ModelForm):
+    
+    class Meta:
+        model = PedidoTemporal
+        # fields = '__all__'
+        exclude = ('productos',)
+
+
+class ProductosPedidoTemporalForm(forms.ModelForm):
+    
+    class Meta:
+        model = ProductosPedidoTemporal
+        fields = '__all__'

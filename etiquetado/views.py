@@ -33,6 +33,8 @@ from etiquetado.models import (
     AddEtiquetadoPublico,
     UbicacionAndagoya,
     ProductoUbicacion,
+    PedidoTemporal,
+    ProductosPedidoTemporal
     )
 
 from mantenimiento.models import Equipo
@@ -50,6 +52,8 @@ from etiquetado.forms import (
     AnexoDocForm,
     UbicacionAndagoyaForm,
     ProductoUbicacionForm,
+    PedidoTemporalForm,
+    ProductosPedidoTemporalForm
 )
 
 # Json
@@ -74,7 +78,7 @@ from django.contrib import messages
 
 # Url
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
-from django.urls import reverse_lazy
+from django.urls import reverse
 
 # PDF
 from django_xhtml2pdf.utils import pdf_decorator
@@ -3739,3 +3743,151 @@ def transferencia_ingres_andagoya_detalle(request, n_transferencia):
 
 def dashboards_powerbi(request):
     return render(request, 'etiquetado/powerbi/dashboard_uno.html')
+
+
+
+def lista_pedidos_temporales(request):
+    
+    pedidos = PedidoTemporal.objects.all()
+    # productos = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+    clientes = clientes_warehouse()[['NOMBRE_CLIENTE','IDENTIFICACION_FISCAL']]
+    
+    if request.method == 'POST':
+        form = PedidoTemporalForm(request.POST)
+        if form.is_valid():
+            pedido = form.save()
+            messages.success(request, 'Pedido guardado exitosamente')
+            return redirect(reverse('pedido_temporal', kwargs={'pedido_id': pedido.id}))
+        else:
+            messages.error(request, form.errors)
+    
+    context = {
+        'pedidos': pedidos,
+        # 'productos': de_dataframe_a_template(productos),
+        'clientes': de_dataframe_a_template(clientes),
+    }
+    
+    return render(request, 'etiquetado/pedidos_temporales/lista_pedidos_temporales.html', context)
+
+
+
+def calculos_pedido(productos_values):
+    
+    productos_df = productos_odbc_and_django()
+    productos = pd.DataFrame(productos_values).rename(columns={'id':'id_product_temporal'})
+    
+    pedido = productos.merge(productos_df, on='product_id', how='left')
+    pedido = pedido.rename(columns={
+        'product_id':'PRODUCT_ID',
+        'Nombre':'PRODUCT_NAME',
+        'cantidad':'QUANTITY'})
+    
+    # Calculos
+    pedido['Cartones'] = (pedido['QUANTITY'] / pedido['Unidad_Empaque']).round(2)
+    #pedido = pedido.fillna(0.0).replace(np.inf, 0.0)
+    
+    pedido['t_una_p_min'] = (pedido['Cartones'] * pedido['t_etiq_1p']) / 60
+    pedido['t_una_p_hor'] = pedido['t_una_p_min'] / 60
+    pedido['t_dos_p_hor'] = ((pedido['Cartones'] * pedido['t_etiq_2p']) / 60) / 60
+    pedido['t_tre_p_hor'] = ((pedido['Cartones'] * pedido['t_etiq_3p']) / 60) / 60
+    pedido['vol_total'] = pedido['Cartones'] * (pedido['Volumen'] / 1000000)
+    pedido['pes_total'] = pedido['Cartones'] * pedido['Peso']
+    
+    p_cero = 0 in list(pedido['pes_total']) 
+    
+    #pedido = pedido.fillna(0.0).replace(np.inf, 0.0) 
+
+    # Mejor formato de tiempo
+    pedido['t_s_1p']   = (pedido['Cartones'] * pedido['t_etiq_1p'].round(0))
+    pedido['t_str_1p'] = [str(timedelta(seconds=int(i))) for i in pedido['t_s_1p']] 
+
+    pedido['t_s_2p']   = (pedido['Cartones'] * pedido['t_etiq_2p']).round(0)
+    pedido['t_str_2p'] = [str(timedelta(seconds=int(i))) for i in pedido['t_s_2p']]
+
+    pedido['t_s_3p']   = (pedido['Cartones'] * pedido['t_etiq_3p'].round(0))
+    pedido['t_str_3p'] = [str(timedelta(seconds=int(i))) for i in pedido['t_s_3p']]
+
+    tt_str_1p = str(timedelta(seconds=int(pedido['t_s_1p'].sum())))
+    tt_str_2p = str(timedelta(seconds=int(pedido['t_s_2p'].sum())))
+    tt_str_3p = str(timedelta(seconds=int(pedido['t_s_3p'].sum())))
+    
+    t_total_vol = pedido['vol_total'].sum()
+    t_total_pes = pedido['pes_total'].sum()
+    t_cartones = pedido['Cartones'].sum()
+    t_unidades = pedido['QUANTITY'].sum()
+
+    pedido = {
+        'productos': de_dataframe_a_template(pedido)
+        }
+    
+    pedido['tt_str_1p'] = tt_str_1p
+    pedido['tt_str_2p'] = tt_str_2p
+    pedido['tt_str_3p'] = tt_str_3p
+    
+    pedido['t_total_vol'] = t_total_vol
+    pedido['t_total_pes'] = t_total_pes
+    pedido['t_cartones'] = t_cartones
+    pedido['t_unidades'] = t_unidades
+    
+    return pedido
+    
+
+
+def pedido_temporal(request, pedido_id):
+    
+    pedido = PedidoTemporal.objects.get(id=pedido_id)
+    productos = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+    clientes = clientes_warehouse()[['NOMBRE_CLIENTE','IDENTIFICACION_FISCAL']]
+    
+    if pedido.productos.exists():
+        productos_pedido = calculos_pedido(pedido.productos.values())   
+    else:
+        productos_pedido = {'productos': []}
+    
+    if request.method == 'POST':
+        form = ProductosPedidoTemporalForm(request.POST)
+        if form.is_valid():
+            producto = form.save()
+            pedido.productos.add(producto)
+            messages.success(request, 'Producto agregado al pedido exitosamente')
+            return redirect(reverse('pedido_temporal', kwargs={'pedido_id': pedido.id}))
+        else:
+            messages.error(request, form.errors)
+
+    context = {
+        'pedido':pedido,
+        'productos': de_dataframe_a_template(productos),
+        'clientes': de_dataframe_a_template(clientes),
+        #'productos_pedido': de_dataframe_a_template(productos_pedido),
+        'productos_pedido': productos_pedido,
+    }
+    
+    return render(request, 'etiquetado/pedidos_temporales/pedido_temporal.html', context)
+
+
+def eliminar_producto_pedido_temporal(request):
+    
+    if request.method == 'POST':
+        id_producto_temporal = request.POST.get('id_producto_temporal')
+        
+        try:
+            producto_temporal = ProductosPedidoTemporal.objects.get(id=id_producto_temporal)
+            producto_temporal.delete()
+            return JsonResponse({'msg':'Producto eliminado exitosamente'})
+        except:
+            return JsonResponse({'msg':'Error al eliminar el producto'})
+
+
+def editar_producto_pedido_temporal(request):
+    
+    if request.method == 'POST':
+        pedido_id = request.POST.get('pedido_id', None)
+        estado = request.POST.get('estado', None)
+        
+        if pedido_id and estado:
+            pedido = PedidoTemporal.objects.get(id=pedido_id)
+            pedido.estado = estado
+            pedido.save()
+        return JsonResponse({
+            'estado': estado,
+        })

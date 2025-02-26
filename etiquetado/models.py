@@ -4,7 +4,8 @@ from django.db import models
 # Models
 from datos.models import Product
 from mantenimiento.models import Equipo
-from users.models import UserPerfil, User
+from users.models import UserPerfil , User
+
 
 # Estado Picking select
 ESTADO_PICKING = [
@@ -18,6 +19,11 @@ ESTADO_PICKING = [
 BODEGA_NOMBRE = [
     ('Andagoya', 'Andagoya'),
     ('Cerezos', 'Cerezos'),
+]
+
+ESTADO_PEDIDO_TEMPORAL = [
+    ('PENDIENTE', 'PENDIENTE'),
+    ('CERRADO', 'CERRADO'),
 ]
 
 
@@ -297,3 +303,29 @@ class ProductoUbicacion(models.Model):
     
     # @property
     # def ubicaciones_str(self):
+
+
+class ProductosPedidoTemporal(models.Model):
+    
+    product_id = models.CharField(max_length=50)
+    cantidad   = models.IntegerField()
+    
+    def __str__(self):
+        return self.product_id
+
+
+class PedidoTemporal(models.Model):
+    
+    cliente   = models.CharField(max_length=100)
+    ruc       = models.CharField(max_length=15)
+    estado    = models.CharField(max_length=20, choices=ESTADO_PEDIDO_TEMPORAL)
+    entrega   = models.DateTimeField(blank=True, null=True)
+    productos = models.ManyToManyField(ProductosPedidoTemporal, blank=True)
+    creado    = models.DateTimeField(auto_now_add=True)
+    usuario   = models.ForeignKey(User, verbose_name='User', on_delete=models.CASCADE)
+    
+    @property
+    def enum(self):
+        total_registros = PedidoTemporal.objects.filter(id__lte=self.id).count()
+        enum = f'PT-{total_registros:03d}'
+        return enum 
