@@ -69,7 +69,8 @@ from wms.models import (
     NotaEntregaStatus,
     DespachoCarton,
     ProductoArmado,
-    OrdenEmpaque
+    OrdenEmpaque,
+    FacturaAnulada
     )
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -5309,3 +5310,37 @@ def wms_referenica_detalle(request, referencia, n_referencia):
     except Exception as e:
         context = {'error':str(e)}
         return render(request, 'wms/picking_detalle.html', context)
+
+
+@login_required(login_url='login')
+def lista_facturas_anualdas(request):
+    
+    facturas = FacturaAnulada.objects.all()
+    
+    if request.method == 'POST':
+        factura = request.POST.get('factura', None)
+        motivo  = request.POST.get('motivo', None)
+        
+        movimientos = Movimiento.objects.filter(n_factura=factura)
+        
+        if movimientos.exists():
+            factura_anulada = FacturaAnulada(
+                n_factura=factura,
+                n_picking=movimientos.first().n_referencia,
+                motivo=motivo,
+                estado = 'Pendiente',
+                usuario=request.user,
+            )
+            
+            factura_anulada.save()
+            
+            if factura_anulada:
+                messages.success(request, f'Factura {factura} pendiente de anulación !!!')
+            else:
+                messages.error(request, f'Error al agregar la factura {factura}')
+    
+    context = {
+        'facturas': facturas
+    }
+    
+    return render(request, 'wms/facturas_anuladas_list.html', context)
