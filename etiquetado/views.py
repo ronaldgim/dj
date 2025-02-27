@@ -3901,6 +3901,7 @@ def calculos_pedido(productos_values):
 
 def pedido_temporal(request, pedido_id):
     
+    vehiculo = Vehiculos.objects.filter(activo=True).order_by('transportista')
     pedido = PedidoTemporal.objects.get(id=pedido_id)
     productos = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     clientes = clientes_warehouse()[['NOMBRE_CLIENTE','IDENTIFICACION_FISCAL']]
@@ -3921,6 +3922,7 @@ def pedido_temporal(request, pedido_id):
             messages.error(request, form.errors)
 
     context = {
+        'vehiculos':vehiculo,
         'pedido':pedido,
         'productos': de_dataframe_a_template(productos),
         'clientes': de_dataframe_a_template(clientes),
@@ -3959,7 +3961,7 @@ def editar_producto_pedido_temporal(request):
         form = ProductosPedidoTemporalForm(request.POST, instance=producto_temporal)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Producto agregado al pedido exitosamente')
+            messages.success(request, f'Producto {producto_temporal.product_id} editado exitosamente')
             return redirect(reverse('pedido_temporal', kwargs={'pedido_id': pedido.id}))
         else:
             messages.error(request, 'Error al editar el producto')
@@ -3982,5 +3984,26 @@ def editar_estado_pedido_temporal(request):
             'estado': estado,
         })
 
+
+def editar_pedido_temporal(request):
+    
+    if request.method == 'GET':
+        pedido = PedidoTemporal.objects.get(id=request.GET.get('pedido_id'))
+        return JsonResponse({
+            'cliente':pedido.cliente,
+            'ruc':pedido.ruc,
+            'entrega':pedido.entrega,
+        })
+    
+    if request.method == 'POST':
+        pedido = PedidoTemporal.objects.get(id=request.POST.get('pedido_id'))
+        form = PedidoTemporalForm(request.POST, instance=pedido)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Pedido {pedido.enum} editado exitosamente !!!')
+            return redirect(reverse('pedido_temporal', kwargs={'pedido_id': pedido.id}))
+        else:
+            messages.error(request, form.errors)
+            return redirect(reverse('pedido_temporal', kwargs={'pedido_id': pedido.id}))
 
 

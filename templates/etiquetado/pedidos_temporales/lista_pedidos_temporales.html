@@ -94,7 +94,6 @@
                 <div id="error_modal"></div>
                 <form action="{% url 'lista_pedidos_temporales' %}" method="POST" id="pedido-temporal-form">
                     {% csrf_token %}
-                    <!--input type="hidden" name="usuario" value="{{request.user}}"-->
                     <input type="hidden" value="{{request.user.id}}" name="usuario">
                     <input type="hidden" name="estado" value="PENDIENTE">
                     <div class="row g-2">

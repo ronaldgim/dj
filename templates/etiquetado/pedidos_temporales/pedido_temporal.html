@@ -30,6 +30,7 @@
         <h6><strong>N. Pedido: </strong> {{pedido.enum}}</h6>
         <h6><strong>Cliente: </strong> {{pedido.cliente}}</h6>
         <h6><strong>Ruc: </strong> {{pedido.ruc}}</h6>
+        <h6><strong>Estado: </strong> {{pedido.estado}}</h6>
         <h6><strong>Fecha de creación: </strong> {{pedido.creado | date:"d-m-Y H:i"}}</h6>
         <h6><strong>Fecha de entrega: </strong> {{pedido.entrega | date:"d-m-Y H:i"}}</h6>
     </div>
@@ -55,9 +56,9 @@
 </div>
 
 <!-- Button trigger modal -->
-<!--button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editarPedidoTemporal">
+<button type="button" class="btn btn-sm btn-primary" value="{{pedido.id}}" name="editar_pedido" data-bs-toggle="modal" data-bs-target="#editarPedido">
     Editar Pedido Temporal
-</button-->
+</button>
 
 {% if pedido.estado == 'PENDIENTE' %}
 <button type="button" class="btn btn-sm btn-success" name="estado_pedido_temporal" value="{{pedido.id}}">CERRAR PEDIDO</button>
@@ -231,6 +232,59 @@
 <input id="peso_total" type="hidden" value="{{productos_pedido.t_total_pes}}">
 <input id="p_cero" type="hidden" value="{{productos_pedido.p_cero}}">
 
+
+<!-- Modal Editar Pedido -->
+<div class="modal fade" id="editarPedido" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="editarPedido" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="editarPedido">Editar Producto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body mb-0 pb-0">
+                <div id="error_modal"></div>
+                <form action="{% url 'editar_pedido_temporal' %}" method="POST" id="pedido-temporal-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="usuario" value="{{request.user.id}}" >
+                    <input type="hidden" name="estado" value="{{pedido.estado}}">
+                    <div class="row g-2">
+                        <!-- Código -->
+                        <div class="col-4">
+                            Cliente:
+                        </div>
+                        <div class="col-8">
+                            <select class="form-select select2" id="id_cliente" name="cliente" required>
+                                <option>-----------</option>
+                                {% for i in clientes %}
+                                <option value="{{i.NOMBRE_CLIENTE}}">{{i.NOMBRE_CLIENTE}}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="col-4">
+                            RUC:
+                        </div>
+                        <div class="col-8">
+                            <input name="ruc" id="id_ruc" class="form-control" type="text" required />
+                        </div>
+
+                        <div class="col-4">
+                            Fecha de entrega:
+                        </div>
+                        <div class="col-8 mb-4">
+                            <input name="entrega" id="id_entrega" class="form-control" type="datetime-local" required />
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" form="pedido-temporal-form" class="btn btn-primary">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <!-- Modal Editar Producto -->
 <div class="modal fade" id="editarProducto" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="editarProducto" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -290,6 +344,12 @@
         $("#editarProducto").on("show.bs.modal", function() {
             $(".select2").select2({
                 dropdownParent: $("#editarProducto")
+            });
+        });
+
+        $("#editarPedido").on("show.bs.modal", function() {
+            $(".select2").select2({
+                dropdownParent: $("#editarPedido")
             });
         })
     });
@@ -411,6 +471,34 @@
         })
     })
 </script>
+
+<!-- Editar Pedido -->
+<script>
+    $('button[name="editar_pedido"]').click(function() {
+            
+            var pedido_id = $(this).val();
+            
+            $.ajax({
+                type:"GET",
+                url: "{% url 'editar_pedido_temporal' %}",
+                data: {
+                    'pedido_id': pedido_id 
+                },
+                success: function(response) {
+                    $('#id_cliente').val(response.cliente);
+                    $('#id_cliente').val(response.cliente).trigger('change');
+                    $('#id_ruc').val(response.ruc);
+                    $('#id_entrega').val(response.entrega);
+                    $('#id_entrega').after(
+                        `<input type="hidden" name="pedido_id" value="${pedido_id}">`
+                    )
+                }
+            })
+        });
+        
+</script>
+
+
 <!-- Imprimir -->
 <script>
     $("#print").click(function() {
