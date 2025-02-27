@@ -2435,14 +2435,53 @@ def publico_dashboard_fun():
     estados = estados.rename(columns={'n_pedido':'CONTRATO_ID','estado':'estado_picking_x'})
     if not estados.empty:
         list_reservas = list_reservas.merge(estados, on='CONTRATO_ID', how='left')
-        
     
     return list_reservas
 
+
+def pedidos_temporales_fun():
+    
+    pedidos = PedidoTemporal.objects.filter(estado='PENDIENTE')
+    clientes_df = clientes_warehouse()[['NOMBRE_CLIENTE', 'CIUDAD_PRINCIPAL']]
+    
+    if pedidos.exists():
+    
+        data = []
+        for i in pedidos:
+            pedidos_data = calculos_pedido(i.productos.values())
+            data.append({
+                'id_pedido_temporal':str(i.id),
+                'CONTRATO_ID': i.enum,
+                'NOMBRE_CLIENTE': i.cliente,
+                'fecha_entrega': i.entrega,
+                't_1p_str': pedidos_data['tt_str_1p'],
+                't_2p_str': pedidos_data['tt_str_2p'],
+                't_3p_str': pedidos_data['tt_str_3p'],
+                'fecha_hora':i.creado,
+                'TIEMPOS':pedidos_data['TIEMPOS'],
+            })
+        
+        df = pd.DataFrame(data)
+        df['TIPO_PEDIDO'] = 'TEMPORAL'
+        df['dias_faltantes'] = (df['fecha_entrega'] - datetime.now()).dt.days
+        df['dia'] = df['fecha_entrega'].dt.day_name(locale='es_EC.utf-8')
+        df['mes'] = df['fecha_entrega'].dt.month_name(locale='es_EC.utf-8')
+        df['fecha_hora'] = df['fecha_entrega'].astype('str')
+        df['avance'] = None
+        
+        if not df.empty:
+            df = df.merge(clientes_df, on='NOMBRE_CLIENTE', how='left')
+        
+        return df
+    else:
+        return pd.DataFrame()
+
+
 def publico_dashboard(request):
 
+    pedidos_temporales = pedidos_temporales_fun().dropna(axis=1, how='all')
     list_reservas = publico_dashboard_fun()
-    
+
     pub = list_reservas[list_reservas['estado']!='FINALIZADO']
     contratos = list(pub['CONTRATO_ID'].unique())
     sto = stock_faltante_contrato(contratos, 'BCT')
@@ -2451,7 +2490,12 @@ def publico_dashboard(request):
         pub = pub.merge(sto, on='CONTRATO_ID', how='left')
 
     fin = list_reservas[list_reservas['estado']=='FINALIZADO']
-
+    
+    if not pub.empty and not pedidos_temporales.empty:
+        pub = pd.concat([pub, pedidos_temporales], ignore_index=True)
+    else:
+        pub = pub
+    
     pub = de_dataframe_a_template(pub)
     fin = de_dataframe_a_template(fin)
 
@@ -2583,10 +2627,15 @@ def dashboard_completo_json_response(request):
     contratos_publicos = list(publico['CONTRATO_ID'].unique())
     sto_publico = stock_faltante_contrato(contratos_publicos, 'BCT')
     
-    
     if not sto_publico.empty:
         publico = publico.merge(sto_publico, on='CONTRATO_ID', how='left')
     
+    pedidos_temporales = pedidos_temporales_fun().dropna(axis=1, how='all')
+    if not publico.empty and not pedidos_temporales.empty:
+        publico = pd.concat([publico, pedidos_temporales])
+    else:
+        publico = publico
+        
     publicos_n = len(publico)
     publico = de_dataframe_a_template(publico)
     
@@ -3812,6 +3861,10 @@ def calculos_pedido(productos_values):
     tt_str_2p = str(timedelta(seconds=int(pedido['t_s_2p'].sum())))
     tt_str_3p = str(timedelta(seconds=int(pedido['t_s_3p'].sum())))
     
+    cero_in_t1 = 0 in list(pedido['t_s_1p'])
+    cero_in_t2 = 0 in list(pedido['t_s_2p'])
+    cero_in_t3 = 0 in list(pedido['t_s_3p'])
+    
     t_total_vol = pedido['vol_total'].sum()
     t_total_pes = pedido['pes_total'].sum()
     t_cartones = pedido['Cartones'].sum()
@@ -3820,6 +3873,16 @@ def calculos_pedido(productos_values):
     pedido = {
         'productos': de_dataframe_a_template(pedido)
         }
+    
+    if not cero_in_t2:
+        pedido['TIEMPOS'] = 't2'
+    elif cero_in_t2 and not cero_in_t1:
+        pedido['TIEMPOS'] = 't1'
+    elif cero_in_t1 and cero_in_t2 and not cero_in_t3:
+        pedido['TIEMPOS'] = 't3'
+    elif cero_in_t1 and cero_in_t2 and cero_in_t3:
+        pedido['TIEMPOS'] = 'F'
+    
     
     pedido['tt_str_1p'] = tt_str_1p
     pedido['tt_str_2p'] = tt_str_2p
@@ -3831,7 +3894,7 @@ def calculos_pedido(productos_values):
     pedido['t_unidades'] = t_unidades
     
     pedido['p_cero'] = p_cero
-    
+
     return pedido
 
 

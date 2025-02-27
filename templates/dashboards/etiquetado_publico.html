@@ -31,8 +31,12 @@
     </div>
 </div>
 
+<a class="btn btn-primary mt-2" href="{% url 'lista_pedidos_temporales' %}">
+    Agregar pedido temporal
+</a>
+
 <div>
-    <div class="card mt-4 mb-4">
+    <div class="card mt-2 mb-4">
         <div class="card-body m-0 p-0">
             <div class="container table-responsive"> <!-- class="container table-responsive"-->
                 <table class="table">
@@ -42,12 +46,9 @@
                         <th scope="col">Cliente</th>
                         <!--th scope="col">Fecha pedido</th>
                         <th scope="col">Hora pedido</th-->
-
                         <th scope="col">Fecha entrega</th>
                         <th scope="col">Hora entrega</th>
-
                         <th scope="col">Días faltantes</th>
-
                         <!--th scope="col">Inicio de etiquetado</th-->
                         <th scope="col">Estado etiquetado</th>
                         <th scope="col">Estado entrega</th>
@@ -63,9 +64,16 @@
                     <tr style="font-size: small;">
 
                         <th scope="row">
+                            
+                            {% if i.TIPO_PEDIDO == 'TEMPORAL' %}
+                            <a href="{% url 'pedido_temporal' i.id_pedido_temporal %}" target="_blank">
+                                {{i.CONTRATO_ID}}
+                            </a>
+                            {% else %}
                             <a href="{% url 'pedidos' i.CONTRATO_ID %}" target="_blank">
                                     {{i.CONTRATO_ID|slice:-2}}
                             </a>
+                            {% endif %}
                             
                             {% if i.DISP == 'NOT' %}
                             <i style = "color:red;" class="bi bi-file-earmark-x-fill"></i>
@@ -131,7 +139,7 @@
                             -
                             {% endif %}
 
-                            {% if i.estado != '-' %}
+                            {% if i.estado != '-' and not i.TIPO_PEDIDO %}
                             <span class="badge text-dark rounded-pill" style="background-color: #BAF690; font-size: 12px">
                                 {{i.avance}}%
                             </span>

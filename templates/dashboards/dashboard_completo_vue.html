@@ -252,7 +252,8 @@
                                 <tr v-for="(i, index) in publicoData" :key="index">
                                     {% verbatim %}
                                     <td>
-                                        <a :href="'/etiquetado/pedidos/' + i.CONTRATO_ID" class="fs-6" target="_blank">{{i.contrato_id}}</a>
+                                        <a v-if="i.TIPO_PEDIDO" :href="'/etiquetado/pedidos-temporales/' + i.id_pedido_temporal" class="fs-6" target="_blank">{{i.contrato_id}}</a>
+                                        <a v-else="i.TIPO_PEDIDO" :href="'/etiquetado/pedidos/' + i.CONTRATO_ID" class="fs-6" target="_blank">{{i.contrato_id}}</a>
                                         <i v-if="i.DISP === 'NOT' && i.estado_picking_x !== 'FINALIZADO'" style="color:red;" class="bi bi-file-earmark-x-fill"></i>
                                         <i v-if="i.estado_picking_x == 'FINALIZADO'" style="color:green;" class="bi bi-check2-square"></i>
                                         <br>
@@ -275,7 +276,8 @@
                                         <!--a :class="obtenerColorFondoEstado(i.estado)" :style="{backgroundColor: obtenerColorFondoEstadoIncompleto(i.estado)}">{{i.estado}}</a-->
                                         <h6 class="p-0 m-0"><span :class="obtenerColorFondoEstado(i.estado)" :style="{backgroundColor: obtenerColorFondoEstadoIncompleto(i.estado)}">{{i.estado}}</span></h6>
                                         <!--span v-if="i.estado != '-'" class="mt-2 ps-1 pe-1" style="background-color: #BAF690;">{{i.avance}}%</span-->
-                                        <span v-if="i.estado != '-'" class="badge text-dark rounded-pill mt-2" style="background-color: #BAF690; font-size: 12px">{{i.avance}}%</span>
+                                        <span v-if="i.estado != '-' && !i.TIPO_PEDIDO" class="badge text-dark rounded-pill mt-2" style="background-color: #BAF690; font-size: 12px">{{i.avance}}%</span>
+                                        <span v-if="i.estado != '-' && i.TIPO_PEDIDO">-</span>
                                     </td>
                                     {% endverbatim %}
                                 </tr>
@@ -381,7 +383,8 @@
                 return this.publico.map(i => {
                     return {
                         ...i,
-                        contrato_id:i.CONTRATO_ID.slice(0,5),
+                        // contrato_id:i.CONTRATO_ID.slice(0,5),
+                        contrato_id: i.TIPO_PEDIDO ? i.CONTRATO_ID : i.CONTRATO_ID.slice(0,5),
                         ciudad:i.CIUDAD_PRINCIPAL.slice(0,3),
                         dia: i.dia ? i.dia.slice(0, 4) : '',
                         dia_mes: i.fecha_hora ? i.fecha_hora.slice(8,10) : '',
