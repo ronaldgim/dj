@@ -17,7 +17,9 @@ from etiquetado.models import (
     AnexoGuia,
     AddEtiquetadoPublico,
     UbicacionAndagoya,
-    ProductoUbicacion
+    ProductoUbicacion,
+    PedidoTemporal, 
+    ProductosPedidoTemporal
 )
 
 # Register your models here.
@@ -92,3 +94,12 @@ class UbicacionAndagoyaAdmin(admin.ModelAdmin):
 @admin.register(ProductoUbicacion)
 class ProductoUbicacionAdmin(admin.ModelAdmin):
     list_display = ('id', 'product_id')
+
+
+@admin.register(PedidoTemporal)
+class PedidoTemporalAdmin(admin.ModelAdmin):
+    list_display = ('id', 'enum', 'cliente', 'creado')
+
+@admin.register(ProductosPedidoTemporal)
+class ProductosPedidoTemporalAdmin(admin.ModelAdmin):
+    list_display = ('id', 'product_id', 'cantidad')
