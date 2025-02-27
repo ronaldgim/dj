@@ -502,4 +502,15 @@ urlpatterns = [
         name  = 'editar_producto_pedido_temporal'
     ),
     
+    path(
+        route = 'editar_estado_pedido_temporal',
+        view  = views.editar_estado_pedido_temporal,
+        name  = 'editar_estado_pedido_temporal'
+    ),
+    
+    path(
+        route = 'editar_pedido_temporal',
+        view  = views.editar_pedido_temporal,
+        name  = 'editar_pedido_temporal'
+    ),
 ]

@@ -67,9 +67,9 @@
                                     <i class="bi bi-eye"></i>
                                 </a>
                                 {% if i.estado == 'PENDIENTE' %}
-                                <button type="button" class="btn btn-sm btn-success" name="estado_pedido_temporal" value="{{i.id}}">CERRADO</button>
+                                <button type="button" class="btn btn-sm btn-success" name="estado_pedido_temporal" value="{{i.id}}">CERRAR PEDIDO</button>
                                 {% elif i.estado == 'CERRADO' %}
-                                <button type="button" class="btn btn-sm btn-warning" name="estado_pedido_temporal" value="{{i.id}}">PENDIENTE</button>
+                                <button type="button" class="btn btn-sm btn-warning" name="estado_pedido_temporal" value="{{i.id}}">REGRESAR A PENDIENTE</button>
                                 {% endif %}
                             </div>
                         </td>
@@ -94,7 +94,6 @@
                 <div id="error_modal"></div>
                 <form action="{% url 'lista_pedidos_temporales' %}" method="POST" id="pedido-temporal-form">
                     {% csrf_token %}
-                    <!--input type="hidden" name="usuario" value="{{request.user}}"-->
                     <input type="hidden" value="{{request.user.id}}" name="usuario">
                     <input type="hidden" name="estado" value="PENDIENTE">
                     <div class="row g-2">
@@ -128,7 +127,7 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="submit" form="pedido-temporal-form" class="btn btn-primary">Guardar</button>
+                <button type="submit" form="pedido-temporal-form" class="btn btn-primary">Agregar Productos</button>
             </div>
         </div>
     </div>
@@ -194,7 +193,7 @@
         
         $.ajax({
             type:"POST",
-            url: "{% url 'editar_producto_pedido_temporal' %}",
+            url: "{% url 'editar_estado_pedido_temporal' %}",
             data: {
                 'csrfmiddlewaretoken': '{{csrf_token}}',
                 'pedido_id': pedido_id,
