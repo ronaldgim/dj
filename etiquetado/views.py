@@ -3746,6 +3746,7 @@ def dashboards_powerbi(request):
 
 
 
+### PEDIDOS TEMPORALES
 def lista_pedidos_temporales(request):
     
     pedidos = PedidoTemporal.objects.all()
@@ -3829,8 +3830,10 @@ def calculos_pedido(productos_values):
     pedido['t_cartones'] = t_cartones
     pedido['t_unidades'] = t_unidades
     
-    return pedido
+    pedido['p_cero'] = p_cero
     
+    return pedido
+
 
 
 def pedido_temporal(request, pedido_id):
@@ -3858,11 +3861,11 @@ def pedido_temporal(request, pedido_id):
         'pedido':pedido,
         'productos': de_dataframe_a_template(productos),
         'clientes': de_dataframe_a_template(clientes),
-        #'productos_pedido': de_dataframe_a_template(productos_pedido),
         'productos_pedido': productos_pedido,
     }
     
     return render(request, 'etiquetado/pedidos_temporales/pedido_temporal.html', context)
+
 
 
 def eliminar_producto_pedido_temporal(request):
@@ -3879,10 +3882,34 @@ def eliminar_producto_pedido_temporal(request):
 
 
 def editar_producto_pedido_temporal(request):
+
+    if request.method == 'GET':
+        producto_temporal = ProductosPedidoTemporal.objects.get(id=request.GET.get('id_producto_temporal'))
+        return JsonResponse({
+            'product_id':producto_temporal.product_id,
+            'cantidad':producto_temporal.cantidad,
+        })
+    
+    if request.method == 'POST':
+        producto_temporal = ProductosPedidoTemporal.objects.get(id=request.POST.get('id_producto_temporal'))
+        pedido = PedidoTemporal.objects.filter(productos__id=producto_temporal.id).first() 
+        form = ProductosPedidoTemporalForm(request.POST, instance=producto_temporal)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Producto agregado al pedido exitosamente')
+            return redirect(reverse('pedido_temporal', kwargs={'pedido_id': pedido.id}))
+        else:
+            messages.error(request, 'Error al editar el producto')
+            return redirect(reverse('pedido_temporal', kwargs={'pedido_id': pedido.id}))
+
+
+
+def editar_estado_pedido_temporal(request):
     
     if request.method == 'POST':
         pedido_id = request.POST.get('pedido_id', None)
-        estado = request.POST.get('estado', None)
+        estado_texto = request.POST.get('estado', None)
+        estado = 'CERRADO' if estado_texto == 'CERRAR PEDIDO' else 'PENDIENTE'
         
         if pedido_id and estado:
             pedido = PedidoTemporal.objects.get(id=pedido_id)
@@ -3891,3 +3918,6 @@ def editar_producto_pedido_temporal(request):
         return JsonResponse({
             'estado': estado,
         })
+
+
+

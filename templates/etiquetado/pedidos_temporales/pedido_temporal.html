@@ -25,8 +25,7 @@
 {% endfor %}
 {% endif %}
 
-<div id="msg"></div>
-    <div class="row">
+<div class="row">
     <div class="col-6" id="print_area_cabecera">
         <h6><strong>N. Pedido: </strong> {{pedido.enum}}</h6>
         <h6><strong>Cliente: </strong> {{pedido.cliente}}</h6>
@@ -56,14 +55,14 @@
 </div>
 
 <!-- Button trigger modal -->
-<button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editarPedidoTemporal">
+<!--button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editarPedidoTemporal">
     Editar Pedido Temporal
-</button>
+</button-->
 
 {% if pedido.estado == 'PENDIENTE' %}
-<button type="button" class="btn btn-sm btn-success" name="estado_pedido_temporal" value="{{pedido.id}}">CERRADO</button>
+<button type="button" class="btn btn-sm btn-success" name="estado_pedido_temporal" value="{{pedido.id}}">CERRAR PEDIDO</button>
 {% elif pedido.estado == 'CERRADO' %}
-<button type="button" class="btn btn-sm btn-warning" name="estado_pedido_temporal" value="{{pedido.id}}">PENDIENTE</button>
+<button type="button" class="btn btn-sm btn-warning" name="estado_pedido_temporal" value="{{pedido.id}}">REGRESAR A PENDIENTE</button>
 {% endif %}
 
 <div class="card mt-2">
@@ -71,7 +70,7 @@
         <form action="{% url 'pedido_temporal' pedido.id %}" method="POST">
             {% csrf_token %}
             <div class="row g-2">                        
-                <div class="col-8">
+                <div class="col-12 col-md-8">
                     <label class="fw-bold">Item:</label>
                     <select class="form-select select2" id="id_product_id" name="product_id" required>
                         <option>-----------</option>
@@ -80,13 +79,13 @@
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col-3">
+                <div class="ccol-8 col-md-3">
                     <label class="fw-bold">Unidades:</label>
                     <input name="cantidad" id="id_cantidad" class="form-control" type="number" required />
                 </div>
                 <div class="col-1 mb-2">
                     <label class="fw-bold text-white">Agregar:</label>
-                    <button type="submit" class="btn btn-primary">Agregar</button>
+                    <button type="submit" class="btn btn-primary" id="button_agregar_producto">Agregar</button>
                 </div>
             </div>
         </form>
@@ -96,7 +95,7 @@
 <div class="card mt-2" id="print_costo_entrega">
     <div class="card-body m-2 p-2">
         <div class="row">
-            <div class="col-3">
+            <div class="col-12 col-md-3">
                 <label class="mb-1"><strong>Producto:</strong></label>
                 <select name="producto" id="producto" class="form-select" value="{{productovalue}}">
                     <option>-----------</option>
@@ -105,7 +104,7 @@
                     <option value="DOCUMENTOS">DOCUMENTOS</option>
                 </select>
             </div>
-            <div class="col-3">
+            <div class="col-8 col-md-3">
                 <label class="mb-1"><strong>Trayecto:</strong></label>
                 <select name="trayecto" id="trayecto" class="form-select" value="{{trayectovalue}}">
                     <option>-----------</option>
@@ -116,7 +115,7 @@
                     <option value="RURAL">RURAL</option>
                 </select>
             </div>
-            <div class="col-3 mt-4 pt-1">
+            <div class="col-4 col-md-3 mt-4 pt-1">
                 <button name="calcular" id="tramaco_button_id" type="submit" class="btn btn-success">
                     <i class="bi bi-currency-dollar"></i> Calcular 
                 </button>
@@ -128,6 +127,8 @@
         </div>
     </div>
 </div>
+
+<div id="msg"></div>
 
 <div id="print_area_table">
     <div class="card mb-4 mt-2">
@@ -192,15 +193,12 @@
                         
                         <td class="text-end">
                             <div class="btn-group" role="group">
-                                <button class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#exampleModal" name='lotes'>
+                                <button class="btn btn-sm btn-secondary" name="editar_producto" id="{{i.id_product_temporal}}" data-bs-toggle="modal" data-bs-target="#editarProducto">
                                     <i class="bi bi-pencil"></i>    
                                 </button>
                                 <button class="btn btn-sm btn-danger" name="elliminar_producto" id="{{i.id_product_temporal}}">
                                     <i class="bi bi-trash"></i>
                                 </button>
-                                <!--a class="btn btn-sm btn-danger" href="{#% url 'eliminar_producto_pedido_temporal' i.id_product_temporal %#}">
-                                    <i class="bi bi-trash"></i> {{i.id_product_temporal}}
-                                </a-->
                             </div>
                         </td>
                     </tr>
@@ -231,59 +229,44 @@
 </div>
 
 <input id="peso_total" type="hidden" value="{{productos_pedido.t_total_pes}}">
-<!--input id="p_cero" type="hidden" value="{{p_cero}}"-->
+<input id="p_cero" type="hidden" value="{{productos_pedido.p_cero}}">
 
-
-{% comment %}
-<!-- Modal -->
-<div class="modal fade" id="editarPedidoTemporal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="addPedidoTemporal" aria-hidden="true">
-    <div class="modal-dialog modal-lg"> <!-- modal-lg -->
+<!-- Modal Editar Producto -->
+<div class="modal fade" id="editarProducto" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="editarProducto" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title fw-bold" id="staticBackdropLabel">Añadir Pedido Temporal</h5>
+                <h5 class="modal-title fw-bold" id="editarProducto">Editar Producto</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body mb-0 pb-0">
                 <div id="error_modal"></div>
-                <form action="{% url 'pedido_temporal' pedido.id %}" method="POST" id="pedido-temporal-form">
+                <form action="{% url 'editar_producto_pedido_temporal' %}" method="POST" id="producto-temporal-form">
                     {% csrf_token %}
-                    <div class="row g-2">
-                        <!-- Código -->
-                        <div class="col-4">
-                            Cliente:
-                        </div>
+                    <!--input type="hidden" name="usuario" value="{{request.user}}"-->
+                    <div class="row g-2 mb-4">                        
                         <div class="col-8">
-                            <select class="form-select select2" id="id_cliente" name="cliente" required>
+                            <label class="fw-bold">Item:</label>
+                            <select class="form-select select2" id="id_product_id_temporal" name="product_id" required>
                                 <option>-----------</option>
-                                {% for i in clientes %}
-                                <option value="{{i.NOMBRE_CLIENTE}}">{{i.NOMBRE_CLIENTE}}</option>
+                                {% for i in productos %}
+                                <option value="{{i.product_id}}">{{i.product_id}}-{{i.Nombre}}-{{i.Marca}}</option>
                                 {% endfor %}
                             </select>
                         </div>
-                        
                         <div class="col-4">
-                            RUC:
-                        </div>
-                        <div class="col-8">
-                            <input name="ruc" id="id_ruc" class="form-control" type="text" required />
-                        </div>
-
-                        <div class="col-4">
-                            Fecha de entrega:
-                        </div>
-                        <div class="col-8 mb-4">
-                            <input name="entrega" class="form-control" type="datetime-local" required />
+                            <label class="fw-bold">Unidades:</label>
+                            <input name="cantidad" id="id_cantidad_temporal" class="form-control" type="number" required />
                         </div>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="submit" form="pedido-temporal-form" class="btn btn-primary">Guardar</button>
+                <button type="submit" form="producto-temporal-form" class="btn btn-primary">Guardar</button>
             </div>
         </div>
     </div>
 </div>
-{% endcomment %}
 
 
 <!--filtro buscar-->
@@ -302,10 +285,14 @@
 <!-- Select2 -->
 <script>
     $(document).ready(function() {
-        $(".select2").select2({
-            //dropdownParent: $('#addPedidoTemporal'), //opciones ancladas al modal
+        $(".select2").select2();
+
+        $("#editarProducto").on("show.bs.modal", function() {
+            $(".select2").select2({
+                dropdownParent: $("#editarProducto")
+            });
         })
-    })
+    });
 </script>
 
 <!-- Tramaco function ajax -->
@@ -324,7 +311,7 @@
                 'producto':producto,
                 'trayecto':trayecto,
                 'peso_total':peso_total,
-                // 'p_cero':p_cero
+                'p_cero':p_cero
             },
 
             success: function(response) {
@@ -378,6 +365,31 @@
     })
 </script>
 
+<!-- Editar Producto -->
+<script>
+    $('button[name="editar_producto"]').click(function() {
+        
+        var prod_id = $(this).attr('id');
+        
+        $.ajax({
+            type:"GET",
+            url: "{% url 'editar_producto_pedido_temporal' %}",
+            data: {
+                'id_producto_temporal': prod_id 
+            },
+            success: function(response) {
+                $('#id_product_id_temporal').val(response.product_id);
+                $('#id_product_id_temporal').val(response.product_id).trigger('change');
+                $('#id_cantidad_temporal').val(response.cantidad);
+                $('#id_cantidad_temporal').after(
+                    `<input type="hidden" name="id_producto_temporal" value="${prod_id}">`
+                )
+            }
+        })
+    })
+</script>
+
+
 <!-- Editar Estado -->
 <script>
     $('button[name="estado_pedido_temporal"]').click(function() {
@@ -387,7 +399,7 @@
         
         $.ajax({
             type:"POST",
-            url: "{% url 'editar_producto_pedido_temporal' %}",
+            url: "{% url 'editar_estado_pedido_temporal' %}",
             data: {
                 'csrfmiddlewaretoken': '{{csrf_token}}',
                 'pedido_id': pedido_id,
@@ -399,8 +411,6 @@
         })
     })
 </script>
-
-
 <!-- Imprimir -->
 <script>
     $("#print").click(function() {
