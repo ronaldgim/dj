@@ -156,6 +156,7 @@ def lista_pedidos_agregar_dashboard_publico():
 
 
 @csrf_exempt
+@login_required(login_url='login')
 def add_etiquetado_publico(request):
 
     data = json.loads(request.body)
@@ -247,6 +248,7 @@ def equipos_etiquetado():
 
 # PEDIDOS
 # Etiquetao Pedidos
+@login_required(login_url='login')
 def pedidos_list_3(request):
     #reservas_lotes_group()
     # Tablas
@@ -309,7 +311,7 @@ def pedidos_list_3(request):
 
     return render(request, 'etiquetado/pedidos/lista_pedidos.html', context)#reservas
 
-
+@login_required(login_url='login')
 def fecha_entrega_ajax(request):
 
     p = request.POST['pedido']
@@ -358,6 +360,7 @@ def fecha_entrega_ajax(request):
 
 
 # Lista de pickings
+@login_required(login_url='login')
 def etiquetado_pedidos(request, n_pedido):
 
     try:
@@ -505,6 +508,7 @@ def etiquetado_pedidos(request, n_pedido):
         return render(request, 'etiquetado/pedidos/pedido.html', context)
 
 
+@login_required(login_url='login')
 def pedido_lotes(request, n_pedido):
     
     pedido = reservas_lote()
@@ -605,7 +609,7 @@ def etiquetado_fun():
     return etiquetado
 
 
-
+@login_required(login_url='login')
 def etiquetado_stock(request):
 
     eti = etiquetado_fun()
@@ -628,6 +632,7 @@ def etiquetado_stock(request):
 
 
 # Etiquetado Stock bodega
+@login_required(login_url='login')
 def etiquetado_stock_bodega(request):
 
     eti = etiquetado_fun()
@@ -665,6 +670,7 @@ class CalculadoraList(ListView):
 
 
 # Calculadora nombre
+@login_required(login_url='login')
 def calculadora_new(request):
 
     c = Calculadora(
@@ -773,6 +779,7 @@ def calculadora_view(request, id):
 
 # FACTURAS
 # Facturas list
+@login_required(login_url='login')
 def facturas_list(request):
     with connections['gimpromed_sql'].cursor() as cursor:
 
@@ -811,7 +818,7 @@ def factura_por_cliente(n_factura):
     return pd.DataFrame(facturas)
 
 
-
+@login_required(login_url='login')
 def facturas(request, n_factura):
 
     vehiculo = Vehiculos.objects.filter(activo=True).order_by('transportista')
@@ -884,6 +891,7 @@ def facturas(request, n_factura):
 
 # Estado de etiquetado
 # Lista de actulización BODEGA
+@login_required(login_url='login')
 def pedidos_estado_list(request):
 
     add_pedidos = lista_pedidos_agregar_dashboard_publico()
@@ -1000,6 +1008,7 @@ def etiquetado_avance_edit(request):
 
 
 # Crear estado
+@login_required(login_url='login')
 def estado_etiquetado(request, n_pedido, id):
     
     if id == '-':
@@ -1107,6 +1116,7 @@ def estado_etiquetado(request, n_pedido, id):
 
 
 # Detalle vista Andagoya
+@login_required(login_url='login')
 def detail_stock_etiquetado(request, id):
 
     stock = OrdenEtiquetadoStock.objects.get(id=id)
@@ -1143,6 +1153,7 @@ def detail_stock_etiquetado(request, id):
 
 
 # Detalle y actualización vista Cerezos
+@login_required(login_url='login')
 def detail_stock_etiquetado_bodega(request, id):
     
     if PedidosEstadoEtiquetado.objects.filter(n_pedido=id).exists():
@@ -1186,8 +1197,7 @@ def detail_stock_etiquetado_bodega(request, id):
                 return redirect(f'/etiquetado/pedidos/estado/list')
             else:
                 messages.error(request, 'Error !!! Actulize su lista de pedidos')
-
-
+                
     else:
 
         # Form Create
@@ -1312,9 +1322,6 @@ def correos_notificacion_factura(nombre_cliente):
         else:
             correos = email_fiscal
     return correos
-
-
-
 
 
 # Envio de correo con ajax
@@ -1710,6 +1717,7 @@ def ajax_lotes_bodega(request):
 
 
 # Picking Historial
+@login_required(login_url='login')
 def picking_historial(request):
 
     picking_hist = EstadoPicking.objects.filter().exclude(id__in=[1,]).order_by('-n_pedido', 'fecha_actualizado')
@@ -1996,7 +2004,7 @@ def inventario_bodega(request):
 
 # Revisión de Reservas en importaciones
 from bpa.views import importaciones_transito #, main_importaciones
-
+@login_required(login_url='login')
 def revision_reservas(request):
 
     imp = importaciones_transito()
@@ -2048,6 +2056,7 @@ def revision_reservas(request):
 #     return reservas_lote
 
 
+@login_required(login_url='login')
 def revision(request, memo):
 
     data = importaciones_transito()#;print(data)
@@ -2093,6 +2102,7 @@ def revision(request, memo):
 
 
 # importaciones llegadas
+@login_required(login_url='login')
 def revision_imp_llegadas_list(request):
     
     imp = importaciones_llegadas_odbc()
@@ -2126,7 +2136,7 @@ def revision_imp_llegadas_list(request):
     return render(request, 'etiquetado/revision_reservas/importaciones_llegadas_list.html', context)
 
 
-
+@login_required(login_url='login')
 def revision_imp_llegadas(request, orden_compra):
 
     try:
@@ -2716,6 +2726,7 @@ def detalle_dashboard_armados(request):
     return HttpResponse(ventas)
 
 
+@login_required(login_url='login')
 def dashboard_armados(request):
     
     productos = ProductArmado.objects.filter(activo=True).values('producto__product_id')
@@ -3026,7 +3037,7 @@ def control_guias_editar(request, id):
 
     return render(request, 'guias/editar.html', context)
 
-
+@login_required(login_url='login')
 def anexos_lista(request):
     
     anexos = AnexoGuia.objects.all()
@@ -3099,6 +3110,7 @@ def anexos_lista(request):
     return render(request, 'guias/anexos_lista.html', context)
 
 
+@login_required(login_url='login')
 def anexo_detalle(request, id_anexo):
     
     anexo = AnexoGuia.objects.get(id=id_anexo)
@@ -3109,6 +3121,7 @@ def anexo_detalle(request, id_anexo):
     return render(request, 'guias/anexo_ver.html', context)
 
 #from django_xhtml2pdf.utils import pdf_decorator
+@login_required(login_url='login')
 @pdf_decorator(pdfname='anexo.pdf')
 def anexo_detalle_pdf(request, id_anexo):
     
@@ -3236,6 +3249,7 @@ def entrega_estado_ajax(request):
     return HttpResponse('ok')
 
 
+@login_required(login_url='login')
 def etiquetado_stock_detalle(request, product_id):
 
     stock = stock_lote_cuc_etiquetado_detalle_odbc()
@@ -3387,6 +3401,7 @@ def actualizar_facturas_ajax(request):
     
 
 # Listado de proformas
+@login_required(login_url='login')
 def listado_proformas(request):
     
     proformas = lista_proformas_odbc()
@@ -3404,6 +3419,7 @@ def listado_proformas(request):
 
 
 # Detalle de proforma
+@login_required(login_url='login')
 def detalle_proforma(request, contrato_id):
     
     vehiculo = Vehiculos.objects.filter(activo=True).order_by('transportista')
@@ -3542,7 +3558,7 @@ def existencias_wms_analisis_transferencia(request):
 
 # UbicacionAndagoya
 # ProductoUbicacion
-
+@login_required(login_url='login')
 def ubicaciones_andagoya_list(request):
     
     ubicaciones = UbicacionAndagoya.objects.all().order_by('bodega','pasillo','modulo','nivel')
@@ -3610,6 +3626,7 @@ def productos_ubicacion_lista_template():
         return []
 
 
+@login_required(login_url='login')
 def producto_ubicacion_lista(request):
     
     productos_mba = productos_odbc_and_django()[['product_id', 'Nombre', 'Marca']]
@@ -3708,6 +3725,7 @@ def stock_lote_andagoya_ban_cua():
     return data
 
 
+@login_required(login_url='login')
 def inventario_andagoya_ubicaciones(request):
     # Obtenemos la lista de ubicaciones
     stock = stock_lote_andagoya_ban_cua()
@@ -3727,7 +3745,7 @@ def inventario_andagoya_ubicaciones(request):
     return render(request, 'etiquetado/ubicaciones_andagoya/inventario_andagoya_ubicaciones.html', context)
 
 
-
+@login_required(login_url='login')
 def transferencias_ingreso_andagoya(request):
     
     desde = datetime.today() - timedelta(days=15)
@@ -3745,6 +3763,7 @@ def transferencias_ingreso_andagoya(request):
     return render(request, 'etiquetado/ubicaciones_andagoya/transferencias.html', context)
 
 
+@login_required(login_url='login')
 def transferencia_ingres_andagoya_detalle(request, n_transferencia):
     
     transferencia = Transferencia.objects.filter(n_transferencia=n_transferencia).values()
@@ -3790,12 +3809,14 @@ def transferencia_ingres_andagoya_detalle(request, n_transferencia):
 #     return HttpResponse(f'{request.user} - {result}')
 
 
+@login_required(login_url='login')
 def dashboards_powerbi(request):
     return render(request, 'etiquetado/powerbi/dashboard_uno.html')
 
 
 
 ### PEDIDOS TEMPORALES
+@login_required(login_url='login')
 def lista_pedidos_temporales(request):
     
     pedidos = PedidoTemporal.objects.all()
@@ -3898,7 +3919,7 @@ def calculos_pedido(productos_values):
     return pedido
 
 
-
+@login_required(login_url='login')
 def pedido_temporal(request, pedido_id):
     
     vehiculo = Vehiculos.objects.filter(activo=True).order_by('transportista')
@@ -3966,7 +3987,6 @@ def editar_producto_pedido_temporal(request):
         else:
             messages.error(request, 'Error al editar el producto')
             return redirect(reverse('pedido_temporal', kwargs={'pedido_id': pedido.id}))
-
 
 
 def editar_estado_pedido_temporal(request):
