@@ -24,6 +24,7 @@ REFERENCIA_MOVIMIENTOS = [
     ('Reverso de picking', 'Reverso de picking'),
     ('Transferencia', 'Transferencia'),
     ('Nota de entrega', 'Nota de entrega'),
+    ('Factura anulada', 'Factura anulada'),
 ]
 
 REFERENCIA_INGRESOS = [

@@ -5315,49 +5315,6 @@ def wms_referenica_detalle(request, referencia, n_referencia):
 
 
 ## ANULACIÓN FACTURA
-@login_required(login_url='login')
-def lista_facturas_anualdas(request):
-    
-    facturas = FacturaAnulada.objects.all()
-    # form = FacturaAnuladaForm()
-    
-    if request.method == 'POST':
-        form = FacturaAnuladaForm(request.POST)
-        if form.is_valid():
-            factura = form.save()
-            print(form.cleaned_data)
-            
-            # messages.success(request, 'Factura anulada exitosamente !!!')
-    
-    # if request.method == 'POST':
-    #     factura = request.POST.get('factura', None)
-    #     motivo  = request.POST.get('motivo', None)
-        
-    #     movimientos = Movimiento.objects.filter(n_factura=factura)
-        
-    #     if movimientos.exists():
-    #         factura_anulada = FacturaAnulada(
-    #             n_factura=factura,
-    #             n_picking=movimientos.first().n_referencia,
-    #             motivo=motivo,
-    #             estado = 'Pendiente',
-    #             usuario=request.user,
-    #         )
-            
-    #         factura_anulada.save()
-            
-    #         if factura_anulada:
-    #             messages.success(request, f'Factura {factura} pendiente de anulación !!!')
-    #         else:
-    #             messages.error(request, f'Error al agregar la factura {factura}')
-    
-    context = {
-        'facturas': facturas,
-        # 'form': form,
-    }
-    
-    return render(request, 'wms/anulacion_factura_lista.html', context)
-
 
 
 def nombre_cliente_desde_numero_factura(n_factura):
@@ -5394,8 +5351,110 @@ def detalle_anulacion_factura_ajax(request):
             })
 
 
-
-# @login_required(login_url='login')
-# def anular_factura(request, factura_id):
+@transaction.atomic
+def anulacion_factura_movimientos(n_factura):
     
-#     factura = FacturaAnulada.objects.get(id=factura_id)
+    try:
+        movimientos = Movimiento.objects.filter(n_factura=n_factura)
+        movimientos.update(estado_picking='No Despachado')
+        
+        factura = FacturaAnulada.objects.get(n_factura=n_factura)
+        factura.estado='Confirmado'
+        factura.save()
+        
+        for i in movimientos:
+            mov = Movimiento(
+                product_id = i.product_id,
+                lote_id = i.lote_id,
+                fecha_caducidad = i.fecha_caducidad,
+                tipo = 'Ingreso',
+                descripcion = 'N/A',
+                referencia = 'Factura anulada',
+                n_referencia = n_factura,
+                n_factura = '',
+                ubicacion_id = 606,
+                unidades = i.unidades *-1 ,
+                estado = 'Disponible',
+                estado_picking = '',
+                usuario_id = i.usuario.id,
+            )
+            
+            mov.save()
+            wms_existencias_query_product_lote(product_id=mov.product_id, lote_id=mov.lote_id)
+    except:
+        movimientos = Movimiento.objects.filter(n_factura=n_factura)
+        movimientos.update(estado_picking='Despachado')
+        
+        factura = FacturaAnulada.objects.get(n_factura=n_factura)
+        factura.estado='Cancelado'
+        factura.save()
+
+
+@login_required(login_url='login')
+def lista_facturas_anualdas(request):
+    
+    facturas = FacturaAnulada.objects.all()
+    
+    if request.method == 'POST':
+        form = FacturaAnuladaForm(request.POST)
+        if form.is_valid():
+            factura = form.save()
+            
+            if factura:
+                anulacion_factura_movimientos(factura.n_factura)
+                messages.success(request, f'Factura {factura.n_factura} Anulada !!!')
+                return render(request, 'wms/anulacion_factura_lista.html', context)
+            else:
+                messages.error(request, f'Error anulando la factura {factura.n_factura} !!!')
+                return render(request, 'wms/anulacion_factura_lista.html', context)
+            
+    context = {
+        'facturas': facturas,
+    }
+    
+    return render(request, 'wms/anulacion_factura_lista.html', context)
+
+
+@login_required(login_url='login')
+def factura_anulada_detalle(request, n_factura):
+    
+    productos = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+    factura = FacturaAnulada.objects.get(n_factura=n_factura)
+    
+    mov_anulados = pd.DataFrame(Movimiento.objects.filter(n_factura=n_factura).values(
+        'product_id',
+        'lote_id',
+        'fecha_caducidad',
+        'estado_picking',
+        'unidades',
+        'usuario__first_name',
+        'usuario__last_name'
+    ))
+    mov_ingresados = pd.DataFrame(Movimiento.objects.filter(n_referencia=n_factura).values(
+        'product_id',
+        'lote_id',
+        'fecha_caducidad',
+        'estado_picking',
+        'unidades',
+        'usuario__first_name',
+        'usuario__last_name'
+    ))
+    
+    if not mov_anulados.empty:
+        mov_anulados = mov_anulados.merge(productos, on='product_id', how='left')
+        mov_anulados['fecha_caducidad'] = mov_anulados['fecha_caducidad'].astype('str')
+        mov_anulados['unidades'] = mov_anulados['unidades'] * -1
+    
+    if not mov_ingresados.empty:
+        mov_ingresados = mov_ingresados.merge(productos, on='product_id', how='left')
+        mov_anulados['fecha_caducidad'] = mov_anulados['fecha_caducidad'].astype('str')
+        mov_ingresados['unidades'] = mov_ingresados['unidades'] * -1
+    
+    
+    context = {
+        'factura': factura,
+        'anulados': de_dataframe_a_template(mov_anulados),
+        'ingresados': de_dataframe_a_template(mov_ingresados),
+    }
+    
+    return render(request, 'wms/anulacion_factura_detail.html', context)

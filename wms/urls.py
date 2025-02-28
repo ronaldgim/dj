@@ -612,4 +612,10 @@ urlpatterns = [
         name = 'detalle_anulacion_factura_ajax'
     ),
     
+    path(
+        route='factura-anulada/<str:n_factura>', 
+        view = views.factura_anulada_detalle,
+        name = 'factura_anulada_detalle'
+    ),
+    
 ]

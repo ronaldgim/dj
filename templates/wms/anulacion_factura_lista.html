@@ -59,9 +59,9 @@
                         <td>{{i.creado|date:"Y-m-d"}}</td>
                         <td>{{i.usuario.first_name}} {{i.usuario.last_name}}</td>
                         <td class="text-center">
-                            <button name="regresar" class="btn btn-primary btn-sm" id="{{i.n_factura}}">
+                            <a class="btn btn-primary btn-sm" href="{% url 'factura_anulada_detalle' i.n_factura %}">
                                 <i class="bi bi-eye"></i>
-                            </button>
+                            </a>
                         </td>
                     </tr>
                     {% endfor %}
