@@ -356,12 +356,14 @@ class OrdenEmpaque(models.Model):
 
 class FacturaAnulada(models.Model):
     
-    n_factura  = models.CharField(verbose_name='Factura', max_length=13)
-    n_picking  = models.CharField(verbose_name='Picking', max_length=13)
-    motivo     = models.TextField(verbose_name='Motivo', max_length=50)
-    fecha_hora = models.DateTimeField(verbose_name='Fecha Hora', auto_now_add=True)
-    estado     = models.CharField(verbose_name='Estado', choices=ESTADO_ANULACION_FACTURA, max_length=20)
-    usuario    = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.CASCADE)
+    n_factura   = models.CharField(verbose_name='Factura', max_length=13, unique=True)
+    n_picking   = models.CharField(verbose_name='Picking', max_length=13)
+    cliente     = models.CharField(verbose_name='Cliente', max_length=100)
+    motivo      = models.TextField(verbose_name='Motivo', max_length=50)
+    estado      = models.CharField(verbose_name='Estado', choices=ESTADO_ANULACION_FACTURA, max_length=20)
+    creado      = models.DateTimeField(verbose_name='Creado', auto_now_add=True)
+    actualizado = models.DateTimeField(verbose_name='Actualizado', auto_now=True)
+    usuario     = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.CASCADE)
     
     def __str__(self):
         return self.n_factura

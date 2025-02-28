@@ -14,7 +14,8 @@ from wms.models import (
     AnulacionPicking,
     ProductoArmado,
     OrdenEmpaque,
-    Existencias
+    Existencias,
+    FacturaAnulada,
     )
 
 # EXISTENCIAS
@@ -198,4 +199,17 @@ class OrdenEmpaqueAdmin(admin.ModelAdmin):
         'creado',
         'actualizado',
         'observaciones'
+        )
+
+@admin.register(FacturaAnulada)
+class FacturaAnuladaAdmin(admin.ModelAdmin):
+    
+    list_display = (
+        'id',
+        'n_factura',
+        'n_picking',
+        'cliente',
+        'creado',
+        'actualizado',
+        'usuario',
         )

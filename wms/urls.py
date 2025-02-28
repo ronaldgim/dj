@@ -593,9 +593,23 @@ urlpatterns = [
         name = 'wms_picking_list'
     ),
     
-        path(
+    path(
         route='detalle/<str:referencia>/<str:n_referencia>', 
         view = views.wms_referenica_detalle,
         name = 'wms_referenica_detalle'
     ),
+
+    # FACTURAS ANULADAS
+    path(
+        route='facturas-anuladas/lista', 
+        view = views.lista_facturas_anualdas,
+        name = 'lista_facturas_anualdas'
+    ),
+    
+    path(
+        route='detalle_anulacion_factura_ajax', 
+        view = views.detalle_anulacion_factura_ajax,
+        name = 'detalle_anulacion_factura_ajax'
+    ),
+    
 ]

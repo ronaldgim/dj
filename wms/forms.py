@@ -7,7 +7,8 @@ from wms.models import (
     Ubicacion, 
     DespachoCarton,
     ProductoArmado,
-    OrdenEmpaque
+    OrdenEmpaque,
+    FacturaAnulada
     )
 
 # MyForms
@@ -147,3 +148,10 @@ class OrdenEmpaqueUpdateForm(forms.ModelForm):
             'observaciones':forms.Textarea(attrs={'class':'form-control', 'rows':'2'}),
             'usuario':forms.TextInput(attrs={'type':'hidden'}),
         }
+
+
+class FacturaAnuladaForm(forms.ModelForm):
+    
+    class Meta:
+        model = FacturaAnulada
+        fields = '__all__'

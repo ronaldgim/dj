@@ -91,7 +91,8 @@ from wms.forms import (
     OrdenEmpaqueForm,
     OrdenEmpaqueUpdateForm,
     ComponenteArmadoForm,
-    ProductoNuevoArmadoUpdateForm
+    ProductoNuevoArmadoUpdateForm,
+    FacturaAnuladaForm
     )
 
 # Messages
@@ -5312,35 +5313,89 @@ def wms_referenica_detalle(request, referencia, n_referencia):
         return render(request, 'wms/picking_detalle.html', context)
 
 
+
+## ANULACIÓN FACTURA
 @login_required(login_url='login')
 def lista_facturas_anualdas(request):
     
     facturas = FacturaAnulada.objects.all()
+    # form = FacturaAnuladaForm()
     
     if request.method == 'POST':
-        factura = request.POST.get('factura', None)
-        motivo  = request.POST.get('motivo', None)
-        
-        movimientos = Movimiento.objects.filter(n_factura=factura)
-        
-        if movimientos.exists():
-            factura_anulada = FacturaAnulada(
-                n_factura=factura,
-                n_picking=movimientos.first().n_referencia,
-                motivo=motivo,
-                estado = 'Pendiente',
-                usuario=request.user,
-            )
+        form = FacturaAnuladaForm(request.POST)
+        if form.is_valid():
+            factura = form.save()
+            print(form.cleaned_data)
             
-            factura_anulada.save()
+            # messages.success(request, 'Factura anulada exitosamente !!!')
+    
+    # if request.method == 'POST':
+    #     factura = request.POST.get('factura', None)
+    #     motivo  = request.POST.get('motivo', None)
+        
+    #     movimientos = Movimiento.objects.filter(n_factura=factura)
+        
+    #     if movimientos.exists():
+    #         factura_anulada = FacturaAnulada(
+    #             n_factura=factura,
+    #             n_picking=movimientos.first().n_referencia,
+    #             motivo=motivo,
+    #             estado = 'Pendiente',
+    #             usuario=request.user,
+    #         )
             
-            if factura_anulada:
-                messages.success(request, f'Factura {factura} pendiente de anulación !!!')
-            else:
-                messages.error(request, f'Error al agregar la factura {factura}')
+    #         factura_anulada.save()
+            
+    #         if factura_anulada:
+    #             messages.success(request, f'Factura {factura} pendiente de anulación !!!')
+    #         else:
+    #             messages.error(request, f'Error al agregar la factura {factura}')
     
     context = {
-        'facturas': facturas
+        'facturas': facturas,
+        # 'form': form,
     }
     
-    return render(request, 'wms/facturas_anuladas_list.html', context)
+    return render(request, 'wms/anulacion_factura_lista.html', context)
+
+
+
+def nombre_cliente_desde_numero_factura(n_factura):
+    
+    factura = f'FCSRI-1001{int(n_factura):09d}-GIMPR' # FCSRI-1001000096784-GIMPR
+    
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute(
+            f"SELECT NOMBRE_CLIENTE, NUMERO_PEDIDO_SISTEMA FROM warehouse.facturas WHERE CODIGO_FACTURA = '{factura}'"
+        )
+        
+        cliente = [tuple(row) for row in cursor.fetchall()][0]
+        
+        return cliente[0]
+
+
+def detalle_anulacion_factura_ajax(request):
+    
+    n_factura = request.POST.get('n_factura', None)
+    movimientos = Movimiento.objects.filter(n_factura=n_factura)
+    
+    if movimientos.exists():
+        
+        return JsonResponse({
+            'tipo':'success',
+            'msg':'Factura pendiente de anulación',
+            'n_picking':movimientos.first().n_referencia.split('.')[0],
+            'cliente':nombre_cliente_desde_numero_factura(n_factura),
+        })
+    else:
+        return JsonResponse({
+                'tipo':'danger',
+                'msg':'La factura no existe, intente con otro número!!! '
+            })
+
+
+
+# @login_required(login_url='login')
+# def anular_factura(request, factura_id):
+    
+#     factura = FacturaAnulada.objects.get(id=factura_id)
