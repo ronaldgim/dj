@@ -46,6 +46,10 @@
             <label class="fw-bold">Estado:</label> {{factura.estado | upper}}<br>
             <label class="fw-bold">Fecha:</label> {{factura.actualizado}}<br>
             <label class="fw-bold">Usuario:</label> {{factura.usuario.first_name}} {{factura.usuario.last_name}}<br>
+            <label class="fw-bold">Motivo:</label><br>
+            <p>
+                {{factura.motivo}}
+            </p>
         </div>
     </div>
 </div>
@@ -109,7 +113,7 @@
                 <tbody id="pedidosbuscar">
                     {% if not ingresados %}
                     <tr>
-                        <td colspan="8" class="text-center">No hay productos ingresados</td>
+                        <td colspan="8" class="text-center bg-warning">No hay productos ingresados</td>
                     </tr>
                     {% else %}
                     {% for i in ingresados %}

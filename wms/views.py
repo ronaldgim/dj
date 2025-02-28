@@ -5391,6 +5391,7 @@ def anulacion_factura_movimientos(n_factura):
 
 
 @login_required(login_url='login')
+@permisos(['ADMINISTRADOR','OPERACIONES'],'/wms/home', 'ingresar a anulación de picking')
 def lista_facturas_anualdas(request):
     
     facturas = FacturaAnulada.objects.all()
@@ -5416,6 +5417,7 @@ def lista_facturas_anualdas(request):
 
 
 @login_required(login_url='login')
+@permisos(['ADMINISTRADOR','OPERACIONES'],'/wms/home', 'ingresar a anulación de picking')
 def factura_anulada_detalle(request, n_factura):
     
     productos = productos_odbc_and_django()[['product_id','Nombre','Marca']]
