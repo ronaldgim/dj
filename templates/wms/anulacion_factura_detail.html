@@ -10,7 +10,7 @@
 
 {% block body %}
 
-<h5 class="m-4 text-center fw-bold">RETIRAR PRODUCTOS DE DESPACHO</h5>
+<h5 class="m-4 text-center fw-bold">FACTURA ANULADA {{factura.n_factura}}</h5>
 
 {% if messages %}
     {% for message in messages %}
@@ -26,7 +26,7 @@
     {% endfor %}
 {% endif %}
 
-
+{% comment %}
 <form method='POST'>
     {% csrf_token %}
     <div class="input-group mb-3">
@@ -34,23 +34,26 @@
         <button name="trasferencia" class="btn btn-primary" type="submit"><i class="bi bi-search"></i> Buscar picking</button>
     </div>
 </form>
+{% endcomment %}
 
-{% if picking %}
 
 <div class="card mb-2">
     <div class="card-body mt-2 mb-2 p-0">
         <div class="container table-responsive">
-            <label class="fw-bold">Cliente:</label> {{cabecera.cliente}}<br>
-            <label class="fw-bold">Picking:</label> {{cabecera.n_pedido|slice:":-2"}}<br>
-            <label class="fw-bold">Fecha Pedido:</label> {{cabecera.fecha_pedido}}<br>
-            <label class="fw-bold">Estado:</label> {{cabecera.estado}}<br>
-            <label class="fw-bold">Bodega:</label> {{cabecera.bodega}}<br>
+            <label class="fw-bold">Cliente:</label> {{factura.cliente}}<br>
+            <label class="fw-bold"># Factura:</label> {{factura.n_factura}}<br>
+            <label class="fw-bold"># Picking:</label> {{factura.n_picking}}<br>
+            <label class="fw-bold">Estado:</label> {{factura.estado | upper}}<br>
+            <label class="fw-bold">Fecha:</label> {{factura.actualizado}}<br>
+            <label class="fw-bold">Usuario:</label> {{factura.usuario.first_name}} {{factura.usuario.last_name}}<br>
         </div>
     </div>
 </div>
 
 <div id="msg"></div>
 
+
+<h6 class="text-start fw-bold mt-4">Lista de productos de factura anulada</h6>
 <div class="card mb-2">
     <div class="card-body m-0 p-0">
         <div class="container table-responsive">
@@ -58,28 +61,26 @@
                 <thead>
                     <tr>
                         <th scope="col">Código</th>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Marca</th>
                         <th scope="col">Lote</th>
                         <th scope="col">F.Exp</th>
                         <th scope="col">Estado</th>
-                        <th scope="col">Despachado por</th>
+                        <th scope="col">Usuario Picking</th>
                         <th scope="col">Unidades</th>
-                        <th scope="col" class="text-center">Regresar</th>
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
-                    {% for i in picking %}
+                    {% for i in anulados %}
                     <tr>
                         <td>{{i.product_id}}</td>
+                        <td>{{i.Nombre}}</td>
+                        <td>{{i.Marca}}</td>
                         <td>{{i.lote_id}}</td>
-                        <td>{{i.fecha_caducidad|date:"Y-m-d"}}</td>
+                        <td>{{i.fecha_caducidad}}</td>
                         <td>{{i.estado_picking}}</td>
-                        <td>{{i.usuario.first_name}} {{i.usuario.last_name}}</td>
+                        <td>{{i.usuario__first_name}} {{i.usuario__last_name}}</td>
                         <td>{{i.unidades}}</td>
-                        <td class="text-center">
-                            <button name="regresar" class="btn btn-warning btn-sm" id="{{i.id}}">
-                                <i class="bi bi-box-arrow-left"></i> Regresar a inventario
-                            </button>
-                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -87,8 +88,50 @@
         </div>
     </div>
 </div>
-{% endif %}
 
+<h6 class="text-start fw-bold mt-4">Lista de productos ingresados</h6>
+<div class="card mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table" style="font-size:small">
+                <thead>
+                    <tr>
+                        <th scope="col">Código</th>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Marca</th>
+                        <th scope="col">Lote</th>
+                        <th scope="col">F.Exp</th>
+                        <th scope="col">Estado</th>
+                        <th scope="col">Usuario Picking</th>
+                        <th scope="col">Unidades</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% if not ingresados %}
+                    <tr>
+                        <td colspan="8" class="text-center">No hay productos ingresados</td>
+                    </tr>
+                    {% else %}
+                    {% for i in ingresados %}
+                    <tr>
+                        <td>{{i.product_id}}</td>
+                        <td>{{i.Nombre}}</td>
+                        <td>{{i.Marca}}</td>
+                        <td>{{i.lote_id}}</td>
+                        <td>{{i.fecha_caducidad}}</td>
+                        <td>{{i.estado_picking}}</td>
+                        <td>{{i.usuario__first_name}} {{i.usuario__last_name}}</td>
+                        <td>{{i.unidades}}</td>
+                    </tr>
+                    {% endfor %}
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% comment %}
 <script>
 
     $("button[name='regresar']").click(function(){
@@ -117,5 +160,6 @@
         })
     })
 </script>
+{% endcomment %}
 
 {% endblock %}
