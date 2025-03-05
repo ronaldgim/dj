@@ -175,7 +175,7 @@ def productos_odbc_and_django():
             'Codigo':'product_id'
         })
 
-        p = pd.DataFrame(Product.objects.all().values())
+        p = pd.DataFrame(Product.objects.filter(activo=True).values())
 
         products = products.merge(p, on='product_id', how='left')
 

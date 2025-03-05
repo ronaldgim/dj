@@ -249,7 +249,7 @@
                                 <th>ESTADO</th>
                             </thead>
                             <tbody style="font-size: small;">
-                                <tr v-for="(i, index) in publicoData" :key="index">
+                                <tr v-for="(i, index) in publicoData" :key="index" :style="{backgroundColor: obtenerColorPedidoTemporal(i.TIPO_PEDIDO)}">
                                     {% verbatim %}
                                     <td>
                                         <a v-if="i.TIPO_PEDIDO" :href="'/etiquetado/pedidos-temporales/' + i.id_pedido_temporal" class="fs-6" target="_blank">{{i.contrato_id}}</a>
@@ -259,7 +259,7 @@
                                         <br>
                                         <span>{{i.NOMBRE_CLIENTE}}</span> <br>
                                     </td>
-                                    <td v-if="i.dia"  :style="{backgroundColor: obtenerColorFondoEntrega(i.estado_entrega)}">
+                                    <td v-if="i.dia" :style="{backgroundColor: obtenerColorFondoEntrega(i.estado_entrega)}">
                                         {{i.dia}} {{i.dia_mes}}.{{i.mes}} {{i.hora}}
                                         <br>
                                         Faltan: {{i.dias_faltantes}} días
@@ -459,6 +459,13 @@
                 switch (estado) {
                     case 'INCOMPLETO':
                         return '#bf03c8';
+                }
+            },
+
+            obtenerColorPedidoTemporal(tipo_pedido){
+                switch (tipo_pedido) {
+                    case 'TEMPORAL':
+                        return '#DEDEDE';
                 }
             },
 

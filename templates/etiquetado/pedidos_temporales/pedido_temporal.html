@@ -31,8 +31,8 @@
         <h6><strong>Cliente: </strong> {{pedido.cliente}}</h6>
         <h6><strong>Ruc: </strong> {{pedido.ruc}}</h6>
         <h6><strong>Estado: </strong> {{pedido.estado}}</h6>
-        <h6><strong>Fecha de creación: </strong> {{pedido.creado | date:"d-m-Y H:i"}}</h6>
-        <h6><strong>Fecha de entrega: </strong> {{pedido.entrega | date:"d-m-Y H:i"}}</h6>
+        <h6><strong>Fecha de creación: </strong> {{pedido.creado | date:"d-m-Y"}}</h6>
+        <h6><strong>Fecha de entrega: </strong> {{pedido.entrega | date:"d-m-Y"}}</h6>
     </div>
     <div class="col-6" id="no_print">
         <div class="dropdown">
@@ -55,8 +55,12 @@
     </div>
 </div>
 
+<a class="btn btn-sm btn-primary" href="{% url 'lista_pedidos_temporales' %}">
+    Lista de pedidos temporales
+</a>
+
 <!-- Button trigger modal -->
-<button type="button" class="btn btn-sm btn-primary" value="{{pedido.id}}" name="editar_pedido" data-bs-toggle="modal" data-bs-target="#editarPedido">
+<button type="button" class="btn btn-sm btn-secondary" value="{{pedido.id}}" name="editar_pedido" data-bs-toggle="modal" data-bs-target="#editarPedido">
     Editar Pedido Temporal
 </button>
 
@@ -271,8 +275,12 @@
                         <div class="col-4">
                             Fecha de entrega:
                         </div>
-                        <div class="col-8 mb-4">
+                        <!--div class="col-8 mb-4">
                             <input name="entrega" id="id_entrega" class="form-control" type="datetime-local" required />
+                        </div-->
+
+                        <div class="col-8 mb-4">
+                            <input name="entrega" id="id_entrega" class="form-control" type="date" required />
                         </div>
                     </div>
                 </form>

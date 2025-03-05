@@ -2451,39 +2451,41 @@ def publico_dashboard_fun():
 
 def pedidos_temporales_fun():
     
-    pedidos = PedidoTemporal.objects.filter(estado='PENDIENTE')
-    clientes_df = clientes_warehouse()[['NOMBRE_CLIENTE', 'CIUDAD_PRINCIPAL']]
-    
-    if pedidos.exists():
-    
-        data = []
-        for i in pedidos:
-            pedidos_data = calculos_pedido(i.productos.values())
-            data.append({
-                'id_pedido_temporal':str(i.id),
-                'CONTRATO_ID': i.enum,
-                'NOMBRE_CLIENTE': i.cliente,
-                'fecha_entrega': i.entrega,
-                't_1p_str': pedidos_data['tt_str_1p'],
-                't_2p_str': pedidos_data['tt_str_2p'],
-                't_3p_str': pedidos_data['tt_str_3p'],
-                'fecha_hora':i.creado,
-                'TIEMPOS':pedidos_data['TIEMPOS'],
-            })
+    try:
+        pedidos = PedidoTemporal.objects.filter(estado='PENDIENTE')
+        clientes_df = clientes_warehouse()[['NOMBRE_CLIENTE', 'CIUDAD_PRINCIPAL']]
         
-        df = pd.DataFrame(data)
-        df['TIPO_PEDIDO'] = 'TEMPORAL'
-        df['dias_faltantes'] = (df['fecha_entrega'] - datetime.now()).dt.days
-        df['dia'] = df['fecha_entrega'].dt.day_name(locale='es_EC.utf-8')
-        df['mes'] = df['fecha_entrega'].dt.month_name(locale='es_EC.utf-8')
-        df['fecha_hora'] = df['fecha_entrega'].astype('str')
-        df['avance'] = None
-        
-        if not df.empty:
-            df = df.merge(clientes_df, on='NOMBRE_CLIENTE', how='left')
-        
-        return df
-    else:
+        if pedidos.exists():
+            # return pd.DataFrame()
+            data = []
+            for i in pedidos:
+                pedidos_data = calculos_pedido(i.productos.values())
+                data.append({
+                    'id_pedido_temporal':str(i.id),
+                    'CONTRATO_ID': i.enum,
+                    'NOMBRE_CLIENTE': i.cliente,
+                    'fecha_entrega': i.entrega,
+                    't_1p_str': pedidos_data['tt_str_1p'],
+                    't_2p_str': pedidos_data['tt_str_2p'],
+                    't_3p_str': pedidos_data['tt_str_3p'],
+                    'fecha_hora':i.creado,
+                    'TIEMPOS':pedidos_data['TIEMPOS'],
+                })
+            
+            df = pd.DataFrame(data)
+            df['TIPO_PEDIDO'] = 'TEMPORAL'
+            df['dias_faltantes'] = (df['fecha_entrega'] - datetime.now()).dt.days
+            df['dia'] = df['fecha_entrega'].dt.day_name(locale='es_EC.utf-8')
+            df['mes'] = df['fecha_entrega'].dt.month_name(locale='es_EC.utf-8')
+            df['fecha_hora'] = df['fecha_entrega'].astype('str')
+            df['avance'] = None
+            
+            if not df.empty:
+                df = df.merge(clientes_df, on='NOMBRE_CLIENTE', how='left')
+                return df
+        else:
+            return pd.DataFrame()
+    except:
         return pd.DataFrame()
 
 
@@ -3847,76 +3849,80 @@ def calculos_pedido(productos_values):
     productos_df = productos_odbc_and_django()
     productos = pd.DataFrame(productos_values).rename(columns={'id':'id_product_temporal'})
     
-    pedido = productos.merge(productos_df, on='product_id', how='left')
-    pedido = pedido.rename(columns={
-        'product_id':'PRODUCT_ID',
-        'Nombre':'PRODUCT_NAME',
-        'cantidad':'QUANTITY'})
+    if not productos.empty:
     
-    # Calculos
-    pedido['Cartones'] = (pedido['QUANTITY'] / pedido['Unidad_Empaque']).round(2)
-    #pedido = pedido.fillna(0.0).replace(np.inf, 0.0)
-    
-    pedido['t_una_p_min'] = (pedido['Cartones'] * pedido['t_etiq_1p']) / 60
-    pedido['t_una_p_hor'] = pedido['t_una_p_min'] / 60
-    pedido['t_dos_p_hor'] = ((pedido['Cartones'] * pedido['t_etiq_2p']) / 60) / 60
-    pedido['t_tre_p_hor'] = ((pedido['Cartones'] * pedido['t_etiq_3p']) / 60) / 60
-    pedido['vol_total'] = pedido['Cartones'] * (pedido['Volumen'] / 1000000)
-    pedido['pes_total'] = pedido['Cartones'] * pedido['Peso']
-    
-    p_cero = 0 in list(pedido['pes_total']) 
-    
-    #pedido = pedido.fillna(0.0).replace(np.inf, 0.0) 
+        pedido = productos.merge(productos_df, on='product_id', how='left')
+        pedido = pedido.rename(columns={
+            'product_id':'PRODUCT_ID',
+            'Nombre':'PRODUCT_NAME',
+            'cantidad':'QUANTITY'})
+        
+        # Calculos
+        pedido['Cartones'] = (pedido['QUANTITY'] / pedido['Unidad_Empaque']).round(2)
+        #pedido = pedido.fillna(0.0).replace(np.inf, 0.0)
+        
+        pedido['t_una_p_min'] = (pedido['Cartones'] * pedido['t_etiq_1p']) / 60
+        pedido['t_una_p_hor'] = pedido['t_una_p_min'] / 60
+        pedido['t_dos_p_hor'] = ((pedido['Cartones'] * pedido['t_etiq_2p']) / 60) / 60
+        pedido['t_tre_p_hor'] = ((pedido['Cartones'] * pedido['t_etiq_3p']) / 60) / 60
+        pedido['vol_total'] = pedido['Cartones'] * (pedido['Volumen'] / 1000000)
+        pedido['pes_total'] = pedido['Cartones'] * pedido['Peso']
+        
+        p_cero = 0 in list(pedido['pes_total']) 
+        
+        #pedido = pedido.fillna(0.0).replace(np.inf, 0.0) 
 
-    # Mejor formato de tiempo
-    pedido['t_s_1p']   = (pedido['Cartones'] * pedido['t_etiq_1p'].round(0))
-    pedido['t_str_1p'] = [str(timedelta(seconds=int(i))) for i in pedido['t_s_1p']] 
+        # Mejor formato de tiempo
+        pedido['t_s_1p']   = (pedido['Cartones'] * pedido['t_etiq_1p'].round(0))
+        pedido['t_str_1p'] = [str(timedelta(seconds=int(i))) for i in pedido['t_s_1p']] 
 
-    pedido['t_s_2p']   = (pedido['Cartones'] * pedido['t_etiq_2p']).round(0)
-    pedido['t_str_2p'] = [str(timedelta(seconds=int(i))) for i in pedido['t_s_2p']]
+        pedido['t_s_2p']   = (pedido['Cartones'] * pedido['t_etiq_2p']).round(0)
+        pedido['t_str_2p'] = [str(timedelta(seconds=int(i))) for i in pedido['t_s_2p']]
 
-    pedido['t_s_3p']   = (pedido['Cartones'] * pedido['t_etiq_3p'].round(0))
-    pedido['t_str_3p'] = [str(timedelta(seconds=int(i))) for i in pedido['t_s_3p']]
+        pedido['t_s_3p']   = (pedido['Cartones'] * pedido['t_etiq_3p'].round(0))
+        pedido['t_str_3p'] = [str(timedelta(seconds=int(i))) for i in pedido['t_s_3p']]
 
-    tt_str_1p = str(timedelta(seconds=int(pedido['t_s_1p'].sum())))
-    tt_str_2p = str(timedelta(seconds=int(pedido['t_s_2p'].sum())))
-    tt_str_3p = str(timedelta(seconds=int(pedido['t_s_3p'].sum())))
-    
-    cero_in_t1 = 0 in list(pedido['t_s_1p'])
-    cero_in_t2 = 0 in list(pedido['t_s_2p'])
-    cero_in_t3 = 0 in list(pedido['t_s_3p'])
-    
-    t_total_vol = pedido['vol_total'].sum()
-    t_total_pes = pedido['pes_total'].sum()
-    t_cartones = pedido['Cartones'].sum()
-    t_unidades = pedido['QUANTITY'].sum()
+        tt_str_1p = str(timedelta(seconds=int(pedido['t_s_1p'].sum())))
+        tt_str_2p = str(timedelta(seconds=int(pedido['t_s_2p'].sum())))
+        tt_str_3p = str(timedelta(seconds=int(pedido['t_s_3p'].sum())))
+        
+        cero_in_t1 = 0 in list(pedido['t_s_1p'])
+        cero_in_t2 = 0 in list(pedido['t_s_2p'])
+        cero_in_t3 = 0 in list(pedido['t_s_3p'])
+        
+        t_total_vol = pedido['vol_total'].sum()
+        t_total_pes = pedido['pes_total'].sum()
+        t_cartones = pedido['Cartones'].sum()
+        t_unidades = pedido['QUANTITY'].sum()
 
-    pedido = {
-        'productos': de_dataframe_a_template(pedido)
-        }
-    
-    if not cero_in_t2:
-        pedido['TIEMPOS'] = 't2'
-    elif cero_in_t2 and not cero_in_t1:
-        pedido['TIEMPOS'] = 't1'
-    elif cero_in_t1 and cero_in_t2 and not cero_in_t3:
-        pedido['TIEMPOS'] = 't3'
-    elif cero_in_t1 and cero_in_t2 and cero_in_t3:
-        pedido['TIEMPOS'] = 'F'
-    
-    
-    pedido['tt_str_1p'] = tt_str_1p
-    pedido['tt_str_2p'] = tt_str_2p
-    pedido['tt_str_3p'] = tt_str_3p
-    
-    pedido['t_total_vol'] = t_total_vol
-    pedido['t_total_pes'] = t_total_pes
-    pedido['t_cartones'] = t_cartones
-    pedido['t_unidades'] = t_unidades
-    
-    pedido['p_cero'] = p_cero
+        pedido = {
+            'productos': de_dataframe_a_template(pedido)
+            }
+        
+        if not cero_in_t2:
+            pedido['TIEMPOS'] = 't2'
+        elif cero_in_t2 and not cero_in_t1:
+            pedido['TIEMPOS'] = 't1'
+        elif cero_in_t1 and cero_in_t2 and not cero_in_t3:
+            pedido['TIEMPOS'] = 't3'
+        elif cero_in_t1 and cero_in_t2 and cero_in_t3:
+            pedido['TIEMPOS'] = 'F'
+        
+        pedido['tt_str_1p'] = tt_str_1p
+        pedido['tt_str_2p'] = tt_str_2p
+        pedido['tt_str_3p'] = tt_str_3p
+        
+        pedido['t_total_vol'] = t_total_vol
+        pedido['t_total_pes'] = t_total_pes
+        pedido['t_cartones'] = t_cartones
+        pedido['t_unidades'] = t_unidades
+        
+        pedido['p_cero'] = p_cero
 
-    return pedido
+        return pedido
+    
+    else:
+        return {}
 
 
 @login_required(login_url='login')
@@ -4012,7 +4018,7 @@ def editar_pedido_temporal(request):
         return JsonResponse({
             'cliente':pedido.cliente,
             'ruc':pedido.ruc,
-            'entrega':pedido.entrega,
+            'entrega':pedido.entrega.date(),
         })
     
     if request.method == 'POST':
