@@ -4241,6 +4241,20 @@ def wms_reporte_reposicion_alertas(request):
     productos_existencias = set(Existencias.objects.values_list('product_id', flat=True))
     productos_analisis = productos_ventas.intersection(productos_existencias)
 
+    # NUMERO DE PROUDUCTOS EN NIVEL UNO
+    n_products = []
+    for i in productos_analisis:
+        n_product_nivel = Existencias.objects.filter(product_id=i, ubicacion__nivel='1').count()
+        n_product = {
+            'product_id': i,
+            'n_product_nivel': n_product_nivel,
+        }
+        
+        n_products.append(n_product)
+
+    n_products_df = pd.DataFrame(n_products)
+
+    # REPORTE
     reporte_existencias_list = []
     for i in productos_analisis:
         existencias_by_product = Existencias.objects.filter(product_id=i).order_by('fecha_caducidad', 'lote_id', 'ubicacion__bodega', 'ubicacion__nivel')
@@ -4305,6 +4319,7 @@ def wms_reporte_reposicion_alertas(request):
         if not reporte_existencias_df.empty:
             productos = productos_odbc_and_django()[['product_id','Nombre','Marca']]
             reporte = reporte_existencias_df.merge(productos, on='product_id', how='left').sort_values(by='meses')
+            reporte = reporte.merge(n_products_df, on='product_id', how='left')
             reporte['fecha_caducidad'] = reporte['fecha_caducidad'].astype('str')
     
     context = {
@@ -5315,8 +5330,6 @@ def wms_referenica_detalle(request, referencia, n_referencia):
 
 
 ## ANULACIÓN FACTURA
-
-
 def nombre_cliente_desde_numero_factura(n_factura):
     
     factura = f'FCSRI-1001{int(n_factura):09d}-GIMPR' # FCSRI-1001000096784-GIMPR
