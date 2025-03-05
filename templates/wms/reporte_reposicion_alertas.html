@@ -55,6 +55,7 @@
                         <th scope="col">Lote</th>
                         <th scope="col">Ubicación</th>
                         <th scope="col">Unidades</th>
+                        <th scope="col"># Pos(nivel1)</th>
                         <th scope="col">Total nivel 1</th>
                         <th scope="col">Consumo mensual</th>
                         
@@ -84,12 +85,13 @@
                         <td>{{i.Marca}}</td>
                         <td>{{i.lote_id}}</td>
                         <td class="text-center">{{i.ubicacion}}</td>
-                        <td class="text-center">{{i.unidades|floatformat:"0g"}}</td>
+                        <td class="text-end">{{i.unidades|floatformat:"0g"}}</td>
+                        <td class="text-end">{{i.n_product_nivel|floatformat:"0g"}}</td>
 
-                        <td class="text-center">{{i.total_unidades_nivel_uno|floatformat:"0g"}}</td>
-                        <td class="text-center">{{i.ventas_product_mensual|floatformat:"0g"}}</td>
+                        <td class="text-end">{{i.total_unidades_nivel_uno|floatformat:"0g"}}</td>
+                        <td class="text-end">{{i.ventas_product_mensual|floatformat:"0g"}}</td>
 
-                        <td class="text-center"
+                        <td class="text-end"
                         {% if i.meses <= 0.49 %}
                             style="background-color: #F6B690;"
                         {% elif i.meses <= 0.9 and i.meses >= 0.49 %}
