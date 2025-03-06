@@ -369,7 +369,67 @@ def api_actualizar_imp_transito_warehouse():
         admin_warehouse_timestamp(tabla='imp_transito', actualizar_datetime=False, mensaje=f'Error exception {e}')
 
 
-### 5 ACTUALIZAR PRODUCTOS WAREHOUSE POR API DATA
+
+### 5 ACTUALIZAR PEDIDOS
+def api_actualizar_pedidos_warehouse():
+    
+    try:
+        pedidos_mba = api_mba_sql(
+            """
+            SELECT 
+                CLNT_Pedidos_Principal.CONTRATO_ID, 
+                CLNT_Pedidos_Principal.FECHA_PEDIDO, 
+                CLNT_Pedidos_Principal.WARE_CODE, 
+                CLNT_Pedidos_Principal.CONFIRMED, 
+                CLNT_Pedidos_Principal.HORA_LLEGADA, 
+                CLNT_Pedidos_Principal.Preparacion_numero 
+            FROM 
+                CLNT_Pedidos_Principal CLNT_Pedidos_Principal ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID DESC
+            """
+            
+        )
+        
+        if pedidos_mba['status'] == 200:
+            
+            # data = [tuple(i.values()) for i in pedidos_mba['data']]
+
+            data = []
+            for i in pedidos_mba['data']:
+                
+                contrato_id = i['CONTRATO_ID']
+                fecha_pedido = datetime.strptime(i['FECHA_PEDIDO'][:10], '%d/%m/%Y')
+                ware_code = i['WARE_CODE']
+                confirmed = 0 if i['CONFIRMED'] == 'false' else 1
+                hora_llegada = i['HORA_LLEGADA']
+                num_print = i['PREPARACION_NUMERO']
+                
+                row = (
+                    contrato_id,
+                    fecha_pedido,
+                    ware_code,
+                    confirmed,
+                    hora_llegada,
+                    num_print
+                )
+                
+                data.append(row)
+                
+            #with transaction.atomic():
+            # Borrar datos de tabla imp_transito
+            delete_data_warehouse('pedidos')
+            
+            # # Insertar datos de tabla imp_transito
+            insert_data_warehouse('pedidos', data)
+            
+            admin_warehouse_timestamp(tabla='pedidos', actualizar_datetime=True, mensaje='Actualizado correctamente')
+        else:
+            admin_warehouse_timestamp(tabla='pedidos', actualizar_datetime=False, mensaje=f'Error api: status {pedidos_mba["status"]}')
+    except Exception as e:
+        admin_warehouse_timestamp(tabla='pedidos', actualizar_datetime=False, mensaje=f'Error exception {e}')
+
+
+
+### 6 ACTUALIZAR PRODUCTOS WAREHOUSE POR API DATA
 def api_actualizar_productos_warehouse():
     
     try:
@@ -470,26 +530,12 @@ def api_actualizar_productos_warehouse():
         admin_warehouse_timestamp(tabla='productos', actualizar_datetime=False, mensaje=f'Error exception: {e}')
 
 
-### 6 ACTUALIZAR PRODUCTOS EN TRANSITO
+### 7 ACTUALIZAR PRODUCTOS EN TRANSITO
 def api_actualizar_producto_transito_warehouse():
     
     try:
     
         productos_transito_mba = api_mba_sql(
-            # """
-            # SELECT 
-            #     INVT_Ficha_Principal.PRODUCT_ID, 
-            #     INVT_Producto_Lotes.OH, 
-            #     INVT_Producto_Lotes.LOTE_ID, 
-            #     INVT_Producto_Lotes.Fecha_elaboracion_lote, 
-            #     INVT_Producto_Lotes.FECHA_CADUCIDAD, 
-            #     INVT_Producto_Lotes.WARE_CODE_CORP 
-            # FROM 
-            #     INVT_Ficha_Principal INVT_Ficha_Principal, 
-            #     INVT_Producto_Lotes INVT_Producto_Lotes 
-            # WHERE 
-            #     INVT_Ficha_Principal.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND ((INVT_Producto_Lotes.WARE_CODE_CORP='TRN'))
-            # """
             
             """
             SELECT 
@@ -560,7 +606,7 @@ def api_actualizar_producto_transito_warehouse():
         admin_warehouse_timestamp(tabla='productos_transito', actualizar_datetime=False, mensaje=f'Error exception: {e}')
 
 
-### 7 ACTULIZAR PROFORMAS
+### 8 ACTULIZAR PROFORMAS
 def api_actualizar_proformas_warehouse():
     
     try:
@@ -641,7 +687,7 @@ def api_actualizar_proformas_warehouse():
         admin_warehouse_timestamp(tabla='proformas', actualizar_datetime=False, mensaje=f'Error exepction: {e}')
 
 
-### 8 ACTUALIZAR RESERVAS WAREHOUSE
+### 9 ACTUALIZAR RESERVAS WAREHOUSE
 def api_actualizar_reservas_warehouse():
     
     try:
@@ -744,7 +790,7 @@ def api_actualizar_reservas_warehouse():
         admin_warehouse_timestamp(tabla='reservas', actualizar_datetime=False, mensaje=f'Error exception: {e}')
 
 
-### 9 ACTUALIZAR RESERVAS LOTES WAREHOUSE
+### 10 ACTUALIZAR RESERVAS LOTES WAREHOUSE
 def api_actualizar_reservas_lotes_warehouse():
     
     try:
@@ -837,7 +883,7 @@ def api_actualizar_reservas_lotes_warehouse():
         admin_warehouse_timestamp(tabla='reservas_lote', actualizar_datetime=False, mensaje=f'Error exception: {e}')
 
 
-
+### 11 ACTUALIZAR RESERVAS LOTES WAREHOUSE
 def api_actualizar_reservas_lotes_2_warehouse():
     
     try:
@@ -922,7 +968,7 @@ def api_actualizar_reservas_lotes_2_warehouse():
 
 
 
-### 10 ACTULIZAR STOCK LOTE POR ODBC
+### 12 ACTULIZAR STOCK LOTE POR ODBC
 import pyodbc
 def odbc_actualizar_stock_lote():
 
