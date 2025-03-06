@@ -2195,11 +2195,26 @@ def revision_imp_llegadas(request, orden_compra):
         return redirect('/etiquetado/revision/imp/llegadas/list')
 
 
+def pedidos_warhouse_data():
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute("SELECT CONTRATO_ID, NUM_PRINT FROM pedidos")
+        columns = [col[0] for col in cursor.description]
+        pedidos = [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+        pedidos = pd.DataFrame(pedidos)
+
+    return pedidos
+
+
 # Dashboards de pedidos
 def estado_pedidos_dashboard_fun(bodega):
 
     reservas = pd.DataFrame(reservas_table())
     reservas = reservas[reservas['WARE_CODE']==bodega]
+    num_print = pedidos_warhouse_data()
+    reservas = reservas.merge(num_print, on='CONTRATO_ID', how='left')
 
     estados = pd.DataFrame(EstadoPicking.objects.all().values())
     clientes = clientes_table()[['NOMBRE_CLIENTE','CIUDAD_PRINCIPAL','CLIENT_TYPE']]
@@ -2244,7 +2259,7 @@ def estado_pedidos_dashboard_fun(bodega):
     # Llenar None y ordenar
     reservas = reservas.fillna('-')
     reservas = reservas.sort_values(by=['FECHA_PEDIDO', 'HORA_LLEGADA'])
-
+    print(reservas, reservas.keys())
     return reservas
 
 
