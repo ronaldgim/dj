@@ -68,6 +68,7 @@ from api_mba.tablas_warehouse import (
     api_actualizar_facturas_warehouse,
     api_actualizar_imp_llegadas_warehouse,
     api_actualizar_imp_transito_warehouse,
+    api_actualizar_pedidos_warehouse,
     api_actualizar_productos_warehouse, 
     api_actualizar_producto_transito_warehouse,
     api_actualizar_proformas_warehouse,
@@ -534,40 +535,44 @@ def stock_lote(request):
             # warehouse.imp_llegadas
             api_actualizar_imp_llegadas_warehouse()
             
-            # 4 Actualizar importaciones en transito
+            # 4 Imp Transito
             # warehouse.imp_transito
             api_actualizar_imp_transito_warehouse()
 
             # 5 ACTUALIZAR PRODUCTOS 
             # warehouse.productos
             api_actualizar_productos_warehouse()
+            
+            # 6 ACTUALIZAR PEDIDOS 
+            # warehouse.pedidos
+            api_actualizar_pedidos_warehouse()
 
-            # 6 Productos en Transito
+            # 7 Productos en Transito
             # warehouse.productos_transito
             api_actualizar_producto_transito_warehouse()
 
-            # 7 ACTUALIZAR PROFORMAS
+            # 8 ACTUALIZAR PROFORMAS
             # warehouse.proformas
             api_actualizar_proformas_warehouse()
             
-            # 8 Reservas  (Pedidos Abiertos) - (<> MANTEN)
+            # 9 Reservas  (Pedidos Abiertos) - (<> MANTEN)
             # warehouse.reservas
             api_actualizar_reservas_warehouse()
 
-            # 9 Reservas lotes
+            # 10 Reservas lotes
             # warehouse.reservas_lotes
             api_actualizar_reservas_lotes_warehouse()
             
-            # 9 Reservas lotes
+            # 11 Reservas lotes 2
             # warehouse.reservas_lotes
             api_actualizar_reservas_lotes_2_warehouse()
 
-            # 10 Stock Lotes
+            # 12 Stock Lotes
             # warehouse.stock_lotes
             odbc_actualizar_stock_lote()
 
             ### TABLA DJANGO
-            # 11 tabla de etiquetado estock
+            # 13 tabla de etiquetado estock
             actualizar_datos_etiquetado_fun()
             
         elif table_name:
@@ -582,6 +587,8 @@ def stock_lote(request):
                 api_actualizar_imp_transito_warehouse()
             elif table_name == "productos":
                 api_actualizar_productos_warehouse()
+            elif table_name == "pedidos":
+                api_actualizar_pedidos_warehouse()
             elif table_name == "productos_transito":
                 api_actualizar_producto_transito_warehouse()
             elif table_name == "proformas":
