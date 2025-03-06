@@ -395,8 +395,8 @@ def api_actualizar_pedidos_warehouse():
 
             data = []
             for i in pedidos_mba['data']:
-                
-                contrato_id = i['CONTRATO_ID']
+
+                contrato_id = str(i['CONTRATO_ID']) + '.0'
                 fecha_pedido = datetime.strptime(i['FECHA_PEDIDO'][:10], '%d/%m/%Y')
                 ware_code = i['WARE_CODE']
                 confirmed = 0 if i['CONFIRMED'] == 'false' else 1
