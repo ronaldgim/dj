@@ -5330,24 +5330,32 @@ def wms_referenica_detalle(request, referencia, n_referencia):
 
 
 ## ANULACIÓN FACTURA
-def nombre_cliente_desde_numero_factura(n_factura):
+# def nombre_cliente_desde_numero_factura(n_factura):
     
-    factura = f'FCSRI-1001{int(n_factura):09d}-GIMPR' # FCSRI-1001000096784-GIMPR
+#     factura = f'FCSRI-1001{int(n_factura):09d}-GIMPR' # FCSRI-1001000096784-GIMPR
     
-    with connections['gimpromed_sql'].cursor() as cursor:
-        cursor.execute(
-            f"SELECT NOMBRE_CLIENTE, NUMERO_PEDIDO_SISTEMA FROM warehouse.facturas WHERE CODIGO_FACTURA = '{factura}'"
-        )
+#     with connections['gimpromed_sql'].cursor() as cursor:
+#         cursor.execute(
+#             f"SELECT NOMBRE_CLIENTE, NUMERO_PEDIDO_SISTEMA FROM warehouse.facturas WHERE CODIGO_FACTURA = '{factura}'"
+#         )
         
-        cliente = [tuple(row) for row in cursor.fetchall()][0]
+#         cliente = [tuple(row) for row in cursor.fetchall()][0]
         
-        return cliente[0]
+#         return cliente[0]
+
+
+def nombre_cliente_desde_estado_picking(n_picking):
+    
+    n_picking = EstadoPicking.objects.get(n_pedido=n_picking)
+    
+    return n_picking.cliente
 
 
 def detalle_anulacion_factura_ajax(request):
     
     n_factura = request.POST.get('n_factura', None)
     movimientos = Movimiento.objects.filter(n_factura=n_factura)
+    n_picking = movimientos.first().n_referencia
     
     if movimientos.exists():
         
@@ -5355,7 +5363,8 @@ def detalle_anulacion_factura_ajax(request):
             'tipo':'success',
             'msg':'Factura pendiente de anulación',
             'n_picking':movimientos.first().n_referencia.split('.')[0],
-            'cliente':nombre_cliente_desde_numero_factura(n_factura),
+            #'cliente':nombre_cliente_desde_numero_factura(n_factura),
+            'cliente':nombre_cliente_desde_estado_picking(n_picking)
         })
     else:
         return JsonResponse({
