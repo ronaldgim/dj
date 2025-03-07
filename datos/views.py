@@ -1947,8 +1947,8 @@ def revision_reservas_fun():
         # solo reserva yu reservado
         df_reservas_sinlote = df_reservas_sinlote[
             (df_reservas_sinlote['SEC_NAME_CLIENTE']=='RESERVA') |
-            (df_reservas_sinlote['SEC_NAME_CLIENTE']=='RESERVADO') |
-            (df_reservas_sinlote['SEC_NAME_CLIENTE']=='PUBLICO') 
+            (df_reservas_sinlote['SEC_NAME_CLIENTE']=='RESERVADO') #|
+            #(df_reservas_sinlote['SEC_NAME_CLIENTE']=='PUBLICO') 
             ]
         
         # 2.1 Filtrar reservas por gimpromed y cliente hospital
@@ -2013,8 +2013,8 @@ def revision_reservas_fun():
                 cl = ['FECHA_CADUCIDAD_y','EGRESO_TEMP','CONTRATO_ID']
                 sto_lote['fila_llena'] = sto_lote[cl].notna().all(axis=1)
                 sto_lote['siguiente_vacia'] = sto_lote[cl].isna().all(axis=1).shift(-1, fill_value=False)
-                #print(sto_lote)
-                df = sto_lote
+
+                df = sto_lote 
                 # Crear la nueva columna de disponibilidad
                 df['disp-reserva'] = df['OH2'] - df['EGRESO_TEMP']
 
