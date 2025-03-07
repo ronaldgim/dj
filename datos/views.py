@@ -1995,10 +1995,7 @@ def revision_reservas_fun():
         stock = inventario
         stock['LOTE_ID'] = stock['LOTE_ID'].str.replace('.', '')
         stock = stock[stock['PRODUCT_ID'].isin(reservas_agrupadas['PRODUCT_ID'].unique())]
-        stock = stock.groupby(by=['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD'])['OH2'].sum().reset_index() #; print(stock)
-        #stock = stock.merge(picking, on='CONTRATO_ID', how='left') ; print(stock)
-        # stock = stock[stock['estado']!='FINALIZADO'] ; print(stock)
-        
+        stock = stock.groupby(by=['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD'])['OH2'].sum().reset_index() 
         
         # 4 Reporte
         # for index, row in reservas_agrupadas.iterrows():
