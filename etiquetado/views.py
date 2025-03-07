@@ -2259,7 +2259,7 @@ def estado_pedidos_dashboard_fun(bodega):
     # Llenar None y ordenar
     reservas = reservas.fillna('-')
     reservas = reservas.sort_values(by=['FECHA_PEDIDO', 'HORA_LLEGADA'])
-    print(reservas, reservas.keys())
+
     return reservas
 
 
