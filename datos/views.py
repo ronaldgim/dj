@@ -1918,10 +1918,22 @@ def reservas_lote_2():
     return reservas_lote
 
 
+def pickin_de_reservas_finalizado():
+    
+    from etiquetado.models import EstadoPicking
+    desde = datetime.now() - timedelta(days=90)
+    data = EstadoPicking.objects.filter(fecha_creado__gte = desde).values('n_pedido', 'estado')
+    df = pd.DataFrame(data).rename(columns={'n_pedido':'CONTRATO_ID'})  
+    df['CONTRATO_ID'] = df['CONTRATO_ID'].astype('float') 
+    df['CONTRATO_ID'] = df['CONTRATO_ID'].astype('int') 
+    return df
+
+
+
 def revision_reservas_fun():
     
     try:
-    
+        
         # 1. Obtener datos
         # df_reservas_lote    = reservas_lote()
         df_reservas_lote    = reservas_lote_2()
@@ -1929,6 +1941,7 @@ def revision_reservas_fun():
         cli                 = clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE']]
         # clientes            = clientes_warehouse()[['CODIGO_CLIENTE','CLIENT_TYPE']]
         inventario          = stock_lote_odbc()
+        picking             = pickin_de_reservas_finalizado()
 
         # 2.0 Filtrar por SEC_NAME_CLIENTE 
         # solo reserva yu reservado
@@ -1961,8 +1974,10 @@ def revision_reservas_fun():
         cli_res = cli_res.merge(cli, on='CODIGO_CLIENTE', how='left')[['NOMBRE_CLIENTE','CONTRATO_ID']]
         cli_res = cli_res.drop_duplicates(subset='NOMBRE_CLIENTE')
         
-        # 2.5 Filtrar en reservas con lotes por lista de contratos    
+        # 2.5 Filtrar en reservas con lotes por lista de contratos y retirar los que ya finalizaron
         reservas_agrupadas_cantidad = reservas.copy()
+        reservas_agrupadas_cantidad = reservas_agrupadas_cantidad.merge(picking, on='CONTRATO_ID', how='left')
+        reservas_agrupadas_cantidad = reservas_agrupadas_cantidad[reservas_agrupadas_cantidad['estado']!='FINALIZADO']
         reservas_agrupadas_cantidad = reservas_agrupadas_cantidad.groupby(by=['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD'])['EGRESO_TEMP'].sum().reset_index()
         reservas_agrupadas_contratos = reservas.copy()
         reservas_agrupadas_contratos['CONTRATO_ID'] = reservas_agrupadas_contratos['CONTRATO_ID'].astype('str')
@@ -1974,13 +1989,16 @@ def revision_reservas_fun():
             ], values='CONTRATO_ID', aggfunc = lambda x: ' - '.join(x)).reset_index()
         
         # 2.6 Reservas agrupadas
-        reservas_agrupadas = reservas_agrupadas_cantidad.merge(reservas_agrupadas_contratos, on=['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD'], how='left')
+        reservas_agrupadas = reservas_agrupadas_cantidad.merge(reservas_agrupadas_contratos, on=['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD'], how='left') 
         
         # 3.0 Stock MBA
         stock = inventario
         stock['LOTE_ID'] = stock['LOTE_ID'].str.replace('.', '')
         stock = stock[stock['PRODUCT_ID'].isin(reservas_agrupadas['PRODUCT_ID'].unique())]
-        stock = stock.groupby(by=['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD'])['OH2'].sum().reset_index()
+        stock = stock.groupby(by=['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD'])['OH2'].sum().reset_index() #; print(stock)
+        #stock = stock.merge(picking, on='CONTRATO_ID', how='left') ; print(stock)
+        # stock = stock[stock['estado']!='FINALIZADO'] ; print(stock)
+        
         
         # 4 Reporte
         # for index, row in reservas_agrupadas.iterrows():
@@ -1998,7 +2016,7 @@ def revision_reservas_fun():
                 cl = ['FECHA_CADUCIDAD_y','EGRESO_TEMP','CONTRATO_ID']
                 sto_lote['fila_llena'] = sto_lote[cl].notna().all(axis=1)
                 sto_lote['siguiente_vacia'] = sto_lote[cl].isna().all(axis=1).shift(-1, fill_value=False)
-                
+                #print(sto_lote)
                 df = sto_lote
                 # Crear la nueva columna de disponibilidad
                 df['disp-reserva'] = df['OH2'] - df['EGRESO_TEMP']
