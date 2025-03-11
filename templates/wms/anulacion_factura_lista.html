@@ -78,7 +78,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="eaddFacturaLabel">Anular Factura</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" name="modal-close"></button>
             </div>
             <div class="modal-body">
 
@@ -110,6 +110,7 @@
             </div>
             <div class="modal-footer">
                 <button type="submit" form="anula-factura-form" class="btn btn-success">Anular Factura</button>
+                <!--button type="reset" form="anula-factura-form" class="btn btn-secondary">Cancelar</button-->
             </div>
         </div>
     </div>
@@ -143,7 +144,7 @@
             },
             
             error: function() {
-                $('#msg').html('<div class="text-center alert alert-danger" role="alert"> Error !!! </div>')
+                $('#msg_factura').html('<div class="text-center alert alert-danger" role="alert"> Error !!! </div>')
             }
             
         })
@@ -179,4 +180,10 @@
     })
 </script>
 
+
+<script>
+    $("button[name='modal-close']").click(function() {
+        $("#anula-factura-form").trigger('reset');
+    })
+</script>
 {% endblock %}

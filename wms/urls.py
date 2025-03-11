@@ -588,12 +588,6 @@ urlpatterns = [
     ),
     
     path(
-        route='picking-list/<str:estado_de_picking>', 
-        view = views.wms_picking_list,
-        name = 'wms_picking_list'
-    ),
-    
-    path(
         route='detalle/<str:referencia>/<str:n_referencia>', 
         view = views.wms_referenica_detalle,
         name = 'wms_referenica_detalle'
