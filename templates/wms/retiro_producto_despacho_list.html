@@ -53,6 +53,9 @@
 
 <div id="msg"></div>
 
+<div class="col-12 mt-2 mb-2">
+    <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+</div>
 <div class="card mb-2">
     <div class="card-body m-0 p-0">
         <div class="container table-responsive">
@@ -90,6 +93,56 @@
     </div>
 </div>
 {% endif %}
+
+
+<div class="card mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table" style="font-size: small;" id="mitabla">
+                <thead>
+                    <tr>
+                        <th scope="col"># Picking</th>
+                        <th scope="col"># Factura</th>
+                        <th scope="col">Fecha de cruce</th>
+                        <th scope="col">Usuario</th>
+                        <th scope="col">Enviado a despacho el</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in picking_factura_df %}
+                        <tr>
+                            <td>{{i.picking}}</td>
+                            <td>{{i.factura}}</td>
+                            <td>{{i.actualizado}}</td>
+                            <td>{{i.usuario__first_name}} {{i.usuario__last_name}}</td>
+                            <td>
+                                <a class="btn btn-sm btn-primary" href="{% url 'wms_referenica_detalle' i.referencia i.n_referencia %}">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!--filtro buscar-->
+<script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+
+
+
 
 <script>
 

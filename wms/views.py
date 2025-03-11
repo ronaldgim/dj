@@ -2500,6 +2500,25 @@ def wms_armar_codigo_factura(n_factura):
 @permisos(['BODEGA'], '/wms/home', 'ingresar a cruce de picking-factura')
 def wms_cruce_picking_factura(request):
 
+    # Picking y facturas
+    picking_factura = Movimiento.objects.filter(
+        Q(referencia='Picking') &
+        Q(estado_picking='Despachado')
+    )
+    
+    picking_factura_df = pd.DataFrame(picking_factura.values(
+        'referencia',
+        'n_referencia',
+        'n_factura',
+        'fecha_hora',
+        'actualizado',
+        'usuario__first_name',
+        'usuario__last_name',
+        )).drop_duplicates(subset='n_referencia').sort_values(by='n_referencia', ascending=False)
+    picking_factura_df['picking'] = picking_factura_df['n_referencia'].str.slice(0,-2)
+    picking_factura_df['factura'] = picking_factura_df['n_factura'].apply(split_factura_movimiento)
+    picking_factura_df['actualizado'] = picking_factura_df['actualizado'].astype('str').str.slice(0,16)
+
     if request.method=="POST":
         n_factura = request.POST['n_factura']
         factura = wms_armar_codigo_factura(n_factura)
@@ -2513,7 +2532,9 @@ def wms_cruce_picking_factura(request):
             'cartones':cartones
         }
         return render(request, 'wms/cruce_picking_factura.html', context)
-    context = {}
+    context = {
+        'picking_factura_df': de_dataframe_a_template(picking_factura_df),
+    }
     return render(request, 'wms/cruce_picking_factura.html', context)
 
 
@@ -3955,6 +3976,31 @@ def wms_ajuste_liberacion_detalle(request, n_liberacion):
 @login_required(login_url='login')
 @permisos(['ADMINISTRADOR','OPERACIONES'],'/wms/home', 'ingresar a retiro de productos en despacho')
 def wms_retiro_producto_despacho(request):
+    
+    picking_factura = Movimiento.objects.filter(
+            Q(referencia='Picking') &
+            Q(estado_picking='No Despachado')
+            # Q(estado_picking=estado_de_picking)
+        )
+        
+    picking_factura_df = pd.DataFrame(picking_factura.values(
+        'referencia',
+        'n_referencia',
+        'n_factura',
+        'fecha_hora',
+        'actualizado',
+        'usuario__first_name',
+        'usuario__last_name',
+        )).drop_duplicates(subset='n_referencia').sort_values(by='n_referencia', ascending=False)
+    
+    picking_factura_df['picking'] = picking_factura_df['n_referencia'].str.slice(0,-2)
+    picking_factura_df['factura'] = picking_factura_df['n_factura'].apply(split_factura_movimiento)
+    picking_factura_df['actualizado'] = picking_factura_df['actualizado'].astype('str').str.slice(0,16)
+    
+    # context = {
+    #     'picking_factura_df': de_dataframe_a_template(picking_factura_df),
+    #     #'titulo': 'LISTA DE PICKING - FACTURA' if estado_de_picking == 'Despachado' else 'LISTA DE PICKING - PRODUCTOS NO DESPACHADOS'
+    # }
 
     if request.method == 'POST':
         n_picking = request.POST['n_picking'] + '.0' 
@@ -3984,7 +4030,12 @@ def wms_retiro_producto_despacho(request):
                 else:
                     messages.error(request, f"El Picking {request.POST['n_picking']} su esta es {estado}")
     
-    return render(request, 'wms/retiro_producto_despacho_list.html', {})
+    
+    context = {
+        'picking_factura_df': de_dataframe_a_template(picking_factura_df),
+    }
+    
+    return render(request, 'wms/retiro_producto_despacho_list.html', context)
 
 
 @login_required(login_url='login')
@@ -5257,41 +5308,6 @@ def split_factura_movimiento(n_factura):
         return str(factura)
     else:
         return n_factura
-    
-    
-@login_required(login_url='login')
-def wms_picking_list(request, estado_de_picking):
-    
-    try:
-        # Picking y facturas
-        picking_factura = Movimiento.objects.filter(
-            Q(referencia='Picking') &
-            Q(estado_picking=estado_de_picking)
-        )
-        
-        picking_factura_df = pd.DataFrame(picking_factura.values(
-            'referencia',
-            'n_referencia',
-            'n_factura',
-            'fecha_hora',
-            'actualizado',
-            'usuario__first_name',
-            'usuario__last_name',
-            )).drop_duplicates(subset='n_referencia').sort_values(by='n_referencia', ascending=False)
-        picking_factura_df['picking'] = picking_factura_df['n_referencia'].str.slice(0,-2)
-        picking_factura_df['factura'] = picking_factura_df['n_factura'].apply(split_factura_movimiento)
-        picking_factura_df['actualizado'] = picking_factura_df['actualizado'].astype('str').str.slice(0,16)
-        
-        context = {
-            'picking_factura_df': de_dataframe_a_template(picking_factura_df),
-            'titulo': 'LISTA DE PICKING - FACTURA' if estado_de_picking == 'Despachado' else 'LISTA DE PICKING - PRODUCTOS NO DESPACHADOS'
-        }
-        
-        return render(request, 'wms/cruce_picking_factura_list.html', context)
-    
-    except Exception as e:
-        context = {'error':str(e)}
-        return render(request, 'wms/cruce_picking_factura_list.html', context)
 
 
 @login_required(login_url='login')
@@ -5328,50 +5344,33 @@ def wms_referenica_detalle(request, referencia, n_referencia):
         return render(request, 'wms/picking_detalle.html', context)
 
 
-
-## ANULACIÓN FACTURA
-# def nombre_cliente_desde_numero_factura(n_factura):
-    
-#     factura = f'FCSRI-1001{int(n_factura):09d}-GIMPR' # FCSRI-1001000096784-GIMPR
-    
-#     with connections['gimpromed_sql'].cursor() as cursor:
-#         cursor.execute(
-#             f"SELECT NOMBRE_CLIENTE, NUMERO_PEDIDO_SISTEMA FROM warehouse.facturas WHERE CODIGO_FACTURA = '{factura}'"
-#         )
-        
-#         cliente = [tuple(row) for row in cursor.fetchall()][0]
-        
-#         return cliente[0]
-
-
-def nombre_cliente_desde_estado_picking(n_picking):
-    
-    n_picking = EstadoPicking.objects.get(n_pedido=n_picking)
-    
-    return n_picking.cliente
-
-
 def detalle_anulacion_factura_ajax(request):
     
-    n_factura = request.POST.get('n_factura', None)
-    movimientos = Movimiento.objects.filter(n_factura=n_factura)
-    n_picking = movimientos.first().n_referencia
+    try:
     
-    if movimientos.exists():
+        n_factura = request.POST.get('n_factura', None)
+        movimientos = Movimiento.objects.filter(n_factura=n_factura)
+        n_picking = movimientos.first().n_referencia
+        nombre_cliente = EstadoPicking.objects.get(n_pedido=n_picking)
         
-        return JsonResponse({
-            'tipo':'success',
-            'msg':'Factura pendiente de anulación',
-            'n_picking':movimientos.first().n_referencia.split('.')[0],
-            #'cliente':nombre_cliente_desde_numero_factura(n_factura),
-            'cliente':nombre_cliente_desde_estado_picking(n_picking)
-        })
-    else:
-        return JsonResponse({
-                'tipo':'danger',
-                'msg':'La factura no existe, intente con otro número!!! '
+        if movimientos.exists():
+            
+            return JsonResponse({
+                'tipo':'success',
+                'msg':'Factura pendiente de anulación',
+                'n_picking':movimientos.first().n_referencia.split('.')[0],
+                'cliente': nombre_cliente.cliente 
             })
-
+        else:
+            return JsonResponse({
+                    'tipo':'danger',
+                    'msg':'La factura no existe, intente con otro número '
+                })
+    except:
+        return JsonResponse({
+            'tipo':'danger',
+            'msg':'La factura no existe, intente con otro número '
+        })
 
 @transaction.atomic
 def anulacion_factura_movimientos(n_factura):
