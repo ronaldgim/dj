@@ -334,15 +334,16 @@ def muestreo_unidades_transito(request, contrato_id):
     imp = imp.sort_values(by='product_id')
 
     #proveedor = imp['marca2'].dropna().iloc[0]
+    proveedor = imp['VENDOR_NAME'].dropna()[0]
     proveedor2 = imp['Marca'].dropna().iloc[0]
     n_imp = imp['MEMO'].dropna().iloc[0]
     n_doc = imp['CONTRATO_ID'].dropna().iloc[0]
-    
+
     imp = de_dataframe_a_template(imp)
 
     context = {
         'imp':imp,
-        'proveedor': '', #proveedor,
+        'proveedor': proveedor,
         'proveedor2':proveedor2,
         'n_imp':n_imp,
         'n_doc':n_doc
