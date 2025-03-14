@@ -5372,43 +5372,53 @@ def detalle_anulacion_factura_ajax(request):
             'msg':'La factura no existe, intente con otro número '
         })
 
+
 @transaction.atomic
-def anulacion_factura_movimientos(n_factura):
+def anulacion_factura_movimientos_ajax(request):
     
     try:
+        if request.method == 'POST':
+            n_factura = request.POST.get('n_factura')
+            factura = FacturaAnulada.objects.get(n_factura=n_factura)
+
+            if factura.estado != 'Anulado':
+                movimientos = Movimiento.objects.filter(n_factura=n_factura)
+                for i in movimientos:
+                    mov = Movimiento(
+                        product_id=i.product_id,
+                        lote_id=i.lote_id,
+                        fecha_caducidad=i.fecha_caducidad,
+                        tipo='Ingreso',
+                        descripcion='N/A',
+                        referencia='Factura anulada',
+                        n_referencia=n_factura,
+                        n_factura='',
+                        ubicacion_id=606,
+                        unidades=i.unidades * -1,
+                        estado='Disponible',
+                        estado_picking='',
+                        usuario_id=i.usuario.id,
+                    )
+                    mov.save()
+                    wms_existencias_query_product_lote(product_id=mov.product_id, lote_id=mov.lote_id)
+
+                factura.estado = 'Anulado'
+                factura.save()
+
+                return JsonResponse({
+                    'tipo': 'success',
+                    'msg': 'Factura anulada correctamente'
+                })
+    except Exception as e:
+        
         movimientos = Movimiento.objects.filter(n_factura=n_factura)
-        movimientos.update(estado_picking='No Despachado')
-        
-        factura = FacturaAnulada.objects.get(n_factura=n_factura)
-        factura.estado='Confirmado'
+        factura.estado = 'Pendiente'
         factura.save()
-        
-        for i in movimientos:
-            mov = Movimiento(
-                product_id = i.product_id,
-                lote_id = i.lote_id,
-                fecha_caducidad = i.fecha_caducidad,
-                tipo = 'Ingreso',
-                descripcion = 'N/A',
-                referencia = 'Factura anulada',
-                n_referencia = n_factura,
-                n_factura = '',
-                ubicacion_id = 606,
-                unidades = i.unidades *-1 ,
-                estado = 'Disponible',
-                estado_picking = '',
-                usuario_id = i.usuario.id,
-            )
-            
-            mov.save()
-            wms_existencias_query_product_lote(product_id=mov.product_id, lote_id=mov.lote_id)
-    except:
-        movimientos = Movimiento.objects.filter(n_factura=n_factura)
-        movimientos.update(estado_picking='Despachado')
-        
-        factura = FacturaAnulada.objects.get(n_factura=n_factura)
-        factura.estado='Cancelado'
-        factura.save()
+
+        return JsonResponse({
+            'tipo': 'danger',
+            'msg': f'Error al anular factura {e}'
+        })
 
 
 @login_required(login_url='login')
@@ -5423,12 +5433,11 @@ def lista_facturas_anualdas(request):
             factura = form.save()
             
             if factura:
-                anulacion_factura_movimientos(factura.n_factura)
                 messages.success(request, f'Factura {factura.n_factura} Anulada !!!')
-                return render(request, 'wms/anulacion_factura_lista.html', context)
+                return HttpResponseRedirect('/wms/facturas-anuladas/lista') 
             else:
                 messages.error(request, f'Error anulando la factura {factura.n_factura} !!!')
-                return render(request, 'wms/anulacion_factura_lista.html', context)
+                return HttpResponseRedirect('/wms/facturas-anuladas/lista') 
             
     context = {
         'facturas': facturas,

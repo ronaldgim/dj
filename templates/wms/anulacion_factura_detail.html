@@ -26,22 +26,12 @@
     {% endfor %}
 {% endif %}
 
-{% comment %}
-<form method='POST'>
-    {% csrf_token %}
-    <div class="input-group mb-3">
-        <input type="text" class="form-control" placeholder="Ingrese en número de picking" name="n_picking" required>
-        <button name="trasferencia" class="btn btn-primary" type="submit"><i class="bi bi-search"></i> Buscar picking</button>
-    </div>
-</form>
-{% endcomment %}
-
 
 <div class="card mb-2">
     <div class="card-body mt-2 mb-2 p-0">
         <div class="container table-responsive">
             <label class="fw-bold">Cliente:</label> {{factura.cliente}}<br>
-            <label class="fw-bold"># Factura:</label> {{factura.n_factura}}<br>
+            <label class="fw-bold"># Factura:</label> <span id="n_factura">{{factura.n_factura}}</span><br>
             <label class="fw-bold"># Picking:</label> {{factura.n_picking}}<br>
             <label class="fw-bold">Estado:</label> {{factura.estado | upper}}<br>
             <label class="fw-bold">Fecha:</label> {{factura.actualizado}}<br>
@@ -135,35 +125,67 @@
     </div>
 </div>
 
-{% comment %}
+<button class="btn btn-primary mb-4" name="agregar-factura" data-bs-toggle="modal" data-bs-target="#anularFactura">
+    Anular Factura
+</button>
+
+
+<!-- Modal -->
+<div class="modal fade" id="anularFactura" tabindex="-1" aria-labelledby="anularFacturaLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="anularFacturaLabel">¿Está seguro de anular la factura?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" name="modal-close"></button>
+            </div>
+            <div class="modal-body">
+                
+                <div id="msg_factura"></div>
+
+                <label class="fw-bold">Cliente:</label> {{factura.cliente}}<br>
+                <label class="fw-bold"># Factura:</label> {{factura.n_factura}}<br>
+                <label class="fw-bold"># Picking:</label> {{factura.n_picking}}<br>
+                <label class="fw-bold">Estado:</label> {{factura.estado | upper}}<br>
+                <label class="fw-bold">Fecha:</label> {{factura.actualizado}}<br>
+                <label class="fw-bold">Motivo:</label><br>
+                <p>
+                    {{factura.motivo}}
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" name="anular_factura" class="btn btn-success {% if factura.estado == 'Confirmado' %} disabled {% endif %} ">Si</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <script>
 
-    $("button[name='regresar']").click(function(){
-        var btn = $(this)
-        var id  = btn.attr("id")
+    $("button[name='anular_factura']").click(function(){
+        var n_factura = $("#n_factura").text();
         
         $.ajax({
             type:"POST",
-            url:"{% url 'wms_retiro_producto_despacho_ajax' %}",
+            url:"{% url 'anulacion_factura_movimientos_ajax' %}",
             data:{
                 'csrfmiddlewaretoken': '{{ csrf_token }}',
-                'id':id,
+                'n_factura':n_factura,
             },
-
             success: function(response) {
-                
-                btn.removeClass('btn-warning');
-                btn.addClass('btn-success disabled');
-                $('#msg').html(`<div class="text-center alert alert-${response.tipo}" role="alert"> ${response.msg} !!! </div>`)
+                $('#msg_factura').html(`<div class="text-center alert alert-${response.tipo}" role="alert"> ${response.msg} !!! </div>`);
+                setTimeout(function() {
+                    location.reload(true);
+                }, 3000);
             },
-            
             error: function() {
-                $('#msg').html('<div class="text-center alert alert-danger" role="alert"> Error !!! </div>')
+                $('#msg_factura').html('<div class="text-center alert alert-danger" role="alert"> Error !!! </div>')
             }
             
         })
     })
 </script>
-{% endcomment %}
+
 
 {% endblock %}
