@@ -375,20 +375,31 @@ def api_actualizar_pedidos_warehouse():
     
     try:
         pedidos_mba = api_mba_sql(
+            # """
+            # SELECT 
+            #     CLNT_Pedidos_Principal.CONTRATO_ID, 
+            #     CLNT_Pedidos_Principal.FECHA_PEDIDO, 
+            #     CLNT_Pedidos_Principal.WARE_CODE, 
+            #     CLNT_Pedidos_Principal.CONFIRMED, 
+            #     CLNT_Pedidos_Principal.HORA_LLEGADA, 
+            #     CLNT_Pedidos_Principal.Preparacion_numero 
+            # FROM 
+            #     CLNT_Pedidos_Principal CLNT_Pedidos_Principal ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID DESC
+            # """
             """
-            SELECT 
-                CLNT_Pedidos_Principal.CONTRATO_ID, 
-                CLNT_Pedidos_Principal.FECHA_PEDIDO, 
-                CLNT_Pedidos_Principal.WARE_CODE, 
-                CLNT_Pedidos_Principal.CONFIRMED, 
-                CLNT_Pedidos_Principal.HORA_LLEGADA, 
-                CLNT_Pedidos_Principal.Preparacion_numero 
-            FROM 
+                SELECT 
+                    CLNT_Pedidos_Principal.CONTRATO_ID, 
+                    CLNT_Pedidos_Principal.FECHA_PEDIDO, 
+                    CLNT_Pedidos_Principal.WARE_CODE,
+                    CLNT_Pedidos_Principal.CONFIRMED, 
+                    CLNT_Pedidos_Principal.HORA_LLEGADA,
+                    CLNT_Pedidos_Principal.Preparacion_numero, 
+                    CLNT_Pedidos_Principal.Entry_by
+                FROM 
                 CLNT_Pedidos_Principal CLNT_Pedidos_Principal ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID DESC
             """
-            
         )
-        
+
         if pedidos_mba['status'] == 200:
             
             # data = [tuple(i.values()) for i in pedidos_mba['data']]
@@ -402,6 +413,7 @@ def api_actualizar_pedidos_warehouse():
                 confirmed = 0 if i['CONFIRMED'] == 'false' else 1
                 hora_llegada = i['HORA_LLEGADA']
                 num_print = i['PREPARACION_NUMERO']
+                entry_by = i['ENTRY_BY']
                 
                 row = (
                     contrato_id,
@@ -409,7 +421,8 @@ def api_actualizar_pedidos_warehouse():
                     ware_code,
                     confirmed,
                     hora_llegada,
-                    num_print
+                    num_print,
+                    entry_by
                 )
                 
                 data.append(row)
