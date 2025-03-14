@@ -79,9 +79,8 @@ BODEGA_ARMADO = [
 ]
 
 ESTADO_ANULACION_FACTURA = [
-    ('Confirmado', 'Confirmado'),
+    ('Anulado', 'Anulado'),
     ('Pendiente', 'Pendiente'),
-    ('Cancelado', 'Cancelado'),
 ]
 
 # Create your models here.
