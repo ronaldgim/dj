@@ -115,7 +115,6 @@ class EstadoPicking(models.Model):
     codigo_cliente = models.CharField(verbose_name='Código Cliente', max_length=100, blank=True)
     detalle  = models.TextField(verbose_name='Detalle')
     bodega = models.CharField(verbose_name='Bodega', max_length=50, blank=True)
-    
     fecha_creado = models.DateTimeField(auto_now_add=True)
     fecha_actualizado = models.DateTimeField(verbose_name='Hora actualizado', blank=True, null=True)
     facturado_por  = models.ForeignKey(User, verbose_name='Vendedor', on_delete=models.PROTECT ,blank=True, null=True)
@@ -123,6 +122,7 @@ class EstadoPicking(models.Model):
     facturado      = models.BooleanField(verbose_name='Facturado', default=False)
     whatsapp       = models.BooleanField(verbose_name='Whatsapp', default=False)
     wh_fail_number = models.BooleanField(verbose_name='Wh numero sin +593', default=False)
+    foto_picking   = models.ImageField(upload_to='picking', null=True, blank=True)
     
     def __str__(self):
         return self.n_pedido

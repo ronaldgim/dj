@@ -2016,9 +2016,11 @@ def wms_egreso_picking(request, n_pedido): #OK
         est = EstadoPicking.objects.get(n_pedido=n_pedido)
         estado = est.estado
         estado_id = est.id
+        foto = est.foto_picking
     else:
         estado = 'SIN ESTADO'
         estado_id = ''
+        foto = ''
 
     prod   = productos_odbc_and_django()[['product_id','Nombre','Marca','Unidad_Empaque']]
     prod   = prod.rename(columns={'product_id':'PRODUCT_ID'})
@@ -2122,7 +2124,8 @@ def wms_egreso_picking(request, n_pedido): #OK
         'fecha': fecha ,
         'hora':hora,
         'estado':estado,
-        'estado_id':estado_id
+        'estado_id':estado_id,
+        'foto':foto
     }
 
     return render(request, 'wms/picking.html', context)
@@ -2171,6 +2174,29 @@ def wms_estado_picking_ajax(request):
                             'alert':'danger'})
 
 
+## Agregar foto a picking
+def wms_agregar_foto_picking_ajax(request):
+    
+    id_picking = request.POST.get('id_picking')
+    foto = request.FILES.get("foto")
+    
+    try:
+    
+        picking = EstadoPicking.objects.get(id=id_picking)
+        picking.foto_picking = foto
+        picking.save()
+        
+        return JsonResponse({
+            "alert":"success",
+            "msg":"Foto agregada correctamente"
+        })
+
+    except:
+        return JsonResponse({
+            "alert":"danger",
+            "msg":"Error al subir la foto"
+        })
+
 
 # Actualizar Estado Picking AJAX
 @permisos(['BODEGA'], '/wms/picking/list', 'cambio de estado de picking')
@@ -2178,8 +2204,13 @@ def wms_estado_picking_actualizar_ajax(request):
 
     id_picking = int(request.POST['id_picking'])
     estado_post = request.POST['estado']
-
     estado_picking = EstadoPicking.objects.get(id=id_picking)
+    
+    pedido = pedido_por_cliente(n_pedido=estado_picking.n_pedido) 
+    data   = (pedido[['PRODUCT_ID', 'QUANTITY']]).to_dict()
+    data   = json.dumps(data)
+    estado_picking.detalle = data
+    estado_picking.save()
 
     if estado_post == 'FINALIZADO':
 
@@ -2192,8 +2223,17 @@ def wms_estado_picking_actualizar_ajax(request):
             
             if movs_total_unidades < pick_total_unidades:
 
-                return JsonResponse({'msg':' ⚠ Aun no a completado el picking !!!',
-                                    'alert':'warning'})
+                return JsonResponse({
+                    'msg':' ⚠ Aun no a completado el picking !!!',
+                    'alert':'warning'
+                })
+            
+            elif not estado_picking.foto_picking:
+                return JsonResponse({
+                    'msg':' ⚠ Agrega la foto del picking !!!',
+                    'alert':'warning'
+                })
+            
 
             elif pick_total_unidades == movs_total_unidades:
 

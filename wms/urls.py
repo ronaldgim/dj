@@ -205,6 +205,12 @@ urlpatterns = [
         view = views.wms_estado_picking_actualizar_ajax, #PRUEBA
         name = 'wms_estado_picking_actualizar_ajax'
     ),
+    
+    path(
+        route='wms_agregar_foto_picking_ajax', 
+        view = views.wms_agregar_foto_picking_ajax, #PRUEBA
+        name = 'wms_agregar_foto_picking_ajax'
+    ),
 
     # Movimiento Egreso Picking
     path(
