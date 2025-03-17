@@ -2341,7 +2341,7 @@ def wms_estado_picking_actualizar_ajax(request):
 
                 try:
                     estado_picking.save()
-                    #wms_correo_picking(estado_picking.n_pedido)
+                    wms_correo_picking(estado_picking.n_pedido)
 
                     if estado_picking.id:
                         return JsonResponse({'msg':f'✅ Estado de picking {estado_picking.estado}',
