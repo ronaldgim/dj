@@ -2198,6 +2198,105 @@ def wms_agregar_foto_picking_ajax(request):
         })
 
 
+def reservas_lote_n_picking(n_picking): #request
+    ''' Colusta de clientes por ruc a la base de datos '''
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute(f"SELECT PRODUCT_ID, LOTE_ID, EGRESO_TEMP FROM reservas_lote WHERE CONTRATO_ID = '{n_picking}'")
+        columns = [col[0] for col in cursor.description]
+        reservas_lote = [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+        reservas_lote = pd.DataFrame(reservas_lote)        
+    return reservas_lote
+
+
+def correo_vendedor_n_pedido(n_picking): 
+
+    try:
+        with connections['gimpromed_sql'].cursor() as cursor:
+            cursor.execute(f"SELECT MAIL FROM warehouse.pedidos LEFT JOIN warehouse.user_mba ON warehouse.pedidos.Entry_by = warehouse.user_mba.CODIGO_USUARIO WHERE CONTRATO_ID = '{n_picking}'")
+            columns = [col[0] for col in cursor.description]
+            correo = [
+                dict(zip(columns, row))
+                for row in cursor.fetchall()
+            ][0]       
+        return correo['MAIL']
+    except:
+        return 'egarces@gimpromed.com'
+
+
+def ciudad_principal_cliente(codigo_cliente):
+    try:
+        with connections['gimpromed_sql'].cursor() as cursor:
+            cursor.execute(f"SELECT CIUDAD_PRINCIPAL FROM warehouse.clientes WHERE CODIGO_CLIENTE = '{codigo_cliente}';")
+            columns = [col[0] for col in cursor.description]
+            ciudad = [
+                dict(zip(columns, row))
+                for row in cursor.fetchall()
+            ][0]       
+        return ciudad['CIUDAD_PRINCIPAL']
+    except:
+        return '-'
+
+
+def wms_correo_picking(n_pedido):
+
+    data_wms = pd.DataFrame(Movimiento.objects.filter(n_referencia=n_pedido).values('product_id', 'lote_id', 'unidades'))  
+    data_wms['lote_id'] = data_wms['lote_id'].str.replace('.', '')
+    data_wms['unidades'] = data_wms['unidades'] *-1
+    data_wms['LOTE_ID'] = data_wms['lote_id']
+    data_wms = data_wms.rename(columns={
+        'product_id':'PRODUCT_ID',
+        'lote_id':'LOTE_WMS',
+        'unidades':'UNIDADES_WMS'
+    })
+    
+    data_mba = reservas_lote_n_picking(n_pedido)
+    data_mba['LOTE_ID'] = data_mba['LOTE_ID'].str.replace('.', '')
+    data_mba['LOTE_MBA'] = data_mba['LOTE_ID']
+    
+    data = data_wms.merge(data_mba, on=['PRODUCT_ID','LOTE_ID'], how='left')
+    data['LOTES'] = data['LOTE_WMS'] == data['LOTE_MBA']
+    data['UNIDADES'] = data['UNIDADES_WMS'] == data['EGRESO_TEMP']
+    data['REVISION'] = data['LOTES'] == data['UNIDADES']
+    
+    prods = productos_odbc_and_django()[['product_id', 'Nombre', 'Marca']]
+    prods = prods.rename(columns={'product_id':'PRODUCT_ID'})
+    
+    data = data.merge(prods, on='PRODUCT_ID', how='left')
+    data = de_dataframe_a_template(data)
+    picking = EstadoPicking.objects.get(n_pedido=n_pedido)
+    ciudad = ciudad_principal_cliente(picking.codigo_cliente)
+    
+    context = {
+        'picking': picking,
+        'data': data,
+        'ciudad':ciudad
+    }
+    
+    html_message = render_to_string('emails/picking.html', context)
+    plain_message = strip_tags(html_message)
+    
+    lista_correos = [
+        # 'egarces@gimpromed.com'
+        'bcerezos@gimpromed.com',
+        'ncastillo@gimpromed.com',
+        'jgualotuna@gimpromed.com',
+        correo_vendedor_n_pedido(n_pedido)
+    ]
+    
+    email = EmailMultiAlternatives(
+        subject='Cerezos-Picking Finalizado - Cliente',
+        from_email=settings.EMAIL_HOST_USER,
+        body=plain_message,
+        to=lista_correos
+    )
+    email.attach_alternative(html_message, 'text/html')
+    email.attach_file(picking.foto_picking.path)
+    email.send()
+
+
 # Actualizar Estado Picking AJAX
 @permisos(['BODEGA'], '/wms/picking/list', 'cambio de estado de picking')
 def wms_estado_picking_actualizar_ajax(request):
@@ -2242,18 +2341,7 @@ def wms_estado_picking_actualizar_ajax(request):
 
                 try:
                     estado_picking.save()
-                    
-                    n_pedido_mail = int(float(estado_picking.n_pedido))
-                    
-                    # send_mail(
-                    #     subject=f'Picking Finalizado{n_pedido_mail}',
-                    #     message= f"""El picking {n_pedido_mail} del cliente {estado_picking.cliente} a finalizado en bodega Cerezos.\nEste email es automatico no responder"""
-                    #     from_email=settings.EMAIL_HOST_USER,
-                    #     recipient_list= 'wms@wms.com',
-                    #     # ['wms@wms.com'],
-                    #     # fail_silently=False,
-                        
-                    # )
+                    #wms_correo_picking(estado_picking.n_pedido)
 
                     if estado_picking.id:
                         return JsonResponse({'msg':f'✅ Estado de picking {estado_picking.estado}',

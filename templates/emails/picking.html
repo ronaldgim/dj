@@ -1,0 +1,68 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Picking</title>
+</head>
+<body>
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        };
+        td, th {
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+        td.n {
+            text-align: right;
+        }
+    </style>
+    
+    <h4>Estimados Compañeros:</h4>
+
+    <p>Se adjunta picking finalizado:</p>
+
+    <p><strong>Pedido:</strong> {{picking.n_pedido|slice:':-2'}}</p>
+    <p><strong>Cliente:</strong> {{picking.cliente}}</p>
+    <p><strong>Bodega:</strong> {% if picking.bodega == 'BCT' %}Cerezos{% else %}Andagoya{% endif %}</p>
+    <p><strong>Ciudad:</strong> {{ciudad}} </p>
+
+    <table>
+        <thead>
+            <th>Código</th>
+            <th>Nombre</th>
+            <th>Marca</th>
+            <th>Cantidad MBA</th>
+            <th>Lote MBA</th>
+            <th>Cantidad WMS</th>
+            <th>Lote WMS</th>
+            <th>Revisión</th>
+        </thead>
+        <tbody>
+            {% for i in data %}
+            <tr>
+                <td>{{i.PRODUCT_ID}}</td>
+                <td>{{i.Nombre}}</td>
+                <td>{{i.Marca}}</td>
+                <td>{{i.EGRESO_TEMP}}</td>
+                <td>{{i.LOTE_MBA}}</td>
+
+                <td>{{i.UNIDADES_WMS}}</td>
+                <td>{{i.LOTE_WMS}}
+                <td>{% if i.REVISION %}
+                    ✔
+                    {% else %}
+                    ❌
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <p>**** Esta notificación ha sido enviada automáticamente - No responder ****</p>
+</body>
+</html>
