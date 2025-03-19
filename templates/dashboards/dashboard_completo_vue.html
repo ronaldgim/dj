@@ -117,7 +117,7 @@
                                         <a :href="'/etiquetado/pedidos/' + i.CONTRATO_ID" class="fs-6" target="_blank">{{i.contrato_id}}</a>
                                         <i v-if="i.DISP" style="color:red;" class="bi bi-file-earmark-x-fill"></i>
                                         <i v-if="i.CONFIRMED" class="bi bi-check2"></i>
-                                        <i v-if="i.NUM_PRINT == 0" style="color:red" class="bi bi-printer-fill"></i>
+                                        <i v-if="i.NUM_PRINT == 0" class="bi bi-printer-fill"></i>
                                         <br>
                                         {{i.NOMBRE_CLIENTE}}
                                     </td>
