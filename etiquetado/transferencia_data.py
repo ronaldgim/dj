@@ -81,6 +81,23 @@ def reservas_andagoya():
     return data
 
 
+def reservas_gimpromed():
+
+    with connections['gimpromed_sql'].cursor() as cursor:
+        # cursor.execute("SELECT * FROM warehouse.reservas WHERE WARE_CODE = 'BAN'")
+        cursor.execute("SELECT CODIGO_CLIENTE, PRODUCT_ID, QUANTITY, SEC_NAME_CLIENTE FROM warehouse.reservas WHERE CODIGO_CLIENTE = 'CLI01002' ")
+        columns = [col[0] for col in cursor.description]
+        data = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+        data = pd.DataFrame(data)
+        
+        data = data.groupby(by=['PRODUCT_ID', 'SEC_NAME_CLIENTE'])['QUANTITY'].sum().reset_index()
+        data = data[data['SEC_NAME_CLIENTE']=='RESERVA']
+        
+    return data
+
+
+
 def pedidos_reservas(product_id):
     
     with connections['gimpromed_sql'].cursor() as cursor:
@@ -262,16 +279,19 @@ def sugerencia():
     pedidos_df = pedidos_andagoya().rename(columns={'QUANTITY': 'PEDIDOS'})  # Pedidos pendientes
     reservas_df = reservas_andagoya().rename(columns={'QUANTITY': 'RESERVAS', 'SEC_NAME_CLIENTE': 'RESERVA_INDICADOR'})  # Reservas
     stock_seguridad = stock_de_seguridad()
+    reservas_gimpromed_df = reservas_gimpromed().rename(columns={'QUANTITY': 'RESERVAS_GIMPROMED'})  # Reservas
     
     # Merge de datos
     data = pd.merge(data, pedidos_df, how='left', on='PRODUCT_ID').fillna(0)
     data = pd.merge(data, reservas_df, how='left', on='PRODUCT_ID').fillna(0)
     data = pd.merge(data, cerezos, how='left', on='PRODUCT_ID').fillna(0)
     data = pd.merge(data, stock_seguridad, how='left', on='PRODUCT_ID').fillna(0)
+    data = pd.merge(data, reservas_gimpromed_df, how='left', on='PRODUCT_ID').fillna(0)
     
     # Cálculos intermedios
     # data['DISPONIBLE_MENOS_RESERVAS'] = data['TOTAL_DISPONIBLE'] - data['RESERVAS']
-    data['DISPONIBLE_MENOS_RESERVAS'] = data['TOTAL_DISPONIBLE'] - data['RESERVAS'] - data['PEDIDOS']
+    # data['DISPONIBLE_MENOS_RESERVAS'] = data['TOTAL_DISPONIBLE'] - data['RESERVAS'] - data['PEDIDOS'] # change 
+    data['DISPONIBLE_MENOS_RESERVAS'] = data['TOTAL_DISPONIBLE'] - data['RESERVAS'] - data['PEDIDOS'] + data['RESERVAS_GIMPROMED'] 
     
     # Cálculo del nivel de abastecimiento con límites
     data['NIVEL_ABASTECIMIENTO'] = (data['DISPONIBLE_MENOS_RESERVAS'] / data['stock_seguridad_semanal']) * 100
