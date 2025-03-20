@@ -1166,7 +1166,7 @@ def wms_inventario(request): #OK
     """ Inventario
         Suma de ingresos y egresos que dan el total de todo el inventario
     """
-    # wms_existencias_query_product_lote("2014","476790")
+    # wms_existencias_query_product_lote("2014","476790")     
     
     prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     productos = pd.DataFrame(Existencias.objects.all().values('product_id'))
@@ -2207,7 +2207,9 @@ def reservas_lote_n_picking(n_picking): #request
             dict(zip(columns, row))
             for row in cursor.fetchall()
         ]
-        reservas_lote = pd.DataFrame(reservas_lote)        
+        reservas_lote = pd.DataFrame(reservas_lote)  
+        reservas_lote = reservas_lote.groupby(by=['PRODUCT_ID','LOTE_ID'])['EGRESO_TEMP'].sum().reset_index()
+        
     return reservas_lote
 
 
@@ -2251,6 +2253,7 @@ def wms_correo_picking(n_pedido):
         'lote_id':'LOTE_WMS',
         'unidades':'UNIDADES_WMS'
     })
+    data_wms = data_wms.groupby(by=['PRODUCT_ID','LOTE_ID','LOTE_WMS'])['UNIDADES_WMS'].sum().reset_index()
     
     data_mba = reservas_lote_n_picking(n_pedido)
     data_mba['LOTE_ID'] = data_mba['LOTE_ID'].str.replace('.', '')
@@ -2287,7 +2290,7 @@ def wms_correo_picking(n_pedido):
     ]
     
     email = EmailMultiAlternatives(
-        subject='Cerezos-Picking Finalizado - Cliente',
+        subject=f'Cerezos-Picking Finalizado - {picking.cliente}',
         from_email=settings.EMAIL_HOST_USER,
         body=plain_message,
         to=lista_correos
