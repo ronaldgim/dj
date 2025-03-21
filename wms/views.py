@@ -2244,31 +2244,36 @@ def ciudad_principal_cliente(codigo_cliente):
 
 def wms_correo_picking(n_pedido):
 
-    data_wms = pd.DataFrame(Movimiento.objects.filter(n_referencia=n_pedido).values('product_id', 'lote_id', 'unidades'))  
-    data_wms['lote_id'] = data_wms['lote_id'].str.replace('.', '')
-    data_wms['unidades'] = data_wms['unidades'] *-1
-    data_wms['LOTE_ID'] = data_wms['lote_id']
-    data_wms = data_wms.rename(columns={
-        'product_id':'PRODUCT_ID',
-        'lote_id':'LOTE_WMS',
-        'unidades':'UNIDADES_WMS'
-    })
-    data_wms = data_wms.groupby(by=['PRODUCT_ID','LOTE_ID','LOTE_WMS'])['UNIDADES_WMS'].sum().reset_index()
+    try:
+        
+        data_wms = pd.DataFrame(Movimiento.objects.filter(n_referencia=n_pedido).values('product_id', 'lote_id', 'unidades'))  
+        data_wms['lote_id'] = data_wms['lote_id'].str.replace('.', '')
+        data_wms['unidades'] = data_wms['unidades'] *-1
+        data_wms['LOTE_ID'] = data_wms['lote_id']
+        data_wms = data_wms.rename(columns={
+            'product_id':'PRODUCT_ID',
+            'lote_id':'LOTE_WMS',
+            'unidades':'UNIDADES_WMS'
+        })
+        data_wms = data_wms.groupby(by=['PRODUCT_ID','LOTE_ID','LOTE_WMS'])['UNIDADES_WMS'].sum().reset_index()
+        
+        data_mba = reservas_lote_n_picking(n_pedido)
+        data_mba['LOTE_ID'] = data_mba['LOTE_ID'].str.replace('.', '')
+        data_mba['LOTE_MBA'] = data_mba['LOTE_ID']
+        
+        data = data_wms.merge(data_mba, on=['PRODUCT_ID','LOTE_ID'], how='left')
+        data['LOTES'] = data['LOTE_WMS'] == data['LOTE_MBA']
+        data['UNIDADES'] = data['UNIDADES_WMS'] == data['EGRESO_TEMP']
+        data['REVISION'] = data['LOTES'] == data['UNIDADES']
+        
+        prods = productos_odbc_and_django()[['product_id', 'Nombre', 'Marca']]
+        prods = prods.rename(columns={'product_id':'PRODUCT_ID'})
+        
+        data = data.merge(prods, on='PRODUCT_ID', how='left')
+        data = de_dataframe_a_template(data)
+    except:
+        data = {}
     
-    data_mba = reservas_lote_n_picking(n_pedido)
-    data_mba['LOTE_ID'] = data_mba['LOTE_ID'].str.replace('.', '')
-    data_mba['LOTE_MBA'] = data_mba['LOTE_ID']
-    
-    data = data_wms.merge(data_mba, on=['PRODUCT_ID','LOTE_ID'], how='left')
-    data['LOTES'] = data['LOTE_WMS'] == data['LOTE_MBA']
-    data['UNIDADES'] = data['UNIDADES_WMS'] == data['EGRESO_TEMP']
-    data['REVISION'] = data['LOTES'] == data['UNIDADES']
-    
-    prods = productos_odbc_and_django()[['product_id', 'Nombre', 'Marca']]
-    prods = prods.rename(columns={'product_id':'PRODUCT_ID'})
-    
-    data = data.merge(prods, on='PRODUCT_ID', how='left')
-    data = de_dataframe_a_template(data)
     picking = EstadoPicking.objects.get(n_pedido=n_pedido)
     ciudad = ciudad_principal_cliente(picking.codigo_cliente)
     
@@ -5569,6 +5574,8 @@ def lista_facturas_anualdas(request):
             else:
                 messages.error(request, f'Error anulando la factura {factura.n_factura} !!!')
                 return HttpResponseRedirect('/wms/facturas-anuladas/lista') 
+        else:
+            messages.error(request, form.errors)
             
     context = {
         'facturas': facturas,

@@ -30,6 +30,7 @@
     <p><strong>Bodega:</strong> {% if picking.bodega == 'BCT' %}CEREZOS{% else %}ANDAGOYA{% endif %}</p>
     <p><strong>Ciudad:</strong> {{ciudad}} </p>
 
+    {% if data %}
     <table>
         <thead>
             <th>Código</th>
@@ -62,6 +63,9 @@
             {% endfor %}
         </tbody>
     </table>
+    {% else %}
+    <p>Error en data !!!</p>
+    {% endif %}
 
     <p>**** Esta notificación ha sido enviada automáticamente - No responder ****</p>
 </body>
