@@ -4159,7 +4159,7 @@ def wms_retiro_producto_despacho(request):
                     return render(request, 'wms/retiro_producto_despacho_list.html', context)
                 
                 else:
-                    messages.error(request, f"El Picking {request.POST['n_picking']} su esta es {estado}")
+                    messages.error(request, f"El Picking {request.POST['n_picking']} su estado es {estado}")
     
     
     context = {

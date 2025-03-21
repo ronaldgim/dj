@@ -411,23 +411,57 @@ def empaque(data):
 
 
 
+def data_revision_tecnica():
+    
+    imp_llegadas = importaciones_llegadas_odbc()[[
+        'DOC_ID_CORP',
+        'PROVEEDOR',
+        'ENTRADA_FECHA',
+        'OH',
+        'WARE_COD_CORP',
+        'MEMO',
+        'product_id',
+    ]]
+    imp_transito = importaciones_transito_data()[[
+        'CONTRATO_ID',
+        'VENDOR_NAME',
+        'PRODUCT_ID',
+        'QUANTITY',
+        'FECHA_ENTREGA',
+        'MEMO'
+    ]]
+    imp_transito['CONTRATO_ID'] = imp_transito['CONTRATO_ID'].astype('str')
+    imp_transito = imp_transito.rename(columns={
+        'CONTRATO_ID':'DOC_ID_CORP',
+        'VENDOR_NAME':'PROVEEDOR',
+        'PRODUCT_ID':'product_id',
+        'QUANTITY':'OH',
+        'FECHA_ENTREGA':'ENTRADA_FECHA',
+    })
+    imp_transito['WARE_COD_CORP'] = 'CUC'
+    
+    data = pd.concat([imp_llegadas, imp_transito], axis=0)
+    
+    return data
+
+
 @pdf_decorator(pdfname='revision_tecnica.pdf')
 @login_required(login_url='login')
 def revision_tecnica(request, doc_id):
     
     prod = productos_odbc_and_django()[[
         'product_id',
-        #'Nombre',
-        #'Marca',
-        #'marca2',
+        'marca2',
+        'Nombre',
         'Reg_San',
         'Unidad',
         'Unidad_Box',
+        'Unidad_Empaque'
     ]]
     
-    data = importaciones_compras_df()
-    data = data[data['DOC_ID_CORP']==doc_id]
+    data = data_revision_tecnica() #importaciones_llegadas_odbc() # importaciones_compras_df()
     
+    data = data[data['DOC_ID_CORP']==doc_id]
     data = data.groupby([
         'product_id',
         'DOC_ID_CORP',
@@ -437,10 +471,10 @@ def revision_tecnica(request, doc_id):
         'MEMO',
         'PROVEEDOR'
         ]).sum().reset_index()
-    
+
     data = data.merge(prod, on=['product_id'], how='left')
     data['Reg_San'] = data['Reg_San'].apply(quitar_prefijo)      
-    
+
     fecha_entrada = data['ENTRADA_FECHA'].iloc[0]
     bodega_llegada = data['WARE_COD_CORP'].iloc[0]
     proveedor = data['PROVEEDOR'].dropna().loc[0]
@@ -454,7 +488,7 @@ def revision_tecnica(request, doc_id):
 
     data = empaque(data)
     
-    imp_date = datetime.datetime.strptime(data['ENTRADA_FECHA'].iloc[0], '%Y-%m-%d').date()
+    imp_date = fecha_entrada
     actualizacion_date = datetime.datetime.strptime('2025-01-09', '%Y-%m-%d').date()
     version07 = False if imp_date < actualizacion_date else True
     
