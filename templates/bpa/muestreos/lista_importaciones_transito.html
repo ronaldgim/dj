@@ -35,6 +35,7 @@
                         <th scope="col">Orden de compra</th>
                         <th scope="col">M.Unidades.</th>
                         <th scope="col">M.Cartones.</th>
+                        <th scope="col">R.Técnica.</th>
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
@@ -52,6 +53,14 @@
                         </td>
                         <td>
                             <a class="btn btn-primary btn-sm" href="{% url 'muestreos_imp_cartones_transito' i.CONTRATO_ID %}" target="_blank">
+                                <i class="bi bi-boxes"></i>
+                            </a>
+                        </td>
+                        <td class="text-center">
+                            <!--a class="btn btn-primary btn-sm" href="{#% url 'revision_tecnica' i.DOC_ID_CORP %#}" target="_blank">
+                                <i class="bi bi-boxes"></i>
+                            </a-->
+                            <a class="btn btn-primary btn-sm" href="{% url 'revision_tecnica' i.CONTRATO_ID %}" target="_blank">
                                 <i class="bi bi-boxes"></i>
                             </a>
                         </td>
