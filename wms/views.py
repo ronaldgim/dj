@@ -5574,6 +5574,8 @@ def lista_facturas_anualdas(request):
             else:
                 messages.error(request, f'Error anulando la factura {factura.n_factura} !!!')
                 return HttpResponseRedirect('/wms/facturas-anuladas/lista') 
+        else:
+            messages.error(request, form.errors)
             
     context = {
         'facturas': facturas,
