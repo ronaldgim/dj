@@ -280,7 +280,7 @@ def sugerencia():
     reservas_df = reservas_andagoya().rename(columns={'QUANTITY': 'RESERVAS', 'SEC_NAME_CLIENTE': 'RESERVA_INDICADOR'})  # Reservas
     stock_seguridad = stock_de_seguridad()
     reservas_gimpromed_df = reservas_gimpromed().rename(columns={'QUANTITY': 'RESERVAS_GIMPROMED'})  # Reservas
-    
+    print(stock_seguridad)
     # Merge de datos
     data = pd.merge(data, pedidos_df, how='left', on='PRODUCT_ID').fillna(0)
     data = pd.merge(data, reservas_df, how='left', on='PRODUCT_ID').fillna(0)
