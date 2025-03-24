@@ -9,6 +9,14 @@
 {% endblock %}
 
 {% block body_2 %}
+{% comment %} <style>
+    table.dataTable {
+        width: 100% !important;
+    }
+    #tabla_saldos th, td {
+        white-space: nowrap;
+    }
+</style>  {% endcomment %}
 
 <h5 class="m-4 text-center fw-bold">ANALISIS TRANSFERENCIA</h5>
 
@@ -136,7 +144,7 @@
                 <input id="sugerencia_input" type="text" placeholder="Buscar..." class="form-control">
             </div>
             <table class="table table-hover" style="font-size: small;" id="tabla_sugerencia">
-                <thead>
+                <thead id="thead_sugerencia">
                     <tr>
                         <th scope="col">#</th>
                         <th scope="col">CÓDIGO</th>
@@ -151,7 +159,8 @@
                         <th class="text-center" scope="col" style="background-color:rgb(215, 237, 255)">T.S.A - RESERVAS</th>
                         <th class="text-center" scope="col" style="background-color:rgb(231, 255, 217)">STOCK CEREZOS</th>
                         <th class="text-center" scope="col">CONSUMO SEMANAL</th>
-                        <th class="text-center" scope="col">STOCK DE SEGURIDAD(S)</th>
+                        <th class="text-center" scope="col">CONSUMO MENSUAL</th>
+                        <th class="text-center" scope="col">STOCK DE SEGURIDAD(M)</th>
                         <th class="text-center" scope="col">% STOCK</th>
                         <th class="text-center" scope="col">DETALLE</th>
                     </tr>
@@ -185,7 +194,10 @@
                         </td>
 
                         <td class="text-end">{{i.CONSUMO_SEMANAL|floatformat:"0g"}}</td>
-                        <td class="text-end">{{i.stock_seguridad_semanal|floatformat:"0g"|default:"0"}}</td>
+                        <td class="text-end">{{i.CONSUMO_MENSUAL|floatformat:"0g"}}</td>
+                        <!-- td class="text-end">{{i.stock_seguridad_semanal|floatformat:"0g"|default:"0"}}</td-->
+                        <td class="text-end">{{i.stock_seguridad_mensual|floatformat:"0g"|default:"0"}}</td>
+
 
                         <td class="text-end"
                         {% if i.NIVEL_ABASTECIMIENTO < 11 %}
@@ -376,6 +388,13 @@
             "show":false,
             "paging":false,
             "info":false,
+
+            //"scrollY": "1000px",
+            //"scrollCollapse": true,
+
+            //"scrollX": true,
+            //"fixedHeader": true,
+
             //columnDefs:[
             //    {
             //        "targets": [11, 12],
@@ -410,6 +429,13 @@
             "show":false,
             "paging":false,
             "info":false,
+
+            "scrollY": "1000px",
+            "scrollCollapse": true,
+
+            "scrollX": true,
+            "fixedHeader": true,
+
             // columnDefs:[
             //     {
             //         "orderable": false,  // Desactiva el ordenamiento
