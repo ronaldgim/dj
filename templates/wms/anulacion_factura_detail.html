@@ -74,7 +74,7 @@
                         <td>{{i.fecha_caducidad}}</td>
                         <td>{{i.estado_picking}}</td>
                         <td>{{i.usuario__first_name}} {{i.usuario__last_name}}</td>
-                        <td>{{i.unidades}}</td>
+                        <td class="text-end">{{i.unidades | floatformat:"0g"}}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -115,7 +115,7 @@
                         <td>{{i.fecha_caducidad}}</td>
                         <td>{{i.estado_picking}}</td>
                         <td>{{i.usuario__first_name}} {{i.usuario__last_name}}</td>
-                        <td>{{i.unidades}}</td>
+                        <td class="text-end">{{i.unidades | floatformat:"0g"}}</td>
                     </tr>
                     {% endfor %}
                     {% endif %}
@@ -153,7 +153,7 @@
                 </p>
             </div>
             <div class="modal-footer">
-                <button type="button" name="anular_factura" class="btn btn-success {% if factura.estado == 'Confirmado' %} disabled {% endif %} ">Si</button>
+                <button type="button" name="anular_factura" class="btn btn-success {% if factura.estado == 'Anulado' %} disabled {% endif %} ">Si</button>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
             </div>
         </div>

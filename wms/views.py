@@ -4166,7 +4166,6 @@ def wms_retiro_producto_despacho(request):
                 else:
                     messages.error(request, f"El Picking {request.POST['n_picking']} su estado es {estado}")
     
-    
     context = {
         'picking_factura_df': de_dataframe_a_template(picking_factura_df),
     }
@@ -5535,9 +5534,10 @@ def anulacion_factura_movimientos_ajax(request):
                         estado_picking='',
                         usuario_id=i.usuario.id,
                     )
+                    
                     mov.save()
                     wms_existencias_query_product_lote(product_id=mov.product_id, lote_id=mov.lote_id)
-
+                movimientos.update(estado_picking='No Despachado')
                 factura.estado = 'Anulado'
                 factura.save()
 
@@ -5617,9 +5617,7 @@ def factura_anulada_detalle(request, n_factura):
     
     if not mov_ingresados.empty:
         mov_ingresados = mov_ingresados.merge(productos, on='product_id', how='left')
-        mov_anulados['fecha_caducidad'] = mov_anulados['fecha_caducidad'].astype('str')
-        mov_ingresados['unidades'] = mov_ingresados['unidades'] * -1
-    
+        mov_ingresados['fecha_caducidad'] = mov_ingresados['fecha_caducidad'].astype('str')
     
     context = {
         'factura': factura,
