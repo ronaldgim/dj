@@ -280,7 +280,7 @@ def sugerencia():
     reservas_df = reservas_andagoya().rename(columns={'QUANTITY': 'RESERVAS', 'SEC_NAME_CLIENTE': 'RESERVA_INDICADOR'})  # Reservas
     stock_seguridad = stock_de_seguridad()
     reservas_gimpromed_df = reservas_gimpromed().rename(columns={'QUANTITY': 'RESERVAS_GIMPROMED'})  # Reservas
-    print(stock_seguridad)
+    
     # Merge de datos
     data = pd.merge(data, pedidos_df, how='left', on='PRODUCT_ID').fillna(0)
     data = pd.merge(data, reservas_df, how='left', on='PRODUCT_ID').fillna(0)
@@ -294,7 +294,9 @@ def sugerencia():
     data['DISPONIBLE_MENOS_RESERVAS'] = data['TOTAL_DISPONIBLE'] - data['RESERVAS'] - data['PEDIDOS'] + data['RESERVAS_GIMPROMED'] 
     
     # Cálculo del nivel de abastecimiento con límites
-    data['NIVEL_ABASTECIMIENTO'] = (data['DISPONIBLE_MENOS_RESERVAS'] / data['stock_seguridad_semanal']) * 100
+    data['NIVEL_ABASTECIMIENTO'] = (data['DISPONIBLE_MENOS_RESERVAS'] / data['stock_seguridad_mensual']) * 100
+    #data['NIVEL_ABASTECIMIENTO'] = (data['DISPONIBLE_MENOS_RESERVAS'] / data['stock_seguridad_semanal']) * 100
+    
     data['NIVEL_ABASTECIMIENTO'] = data['NIVEL_ABASTECIMIENTO'].clip(lower=0, upper=100)  # Limitar valores entre 0% y 100%
     data['NIVEL_ABASTECIMIENTO'] = data['NIVEL_ABASTECIMIENTO'].fillna(0)  # Reemplazar NaN por 0 para niveles no calculables
     
