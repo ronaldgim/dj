@@ -1929,6 +1929,17 @@ def pickin_de_reservas_finalizado():
     return df
 
 
+def etiquetados_no_finalizados():
+        
+        from etiquetado.models import PedidosEstadoEtiquetado
+        data = PedidosEstadoEtiquetado.objects.exclude(estado_id=3).values_list('n_pedido', flat=True)
+        
+        # for i in data:
+        #     print(i)
+        
+        return data
+
+
 
 def revision_reservas_fun():
     
@@ -1942,13 +1953,16 @@ def revision_reservas_fun():
         # clientes            = clientes_warehouse()[['CODIGO_CLIENTE','CLIENT_TYPE']]
         inventario          = stock_lote_odbc()
         picking             = pickin_de_reservas_finalizado()
+        etiquetados         = etiquetados_no_finalizados()
+        
+        #print(etiquetados)
 
         # 2.0 Filtrar por SEC_NAME_CLIENTE 
         # solo reserva yu reservado
         df_reservas_sinlote = df_reservas_sinlote[
             (df_reservas_sinlote['SEC_NAME_CLIENTE']=='RESERVA') |
-            (df_reservas_sinlote['SEC_NAME_CLIENTE']=='RESERVADO') #|
-            #(df_reservas_sinlote['SEC_NAME_CLIENTE']=='PUBLICO') 
+            (df_reservas_sinlote['SEC_NAME_CLIENTE']=='RESERVADO') 
+            # | (df_reservas_sinlote['SEC_NAME_CLIENTE']=='PUBLICO') 
             ]
         
         # 2.1 Filtrar reservas por gimpromed y cliente hospital
