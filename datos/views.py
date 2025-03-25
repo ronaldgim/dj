@@ -14,6 +14,7 @@ from django.views.generic import TemplateView
 
 # Models
 from datos.models import TimeStamp, Product, AdminActualizationWarehaouse, Vehiculos #,MarcaImportExcel
+from etiquetado.models import EstadoPicking, PedidosEstadoEtiquetado
 from etiquetado.models import EtiquetadoAvance
 from wms.models import Existencias
 
@@ -1901,9 +1902,6 @@ def revision_reservas_fun_antiguo_dos():
         return pd.DataFrame()
 
 
-
-
-
 def reservas_lote_2():
 
     ''' Colusta de clientes por ruc a la base de datos '''
@@ -1920,24 +1918,34 @@ def reservas_lote_2():
 
 def pickin_de_reservas_finalizado():
     
-    from etiquetado.models import EstadoPicking
     desde = datetime.now() - timedelta(days=90)
     data = EstadoPicking.objects.filter(fecha_creado__gte = desde).values('n_pedido', 'estado')
     df = pd.DataFrame(data).rename(columns={'n_pedido':'CONTRATO_ID'})  
     df['CONTRATO_ID'] = df['CONTRATO_ID'].astype('float') 
-    df['CONTRATO_ID'] = df['CONTRATO_ID'].astype('int') 
+    df['CONTRATO_ID'] = df['CONTRATO_ID'].astype('int') #;print(df)
     return df
 
 
 def etiquetados_no_finalizados():
         
-        from etiquetado.models import PedidosEstadoEtiquetado
-        data = PedidosEstadoEtiquetado.objects.exclude(estado_id=3).values_list('n_pedido', flat=True)
+    #data = PedidosEstadoEtiquetado.objects.exclude(estado_id=3).values_list('n_pedido', flat=True)
+    
+    #with connection[]
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute("SELECT * FROM reservas WHERE SEC_NAME_CLIENTE = 'PUBLICO' ")
+        columns = [col[0] for col in cursor.description]
+        publico = [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+        publico = pd.DataFrame(publico) 
+        publico['CONTRATO_ID'] = publico['CONTRATO_ID'].astype('float')
+        publico['CONTRATO_ID'] = publico['CONTRATO_ID'].astype('int') #;print(publico)
         
-        # for i in data:
-        #     print(i)
-        
-        return data
+        # print(publico)
+        #publico = publico['CONTRATO_ID'].unique()
+        # print(lista_publico)
+    return publico
 
 
 
@@ -1954,8 +1962,6 @@ def revision_reservas_fun():
         inventario          = stock_lote_odbc()
         picking             = pickin_de_reservas_finalizado()
         etiquetados         = etiquetados_no_finalizados()
-        
-        #print(etiquetados)
 
         # 2.0 Filtrar por SEC_NAME_CLIENTE 
         # solo reserva yu reservado
@@ -1990,7 +1996,13 @@ def revision_reservas_fun():
         
         # 2.5 Filtrar en reservas con lotes por lista de contratos y retirar los que ya finalizaron
         reservas_agrupadas_cantidad = reservas.copy()
-        reservas_agrupadas_cantidad = reservas_agrupadas_cantidad.merge(picking, on='CONTRATO_ID', how='left')
+        
+        if not picking.empty:
+            reservas_agrupadas_cantidad = reservas_agrupadas_cantidad.merge(picking, on='CONTRATO_ID', how='left')
+        
+        # if not etiquetados.empty:
+        #     reservas_agrupadas_cantidad = reservas_agrupadas_cantidad.merge(etiquetados, on='CONTRATO_ID', how='left')
+        
         reservas_agrupadas_cantidad = reservas_agrupadas_cantidad[reservas_agrupadas_cantidad['estado']!='FINALIZADO']
         reservas_agrupadas_cantidad = reservas_agrupadas_cantidad.groupby(by=['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD'])['EGRESO_TEMP'].sum().reset_index()
         reservas_agrupadas_contratos = reservas.copy()
