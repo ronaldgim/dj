@@ -38,6 +38,7 @@ class EstadoEtiquetadoAdmin(admin.ModelAdmin):
 @admin.register(PedidosEstadoEtiquetado)
 class PedidosEstadoEtiquetadoAdmin(admin.ModelAdmin):
     list_display = ('n_pedido', 'estado', 'fecha_creado', 'fecha_actualizado')
+    search_fields = ('n_pedido',)
 
     
 @admin.register(OrdenEtiquetadoStock)
