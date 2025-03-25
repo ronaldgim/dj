@@ -1166,7 +1166,7 @@ def wms_inventario(request): #OK
     """ Inventario
         Suma de ingresos y egresos que dan el total de todo el inventario
     """
-    # wms_existencias_query_product_lote("2014","476790")     
+    # wms_existencias_query_product_lote("2014","476790")
     
     prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     productos = pd.DataFrame(Existencias.objects.all().values('product_id'))
@@ -2201,7 +2201,7 @@ def wms_agregar_foto_picking_ajax(request):
 def reservas_lote_n_picking(n_picking): #request
     ''' Colusta de clientes por ruc a la base de datos '''
     with connections['gimpromed_sql'].cursor() as cursor:
-        cursor.execute(f"SELECT PRODUCT_ID, LOTE_ID, EGRESO_TEMP FROM reservas_lote WHERE CONTRATO_ID = '{n_picking}'")
+        cursor.execute(f"SELECT PRODUCT_ID, LOTE_ID, EGRESO_TEMP FROM reservas_lote_2 WHERE CONTRATO_ID = '{n_picking}'")
         columns = [col[0] for col in cursor.description]
         reservas_lote = [
             dict(zip(columns, row))
