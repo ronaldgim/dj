@@ -2043,7 +2043,7 @@ def revision_reservas_fun():
                 df = sto_lote 
                 # Crear la nueva columna de disponibilidad
                 df['disp-reserva'] = df['OH2'] - df['EGRESO_TEMP']
-
+                #print(df)
                 # Filtrar los lotes negativos
                 sto_lote_negativo = df[df['disp-reserva'] < 0].copy() 
                 if not sto_lote_negativo.empty:
@@ -2066,7 +2066,7 @@ def revision_reservas_fun():
                     fila_seleccionada['OBSERVACIONES'] = 'CAMBIAR ESTA RESERVA A UN LOTE CON FECHA DE CADUCIDAD POSTERIOR'
                     df_list.append(fila_seleccionada)
         
-        df_reporte = pd.concat(df_list)[['CONTRATO_ID','PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD_x', 'OH2', 'EGRESO_TEMP','OBSERVACIONES']]
+        df_reporte = pd.concat(df_list)[['CONTRATO_ID','PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD_x', 'OH2', 'EGRESO_TEMP','disp-reserva','OBSERVACIONES']]
         df_reporte['FECHA_CADUCIDAD_x'] = df_reporte['FECHA_CADUCIDAD_x'].astype('str')
         df_reporte = df_reporte.rename(columns={'FECHA_CADUCIDAD_x':'FECHA_CADUCIDAD','OH2':'UNDS-DISPONIBLE', 'EGRESO_TEMP':'UNDS-RESERVA'})
         
