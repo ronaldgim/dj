@@ -2322,9 +2322,11 @@ def wms_estado_picking_actualizar_ajax(request):
     if estado_post == 'FINALIZADO':
 
         pick = pedido_por_cliente(n_pedido=estado_picking.n_pedido)
-        pick_total_unidades = pick['QUANTITY'].sum()
-        movs = Movimiento.objects.filter(referencia='Picking').filter(n_referencia=estado_picking.n_pedido).values_list('unidades', flat=True)
-        movs_total_unidades = sum(movs) * -1
+        pick_total_unidades = pick['QUANTITY'].sum() ;print(pick_total_unidades)
+        #movs = Movimiento.objects.filter(referencia='Picking').filter(estado_picking='En Despacho').filter(n_referencia=estado_picking.n_pedido).values_list('unidades', flat=True)
+        movs = Movimiento.objects.filter(n_referencia=estado_picking.n_pedido).filter(estado_picking='En Despacho').values_list('unidades', flat=True)
+        
+        movs_total_unidades = sum(movs) * -1 ; print(movs_total_unidades)
             
         if estado_picking.bodega == 'BCT':
             
@@ -2332,6 +2334,12 @@ def wms_estado_picking_actualizar_ajax(request):
 
                 return JsonResponse({
                     'msg':' ⚠ Aun no a completado el picking !!!',
+                    'alert':'warning'
+                })
+                
+            elif movs_total_unidades != pick_total_unidades:
+                return JsonResponse({
+                    'msg':f' ⚠ El total de items de WMS {movs_total_unidades} es diferente al total de items MBA {pick_total_unidades} !!!',
                     'alert':'warning'
                 })
             
@@ -4153,7 +4161,7 @@ def wms_retiro_producto_despacho(request):
                 messages.error(request, f"El Picking {request.POST['n_picking']} esta en bodega Andagoya")
                 
             elif bodega == 'BCT':
-                if estado == 'FINALIZADO':
+                #if estado == 'FINALIZADO':
                     picking = Movimiento.objects.filter(n_referencia=n_picking).filter(estado_picking='En Despacho')
                     
                     context = {
@@ -4163,8 +4171,8 @@ def wms_retiro_producto_despacho(request):
                     
                     return render(request, 'wms/retiro_producto_despacho_list.html', context)
                 
-                else:
-                    messages.error(request, f"El Picking {request.POST['n_picking']} su estado es {estado}")
+                #else:
+                    #messages.error(request, f"El Picking {request.POST['n_picking']} su estado es {estado}")
     
     context = {
         'picking_factura_df': de_dataframe_a_template(picking_factura_df),
