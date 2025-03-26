@@ -49,7 +49,9 @@
     }
 
     .table-responsive {
-        height: 600px;  /* Altura fija para activar el scroll */
+        max-height: 500px;  /* Altura fija para activar el scroll */
+        height: auto;  /* Altura máxima */
+        min-height: 100px;  /* Altura mínima */
         overflow-y: auto;  /* Scroll vertical */
         position: relative;  /* Necesario para que sticky funcione dentro */
     }
