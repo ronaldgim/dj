@@ -1011,44 +1011,40 @@ def etiquetado_avance_edit(request):
 @login_required(login_url='login')
 def estado_etiquetado(request, n_pedido, id):
     
+    pedido_cabecera = de_dataframe_a_template(pedido_por_cliente(n_pedido))[0] 
+    cliente = pedido_cabecera['NOMBRE_CLIENTE']
+    fecha_pedido = pedido_cabecera['FECHA_PEDIDO']
+
+    product = productos_odbc_and_django()[['product_id','Nombre','Marca','Unidad_Empaque']]
+    product = product.rename(columns={'product_id':'PRODUCT_ID'})
+    
+    pedido = pedido_por_cliente(n_pedido)[['PRODUCT_ID','QUANTITY']]
+    pedido = pedido.groupby(by=['PRODUCT_ID']).sum().reset_index() 
+    pedido = pedido.merge(product, on='PRODUCT_ID', how='left').fillna(0) 
+    pedido['Cartones'] = pedido['QUANTITY'] / pedido['Unidad_Empaque'] 
+    
+    avance = etiquetado_avance_pedido(n_pedido) 
+    if not avance.empty:
+        avance = avance.rename(columns={'id':'avance'})
+        pedido = pedido.merge(avance, on='PRODUCT_ID', how='left')
+        
+    t_cartones = pedido['Cartones'].sum()
+    t_unidades = pedido['QUANTITY'].sum()
+    
+    pedido = de_dataframe_a_template(pedido)
+    
+    
     if id == '-':
 
         form = PedidosEstadoEtiquetadoForm()
-
-        # Dataframes
-        pedido = pedido_por_cliente(n_pedido)[['PRODUCT_ID','PRODUCT_NAME','QUANTITY','NOMBRE_CLIENTE','FECHA_PEDIDO']]
-        avance = etiquetado_avance_pedido(n_pedido)
-        if not avance.empty:
-            avance = avance.rename(columns={'id':'avance'})
-            pedido = pedido.merge(avance, on='PRODUCT_ID', how='left')
-        
-        product = productos_odbc_and_django()[['product_id','marca','Unidad_Empaque']]
-        product = product.rename(columns={'product_id':'PRODUCT_ID'})
-
-        # Merge Dataframes
-        pedido = pedido.merge(product, on='PRODUCT_ID', how='left').sort_values(by='PRODUCT_ID').fillna(0)
-
-        # Calculos
-        pedido['Cartones'] = pedido['QUANTITY'] / pedido['Unidad_Empaque']
-        
-        # Totales de tabla
-        cliente = pedido['NOMBRE_CLIENTE'].iloc[0]
-        fecha_pedido = pedido['FECHA_PEDIDO'].iloc[0]
-        
-        t_cartones = pedido['Cartones'].sum()
-        t_unidades = pedido['QUANTITY'].sum()
-
-        pedido = de_dataframe_a_template(pedido)
 
         context = {
             'reservas':pedido,
             'pedido':n_pedido,
             'cliente':cliente,
             'fecha_pedido':fecha_pedido,
-            
             't_cartones':t_cartones,
             't_unidades':t_unidades,
-
             # Form
             'form':form
         }
@@ -1066,40 +1062,13 @@ def estado_etiquetado(request, n_pedido, id):
         estado_registro = PedidosEstadoEtiquetado.objects.get(id=id_estado)
         form_update = PedidosEstadoEtiquetadoForm(instance=estado_registro)
 
-        # Dataframes
-        pedido = pedido_por_cliente(n_pedido)[['PRODUCT_ID','PRODUCT_NAME','QUANTITY','NOMBRE_CLIENTE','FECHA_PEDIDO']]
-        avance = etiquetado_avance_pedido(n_pedido)
-        if not avance.empty:
-            avance = avance.rename(columns={'id':'avance'})
-            pedido = pedido.merge(avance, on='PRODUCT_ID', how='left')
-        
-        product = productos_odbc_and_django()[['product_id','marca','Unidad_Empaque']] 
-        product = product.rename(columns={'product_id':'PRODUCT_ID'})
-
-        # Merge Dataframes
-        pedido = pedido.merge(product, on='PRODUCT_ID', how='left').sort_values(by='PRODUCT_ID').fillna('')
-
-        # Calculos
-        pedido['Cartones'] = pedido['QUANTITY'] / pedido['Unidad_Empaque']
-        
-        # Totales de tabla
-        cliente = pedido['NOMBRE_CLIENTE'].iloc[0]
-        fecha_pedido = pedido['FECHA_PEDIDO'].iloc[0]
-                
-        t_cartones = pedido['Cartones'].sum()
-        t_unidades = pedido['QUANTITY'].sum()
-        
-        pedido = de_dataframe_a_template(pedido)
-
         context = {
             'reservas':pedido,
             'pedido':n_pedido,
             'cliente':cliente,
             'fecha_pedido':fecha_pedido,
-                        
             't_cartones':t_cartones,
             't_unidades':t_unidades,
-
             # Form
             'form':form_update
         }

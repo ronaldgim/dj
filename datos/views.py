@@ -2140,10 +2140,10 @@ def trazabilidad_odbc(cod, lot):
 # Filtrar avance de etiquetado por pedido
 def etiquetado_avance_pedido(n_pedido):
     avance = EtiquetadoAvance.objects.filter(n_pedido=n_pedido).values()
-    avance = pd.DataFrame(avance)
-    avance = avance.rename(columns={
-        'product_id':'PRODUCT_ID'
-        })
+    avance = pd.DataFrame(avance) 
+    avance = avance.rename(columns={'product_id':'PRODUCT_ID'})
+    avance = avance.groupby(by=['id','n_pedido','PRODUCT_ID'])['unidades'].sum().reset_index()
+
     return avance
 
 
