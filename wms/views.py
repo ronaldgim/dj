@@ -1576,28 +1576,23 @@ def wms_verificar_ubicacion_destino_ajax(request):
 
 
 # Comprobar si existe para realizar el egreso
-def comprobar_ajuste_egreso(codigo, lote, fecha_cadu, ubicacion, und_egreso): #OK
+def comprobar_ajuste_egreso(codigo, lote, estado, fecha_cadu, ubicacion, und_egreso): #OK
 
     ext = (
     Existencias.objects
         .filter(product_id=codigo)
         .filter(lote_id=lote)
+        .filter(estado=estado)
         .filter(fecha_caducidad=fecha_cadu)
         .filter(ubicacion_id=ubicacion)
         )
-
+    
     if ext.exists():
         total = ext.last().unidades - und_egreso
-
-        # if total >= 0 or total == 0:
-        #     return True
-        # else:
-        #     return 'No se puede retirar más uniades de las existentes'
-    
-        if total < 0:
-            return 'No se puede retirar más unidades de las existentes'
-        else:
+        if total >= 0: 
             return True
+        else:
+            return 'No se puede retirar más uniades de las existentes'
     
     else:
         return 'No hay existencias del código y lote seleccionados, ó no coincide la fecha o ubicación. \n No se puede realizar el egreso!!!'
@@ -1655,6 +1650,7 @@ def wms_movimiento_ajuste(request): #OK
             comprobar = comprobar_ajuste_egreso(
                 codigo     = request.POST['product_id'],
                 lote       = request.POST['lote_id'],
+                estado     = request.POST['estado'],
                 ubicacion  = int(request.POST['ubicacion']),
                 fecha_cadu = request.POST['fecha_caducidad'],
                 und_egreso = int(request.POST['unidades'])
