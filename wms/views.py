@@ -1589,7 +1589,7 @@ def comprobar_ajuste_egreso(codigo, lote, fecha_cadu, ubicacion, und_egreso): #O
     if ext.exists():
         total = ext.last().unidades - und_egreso
 
-        if total >=0:
+        if total ==0:
             return True
         else:
             return 'No se puede retirar más uniades de las existentes'
@@ -1605,7 +1605,7 @@ def comprobar_ajuste_egreso(codigo, lote, fecha_cadu, ubicacion, und_egreso): #O
 @login_required(login_url='login')
 @permisos(['ADMINISTRADOR','OPERACIONES'], '/wms/home', 'ingresar a Ajustes')
 def wms_movimiento_ajuste(request): #OK
-
+    print('asdfadf')
     if request.method == 'POST':
         tipo = request.POST['tipo']
 
