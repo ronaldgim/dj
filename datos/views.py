@@ -2666,3 +2666,6 @@ def datos_factura_compras_publicas_productos_odbc(n_factura):
     finally:
         cursorOdbc.close()
         cnxn.close()
+        
+        
+        
