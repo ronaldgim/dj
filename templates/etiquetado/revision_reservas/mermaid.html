@@ -1,0 +1,162 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>REVISIÓN RESERVAS</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'etiquetado/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+
+    <h5 class="fw-bold text-center mt-2">REVISIÓN RESERVAS "FLUJO"</h5>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+
+    <h6 class="p-2 bg-white text-gray mt-2 mb-2 active" type="button" name="detalle"><code>code chart</code>
+      <code><i class="bi bi-caret-down-fill" style="float: right"></i></code>
+    </h6>
+  
+  <div class="card mb-2" id="detalle" style="display:none">
+      
+      <div class="card-body">
+        <code>
+          flowchart TD <br />
+
+          subgraph subGraph0["Manejo de errores"] <br />
+                Z["Retornar DataFrame vacío"] <br />
+                E1["Catching Exceptions"] <br />
+          end <br />
+            B["Obtener datos"] -- Reservas lote --> B1["reservas_lote_2"] <br />
+            B -- Reservas sin lote --> B2["reservas_sinlote"] <br />
+            B -- Clientes --> B3["clientes_warehouse"] <br />
+            B -- Inventario --> B4["stock_lote_odbc"] <br />
+            B -- Picking --> B5["picking_de_reservas_finalizado"] <br />
+            B2 --> C["Filtrar por SEC_NAME_CLIENTE (RESERVA o RESERVADO)"] <br />
+            C --> D["Obtener lista de contratos (CONTRATO_ID)"] <br />
+            D --> E["Convertir contratos a lista de enteros"] <br />
+            E --> F["Filtrar reservas lote por contratos <br>(Obtener datos con lotes)"] <br />
+            F --> G["Filtrar clientes reservas"] <br />
+            G --> H["Obtener clientes únicos"] <br />
+            H --> I["Filtrar reservas con lotes"] <br />
+            I --> J["Excluir reservas finalizadas<br>(Picking finalizado)"] <br />
+            J --> K["Agrupar reservas por cantidad y contratos"] <br />
+            K --> L["Obtener stock MBA"] & n9["Agrupar contratos"] <br />
+            L --> M["Filtrar stock por productos de reservas <br>"] <br />
+            M --> N["Agrupar stock por lotes y caducidad"] <br />
+            N --> O["Generar reporte"] <br />
+            O -- Iterar sobre productos únicos en df reservas procesado --> P["Comparar reservas con stock<br>(disponible - reserva)"] <br />
+            P -- IF --> Q["si (disponible - reserva) es mayor a 0 y existe mas de un lote"] & U["Si el (disponible - reserva) es negativo<br><br>"] & S["SI hay un lote disponible con fecha de caducidad posterior"] <br />
+            Q --> R["OBS: CAMBIAR ESTA RESERVA A UN LOTE CON FECHA DE CADUCIDAD POSTERIRO LA CANTiDAD XXX <br>"] <br />
+            S --> T["OBS: CAMBIAR ESTA RESERVA A UN LOTE POSTERIOR SIN RESERVAS"] <br />
+            U --> V["OBS: LOTE CON RESERVAS MAYORES A LO DISPONIBLE"] <br />
+            R --> W["Generar DataFrame de reporte"] <br />
+            T --> W <br />
+            V --> W <br />
+            W --> X["Generar Excel"] <br />
+            X --> Y["Fin"] <br />
+            E1 --> Z <br />
+            A["Inicio"] -- Try --> B <br />
+            B -- Exception --> E1 <br />
+            B3 --> n2["Anteriormente se filtraba por tipo de cliente publico (ahora se analiza todos los clientes) <br>"] <br />
+            B5 --> n6["Se filtra por pickings finalizados <br>"] <br />
+            n7["Reservas con lotes <br>"] --> F <br />
+            B1 --> n7 <br />
+            Z --> Y  <br />
+            n9 --> L <br />
+            B4 --> n10["Inventario de MBA <br>"] <br />
+            n10 --> L <br />
+            n6 --> J <br />
+            n3[" "] <br />
+            n9@{ shape: rect} <br />
+            n2@{ shape: rect} <br />
+            n6@{ shape: rect} <br />
+            n7@{ shape: rect} <br />
+            n10@{ shape: rect} <br />
+            n3@{ shape: anchor} <br />
+            style E fill:#C8E6C9 <br />
+            style G fill:#FFE0B2 <br />
+            style H fill:#FFE0B2 <br />
+            style I fill:#FFE0B2 <br />
+            style n2 fill:#FFE0B2 <br />
+        </code>
+      </div>
+      
+  </div>
+
+    <div class="mermaid">
+        ---
+        config:
+          layout: fixed
+        ---
+        flowchart TD
+          subgraph subGraph0["Manejo de errores"]
+                Z["Retornar DataFrame vacío"]
+                E1["Catching Exceptions"]
+          end
+            B["Obtener datos"] -- Reservas lote --> B1["reservas_lote_2"]
+            B -- Reservas sin lote --> B2["reservas_sinlote"]
+            B -- Clientes --> B3["clientes_warehouse"]
+            B -- Inventario --> B4["stock_lote_odbc"]
+            B -- Picking --> B5["picking_de_reservas_finalizado"]
+            B2 --> C["Filtrar por SEC_NAME_CLIENTE (RESERVA o RESERVADO)"]
+            C --> D["Obtener lista de contratos (CONTRATO_ID)"]
+            D --> E["Convertir contratos a lista de enteros"]
+            E --> F["Filtrar reservas lote por contratos <br>(Obtener datos con lotes)"]
+            F --> G["Filtrar clientes reservas"]
+            G --> H["Obtener clientes únicos"]
+            H --> I["Filtrar reservas con lotes"]
+            I --> J["Excluir reservas finalizadas<br>(Picking finalizado)"]
+            J --> K["Agrupar reservas por cantidad y contratos"]
+            K --> L["Obtener stock MBA"] & n9["Agrupar contratos"]
+            L --> M["Filtrar stock por productos de reservas <br>"]
+            M --> N["Agrupar stock por lotes y caducidad"]
+            N --> O["Generar reporte"]
+            O -- Iterar sobre productos únicos en df reservas procesado --> P["Comparar reservas con stock<br>(disponible - reserva)"]
+            P -- IF --> Q["si (disponible - reserva) es mayor a 0 y existe mas de un lote"] & U["Si el (disponible - reserva) es negativo<br><br>"] & S["SI hay un lote disponible con fecha de caducidad posterior"]
+            Q --> R["OBS: CAMBIAR ESTA RESERVA A UN LOTE CON FECHA DE CADUCIDAD POSTERIRO LA CANTiDAD XXX <br>"]
+            S --> T["OBS: CAMBIAR ESTA RESERVA A UN LOTE POSTERIOR SIN RESERVAS"]
+            U --> V["OBS: LOTE CON RESERVAS MAYORES A LO DISPONIBLE"]
+            R --> W["Generar DataFrame de reporte"]
+            T --> W
+            V --> W
+            W --> X["Generar Excel"]
+            X --> Y["Fin"]
+            E1 --> Z
+            A["Inicio"] -- Try --> B
+            B -- Exception --> E1
+            B3 --> n2["Anteriormente se filtraba por tipo de cliente publico (ahora se analiza todos los clientes) <br>"]
+            B5 --> n6["Se filtra por pickings finalizados <br>"]
+            n7["Reservas con lotes <br>"] --> F
+            B1 --> n7
+            Z --> Y
+            n9 --> L
+            B4 --> n10["Inventario de MBA <br>"]
+            n10 --> L
+            n6 --> J
+            n3[" "]
+            n9@{ shape: rect}
+            n2@{ shape: rect}
+            n6@{ shape: rect}
+            n7@{ shape: rect}
+            n10@{ shape: rect}
+            n3@{ shape: anchor}
+            style E fill:#C8E6C9
+            style G fill:#FFE0B2
+            style H fill:#FFE0B2
+            style I fill:#FFE0B2
+            style n2 fill:#FFE0B2
+        
+    </div>
+
+
+    <!-- Detalle -->
+    <script>
+      $(document).ready(function() {
+          $("h6[name='detalle']").click(function(){
+              $("#detalle").toggle();
+              $(this).find("i").toggleClass("bi-caret-down-fill bi-caret-up-fill");
+          })
+      })
+    </script>
+{% endblock %}

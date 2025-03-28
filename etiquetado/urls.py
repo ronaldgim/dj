@@ -260,6 +260,13 @@ urlpatterns = [
         name  = 'reporte_revision_reservas'
     ),
 
+    path(
+        route = 'mermaid_chart',
+        view  = views.mermaid_chart,
+        name  = 'mermaid_chart'
+    ),
+
+
     ### CONTROL DE GUIAS
     path(
         route = 'guias/list',

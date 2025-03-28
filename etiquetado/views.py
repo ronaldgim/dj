@@ -2834,6 +2834,10 @@ def reporte_revision_reservas(request):
         return HttpResponseRedirect('/etiquetado/revision/imp/llegadas/list')
 
 
+##### MERMAID CHART JS HTML DRAWS 
+def mermaid_chart(request):
+    return render(request, 'etiquetado/revision_reservas/mermaid.html')
+
 
 ## CONTROL DE GUIAS Y COUIER
 login_required(login_url='login')
