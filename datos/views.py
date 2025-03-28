@@ -1957,11 +1957,10 @@ def revision_reservas_fun():
         # df_reservas_lote    = reservas_lote()
         df_reservas_lote    = reservas_lote_2()
         df_reservas_sinlote = reservas_sinlote()
-        cli                 = clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE']]
+        #cli                 = clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE']]
         # clientes            = clientes_warehouse()[['CODIGO_CLIENTE','CLIENT_TYPE']]
         inventario          = stock_lote_odbc()
         picking             = pickin_de_reservas_finalizado()
-        etiquetados         = etiquetados_no_finalizados()
 
         # 2.0 Filtrar por SEC_NAME_CLIENTE 
         # solo reserva yu reservado
@@ -1989,10 +1988,10 @@ def revision_reservas_fun():
         df_reservas_lote['LOTE_ID'] = df_reservas_lote['LOTE_ID'].str.replace('.', '')
         reservas = df_reservas_lote[df_reservas_lote.CONTRATO_ID.isin(contratos_list)]
         
-        # 2.4.1 Clientes reservas
-        cli_res = reservas.copy()
-        cli_res = cli_res.merge(cli, on='CODIGO_CLIENTE', how='left')[['NOMBRE_CLIENTE','CONTRATO_ID']]
-        cli_res = cli_res.drop_duplicates(subset='NOMBRE_CLIENTE')
+        # # 2.4.1 Clientes reservas
+        # cli_res = reservas.copy()
+        # cli_res = cli_res.merge(cli, on='CODIGO_CLIENTE', how='left')[['NOMBRE_CLIENTE','CONTRATO_ID']]
+        # cli_res = cli_res.drop_duplicates(subset='NOMBRE_CLIENTE')
         
         # 2.5 Filtrar en reservas con lotes por lista de contratos y retirar los que ya finalizaron
         reservas_agrupadas_cantidad = reservas.copy()
@@ -2005,6 +2004,7 @@ def revision_reservas_fun():
         
         reservas_agrupadas_cantidad = reservas_agrupadas_cantidad[reservas_agrupadas_cantidad['estado']!='FINALIZADO']
         reservas_agrupadas_cantidad = reservas_agrupadas_cantidad.groupby(by=['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD'])['EGRESO_TEMP'].sum().reset_index()
+        
         reservas_agrupadas_contratos = reservas.copy()
         reservas_agrupadas_contratos['CONTRATO_ID'] = reservas_agrupadas_contratos['CONTRATO_ID'].astype('str')
         reservas_agrupadas_contratos = reservas_agrupadas_contratos.pivot_table(
@@ -2053,7 +2053,7 @@ def revision_reservas_fun():
                 # Filtrar los lotes que deben moverse
                 sto_lote_mover = df[df['fila_llena'] & df['siguiente_vacia']].copy() 
                 if not sto_lote_mover.empty:
-                    sto_lote_mover['OBSERVACIONES'] = 'CAMBIAR ESTA RESERVA A UN LOTE CON FECHA DE CADUCIDAD POSTERIOR' #;print(sto_lote_mover)
+                    sto_lote_mover['OBSERVACIONES'] = 'CAMBIAR ESTA RESERVA A UN LOTE POSTERIOR SIN RESERVAS' #;print(sto_lote_mover)
                     df_list.append(sto_lote_mover)
 
                 # Filtrar lotes con disponibilidad positiva
@@ -2063,7 +2063,7 @@ def revision_reservas_fun():
                 if len(sto_lote_cambiar) > 1:
                     
                     fila_seleccionada = pd.DataFrame([sto_lote_cambiar.iloc[0]])
-                    fila_seleccionada['OBSERVACIONES'] = 'CAMBIAR ESTA RESERVA A UN LOTE CON FECHA DE CADUCIDAD POSTERIOR'
+                    fila_seleccionada['OBSERVACIONES'] = 'CAMBIAR ESTA RESERVA A UN LOTE CON FECHA DE CADUCIDAD POSTERIOR LA CANTIDAD ' + str(fila_seleccionada['EGRESO_TEMP'].values[0]) #;print(fila_seleccionada)
                     df_list.append(fila_seleccionada)
         
         df_reporte = pd.concat(df_list)[['CONTRATO_ID','PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD_x', 'OH2', 'EGRESO_TEMP','disp-reserva','OBSERVACIONES']]
