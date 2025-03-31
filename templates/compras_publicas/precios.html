@@ -50,8 +50,8 @@
     {% csrf_token %}
     <div class="row">
         <div class="input-group mb-2">
-            <label class="fw-bold">HOSPITALES:</label>
-            <div class="col-6 ps-2">
+            <label class="fw-bold pt-2 col-1">HOSPITALES:</label>
+            <div class="col-4 ms-2">
                 <select class="form-select" id="filter-hos-select2" name="hospital" required> <!-- filter id="filter-hos"-->
                     <option value="0">TODOS LOS HOSPITALES</option>
                     {% for i in hospitales %}
@@ -59,7 +59,7 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-auto">
+            <div class="col-auto ms-2">
                 <button class="btn btn-primary" type="submit">
                     Consultar
                 </button>
@@ -69,14 +69,16 @@
 </form>
 
 
-<div class="row mb-3">
+<div class="row">
     <div class="col-md-3">
         <div class="input-group mb-2">
             <label class="fw-bold pt-2">CÓDIGO:</label>
-            <input class="form-control form-control-sm ps-2" id="codigo" type="text">
-            <button class="btn btn-primary" type="button" name="codigo">
-                <i class="bi bi-search"></i>
-            </button>
+            <input class="form-control form-control-sm ms-2 rounded" id="codigo" type="text">
+            <div class ="col-auto ms-2">
+                <button class="btn btn-primary" type="button" name="codigo">
+                    <i class="bi bi-search"></i>
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -256,6 +258,8 @@
     })
 
 </script>
+
+<!-- busqueda por input -->
 <script>
     $(document).ready(function() {
         $("#inputbuscar").on("keyup", function() {
