@@ -907,13 +907,14 @@ def api_actualizar_reservas_lotes_2_warehouse():
                 CLNT_Pedidos_Principal.FECHA_PEDIDO, 
                 CLNT_Pedidos_Principal.CONTRATO_ID, 
                 CLNT_Ficha_Principal.CODIGO_CLIENTE, 
-                INVT_Ficha_Principal.PRODUCT_ID,
+                INVT_Ficha_Principal.PRODUCT_ID, 
                 CLNT_Pedidos_Principal.WARE_CODE, 
                 INVT_Lotes_Trasabilidad.EGRESO_TEMP, 
                 INVT_Lotes_Trasabilidad.LOTE_ID, 
-                INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD,
+                INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD, 
                 INVT_Producto_Lotes.Fecha_elaboracion_lote, 
-                CLNT_Pedidos_Principal.CONFIRMED
+                CLNT_Pedidos_Principal.CONFIRMED, 
+                CLNT_Pedidos_Principal.SEC_NAME_CLIENTE 
             
             FROM 
                 CLNT_Ficha_Principal CLNT_Ficha_Principal, 
@@ -921,16 +922,15 @@ def api_actualizar_reservas_lotes_2_warehouse():
                 CLNT_Pedidos_Principal CLNT_Pedidos_Principal,
                 INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad, 
                 INVT_Producto_Lotes INVT_Producto_Lotes
-            
+                
             WHERE 
                 CLNT_Ficha_Principal.CODIGO_CLIENTE = CLNT_Pedidos_Principal.CLIENT_ID AND 
                 INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND 
-                INVT_Lotes_Trasabilidad.LOTE_ID = INVT_Producto_Lotes.LOTE_ID AND
+                INVT_Lotes_Trasabilidad.LOTE_ID = INVT_Producto_Lotes.LOTE_ID AND 
                 INVT_Lotes_Trasabilidad.WARE_COD_CORP = INVT_Producto_Lotes.WARE_CODE_CORP AND 
-                INVT_Lotes_Trasabilidad.DOC_ID_CORP = CLNT_Pedidos_Principal.CONTRATO_ID_CORP AND
-                INVT_Ficha_Principal.PRODUCT_ID_CORP = INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP AND 
-                ((CLNT_Pedidos_Principal.PEDIDO_CERRADO=false)) 
-            
+                INVT_Lotes_Trasabilidad.DOC_ID_CORP = CLNT_Pedidos_Principal.CONTRATO_ID_CORP AND 
+                INVT_Ficha_Principal.PRODUCT_ID_CORP = INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP AND ((CLNT_Pedidos_Principal.PEDIDO_CERRADO=false))
+                
             ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID
             """
         )
@@ -950,6 +950,7 @@ def api_actualizar_reservas_lotes_2_warehouse():
                 fecha_caducidad = datetime.strptime(i['FECHA_CADUCIDAD'][:10], '%d/%m/%Y') # date
                 fecha_elaboracion_lote = datetime.strptime(i['FECHA_ELABORACION_LOTE'][:10], '%d/%m/%Y') # date
                 confirmed = 0 if i['CONFIRMED'] == 'false' else 1
+                sec_name_cliente = i['SEC_NAME_CLIENTE']
                 
                 row = (
                     fecha_pedido,
@@ -962,6 +963,7 @@ def api_actualizar_reservas_lotes_2_warehouse():
                     fecha_caducidad,
                     confirmed,
                     fecha_elaboracion_lote,
+                    sec_name_cliente
                 )
                 
                 data.append(row)
