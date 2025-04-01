@@ -126,7 +126,9 @@ def tabla_facturas(cliente):
         data = facturas.merge(notas, on=['CODIGO_CLIENTE', 'PRODUCT_ID', 'FECHA', 'QUANTITY', 'UNIT_PRICE'], how='left').sort_values(by='FECHA')
         #print(data[data['PRODUCT_ID']=='SP6244'])
         
-    return facturas
+    #return facturas
+    return data
+
 
 
 # Tabla infimas
