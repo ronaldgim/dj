@@ -87,7 +87,7 @@ def de_dataframe_a_template(dataframe):
 
 # Create your views here.
 # tabla de facturas
-def tabla_facturas(cliente):
+def tabla_facturas_menos_notadecredito_porcliente(cliente):
     ''' Colusta de clientes por ruc a la base de datos '''
     with connections['gimpromed_sql'].cursor() as cursor:
         #cursor.execute("SELECT * FROM venta_facturas")
@@ -104,7 +104,6 @@ def tabla_facturas(cliente):
             for row in cursor.fetchall()
         ]
         facturas = pd.DataFrame(facturas)
-        #print(facturas)
         
     with connections['gimpromed_sql'].cursor() as cursor:
         cursor.execute(
@@ -121,13 +120,69 @@ def tabla_facturas(cliente):
         
         notas = pd.DataFrame(notas)
         notas['nota_de_credito'] = 'nota_de_credito'
-        #print(notas)
-                
-        data = facturas.merge(notas, on=['CODIGO_CLIENTE', 'PRODUCT_ID', 'FECHA', 'QUANTITY', 'UNIT_PRICE'], how='left').sort_values(by='FECHA')
-        #print(data[data['PRODUCT_ID']=='SP6244'])
         
-    #return facturas
+        data = facturas.merge(notas, on=['CODIGO_CLIENTE', 'PRODUCT_ID', 'FECHA', 'QUANTITY', 'UNIT_PRICE'], how='left').sort_values(by='FECHA')
+        data = data[data['nota_de_credito']!='nota_de_credito']
+        
     return data
+
+
+
+def tabla_facturas_menos_notadecredito_pro_producto(producto):
+    
+    with connections['gimpromed_sql'].cursor() as cursor:
+
+        cursor.execute(
+            f"""SELECT CODIGO_CLIENTE, FECHA, PRODUCT_ID, QUANTITY, UNIT_PRICE, NUMERO_PEDIDO_SISTEMA
+                FROM warehouse.venta_facturas 
+                WHERE PRODUCT_ID LIKE '%{producto}%' AND FECHA > '2021-01-01'
+            """
+        )
+
+        columns = [col[0] for col in cursor.description]
+        facturas = [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+        facturas = pd.DataFrame(facturas)
+        
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute(
+            f"""SELECT CODIGO_CLIENTE, FECHA, PRODUCT_ID, QUANTITY, UNIT_PRICE
+                FROM warehouse.venta_notacredito 
+                WHERE PRODUCT_ID LIKE '%{producto}%' AND FECHA > '2021-01-01'
+            """
+        )
+        columns = [col[0] for col in cursor.description]
+        notas = [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+        
+        notas = pd.DataFrame(notas)
+        notas['nota_de_credito'] = 'nota_de_credito'
+        
+        data = facturas.merge(notas, on=['CODIGO_CLIENTE', 'PRODUCT_ID', 'FECHA', 'QUANTITY', 'UNIT_PRICE'], how='left').sort_values(by='FECHA')
+        data = data[data['nota_de_credito']!='nota_de_credito']
+        
+    prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+    prod = prod.rename(columns={'product_id':'PRODUCT_ID'})
+    cli = clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE']]
+    
+    data_final = data.merge(prod, on='PRODUCT_ID', how='left')
+    data_final = data_final.merge(cli, on='CODIGO_CLIENTE', how='left')
+    
+    data_final = data_final.rename(columns={
+        'PRODUCT_ID':'Código',
+        'NOMBRE_CLIENTE':'Cliente',
+        'FECHA':'Fecha',
+        'QUANTITY':'Cantidad',
+        'UNIT_PRICE':'Precio Unitario'
+    })
+    
+    data_final = data_final[['Código','Nombre','Marca','Cliente','Fecha','Cantidad','Precio Unitario']]
+    
+    return data_final
 
 
 
@@ -244,7 +299,8 @@ def facturas_por_product_ajax(request):
 def facturas_busqueda_solo_por_product_ajax(request):
     
     product_id = request.POST.get('codigo')
-    ventas = facturas_por_product(product_id)
+    #ventas = facturas_por_product(product_id) ; print(ventas)
+    ventas = tabla_facturas_menos_notadecredito_pro_producto(product_id)
     ventas['Precio Unitario'] = ventas['Precio Unitario'].astype(float)
     ventas['Cantidad'] = ventas['Cantidad'].apply(lambda x:'{:,.0f}'.format(x))
     ventas['Precio Unitario'] = ventas['Precio Unitario'].apply(lambda x:f'$ {x}')
@@ -279,7 +335,7 @@ def precios_historicos(request):
             prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
             prod = prod.rename(columns={'product_id':'PRODUCT_ID'})
             
-            facturas = tabla_facturas(hospital)
+            facturas = tabla_facturas_menos_notadecredito_porcliente(hospital)
             clientes = clientes_warehouse()[['CODIGO_CLIENTE', 'NOMBRE_CLIENTE']]
             
             precios_filtrado = facturas.merge(clientes, on='CODIGO_CLIENTE', how='left')
