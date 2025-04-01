@@ -92,7 +92,10 @@ def tabla_facturas(cliente):
     with connections['gimpromed_sql'].cursor() as cursor:
         #cursor.execute("SELECT * FROM venta_facturas")
         cursor.execute(
-            f"SELECT * FROM warehouse.venta_facturas WHERE CODIGO_CLIENTE = '{cliente}' AND FECHA > '2021-01-01'"
+            f"""SELECT CODIGO_CLIENTE, FECHA, PRODUCT_ID, QUANTITY, UNIT_PRICE, NUMERO_PEDIDO_SISTEMA
+                FROM warehouse.venta_facturas 
+                WHERE CODIGO_CLIENTE = '{cliente}' AND FECHA > '2021-01-01'
+            """
         )
 
         columns = [col[0] for col in cursor.description]
@@ -100,9 +103,32 @@ def tabla_facturas(cliente):
             dict(zip(columns, row))
             for row in cursor.fetchall()
         ]
-
         facturas = pd.DataFrame(facturas)
-    return facturas
+        #print(facturas)
+        
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute(
+            f"""SELECT CODIGO_CLIENTE, FECHA, PRODUCT_ID, QUANTITY, UNIT_PRICE
+                FROM warehouse.venta_notacredito 
+                WHERE CODIGO_CLIENTE = '{cliente}' AND FECHA > '2021-01-01'
+            """
+        )
+        columns = [col[0] for col in cursor.description]
+        notas = [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+        
+        notas = pd.DataFrame(notas)
+        notas['nota_de_credito'] = 'nota_de_credito'
+        #print(notas)
+                
+        data = facturas.merge(notas, on=['CODIGO_CLIENTE', 'PRODUCT_ID', 'FECHA', 'QUANTITY', 'UNIT_PRICE'], how='left').sort_values(by='FECHA')
+        #print(data[data['PRODUCT_ID']=='SP6244'])
+        
+    #return facturas
+    return data
+
 
 
 # Tabla infimas
@@ -204,11 +230,8 @@ def facturas_por_product_ajax(request):
     ventas['Precio Unitario'] = ventas['Precio Unitario'].astype(float)
     ventas['Cantidad'] = ventas['Cantidad'].apply(lambda x:'{:,.0f}'.format(x)) 
     ventas['Precio Unitario'] = ventas['Precio Unitario'].apply(lambda x:f'$ {x}')
-    #ventas['Fecha'] = ventas['Fecha'].astype('str')
-    #ventas = ventas.sort_values(by='Fecha', ascending=False)
     
     ventas = ventas.to_html(
-        #classes='table', 
         table_id='v_table',
         index=False,
         justify='start',
@@ -225,11 +248,8 @@ def facturas_busqueda_solo_por_product_ajax(request):
     ventas['Precio Unitario'] = ventas['Precio Unitario'].astype(float)
     ventas['Cantidad'] = ventas['Cantidad'].apply(lambda x:'{:,.0f}'.format(x))
     ventas['Precio Unitario'] = ventas['Precio Unitario'].apply(lambda x:f'$ {x}')
-    #ventas['Fecha'] = ventas['Fecha'].astype('str')
-    #ventas = ventas.sort_values(by='Fecha', ascending=False)
     
     ventas = ventas.to_html(
-        #classes='table', 
         table_id='v_table',
         index=False,
         justify='start',
@@ -253,11 +273,11 @@ def precios_historicos(request):
     
     if request.method == 'POST':
         try:        
+            hospital = request.POST['hospital']
+            
             hospitales = clientes_hospitales_publicos()
             prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
             prod = prod.rename(columns={'product_id':'PRODUCT_ID'})
-            
-            hospital = request.POST['hospital']
             
             facturas = tabla_facturas(hospital)
             clientes = clientes_warehouse()[['CODIGO_CLIENTE', 'NOMBRE_CLIENTE']]
@@ -267,21 +287,25 @@ def precios_historicos(request):
             precios_filtrado = precios_filtrado.sort_values(by=['FECHA'], ascending=[False])
             precios_filtrado['FECHA'] = precios_filtrado['FECHA'].astype('str')
             
-            h = precios_filtrado['NOMBRE_CLIENTE'].iloc[0]
-            
-            precios_filtrado = de_dataframe_a_template(precios_filtrado)        
+            precios_filtrado = de_dataframe_a_template(precios_filtrado)
 
             context = {
-                'h':h,
+                'cabecera':precios_filtrado[0],
                 'precios_filtrado':precios_filtrado,
                 'hospitales':hospitales,
                 }
-        except:
-            messages.error(request, 'Error, intente nuevamente !!!')
+        except Exception as e:
+            messages.error(request, f'Error, {e} intente nuevamente !!!')
             
         return render(request, 'compras_publicas/precios.html', context)
 
     return render(request, 'compras_publicas/precios.html', context)
+
+
+
+
+
+
 
 
 # Infimas
