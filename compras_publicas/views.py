@@ -135,7 +135,7 @@ def tabla_facturas_menos_notadecredito_pro_producto(producto):
         cursor.execute(
             f"""SELECT CODIGO_CLIENTE, FECHA, PRODUCT_ID, QUANTITY, UNIT_PRICE, NUMERO_PEDIDO_SISTEMA
                 FROM warehouse.venta_facturas 
-                WHERE PRODUCT_ID LIKE '%{producto}%' AND FECHA > '2021-01-01'
+                WHERE PRODUCT_ID LIKE '%{producto}%' AND FECHA > '2021-01-01 ORDER BY FECHA DESC'
             """
         )
 
@@ -150,7 +150,7 @@ def tabla_facturas_menos_notadecredito_pro_producto(producto):
         cursor.execute(
             f"""SELECT CODIGO_CLIENTE, FECHA, PRODUCT_ID, QUANTITY, UNIT_PRICE
                 FROM warehouse.venta_notacredito 
-                WHERE PRODUCT_ID LIKE '%{producto}%' AND FECHA > '2021-01-01'
+                WHERE PRODUCT_ID LIKE '%{producto}%' AND FECHA > '2021-01-01 ORDER BY FECHA DESC'
             """
         )
         columns = [col[0] for col in cursor.description]
@@ -167,10 +167,11 @@ def tabla_facturas_menos_notadecredito_pro_producto(producto):
         
     prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     prod = prod.rename(columns={'product_id':'PRODUCT_ID'})
-    cli = clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE']]
+    cli = clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE','CLIENT_TYPE']]
     
     data_final = data.merge(prod, on='PRODUCT_ID', how='left')
     data_final = data_final.merge(cli, on='CODIGO_CLIENTE', how='left')
+    data_final = data_final[data_final['CLIENT_TYPE']=='HOSPU']
     
     data_final = data_final.rename(columns={
         'PRODUCT_ID':'Código',
@@ -182,7 +183,7 @@ def tabla_facturas_menos_notadecredito_pro_producto(producto):
     
     data_final = data_final[['Código','Nombre','Marca','Cliente','Fecha','Cantidad','Precio Unitario']]
     
-    return data_final
+    return data_final.sort_values(by='Fecha', ascending=False)
 
 
 
@@ -281,7 +282,8 @@ def facturas_por_product(producto):
 def facturas_por_product_ajax(request):
     
     product_id = request.POST['producto']
-    ventas = facturas_por_product(product_id)
+    #ventas = facturas_por_product(product_id)
+    ventas = tabla_facturas_menos_notadecredito_pro_producto(product_id)
     ventas['Precio Unitario'] = ventas['Precio Unitario'].astype(float)
     ventas['Cantidad'] = ventas['Cantidad'].apply(lambda x:'{:,.0f}'.format(x)) 
     ventas['Precio Unitario'] = ventas['Precio Unitario'].apply(lambda x:f'$ {x}')
@@ -298,7 +300,7 @@ def facturas_por_product_ajax(request):
 
 def facturas_busqueda_solo_por_product_ajax(request):
     
-    product_id = request.POST.get('codigo')
+    product_id = request.POST.get('codigo') 
     #ventas = facturas_por_product(product_id) ; print(ventas)
     ventas = tabla_facturas_menos_notadecredito_pro_producto(product_id)
     ventas['Precio Unitario'] = ventas['Precio Unitario'].astype(float)
