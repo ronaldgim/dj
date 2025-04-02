@@ -60,6 +60,13 @@ urlpatterns = [
         name='anexo_detail'
     ),
     
+    # anexo producto orden ajax
+    path(
+        route='anexo_producto_orden_ajax', 
+        view = views.anexo_producto_orden_ajax, 
+        name='anexo_producto_orden_ajax'
+    ),
+    
     #anexo_cabecera_edit_ajax
     path(
         route='anexos/anexo_cabecera_edit_ajax', 

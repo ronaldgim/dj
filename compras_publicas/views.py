@@ -39,6 +39,10 @@ from django.shortcuts import render, redirect
 # Login
 from django.contrib.auth.decorators import login_required
 
+# csrf
+from django.views.decorators.csrf import csrf_exempt
+
+
 # Clientes
 from datos.views import (
     clientes_warehouse, 
@@ -813,6 +817,21 @@ def anexo_detail(request, anexo_id):
     
     return render(request, 'compras_publicas/anexo_detail.html', context)
 
+@csrf_exempt
+def anexo_producto_orden_ajax(request):
+    
+    if request.method == 'POST':
+        data = json.loads(request.body)["n_orden"]
+        
+        for i in data:
+            prod = Producto.objects.get(id=i['id'])
+            prod.orden = i['n_orden']
+            prod.save()
+            
+        return JsonResponse({
+            'msg':'ok'
+        })
+    
 
 @login_required(login_url='login')
 @require_POST
