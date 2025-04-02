@@ -714,7 +714,7 @@ def add_datos_anexo_from_factura_ajax(request):
 def anexo_detail(request, anexo_id):
     
     anexo = Anexo.objects.get(id=anexo_id)
-    products = anexo.product_list.all() #.order_by('product_id')
+    products = anexo.product_list.all().order_by('orden') 
     ff = [
             {
                 'key':'aaaa-mm-dd',
