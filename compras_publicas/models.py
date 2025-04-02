@@ -75,7 +75,7 @@ class Producto(models.Model):
     precio_total    = models.FloatField(verbose_name='Precio total', blank=True, default=0)
     fecha_formato   = models.CharField(verbose_name='Formato de Fecha', max_length=20, blank=True, default='Y-m-d')
     decimal_formato = models.IntegerField(verbose_name='Formato de decimal', blank=True, default=2)
-    
+    orden           = models.IntegerField(verbose_name='Orden', blank=True, default=1)
     
     def __str__(self):
         return f'{self.id}-{self.product_id}'
