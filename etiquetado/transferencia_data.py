@@ -115,6 +115,7 @@ def pedidos_reservas(product_id):
         else:
             return pd.DataFrame()
 
+
 def stock_cerezos_wms():
     
     df = Existencias.objects.filter(estado='Disponible').values('product_id', 'unidades')
@@ -166,13 +167,30 @@ def data_andagoya():
     return data
 
 
+def reservas_menos_gipromed():
+    
+    with connections['gimpromed_sql'].cursor() as cursor:
+    # cursor.execute("SELECT * FROM warehouse.reservas WHERE WARE_CODE = 'BAN'")
+        cursor.execute("SELECT CODIGO_CLIENTE, PRODUCT_ID, QUANTITY, SEC_NAME_CLIENTE FROM warehouse.reservas WHERE SEC_NAME_CLIENTE LIKE '%RESERVA%'")
+        columns = [col[0] for col in cursor.description]
+        data = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        data = pd.DataFrame(data)
+        data = data[data['CODIGO_CLIENTE']!='CLI01002']
+        data = data.groupby(by='PRODUCT_ID')['QUANTITY'].sum().reset_index().dropna()
+        
+    return data
+
+
 def andagoya_saldos():
     
     # Data
     data = data_andagoya()
-    
-    # Stock Wms Cerezos
     cerezos = stock_cerezos_wms()
+    reservas_menos_gimpromed_df = reservas_menos_gipromed()
+    
+    # TOMAR RESERVAS DE CEREZOS Y QUITAR DE STOK WMS
+    cerezos = cerezos.merge(reservas_menos_gimpromed_df, on='PRODUCT_ID', how='left').fillna(0) 
+    cerezos['STOCK_CEREZOS_MENOS_RESGIMP'] = cerezos['STOCK_CEREZOS'] - cerezos['QUANTITY'] 
     
     # Calculos
     data['SALDOS'] = data.apply(lambda x: x['TOTAL_DISPONIBLE'] < x['Unidad_Empaque'], axis=1)
@@ -186,13 +204,20 @@ def andagoya_saldos():
     
     data['F_ACUMULADA'] = round(data['F_ACUMULADA'], 2) 
     data['TOTAL_DISPONIBLE_CARTONES'] = round(data['TOTAL_DISPONIBLE'] / data['Unidad_Empaque'], 2)
-    data['STOCK_CEREZOS_CARTONES']   = round(data['STOCK_CEREZOS'] / data['Unidad_Empaque'], 2)
+    
+    # data['STOCK_CEREZOS_CARTONES']   = round(data['STOCK_CEREZOS'] / data['Unidad_Empaque'], 2)
+    data['STOCK_CEREZOS_CARTONES']   = round(data['STOCK_CEREZOS_MENOS_RESGIMP'] / data['Unidad_Empaque'], 2)
+    
     data['CONSUMO_MENSUAL_CARTONES'] = round(data['CONSUMO_MENSUAL'] / data['Unidad_Empaque'], 2)
-    data['RATE'] = round((data['TOTAL_DISPONIBLE'] / data['STOCK_CEREZOS']) * 100, 2)
+    #data['RATE'] = round((data['TOTAL_DISPONIBLE'] / data['STOCK_CEREZOS']) * 100, 2)
+    data['RATE'] = round((data['TOTAL_DISPONIBLE'] / data['STOCK_CEREZOS_MENOS_RESGIMP']) * 100, 2)
+    
     
     # data = data.sort_values(by=['TOTAL_DISPONIBLE_UNDS_CARTON', 'CONSUMO_MENSUAL', 'TOTAL_DISPONIBLE_VS_CONSUMO_MENSUAL', 'F_ACUMULADA'], ascending=[True, False, False, False])
     data = data.sort_values(by=['TOTAL_DISPONIBLE_VS_CONSUMO_MENSUAL', 'RATE',], ascending=[True, True])
-    data = data[data['STOCK_CEREZOS'] > 0]
+    #data = data[data['STOCK_CEREZOS'] > 0]
+    data = data[data['STOCK_CEREZOS_MENOS_RESGIMP'] > 0]
+    
     
     # data['filtro'] = data.apply(lambda x: 'OCULTAR' if x['TOTAL_DISPONIBLE_VS_CONSUMO_MENSUAL'] == 0 and x['TOTAL_DISPONIBLE'] == 0 else 'MOSTRAR', axis=1)
     data['filtro'] = data.apply(lambda x: 'OCULTAR' if x['TOTAL_DISPONIBLE'] > 0 and x['TOTAL_DISPONIBLE_VS_CONSUMO_MENSUAL'] == 0 else 'MOSTRAR', axis=1)
@@ -212,6 +237,7 @@ def andagoya_saldos():
         'TRANSITO', 
         'TOTAL_DISPONIBLE',
         'STOCK_CEREZOS',
+        'STOCK_CEREZOS_MENOS_RESGIMP',
         #'CONSUMO_SEMANAL',
         'CONSUMO_MENSUAL',
         'TOTAL_DISPONIBLE_UNDS_CARTON',
@@ -228,46 +254,6 @@ def andagoya_saldos():
     return data
 
 
-# def sugerencia():
-    
-#     # Data
-#     data = data_andagoya()
-    
-#     # Stock Cerezos WMS
-#     cerezos = stock_cerezos_wms()
-    
-#     # Pedidos
-#     pedidos_df = pedidos_andagoya().rename(columns={'QUANTITY': 'PEDIDOS'})
-    
-#     # Reservas
-#     reservas_df = reservas_andagoya().rename(columns={'QUANTITY': 'RESERVAS', 'SEC_NAME_CLIENTE': 'RESERVA_INDICADOR'})
-    
-#     # Merge    
-#     data = pd.merge(data, pedidos_df, how='left', on='PRODUCT_ID').fillna(0)
-#     data = pd.merge(data, reservas_df, how='left', on='PRODUCT_ID').fillna(0)
-#     data = pd.merge(data, cerezos, how='left', on='PRODUCT_ID').fillna(0)
-    
-#     # Calculos
-#     data['DISPONIBLE_MENOS_RESERVAS'] = data['TOTAL_DISPONIBLE'] - data['RESERVAS']
-#     data['STOCK_SEGURIDAD'] = (data['PEDIDOS'] + data['CONSUMO_SEMANAL'] * 2)
-#     data['NIVEL_ABASTECIMIENTO'] = (data['DISPONIBLE_MENOS_RESERVAS'] / data['STOCK_SEGURIDAD']) * 100
-#     # data = data.replace([np.inf, -np.inf], np.nan).fillna(0)
-    
-#     # Cartones
-#     data['STOCK_ANDAGOYA_CARTONES'] = data['STOCK_ANDAGOYA'] / data['Unidad_Empaque']
-#     data['STOCK_CEREZOS_CARTONES'] = data['STOCK_CEREZOS'] / data['Unidad_Empaque']
-#     data['TOTAL_DISPONIBLE_CARTONES'] = data['TOTAL_DISPONIBLE'] / data['Unidad_Empaque']
-#     data['DISPONIBLE_MENOS_RESERVAS_CARTONES'] = data['DISPONIBLE_MENOS_RESERVAS'] / data['Unidad_Empaque']
-    
-#     # Orden
-#     data = data.sort_values(by=['NIVEL_ABASTECIMIENTO', 'F_ACUMULADA', 'CONSUMO_SEMANAL'], ascending=[True, False, False])
-#     data = data[data['STOCK_CEREZOS'] > 0]
-    
-#     f_ventas = frecuancia_ventas()
-#     f_ventas.to_excel('frecuencia_ventas.xlsx', index=False)
-    
-#     return data
-
 
 def sugerencia():
     # import pandas as pd
@@ -280,8 +266,11 @@ def sugerencia():
     reservas_df = reservas_andagoya().rename(columns={'QUANTITY': 'RESERVAS', 'SEC_NAME_CLIENTE': 'RESERVA_INDICADOR'})  # Reservas
     stock_seguridad = stock_de_seguridad()
     reservas_gimpromed_df = reservas_gimpromed().rename(columns={'QUANTITY': 'RESERVAS_GIMPROMED'})  # Reservas
+    reservas_menos_gimpromed_df = reservas_menos_gipromed()
     
     # TOMAR RESERVAS DE CEREZOS Y QUITAR DE STOK WMS
+    cerezos = cerezos.merge(reservas_menos_gimpromed_df, on='PRODUCT_ID', how='left').fillna(0)
+    cerezos['STOCK_CEREZOS_MENOS_RESGIMP'] = cerezos['STOCK_CEREZOS'] - cerezos['QUANTITY']
     
     # Merge de datos
     data = pd.merge(data, pedidos_df, how='left', on='PRODUCT_ID').fillna(0)
@@ -304,7 +293,8 @@ def sugerencia():
     
     # Cartones
     data['STOCK_ANDAGOYA_CARTONES'] = data['STOCK_ANDAGOYA'] / data['Unidad_Empaque']
-    data['STOCK_CEREZOS_CARTONES'] = data['STOCK_CEREZOS'] / data['Unidad_Empaque']
+    # data['STOCK_CEREZOS_CARTONES'] = data['STOCK_CEREZOS'] / data['Unidad_Empaque']
+    data['STOCK_CEREZOS_CARTONES'] = data['STOCK_CEREZOS_MENOS_RESGIMP'] / data['Unidad_Empaque']
     data['TOTAL_DISPONIBLE_CARTONES'] = data['TOTAL_DISPONIBLE'] / data['Unidad_Empaque']
     data['DISPONIBLE_MENOS_RESERVAS_CARTONES'] = data['DISPONIBLE_MENOS_RESERVAS'] / data['Unidad_Empaque']
     
@@ -316,7 +306,8 @@ def sugerencia():
     data = data.replace([np.inf, -np.inf], np.nan).fillna(0)
     
     # Filtrar productos con stock disponible en 'Cerezos'
-    data = data[data['STOCK_CEREZOS'] > 0]
+    # data = data[data['STOCK_CEREZOS'] > 0]
+    data = data[data['STOCK_CEREZOS_MENOS_RESGIMP'] > 0]
     
     data['n_fila'] = range(1, len(data) + 1)
     
