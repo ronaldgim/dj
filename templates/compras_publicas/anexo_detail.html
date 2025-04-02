@@ -12,6 +12,16 @@
 {% block body_2 %}
 
 
+<!-- jQuery y jQuery UI -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+<style>
+    #n_orden {
+        cursor: grab;
+    }
+</style>
+
 <h5 class="m-4 fw-bold text-center">ANEXO PEDIDO {{anexo.n_pedido}}</h5>
 
 {% if messages %}
@@ -281,6 +291,7 @@
             <table class="table m-0 p-0" style="font-size:small" >
                 <thead>
                     <tr>
+                        <th scope="col">#</th>
                         <th scope="col">Código</th>
                         <th scope="col">Nombre</th>
                         <th scope="col">N.Generico</th>
@@ -298,10 +309,13 @@
                         <th scope="col">Acciones</th>
                     </tr>
                 </thead>
-                <tbody id="pedidosbuscar">
+                <tbody id="orden">
                     {#% for i in anexo.product_list.all %#}
                     {% for i in products %}
-                        <tr>
+                        <tr data-id="{{i.id}}">
+                            <td id="n_orden" class="border bg-info text-white fw-bold">
+                                {{i.orden}} <i class="bi bi-arrows-expand"></i>
+                            </td>
                             <td>{{i.product_id}}</td>
                             <td>{{i.nombre}}</td>
                             <td>{{i.nombre_generico}}</td>
@@ -310,8 +324,6 @@
                             <td>{{i.procedencia}}</td>
                             <td>{{i.r_sanitario}}</td>
                             <td>{{i.lote_id}}</td>
-                            <!--td>{{i.f_elaboracion|date:"d/m/Y"}}</td>
-                            <td>{{i.f_caducidad|date:"d/m/Y"}}</td-->
                             <td>{{i.f_elaboracion|date:i.fecha_formato}}</td>
                             <td>{{i.f_caducidad|date:i.fecha_formato}}</td>
                             <td class="text-end">{{i.cantidad|floatformat:"0g"}}</td>
@@ -782,4 +794,36 @@
 
     })
 </script>
+
+<!-- Ordenable -->
+<script>
+
+    $(document).ready(function() {
+        $("#orden").sortable({
+            update: function(event, ui) {
+                let nuevoOrden = [];
+                $("#orden tr").each(function(index) {
+                    let id = $(this).attr("data-id");
+                    let n_orden = index + 1
+                    let data_orden ={"id":id, "n_orden":n_orden}
+                    nuevoOrden.push(data_orden)
+                });
+                
+                $.ajax({
+                    type:"POST",
+                    url:"{% url 'anexo_producto_orden_ajax' %}",
+                    data:JSON.stringify({"n_orden":nuevoOrden}),
+                    success: function(response){
+                        window.location.reload()
+                    },
+                    error: function(error){
+                        console.log(error)
+                    }
+                })
+            }
+        })
+    })
+
+</script>
+
 {% endblock %}
