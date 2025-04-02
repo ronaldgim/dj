@@ -559,7 +559,9 @@ def add_datos_anexo_ajax(request):
             
             prod_list = []
             anexo_product_data = datos_anexo_product_list(contrato_id)
+            n_orden = 0
             for i in anexo_product_data:
+                n_orden += 1
                 product = Producto(
                     product_id      = i['PRODUCT_ID'],
                     nombre          = i['Nombre'],
@@ -573,6 +575,7 @@ def add_datos_anexo_ajax(request):
                     cantidad        = i['EGRESO_TEMP'],
                     cantidad_total  = i['EGRESO_TEMP'],
                     precio_unitario = i['Price'],
+                    orden           = n_orden
                 ) 
                 
                 product.save()
@@ -664,8 +667,9 @@ def add_datos_anexo_from_factura_ajax(request):
         if anexo.id:
 
             prod_list = []
+            n_orden = 0
             for i in data.to_dict('records'):
-                
+                n_orden += 1 
                 product = Producto(
                     product_id      = i['PRODUCT_ID'],
                     nombre          = i['PRODUCT_NAME'],
@@ -679,6 +683,7 @@ def add_datos_anexo_from_factura_ajax(request):
                     cantidad        = int(i['EGRESO_TEMP']),
                     cantidad_total  = int(i['EGRESO_TEMP']),
                     precio_unitario = float(i['PRECIO_VENTA']),
+                    orden           = n_orden
                 ) 
             
                 product.save()
