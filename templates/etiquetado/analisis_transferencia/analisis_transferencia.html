@@ -101,7 +101,9 @@
                             <small style="color:grey">{{i.TOTAL_DISPONIBLE_CARTONES|floatformat:"2g"}} </small>
                         </td>
                         <td class="text-end" style="background-color:rgb(231, 255, 217)">
-                            {{i.STOCK_CEREZOS|floatformat:"0g"}} <br/>
+                            {#{i.STOCK_CEREZOS|floatformat:"0g"}#} <!--br/-->
+                            {{i.STOCK_CEREZOS_MENOS_RESGIMP|floatformat:"0g"}} <br/>
+                            
                             <small style="color:grey">{{i.STOCK_CEREZOS_CARTONES|floatformat:"2g"}} </small>
                         </td>
                         <!--td class="text-end">{{i.CONSUMO_SEMANAL|floatformat:"0g"}}</td-->
@@ -214,7 +216,8 @@
                             <small style="color:grey">{{i.DISPONIBLE_MENOS_RESERVAS_CARTONES|floatformat:"2g"}}</small>
                         </td>
                         <td class="text-end" style="background-color:rgb(231, 255, 217)">
-                            {{i.STOCK_CEREZOS|floatformat:"0g"}}
+                            {#{i.STOCK_CEREZOS|floatformat:"0g"}#}
+                            {{i.STOCK_CEREZOS_MENOS_RESGIMP|floatformat:"0g"}}
                             <br>
                             <small style="color:grey">{{i.STOCK_CEREZOS_CARTONES|floatformat:"2g"}}</small>
                         </td>
