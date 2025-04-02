@@ -361,11 +361,6 @@ def precios_historicos(request):
 
 
 
-
-
-
-
-
 # Infimas
 def infimas(request):
 
