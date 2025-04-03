@@ -2383,20 +2383,22 @@ def publico_dashboard_fun():
 
     # Merge fecha entrega
     fecha_entrega = pd.DataFrame(FechaEntrega.objects.all().values()) #[['user','fecha_hora','estado','pedido']] #;print(fecha_entrega)
-    fecha_entrega = fecha_entrega.rename(columns={'pedido':'CONTRATO_ID', 'estado':'estado_entrega'})
-
+    #fecha_entrega = fecha_entrega.rename(columns={'pedido':'CONTRATO_ID', 'estado':'estado_entrega'})
+    fecha_entrega = fecha_entrega.rename(columns={'pedido':'CONTRATO_ID', 'estado':'estado_entrega', 'fecha_hora':'fecha_entrega'})
+    
     list_reservas = list_reservas.merge(fecha_entrega, on='CONTRATO_ID', how='left') #;print(list_reservas)
 
     try:
         hoy = datetime.now() #;print(hoy)
-        list_reservas['dias_faltantes'] = (list_reservas['fecha_hora'] - hoy).dt.days  #;print(type(list_reservas['dias_faltantes'][0]))
-        list_reservas['dias_faltantes'] = list_reservas['dias_faltantes'].astype(int)
+        #list_reservas['dias_faltantes'] = (list_reservas['fecha_hora'] - hoy).dt.days  
+        list_reservas['dias_faltantes'] = (list_reservas['fecha_entrega'] - hoy).dt.days  
+        list_reservas['dias_faltantes'] = list_reservas['dias_faltantes'].astype('int')
     except:
         pass
     
     hoy_2 = date.today()
     
-    list_reservas['fecha_entrega'] = list_reservas['fecha_hora'].dt.date  #;print(list_reservas['fecha_entrega'])
+    #list_reservas['fecha_entrega'] = list_reservas['fecha_hora'].dt.date  #;print(list_reservas['fecha_entrega'])
 
     try:
         if len(list_reservas) > 0:
@@ -2404,13 +2406,21 @@ def publico_dashboard_fun():
     except:
         pass
 
-    list_reservas = list_reservas.sort_values(by=['fecha_hora'])
-    list_reservas['fecha_hora'] = list_reservas['fecha_hora'].astype(str)
+    #list_reservas = list_reservas.sort_values(by=['fecha_hora'])
+    list_reservas = list_reservas.sort_values(by=['fecha_entrega'])
+    
+    #list_reservas['fecha_hora'] = list_reservas['fecha_hora'].astype(str)
+    list_reservas['fecha_entrega'] = list_reservas['fecha_entrega'].astype('str')
+    
     list_reservas = list_reservas.replace('NaT','-')
     list_reservas = list_reservas.fillna('-')  #;print(type(list_reservas['dias_faltantes'][1])) ;print(list_reservas)
     
-    list_reservas['fh'] = pd.to_datetime(list_reservas['fecha_hora'], errors='coerce')
+    #list_reservas['fh'] = pd.to_datetime(list_reservas['fecha_hora'], errors='coerce')
+    list_reservas['fh'] = pd.to_datetime(list_reservas['fecha_entrega'], errors='coerce')
+    
     list_reservas['dia'] = list_reservas['fh'].dt.day_name(locale='es_EC.utf-8')
+    list_reservas['dia_numero'] = list_reservas['fh'].dt.day
+    list_reservas['dia_numero'] = list_reservas['dia_numero'].astype('str')
     try:
         list_reservas['dia'] = list_reservas['dia'].str.replace('Miã©rcoles','Miércoles')
     except:
@@ -2460,12 +2470,16 @@ def pedidos_temporales_fun():
             df['TIPO_PEDIDO'] = 'TEMPORAL'
             df['dias_faltantes'] = (df['fecha_entrega'] - datetime.now()).dt.days
             df['dia'] = df['fecha_entrega'].dt.day_name(locale='es_EC.utf-8')
+            df['dia_numero'] = df['fecha_entrega'].dt.day
+            df['dia_numero'] = df['dia_numero'].astype('str')
             df['mes'] = df['fecha_entrega'].dt.month_name(locale='es_EC.utf-8')
-            df['fecha_hora'] = df['fecha_entrega'].astype('str')
+            #df['fecha_hora'] = df['fecha_entrega'].astype('str')
+            df['fecha_entrega'] = df['fecha_entrega'].astype('str')
             df['avance'] = None
+            df['FECHA_PEDIDO'] = df['fecha_hora'].dt.date
             
             if not df.empty:
-                df = df.merge(clientes_df, on='NOMBRE_CLIENTE', how='left')
+                df = df.merge(clientes_df, on='NOMBRE_CLIENTE', how='left') #; print(df, df.dtypes)
                 return df
         else:
             return pd.DataFrame()
@@ -2488,7 +2502,7 @@ def publico_dashboard(request):
     fin = list_reservas[list_reservas['estado']=='FINALIZADO']
     
     if not pub.empty and not pedidos_temporales.empty:
-        pub = pd.concat([pub, pedidos_temporales], ignore_index=True)
+        pub = pd.concat([pub, pedidos_temporales], ignore_index=True).sort_values('fecha_entrega') 
     else:
         pub = pub
     
@@ -2621,17 +2635,20 @@ def dashboard_completo_json_response(request):
     publico = publico_dashboard_fun()
     publico = publico[publico['estado']!='FINALIZADO']
     contratos_publicos = list(publico['CONTRATO_ID'].unique())
-    sto_publico = stock_faltante_contrato(contratos_publicos, 'BCT')
+    sto_publico = stock_faltante_contrato(contratos_publicos, 'BCT') 
     
     if not sto_publico.empty:
         publico = publico.merge(sto_publico, on='CONTRATO_ID', how='left')
     
     pedidos_temporales = pedidos_temporales_fun().dropna(axis=1, how='all')
+    
     if not publico.empty and not pedidos_temporales.empty:
         publico = pd.concat([publico, pedidos_temporales])
+        publico['fecha_entrega'] = publico['fecha_entrega'].astype('str')
+        publico = publico.sort_values(by='fecha_entrega')
     else:
-        publico = publico
-        
+        publico = publico       
+    
     publicos_n = len(publico)
     publico = de_dataframe_a_template(publico)
     
@@ -2655,8 +2672,7 @@ def dashboard_completo_json_response(request):
         'publico':publico,
         'n_publico':publicos_n
     }
-
-
+    
     return JsonResponse(context)
 
 

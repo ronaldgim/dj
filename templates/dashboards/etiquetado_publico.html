@@ -63,8 +63,8 @@
 
                     <tr {% if i.TIPO_PEDIDO == 'TEMPORAL' %} style="background: #DEDEDE;" {% endif %}>
 
+                        <!-- N PEDIDO -->
                         <th scope="row">
-                            
                             {% if i.TIPO_PEDIDO == 'TEMPORAL' %}
                             <a href="{% url 'pedido_temporal' i.id_pedido_temporal %}" target="_blank">
                                 {{i.CONTRATO_ID}}
@@ -81,44 +81,66 @@
                             {% if i.estado_picking_x == 'FINALIZADO' %}
                             <i style = "color:green;" class="bi bi-check2-square"></i>
                             {% endif %}
-
                         </th>
 
+                        <!-- CLIENTE -->
                         <td class="text-start">{{i.NOMBRE_CLIENTE}}</td>
                         
-                        <!--td class="text-start">{{i.FECHA_PEDIDO}}</td>
-                        <td class="text-start">{{i.HORA_LLEGADA}}</td-->
-                            
+                        {% comment %}
+                        <!-- FECHA ENTREGA -->
                         {% if i.fecha_hora %}
+                            <!-- FECHA ENTREGA -->
+                            {% if i.dias_faltantes == '-' %}
+                                <td class="text-end">-</td>
+                            {% else %}
+                                <td class="text-start"
+                                {% if i.estado_entrega == 'CONFIRMADO' %} style="background-color: #AED6F1;"{% endif %}
+                                >{{i.dia|slice:'0:4'}} {{i.fecha_hora|slice:'8:10'}}. {{i.mes|slice:'0:3'}} **</td>
+                            {% endif %}
 
-                        <!--td class="text-start"
-                        {% if i.estado_entrega == 'CONFIRMADO' %} style="background-color: #AED6F1;"{% endif %}
-                        >{{i.fecha_hora|slice:'0:10'}}</td-->
+                            <!-- HORA ENTREGA -->
+                            <td class="text-start"
+                                {% if i.estado_entrega == 'CONFIRMADO' %} style="background-color: #AED6F1;"{% endif %}
+                                >{{i.fecha_hora|slice:'11:16'}} --
+                            </td>
 
+                        {% else %}
+                            <td class="text-start">-</td>
+                            <td class="text-start">-</td>
+                        {% endif %}
+                        {% endcomment %}
+                        
+                        <!-- FECHA ENTREGA -->
+                        {% if i.fecha_entrega %}
+                            <td {% if i.estado_entrega == 'CONFIRMADO' %} style="background-color: #AED6F1;"{% endif %}>
+                                    {{i.dia|slice:'0:4'}} {{i.dia_numero}}. {{i.mes|slice:'0:3'}}
+                            </td>
+                            {% else %}
+                            <td>-</td>
+                        {% endif %}
+
+                        <!-- HORA ENTREGA -->
+                        {% if not i.TIPO_PEDIDO == 'TEMPORAL' %}
+                            {% if i.fecha_entrega %}
+                                <td {% if i.estado_entrega == 'CONFIRMADO' %} style="background-color: #AED6F1;"{% endif %}>
+                                    {{i.fecha_entrega|slice:'11:16'}}
+                                </td>
+                                {% else %}
+                                <td>-</td>
+                            {% endif %}
+                        {% else %}
+                            <td>-</td>
+                        {% endif %}
+
+                        <!-- DÍAS FALTANTES -->
                         {% if i.dias_faltantes == '-' %}
-                        <td class="text-end">-</td>
+                            <td class="text-end">-</td>
                         {% else %}
-                        <td class="text-start"
-                        {% if i.estado_entrega == 'CONFIRMADO' %} style="background-color: #AED6F1;"{% endif %}
-                        >{{i.dia|slice:'0:4'}} {{i.fecha_hora|slice:'8:10'}}. {{i.mes|slice:'0:3'}}</td>
+                            <td class="text-end">{{i.dias_faltantes|floatformat:0}} días</td>
                         {% endif %}
 
-                        <td class="text-start"
-                        {% if i.estado_entrega == 'CONFIRMADO' %} style="background-color: #AED6F1;"{% endif %}
-                        >{{i.fecha_hora|slice:'11:16'}}</td>
-                        {% else %}
-                        <td class="text-start">-</td>
-                        <td class="text-start">-</td>
-                        {% endif %}
-                    
-                        {% if i.dias_faltantes == '-' %}
-                        <td class="text-end">-</td>
-                        {% else %}
-                        <td class="text-end">{{i.dias_faltantes|floatformat:0}} días</td>
-                        {% endif %}
-
+                        <!-- ESTADO ETIQUETADO -->
                         <td class="estado text-center" data-estado="{{i.estado}}">
-
                             {% if i.estado == 'EN PAUSA' %}
                             <!--a class="btn btn-danger btn-sm disabled">{{i.estado}}</a-->
                             <h6 class="p-0 m-0"><span class="badge bg-danger rounded-pill">{{i.estado}}</span></h6>
@@ -137,19 +159,17 @@
                             {% else %}
                             -
                             {% endif %}
-
                             {% if i.estado != '-' and not i.TIPO_PEDIDO %}
                             <span class="badge text-dark rounded-pill" style="background-color: #BAF690; font-size: 12px">
                                 {{i.avance}}%
                             </span>
                             {% endif %}
-                            
                         </td>
 
-                        <td class="estado text-start">
-                            -
-                        </td>
+                        <!-- ESTADO ENTREGA -->
+                        <td class="estado text-start">-</td>
 
+                        <!-- TIEMPOS ETIQUETADO -->
                         <td class="text-start">{{i.t_1p_str}}</td>
                         <td class="text-start">{{i.t_2p_str}}</td>
                         <td class="text-start">{{i.t_3p_str}}</td>
@@ -171,7 +191,7 @@
 
                         <td class="text-start">{{i.NOMBRE_CLIENTE}}</td>
                         
-                            
+                        {% comment %}
                         {% if i.fecha_hora %}
 
                         <td class="text-start"
@@ -186,6 +206,31 @@
                         <td class="text-start">-</td>
                         {% endif %}
                         <td class="text-end">-</td>                       
+                        {% endcomment %}
+
+                        <!-- FECHA ENTREGA -->
+                        {% if i.fecha_entrega %}
+                            <td {% if i.estado_entrega == 'CONFIRMADO' %} style="background-color: #AED6F1;"{% endif %}>
+                                    {{i.dia|slice:'0:4'}} {{i.dia_numero}}. {{i.mes|slice:'0:3'}}
+                            </td>
+                            {% else %}
+                            <td>-</td>
+                        {% endif %}
+                        
+
+                        <!-- HORA ENTREGA -->
+                        {% if not i.TIPO_PEDIDO == 'TEMPORAL' %}
+                            {% if i.fecha_entrega %}
+                                <td {% if i.estado_entrega == 'CONFIRMADO' %} style="background-color: #AED6F1;"{% endif %}>
+                                    {{i.fecha_entrega|slice:'11:16'}}
+                                </td>
+                                {% else %}
+                                <td>-</td>
+                            {% endif %}
+                        {% else %}
+                            <td>-</td>
+                        {% endif %}
+
 
                         <td class="estado text-center" data-estado="{{i.estado}}">
                             {% if i.estado == 'EN PAUSA' %}
