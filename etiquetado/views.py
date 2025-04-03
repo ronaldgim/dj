@@ -2479,7 +2479,7 @@ def pedidos_temporales_fun():
             df['FECHA_PEDIDO'] = df['fecha_hora'].dt.date
             
             if not df.empty:
-                df = df.merge(clientes_df, on='NOMBRE_CLIENTE', how='left') #; print(df, df.dtypes)
+                df = df.merge(clientes_df, on='NOMBRE_CLIENTE', how='left') 
                 return df
         else:
             return pd.DataFrame()
