@@ -2202,8 +2202,10 @@ def wms_agregar_foto_picking_ajax(request):
 
 def reservas_lote_n_picking(n_picking): #request
     ''' Colusta de clientes por ruc a la base de datos '''
+    
+    pk = n_picking.split('.')[0]
     with connections['gimpromed_sql'].cursor() as cursor:
-        cursor.execute(f"SELECT PRODUCT_ID, LOTE_ID, EGRESO_TEMP FROM reservas_lote_2 WHERE CONTRATO_ID = '{n_picking}'")
+        cursor.execute(f"SELECT PRODUCT_ID, LOTE_ID, EGRESO_TEMP FROM reservas_lote_2 WHERE CONTRATO_ID = '{pk}'")        
         columns = [col[0] for col in cursor.description]
         reservas_lote = [
             dict(zip(columns, row))
@@ -2245,7 +2247,7 @@ def ciudad_principal_cliente(codigo_cliente):
 
 
 def wms_correo_picking(n_pedido):
-
+    
     try:
         
         data_wms = pd.DataFrame(Movimiento.objects.filter(n_referencia=n_pedido).values('product_id', 'lote_id', 'unidades'))  
@@ -2275,7 +2277,7 @@ def wms_correo_picking(n_pedido):
         data = de_dataframe_a_template(data)
     except:
         data = {}
-    
+        
     picking = EstadoPicking.objects.get(n_pedido=n_pedido)
     ciudad = ciudad_principal_cliente(picking.codigo_cliente)
     
