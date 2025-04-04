@@ -1168,10 +1168,6 @@ def wms_inventario(request): #OK
     """
     # wms_existencias_query_product_lote("2014","476790")
     
-    from api.views import precios_query
-    
-    print(precios_query())
-    
     prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     productos = pd.DataFrame(Existencias.objects.all().values('product_id'))
     productos = productos.merge(prod, on='product_id', how='left').sort_values('product_id')
