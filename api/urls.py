@@ -50,7 +50,7 @@ urlpatterns = [
     
     # api promociones
     path(
-            route = 'precio_promocion/', 
+            route = 'precio_promocion/<str:product_id>/', 
             view = views.precio_promocion, 
             name = 'precio_promocion'
         ),
