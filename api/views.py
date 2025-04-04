@@ -141,10 +141,8 @@ def reg_sanitario_correo_alerta_dias(request):
 # def precios_query(product_id):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def precio_promocion(request):
-    
-    product_id = '010030'
-    
+def precio_promocion(request, product_id):
+        
     with connections['gimpromed_sql'].cursor() as cursor:
         
         cursor.execute(f"SELECT * FROM precios.promociones WHERE Ref = '{product_id}'")
