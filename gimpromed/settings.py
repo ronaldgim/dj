@@ -172,7 +172,7 @@ DATABASES = {
     },
     
         # base de datos infimas
-    'procesos_sercop':{
+    'precios':{
         'ENGINE': 'django.db.backends.mysql',
         'NAME':'precios',
         'PASSWORD':'gimpromed',
