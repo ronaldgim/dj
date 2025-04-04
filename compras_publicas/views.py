@@ -449,7 +449,7 @@ def nombre_del_mes(mes):
 
 
 def procesos_sercop(request):
-
+    
     procesos = pd.DataFrame(ProcesosSercop.objects.all().order_by('-fecha_hora').values())
     procesos_sql = procesos_sercop_sql() 
     procesos_sql = procesos_sql.rename(columns={'Codigo':'proceso'}) 
