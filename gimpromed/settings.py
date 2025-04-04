@@ -170,6 +170,15 @@ DATABASES = {
         'USER':'standard',
         'HOST':'172.16.28.102',
     },
+    
+        # base de datos infimas
+    'procesos_sercop':{
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME':'precios',
+        'PASSWORD':'gimpromed',
+        'USER':'standard',
+        'HOST':'172.16.28.102',
+    },
 
     
     # etiquetado stock
