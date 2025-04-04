@@ -28,22 +28,30 @@ urlpatterns = [
     
     # Autenticación DRF
     path(
-        route = 'api-token-auth',
-        view  = obtain_auth_token,
-        name  = 'api_token_auth'
+            route = 'api-token-auth',
+            view  = obtain_auth_token,
+            name  = 'api_token_auth'
         ),
     
     
     # reg_sanitario_correo_alerta_list
     path(
-        route = 'reg_sanitario_correo_alerta_list/', 
-        view = views.reg_sanitario_correo_alerta_list, 
-        name = 'reg_sanitario_correo_alerta_list'
+            route = 'reg_sanitario_correo_alerta_list/', 
+            view = views.reg_sanitario_correo_alerta_list, 
+            name = 'reg_sanitario_correo_alerta_list'
         ),
     
     # reg_sanitario_correo_alerta_dias
     path(
-        route = 'reg_sanitario_correo_alerta_dias/', 
-        view = views.reg_sanitario_correo_alerta_dias, 
-        name = 'reg_sanitario_correo_alerta_dias'),
+            route = 'reg_sanitario_correo_alerta_dias/', 
+            view = views.reg_sanitario_correo_alerta_dias, 
+            name = 'reg_sanitario_correo_alerta_dias'
+        ),
+    
+    # api promociones
+    path(
+            route = 'precio_promocion/', 
+            view = views.precio_promocion, 
+            name = 'precio_promocion'
+        ),
 ]

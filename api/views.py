@@ -20,6 +20,10 @@ from django.template.loader import render_to_string
 # Settings
 from django.conf import settings
 
+from django.db import connections
+
+
+# APIS
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -130,3 +134,24 @@ def reg_sanitario_correo_alerta_dias(request):
             enviado=False
         )
         return Response(status=500)
+
+
+
+#### API PRECIOS
+# def precios_query(product_id):
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def precio_promocion(request):
+    
+    product_id = '010030'
+    
+    with connections['gimpromed_sql'].cursor() as cursor:
+        
+        cursor.execute(f"SELECT * FROM precios.promociones WHERE Ref = '{product_id}'")
+        columns = [col[0] for col in cursor.description]
+        promocion = [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ] #[0]
+        
+        return Response(promocion, status=200)

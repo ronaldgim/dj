@@ -2346,11 +2346,9 @@ def publico_dashboard_fun():
         if not cero_in_t2:
             # añadir t2
             tiempos.append('t2')
-
         elif cero_in_t2 and not cero_in_t1:
             # añadir t1
             tiempos.append('t1')
-
         elif cero_in_t1 and cero_in_t2 and not cero_in_t3:
             #añadri t3
             tiempos.append('t3')
