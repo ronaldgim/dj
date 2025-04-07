@@ -19,6 +19,7 @@ def api_marca_agua(texto, file_path):
             else:
                 return None
     except Exception as e:
+        print(e)
         return e
 
 
