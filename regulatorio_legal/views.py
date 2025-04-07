@@ -1060,6 +1060,9 @@ def facturas_proformas_detalle(request, id):
                                 ContentFile(pdf_response.content)
                             )
                             
+                            iso_reg.url_descarga = url_descarga
+                            iso_reg.save()
+                            
                             factura_proforma.documentos.add(iso_reg)
                         else:
                             return JsonResponse({'alert':'danger', 'msg':'Error al descargar el archivo'})
