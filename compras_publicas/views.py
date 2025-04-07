@@ -1204,13 +1204,15 @@ def anexo_edit_product_ajax(request):
 def anexo_formato_general_agrupado(request, anexo_id):
     
     anexo = Anexo.objects.get(id=anexo_id)
-    anexo_prod_list = anexo.product_list.all()#.order_by('orden')  #.order_by('product_id')
+    anexo_prod_list = anexo.product_list.all()
     
     prods_list =[]
     for i in anexo_prod_list.values_list('product_id', flat=True).distinct():
         prods = {}
+        
         prods['product_id'] = i
-        prods['products'] = anexo_prod_list.filter(product_id=i) 
+        prods['orden'] = anexo_prod_list.filter(product_id=i).first().orden
+        prods['products'] = anexo_prod_list.filter(product_id=i).order_by('orden')
         prods['nombre'] = anexo_prod_list.filter(product_id=i).first().nombre
         prods['nombre_generico'] = anexo_prod_list.filter(product_id=i).first().nombre_generico
         prods['presentacion'] = anexo_prod_list.filter(product_id=i).first().presentacion
@@ -1224,7 +1226,8 @@ def anexo_formato_general_agrupado(request, anexo_id):
         
         prods_list.append(prods)
     
-    products = anexo.product_list.all() #.order_by('orden') 
+    prods_list = sorted(prods_list, key=lambda x: x['orden'])
+    products = anexo.product_list.all().order_by('orden') 
     subtotal = products.aggregate(p_total=Sum('precio_total'))['p_total']
     mas_iva  = subtotal * (anexo.iva / 100)
     mas_iva  = round_cinco_al_siguiente(mas_iva, decimals=2)
@@ -1246,14 +1249,15 @@ def anexo_formato_general_agrupado(request, anexo_id):
 def anexo_formato_hbo(request, anexo_id):
     
     anexo = Anexo.objects.get(id=anexo_id)
-    anexo_prod_list = anexo.product_list.all()# .order_by('orden')  #.order_by('product_id')
+    anexo_prod_list = anexo.product_list.all()
     
     prods_list =[]
     
     for i in anexo_prod_list.values_list('product_id', flat=True).distinct():
         prods = {}
         prods['product_id'] = i
-        prods['products'] = anexo_prod_list.filter(product_id=i) 
+        prods['orden'] = anexo_prod_list.filter(product_id=i).first().orden
+        prods['products'] = anexo_prod_list.filter(product_id=i).order_by('orden')
         prods['nombre'] = anexo_prod_list.filter(product_id=i).first().nombre
         prods['nombre_generico'] = anexo_prod_list.filter(product_id=i).first().nombre_generico
         prods['presentacion'] = anexo_prod_list.filter(product_id=i).first().presentacion
@@ -1265,6 +1269,7 @@ def anexo_formato_hbo(request, anexo_id):
         
         prods_list.append(prods)
     
+    prods_list = sorted(prods_list, key=lambda x: x['orden'])
     context = {
         'anexo':anexo,
         'prods_list':prods_list,
@@ -1297,12 +1302,13 @@ def anexo_formato_hbo(request, anexo_id):
 @pdf_decorator(pdfname='anexo_formato_hcam.pdf')
 def anexo_formato_hcam(request, anexo_id):
     anexo = Anexo.objects.get(id=anexo_id)
-    anexo_prod_list = anexo.product_list.all()#.order_by('orden')  #.order_by('product_id')
+    anexo_prod_list = anexo.product_list.all()
     
     prods_list =[]
     for i in anexo_prod_list.values_list('product_id', flat=True).distinct():
         prods = {}
         prods['product_id'] = i
+        prods['orden'] = anexo_prod_list.filter(product_id=i).first().orden
         prods['products'] = anexo_prod_list.filter(product_id=i) 
         prods['nombre'] = anexo_prod_list.filter(product_id=i).first().nombre
         prods['nombre_generico'] = anexo_prod_list.filter(product_id=i).first().nombre_generico
@@ -1317,7 +1323,8 @@ def anexo_formato_hcam(request, anexo_id):
         
         prods_list.append(prods)
     
-    products = anexo.product_list.all()#.order_by('orden') 
+    prods_list = sorted(prods_list, key=lambda x: x['orden'])
+    products = anexo.product_list.all()
     subtotal = products.aggregate(p_total=Sum('precio_total'))['p_total']
     mas_iva  = subtotal * (anexo.iva / 100)
     mas_iva  = round_cinco_al_siguiente(mas_iva, decimals=2)
@@ -1364,12 +1371,13 @@ def anexo_formato_hcam(request, anexo_id):
 def anexo_formato_hpas(request, anexo_id):
     
     anexo = Anexo.objects.get(id=anexo_id)
-    anexo_prod_list = anexo.product_list.all()#.order_by('orden')  #.order_by('product_id')
+    anexo_prod_list = anexo.product_list.all()
     
     prods_list =[]
     for i in anexo_prod_list.values_list('product_id', flat=True).distinct():
         prods = {}
         prods['product_id'] = i
+        prods['orden'] = anexo_prod_list.filter(product_id=i).first().orden
         prods['products'] = anexo_prod_list.filter(product_id=i) 
         prods['nombre'] = anexo_prod_list.filter(product_id=i).first().nombre
         prods['nombre_generico'] = anexo_prod_list.filter(product_id=i).first().nombre_generico
@@ -1384,7 +1392,8 @@ def anexo_formato_hpas(request, anexo_id):
         
         prods_list.append(prods)
     
-    products = anexo.product_list.all()#.order_by('orden') 
+    prods_list = sorted(prods_list, key=lambda x: x['orden'])
+    products = anexo.product_list.all()
     subtotal = products.aggregate(p_total=Sum('precio_total'))['p_total']
     mas_iva  = subtotal * (anexo.iva / 100)
     mas_iva  = round_cinco_al_siguiente(mas_iva, decimals=2)
