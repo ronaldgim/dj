@@ -1047,7 +1047,8 @@ def facturas_proformas_detalle(request, id):
                         
                         # if pdf_response.status_code==200:
                         if url_descarga:
-                            
+                            print(pdf_response)
+                            print(pdf_response.content)    
                             iso_reg = IsosRegEnviados(
                                 tipo_documento= tipo,
                                 descripcion= desc,
