@@ -1042,7 +1042,9 @@ def facturas_proformas_detalle(request, id):
                     if procesar_pdf.status_code == 200:
                         url_descarga = procesar_pdf.json().get('url_descarga').replace('"','').replace(' ','')
                         print(url_descarga)
-                        pdf_response = requests.get(procesar_pdf.json().get('url_descarga'))
+                        #pdf_response = requests.get(procesar_pdf.json().get('url_descarga'))
+                        pdf_response = requests.get(url_descarga)
+                        
                         print(pdf_response)
                         if pdf_response.status_code==200:
                             
