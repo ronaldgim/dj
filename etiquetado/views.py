@@ -2737,8 +2737,15 @@ def dashboard_armados(request):
     productos = productos.merge(prod, on='PRODUCT_ID', how='left')
 
     ventas = frecuancia_ventas() 
-    stock = stock_lote_odbc()[['PRODUCT_ID', 'EGRESO_TEMP', 'DISP-MENOS-RESERVA', 'OH2']] 
-    stock = stock.pivot_table(index='PRODUCT_ID', values=['OH2','DISP-MENOS-RESERVA','EGRESO_TEMP'], aggfunc='sum')
+    stock = stock_lote_odbc()[['PRODUCT_ID', 'OH2']] ; print(stock)#[['PRODUCT_ID', 'EGRESO_TEMP', 'DISP-MENOS-RESERVA', 'OH2']] 
+    # stock = stock.pivot_table(index='PRODUCT_ID', values=['OH2','DISP-MENOS-RESERVA','EGRESO_TEMP'], aggfunc='sum')
+    stock = stock.pivot_table(index='PRODUCT_ID', values=['OH2'], aggfunc='sum')
+
+    reservas = pd.DataFrame(reservas_table())[['PRODUCT_ID','QUANTITY']]
+    reservas = reservas.rename(columns={'QUANTITY':'EGRESO_TEMP'})
+    reservas = reservas.pivot_table(index='PRODUCT_ID', values=['EGRESO_TEMP'], aggfunc='sum').reset_index()
+    
+    stock = stock.merge(reservas, on='PRODUCT_ID', how='left').fillna(0)
 
     reservas_sin_lote = pd.DataFrame(reservas_table())
     reservas_sin_lote = reservas_sin_lote.pivot_table(
