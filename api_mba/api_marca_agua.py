@@ -7,7 +7,8 @@ def api_marca_agua(texto, file_path):
         
         data = {
             'texto': texto,
-            'espacio': '100'
+            'espacio': '100',
+            'opacidad':'3'
         }
         
         with open(file_path, 'rb') as pdf_file:
