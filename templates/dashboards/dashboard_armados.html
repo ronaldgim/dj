@@ -80,10 +80,12 @@
                         <th scope="row">
                             <a name="prod" id="{{i.PRODUCT_ID}}" href="#">{{i.PRODUCT_ID}}</a>
                         </th>
-                        <td class="text-start" id="nom">{{i.PRODUCT_NAME}}</td>
-                        <td class="text-start" id="mar">{{i.GROUP_CODE}}</td>
+                        <td class="text-start" id="nom">{{i.Nombre}}</td>
+                        <td class="text-start" id="mar">{{i.Marca}}</td>
                         <td class="text-end">{{i.mensual|floatformat:"0g"}}</td>
-                        <td class="text-end">{{i.RESERVAS|floatformat:"0g"}}</td>
+                        <!--td class="text-end">{{i.RESERVAS|floatformat:"0g"}}</td-->
+                        <td class="text-end">{{i.EGRESO_TEMP|floatformat:"0g"}}</td>
+
                         <td class="text-end">{{i.OH2|floatformat:"0g"}}</td>
                         <td class="text-end" style="background-color: #D2FCD2;"> 
                             {{i.disponible|floatformat:'0g'}}

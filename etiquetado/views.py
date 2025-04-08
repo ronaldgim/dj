@@ -2729,36 +2729,42 @@ def detalle_dashboard_armados(request):
 @login_required(login_url='login')
 def dashboard_armados(request):
     
-    productos = ProductArmado.objects.filter(activo=True).values('producto__product_id')
-    productos = pd.DataFrame(productos)
-    productos = productos.rename(columns={'producto__product_id':'PRODUCT_ID'})
-    prod = productos_odbc_and_django()[['product_id', 'Nombre', 'Marca', 'Unidad_Empaque', 't_armado']]
-    prod = prod.rename(columns={'product_id':'PRODUCT_ID'})
-    productos = productos.merge(prod, on='PRODUCT_ID', how='left')
+    productos = productos_odbc_and_django()[['product_id', 'Nombre', 'Marca', 'Unidad_Empaque', 't_armado']]
 
-    ventas = frecuancia_ventas() 
-    stock = stock_lote_odbc()[['PRODUCT_ID', 'OH2']] ; print(stock)#[['PRODUCT_ID', 'EGRESO_TEMP', 'DISP-MENOS-RESERVA', 'OH2']] 
+    productos_armados = pd.DataFrame(ProductArmado.objects.filter(activo=True).values(
+        'producto__product_id',
+        # 'producto__description',
+        # 'producto__marca',
+        ))
+    productos_armados = productos_armados.rename(columns={'producto__product_id':'product_id'})
+    productos_armados = productos_armados.merge(productos, on='product_id', how='left') #;print(productos)
+    productos_armados = productos_armados.rename(columns={'product_id':'PRODUCT_ID'})
+    #print(productos_armados)
+    
+    
+    ventas = frecuancia_ventas() #; print(ventas)
+    stock = stock_lote_odbc()[['PRODUCT_ID', 'OH2']] #; print(stock)#[['PRODUCT_ID', 'EGRESO_TEMP', 'DISP-MENOS-RESERVA', 'OH2']] 
     # stock = stock.pivot_table(index='PRODUCT_ID', values=['OH2','DISP-MENOS-RESERVA','EGRESO_TEMP'], aggfunc='sum')
     stock = stock.pivot_table(index='PRODUCT_ID', values=['OH2'], aggfunc='sum')
 
-    reservas = pd.DataFrame(reservas_table())[['PRODUCT_ID','QUANTITY']]
-    reservas = reservas.rename(columns={'QUANTITY':'EGRESO_TEMP'})
-    reservas = reservas.pivot_table(index='PRODUCT_ID', values=['EGRESO_TEMP'], aggfunc='sum').reset_index()
+    # #reservas = pd.DataFrame(reservas_table())[['PRODUCT_ID','QUANTITY']]
+    # #reservas = reservas.rename(columns={'QUANTITY':'EGRESO_TEMP'})
+    # #reservas = reservas.pivot_table(index='PRODUCT_ID', values=['EGRESO_TEMP'], aggfunc='sum').reset_index()
     
-    stock = stock.merge(reservas, on='PRODUCT_ID', how='left').fillna(0)
+    # #stock = stock.merge(reservas, on='PRODUCT_ID', how='left').fillna(0)
 
     reservas_sin_lote = pd.DataFrame(reservas_table())
-    reservas_sin_lote = reservas_sin_lote.pivot_table(
-        index=['PRODUCT_ID'], values=['QUANTITY'], aggfunc='sum'
-    ).reset_index()
-    reservas_sin_lote = reservas_sin_lote.rename(columns={'QUANTITY':'RESERVAS-SIN-LOTE'})
+    reservas_sin_lote = reservas_sin_lote.pivot_table(index=['PRODUCT_ID'], values=['QUANTITY'], aggfunc='sum').reset_index()
+    # reservas_sin_lote = reservas_sin_lote.rename(columns={'QUANTITY':'RESERVAS-SIN-LOTE'})
+    reservas_sin_lote = reservas_sin_lote.rename(columns={'QUANTITY':'EGRESO_TEMP'})
 
-    armados = productos.merge(ventas, on='PRODUCT_ID', how='left').fillna(0)
+
+    # armados = productos.merge(ventas, on='PRODUCT_ID', how='left').fillna(0)
+    armados = productos_armados.merge(ventas, on='PRODUCT_ID', how='left').fillna(0)
     armados = armados.merge(stock, on='PRODUCT_ID', how='left').fillna(0)
     armados = armados.merge(reservas_sin_lote, on='PRODUCT_ID', how='left').fillna(0)
 
-    armados['RESERVAS'] = armados.apply(lambda x: x['EGRESO_TEMP'] if x['EGRESO_TEMP']==x['RESERVAS-SIN-LOTE'] else x['RESERVAS-SIN-LOTE'], axis=1)
-
+    # # armados['RESERVAS'] = armados.apply(lambda x: x['EGRESO_TEMP'] if x['EGRESO_TEMP']==x['RESERVAS-SIN-LOTE'] else x['RESERVAS-SIN-LOTE'], axis=1)
     
     ### PRODUCTOS EN TRANSITO
     transito = productos_transito_odbc()
@@ -2768,7 +2774,9 @@ def dashboard_armados(request):
         armados['OH2'] = armados['OH2'] + armados['OH']
 
     armados['mensual'] = (armados['ANUAL'] / 12).round(0)
-    armados['dip-meno-res-2'] = (armados['OH2'] - armados['RESERVAS']).round(0)
+    # armados['dip-meno-res-2'] = (armados['OH2'] - armados['RESERVAS']).round(0)
+    armados['dip-meno-res-2'] = (armados['OH2'] - armados['EGRESO_TEMP']).round(0)
+    
     armados['meses']   = (armados['dip-meno-res-2'] / armados['mensual']).round(2)
     #armados['armar']   = (armados['mensual'] - armados['dip-meno-res-2'])
     # Si dip-meno-res-2 mayor ponga 0 sino haga la resta
@@ -2780,8 +2788,8 @@ def dashboard_armados(request):
         'producto__description':'PRODUCT_NAME',
         'producto__marca2':'GROUP_CODE',
         'dip-meno-res-2':'disponible',
-        'Nombre':'PRODUCT_NAME',
-        'Marca':'GROUP_CODE'
+        # 'Nombre':'PRODUCT_NAME',
+        # 'Marca':'GROUP_CODE'
     })
     
     armados['cartones'] = (armados['armar'] / armados['Unidad_Empaque']).round(2)#.replace(np.inf, 0).replace(-np.inf, 0).replace(-0,0)
@@ -2799,11 +2807,13 @@ def dashboard_armados(request):
     pronto  = armados[armados['meses']>=0.5]
     pronto  = pronto[pronto['meses']< 1]
     
-    armados = armados.sort_values(by=['meses','mensual','PRODUCT_NAME'], ascending=[True, True, False])
+    armados = armados.sort_values(by=['meses','mensual','Nombre'], ascending=[True, True, False])
+    armados = armados[armados['Marca']!=0]
     
     # Solicitudes de armado
     solicitudes = OrdenEmpaque.objects.exclude(estado='Finalizado').count()
     
+    # armados = armados.merge(productos, on='PRODUCT_ID', how='left') ;print(armados)
     armados = de_dataframe_a_template(armados)
 
     context = {
