@@ -1148,6 +1148,7 @@ def wms_existencias_query_product_lote(product_id, lote_id):
         return exitencias
 
     except Exception as e:
+        print(e)
         return HttpResponse(f'{e}')
 
 
@@ -2396,6 +2397,25 @@ def wms_estado_picking_actualizar_ajax(request):
             except:
                 return JsonResponse({'msg':'❌ Error, intente nuevamente !!!',
                                     'alert':'danger'})
+
+
+# Actualizar Estado Picking AJAX
+@permisos(['BODEGA'], '/wms/picking/list', 'cambio de estado de picking')
+def wms_actualizar_picking_ajax(request):
+
+    n_ped = request.POST['n_ped']
+    picking = EstadoPicking.objects.get(n_pedido=n_ped)
+    
+    picking.estado = 'EN PROCESO'
+    picking.fecha_actualizado = datetime.now()
+    picking.foto_picking = None
+    picking.save()
+    
+    return JsonResponse({
+        'msg':f' ⚠ El picking esta nuevamente EN PROCESO !!!',
+        'alert':'warning'
+    })
+
 
 
 # Crear egreso en tabla movimientos
