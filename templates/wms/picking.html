@@ -18,26 +18,33 @@
 <h5 class="mt-2 text-center fw-bold">{{cli}}</h5>
 
 <div class="mt-2 mb-2">   
-    <span class="fw-bold" style="font-size: small;">Pedido: </span> <span style="font-size: small;">{{n_ped|slice:'-2'}}</span> <br>
-    <span class="fw-bold" style="font-size: small;">Fecha-Hora: </span> <span style="font-size: small;"> {{fecha|date:'Y-m-d'}} {{hora}}</span> <br>
-    <span class="fw-bold" style="font-size: small;">Ciudad: </span> <span style="font-size: small;"> {{ciu}} </span> 
+    <span class="fw-bold" style="font-size: medium;">Pedido: </span> <span style="font-size: medium;">{{n_ped|slice:'-2'}}</span> <br>
+    <span class="fw-bold" style="font-size: medium;">Fecha-Hora: </span> <span style="font-size: medium;"> {{fecha|date:'Y-m-d'}} {{hora}}</span> <br>
+    <span class="fw-bold" style="font-size: medium;">Ciudad: </span> <span style="font-size: medium;"> {{ciu}} </span> 
 </div>
+
+{% if estado == 'FINALIZADO' %}
+<div class="text-start">
+    <button class="btn bg-warning" data-bs-toggle="modal" data-bs-target="#actualizarModal">
+        ACTUALIZAR     
+    </button>
+</div>
+{% endif %}
 
 <hr>
 
 <div class="text-end mb-2">
-    <button type="button" class="btn btn-sm btn-info disabled">Estado: {{estado}}</button>
+    <button type="button" class="btn btn-sm btn-info disabled fw-bold">Estado: <span class="text-white">{{estado}}</span></button> 
 </div>
-
 
 <div class="text-end">
     {% if estado == 'SIN ESTADO' %}
-        <button type="button" id="{{n_ped}}" name="estado_picking" class="btn btn-warning">EN PROCESO</button>
+        <button type="button" id="{{n_ped}}" name="estado_picking" class="btn btn-warning text-white">EN PROCESO</button>
     {% elif estado == 'FINALIZADO' %}
         <button type="button" id="{{n_ped}}" name="estado_picking" class="btn btn-success disabled">FINALIZADO</button>
     {% elif estado == 'EN TRANSITO' %}
     <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
-        <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-warning">EN PROCESO</button>
+        <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-warning text-white">EN PROCESO</button>
     </div>
     <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
         <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-danger">EN PAUSA</button>
@@ -46,7 +53,7 @@
     </div>
     {% elif estado == 'EN PAUSA' %}
     <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
-        <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-warning">EN PROCESO</button>
+        <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-warning text-white">EN PROCESO</button>
         <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-primary">EN TRANSITO</button>
     </div>
     <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
@@ -55,7 +62,7 @@
     </div>
     {% elif estado == 'INCOMPLETO' %}
         <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
-            <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-warning">EN PROCESO</button>
+            <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-warning text-white">EN PROCESO</button>
             <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-primary">EN TRANSITO</button>
         </div>
         <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
@@ -76,17 +83,17 @@
 <hr>
 
 {% if messages %}
-{% for message in messages %}
-{% if message.tags == 'success'%}
-<div class="alert text-center alert-success" role="alert">
-    {{message}}
-</div>
-{% elif message.tags == 'error'%}
-<div class="alert text-center alert-danger" role="alert">
-    {{message}}
-</div>
-{%endif%}
-{% endfor %}
+    {% for message in messages %}
+    {% if message.tags == 'success'%}
+    <div class="alert text-center alert-success" role="alert">
+        {{message}}
+    </div>
+    {% elif message.tags == 'error'%}
+    <div class="alert text-center alert-danger" role="alert">
+        {{message}}
+    </div>
+    {%endif%}
+    {% endfor %}
 {% endif %}
 
 
@@ -267,6 +274,29 @@
 </div>
 {% endif %}
 
+
+
+<!-- Modal - ACTUALIZAR -->
+<div class="modal fade" id="actualizarModal" tabindex="-1" aria-labelledby="actualizarModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="actualizarModalLabel">¿Está seguro de actualizar el picking {{n_ped|slice:'-2'}} ?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body responsive">
+                <div class="text-center">
+                    <p>Al actualizar el picking regresara a estado <span class="fs-6 badge bg-warning">EN PROCESO</span> y la foto se eliminara.</p>
+                    <small class="fst-italic">Si desea continuar, haga clic en el botón "Actualizar".</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" value="{{n_ped}}" name="actualizar">Actualizar</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 
 <!-- Modal - RESERVAS -->
@@ -491,6 +521,44 @@
     })
 </script>
 
+
+<!-- Actuaizar Estado Picking -->
+<script>
+    $("button[name='actualizar']").click(function(){
+        var n_ped = $(this).val();
+        console.log(n_ped)
+        $.ajax({
+            type:"POST",
+            url:"{% url 'wms_actualizar_picking_ajax' %}",
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'n_ped':n_ped,
+            },
+
+            success: function(response) {
+            
+            if (response.msg) {
+                $('#msg').html(`<div class="text-center alert alert-${response.alert}" role="alert"> ${response.msg} </div>`)
+            }
+            
+            setTimeout(function(){
+                window.location.reload();
+            }, 2000)
+        
+            },
+            
+            error: function() {
+                $('#msg').html('<div class="text-center alert alert-danger" role="alert"> Error al hacer el picking !!! </div>')
+                    setTimeout(function(){
+                    window.location.reload();
+                    }, 2000)
+            }
+        })
+        
+    })
+</script>
+
+
 <script>
     $(document).ready(function () {
         $("#foto_picking").on("change", function (event) {
@@ -522,6 +590,7 @@
         });
     });
 </script>
+
 
 <script>
     $("button[name='sendFoto']").on("click", function () {

@@ -202,8 +202,15 @@ urlpatterns = [
     # Actualizar Estado Picking AJAX
     path(
         route='picking/estado/actualizar/ajax', 
-        view = views.wms_estado_picking_actualizar_ajax, #PRUEBA
+        view = views.wms_estado_picking_actualizar_ajax, 
         name = 'wms_estado_picking_actualizar_ajax'
+    ),
+    
+    # actualizar
+    path(
+        route='wms_actualizar_picking_ajax', 
+        view = views.wms_actualizar_picking_ajax, 
+        name = 'wms_actualizar_picking_ajax'
     ),
     
     path(
