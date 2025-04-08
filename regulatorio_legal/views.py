@@ -1032,55 +1032,55 @@ def facturas_proformas_detalle(request, id):
         
         else:
             
-            # try:
-            #     for i in documentos:
-            #         tipo = i.get('tipo').split('_')[0]
-            #         desc = i.get('tipo').split('_')[1]
-            #         path = i.get('doc_path')
+            try:
+                for i in documentos:
+                    tipo = i.get('tipo').split('_')[0]
+                    desc = i.get('tipo').split('_')[1]
+                    path = i.get('doc_path')
                     
-            #         procesar_pdf = api_marca_agua(texto=factura_proforma.marca_de_agua, file_path=path)
-            #         if procesar_pdf.status_code == 200:
-            #             url_descarga = procesar_pdf.json().get('url_descarga').replace('"','').replace(' ','')
-            #             # print(url_descarga)
-            #             #pdf_response = requests.get(procesar_pdf.json().get('url_descarga'))
-            #             pdf_response = requests.get(url_descarga)
+                    procesar_pdf = api_marca_agua(texto=factura_proforma.marca_de_agua, file_path=path)
+                    if procesar_pdf.status_code == 200:
+                        url_descarga = procesar_pdf.json().get('url_descarga').replace('"','').replace(' ','')
+                        # print(url_descarga)
+                        #pdf_response = requests.get(procesar_pdf.json().get('url_descarga'))
+                        pdf_response = requests.get(url_descarga)
                         
-            #             # if pdf_response.status_code==200:
-            #             if url_descarga:
-            #                 # print(pdf_response)
-            #                 # print(pdf_response.content)    
-            #                 iso_reg = IsosRegEnviados(
-            #                     tipo_documento= tipo,
-            #                     descripcion= desc,
-            #                 )
+                        # if pdf_response.status_code==200:
+                        if url_descarga:
+                            # print(pdf_response)
+                            # print(pdf_response.content)    
+                            iso_reg = IsosRegEnviados(
+                                tipo_documento= tipo,
+                                descripcion= desc,
+                            )
                             
-            #                 iso_reg.documento.save(
-            #                     f'{tipo}-{desc}.pdf',
-            #                     #ContentFile(pdf_response.content, name=f'{tipo}-{desc}.pdf')
-            #                     ContentFile(pdf_response.content)
-            #                 )
+                            iso_reg.documento.save(
+                                f'{tipo}-{desc}.pdf',
+                                #ContentFile(pdf_response.content, name=f'{tipo}-{desc}.pdf')
+                                ContentFile(pdf_response.content)
+                            )
                             
-            #                 iso_reg.url_descarga = url_descarga
-            #                 iso_reg.save()
+                            iso_reg.url_descarga = url_descarga
+                            iso_reg.save()
                             
-            #                 factura_proforma.documentos.add(iso_reg)
-            #             else:
-            #                 return JsonResponse({'alert':'danger', 'msg':'Error al descargar el archivo'})
-            #         else:
-            #             return JsonResponse({
-            #                 'alert':'danger', 
-            #                 'msg':f'Error procesando documento {desc} con tipo {tipo}'
-            #             })
-            #         time.sleep(2)
+                            factura_proforma.documentos.add(iso_reg)
+                        else:
+                            return JsonResponse({'alert':'danger', 'msg':'Error al descargar el archivo'})
+                    else:
+                        return JsonResponse({
+                            'alert':'danger', 
+                            'msg':f'Error procesando documento {desc} con tipo {tipo}'
+                        })
+                    time.sleep(2)
                 
-            #     factura_proforma.procesar_docs = True
-            #     factura_proforma.save()
-            # except Exception as e:
+                factura_proforma.procesar_docs = True
+                factura_proforma.save()
+            except Exception as e:
 
-            #     return JsonResponse({
-            #         'alert':'danger', 
-            #         'msg':str(e)
-            #         })
+                return JsonResponse({
+                    'alert':'danger', 
+                    'msg':str(e)
+                    })
         
             return JsonResponse({
                 'alert':'success',
