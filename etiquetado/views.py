@@ -2850,8 +2850,8 @@ def reporte_revision_reservas(request):
             workbook = writer.book
             worksheet = writer.sheets['Reporte-Reservas']
             
-            worksheet.column_dimensions['A'].width = 16
-            worksheet.column_dimensions['B'].width = 20
+            worksheet.column_dimensions['A'].width = 30
+            worksheet.column_dimensions['B'].width = 16
             worksheet.column_dimensions['C'].width = 20
             worksheet.column_dimensions['D'].width = 20
             worksheet.column_dimensions['E'].width = 20
@@ -2860,7 +2860,8 @@ def reporte_revision_reservas(request):
             worksheet.column_dimensions['H'].width = 23
             worksheet.column_dimensions['I'].width = 23
             worksheet.column_dimensions['J'].width = 23
-            worksheet.column_dimensions['K'].width = 50
+            worksheet.column_dimensions['K'].width = 23
+            worksheet.column_dimensions['L'].width = 50
             
         return response
 
