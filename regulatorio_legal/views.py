@@ -964,7 +964,7 @@ def facturas_proformas_detalle(request, id):
                     desc = i.get('tipo').split('_')[1]
                     path = i.get('doc_path')
                     
-                    procesar_pdf = api_marca_agua(texto=factura_proforma.marca_de_agua, file_path=path)
+                    procesar_pdf = api_marca_agua(texto=factura_proforma.marca_de_agua, opacidad=factura_proforma.opacidad, file_path=path)
                     if procesar_pdf.status_code == 200:
                         url_descarga = procesar_pdf.json().get('url_descarga').replace('"','').replace(' ','')
                         # print(url_descarga)

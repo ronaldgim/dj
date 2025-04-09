@@ -2,13 +2,13 @@ import requests
 
 URL_MARA_AGUA = 'https://www.gimpromed.com/app/api/procesarPdf'
 
-def api_marca_agua(texto, file_path):
+def api_marca_agua(texto, file_path, opacidad):
     try:
         
         data = {
             'texto': texto,
             'espacio': '100',
-            'opacidad':'3'
+            'opacidad':opacidad
         }
         
         with open(file_path, 'rb') as pdf_file:
