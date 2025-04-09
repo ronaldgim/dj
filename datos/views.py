@@ -2077,85 +2077,112 @@ def revision_reservas_fun():
         # df_reservas_sinlote = reservas_sinlote()
         #cli                 = clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE']]
         # clientes            = clientes_warehouse()[['CODIGO_CLIENTE','CLIENT_TYPE']]
-        stock          = stock_lote_odbc()
-        picking             = pickin_de_reservas_finalizado()
+        stock               = stock_lote_odbc()
+        #picking             = pickin_de_reservas_finalizado()
         
-        # 2. DATAFRAME RESERVAS
+        # print('PICKING', picking)
+        # LISTAS DE PRODUCTOS
         contratos_list = df_reservas_lote['CONTRATO_ID'].unique() 
-        df_reservas_lote['LOTE_ID'] = df_reservas_lote['LOTE_ID'].str.replace('.', '')
-        reservas = df_reservas_lote[df_reservas_lote.CONTRATO_ID.isin(contratos_list)]
+        productos_list = df_reservas_lote['PRODUCT_ID'].unique() 
         
-        # 3. RESERVAS AGRUPADAS POR CANTIDAD
-        reservas_agrupadas_cantidad = reservas.copy()
-        if not picking.empty:
-            reservas_agrupadas_cantidad = reservas_agrupadas_cantidad.merge(picking, on='CONTRATO_ID', how='left')
-        reservas_agrupadas_cantidad = reservas_agrupadas_cantidad[reservas_agrupadas_cantidad['estado']!='FINALIZADO']
-        reservas_agrupadas_cantidad = reservas_agrupadas_cantidad.groupby(by=['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD'])['EGRESO_TEMP'].sum().reset_index()
+        # 2. DATAFRAME RESERVAS LOTE AGRUPADAS POR PRODUCTO, LOTE Y FECHA_CADUCIDAD
+        df_reservas_productos = df_reservas_lote.copy()
+        df_reservas_productos = df_reservas_productos.rename(columns={'EGRESO_TEMP':'UND_RESERVA'})
+        df_reservas_productos['LOTE_ID'] = df_reservas_productos['LOTE_ID'].str.replace('.', '')
+        df_reservas_productos['LOTE_ID'] = df_reservas_productos['LOTE_ID'].str.strip()
+        df_reservas_productos = df_reservas_productos.pivot_table(
+            #index=['CONTRATO_ID','CODIGO_CLIENTE','PRODUCT_ID', 'LOTE_ID', 'FECHA_CADUCIDAD'],
+            index=['PRODUCT_ID', 'LOTE_ID', 'FECHA_CADUCIDAD'],
+            values='UND_RESERVA',
+            aggfunc='sum'
+        ).reset_index()
         
-        # 4. RESERVAS AGRUPADAS POR CONTRATO_ID
-        reservas_agrupadas_contratos = reservas.copy()
-        reservas_agrupadas_contratos['CONTRATO_ID'] = reservas_agrupadas_contratos['CONTRATO_ID'].astype('str')
-        reservas_agrupadas_contratos = reservas_agrupadas_contratos.pivot_table(
+        # 3. DATAFRAME RESERVAS AGRUPADAS POR CONTRATO_ID
+        df_reservas_contratos = df_reservas_lote.copy()
+        df_reservas_contratos['CONTRATO_ID'] = df_reservas_contratos['CONTRATO_ID'].astype('str')
+        df_reservas_contratos = df_reservas_contratos.pivot_table(
             index=[
                 'PRODUCT_ID',
                 'LOTE_ID',
                 'FECHA_CADUCIDAD',
-            ], values='CONTRATO_ID', aggfunc = lambda x: ' - '.join(x)).reset_index()
+            ], values='CONTRATO_ID', aggfunc = lambda x: ' - '.join(x)
+        ).reset_index()
         
-        # 5. RESERVAS AGRUPADAS POR CANTIDAD, LOTE Y CONTRATO_ID
-        reservas_agrupadas = reservas_agrupadas_cantidad.merge(reservas_agrupadas_contratos, on=['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD'], how='left')
-        
-        # 6. Stock MBA
+        # 4. DATAFRAME STOCK
+        stock = stock.rename(columns={'OH2':'UND_EXISTENCIA'})
         stock['LOTE_ID'] = stock['LOTE_ID'].str.replace('.', '')
-        stock = stock[stock['PRODUCT_ID'].isin(reservas_agrupadas['PRODUCT_ID'].unique())]
-        stock = stock.groupby(by=['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD'])['OH2'].sum().reset_index().sort_values(by='FECHA_CADUCIDAD', ascending=True)
+        stock['LOTE_ID'] = stock['LOTE_ID'].str.strip()
+        stock = stock.pivot_table(
+            index=['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD'],
+            values='UND_EXISTENCIA',
+            aggfunc='sum'
+        ).reset_index()
         
-        # 7 Reporte
-        df_list = []
-        for producto in reservas_agrupadas['PRODUCT_ID'].unique():
-
-            sto = stock[stock['PRODUCT_ID']==producto]
-            rsv = reservas_agrupadas[reservas_agrupadas['PRODUCT_ID']==producto]
+        # 5. MERGE STOCK - RESERVAS
+        stock_reservas = stock.merge(
+            df_reservas_productos, on=['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD'], 
+            how='left'
+        ).fillna(0) #.sort_values(
+        #     by        = ['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD'], 
+        #     ascending = [True, True, True]
+        # ).fillna(0)
+        
+        # 5.1 CREAR COLUMNA DISPONIBLE-RESERVAS
+        stock_reservas['DISPONIBLE'] =  stock_reservas['UND_EXISTENCIA'] - stock_reservas['UND_RESERVA']
+        
+        # 5.2 FILTRAR SOLO POR PRODUCTOS Y LOTES QUE TIENEN RESERVAS
+        stock_reservas = stock_reservas[stock_reservas['PRODUCT_ID'].isin(productos_list)]
+        
+        # 5.3 UNIR RESERVAS POR CONTRATO
+        stock_reservas = stock_reservas.merge(df_reservas_contratos, on=['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD'], how='left')
+        
+        # 5.4 PRODUCTO_UNICO
+        frecuencia = stock_reservas['PRODUCT_ID'].value_counts() 
+        stock_reservas['PRODUCT_ID_UNICO'] = stock_reservas['PRODUCT_ID'].map(lambda x: frecuencia[x] == 1)
+        
+        ### FILTROS Y CONDICIONES
+        # 6. SOLO PRODUCTOS CON MAS DE 1 LOTE
+        stock_reservas = stock_reservas[stock_reservas['PRODUCT_ID_UNICO'] == False]
+        
+        # 6.1 FILTRO POR DISPONIBLE MENOR A CERO
+        stock_reservas = stock_reservas[stock_reservas['DISPONIBLE'] >= 0]
+        
+        # stock_reservas.to_excel('stock.xlsx', index=False)
+        # print(stock_eservas)        
+        
+        df = stock_reservas.sort_values(
+            by        = ['PRODUCT_ID','FECHA_CADUCIDAD'],
+            ascending = [True, False]
+        )
+        
+        reporte = []
+        for product_id, group in df.groupby('PRODUCT_ID'):
             
-            if len(sto) > 1:
-                #sto = sto.sort_values(by='FECHA_CADUCIDAD', ascending=True)
-                sto_lote = sto.merge(rsv, on=['PRODUCT_ID','LOTE_ID'], how='left').reset_index()
+            lotes = group.to_dict(orient='records')
+            lote_destino = lotes[0]  # LOTE CON FECHA DE CADUCIDAD MAS POSTERIOR
+            
+            for lote_origen in lotes[1:]:
                 
-                cl = ['FECHA_CADUCIDAD_y','EGRESO_TEMP','CONTRATO_ID']
-                sto_lote['fila_llena'] = sto_lote[cl].notna().all(axis=1)
-                sto_lote['siguiente_vacia'] = sto_lote[cl].isna().all(axis=1).shift(-1, fill_value=False) #;print(sto_lote)
-
-                df = sto_lote 
-                # Crear la nueva columna de disponibilidad
-                df['disp-reserva'] = df['OH2'] - df['EGRESO_TEMP']
-                #print(df)
-                # Filtrar los lotes negativos
-                sto_lote_negativo = df[df['disp-reserva'] < 0].copy() 
-                if not sto_lote_negativo.empty:
-                    sto_lote_negativo['OBSERVACIONES'] = 'LOTE CON RESERVAS MAYORES A LO DISPONIBLE' #;print(sto_lote_negativo)
-                    df_list.append(sto_lote_negativo)
-
-                # Filtrar los lotes que deben moverse
-                sto_lote_mover = df[df['fila_llena'] & df['siguiente_vacia']].copy() 
-                if not sto_lote_mover.empty:
-                    sto_lote_mover['OBSERVACIONES'] = 'CAMBIAR ESTA RESERVA A UN LOTE POSTERIOR SIN RESERVAS' #;print(sto_lote_mover)
-                    df_list.append(sto_lote_mover)
-
-                # Filtrar lotes con disponibilidad positiva
-                sto_lote_cambiar = df[df['disp-reserva'] > 0] #;print(sto_lote_cambiar) 
-                
-
-                if len(sto_lote_cambiar) > 1:
-                    
-                    fila_seleccionada = pd.DataFrame([sto_lote_cambiar.iloc[0]])
-                    fila_seleccionada['OBSERVACIONES'] = 'CAMBIAR ESTA RESERVA A UN LOTE CON FECHA DE CADUCIDAD POSTERIOR LA CANTIDAD ' + str(fila_seleccionada['EGRESO_TEMP'].values[0]) #;print(fila_seleccionada)
-                    df_list.append(fila_seleccionada)
-        
-        df_reporte = pd.concat(df_list)[['CONTRATO_ID','PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD_x', 'OH2', 'EGRESO_TEMP','disp-reserva','OBSERVACIONES']]
-        df_reporte['FECHA_CADUCIDAD_x'] = df_reporte['FECHA_CADUCIDAD_x'].astype('str')
-        df_reporte = df_reporte.rename(columns={'FECHA_CADUCIDAD_x':'FECHA_CADUCIDAD','OH2':'UNDS-DISPONIBLE', 'EGRESO_TEMP':'UNDS-RESERVA'})
-        
-        df_reporte = df_reporte.drop_duplicates(subset=['CONTRATO_ID', 'PRODUCT_ID', 'LOTE_ID'])
+                if lote_origen['UND_RESERVA'] > 0:
+                    reserva_total = lote_destino['UND_RESERVA'] + lote_origen['UND_RESERVA']
+                    if lote_destino['UND_EXISTENCIA'] >= reserva_total:
+                        reporte.append({
+                            'PRODUCT_ID': product_id,
+                            'LOTE_RESERVADO': lote_origen['LOTE_ID'],
+                            'FECHA_RESERVADO': lote_origen['FECHA_CADUCIDAD'].strftime('%d/%m/%Y'),
+                            'RESERVA_RESERVADO': lote_origen['UND_RESERVA'],
+                            'LOTE_DISPONIBLE': lote_destino['LOTE_ID'],
+                            'FECHA_DISPONIBLE': lote_destino['FECHA_CADUCIDAD'].strftime('%d/%m/%Y'),
+                            'EXISTENCIA_DISPONIBLE': lote_destino['UND_EXISTENCIA'],
+                            'RESERVA_DISPONIBLE_ACTUAL': lote_destino['UND_RESERVA'],
+                            'RESERVA_DISPONIBLE_NUEVA': reserva_total,
+                            'DISPONIBLE_DISPONIBLE': lote_destino['UND_EXISTENCIA'] - reserva_total
+                        })
+            
+        df_reporte = pd.DataFrame(reporte)
+        df_reporte['OBSERVACIONES'] = df_reporte.apply(
+            lambda x: "LAS FECHAS DE LOS LOTES SON IGUALES" if x['FECHA_RESERVADO'] == x['FECHA_DISPONIBLE'] else f"CAMBIAR ESTA RESERVA A UN LOTE CON FECHA DE CADUCIDAD POSTERIOR LA CANTIDAD {x['RESERVA_RESERVADO']}", axis=1
+        )
         
         return df_reporte
 

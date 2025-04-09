@@ -2831,9 +2831,9 @@ def dashboard_armados(request):
 def reporte_revision_reservas(request):
 
     from datos.views import revision_reservas_fun
-
-    reporte = revision_reservas_fun()
     
+    reporte = revision_reservas_fun()
+
     # Excel
     if not reporte.empty:
         hoy = datetime.today().strftime('%Y-%m-%d_%H-%M-%S')
@@ -2850,14 +2850,18 @@ def reporte_revision_reservas(request):
             workbook = writer.book
             worksheet = writer.sheets['Reporte-Reservas']
             
-            worksheet.column_dimensions['A'].width = 35
-            worksheet.column_dimensions['B'].width = 18
-            worksheet.column_dimensions['C'].width = 15
-            worksheet.column_dimensions['D'].width = 15
+            worksheet.column_dimensions['A'].width = 16
+            worksheet.column_dimensions['B'].width = 20
+            worksheet.column_dimensions['C'].width = 20
+            worksheet.column_dimensions['D'].width = 20
             worksheet.column_dimensions['E'].width = 20
-            worksheet.column_dimensions['F'].width = 15
-            worksheet.column_dimensions['G'].width = 15
-
+            worksheet.column_dimensions['F'].width = 20
+            worksheet.column_dimensions['G'].width = 23
+            worksheet.column_dimensions['H'].width = 23
+            worksheet.column_dimensions['I'].width = 23
+            worksheet.column_dimensions['J'].width = 23
+            worksheet.column_dimensions['K'].width = 50
+            
         return response
 
     else:
