@@ -117,7 +117,11 @@ urlpatterns = [
         name = 'factura_proforma_marca_de_agua_ajax'
     ),
     
-    
+    path(
+        route = 'factura_proforma_opacidad_ajax',
+        view  = views.factura_proforma_opacidad_ajax,
+        name = 'factura_proforma_opacidad_ajax'
+    ),
     
     path(
         route = 'eliminar_documento_procesado_ajax',

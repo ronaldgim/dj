@@ -63,20 +63,32 @@
 
 <hr>
 
-<h6 class="fw-bold">Documentos</h6>
-<button class="btn text-white {% if not factura_proforma.marca_de_agua %} btn-danger {% else %} btn-warning {% endif %}" type="button" data-bs-toggle="modal" data-bs-target="#marcaAgua">
-    Marca de agua
-</button>
-<button class="btn btn-success {% if not factura_proforma.marca_de_agua %} disabled {% endif %}" name="procesar_documentos">
-    Procesar documentos
-
-    <div id="spinner-documentos" class="spinner-border spinner-border-sm" role="status">
-        <span class="visually-hidden">Loading...</span>
+<div class="row">
+    <div class="col-auto">
+        <h6 class="fw-bold">Documentos</h6>
+        <button class="btn text-white {% if not factura_proforma.marca_de_agua %} btn-danger {% else %} btn-warning {% endif %}" type="button" data-bs-toggle="modal" data-bs-target="#marcaAgua">
+            Marca de agua
+        </button>
     </div>
-    {% if factura_proforma.procesar_docs %}
-    <i class="bi bi-check-lg"></i>
-    {% endif %}
-</button>
+
+    <div class="col-auto">
+        <h6><span class="fw-bold">Opacidad: </span> <span id="opacidad_value">{{factura_proforma.opacidad}} </span><h6>
+        <input type="range" class="mt-2 bg-primary" name="opacidad" min="0" max="10" step="1" value="{{factura_proforma.opacidad}}" id="id_opacidad">
+    </div>
+
+    <div class="col-auto">
+        <button class="btn btn-success mt-4 {% if not factura_proforma.marca_de_agua %} disabled {% endif %}" name="procesar_documentos">
+            Procesar documentos
+            <div id="spinner-documentos" class="spinner-border spinner-border-sm" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            {% if factura_proforma.procesar_docs %}
+            <i class="bi bi-check-lg"></i>
+            {% endif %}
+        </button>
+    </div>
+</div>
+
 
 <div class="mt-3" id="msg-documentos"></div>
 
@@ -269,7 +281,6 @@
     });
 </script>
 
-
 <!-- Detalle -->
 <script>
     $(document).ready(function() {
@@ -352,6 +363,32 @@
             }
         })
 </script>
+
+<!-- Editar opacidad -->
+<script>
+    $(document).ready(function() {
+        $("#id_opacidad").on('input', function() {
+            var opacidad = $(this).val();
+            $.ajax({
+                type: "POST",
+                url: "{% url 'factura_proforma_opacidad_ajax' %}",
+                data: {
+                    'csrfmiddlewaretoken': '{{ csrf_token }}',
+                    'id_factura_proforma':{{factura_proforma.id}},
+                    'opacidad': opacidad 
+                },
+                success: function(response) {
+                    // $('#msg').html(`<div class="text-center alert alert-${response.alert}" role="alert"> ${response.msg} !!! </div>`)
+                    $("#opacidad_value").text(opacidad);
+                },
+                error: function(xhr, status, error) {
+                    $('#msg').html(`<div class="text-center alert alert-danger" role="alert"> ${xhr.statusText} !!! </div>`)
+                }
+            })
+        })
+    })
+</script>
+
 
 <!-- Enviar documentos a procesar -->
 <script>
