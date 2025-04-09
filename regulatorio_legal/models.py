@@ -102,3 +102,4 @@ class FacturaProforma(models.Model):
     usuario          = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.PROTECT)
     email            = models.BooleanField(default=False)
     procesar_docs    = models.BooleanField(default=False)
+    opacidad         = models.CharField(max_length=2, default='3')
