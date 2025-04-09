@@ -2158,7 +2158,7 @@ def revision_reservas_fun():
         reporte = []
         for product_id, group in df.groupby('PRODUCT_ID'):
             
-            lotes = group.to_dict(orient='records')
+            lotes = group.to_dict(orient='records') #; print(lotes)
             lote_destino = lotes[0]  # LOTE CON FECHA DE CADUCIDAD MAS POSTERIOR
             
             for lote_origen in lotes[1:]:
@@ -2167,6 +2167,7 @@ def revision_reservas_fun():
                     reserva_total = lote_destino['UND_RESERVA'] + lote_origen['UND_RESERVA']
                     if lote_destino['UND_EXISTENCIA'] >= reserva_total:
                         reporte.append({
+                            'CONTRATO':lote_origen['CONTRATO_ID'],
                             'PRODUCT_ID': product_id,
                             'LOTE_RESERVADO': lote_origen['LOTE_ID'],
                             'FECHA_RESERVADO': lote_origen['FECHA_CADUCIDAD'].strftime('%d/%m/%Y'),
