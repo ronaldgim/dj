@@ -271,7 +271,6 @@ class UbicacionAndagoya(models.Model):
     nivel      = models.CharField(verbose_name='Nivel', max_length=10, blank=True)
     estanteria = models.BooleanField(default=False)
     
-    
     class Meta:
         unique_together = ('bodega', 'pasillo', 'modulo', 'nivel')
     

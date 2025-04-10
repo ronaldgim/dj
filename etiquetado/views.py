@@ -2850,18 +2850,20 @@ def reporte_revision_reservas(request):
             workbook = writer.book
             worksheet = writer.sheets['Reporte-Reservas']
             
-            worksheet.column_dimensions['A'].width = 30
-            worksheet.column_dimensions['B'].width = 16
-            worksheet.column_dimensions['C'].width = 20
-            worksheet.column_dimensions['D'].width = 20
-            worksheet.column_dimensions['E'].width = 20
-            worksheet.column_dimensions['F'].width = 20
-            worksheet.column_dimensions['G'].width = 23
-            worksheet.column_dimensions['H'].width = 23
-            worksheet.column_dimensions['I'].width = 23
-            worksheet.column_dimensions['J'].width = 23
-            worksheet.column_dimensions['K'].width = 23
-            worksheet.column_dimensions['L'].width = 50
+            worksheet.column_dimensions['A'].width = 30 # CONTRATO
+            worksheet.column_dimensions['B'].width = 16 # PRODUCT_ID
+            worksheet.column_dimensions['C'].width = 20 # LOTE_RESERVAS
+            worksheet.column_dimensions['D'].width = 20 # FECHA_RESERVA
+            worksheet.column_dimensions['E'].width = 20 # RESERVA_RESERVADO
+            worksheet.column_dimensions['F'].width = 20 # BODEGA_RESERVA
+            worksheet.column_dimensions['G'].width = 23 # LOTE_DISPONIBLE
+            worksheet.column_dimensions['H'].width = 23 # FECHA_DISPONIBLE
+            worksheet.column_dimensions['I'].width = 23 # BODEGA_DISPONIBLE
+            worksheet.column_dimensions['J'].width = 23 # EXISTENCIA_DISPONIBLE
+            worksheet.column_dimensions['K'].width = 23 # RESERVA_DISPONIBLE_ACTUAL
+            worksheet.column_dimensions['L'].width = 23 # RESERVA_DISPONIBLE_NUEVA
+            worksheet.column_dimensions['M'].width = 23 # DISPONIBLE_DISPONIBLE
+            worksheet.column_dimensions['N'].width = 50 # OBSERVACIONES
             
         return response
 
