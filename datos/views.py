@@ -2152,7 +2152,7 @@ def revision_reservas_fun():
         # 6.1 FILTRO POR DISPONIBLE MENOR A CERO
         stock_reservas = stock_reservas[stock_reservas['DISPONIBLE'] >= 0]
         
-        stock_reservas.to_excel('stock.xlsx', index=False)
+        # stock_reservas.to_excel('stock.xlsx', index=False)
         # print(stock_eservas)        
         
         df = stock_reservas.sort_values(
