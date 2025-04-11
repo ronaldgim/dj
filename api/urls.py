@@ -54,4 +54,11 @@ urlpatterns = [
             view = views.precio_promocion, 
             name = 'precio_promocion'
         ),
+    
+    # api promociones
+    path(
+            route = 'infimas_general/<str:codigo>/', 
+            view = views.infimas_general, 
+            name = 'infimas_general'
+        ),
 ]

@@ -138,7 +138,6 @@ def reg_sanitario_correo_alerta_dias(request):
 
 
 #### API PRECIOS
-# def precios_query(product_id):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def precio_promocion(request, product_id):
@@ -150,6 +149,22 @@ def precio_promocion(request, product_id):
         promocion = [
             dict(zip(columns, row))
             for row in cursor.fetchall()
-        ] #[0]
+        ] 
         
         return Response(promocion, status=200)
+
+
+#### API PRECIOS
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def infimas_general(request, codigo):
+    
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute(f"SELECT * FROM procesos_sercop.infimas_general WHERE Codigo = '{codigo}'")
+        columns = [col[0] for col in cursor.description]
+        infimas = [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ] 
+        
+        return Response(infimas, status=200)
