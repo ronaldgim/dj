@@ -4498,7 +4498,6 @@ def wms_reporte_reposicion_alertas(request):
                     Q(ubicacion__nivel='1') & 
                     Q(lote_id=producto_uno.lote_id)
                     )
-                
                 if total_unidades_nivel_uno_query.exists():
                     total_unidades_nivel_uno = total_unidades_nivel_uno_query.aggregate(unidades_nivel_uno=Sum('unidades'))['unidades_nivel_uno']
                 else:
