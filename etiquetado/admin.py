@@ -95,6 +95,7 @@ class UbicacionAndagoyaAdmin(admin.ModelAdmin):
 @admin.register(ProductoUbicacion)
 class ProductoUbicacionAdmin(admin.ModelAdmin):
     list_display = ('id', 'product_id')
+    search_fields = ('product_id', )
 
 
 @admin.register(PedidoTemporal)
