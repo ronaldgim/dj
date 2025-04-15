@@ -3584,11 +3584,44 @@ def existencias_wms_analisis_transferencia(request):
             return JsonResponse({'error':'No hay datos'})
 
 
+
+# def update_andagoya_ubis():
+#     excel = pd.read_excel('C:\Erik\Egares Gimpromed\Desktop\ReposiciónAndagoya/datos_actuales/UBI-ANDAGOYA.xlsx')#.fillna(0)
+#     excel['codigo'] = excel['codigo'].astype('str')
+#     excel = excel.sort_values(by='codigo')
+#     #excel['estanteria'] = excel.apply(lambda x: True if x['estanteria'] == 11 else False, axis=1)
+#     #print(excel)
+    
+#     for index, row in excel.iterrows():
+#         codigo = row['codigo']
+#         ubicacion = row['ubicación'].split('-')
+        
+#         if len(ubicacion) == 2:
+#             ubi = UbicacionAndagoya.objects.filter(
+#                 Q (bodega=ubicacion[0]) &
+#                 Q (pasillo=ubicacion[1]) &
+#                 Q (modulo='') &
+#                 Q (nivel='') 
+#             )
+            
+#         elif len(ubicacion) == 4:
+#             ubi = UbicacionAndagoya.objects.filter(
+#                 Q (bodega=ubicacion[0]) &
+#                 Q (pasillo=ubicacion[1]) &
+#                 Q (modulo=ubicacion[2]) &
+#                 Q (nivel=ubicacion[3]) 
+#             )
+        
+#         prod_id = ProductoUbicacion.objects.get(product_id=codigo)
+#         prod_id.ubicaciones.add(ubi.first())
+
+
+
 # UbicacionAndagoya
 # ProductoUbicacion
 @login_required(login_url='login')
 def ubicaciones_andagoya_list(request):
-    
+    #update_andagoya_ubis()
     ubicaciones = UbicacionAndagoya.objects.all().order_by('bodega','pasillo','modulo','nivel')
     form = UbicacionAndagoyaForm()
     
