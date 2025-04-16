@@ -2335,11 +2335,11 @@ def wms_estado_picking_actualizar_ajax(request):
             
         if estado_picking.bodega == 'BCT':
             
-            # if movs_total_unidades < pick_total_unidades:
-            #     return JsonResponse({
-            #         'msg':' ⚠ Aun no a completado el picking !!!',
-            #         'alert':'warning'
-            #     })
+            if movs_total_unidades < pick_total_unidades:
+                return JsonResponse({
+                    'msg':' ⚠ Aun no a completado el picking !!!',
+                    'alert':'warning'
+                })
                 
             if movs_total_unidades != pick_total_unidades:
                 return JsonResponse({
