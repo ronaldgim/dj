@@ -2341,7 +2341,7 @@ def wms_estado_picking_actualizar_ajax(request):
                     'alert':'warning'
                 })
                 
-            if movs_total_unidades != pick_total_unidades:
+            elif movs_total_unidades != pick_total_unidades: 
                 return JsonResponse({
                     'msg':f' ⚠ El total de items de WMS {movs_total_unidades} es diferente al total de items MBA {pick_total_unidades} !!!',
                     'alert':'warning'
