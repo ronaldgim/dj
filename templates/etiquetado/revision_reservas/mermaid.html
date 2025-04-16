@@ -19,7 +19,7 @@
   
   <div class="card mb-2" id="detalle" style="display:none">
       
-      <div class="card-body">
+      {% comment %} <div class="card-body">
         <code>
           flowchart TD <br />
 
@@ -80,73 +80,137 @@
             style I fill:#FFE0B2 <br />
             style n2 fill:#FFE0B2 <br />
         </code>
+      </div> {% endcomment %}
+      <div class="card-body">
+        <code>
+          flowchart TD <br />
+          A[Inicio] --> B[OBTENER DATOS] <br />
+          B --> C[DB: RESERVAS ''reservas_lote_2''] <br />
+          B --> D[DB: STOCK ''stock_lote''] <br />
+      
+          C --> E[DF: LISTA_PRODUCTOS 'obtener lista de productos en reservas'] <br />
+          C --> F[DF: RESERVAS_PRODUCTO 'agrupar las reservas por productos'] <br />
+          C --> G[DF: RESERVAS_CONTRATO 'agrupar reservas por contratos'] <br />
+          D --> H[DF: STOCK_PRODUCTO 'agrupar stock por producto] <br />
+          H --> J[DF: STOCK_RESERVAS 'unir stock con reservas_producto y cacular disponible=existencia-reservas'] <br />
+          F --> J <br />
+          J --> K[DF: STOCK_RESERVAS 'filtrar stock por lista_productos de reservas'] <br />
+          E --> K <br />
+          K --> L[DF: STOCK_RESERVAS 'unir stock con reservas_contratos'] <br />
+          G --> L <br />
+          L --> M[DF: STOCK_RESERVAS 'eliminar productos con un solo lote, eliminar productos con disponible menor o igual a cero, ordenar por fecha de caducidad'] <br />
+          M --> N[LOOP: CICLO FOR 'ciclo for en df stock_reservas agrupado por producto']  <br />
+          N --> O[LIST-DIC: 'lotes_producto'] <br />
+          N --> P[DIC: LOTE_DESTINO 'se obtiene ordenando por fecha de caducidad'] <br />
+          O --> Q <br />
+          P --> Q[LOOP: CICLO FOR 'ciclo for en lotes_producto excepto lote destino para obtener lote_origen'] <br />
+          Q --> R{¿und_reservas de lote_origen es mayor a 0?} <br />
+          R --> |SÍ| S[obtener reservas total 'und_reservas_lote_destino+un_reserva_lote_origen'] <br />
+          R --> |No| W[FIN] <br />
+          S --> T{¿lote_destino >= a reservas_total?} <br />
+          T --> |Sí| U[CREAR REPORTE 'agregando filas con datos de lote_origen y lote_destino'] <br />
+          T --> |No| X[FIN] <br />
+          U --> V[Comparar fechas de lote_origen y lote_destino, eliminar fials con fechas iguales y agregar observaciones] <br />
+          V --> Y[CREAR REPORTE] <br />
+        </code>
       </div>
       
   </div>
 
+    {% comment %} <div class="mermaid">
+      ---
+      config:
+        layout: fixed
+      ---
+      flowchart TD
+        subgraph subGraph0["Manejo de errores"]
+              Z["Retornar DataFrame vacío"]
+              E1["Catching Exceptions"]
+        end
+          B["Obtener datos"] -- Reservas lote --> B1["reservas_lote_2"]
+          B -- Reservas sin lote --> B2["reservas_sinlote"]
+          B -- Clientes --> B3["clientes_warehouse"]
+          B -- Inventario --> B4["stock_lote_odbc"]
+          B -- Picking --> B5["picking_de_reservas_finalizado"]
+          B2 --> C["Filtrar por SEC_NAME_CLIENTE (RESERVA o RESERVADO)"]
+          C --> D["Obtener lista de contratos (CONTRATO_ID)"]
+          D --> E["Convertir contratos a lista de enteros"]
+          E --> F["Filtrar reservas lote por contratos <br>(Obtener datos con lotes)"]
+          F --> G["Filtrar clientes reservas"]
+          G --> H["Obtener clientes únicos"]
+          H --> I["Filtrar reservas con lotes"]
+          I --> J["Excluir reservas finalizadas<br>(Picking finalizado)"]
+          J --> K["Agrupar reservas por cantidad y contratos"]
+          K --> L["Obtener stock MBA"] & n9["Agrupar contratos"]
+          L --> M["Filtrar stock por productos de reservas <br>"]
+          M --> N["Agrupar stock por lotes y caducidad"]
+          N --> O["Generar reporte"]
+          O -- Iterar sobre productos únicos en df reservas procesado --> P["Comparar reservas con stock<br>(disponible - reserva)"]
+          P -- IF --> Q["si (disponible - reserva) es mayor a 0 y existe mas de un lote"] & U["Si el (disponible - reserva) es negativo<br><br>"] & S["SI hay un lote disponible con fecha de caducidad posterior"]
+          Q --> R["OBS: CAMBIAR ESTA RESERVA A UN LOTE CON FECHA DE CADUCIDAD POSTERIRO LA CANTiDAD XXX <br>"]
+          S --> T["OBS: CAMBIAR ESTA RESERVA A UN LOTE POSTERIOR SIN RESERVAS"]
+          U --> V["OBS: LOTE CON RESERVAS MAYORES A LO DISPONIBLE"]
+          R --> W["Generar DataFrame de reporte"]
+          T --> W
+          V --> W
+          W --> X["Generar Excel"]
+          X --> Y["Fin"]
+          E1 --> Z
+          A["Inicio"] -- Try --> B
+          B -- Exception --> E1
+          B3 --> n2["Anteriormente se filtraba por tipo de cliente publico (ahora se analiza todos los clientes) <br>"]
+          B5 --> n6["Se filtra por pickings finalizados <br>"]
+          n7["Reservas con lotes <br>"] --> F
+          B1 --> n7
+          Z --> Y
+          n9 --> L
+          B4 --> n10["Inventario de MBA <br>"]
+          n10 --> L
+          n6 --> J
+          n3[" "]
+          n9@{ shape: rect}
+          n2@{ shape: rect}
+          n6@{ shape: rect}
+          n7@{ shape: rect}
+          n10@{ shape: rect}
+          n3@{ shape: anchor}
+          style E fill:#C8E6C9
+          style G fill:#FFE0B2
+          style H fill:#FFE0B2
+          style I fill:#FFE0B2
+          style n2 fill:#FFE0B2
+  </div> {% endcomment %}
+
     <div class="mermaid">
-        ---
-        config:
-          layout: fixed
-        ---
-        flowchart TD
-          subgraph subGraph0["Manejo de errores"]
-                Z["Retornar DataFrame vacío"]
-                E1["Catching Exceptions"]
-          end
-            B["Obtener datos"] -- Reservas lote --> B1["reservas_lote_2"]
-            B -- Reservas sin lote --> B2["reservas_sinlote"]
-            B -- Clientes --> B3["clientes_warehouse"]
-            B -- Inventario --> B4["stock_lote_odbc"]
-            B -- Picking --> B5["picking_de_reservas_finalizado"]
-            B2 --> C["Filtrar por SEC_NAME_CLIENTE (RESERVA o RESERVADO)"]
-            C --> D["Obtener lista de contratos (CONTRATO_ID)"]
-            D --> E["Convertir contratos a lista de enteros"]
-            E --> F["Filtrar reservas lote por contratos <br>(Obtener datos con lotes)"]
-            F --> G["Filtrar clientes reservas"]
-            G --> H["Obtener clientes únicos"]
-            H --> I["Filtrar reservas con lotes"]
-            I --> J["Excluir reservas finalizadas<br>(Picking finalizado)"]
-            J --> K["Agrupar reservas por cantidad y contratos"]
-            K --> L["Obtener stock MBA"] & n9["Agrupar contratos"]
-            L --> M["Filtrar stock por productos de reservas <br>"]
-            M --> N["Agrupar stock por lotes y caducidad"]
-            N --> O["Generar reporte"]
-            O -- Iterar sobre productos únicos en df reservas procesado --> P["Comparar reservas con stock<br>(disponible - reserva)"]
-            P -- IF --> Q["si (disponible - reserva) es mayor a 0 y existe mas de un lote"] & U["Si el (disponible - reserva) es negativo<br><br>"] & S["SI hay un lote disponible con fecha de caducidad posterior"]
-            Q --> R["OBS: CAMBIAR ESTA RESERVA A UN LOTE CON FECHA DE CADUCIDAD POSTERIRO LA CANTiDAD XXX <br>"]
-            S --> T["OBS: CAMBIAR ESTA RESERVA A UN LOTE POSTERIOR SIN RESERVAS"]
-            U --> V["OBS: LOTE CON RESERVAS MAYORES A LO DISPONIBLE"]
-            R --> W["Generar DataFrame de reporte"]
-            T --> W
-            V --> W
-            W --> X["Generar Excel"]
-            X --> Y["Fin"]
-            E1 --> Z
-            A["Inicio"] -- Try --> B
-            B -- Exception --> E1
-            B3 --> n2["Anteriormente se filtraba por tipo de cliente publico (ahora se analiza todos los clientes) <br>"]
-            B5 --> n6["Se filtra por pickings finalizados <br>"]
-            n7["Reservas con lotes <br>"] --> F
-            B1 --> n7
-            Z --> Y
-            n9 --> L
-            B4 --> n10["Inventario de MBA <br>"]
-            n10 --> L
-            n6 --> J
-            n3[" "]
-            n9@{ shape: rect}
-            n2@{ shape: rect}
-            n6@{ shape: rect}
-            n7@{ shape: rect}
-            n10@{ shape: rect}
-            n3@{ shape: anchor}
-            style E fill:#C8E6C9
-            style G fill:#FFE0B2
-            style H fill:#FFE0B2
-            style I fill:#FFE0B2
-            style n2 fill:#FFE0B2
-        
+      flowchart TD
+      A[Inicio] --> B[OBTENER DATOS]
+      B --> C[DB: RESERVAS ''reservas_lote_2'']
+      B --> D[DB: STOCK ''stock_lote'']
+  
+      C --> E[DF: LISTA_PRODUCTOS 'obtener lista de productos en reservas']
+      C --> F[DF: RESERVAS_PRODUCTO 'agrupar las reservas por productos']
+      C --> G[DF: RESERVAS_CONTRATO 'agrupar reservas por contratos']
+      D --> H[DF: STOCK_PRODUCTO 'agrupar stock por producto]
+      H --> J[DF: STOCK_RESERVAS 'unir stock con reservas_producto y cacular disponible=existencia-reservas']
+      F --> J
+      J --> K[DF: STOCK_RESERVAS 'filtrar stock por lista_productos de reservas']
+      E --> K
+      K --> L[DF: STOCK_RESERVAS 'unir stock con reservas_contratos']
+      G --> L
+      L --> M[DF: STOCK_RESERVAS 'eliminar productos con un solo lote, eliminar productos con disponible menor o igual a cero, ordenar por fecha de caducidad']
+      M --> N[LOOP: CICLO FOR 'ciclo for en df stock_reservas agrupado por producto'] 
+      N --> O[LIST-DIC: 'lotes_producto']
+      N --> P[DIC: LOTE_DESTINO 'se obtiene ordenando por fecha de caducidad']
+      O --> Q
+      P --> Q[LOOP: CICLO FOR 'ciclo for en lotes_producto excepto lote destino para obtener lote_origen']
+      Q --> R{¿und_reservas de lote_origen es mayor a 0?}
+      R --> |SÍ| S[obtener reservas total 'und_reservas_lote_destino+un_reserva_lote_origen']
+      R --> |No| W[FIN]
+      S --> T{¿lote_destino >= a reservas_total?}
+      T --> |Sí| U[CREAR REPORTE 'agregando filas con datos de lote_origen y lote_destino']
+      T --> |No| X[FIN]
+      U --> V[Comparar fechas de lote_origen y lote_destino, eliminar fials con fechas iguales y agregar observaciones]
+      V --> Y[CREAR REPORTE]
     </div>
 
 
