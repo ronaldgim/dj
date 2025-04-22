@@ -123,6 +123,7 @@ class EstadoPicking(models.Model):
     whatsapp       = models.BooleanField(verbose_name='Whatsapp', default=False)
     wh_fail_number = models.BooleanField(verbose_name='Wh numero sin +593', default=False)
     foto_picking   = models.ImageField(upload_to='picking', null=True, blank=True)
+    foto_picking_2 = models.ImageField(upload_to='picking', null=True, blank=True)
     
     def __str__(self):
         return self.n_pedido

@@ -1148,7 +1148,9 @@ def wms_existencias_query_product_lote(product_id, lote_id):
         return exitencias
 
     except Exception as e:
-        print(e)
+        # print(e)
+        # for i in existencias_list:
+        #     print(i.id, i.product_id, i.lote_id, i.fecha_caducidad, i.ubicacion_id, i.unidades, i.estado)
         return HttpResponse(f'{e}')
 
 
@@ -1167,7 +1169,7 @@ def wms_inventario(request): #OK
     """ Inventario
         Suma de ingresos y egresos que dan el total de todo el inventario
     """
-    # wms_existencias_query_product_lote("2014","476790")
+    # wms_existencias_query_product_lote("2014","476790")      
     
     prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     productos = pd.DataFrame(Existencias.objects.all().values('product_id'))
@@ -2020,10 +2022,12 @@ def wms_egreso_picking(request, n_pedido): #OK
         estado = est.estado
         estado_id = est.id
         foto = est.foto_picking
+        foto_2 = est.foto_picking_2
     else:
         estado = 'SIN ESTADO'
         estado_id = ''
         foto = ''
+        foto_2 = ''
 
     prod   = productos_odbc_and_django()[['product_id','Nombre','Marca','Unidad_Empaque']]
     prod   = prod.rename(columns={'product_id':'PRODUCT_ID'})
@@ -2128,7 +2132,8 @@ def wms_egreso_picking(request, n_pedido): #OK
         'hora':hora,
         'estado':estado,
         'estado_id':estado_id,
-        'foto':foto
+        'foto':foto,
+        'foto_2':foto_2
     }
 
     return render(request, 'wms/picking.html', context)
@@ -2182,11 +2187,15 @@ def wms_agregar_foto_picking_ajax(request):
     
     id_picking = request.POST.get('id_picking')
     foto = request.FILES.get("foto")
+    foto2 = request.FILES.get("foto2")
     
     try:
     
         picking = EstadoPicking.objects.get(id=id_picking)
         picking.foto_picking = foto
+        if foto2:
+            picking.foto_picking_2 = foto2
+        
         picking.save()
         
         return JsonResponse({
@@ -2409,6 +2418,9 @@ def wms_actualizar_picking_ajax(request):
     picking.estado = 'EN PROCESO'
     picking.fecha_actualizado = datetime.now()
     picking.foto_picking = None
+    if picking.foto_picking_2:
+        picking.foto_picking_2= None
+    
     picking.save()
     
     return JsonResponse({
