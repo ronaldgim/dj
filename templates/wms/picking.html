@@ -80,6 +80,7 @@
     </div>
     {% endif %}
 </div>
+
 <hr>
 
 {% if messages %}
@@ -95,7 +96,6 @@
     {%endif%}
     {% endfor %}
 {% endif %}
-
 
 <div id="msg"></div>
 
@@ -255,21 +255,33 @@
     </div>
 </div>
 
-
-<div class="card">
+<div class="card mb-2">
     <div class="card body p-2">
         <input type="file" class="form-control mt-2 mb-2" id="foto_picking" accept="image/*" capture="environment" {% if estado == 'FINALIZADO' %} disabled {% endif %}>
         <div id="msg_foto"></div>
         <canvas id="fotoCanvas" style="display:none;"></canvas>
         <img id="fotoPreview" style="max-width:100%; display:none;">
-        <button class="btn btn-sm btn-primary mt-2" name="sendFoto" value="{{estado_id}}" style="display:none;">Enviar Foto</button>
+
+        <input type="file" class="form-control mt-2 mb-2" id="foto_picking_2" accept="image/*" capture="environment" {% if estado == 'FINALIZADO' %} disabled {% endif %}>
+        <canvas id="fotoCanvas2" style="display:none;"></canvas>
+        <img id="fotoPreview2" style="max-width:100%; display:none;">
+
     </div>
+    <button class="btn btn-sm btn-primary m-4" name="sendFoto" value="{{estado_id}}" style="display:none;">Enviar Foto(s)</button>
 </div>
 
 {% if foto %}
 <div class="card">
     <div class="card body p-2">
         <img src="{{foto.url}}" >
+    </div>
+</div>
+{% endif %}
+
+{% if foto_2 %}
+<div class="card">
+    <div class="card body p-2">
+        <img src="{{foto_2.url}}" >
     </div>
 </div>
 {% endif %}
@@ -558,7 +570,7 @@
     })
 </script>
 
-
+<!-- Ver foto uno -->
 <script>
     $(document).ready(function () {
         $("#foto_picking").on("change", function (event) {
@@ -582,7 +594,8 @@
     
                     // Mostrar la imagen en el <img> y el botón de envío
                     $("#fotoPreview").attr("src", canvas.toDataURL("image/jpeg")).show();
-                    // $("#sendFoto").show();
+                    // show foto picking 2
+                    $("#foto_picking_2").show();
                     $("button[name='sendFoto']").show();
                 };
             };
@@ -591,17 +604,70 @@
     });
 </script>
 
+<!-- Ver foto dos -->
+<script>
+    $(document).ready(function () {
+        $("#foto_picking_2").hide();
+        $("#foto_picking_2").on("change", function (event) {
+            var file = event.target.files[0]; // Obtiene el archivo
+            if (!file) return;
+    
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                var img = new Image();
+                img.src = e.target.result;
+                img.onload = function () {
+                    var canvas = $("#fotoCanvas2")[0]; // Obtener el canvas con jQuery
+                    var ctx = canvas.getContext("2d");
+    
+                    // Ajustar tamaño del canvas
+                    $(canvas).attr({
+                        width: img.width / 2,
+                        height: img.height / 2
+                    });
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    
+                    // Mostrar la imagen en el <img> y el botón de envío
+                    $("#fotoPreview2").attr("src", canvas.toDataURL("image/jpeg")).show();
+                    // $("#sendFoto").show();
+                    //$("button[name='sendFoto']").show();
+                };
+            };
+            reader.readAsDataURL(file);
+        });
+    });
+</script>
 
+<!-- Enviar foto uno -->
 <script>
     $("button[name='sendFoto']").on("click", function () {
-        var canvas = $("#fotoCanvas")[0]; // Obtener el canvas con jQuery
+        var canvas = $("#fotoCanvas")[0]; // Obtener el primer canvas con jQuery
+        var canvas2 = $("#fotoCanvas2")[0]; // Obtener el segundo canvas con jQuery
         var id_picking = $(this).val();
+
+        // Procesar la primera imagen del canvas
         canvas.toBlob(function (blob) {
             var formData = new FormData();
-            formData.append("csrfmiddlewaretoken", "{{ csrf_token }}")
+            formData.append("csrfmiddlewaretoken", "{{ csrf_token }}");
             formData.append("foto", blob, "{{n_ped}}.jpg");
             formData.append("id_picking", id_picking); // Añadir campo extra
 
+            // Verificar si el segundo canvas tiene contenido
+            if (canvas2 && canvas2.width > 0 && canvas2.height > 0) {
+                canvas2.toBlob(function (blob2) {
+                    formData.append("foto2", blob2, "{{n_ped}}_2.jpg"); // Agregar la segunda imagen al formulario
+
+                    // Enviar ambas imágenes
+                    enviarFotos(formData);
+                }, "image/jpeg");
+            } else {
+                // Enviar solo la primera imagen
+                enviarFotos(formData);
+            }
+        }, "image/jpeg");
+
+        // Función para enviar las imágenes al servidor
+        function enviarFotos(formData) {
             $.ajax({
                 type: "POST",
                 url: "{% url 'wms_agregar_foto_picking_ajax' %}",
@@ -609,13 +675,15 @@
                 processData: false,
                 contentType: false,
                 success: function (response) {
-                    alert("Imagen enviada con éxito");
+                    alert("Imagen(es) enviada(s) con éxito");
+                    $("#foto_picking").val("")
+                    $("#foto_picking_2").val("")
                 },
                 error: function (xhr, status, error) {
-                    console.error("Error al enviar la imagen", error);
+                    console.error("Error al enviar la(s) imagen(es)", error);
                 }
             });
-        }, "image/jpeg");
+        }
     });
 </script>
 
