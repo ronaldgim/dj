@@ -2272,6 +2272,8 @@ def wms_correo_picking(n_pedido):
         data_wms = data_wms.groupby(by=['PRODUCT_ID','LOTE_ID','LOTE_WMS'])['UNIDADES_WMS'].sum().reset_index()
         
         data_mba = reservas_lote_n_picking(n_pedido)
+        data_mba['UNIDADES_WMS'] = data_mba['UNIDADES_WMS'].astype('int')
+        data_mba['LOTE_ID'] = data_mba['LOTE_ID'].astype('str')
         data_mba['LOTE_ID'] = data_mba['LOTE_ID'].str.replace('.', '')
         data_mba['LOTE_MBA'] = data_mba['LOTE_ID']
         
@@ -2316,6 +2318,10 @@ def wms_correo_picking(n_pedido):
     )
     email.attach_alternative(html_message, 'text/html')
     email.attach_file(picking.foto_picking.path)
+    
+    if picking.foto_picking_2:
+        email.attach_file(picking.foto_picking_2.path)
+    
     email.send()
 
 
