@@ -2259,7 +2259,6 @@ def ciudad_principal_cliente(codigo_cliente):
 def wms_correo_picking(n_pedido):
     
     try:
-        
         data_wms = pd.DataFrame(Movimiento.objects.filter(n_referencia=n_pedido).values('product_id', 'lote_id', 'unidades'))  
         data_wms['lote_id'] = data_wms['lote_id'].str.replace('.', '')
         data_wms['unidades'] = data_wms['unidades'] *-1
@@ -2272,10 +2271,10 @@ def wms_correo_picking(n_pedido):
         data_wms = data_wms.groupby(by=['PRODUCT_ID','LOTE_ID','LOTE_WMS'])['UNIDADES_WMS'].sum().reset_index()
         
         data_mba = reservas_lote_n_picking(n_pedido)
-        data_mba['UNIDADES_WMS'] = data_mba['UNIDADES_WMS'].astype('int')
         data_mba['LOTE_ID'] = data_mba['LOTE_ID'].astype('str')
         data_mba['LOTE_ID'] = data_mba['LOTE_ID'].str.replace('.', '')
         data_mba['LOTE_MBA'] = data_mba['LOTE_ID']
+        data_mba = data_mba.groupby(by=['PRODUCT_ID','LOTE_ID','LOTE_MBA'])['EGRESO_TEMP'].sum().reset_index()
         
         data = data_wms.merge(data_mba, on=['PRODUCT_ID','LOTE_ID'], how='left')
         data['LOTES'] = data['LOTE_WMS'] == data['LOTE_MBA']
@@ -2433,7 +2432,6 @@ def wms_actualizar_picking_ajax(request):
         'msg':f' ⚠ El picking esta nuevamente EN PROCESO !!!',
         'alert':'warning'
     })
-
 
 
 # Crear egreso en tabla movimientos
