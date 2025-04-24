@@ -2310,12 +2310,12 @@ def wms_correo_picking(n_pedido):
     
     lista_correos = [
         'egarces@gimpromed.com'
-        # 'bcerezos@gimpromed.com',
-        # 'ncastillo@gimpromed.com',
-        # 'jgualotuna@gimpromed.com',
-        # correo_vendedor_n_pedido(n_pedido)
+        'bcerezos@gimpromed.com',
+        'ncastillo@gimpromed.com',
+        'jgualotuna@gimpromed.com',
+        correo_vendedor_n_pedido(n_pedido)
     ]
-    print(correo_vendedor_n_pedido(n_pedido))
+    #print(correo_vendedor_n_pedido(n_pedido))
     
     email = EmailMultiAlternatives(
         subject=f'Cerezos-Picking Finalizado - {picking.cliente}',
