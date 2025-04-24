@@ -2309,7 +2309,7 @@ def wms_correo_picking(n_pedido):
     plain_message = strip_tags(html_message)
     
     lista_correos = [
-        'egarces@gimpromed.com',
+        #'egarces@gimpromed.com',
         'bcerezos@gimpromed.com',
         'ncastillo@gimpromed.com',
         'jgualotuna@gimpromed.com',
