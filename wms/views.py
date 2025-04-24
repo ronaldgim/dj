@@ -562,6 +562,13 @@ def wms_ubicaciones_disponibles_rows():
 @login_required(login_url='login')
 def wms_home(request):
     
+    # from api_mba.tablas_warehouse import api_actualizar_reservas_etiquetado
+    # api_actualizar_reservas_etiquetado()
+    
+    
+    if request.user.id == 2:    
+        wms_correo_picking('88601.0')
+    
     tiempo_de_almacenamiento = kpi_tiempo_de_almacenamiento()
     capacidad_tabla = de_dataframe_a_template(kpi_capacidad()) 
     data_grafico = capacidad_data_grafico()
@@ -2302,12 +2309,13 @@ def wms_correo_picking(n_pedido):
     plain_message = strip_tags(html_message)
     
     lista_correos = [
-        # 'egarces@gimpromed.com'
-        'bcerezos@gimpromed.com',
-        'ncastillo@gimpromed.com',
-        'jgualotuna@gimpromed.com',
-        correo_vendedor_n_pedido(n_pedido)
+        'egarces@gimpromed.com'
+        # 'bcerezos@gimpromed.com',
+        # 'ncastillo@gimpromed.com',
+        # 'jgualotuna@gimpromed.com',
+        # correo_vendedor_n_pedido(n_pedido)
     ]
+    print(correo_vendedor_n_pedido(n_pedido))
     
     email = EmailMultiAlternatives(
         subject=f'Cerezos-Picking Finalizado - {picking.cliente}',
