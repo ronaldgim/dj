@@ -520,4 +520,11 @@ urlpatterns = [
         view  = views.editar_pedido_temporal,
         name  = 'editar_pedido_temporal'
     ),
+    
+    path(
+        route = 'inventario/transferencia',
+        view  = views.inventario_transferencia,
+        name  = 'inventario_transferencia'
+    ),
+    
 ]

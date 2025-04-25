@@ -565,9 +565,12 @@ def wms_home(request):
     # from api_mba.tablas_warehouse import api_actualizar_reservas_etiquetado
     # api_actualizar_reservas_etiquetado()
     
-    
     # if request.user.id == 2:    
     #     wms_correo_picking('88601.0')
+    
+    from datos.views import inventario_transferencia
+    inventario_transferencia()
+    
     
     tiempo_de_almacenamiento = kpi_tiempo_de_almacenamiento()
     capacidad_tabla = de_dataframe_a_template(kpi_capacidad()) 

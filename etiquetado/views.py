@@ -134,8 +134,11 @@ from datos.views import (
     
     
     # Extraer número de factura
-    extraer_numero_de_factura
+    extraer_numero_de_factura,
+    
+    inventario_transferencia
     )
+
 
 from api_mba.tablas_warehouse import (
     api_actualizar_facturas_warehouse, 
@@ -4091,4 +4094,16 @@ def editar_pedido_temporal(request):
             messages.error(request, form.errors)
             return redirect(reverse('pedido_temporal', kwargs={'pedido_id': pedido.id}))
 
+
+### INVETARIO TRANSFERENCIA
+def inventario_transferencia(request):
+    
+    data = inventario_transferencia()
+    data = de_dataframe_a_template(data)
+    
+    context = {
+        'data':data
+    }
+    
+    return render(request, 'etiquetado/analisis_transferencia/inventario_transferencia.html', context)
 
