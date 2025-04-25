@@ -2386,7 +2386,7 @@ def datos_factura_compras_publicas_productos_odbc(n_factura):
 
 
 ### DATOS PARA TRANSFERENCIA
-def inventario_transferencia():
+def inventario_transferencia_data():
     
     def df_stock_andagoya():
         with connections['gimpromed_sql'].cursor() as cursor:
