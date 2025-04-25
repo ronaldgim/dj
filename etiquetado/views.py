@@ -136,7 +136,7 @@ from datos.views import (
     # Extraer número de factura
     extraer_numero_de_factura,
     
-    inventario_transferencia
+    inventario_transferencia_data
     )
 
 
@@ -4098,7 +4098,7 @@ def editar_pedido_temporal(request):
 ### INVETARIO TRANSFERENCIA
 def inventario_transferencia(request):
     
-    data = inventario_transferencia()
+    data = inventario_transferencia_data()
     data = de_dataframe_a_template(data)
     
     context = {
