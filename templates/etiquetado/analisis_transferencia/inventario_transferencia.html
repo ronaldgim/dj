@@ -1,0 +1,506 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>INVENTARIO TRANSFERENCIA</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'etiquetado/topnavbar.html' %}
+{% endblock %}
+
+{% block body_2 %}
+
+<style>
+    /* Estilos adicionales para la tabla */
+    thead {
+        position: sticky;
+        top: 50px;  /* Ajusta según la altura del input (ej: si el input tiene 40px, coloca top: 40px) */
+        z-index: 9;  /* Un z-index menor que el del input */
+        background-color: #ffffff;
+    }
+
+    .table-responsive {
+        max-height: 500px;  /* Altura fija para activar el scroll */
+        height: auto;  /* Altura máxima */
+        min-height: 100px;  /* Altura mínima */
+        overflow-y: auto;  /* Scroll vertical */
+        position: relative;  /* Necesario para que sticky funcione dentro */
+    }
+
+    .input_div {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background-color: #ffffff;
+        padding: 8px 0;
+        width: 100%;
+        /* Extiende el fondo si hay scroll */
+        box-shadow: 0 0 0 100vmax #ffffff;  /* Truco para cubrir todo el ancho */
+        clip-path: inset(0 -100vmax);  /* Recorta el exceso sin afectar el layout */
+    }
+</style>
+
+<h5 class="m-4 text-center fw-bold">INVENTARIO TRANSFERENCIA</h5>
+
+{% comment %} <div class="text-end">
+    <button class="btn btn-sm btn-primary mb-2" name="actualizar_get">
+        <i class="bi bi-arrow-clockwise"></i> Actuaizar
+    </button>
+</div> {% endcomment %}
+
+<div id="msg"></div>
+
+{% comment %} <h6 class="fw-bold">SALDOS ANDAGOYA - (Productos menos un cartón)</h6> {% endcomment %}
+
+{% comment %} <h6 class="list-group-item mt-2 mb-2 active" type="button" name="detalle">TABLA DE SALDOS
+    <i class="bi bi-caret-down-fill" style="float: right"></i>
+</h6> {% endcomment %}
+
+{% comment %}
+<div class="card mt-2 mb-2" id="detalle" style="display:none">
+    <div class="card-body">
+        <div class="table-responsive">
+            <div class="input_div">
+                <div class="col-4">
+                    <input id="saldos_andagoya_input" type="text" placeholder="Buscar..." class="form-control">
+                </div>
+            </div>
+            <table class="table table-hover" style="font-size: small;" id="tabla_saldos">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">CÓDIGO</th>
+                        <th scope="col">NOMBRE</th>
+                        <th scope="col">MARCA</th>
+                        <th class="text-center" scope="col">UNDS CARTON</th>
+                        <th class="text-center" scope="col">%PICKING</th>
+                        <th class="text-center" scope="col">STOCK ANDAGOYA</th>
+                        <th class="text-center" scope="col">TRANSITO</th>
+                        <th class="text-center" scope="col" style="background-color:rgb(215, 237, 255)">TOTAL STOCK ANDAGOYA</th>
+                        <th class="text-center" scope="col" style="background-color:rgb(231, 255, 217)">STOCK CEREZOS</th>
+                        <!--th class="text-center" scope="col">CONSUMO SEMANAL</th-->
+                        <th class="text-center" scope="col">CONSUMO MENSUAL</th>
+                        <th class="text-center" scope="col">% (T.DISP/C.MENSUAL)</th>
+                        <th class="text-center" scope="col">% RATE</th>
+                        <!--th class="text-center" scope="col">% (T.DISP/UNDS.CARTON)</th-->
+                        <!-- th>filtro</th -->
+                    </tr>
+                </thead>
+                <tbody id="saldos_andagoya_table">
+                    {% for i in saldos_ban %}
+                    <tr>
+                        <td>{{i.n_fila}}</td>
+                        <td>{{i.PRODUCT_ID}}</td>
+                        <td>{{i.Nombre}}</td>
+                        <td>{{i.Marca}}</td>
+                        <td class="text-end">{{i.Unidad_Empaque|floatformat:"0g"}}</td>
+                        <td class="text-end">{{i.F_ACUMULADA|floatformat:"2g"}} %</td>
+                        <td class="text-end">{{i.STOCK_ANDAGOYA|floatformat:"0g"}}</td>
+                        <td class="text-end">{{i.TRANSITO|floatformat:"0g"}}</td>
+                        <td class="text-end" style="background-color:rgb(215, 237, 255)">
+                            {{i.TOTAL_DISPONIBLE|floatformat:"0g"}} <br/>
+                            <small style="color:grey">{{i.TOTAL_DISPONIBLE_CARTONES|floatformat:"2g"}} </small>
+                        </td>
+                        <td class="text-end" style="background-color:rgb(231, 255, 217)">
+                            {#{i.STOCK_CEREZOS|floatformat:"0g"}#} <!--br/-->
+                            {{i.STOCK_CEREZOS_MENOS_RESGIMP|floatformat:"0g"}} <br/>
+                            
+                            <small style="color:grey">{{i.STOCK_CEREZOS_CARTONES|floatformat:"2g"}} </small>
+                        </td>
+                        <!--td class="text-end">{{i.CONSUMO_SEMANAL|floatformat:"0g"}}</td-->
+                        <td class="text-end">
+                            {{i.CONSUMO_MENSUAL|floatformat:"0g"}} <br/>
+                            <small style="color:grey">{{i.CONSUMO_MENSUAL_CARTONES|floatformat:"2g"}}</small>
+                        </td>
+
+                        <td class="text-end"
+                        {% if i.TOTAL_DISPONIBLE_VS_CONSUMO_MENSUAL < 11 %}
+                            style="background-color: #F6B690;"
+                        {% elif i.TOTAL_DISPONIBLE_VS_CONSUMO_MENSUAL > 50  %}
+                            style="background-color: #BAF690;"
+                        {% else %}
+                            style="background-color: #F6F490;"
+                        {% endif %}
+                        >
+                            {{i.TOTAL_DISPONIBLE_VS_CONSUMO_MENSUAL|floatformat:2}} <!-- |floatformat:"2g" -->
+                        </td>
+
+                        <td class="text-end"
+                        {% if i.RATE < 3 %}
+                            style="background-color: #F6B690;"
+                        {% elif i.RATE >= 3 and i.RATE < 10 %}
+                            style="background-color: #F6F490;"
+                        {% else %}
+                            style="background-color: #BAF690;"
+                        {% endif %}
+                        >
+                            {{i.RATE|floatformat:2}}<!-- |floatformat:"2g" -->
+                        </td>
+
+                        <!-- td>{{i.filtro}}</td -->
+
+                        {#% comment %#}
+                        <td class="text-end"
+                        {% if i.TOTAL_DISPONIBLE_UNDS_CARTON < 11 %}
+                            style="background-color: #F6B690;"
+                        {% elif i.TOTAL_DISPONIBLE_UNDS_CARTON > 50  %}
+                            style="background-color: #BAF690;"
+                        {% else %}
+                            style="background-color: #F6F490;"
+                        {% endif %}
+                        >
+                            {{i.TOTAL_DISPONIBLE_UNDS_CARTON|floatformat:"2g"}} %
+                        </td>
+                        {#% endcomment %#}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<hr>
+{% endcomment %}
+
+
+<h6 class="fw-bold">SUGERENCIA ANDAGOYA</h6>
+
+<div class="card mt-2 mb-2">
+    <div class="card-body">
+        <div class="table-responsive">
+            <div class="input_div">
+                <div class="col-4 ps-2">
+                    <input id="sugerencia_input" type="text" placeholder="Buscar..." class="form-control">
+                </div>
+            </div>
+            <table class="table table-hover" style="font-size: small;" id="tabla_sugerencia"> <!-- table-striped -->
+                <thead id="thead_sugerencia">
+                    <tr>
+                        <th scope="col">CÓDIGO</th>
+                        <th scope="col">NOMBRE</th>
+                        <th scope="col">MARCA</th>
+                        <th scope="col">LOTE</th>
+                        <th scope="col">FECHA</th>
+
+                        <th class="text-center" scope="col">BAN</th>
+                        <th class="text-center" scope="col">BCT</th>
+                        <th class="text-center" scope="col">CUC</th>
+                        <th class="text-center" scope="col">BAN-R</th>
+                        <th class="text-center" scope="col">BCT-R</th>
+                        <th class="text-center" scope="col">BCT-D</th>
+                        <th class="text-center" scope="col">BCT-D(c)</th>
+                        <th class="text-center" scope="col">RES</th>
+                    </tr>
+                </thead>
+                <tbody id="sugerencia_table">
+                    {% for i in data %}
+                    <tr>
+                        <td>{{i.PRODUCT_ID}}</td>
+                        <td>{{i.Nombre}}</td>
+                        <td>{{i.Marca}}</td>
+                        <td>{{i.LOTE_ID}}</td>
+                        <td>{{i.FECHA_CADUCIDAD}}</td>
+
+                        <td class="text-end">{{i.BAN|floatformat:"0g"}}</td>
+                        <td class="text-end">{{i.BCT|floatformat:"0g"}}</td>
+                        <td class="text-end">{{i.CUC|floatformat:"0g"}}</td>
+                        <td class="text-end" style="background-color: #F6B690;">{{i.BAN_R|floatformat:"0g"}}</td>
+                        <td class="text-end" style="background-color: #F6B690;">{{i.BCT_R|floatformat:"0g"}}</td>
+                        <td class="text-end" style="background-color: #9fe5ff; {% if i.BCT_D <= 0 %} color:red {% endif %}">{{i.BCT_D|floatformat:"0g"}}</td>
+                        <td class="text-end" style="background-color: #9fe5ff; {% if i.BCT_D <= 0 %} color:red {% endif %}">{{i.BCT_D_C|floatformat:"3g"}}</td>
+
+                        <td class="columna-detalles text-center">
+                            {% if i.DETALLE %}
+                            <button name="detail" value="{{i.DETALLE}}">...</button>
+                            {% endif %}
+                        </td>
+
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">PEDIDOS Y RESERVAS CODIGO <span style="color:grey" id="producto"><span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                ...
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal -->
+<div class="modal fade" id="wmsExistencia" tabindex="-1" aria-labelledby="wmsExistencia" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="wmsExistenciaLabel">WMS EXISTENCIAS <span style="color:grey" id="wms_producto"><span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                ...
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    $(document).ready(function() {
+        // Inicializar todos los botones con name="detail"
+        $("button[name='detail']").each(function() {
+            $(this).popover({
+                container: 'body',
+                html: true,
+                content: function() {
+                    var detail = $(this).val();
+                    const elementos = detail.split("|");
+                    const items = elementos.map(item => 
+                        item.trim().replace(/^"|"$/g, '').replace('"','').replace("'", ""));
+                    const listaHTML = '<ul>' + items.map(item => `<li>${item}</li>`).join('') + '</ul>';
+                    return listaHTML;
+                },
+                placement: 'bottom',           // Posición preferida
+                trigger: 'click',
+                sanitize: true,
+                popperConfig: {
+                    modifiers: [
+                        {
+                            name: 'arrow',
+                            options: {
+                                // Esto fuerza la flecha a estar centrada
+                                element: '.popover-arrow',  // Selector de la flecha
+                                padding: 0          // Sin padding adicional
+                            }
+                        },
+                        {
+                            name: 'offset',
+                            options: {
+                                offset: [-100, 8],      // [skidding (horizontal), distance (vertical)]
+                            }
+                        }
+                    ],
+                    strategy:'fixed'
+                }
+            });
+        });
+        
+        // Cerrar popovers al hacer clic fuera
+        $(document).on('click', function(e) {
+            if (!$(e.target).is("button[name='detail']") && 
+                $(e.target).parents('.popover').length === 0) {
+                $("button[name='detail']").popover('hide');
+            }
+        });
+    });
+</script>
+
+
+<!--filtro buscar-->
+<script>
+    $(document).ready(function() {
+        $("#saldos_andagoya_input").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#saldos_andagoya_table tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+
+<script>
+    $(document).ready(function() {
+        $("#sugerencia_input").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#sugerencia_table tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+
+<!-- Detalle -->
+<script>
+    $(document).ready(function() {
+        $("h6[name='detalle']").click(function(){
+            $("#detalle").toggle();
+            $(this).find("i").toggleClass("bi-caret-down-fill bi-caret-up-fill");
+        })
+    })
+</script>
+
+<!-- Actualizar lista -->
+<script>
+    $("button[name='actualizar_get']").click(function(){
+        window.location.reload();
+        $('#msg').html('<div class="text-center alert alert-success" role="alert"> Inventario Actualizado !!! </div>')
+    })
+</script>
+
+
+<script>
+    $("button[name='pedido_reserva']").click(function(){
+        var prod_id = $(this).attr('id');
+
+        $.ajax({
+            type:"POST",
+            url:"{% url 'pedidos_reservas_request' %}",
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'prod_id':prod_id,
+            },
+
+            success: function(response) {
+                $('#producto').html(prod_id)
+                var data = response.data
+                if (!data){
+                    $('.modal-body').html('<div class="text-center alert alert-warning" role="alert"> No hay pedidos ni reservas para este producto </div>')
+                } else if (data){
+                    var html = '<table class="table table-bordered table-hover"><thead><tr><th>CLIENTE</th><th>BODEGA</th><th>N.PEDIDO</th><th>TIPO</th><th>UNIDADES</th></tr></thead><tbody>';
+                    for(var i = 0; i < data.length; i++){
+                        html += '<tr><td>' + data[i].NOMBRE_CLIENTE + '</td><td>' + data[i].WARE_CODE + '</td><td class="text-end">' + data[i].CONTRATO_ID + '</td><td>' + data[i].TIPO + '</td><td class="text-end">' + data[i].QUANTITY.toLocaleString() + '</td></tr>';
+                    }
+                    html += '</tbody></table>';
+                    $('.modal-body').html(html)
+                }
+
+            },
+            error: function(error) {
+                console.log(error)
+            }
+        })
+    })
+</script>
+
+
+<script>
+    $("button[name='wms_existencias']").click(function(){
+        var prod_id = $(this).attr('id');
+
+        $.ajax({
+            type:"POST",
+            url:"{% url 'existencias_wms_analisis_transferencia' %}",
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'prod_id':prod_id,
+            },
+
+            success: function(response) {
+                $('#wms_producto').html(prod_id)
+                var data = response.data
+                console.log(data);
+                if (!data){
+                    $('.modal-body').html('<div class="text-center alert alert-warning" role="alert"> No hay pedidos ni reservas para este producto </div>')
+                } else if (data){
+                    var html = '<table class="table table-bordered table-hover"><thead><tr><th>LOTE</th><th>F.CADUCIDAD</th><th>UBICACIÓN</th><th>ESTADO</th><th>UNIDADES</th></tr></thead><tbody>';
+                    for(var i = 0; i < data.length; i++){
+                        html += '<tr><td>' + data[i].lote_id + '</td><td>' + data[i].fecha_caducidad + '</td><td class="text-end">' + data[i].ubicacion__bodega + '-' + data[i].ubicacion__pasillo + '-' + data[i].ubicacion__modulo + '-' + data[i].ubicacion__nivel + '</td><td>' + data[i].estado + '</td><td class="text-end">' + data[i].unidades.toLocaleString() + '</td></tr>';
+                    }
+                    html += '</tbody></table>';
+                    $('.modal-body').html(html)
+                }
+
+            },
+            error: function(error) {
+                console.log(error)
+            }
+        })
+    })
+</script>
+
+{% comment %}
+<!-- datatable -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.css" />
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.js"></script>
+<script>
+    $(document).ready(function(){
+        $('#tabla_saldos').DataTable({
+            //"ordering":false,
+            "order":[],
+            "searching":false,
+            "show":false,
+            "paging":false,
+            "info":false,
+
+            //"scrollY": "1000px",
+            //"scrollCollapse": true,
+
+            //"scrollX": true,
+            //"fixedHeader": true,
+
+            //columnDefs:[
+            //    {
+            //        "targets": [11, 12],
+            //        "type": "num",
+            //        "render": function(data, type, row){
+            //            if (typeof data === "string") {
+            //                data = data.replace(/\s/g, '').replace(',', '.') //.replace('%', '')//.replace(' ', '');
+            //                // data = data.replace(/\s/g, '').replace(' ', '.') //.replace('%', '')//.replace(' ', '');
+            //            }
+            //            return parseFloat(data) || 0;
+            //        }
+            //    }
+            //]
+        })
+    })
+    // aplicar formato .QUANTITY.toLocaleString() en columan de data 
+    //var table = $('#tabla_saldos').DataTable();
+    //table.column(11).visible(false);
+    //table.column(12).visible(false);
+    //table.column(11).visible(true);
+    //table.column(12).visible(true);
+    //table.columns.adjust().draw();
+</script>
+
+<!-- datatable -->
+<script>
+    $(document).ready(function(){
+        $('#tabla_sugerencia').DataTable({
+            //"ordering":false,
+            "order":[],
+            "searching":false,
+            "show":false,
+            "paging":false,
+            "info":false,
+
+            //"scrollY": "1000px",
+            //"scrollCollapse": true,
+
+            //"scrollX": true,
+            //"fixedHeader": true,
+
+            // columnDefs:[
+            //     {
+            //         "orderable": false,  // Desactiva el ordenamiento
+            //         "targets": [2, 9, 10]       // Especifica el índice de la columna
+            //     }
+            // ]
+            //columnDefs:[
+            //    {
+            //        "type": "num",
+            //        "render": function(data, type, row){
+            //            if (typeof data === "string") {
+            //                data = data.replace(/\s/g, '').replace(',', '.').replace('%', '').replace(' ', '');
+            //                // data = data.replace(/\s/g, '').replace(' ', ',') //.replace('%', '') //.replace(' ', '');
+            //            }
+            //            return parseFloat(data) || 0;
+            //        }
+            //    }
+            //]
+        })
+    })
+</script>
+{% endcomment %}
+{% endblock %}
