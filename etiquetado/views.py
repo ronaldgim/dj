@@ -4102,7 +4102,7 @@ def editar_pedido_temporal(request):
 ### INVETARIO TRANSFERENCIA
 def inventario_transferencia(request):
     
-    transf_list = TransfCerAnd.objects.all()[:10]
+    transf_list = TransfCerAnd.objects.all().order_by('-id')[:5]
     transf_activas = TransfCerAnd.objects.filter(activo=True)    
     
     data = inventario_transferencia_data()
