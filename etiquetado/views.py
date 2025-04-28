@@ -4102,14 +4102,46 @@ def editar_pedido_temporal(request):
 ### INVETARIO TRANSFERENCIA
 def inventario_transferencia(request):
     
+    transf_list = TransfCerAnd.objects.all()[:10]
+    transf_activas = TransfCerAnd.objects.filter(activo=True)    
+    
     data = inventario_transferencia_data()
     data = de_dataframe_a_template(data)
     
     context = {
-        'data':data
+        'data':data,
+        'transf_list':transf_list,
+        'transf_activas':transf_activas,
+        'len_transf_activas':len(transf_activas),
     }
     
     return render(request, 'etiquetado/analisis_transferencia/inventario_transferencia.html', context)
+
+
+# def transferencia_cer_and(request):
+    
+#     trans = TransfCerAnd.objects.all()
+#     vehiculos = Vehiculos.objects.filter(transportista='GIMPROMED')
+    
+#     if request.method == 'POST':
+#         pass
+
+
+def transf_cer_and_activar_inactivar_ajax(request):
+    
+    id_transf = request.POST.get('id_transf')
+    
+    transf = TransfCerAnd.objects.get(id=id_transf)
+    
+    if transf.activo:
+        transf.activo = False
+        transf.save()
+    else:
+        transf.activo = True
+        transf.save()
+    
+    return JsonResponse({'msg':'ok'})
+
 
 
 def producto_transf_ajax(request):

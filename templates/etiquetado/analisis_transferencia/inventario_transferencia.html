@@ -46,126 +46,113 @@
     <button class="btn btn-sm btn-primary mb-2" name="actualizar_get">
         <i class="bi bi-arrow-clockwise"></i> Actuaizar
     </button>
-</div> {% endcomment %}
+</div>  {% endcomment %}
 
 <div id="msg"></div>
 
-{% comment %} <h6 class="fw-bold">SALDOS ANDAGOYA - (Productos menos un cartón)</h6> {% endcomment %}
 
-{% comment %} <h6 class="list-group-item mt-2 mb-2 active" type="button" name="detalle">TABLA DE SALDOS
+<h6 class="list-group-item mt-2 mb-2 active" type="button" name="detalle_transf">TRANSFERENCIAS
     <i class="bi bi-caret-down-fill" style="float: right"></i>
-</h6> {% endcomment %}
+</h6>
 
-{% comment %}
-<div class="card mt-2 mb-2" id="detalle" style="display:none">
-    <div class="card-body">
-        <div class="table-responsive">
-            <div class="input_div">
-                <div class="col-4">
-                    <input id="saldos_andagoya_input" type="text" placeholder="Buscar..." class="form-control">
-                </div>
-            </div>
-            <table class="table table-hover" style="font-size: small;" id="tabla_saldos">
-                <thead>
-                    <tr>
-                        <th scope="col">#</th>
-                        <th scope="col">CÓDIGO</th>
-                        <th scope="col">NOMBRE</th>
-                        <th scope="col">MARCA</th>
-                        <th class="text-center" scope="col">UNDS CARTON</th>
-                        <th class="text-center" scope="col">%PICKING</th>
-                        <th class="text-center" scope="col">STOCK ANDAGOYA</th>
-                        <th class="text-center" scope="col">TRANSITO</th>
-                        <th class="text-center" scope="col" style="background-color:rgb(215, 237, 255)">TOTAL STOCK ANDAGOYA</th>
-                        <th class="text-center" scope="col" style="background-color:rgb(231, 255, 217)">STOCK CEREZOS</th>
-                        <!--th class="text-center" scope="col">CONSUMO SEMANAL</th-->
-                        <th class="text-center" scope="col">CONSUMO MENSUAL</th>
-                        <th class="text-center" scope="col">% (T.DISP/C.MENSUAL)</th>
-                        <th class="text-center" scope="col">% RATE</th>
-                        <!--th class="text-center" scope="col">% (T.DISP/UNDS.CARTON)</th-->
-                        <!-- th>filtro</th -->
-                    </tr>
-                </thead>
-                <tbody id="saldos_andagoya_table">
-                    {% for i in saldos_ban %}
-                    <tr>
-                        <td>{{i.n_fila}}</td>
-                        <td>{{i.PRODUCT_ID}}</td>
-                        <td>{{i.Nombre}}</td>
-                        <td>{{i.Marca}}</td>
-                        <td class="text-end">{{i.Unidad_Empaque|floatformat:"0g"}}</td>
-                        <td class="text-end">{{i.F_ACUMULADA|floatformat:"2g"}} %</td>
-                        <td class="text-end">{{i.STOCK_ANDAGOYA|floatformat:"0g"}}</td>
-                        <td class="text-end">{{i.TRANSITO|floatformat:"0g"}}</td>
-                        <td class="text-end" style="background-color:rgb(215, 237, 255)">
-                            {{i.TOTAL_DISPONIBLE|floatformat:"0g"}} <br/>
-                            <small style="color:grey">{{i.TOTAL_DISPONIBLE_CARTONES|floatformat:"2g"}} </small>
-                        </td>
-                        <td class="text-end" style="background-color:rgb(231, 255, 217)">
-                            {#{i.STOCK_CEREZOS|floatformat:"0g"}#} <!--br/-->
-                            {{i.STOCK_CEREZOS_MENOS_RESGIMP|floatformat:"0g"}} <br/>
+<div class="card mt-2 mb-2" id="detalle_transf" style="display:none">
+    <div class="card-body mb-0 pb-0">        
+        <table class="table" style="font-size: small;">
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">NOMBRE</th>
+                    <th scope="col">VEHÍCULO</th>
+                    <th scope="col">PESO-TRANSFERENCIA</th>
+                    <th scope="col">VOLUMEN-VEHÍCULO</th>
+                    <th scope="col">VOLUMEN-TRANSFERENCIA</th>
+                    <th scope="col">N°.PRODUCTOS</th>
+                    <th scope="col">ACTIVO</th>
+                    <th scope="col">ACCIONES</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in transf_list %}
+                <tr>
+                    <td>{{i.id}}</td>
+                    <td>{{i.nombre | upper}}</td>
+                    <td>{{i.vehiculo.placa}}</td>
+                    <td class="text-center">{{i.peso_total|floatformat:"5g"}} kg</td>
+                    <td class="text-center">{{i.vehiculo.volumen2|floatformat:"5g"}} m3</td>
+                    <td class="text-center">{{i.volumen_total|floatformat:"5g"}} m3</td>
+                    <td class="text-center">{{i.productos.all|length}}</td>
+                    <td class="text-center">
+                        {% if i.activo %}
+                            <i class="bi bi-check-circle-fill" backgroundcolor="green"></i>
+                        {% else %}
+                            <i class="bi bi-x-circle-fill" color="red"></i>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <div class="btn-group" role="group" aria-label="Basic example">
+                            <button 
+                                type="button" 
+                                name="" 
+                                class="btn btn-primary btn-sm">...</button>
                             
-                            <small style="color:grey">{{i.STOCK_CEREZOS_CARTONES|floatformat:"2g"}} </small>
-                        </td>
-                        <!--td class="text-end">{{i.CONSUMO_SEMANAL|floatformat:"0g"}}</td-->
-                        <td class="text-end">
-                            {{i.CONSUMO_MENSUAL|floatformat:"0g"}} <br/>
-                            <small style="color:grey">{{i.CONSUMO_MENSUAL_CARTONES|floatformat:"2g"}}</small>
-                        </td>
+                            <button type="button" name="btn_activar" value="{{i.id}}" 
+                                class="btn btn-{% if i.activo %}danger{% else %}success{% endif %} btn-sm"
+                                >
+                                {% if i.activo %}
+                                <i class="bi bi-x-circle-fill"></i>
+                                {% else %}
+                                <i class="bi bi-check-circle-fill"></i>
+                                {% endif %}                                
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 
-                        <td class="text-end"
-                        {% if i.TOTAL_DISPONIBLE_VS_CONSUMO_MENSUAL < 11 %}
-                            style="background-color: #F6B690;"
-                        {% elif i.TOTAL_DISPONIBLE_VS_CONSUMO_MENSUAL > 50  %}
-                            style="background-color: #BAF690;"
-                        {% else %}
-                            style="background-color: #F6F490;"
-                        {% endif %}
-                        >
-                            {{i.TOTAL_DISPONIBLE_VS_CONSUMO_MENSUAL|floatformat:2}} <!-- |floatformat:"2g" -->
-                        </td>
+{% if transf_activas %}
+<hr>
 
-                        <td class="text-end"
-                        {% if i.RATE < 3 %}
-                            style="background-color: #F6B690;"
-                        {% elif i.RATE >= 3 and i.RATE < 10 %}
-                            style="background-color: #F6F490;"
-                        {% else %}
-                            style="background-color: #BAF690;"
-                        {% endif %}
-                        >
-                            {{i.RATE|floatformat:2}}<!-- |floatformat:"2g" -->
-                        </td>
-
-                        <!-- td>{{i.filtro}}</td -->
-
-                        {#% comment %#}
-                        <td class="text-end"
-                        {% if i.TOTAL_DISPONIBLE_UNDS_CARTON < 11 %}
-                            style="background-color: #F6B690;"
-                        {% elif i.TOTAL_DISPONIBLE_UNDS_CARTON > 50  %}
-                            style="background-color: #BAF690;"
-                        {% else %}
-                            style="background-color: #F6F490;"
-                        {% endif %}
-                        >
-                            {{i.TOTAL_DISPONIBLE_UNDS_CARTON|floatformat:"2g"}} %
-                        </td>
-                        {#% endcomment %#}
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+<div class="card mt-2 mb-2">
+    <div class="card-body mt-0 pt-0 mb-0 pb-0">        
+        <table class="table mt-0 pt-0 mb-0 pb-0">
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">NOMBRE</th>
+                    <th scope="col">VEHÍCULO</th>
+                    <th scope="col">PESO-TRANSFERENCIA</th>
+                    <th scope="col">VOLUMEN-VEHÍCULO</th>
+                    <th scope="col">VOLUMEN-TRANSFERENCIA</th>
+                    <th scope="col">N°.PRODUCTOS</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in transf_activas %}
+                <tr>
+                    <td>{{i.id}}</td>
+                    <td>{{i.nombre | upper}}</td>
+                    <td>{{i.vehiculo.placa}}</td>
+                    <td class="text-center">{{i.peso_total|floatformat:"5g"}} kg</td>
+                    <td class="text-center">{{i.vehiculo.volumen2|floatformat:"5g"}} m3</td>
+                    <td class="text-center">{{i.volumen_total|floatformat:"5g"}} m3</td>
+                    <td class="text-center">{{i.productos.all|length}}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 
 <hr>
-{% endcomment %}
+{% endif %}
 
 
-<h6 class="fw-bold">SUGERENCIA ANDAGOYA</h6>
 
+<h6 class="fw-bold">INVENTARIO</h6>
 <div class="card mt-2 mb-2">
     <div class="card-body">
         <div class="table-responsive">
@@ -180,7 +167,6 @@
                         <th scope="col">CÓDIGO</th>
                         <th scope="col">NOMBRE</th>
                         <th scope="col">MARCA</th>
-                        <!--th scope="col">U.E</th-->
                         <th scope="col">LOTE</th>
                         <th scope="col">FECHA</th>
                         <th scope="col">BODEGA</th>
@@ -198,9 +184,8 @@
                         <th class="text-center" scope="col">CARTONES</th>
                         <th class="text-center" scope="col">SALDOS</th>
                         <th class="text-center" scope="col">T.UNIDADES</th>
-                        <!--th class="text-center" scope="col">VOLUMEN</th-->
 
-                        <th class="text-center" scope="col">RES</th>
+                        <th class="text-center" scope="col">ACCIONES</th>
                     </tr>
                 </thead>
                 <tbody id="inventario">
@@ -209,7 +194,6 @@
                         <td class="product_id">{{i.PRODUCT_ID}}</td>
                         <td>{{i.Nombre}}</td>
                         <td>{{i.Marca}}</td>
-                        <!--td class="ue">{{i.Unidad_Empaque|floatformat:"0g"}}</td-->
                         <td class="lote_id">{{i.LOTE_ID}}</td>
                         <td class="fecha_caducidad">{{i.FECHA_CADUCIDAD}}</td>
                         <td class="bodega">{{i.LOCATION}}</td>
@@ -227,14 +211,21 @@
                         <td class="text-end"><input style="width:70px" class="cartones" type="number" value="0"></td>
                         <td class="text-end"><input style="width:70px" class="saldos" type="number" value="0"></td>
                         <td class="text-end"></td>
-                        <!--td class="text-end"></td-->
 
                         <td class="columna-detalles text-center">
                             <span class="detalle" style="display:none">{{i.DETALLE}}</span>
+
                             {% if i.DETALLE %}
-                            <button name="detail" value="{{i.DETALLE}}">...</button>
+                            <div class="btn-group" role="group" aria-label="Basic example">
+                                <button 
+                                    type="button" 
+                                    name="detail" value="{{i.DETALLE}}" 
+                                    class="btn btn-primary btn-sm">...</button>
+                                <button type="button" name="add_transf" class="btn btn-success btn-sm {% if len_transf_activas != 1 %} disabled {% endif %}"><i class="bi bi-plus-circle"></i></button>
+                            </div>
+                            {% else %}
+                                <button type="button" name="add_transf" class="btn btn-success btn-sm {% if len_transf_activas != 1 %} disabled {% endif %}"><i class="bi bi-plus-circle"></i></button>
                             {% endif %}
-                            <button name="add_transf">ok</button>
                         </td>
 
                     {% endfor %}
@@ -244,6 +235,7 @@
     </div>
 </div>
 
+{% comment %}
 <!-- Modal -->
 <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -274,7 +266,18 @@
         </div>
     </div>
 </div>
+{% endcomment %}
 
+
+<!-- detalle transf -->
+<script>
+    $(document).ready(function() {
+        $("h6[name='detalle_transf']").click(function(){
+            $("#detalle_transf").toggle();
+            $(this).find("i").toggleClass("bi-caret-down-fill bi-caret-up-fill");
+        })
+    })
+</script>
 
 <!--filtro buscar-->
 <script>
@@ -356,7 +359,6 @@
             $.ajax({
                 type:"POST",
                 url:"{% url 'producto_transf_ajax' %}",
-                // data:JSON.stringify(datos)
                 data:{
                     'csrfmiddlewaretoken': '{{ csrf_token }}',
                     'producto_id': product_id,
@@ -367,6 +369,26 @@
                     'cartones': cartones,
                     'saldos': saldos,
                     'detalle':detalle
+                }
+            })
+        })
+    })
+</script>
+
+<!-- activar descativar transf -->
+<script>
+    $(document).ready(function() {
+        $("button[name='btn_activar']").click(function() {
+            var id_transf = $(this).val()
+            $.ajax({
+                type:"POST",
+                url:"{% url 'transf_cer_and_activar_inactivar_ajax' %}",
+                data:{
+                    'csrfmiddlewaretoken': '{{ csrf_token }}',
+                    'id_transf': id_transf,
+                },
+                success: function() {
+                    window.location.reload();
                 }
             })
         })
@@ -384,17 +406,6 @@
 
 
 
-
-
-<!-- Detalle -->
-<script>
-    $(document).ready(function() {
-        $("h6[name='detalle']").click(function(){
-            $("#detalle").toggle();
-            $(this).find("i").toggleClass("bi-caret-down-fill bi-caret-up-fill");
-        })
-    })
-</script>
 
 <!-- Actualizar lista -->
 <script>

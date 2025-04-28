@@ -533,4 +533,9 @@ urlpatterns = [
         view  = views.producto_transf_ajax,
         name  = 'producto_transf_ajax'
     ),
+    path(
+        route = 'transf_cer_and_activar_inactivar_ajax',
+        view  = views.transf_cer_and_activar_inactivar_ajax,
+        name  = 'transf_cer_and_activar_inactivar_ajax'
+    ),
 ]

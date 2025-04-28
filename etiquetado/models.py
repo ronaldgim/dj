@@ -388,7 +388,7 @@ class TransfCerAnd(models.Model):
     vehiculo = models.ForeignKey(Vehiculos, on_delete=models.CASCADE)
     volumen_total = models.FloatField(null=True)
     peso_total = models.FloatField(null=True)
-    productos = models.ManyToManyField(ProductosTransfCerAnd)
+    productos = models.ManyToManyField(ProductosTransfCerAnd, blank=True)
     creado  = models.DateField(auto_now_add=True)
     
     def __str__(self):

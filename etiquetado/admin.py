@@ -19,7 +19,9 @@ from etiquetado.models import (
     UbicacionAndagoya,
     ProductoUbicacion,
     PedidoTemporal, 
-    ProductosPedidoTemporal
+    ProductosPedidoTemporal,
+    TransfCerAnd,
+    ProductosTransfCerAnd
 )
 
 # Register your models here.
@@ -39,7 +41,6 @@ class EstadoEtiquetadoAdmin(admin.ModelAdmin):
 class PedidosEstadoEtiquetadoAdmin(admin.ModelAdmin):
     list_display = ('n_pedido', 'estado', 'fecha_creado', 'fecha_actualizado')
     search_fields = ('n_pedido',)
-
     
 @admin.register(OrdenEtiquetadoStock)
 class OrdenEtiquetadoStockAdmin(admin.ModelAdmin):
@@ -105,3 +106,11 @@ class PedidoTemporalAdmin(admin.ModelAdmin):
 @admin.register(ProductosPedidoTemporal)
 class ProductosPedidoTemporalAdmin(admin.ModelAdmin):
     list_display = ('id', 'product_id', 'cantidad')
+
+@admin.register(TransfCerAnd)
+class TransfCerAndAdmin(admin.ModelAdmin):
+    list_display = ('id', 'nombre', 'vehiculo', 'creado')
+
+@admin.register(ProductosTransfCerAnd)
+class ProductosTransfCerAndAdmin(admin.ModelAdmin):
+    list_display = ('id', 'product_id', 'lote_id', 'bodega','unidades')
