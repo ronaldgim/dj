@@ -5,7 +5,6 @@ from django.db.models import Q
 # Shortcuts
 from django.shortcuts import render, redirect
 
-
 # Messages
 from django.contrib import messages
 
@@ -2390,36 +2389,41 @@ def inventario_transferencia_data():
     
     def df_stock_andagoya():
         with connections['gimpromed_sql'].cursor() as cursor:
-            cursor.execute("SELECT PRODUCT_ID, OH2, LOTE_ID, FECHA_CADUCIDAD, WARE_CODE FROM warehouse.stock_lote WHERE WARE_CODE = 'BAN'")
+            cursor.execute("SELECT PRODUCT_ID, OH2, LOTE_ID, FECHA_CADUCIDAD, LOCATION, WARE_CODE FROM warehouse.stock_lote WHERE WARE_CODE = 'BAN'")
             columns = [col[0] for col in cursor.description]
             stock = [dict(zip(columns, row)) for row in cursor.fetchall()]
             stock = pd.DataFrame(stock)
             stock['LOTE_ID'] = stock['LOTE_ID'].str.replace('.','')
-            stock = stock.groupby(by=['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD','WARE_CODE'])['OH2'].sum().reset_index()
+            stock = stock.groupby(by=['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD','LOCATION','WARE_CODE'])['OH2'].sum().reset_index()
+            stock['BODEGA'] = 'BAN'
             return stock
     
     def df_stock_cerezos():
-        cerezos = pd.DataFrame(Existencias.objects.all().values())
+        cerezos = pd.DataFrame(Existencias.objects.all().values(
+            'product_id', 'lote_id', 'fecha_caducidad', 'estado', 'ubicacion__bodega','unidades'
+        ))
         cerezos['lote_id'] = cerezos['lote_id'].str.replace('.','')
-        cerezos = cerezos.groupby(by=['product_id','lote_id','fecha_caducidad','estado'])['unidades'].sum().reset_index()
+        cerezos = cerezos.groupby(by=['product_id','lote_id','fecha_caducidad','ubicacion__bodega','estado'])['unidades'].sum().reset_index()
         cerezos['WARE_CODE'] = cerezos.apply(lambda x: 'BCT' if x['estado'] == 'Disponible' else 'CUC', axis=1)
         cerezos = cerezos.rename(columns={
             'product_id':'PRODUCT_ID',
             'lote_id':'LOTE_ID',
             'fecha_caducidad':'FECHA_CADUCIDAD',
-            'unidades':'OH2'
+            'unidades':'OH2',
+            'ubicacion__bodega':'LOCATION'
         })
-        cerezos = cerezos[['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD','WARE_CODE','OH2']]
+        cerezos = cerezos[['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD','LOCATION','WARE_CODE','OH2']]
+        cerezos['BODEGA'] = 'BCT'
         return cerezos
     
     def df_stock():
         stock = pd.concat([df_stock_andagoya(), df_stock_cerezos()])
         stock = stock.pivot_table(
-            index=['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD'],
+            index=['PRODUCT_ID','LOTE_ID','LOCATION','FECHA_CADUCIDAD','BODEGA'],
             values='OH2',
             columns='WARE_CODE',
             aggfunc='sum'
-        ).fillna(0).reset_index()
+        ).fillna(0).reset_index().sort_values(by=['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD','BODEGA'])
         return stock
     
     def df_reservas():
@@ -2431,47 +2435,95 @@ def inventario_transferencia_data():
             reservas['LOTE_ID'] = reservas['LOTE_ID'].str.replace('.','')
             reservas = reservas.groupby(by=['CONTRATO_ID','CODIGO_CLIENTE','PRODUCT_ID','LOTE_ID','WARE_CODE'])['EGRESO_TEMP'].sum().reset_index()
             return reservas
-
+    
     def df_reservas_unidades():
-        reservas_und = df_reservas()
-        reservas_und = reservas_und.pivot_table(
+    
+        reservas_ban = df_reservas().copy()
+        reservas_ban = reservas_ban[reservas_ban['WARE_CODE']=='BAN']
+        reservas_ban = reservas_ban.pivot_table(
             index=['PRODUCT_ID','LOTE_ID'],
             values='EGRESO_TEMP',
             columns='WARE_CODE',
             aggfunc='sum'
         ).fillna(0).reset_index()
-        reservas_und = reservas_und.rename(columns={'BAN':'BAN_R','BCT':'BCT_R'})
-        return reservas_und
+        reservas_ban = reservas_ban.rename(columns={'BAN':'BAN_R'})
+        reservas_ban['BODEGA'] = 'BAN'
         
-    def df_reservas_contratos():
-        reservas_cto = df_reservas()
-        cliente = clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE']]
-        reservas_cto = reservas_cto.merge(cliente, on='CODIGO_CLIENTE', how='left').sort_values(by='WARE_CODE')
-        reservas_cto['DETALLE'] = (
-            '"' + 
-            reservas_cto['NOMBRE_CLIENTE'].astype('str') + ' - ' + reservas_cto['CONTRATO_ID'].astype('str') + ' - ' + reservas_cto['WARE_CODE'].astype('str') + ' - ' + 'UNDS: ' + reservas_cto['EGRESO_TEMP'].astype('str') 
-            + '"'
-        )
-        reservas_cto = reservas_cto.pivot_table(
+        reservas_bct = df_reservas().copy()
+        reservas_bct = reservas_bct[reservas_bct['WARE_CODE']=='BCT']
+        reservas_bct = reservas_bct.pivot_table(
             index=['PRODUCT_ID','LOTE_ID'],
-            values='DETALLE',
-            aggfunc=lambda x: ' | '.join(x)
-        ).fillna('').reset_index()
-        return reservas_cto
+            values='EGRESO_TEMP',
+            columns='WARE_CODE',
+            aggfunc='sum'
+        ).fillna(0).reset_index()
+        reservas_bct = reservas_bct.rename(columns={'BCT':'BCT_R'})
+        reservas_bct['BODEGA'] = 'BCT'
+        reservas_unds = pd.concat([reservas_ban, reservas_bct]).fillna(0)
         
+        return reservas_unds #.reset_index()
+
+    def df_reservas_contratos():
+    
+        def df_reservas_contratos_ban():
+            reservas_cto = df_reservas()
+            reservas_cto = reservas_cto[reservas_cto['WARE_CODE']=='BAN']
+            cliente = clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE']]
+            reservas_cto = reservas_cto.merge(cliente, on='CODIGO_CLIENTE', how='left').sort_values(by='WARE_CODE')
+            reservas_cto['DETALLE'] = (
+                '"' + 
+                reservas_cto['NOMBRE_CLIENTE'].astype('str') + ' - ' + reservas_cto['CONTRATO_ID'].astype('str') + ' - ' + reservas_cto['WARE_CODE'].astype('str') + ' - ' + 'UNDS: ' + reservas_cto['EGRESO_TEMP'].astype('str') 
+                + '"'
+            )
+            reservas_cto = reservas_cto.pivot_table(
+                index=['PRODUCT_ID','LOTE_ID'],
+                values='DETALLE',
+                aggfunc=lambda x: ' | '.join(x)
+            ).fillna('').reset_index()
+            reservas_cto['BODEGA'] = 'BAN'
+            return reservas_cto
+            
+        def df_reservas_contratos_bct():
+            reservas_cto = df_reservas()
+            reservas_cto = reservas_cto[reservas_cto['WARE_CODE']=='BCT']
+            cliente = clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE']]
+            reservas_cto = reservas_cto.merge(cliente, on='CODIGO_CLIENTE', how='left').sort_values(by='WARE_CODE')
+            reservas_cto['DETALLE'] = (
+                '"' + 
+                reservas_cto['NOMBRE_CLIENTE'].astype('str') + ' - ' + reservas_cto['CONTRATO_ID'].astype('str') + ' - ' + reservas_cto['WARE_CODE'].astype('str') + ' - ' + 'UNDS: ' + reservas_cto['EGRESO_TEMP'].astype('str') 
+                + '"'
+            )
+            reservas_cto = reservas_cto.pivot_table(
+                index=['PRODUCT_ID','LOTE_ID'],
+                values='DETALLE',
+                aggfunc=lambda x: ' | '.join(x)
+            ).fillna('').reset_index()
+            reservas_cto['BODEGA'] = 'BCT'
+            return reservas_cto
+        
+        reservas = pd.concat([df_reservas_contratos_ban(), df_reservas_contratos_bct()]).fillna('')
+        return reservas.reset_index()
     
     prods = productos_odbc_and_django()[['product_id','Nombre','Marca','Unidad_Empaque','Volumen']]
     prods = prods.rename(columns={'product_id':'PRODUCT_ID'})
     prods['vol'] = prods['Volumen'] / 1000000
-    data = df_stock().merge(df_reservas_unidades(), on=['PRODUCT_ID','LOTE_ID'], how='left').sort_values(
-        by=['PRODUCT_ID','FECHA_CADUCIDAD'],
-        ascending=[True, True]).fillna(0)
-    data['BCT_D'] = data['BCT'] - data['BCT_R']
+    
+    data = df_stock()
+    
+    if not df_reservas_unidades().empty:
+        data = data.merge(df_reservas_unidades(), on=['PRODUCT_ID','LOTE_ID','BODEGA'], how='left').fillna(0)
+    
+    if not df_reservas_contratos().empty:
+        data = data.merge(df_reservas_contratos(), on=['PRODUCT_ID','LOTE_ID','BODEGA'], how='left').fillna('')
+    
     data = data.merge(prods, on='PRODUCT_ID',how='left')
-    data['BCT_D_C'] = data['BCT_D'] / data['Unidad_Empaque']
+    
+    data['BCT_D']   = data['BCT'] - data['BCT_R']
+    data['BCT_D_C'] = data['BCT_D'] // data['Unidad_Empaque']
+    data['BCT_D_S'] = data['BCT_D'] % data['Unidad_Empaque']
     data['BCT_D_C'] = data['BCT_D_C'].fillna(0)
-    data = data.merge(df_reservas_contratos(), on=['PRODUCT_ID','LOTE_ID'], how='left')
-    data['DETALLE'] = data['DETALLE'].fillna('')
+    data['BCT_D_S'] = data['BCT_D_S'].fillna(0)
+        
     data['FECHA_CADUCIDAD'] = data['FECHA_CADUCIDAD'].astype('str')
     
     return data

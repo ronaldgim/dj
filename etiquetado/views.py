@@ -100,6 +100,10 @@ import requests
 
 # Existencias
 from wms.models import Existencias
+
+# Etiquetado
+from etiquetado.models import TransfCerAnd, ProductosTransfCerAnd
+
 from django.db.models import Q
 
 # Datos
@@ -4098,12 +4102,88 @@ def editar_pedido_temporal(request):
 ### INVETARIO TRANSFERENCIA
 def inventario_transferencia(request):
     
+    transf_list = TransfCerAnd.objects.all().order_by('-id')[:5]
+    transf_activas = TransfCerAnd.objects.filter(activo=True)    
+    
     data = inventario_transferencia_data()
     data = de_dataframe_a_template(data)
     
     context = {
-        'data':data
+        'data':data,
+        'transf_list':transf_list,
+        'transf_activas':transf_activas,
+        'len_transf_activas':len(transf_activas),
     }
     
     return render(request, 'etiquetado/analisis_transferencia/inventario_transferencia.html', context)
 
+
+# def transferencia_cer_and(request):
+    
+#     trans = TransfCerAnd.objects.all()
+#     vehiculos = Vehiculos.objects.filter(transportista='GIMPROMED')
+    
+#     if request.method == 'POST':
+#         pass
+
+
+def transf_cer_and_activar_inactivar_ajax(request):
+    
+    id_transf = request.POST.get('id_transf')
+    
+    transf = TransfCerAnd.objects.get(id=id_transf)
+    
+    if transf.activo:
+        transf.activo = False
+        transf.save()
+    else:
+        transf.activo = True
+        transf.save()
+    
+    return JsonResponse({'msg':'ok'})
+
+
+
+def producto_transf_ajax(request):
+    
+    #transferencia = TransfCerAnd()
+    productos = productos_odbc_and_django()
+    
+    if request.method == 'POST':
+        
+        producto_id = request.POST.get('producto_id')
+        lote_id = request.POST.get('lote_id')
+        fecha_caducidad = request.POST.get('fecha_caducidad')
+        bodega = request.POST.get('bodega')
+        und_disp = int(request.POST.get('und_disp'))
+        cartones = int(request.POST.get('cartones'))
+        saldos = int(request.POST.get('saldos'))
+        detalle = request.POST.get('detalle')
+        
+        prods = productos[productos['product_id']==producto_id].to_dict('records')[0]
+        prod_ue = int(prods.get('Unidad_Empaque')) if int(prods.get('Unidad_Empaque'))>0 else 0.025
+        prod_vol = int(prods.get('Volumen')) / 1000000
+        prod_peso = float(prods.get('Peso'))
+        
+        unidades = (cartones * prod_ue) + saldos
+        volumen = (unidades / prod_ue) * prod_vol
+        peso = (unidades / prod_ue) * prod_peso
+        reservas = und_disp - unidades
+        
+        new_product = ProductosTransfCerAnd(
+            product_id = producto_id,
+            lote_id = lote_id,
+            fecha_caducidad = fecha_caducidad,
+            bodega = bodega,
+            cartones = cartones,
+            saldos = saldos,
+            unidades = unidades,
+            volumen = volumen,
+            peso = peso,
+            reservas = reservas,
+            detalle = detalle
+        )
+        
+        
+        
+        return JsonResponse({'msg':'ok'})
