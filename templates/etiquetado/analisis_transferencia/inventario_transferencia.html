@@ -180,40 +180,61 @@
                         <th scope="col">CÓDIGO</th>
                         <th scope="col">NOMBRE</th>
                         <th scope="col">MARCA</th>
+                        <!--th scope="col">U.E</th-->
                         <th scope="col">LOTE</th>
                         <th scope="col">FECHA</th>
+                        <th scope="col">BODEGA</th>
 
                         <th class="text-center" scope="col">BAN</th>
                         <th class="text-center" scope="col">BCT</th>
                         <th class="text-center" scope="col">CUC</th>
-                        <th class="text-center" scope="col">BAN-R</th>
-                        <th class="text-center" scope="col">BCT-R</th>
-                        <th class="text-center" scope="col">BCT-D</th>
-                        <th class="text-center" scope="col">BCT-D(c)</th>
+                        <th class="text-center" scope="col" style="background-color: #F6B690;">BAN-R</th>
+                        <th class="text-center" scope="col" style="background-color: #F6B690;">BCT-R</th>
+                        <th class="text-center" scope="col" style="background-color: #9fe5ff;">BCT-D(u)</th>
+                        <th class="text-center" scope="col" style="background-color: #aee9ff;">BCT-D(c)</th>
+                        <th class="text-center" scope="col" style="background-color: #bfeeff;">BCT-D(s)</th>
+                        
+                        <th class="text-center" scope="col">RESERVAS</th>
+                        <th class="text-center" scope="col">CARTONES</th>
+                        <th class="text-center" scope="col">SALDOS</th>
+                        <th class="text-center" scope="col">T.UNIDADES</th>
+                        <!--th class="text-center" scope="col">VOLUMEN</th-->
+
                         <th class="text-center" scope="col">RES</th>
                     </tr>
                 </thead>
-                <tbody id="sugerencia_table">
+                <tbody id="inventario">
                     {% for i in data %}
                     <tr>
-                        <td>{{i.PRODUCT_ID}}</td>
+                        <td class="product_id">{{i.PRODUCT_ID}}</td>
                         <td>{{i.Nombre}}</td>
                         <td>{{i.Marca}}</td>
-                        <td>{{i.LOTE_ID}}</td>
-                        <td>{{i.FECHA_CADUCIDAD}}</td>
-
+                        <!--td class="ue">{{i.Unidad_Empaque|floatformat:"0g"}}</td-->
+                        <td class="lote_id">{{i.LOTE_ID}}</td>
+                        <td class="fecha_caducidad">{{i.FECHA_CADUCIDAD}}</td>
+                        <td class="bodega">{{i.LOCATION}}</td>
+                        
                         <td class="text-end">{{i.BAN|floatformat:"0g"}}</td>
                         <td class="text-end">{{i.BCT|floatformat:"0g"}}</td>
                         <td class="text-end">{{i.CUC|floatformat:"0g"}}</td>
                         <td class="text-end" style="background-color: #F6B690;">{{i.BAN_R|floatformat:"0g"}}</td>
                         <td class="text-end" style="background-color: #F6B690;">{{i.BCT_R|floatformat:"0g"}}</td>
-                        <td class="text-end" style="background-color: #9fe5ff; {% if i.BCT_D <= 0 %} color:red {% endif %}">{{i.BCT_D|floatformat:"0g"}}</td>
-                        <td class="text-end" style="background-color: #9fe5ff; {% if i.BCT_D <= 0 %} color:red {% endif %}">{{i.BCT_D_C|floatformat:"3g"}}</td>
+                        <td class="text-end und_disp" style="background-color: #9fe5ff; {% if i.BCT_D <= 0 %} color:red {% endif %}">{{i.BCT_D|floatformat:"0g"}}</td>
+                        <td class="text-end" style="background-color: #aee9ff; {% if i.BCT_D <= 0 %} color:red {% endif %}">{{i.BCT_D_C|floatformat:"0g"}}</td>
+                        <td class="text-end" style="background-color: #bfeeff; {% if i.BCT_D <= 0 %} color:red {% endif %}">{{i.BCT_D_S|floatformat:"0g"}}</td>
+
+                        <td class="text-end"></td>
+                        <td class="text-end"><input style="width:70px" class="cartones" type="number" value="0"></td>
+                        <td class="text-end"><input style="width:70px" class="saldos" type="number" value="0"></td>
+                        <td class="text-end"></td>
+                        <!--td class="text-end"></td-->
 
                         <td class="columna-detalles text-center">
+                            <span class="detalle" style="display:none">{{i.DETALLE}}</span>
                             {% if i.DETALLE %}
                             <button name="detail" value="{{i.DETALLE}}">...</button>
                             {% endif %}
+                            <button name="add_transf">ok</button>
                         </td>
 
                     {% endfor %}
@@ -255,6 +276,20 @@
 </div>
 
 
+<!--filtro buscar-->
+<script>
+    $(document).ready(function() {
+        $("#sugerencia_input").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#inventario tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+
+<!--detail de reserva-->
 <script>
     $(document).ready(function() {
         // Inicializar todos los botones con name="detail"
@@ -305,31 +340,51 @@
     });
 </script>
 
-
-<!--filtro buscar-->
+<!--inputs-->
 <script>
     $(document).ready(function() {
-        $("#saldos_andagoya_input").on("keyup", function() {
-            var value = $(this).val().toLowerCase();
-            $("#saldos_andagoya_table tr").filter(function() {
-                $(this).toggle($(this).text()
-                .toLowerCase().indexOf(value) > -1)
-            });
-        });
-    });
+        $("button[name='add_transf']").click(function() {
+            var product_id = $(this).closest('tr').find('td.product_id').text();
+            var lote_id = $(this).closest('tr').find('td.lote_id').text();
+            var fecha_caducidad = $(this).closest('tr').find('td.fecha_caducidad').text();
+            var bodega = $(this).closest('tr').find('td.bodega').text();
+            var und_disp = $(this).closest('tr').find('td.und_disp').text();
+            var cartones = $(this).closest('tr').find('input.cartones').val();
+            var saldos = $(this).closest('tr').find('input.saldos').val();
+            var detalle = $(this).closest('tr').find('span.detalle').text();
+
+            $.ajax({
+                type:"POST",
+                url:"{% url 'producto_transf_ajax' %}",
+                // data:JSON.stringify(datos)
+                data:{
+                    'csrfmiddlewaretoken': '{{ csrf_token }}',
+                    'producto_id': product_id,
+                    'lote_id': lote_id,
+                    'fecha_caducidad': fecha_caducidad,
+                    'bodega': bodega,
+                    'und_disp':und_disp,
+                    'cartones': cartones,
+                    'saldos': saldos,
+                    'detalle':detalle
+                }
+            })
+        })
+    })
 </script>
 
-<script>
-    $(document).ready(function() {
-        $("#sugerencia_input").on("keyup", function() {
-            var value = $(this).val().toLowerCase();
-            $("#sugerencia_table tr").filter(function() {
-                $(this).toggle($(this).text()
-                .toLowerCase().indexOf(value) > -1)
-            });
-        });
-    });
-</script>
+
+
+
+
+
+
+
+
+
+
+
+
 
 <!-- Detalle -->
 <script>

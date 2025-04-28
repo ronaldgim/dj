@@ -521,10 +521,16 @@ urlpatterns = [
         name  = 'editar_pedido_temporal'
     ),
     
+    ## transferencia
     path(
         route = 'inventario/transferencia',
         view  = views.inventario_transferencia,
         name  = 'inventario_transferencia'
     ),
     
+    path(
+        route = 'producto_transf_ajax',
+        view  = views.producto_transf_ajax,
+        name  = 'producto_transf_ajax'
+    ),
 ]

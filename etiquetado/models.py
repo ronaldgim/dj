@@ -2,11 +2,11 @@
 from django.db import models
 
 # Models
-from datos.models import Product
+from datos.models import Product, Vehiculos
 from mantenimiento.models import Equipo
 from users.models import UserPerfil , User
 
-import hashlib
+#from datos.views import productos_odbc_and_django
 
 # Estado Picking select
 ESTADO_PICKING = [
@@ -360,3 +360,36 @@ class Reservas(models.Model):
         
     #     clave_unica = f"{contrato_id}|{codigo_cliente}|{product_id}|{ware_code}|{fecha_pedido}"
     #     return hashlib.sha256(clave_unica.encode('utf-8')).hexdigest()
+
+
+
+class ProductosTransfCerAnd(models.Model):
+    
+    product_id = models.CharField(max_length=50)
+    lote_id = models.CharField(max_length=50)
+    fecha_caducidad = models.DateField()
+    bodega = models.CharField(max_length=5)
+    cartones = models.IntegerField(default=0)
+    saldos = models.IntegerField(default=0)
+    unidades = models.IntegerField(default=0)
+    volumen = models.FloatField(default=0.0)
+    peso = models.FloatField(default=0.0)
+    reservas = models.IntegerField(default=0)
+    detalle = models.TextField(blank=True)
+    
+    def __str__(self):
+        return self.product_id
+
+
+class TransfCerAnd(models.Model):
+    
+    activo = models.BooleanField(default=True)
+    nombre  = models.CharField(max_length=50, blank=True)
+    vehiculo = models.ForeignKey(Vehiculos, on_delete=models.CASCADE)
+    volumen_total = models.FloatField(null=True)
+    peso_total = models.FloatField(null=True)
+    productos = models.ManyToManyField(ProductosTransfCerAnd)
+    creado  = models.DateField(auto_now_add=True)
+    
+    def __str__(self):
+        return self.nombre

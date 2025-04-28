@@ -100,6 +100,10 @@ import requests
 
 # Existencias
 from wms.models import Existencias
+
+# Etiquetado
+from etiquetado.models import TransfCerAnd, ProductosTransfCerAnd
+
 from django.db.models import Q
 
 # Datos
@@ -4107,3 +4111,47 @@ def inventario_transferencia(request):
     
     return render(request, 'etiquetado/analisis_transferencia/inventario_transferencia.html', context)
 
+
+def producto_transf_ajax(request):
+    
+    #transferencia = TransfCerAnd()
+    productos = productos_odbc_and_django()
+    
+    if request.method == 'POST':
+        
+        producto_id = request.POST.get('producto_id')
+        lote_id = request.POST.get('lote_id')
+        fecha_caducidad = request.POST.get('fecha_caducidad')
+        bodega = request.POST.get('bodega')
+        und_disp = int(request.POST.get('und_disp'))
+        cartones = int(request.POST.get('cartones'))
+        saldos = int(request.POST.get('saldos'))
+        detalle = request.POST.get('detalle')
+        
+        prods = productos[productos['product_id']==producto_id].to_dict('records')[0]
+        prod_ue = int(prods.get('Unidad_Empaque')) if int(prods.get('Unidad_Empaque'))>0 else 0.025
+        prod_vol = int(prods.get('Volumen')) / 1000000
+        prod_peso = float(prods.get('Peso'))
+        
+        unidades = (cartones * prod_ue) + saldos
+        volumen = (unidades / prod_ue) * prod_vol
+        peso = (unidades / prod_ue) * prod_peso
+        reservas = und_disp - unidades
+        
+        new_product = ProductosTransfCerAnd(
+            product_id = producto_id,
+            lote_id = lote_id,
+            fecha_caducidad = fecha_caducidad,
+            bodega = bodega,
+            cartones = cartones,
+            saldos = saldos,
+            unidades = unidades,
+            volumen = volumen,
+            peso = peso,
+            reservas = reservas,
+            detalle = detalle
+        )
+        
+        
+        
+        return JsonResponse({'msg':'ok'})
