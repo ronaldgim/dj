@@ -4221,9 +4221,15 @@ def transferencia_cer_and_email_ajax(request):
 # TRANSFERENCIA: {transf.enum}
 # NOMBRE: {transf.nombre.upper()} 
 # VEHÍCULO: {transf.vehiculo.placa}
-# CREADA: {transf.creado}""",
+# FECHA: {transf.creado}""",
                     from_email=settings.EMAIL_HOST_USER,
-                    to=['egarces@gimpromed.com'],
+                    to=[
+                        'dreyes@gimpromed.com',
+                        'ncastillo@gimpromed.com',
+                        'jgualotuna@gimpromed.com',
+                        'bcerezos@gimpromed.com',
+                        'egarces@gimpromed.com',
+                    ]
                 )
             
             columnas_amarillas = ['product_id', 'lote_id', 'unidades']
