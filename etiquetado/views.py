@@ -9,6 +9,13 @@ from django.shortcuts import render, redirect
 
 from django.shortcuts import get_object_or_404
 
+import io
+import re
+
+from django.core.mail import EmailMessage
+from itertools import chain
+from django.forms.models import model_to_dict
+    
 # Pandas
 import pandas as pd
 import numpy as np
@@ -53,7 +60,8 @@ from etiquetado.forms import (
     UbicacionAndagoyaForm,
     ProductoUbicacionForm,
     PedidoTemporalForm,
-    ProductosPedidoTemporalForm
+    ProductosPedidoTemporalForm,
+    TransfCerAndForm
 )
 
 # Json
@@ -4101,14 +4109,12 @@ def editar_pedido_temporal(request):
 
 ### INVETARIO TRANSFERENCIA
 def inventario_transferencia(request):
-    from itertools import chain
-    from django.forms.models import model_to_dict
     
     transf_list = TransfCerAnd.objects.all().order_by('-id')[:5]
     transf_activas = TransfCerAnd.objects.filter(activo=True).order_by('-id')
     data = inventario_transferencia_data()
     
-    querysets_transf = [transferencia.productos.all() for transferencia in transf_activas] 
+    querysets_transf = [transferencia.productos.all() for transferencia in transf_activas]
     if querysets_transf and len(querysets_transf) > 1:
         todos_productos = list(chain(*querysets_transf))
         productos_dict = [model_to_dict(producto) for producto in todos_productos]
@@ -4119,7 +4125,7 @@ def inventario_transferencia(request):
             by=['unidades','PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD','BODEGA'], ascending=[True, True, True, True, True]
         )
         
-    elif querysets_transf and len(querysets_transf) == 1:
+    elif len(querysets_transf) == 1 and querysets_transf[0].exists():
         todos_productos = list(chain(*querysets_transf))
         productos_dict = [model_to_dict(producto) for producto in todos_productos]
         data_transf = pd.DataFrame(productos_dict)
@@ -4127,26 +4133,170 @@ def inventario_transferencia(request):
         data = data.merge(data_transf, on=['PRODUCT_ID','LOTE_ID','LOCATION'], how='left').sort_values(
             by=['unidades','PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD','BODEGA'], ascending=[True, True, True, True, True]
         )
+        data['id'] = data['id'].astype('str')
         
     data = de_dataframe_a_template(data)
+    
+    if request.method == 'POST':
+        form = TransfCerAndForm(request.POST)
+        if form.is_valid():
+            n_trans = form.save()
+            trasf = TransfCerAnd.objects.exclude(id=n_trans.id)
+            trasf.update(activo=False)
+            
+            return HttpResponseRedirect('/etiquetado/inventario/transferencia')
     
     context = {
         'data':data,
         'transf_list':transf_list,
         'transf_activas':transf_activas,
         'len_transf_activas':len(transf_activas),
+        'form':TransfCerAndForm()
     }
     
     return render(request, 'etiquetado/analisis_transferencia/inventario_transferencia.html', context)
 
 
-# def transferencia_cer_and(request):
+def transferencia_cer_and_data(id_transf):
     
-#     trans = TransfCerAnd.objects.all()
-#     vehiculos = Vehiculos.objects.filter(transportista='GIMPROMED')
+    transf = TransfCerAnd.objects.get(id=id_transf)
+    prods = pd.DataFrame(transf.productos.all().order_by('bodega','product_id','unidades').values())
     
-#     if request.method == 'POST':
-#         pass
+    if not prods.empty:
+
+        totales = {
+            'product_id':'TOTAL',
+            'lote_id':'',
+            'fecha_caducidad':'',
+            'bodega':'',
+            'cartones' : prods['cartones'].sum(),
+            'saldos' : prods['saldos'].sum(),
+            'unidades' : prods['unidades'].sum(),
+            'volumen' : round(prods['volumen'].sum(), 5),
+            'peso' : round(prods['peso'].sum(), 5),
+            'reservas':'',
+            'detalle':'',
+            'Nombre':'',
+            'Marca':''
+        }
+        
+        productos = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+        prods = prods.merge(productos, on='product_id', how='left')
+        prods.insert(0, 'No.', range(1, len(prods) + 1))
+        
+        df_final = pd.concat([prods, pd.DataFrame([totales])], ignore_index=True).fillna('')        
+        df_final = df_final[['No.','product_id','Nombre','Marca','bodega','lote_id','cartones','saldos','unidades','volumen','reservas','detalle']]
+        
+        return df_final
+    
+    else:
+        return pd.DataFrame()
+
+
+def get_transferencia_cer_and(request):
+    
+    id_transf = int(request.GET.get('id_transf'))
+    data = transferencia_cer_and_data(id_transf) 
+    
+    if not data.empty:
+        return JsonResponse({
+            'data':de_dataframe_a_template(data)
+        })
+        
+    return JsonResponse({'msg':'ok'})
+
+
+def transferencia_cer_and_email_ajax(request):
+    
+    id_transf = int(request.GET.get('id_transf'))
+    transf = TransfCerAnd.objects.get(id=id_transf)
+    data = transferencia_cer_and_data(id_transf)
+    
+    if not data.empty:
+        
+        try:
+            email = EmailMessage(
+                    subject='TRANSFERENCIA CEREZOS-ANDAGOYA',
+                    body=f"""
+# TRANSFERENCIA: {transf.enum}
+# NOMBRE: {transf.nombre.upper()} 
+# VEHÍCULO: {transf.vehiculo.placa}
+# CREADA: {transf.creado}""",
+                    from_email=settings.EMAIL_HOST_USER,
+                    to=['egarces@gimpromed.com'],
+                )
+            
+            columnas_amarillas = ['product_id', 'lote_id', 'unidades']
+            buffer = io.BytesIO()
+            with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+                data.to_excel(writer, sheet_name='Reporte', index=False)
+                
+                # Opcional: Dar formato al Excel
+                workbook = writer.book
+                worksheet = writer.sheets['Reporte']
+                
+                # Añadir formato para encabezados
+                header_format = workbook.add_format({
+                    'bold': True,
+                    'text_wrap': True,
+                    'valign': 'top',
+                    'border': 1,
+                    'fg_color': '#D7E4BC'  # Color verde claro para encabezados normales
+                })
+                
+                # Crear formato para encabezados de columnas amarillas
+                yellow_header_format = workbook.add_format({
+                    'bold': True,
+                    'text_wrap': True,
+                    'valign': 'top',
+                    'border': 1,
+                    'fg_color': '#FFEB9C'  # Color amarillo para encabezados especiales
+                })
+                
+                # Crear formato para celdas amarillas
+                yellow_cell_format = workbook.add_format({
+                    'fg_color': '#FFEB9C'  # Color amarillo para celdas
+                })
+                
+                # Aplicar formato a los encabezados y determinar índices de columnas amarillas
+                indices_columnas_amarillas = []
+                
+                for col_num, column in enumerate(data.columns):
+                    # Determinar si esta columna debe ser amarilla
+                    if column in columnas_amarillas:
+                        worksheet.write(0, col_num, column, yellow_header_format)
+                        indices_columnas_amarillas.append(col_num)
+                    else:
+                        worksheet.write(0, col_num, column, header_format)
+                    
+                    # Ajustar el ancho de la columna
+                    column_width = max(data[column].astype(str).map(len).max(), len(str(column)))
+                    worksheet.set_column(col_num, col_num, column_width + 2)
+                
+                # Aplicar formato amarillo a todas las celdas de las columnas seleccionadas
+                for col_index in indices_columnas_amarillas:
+                    # Aplicar formato a todas las filas de la columna (desde la fila 1 hasta la última)
+                    worksheet.conditional_format(1, col_index, len(data) - 1, col_index, {
+                        'type': 'no_blanks',
+                        'format': yellow_cell_format
+                    })
+            buffer.seek(0)
+            
+            excel_data = buffer.getvalue()
+            
+            nombre_archivo = f"{transf.enum}_{transf.creado}.xlsx"
+            email.attach(nombre_archivo, excel_data, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            
+            email.send(fail_silently=False)
+            transf.email = True
+            transf.save()
+            return JsonResponse({'msg':'ok'})
+        except:
+            transf.email = False
+            transf.save()
+            return JsonResponse({'msg':'fail'})
+    
+    return JsonResponse({'msg':'no_data'})
 
 
 def transf_cer_and_activar_inactivar_ajax(request):
@@ -4165,11 +4315,21 @@ def transf_cer_and_activar_inactivar_ajax(request):
     return JsonResponse({'msg':'ok'})
 
 
-
-def producto_transf_ajax(request):
+def add_producto_transf_ajax(request):
+    
+    productos = productos_odbc_and_django()
     
     transferencia = TransfCerAnd.objects.filter(activo=True).first()
-    productos = productos_odbc_and_django()
+    vol_list_products = list(transferencia.productos.all().values_list('volumen', flat=True))
+    vol_prods_transf =  sum(vol_list_products).__round__(5) if vol_list_products else 0
+    
+    peso_list_products = list(transferencia.productos.all().values_list('peso', flat=True))
+    peso_prods_transf =  sum(peso_list_products).__round__(5) if peso_list_products else 0
+    
+    def texto_a_numero(texto):
+    # Eliminar cualquier carácter que no sea un dígito
+        solo_numeros = re.sub(r'\D', '', texto)
+        return int(solo_numeros)
     
     if request.method == 'POST':
         
@@ -4177,15 +4337,15 @@ def producto_transf_ajax(request):
         lote_id = request.POST.get('lote_id')
         fecha_caducidad = request.POST.get('fecha_caducidad')
         bodega = request.POST.get('bodega')
-        und_disp = int(request.POST.get('und_disp'))
+        und_disp = texto_a_numero(request.POST.get('und_disp'))
         cartones = int(request.POST.get('cartones'))
         saldos = int(request.POST.get('saldos'))
         detalle = request.POST.get('detalle')
         
         prods = productos[productos['product_id']==producto_id].to_dict('records')[0]
-        prod_ue = int(prods.get('Unidad_Empaque')) if int(prods.get('Unidad_Empaque'))>0 else 0.025
+        prod_ue = int(prods.get('Unidad_Empaque')) if int(prods.get('Unidad_Empaque')) > 0 else 0.025
         prod_vol = int(prods.get('Volumen')) / 1000000
-        prod_peso = float(prods.get('Peso'))
+        prod_peso = float(prods.get('Peso')) if float(prods.get('Peso')) > 0 else 0
         
         unidades = (cartones * prod_ue) + saldos
         volumen = (unidades / prod_ue) * prod_vol
@@ -4206,7 +4366,35 @@ def producto_transf_ajax(request):
             detalle = detalle
         )
         
-        new_product = new_product.save()
-        transferencia.productos.add(new_product)        
+        new_product.save()
+        transferencia.productos.add(new_product)
+        
+        # volumen transf 
+        transferencia.volumen_total = vol_prods_transf + volumen
+        transferencia.peso_total = peso_prods_transf + peso
+        transferencia.save()
+        
+        return JsonResponse({'msg':'ok'})
+
+
+def delete_producto_transf_ajax(request):
+    
+    if request.method == 'POST':
+        
+        id_prod = int(float(request.POST.get('id_prod')))
+        ProductosTransfCerAnd.objects.get(id=id_prod).delete()
+        
+        transferencia = TransfCerAnd.objects.filter(activo=True).first()
+        
+        list_products = list(transferencia.productos.all().values_list('volumen', flat=True))
+        vol_prods_transf =  sum(list_products).__round__(5) if list_products else 0.0
+        
+        peso_list_products = list(transferencia.productos.all().values_list('peso', flat=True))
+        peso_prods_transf =  sum(peso_list_products).__round__(5) if peso_list_products else 0
+        
+        transferencia.volumen_total = vol_prods_transf
+        transferencia.peso_total = peso_prods_transf
+        
+        transferencia.save()
         
         return JsonResponse({'msg':'ok'})
