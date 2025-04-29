@@ -4101,11 +4101,33 @@ def editar_pedido_temporal(request):
 
 ### INVETARIO TRANSFERENCIA
 def inventario_transferencia(request):
+    from itertools import chain
+    from django.forms.models import model_to_dict
     
     transf_list = TransfCerAnd.objects.all().order_by('-id')[:5]
-    transf_activas = TransfCerAnd.objects.filter(activo=True)    
-    
+    transf_activas = TransfCerAnd.objects.filter(activo=True).order_by('-id')
     data = inventario_transferencia_data()
+    
+    querysets_transf = [transferencia.productos.all() for transferencia in transf_activas] 
+    if querysets_transf and len(querysets_transf) > 1:
+        todos_productos = list(chain(*querysets_transf))
+        productos_dict = [model_to_dict(producto) for producto in todos_productos]
+        data_transf = pd.DataFrame(productos_dict)
+        data_transf = data_transf.groupby(by=['product_id','lote_id','bodega'])[['cartones','saldos','unidades','reservas']].sum().reset_index()
+        data_transf = data_transf.rename(columns={'product_id':'PRODUCT_ID','lote_id':'LOTE_ID','bodega':'LOCATION'})
+        data = data.merge(data_transf, on=['PRODUCT_ID','LOTE_ID','LOCATION'], how='left').sort_values(
+            by=['unidades','PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD','BODEGA'], ascending=[True, True, True, True, True]
+        )
+        
+    elif querysets_transf and len(querysets_transf) == 1:
+        todos_productos = list(chain(*querysets_transf))
+        productos_dict = [model_to_dict(producto) for producto in todos_productos]
+        data_transf = pd.DataFrame(productos_dict)
+        data_transf = data_transf.rename(columns={'product_id':'PRODUCT_ID','lote_id':'LOTE_ID','bodega':'LOCATION'})
+        data = data.merge(data_transf, on=['PRODUCT_ID','LOTE_ID','LOCATION'], how='left').sort_values(
+            by=['unidades','PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD','BODEGA'], ascending=[True, True, True, True, True]
+        )
+        
     data = de_dataframe_a_template(data)
     
     context = {
@@ -4146,7 +4168,7 @@ def transf_cer_and_activar_inactivar_ajax(request):
 
 def producto_transf_ajax(request):
     
-    #transferencia = TransfCerAnd()
+    transferencia = TransfCerAnd.objects.filter(activo=True).first()
     productos = productos_odbc_and_django()
     
     if request.method == 'POST':
@@ -4184,6 +4206,7 @@ def producto_transf_ajax(request):
             detalle = detalle
         )
         
-        
+        new_product = new_product.save()
+        transferencia.productos.add(new_product)        
         
         return JsonResponse({'msg':'ok'})

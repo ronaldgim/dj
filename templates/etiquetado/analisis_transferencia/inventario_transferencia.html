@@ -151,7 +151,6 @@
 {% endif %}
 
 
-
 <h6 class="fw-bold">INVENTARIO</h6>
 <div class="card mt-2 mb-2">
     <div class="card-body">
@@ -190,7 +189,7 @@
                 </thead>
                 <tbody id="inventario">
                     {% for i in data %}
-                    <tr>
+                    <tr {% if i.unidades %}style="background-color: #c5ff8b;"{% endif %}>
                         <td class="product_id">{{i.PRODUCT_ID}}</td>
                         <td>{{i.Nombre}}</td>
                         <td>{{i.Marca}}</td>
@@ -207,27 +206,32 @@
                         <td class="text-end" style="background-color: #aee9ff; {% if i.BCT_D <= 0 %} color:red {% endif %}">{{i.BCT_D_C|floatformat:"0g"}}</td>
                         <td class="text-end" style="background-color: #bfeeff; {% if i.BCT_D <= 0 %} color:red {% endif %}">{{i.BCT_D_S|floatformat:"0g"}}</td>
 
-                        <td class="text-end"></td>
-                        <td class="text-end"><input style="width:70px" class="cartones" type="number" value="0"></td>
-                        <td class="text-end"><input style="width:70px" class="saldos" type="number" value="0"></td>
-                        <td class="text-end"></td>
+                        <td class="text-end">{% if i.reservas %}{{i.reservas|floatformat:"0g"}}{% else %}-{% endif %}</td>
+
+                        <td class="text-end">
+                            {% if i.cartones >= 0 %}
+                                {{i.cartones|floatformat:"0g"}}
+                            {% else %}
+                                <input style="width:70px" class="cartones" type="number" value="0">
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            {% if i.saldos >= 0 %}
+                                {{i.saldos|floatformat:"0g"}}
+                            {% else %}
+                            <input style="width:70px" class="saldos" type="number" value="0">
+                            {% endif %}
+                        </td>
+                        <td class="text-end">{% if i.unidades %}{{i.unidades|floatformat:"0g"}}{% else %}-{% endif %}</td>
 
                         <td class="columna-detalles text-center">
                             <span class="detalle" style="display:none">{{i.DETALLE}}</span>
-
-                            {% if i.DETALLE %}
                             <div class="btn-group" role="group" aria-label="Basic example">
-                                <button 
-                                    type="button" 
-                                    name="detail" value="{{i.DETALLE}}" 
-                                    class="btn btn-primary btn-sm">...</button>
-                                <button type="button" name="add_transf" class="btn btn-success btn-sm {% if len_transf_activas != 1 %} disabled {% endif %}"><i class="bi bi-plus-circle"></i></button>
+                                <button type="button" name="detail" value="{{i.DETALLE}}" class="btn btn-primary btn-sm {% if not i.DETALLE %} disabled {% endif %} ">...</button>
+                                <button type="button" name="add_transf" class="btn btn-success btn-sm {% if len_transf_activas != 1 or i.cartones >= 0  %} disabled {% endif %}"><i class="bi bi-plus-circle"></i></button>
+                                <button type="button" name="delete_prod" class="btn btn-danger btn-sm {% if not i.id %} disabled {% endif %}"><i class="bi bi-trash-fill"></i></button>
                             </div>
-                            {% else %}
-                                <button type="button" name="add_transf" class="btn btn-success btn-sm {% if len_transf_activas != 1 %} disabled {% endif %}"><i class="bi bi-plus-circle"></i></button>
-                            {% endif %}
                         </td>
-
                     {% endfor %}
                 </tbody>
             </table>
