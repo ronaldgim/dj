@@ -2518,6 +2518,9 @@ def inventario_transferencia_data():
     
     data = data.merge(prods, on='PRODUCT_ID',how='left')
     
+    
+    data['BCT_C'] = data['BCT'] // data['Unidad_Empaque']
+    data['BCT_S'] = data['BCT'] %  data['Unidad_Empaque']    
     data['BCT_D']   = data['BCT'] - data['BCT_R']
     data['BCT_D_C'] = data['BCT_D'] // data['Unidad_Empaque']
     data['BCT_D_S'] = data['BCT_D'] % data['Unidad_Empaque']

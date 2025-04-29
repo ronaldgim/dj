@@ -196,7 +196,7 @@
                         <th scope="col">BOD</th>
 
                         <th class="text-center" scope="col">BAN</th>
-                        <th class="text-center" scope="col">BCT</th>
+                        <th class="text-center" scope="col" style="background-color:rgb(206, 255, 205);">BCT</th>
                         <th class="text-center" scope="col">CUC</th>
                         <th class="text-center" scope="col" style="background-color: #F6B690;">BAN-R</th>
                         <th class="text-center" scope="col" style="background-color: #F6B690;">BCT-R</th>
@@ -224,10 +224,18 @@
                         
                         <td class="text-end">{{i.BAN|floatformat:"0g"}}</td>
                         <td class="text-end"
+                            style="background-color:rgb(206, 255, 205);"
                         {% if i.unidades > i.BCT %}
                             style="background-color: #F6B690;"
                         {% endif %}
-                        >{{i.BCT|floatformat:"0g"}}</td>
+                        >
+                            <span class="fw-bold">{{i.BCT|floatformat:"0g"}}</span>
+                            {% if i.BCT > 0 %}
+                            <br/>
+                            <small>C: {{i.BCT_C|floatformat:"0g"}}</small> <br/>
+                            <small>S: {{i.BCT_S|floatformat:"0g"}}</small>
+                            {% endif %}
+                        </td>
                         <td class="text-end">{{i.CUC|floatformat:"0g"}}</td>
                         <td class="text-end" style="background-color: #F6B690;">{{i.BAN_R|floatformat:"0g"}}</td>
                         <td class="text-end" style="background-color: #F6B690;">{{i.BCT_R|floatformat:"0g"}}</td>
