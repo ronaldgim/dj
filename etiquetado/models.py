@@ -386,10 +386,17 @@ class TransfCerAnd(models.Model):
     activo = models.BooleanField(default=True)
     nombre  = models.CharField(max_length=50, blank=True)
     vehiculo = models.ForeignKey(Vehiculos, on_delete=models.CASCADE)
-    volumen_total = models.FloatField(null=True)
-    peso_total = models.FloatField(null=True)
+    volumen_total = models.FloatField(null=True, default=0.0)
+    peso_total = models.FloatField(null=True, default=0.0)
     productos = models.ManyToManyField(ProductosTransfCerAnd, blank=True)
+    email = models.BooleanField(default=False)
     creado  = models.DateField(auto_now_add=True)
     
     def __str__(self):
         return self.nombre
+    
+    @property
+    def enum(self):
+        total_registros = TransfCerAnd.objects.filter(id__lte=self.id).count()
+        enum = f'TRANSF-{total_registros:03d}'
+        return enum 
