@@ -233,8 +233,8 @@
                         <td class="text-end">{{i.CUC|floatformat:"0g"}}</td>
                         <td class="text-end" style="background-color: #F6B690;">{{i.BAN_R|floatformat:"0g"}}</td>
                         <td class="text-end" style="background-color: #F6B690;">{{i.BCT_R|floatformat:"0g"}}</td>
-                        <td class="text-end und_disp" style="background-color: #9fe5ff; {% if i.BCT_D <= 0 %} color:red {% endif %}">
-                            <span class="fw-bold">{{i.BCT_D|floatformat:"0g"}}</span>
+                        <td class="text-end" style="background-color: #9fe5ff; {% if i.BCT_D <= 0 %} color:red {% endif %}">
+                            <span class="fw-bold und_disp">{{i.BCT_D|floatformat:"0g"}}</span>
                             {% if i.BCT_D > 0 %}
                             <br/>
                             <small>C: {{i.BCT_D_C|floatformat:"0g"}}</small> <br/>
@@ -393,7 +393,7 @@
     });
 </script>
 
-<!--agregar producto a transferencia -->
+<!--quitar producto a transferencia -->
 <script>
     $(document).ready(function() {
         $("button[name='delete_prod']").click(function() {
@@ -414,7 +414,7 @@
     })
 </script>
 
-<!--eliminar producto a transferencia -->
+<!--agregar producto a transferencia -->
 <script>
     $(document).ready(function() {
         $("button[name='add_transf']").click(function() {
@@ -422,7 +422,7 @@
             var lote_id = $(this).closest('tr').find('td.lote_id').text();
             var fecha_caducidad = $(this).closest('tr').find('td.fecha_caducidad').text();
             var bodega = $(this).closest('tr').find('td.bodega').text();
-            var und_disp = $(this).closest('tr').find('td.und_disp').text();
+            var und_disp = $(this).closest('tr').find('span.und_disp').text();
             var cartones = $(this).closest('tr').find('input.cartones').val();
             var saldos = $(this).closest('tr').find('input.saldos').val();
             var detalle = $(this).closest('tr').find('span.detalle').text();

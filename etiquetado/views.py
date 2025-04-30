@@ -4349,8 +4349,8 @@ def add_producto_transf_ajax(request):
         detalle = request.POST.get('detalle')
         
         prods = productos[productos['product_id']==producto_id].to_dict('records')[0]
-        prod_ue = int(prods.get('Unidad_Empaque')) if int(prods.get('Unidad_Empaque')) > 0 else 0.025
-        prod_vol = int(prods.get('Volumen')) / 1000000
+        prod_ue = int(prods.get('Unidad_Empaque'))  
+        prod_vol = int(prods.get('Volumen')) if int(prods.get('Unidad_Empaque')) == 0 else 0.025
         prod_peso = float(prods.get('Peso')) if float(prods.get('Peso')) > 0 else 0
         
         unidades = (cartones * prod_ue) + saldos
