@@ -2518,7 +2518,6 @@ def inventario_transferencia_data():
     
     data = data.merge(prods, on='PRODUCT_ID',how='left')
     
-    
     data['BCT_C'] = data['BCT'] // data['Unidad_Empaque']
     data['BCT_S'] = data['BCT'] %  data['Unidad_Empaque']    
     data['BCT_D']   = data['BCT'] - data['BCT_R']
@@ -2528,5 +2527,7 @@ def inventario_transferencia_data():
     data['BCT_D_S'] = data['BCT_D_S'].fillna(0)
         
     data['FECHA_CADUCIDAD'] = data['FECHA_CADUCIDAD'].astype('str')
+    
+    data = data.sort_values(by=['PRODUCT_ID','FECHA_CADUCIDAD','BODEGA'], ascending=[True,True,True])
     
     return data

@@ -4122,7 +4122,7 @@ def inventario_transferencia(request):
         data_transf = data_transf.groupby(by=['product_id','lote_id','bodega'])[['cartones','saldos','unidades','reservas']].sum().reset_index()
         data_transf = data_transf.rename(columns={'product_id':'PRODUCT_ID','lote_id':'LOTE_ID','bodega':'LOCATION'})
         data = data.merge(data_transf, on=['PRODUCT_ID','LOTE_ID','LOCATION'], how='left').sort_values(
-            by=['unidades','PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD','BODEGA'], ascending=[True, True, True, True, True]
+            by=['PRODUCT_ID','FECHA_CADUCIDAD','BODEGA'], ascending=[True,True,True]
         )
         
     elif len(querysets_transf) == 1 and querysets_transf[0].exists():
@@ -4131,7 +4131,7 @@ def inventario_transferencia(request):
         data_transf = pd.DataFrame(productos_dict)
         data_transf = data_transf.rename(columns={'product_id':'PRODUCT_ID','lote_id':'LOTE_ID','bodega':'LOCATION'})
         data = data.merge(data_transf, on=['PRODUCT_ID','LOTE_ID','LOCATION'], how='left').sort_values(
-            by=['unidades','PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD','BODEGA'], ascending=[True, True, True, True, True]
+            by=['unidades','PRODUCT_ID','FECHA_CADUCIDAD','BODEGA'], ascending=[True,True,True,True]
         )
         data['id'] = data['id'].astype('str')
         

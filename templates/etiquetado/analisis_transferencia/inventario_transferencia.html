@@ -194,34 +194,28 @@
                         <th scope="col">LOTE</th>
                         <th scope="col">FECHA</th>
                         <th scope="col">BOD</th>
-
                         <th class="text-center" scope="col">BAN</th>
                         <th class="text-center" scope="col" style="background-color:rgb(206, 255, 205);">BCT</th>
                         <th class="text-center" scope="col">CUC</th>
                         <th class="text-center" scope="col" style="background-color: #F6B690;">BAN-R</th>
                         <th class="text-center" scope="col" style="background-color: #F6B690;">BCT-R</th>
-                        <th class="text-center" scope="col" style="background-color: #9fe5ff;">BCT-D(u)</th>
-                        <th class="text-center" scope="col" style="background-color: #aee9ff;">BCT-D(c)</th>
-                        <th class="text-center" scope="col" style="background-color: #bfeeff;">BCT-D(s)</th>
-                        
+                        <th class="text-center" scope="col" style="background-color: #9fe5ff;">BCT-D</th>
                         <th class="text-center" scope="col">RESERVAS</th>
                         <th class="text-center" scope="col">CARTONES</th>
                         <th class="text-center" scope="col">SALDOS</th>
                         <th class="text-center" scope="col">T.UNIDADES</th>
-
                         <th class="text-center" scope="col">ACCIONES</th>
                     </tr>
                 </thead>
                 <tbody id="inventario">
                     {% for i in data %}
-                    <tr {% if i.unidades %}style="background-color: #c5ff8b;"{% endif %}>
+                    <tr {% if i.unidades %}style="background-color: #c5ff8b;"{% else %}{% if i.BCT > 0 %}style="background-color:#fffeca;;"{% endif %}{% endif %}>
                         <td class="product_id">{{i.PRODUCT_ID}}</td>
                         <td>{{i.Nombre}}</td>
                         <td>{{i.Marca}}</td>
                         <td class="lote_id">{{i.LOTE_ID}}</td>
                         <td class="fecha_caducidad">{{i.FECHA_CADUCIDAD}}</td>
                         <td class="bodega">{{i.LOCATION}}</td>
-                        
                         <td class="text-end">{{i.BAN|floatformat:"0g"}}</td>
                         <td class="text-end"
                             style="background-color:rgb(206, 255, 205);"
@@ -239,12 +233,15 @@
                         <td class="text-end">{{i.CUC|floatformat:"0g"}}</td>
                         <td class="text-end" style="background-color: #F6B690;">{{i.BAN_R|floatformat:"0g"}}</td>
                         <td class="text-end" style="background-color: #F6B690;">{{i.BCT_R|floatformat:"0g"}}</td>
-                        <td class="text-end und_disp" style="background-color: #9fe5ff; {% if i.BCT_D <= 0 %} color:red {% endif %}">{{i.BCT_D|floatformat:"0g"}}</td>
-                        <td class="text-end" style="background-color: #aee9ff; {% if i.BCT_D <= 0 %} color:red {% endif %}">{{i.BCT_D_C|floatformat:"0g"}}</td>
-                        <td class="text-end" style="background-color: #bfeeff; {% if i.BCT_D <= 0 %} color:red {% endif %}">{{i.BCT_D_S|floatformat:"0g"}}</td>
-
+                        <td class="text-end und_disp" style="background-color: #9fe5ff; {% if i.BCT_D <= 0 %} color:red {% endif %}">
+                            <span class="fw-bold">{{i.BCT_D|floatformat:"0g"}}</span>
+                            {% if i.BCT_D > 0 %}
+                            <br/>
+                            <small>C: {{i.BCT_D_C|floatformat:"0g"}}</small> <br/>
+                            <small>S: {{i.BCT_D_S|floatformat:"0g"}}</small>
+                            {% endif %}
+                        </td>
                         <td class="text-end">{% if i.reservas %}{{i.reservas|floatformat:"0g"}}{% else %}-{% endif %}</td>
-
                         <td class="text-end">
                             {% if i.cartones >= 0 %}
                                 {{i.cartones|floatformat:"0g"}}
@@ -264,14 +261,13 @@
                             {% endif %}
                         </td>
                         <td 
-                            class="text-end" 
+                            class="text-end fw-bold" 
                             {% if i.unidades > i.BCT %}
                                 style="background-color: #F6B690;"
                             {% endif %}
                         >
                             {% if i.unidades %}{{i.unidades|floatformat:"0g"}}{% else %}-{% endif %}
                         </td>
-
                         <td class="columna-detalles text-center">
                             <span class="detalle" style="display:none">{{i.DETALLE}}</span>
                             <div class="btn-group" role="group" aria-label="Basic example">
