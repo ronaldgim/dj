@@ -4297,10 +4297,10 @@ def transferencia_cer_and_email_ajax(request):
             transf.email = True
             transf.save()
             return JsonResponse({'msg':'ok'})
-        except:
+        except Exception as e:
             transf.email = False
             transf.save()
-            return JsonResponse({'msg':'fail'})
+            return JsonResponse({'msg':'fail','msg-e':f'{e}'})
     
     return JsonResponse({'msg':'no_data'})
 
