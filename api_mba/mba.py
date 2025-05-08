@@ -8,9 +8,8 @@ def api_mba_sql(sql):
     r = requests.post(
         url=URL,
         data = {"sql":sql},
-        headers = {'Content-Type': 'application/json'}
     )
-
+    
     return {
         "status": r.status_code,
         "data": r.json()
