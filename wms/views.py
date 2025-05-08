@@ -1154,9 +1154,9 @@ def wms_existencias_query_product_lote(product_id, lote_id):
         return exitencias
 
     except Exception as e:
-        # print(e)
-        # for i in existencias_list:
-        #     print(i.id, i.product_id, i.lote_id, i.fecha_caducidad, i.ubicacion_id, i.unidades, i.estado)
+        print(e)
+        for i in existencias_list:
+            print(i.id, i.product_id, i.lote_id, i.fecha_caducidad, i.ubicacion_id, i.unidades, i.estado)
         return HttpResponse(f'{e}')
 
 
@@ -1175,7 +1175,7 @@ def wms_inventario(request): #OK
     """ Inventario
         Suma de ingresos y egresos que dan el total de todo el inventario
     """
-    # wms_existencias_query_product_lote("2014","476790")      
+    # wms_existencias_query_product_lote("2014","476790")         
     
     prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     productos = pd.DataFrame(Existencias.objects.all().values('product_id'))
@@ -2194,12 +2194,12 @@ def wms_agregar_foto_picking_ajax(request):
     id_picking = request.POST.get('id_picking')
     foto = request.FILES.get("foto")
     foto2 = request.FILES.get("foto2")
-    
+    print(foto2)
     try:
     
         picking = EstadoPicking.objects.get(id=id_picking)
         picking.foto_picking = foto
-        if foto2:
+        if foto2 is not None:
             picking.foto_picking_2 = foto2
         
         picking.save()
