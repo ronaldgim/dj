@@ -795,6 +795,8 @@ def api_actualizar_reservas_warehouse():
                     else:
                         sec_name_cliente = ''
                     
+                    unique_id = i['UNIQUE_ID']
+                    
                     row = (
                         fecha_pedido,
                         contrato_id,
@@ -808,6 +810,7 @@ def api_actualizar_reservas_warehouse():
                         confirmed,
                         hora_llegada,
                         sec_name_cliente,
+                        unique_id 
                     )
                     
                     data.append(row)
@@ -969,7 +972,6 @@ def api_actualizar_reservas_etiquetado():
     except Exception as e:
         print(e)
         # admin_warehouse_timestamp(tabla='reservas', actualizar_datetime=False, mensaje=f'Error exception: {e}')
-
 
 
 
