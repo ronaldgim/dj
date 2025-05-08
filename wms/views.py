@@ -2194,7 +2194,7 @@ def wms_agregar_foto_picking_ajax(request):
     id_picking = request.POST.get('id_picking')
     foto = request.FILES.get("foto")
     foto2 = request.FILES.get("foto2")
-    print(foto2)
+
     try:
     
         picking = EstadoPicking.objects.get(id=id_picking)
