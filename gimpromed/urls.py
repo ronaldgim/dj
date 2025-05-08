@@ -63,6 +63,9 @@ urlpatterns = [
     # WMS
     path('wms/', include('wms.urls')),
     
+        # WMS
+    path('wms-andagoya/', include('wms_andagoya.urls')),
+    
     # API
     path('api/', include('api.urls'))
     
