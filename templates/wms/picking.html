@@ -644,28 +644,56 @@
         var canvas = $("#fotoCanvas")[0]; // Obtener el primer canvas con jQuery
         var canvas2 = $("#fotoCanvas2")[0]; // Obtener el segundo canvas con jQuery
         var id_picking = $(this).val();
-
-        // Procesar la primera imagen del canvas
-        canvas.toBlob(function (blob) {
-            var formData = new FormData();
-            formData.append("csrfmiddlewaretoken", "{{ csrf_token }}");
-            formData.append("foto", blob, "{{n_ped}}.jpg");
-            formData.append("id_picking", id_picking); // Añadir campo extra
-
-            // Verificar si el segundo canvas tiene contenido
-            if (canvas2 && canvas2.width > 0 && canvas2.height > 0) {
-                canvas2.toBlob(function (blob2) {
-                    formData.append("foto2", blob2, "{{n_ped}}_2.jpg"); // Agregar la segunda imagen al formulario
-
-                    // Enviar ambas imágenes
+        
+        // Verificar si el primer canvas tiene contenido válido
+        if (canvas && canvas.width > 0 && canvas.height > 0) {
+            canvas.toBlob(function (blob) {
+                var formData = new FormData();
+                formData.append("csrfmiddlewaretoken", "{{ csrf_token }}");
+                formData.append("foto", blob, "{{n_ped}}.jpg");
+                formData.append("id_picking", id_picking); // Añadir campo extra
+                
+                // Verificar si hay una imagen real en el segundo canvas
+                if (canvas2 && canvas2.width > 0 && canvas2.height > 0 && tieneContenido(canvas2)) {
+                    canvas2.toBlob(function (blob2) {
+                        formData.append("foto2", blob2, "{{n_ped}}_2.jpg"); // Agregar la segunda imagen al formulario
+                        // Enviar ambas imágenes
+                        enviarFotos(formData);
+                    }, "image/jpeg");
+                } else {
+                    // Enviar solo la primera imagen
                     enviarFotos(formData);
-                }, "image/jpeg");
-            } else {
-                // Enviar solo la primera imagen
-                enviarFotos(formData);
+                }
+            }, "image/jpeg");
+        } else {
+            // No hay imagen en el primer canvas
+            alert("No se ha seleccionado ninguna imagen");
+        }
+        
+        // Función para verificar si un canvas tiene contenido real (no solo negro)
+        function tieneContenido(canvas) {
+            var ctx = canvas.getContext('2d');
+            var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            var data = imageData.data;
+            
+            // Verificar si todos los píxeles son negros o transparentes
+            for (var i = 0; i < data.length; i += 4) {
+                // Si encuentra algún píxel que no sea negro (0,0,0) o transparente
+                if (data[i] > 0 || data[i + 1] > 0 || data[i + 2] > 0 || data[i + 3] > 0) {
+                    // Verificar si hay suficientes píxeles no negros (para evitar ruido)
+                    var pixelesNoNegros = 0;
+                    for (var j = 0; j < data.length; j += 4) {
+                        if (data[j] > 10 || data[j + 1] > 10 || data[j + 2] > 10) {
+                            pixelesNoNegros++;
+                        }
+                    }
+                    // Si hay al menos 1% de píxeles no negros, consideramos que hay contenido
+                    return pixelesNoNegros > (canvas.width * canvas.height * 0.01);
+                }
             }
-        }, "image/jpeg");
-
+            return false; // Todo es negro o transparente
+        }
+        
         // Función para enviar las imágenes al servidor
         function enviarFotos(formData) {
             $.ajax({
@@ -676,8 +704,8 @@
                 contentType: false,
                 success: function (response) {
                     alert("Imagen(es) enviada(s) con éxito");
-                    $("#foto_picking").val("")
-                    $("#foto_picking_2").val("")
+                    $("#foto_picking").val("");
+                    $("#foto_picking_2").val("");
                 },
                 error: function (xhr, status, error) {
                     console.error("Error al enviar la(s) imagen(es)", error);
