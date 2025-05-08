@@ -1,5 +1,5 @@
 # API MBA
-from api_mba.mba import api_mba_sql
+from api_mba.mba import api_mba_sql #, api_mba_sql_pedidos
 
 # BD Connection
 from django.db import connections, transaction
@@ -376,6 +376,7 @@ def api_actualizar_pedidos_warehouse():
     
     try:
         pedidos_mba = api_mba_sql(
+        # pedidos_mba = api_mba_sql_pedidos(
             # """
             # SELECT 
             #     CLNT_Pedidos_Principal.CONTRATO_ID, 
@@ -400,11 +401,10 @@ def api_actualizar_pedidos_warehouse():
                 CLNT_Pedidos_Principal CLNT_Pedidos_Principal ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID DESC
             """
         )
+        # print(pedidos_mba)
 
         if pedidos_mba['status'] == 200:
             
-            # data = [tuple(i.values()) for i in pedidos_mba['data']]
-
             data = []
             for i in pedidos_mba['data']:
 
@@ -439,6 +439,7 @@ def api_actualizar_pedidos_warehouse():
         else:
             admin_warehouse_timestamp(tabla='pedidos', actualizar_datetime=False, mensaje=f'Error api: status {pedidos_mba["status"]}')
     except Exception as e:
+        print(e)
         admin_warehouse_timestamp(tabla='pedidos', actualizar_datetime=False, mensaje=f'Error exception {e}')
 
 
@@ -707,32 +708,6 @@ def api_actualizar_reservas_warehouse():
     try:
     
         reservas_mba = api_mba_sql(
-            # """
-            # SELECT 
-            #     CLNT_Pedidos_Principal.FECHA_PEDIDO, 
-            #     CLNT_Pedidos_Principal.CONTRATO_ID, 
-            #     CLNT_Ficha_Principal.CODIGO_CLIENTE, 
-            #     CLNT_Ficha_Principal.NOMBRE_CLIENTE, 
-            #     CLNT_Pedidos_Detalle.PRODUCT_ID, 
-            #     CLNT_Pedidos_Detalle.PRODUCT_NAME, 
-            #     CLNT_Pedidos_Detalle.QUANTITY, 
-            #     CLNT_Pedidos_Detalle.Despachados, 
-            #     CLNT_Pedidos_Principal.WARE_CODE, 
-            #     CLNT_Pedidos_Principal.CONFIRMED, 
-            #     CLNT_Pedidos_Principal.HORA_LLEGADA, 
-            #     CLNT_Pedidos_Principal.SEC_NAME_CLIENTE 
-            # FROM 
-            #     CLNT_Ficha_Principal CLNT_Ficha_Principal, 
-            #     CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, 
-            #     CLNT_Pedidos_Principal CLNT_Pedidos_Principal 
-            # WHERE 
-            #     CLNT_Pedidos_Principal.CONTRATO_ID_CORP = CLNT_Pedidos_Detalle.CONTRATO_ID_CORP AND 
-            #     CLNT_Ficha_Principal.CODIGO_CLIENTE = CLNT_Pedidos_Principal.CLIENT_ID AND 
-            #     CLNT_Pedidos_Detalle.Despachados=0 AND 
-            #     ((CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND 
-            #     (CLNT_Pedidos_Detalle.TIPO_DOCUMENTO='PE') AND 
-            #     (CLNT_Pedidos_Detalle.PRODUCT_ID<>'MANTEN')) ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID DESC
-            # """
         """
         SELECT 
             CLNT_Pedidos_Principal.FECHA_PEDIDO, 
@@ -761,8 +736,6 @@ def api_actualizar_reservas_warehouse():
         """
         )
         
-        # r = pd.DataFrame(reservas_mba['data'])
-        # print(r['SEC_NAME_CLIENTE'].unique())
         
         if  reservas_mba["status"] == 200:
             

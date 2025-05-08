@@ -4,9 +4,11 @@ import requests
 URL = "http://172.16.28.245:5000/lumen-4d/public/movements/ejecutarconsulta"
 
 def api_mba_sql(sql):
+
     r = requests.post(
         url=URL,
-        data = {"sql":sql}
+        data = {"sql":sql},
+        headers = {'Content-Type': 'application/json'}
     )
 
     return {

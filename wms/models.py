@@ -190,7 +190,6 @@ class Transferencia(models.Model):
     
     def __str__(self):
         return self.n_transferencia
-
     
     def save(self, *args, **kwargs):
         if self.lote_id and '.' in self.lote_id:
