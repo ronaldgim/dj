@@ -473,7 +473,7 @@ def api_actualizar_pedidos_warehouse():
             admin_warehouse_timestamp(tabla='pedidos', actualizar_datetime=False, mensaje='Error fetch ODBC')
             
     except Exception as e:
-        print(e)
+        # print(e)
         admin_warehouse_timestamp(tabla='pedidos', actualizar_datetime=False, mensaje=f'Error ODBC exception: {e}')
         
     finally:
