@@ -128,7 +128,12 @@ def api_actualizar_facturas_warehouse():
         currentTimeDate = datetime.now() - relativedelta(days=270)
         OneMonthTime = currentTimeDate.strftime('%d-%m-%Y')
         
-        facturas_mba = api_mba_sql(
+        cnxn = pyodbc.connect('DSN=mba3;PWD=API')
+        cursor = cnxn.cursor()
+        
+        facturas_mba = cursor.execute(
+        
+        # facturas_mba = api_mba_sql(
             f"""
             SELECT 
                 CLNT_Factura_Principal.CODIGO_FACTURA, 
@@ -478,10 +483,6 @@ def api_actualizar_pedidos_warehouse():
         
     finally:
         cnxn.close()
-
-
-
-
 
 
 ### 6 ACTUALIZAR PRODUCTOS WAREHOUSE POR API DATA
