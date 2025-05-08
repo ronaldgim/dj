@@ -139,22 +139,22 @@ def lote_factura_ajax(request):
 def pedidos_cuenca_datos(n_pedido):
 
     hoy = datetime.now().date()
-    seis_meses = hoy - timedelta(days=180)
-    seis_meses = datetime.combine(seis_meses, datetime.min.time())
+    seis_meses = hoy - timedelta(days=180) ; print(seis_meses)
+    seis_meses = datetime.combine(seis_meses, datetime.min.time()) ;print(seis_meses)
     tres_meses = hoy - timedelta(days=90) 
-    tres_meses = datetime.combine(tres_meses, datetime.min.time())
+    tres_meses = datetime.combine(tres_meses, datetime.min.time()) 
     
-    pedido = pedidos_cuenca_odbc(n_pedido)
+    pedido = pedidos_cuenca_odbc(n_pedido) ;print(pedido)
     codigo_cliente = pedido['client_code'][0]
 
     # Ventas
-    ventas = ventas_desde_fecha(seis_meses, codigo_cliente)
+    ventas = ventas_desde_fecha(seis_meses, codigo_cliente) #;print(ventas)
     ventas = ventas.sort_values(by='FECHA')
     ventas['FECHA']  = pd.to_datetime(ventas['FECHA'])
-    ventas['ALERTA'] = ventas.apply(lambda x: 'tres_meses' if x['FECHA'] < tres_meses else 'seis_meses', axis=1) #;print(ventas)
+    ventas['ALERTA'] = ventas.apply(lambda x: 'tres_meses' if x['FECHA'] < tres_meses else 'seis_meses', axis=1) 
     ventas['FECHA'] = ventas['FECHA'].astype(str)
-    ventas = ventas.rename(columns={'PRODUCT_ID':'product_id'})
-    ventas = ventas.drop_duplicates(subset=['product_id'], keep='last')
+    ventas = ventas.rename(columns={'PRODUCT_ID':'product_id'}) ;print(ventas[ventas['product_id']=='50126'])
+    # ventas = ventas.drop_duplicates(subset=['product_id'], keep='last')
     
     pedido = pedido.merge(ventas, on='product_id', how='left').sort_values(by='FECHA', ascending=True, na_position='first')
     
