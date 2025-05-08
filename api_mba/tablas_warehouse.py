@@ -25,7 +25,7 @@ from api_mba.api_query import (
 
 # datos de actualización
 from datos.models import AdminActualizationWarehaouse
-from etiquetado.models import Reservas
+from datos.models import Reservas
 
 
 # eliminar datos de tablas en wharehouse
@@ -1084,43 +1084,43 @@ def odbc_actualizar_stock_lote():
 
 
 ### 14 ACTUALIZAR RESERVAS MODELO DE ETIQUETADO
-def api_actualizar_reservas_etiquetado():
+def api_actualizar_mis_reservas_etiquetado():
     
     try:
     
         reservas_mba = api_mba_sql(
-            """
-            SELECT 
-                CLNT_Pedidos_Principal.FECHA_PEDIDO, 
-                CLNT_Pedidos_Principal.CONTRATO_ID, 
-                CLNT_Ficha_Principal.CODIGO_CLIENTE, 
-                CLNT_Ficha_Principal.NOMBRE_CLIENTE, 
-                CLNT_Pedidos_Detalle.PRODUCT_ID, 
-                CLNT_Pedidos_Detalle.PRODUCT_NAME, 
-                CLNT_Pedidos_Detalle.QUANTITY, 
-                CLNT_Pedidos_Detalle.Despachados, 
-                CLNT_Pedidos_Principal.WARE_CODE, 
-                CLNT_Pedidos_Principal.CONFIRMED, 
-                CLNT_Pedidos_Principal.HORA_LLEGADA, 
-                CLNT_Pedidos_Principal.SEC_NAME_CLIENTE 
-            FROM 
-                CLNT_Ficha_Principal CLNT_Ficha_Principal, 
-                CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, 
-                CLNT_Pedidos_Principal CLNT_Pedidos_Principal 
-            WHERE 
-                CLNT_Pedidos_Principal.CONTRATO_ID_CORP = CLNT_Pedidos_Detalle.CONTRATO_ID_CORP AND 
-                CLNT_Ficha_Principal.CODIGO_CLIENTE = CLNT_Pedidos_Principal.CLIENT_ID AND 
-                CLNT_Pedidos_Detalle.Despachados=0 AND 
-                ((CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND 
-                (CLNT_Pedidos_Detalle.TIPO_DOCUMENTO='PE') AND 
-                (CLNT_Pedidos_Detalle.PRODUCT_ID<>'MANTEN')) ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID DESC
-            """
+        """
+        SELECT 
+            CLNT_Pedidos_Principal.FECHA_PEDIDO, 
+            CLNT_Pedidos_Principal.CONTRATO_ID, 
+            CLNT_Ficha_Principal.CODIGO_CLIENTE, 
+            CLNT_Ficha_Principal.NOMBRE_CLIENTE,
+            CLNT_Pedidos_Detalle.PRODUCT_ID, 
+            CLNT_Pedidos_Detalle.PRODUCT_NAME, 
+            CLNT_Pedidos_Detalle.QUANTITY, 
+            CLNT_Pedidos_Detalle.Despachados, 
+            CLNT_Pedidos_Principal.WARE_CODE, 
+            CLNT_Pedidos_Principal.CONFIRMED,
+            CLNT_Pedidos_Principal.HORA_LLEGADA, 
+            CLNT_Pedidos_Principal.SEC_NAME_CLIENTE, 
+            CLNT_Pedidos_Detalle.UNIQUE_ID
+        FROM 
+            CLNT_Ficha_Principal CLNT_Ficha_Principal, 
+            CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, 
+            CLNT_Pedidos_Principal CLNT_Pedidos_Principal
+        WHERE 
+            CLNT_Pedidos_Principal.CONTRATO_ID_CORP = CLNT_Pedidos_Detalle.CONTRATO_ID_CORP AND 
+            CLNT_Ficha_Principal.CODIGO_CLIENTE = CLNT_Pedidos_Principal.CLIENT_ID AND 
+            CLNT_Pedidos_Detalle.Despachados=0 AND 
+            ((CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND (CLNT_Pedidos_Detalle.TIPO_DOCUMENTO='PE') AND 
+            (CLNT_Pedidos_Detalle.PRODUCT_ID<>'MANTEN')) ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID DESC
+        """
         )
         
         if  reservas_mba["status"] == 200:
             
-            data = []
-            claves = set()
+            # data = []
+            # claves = set()
             for i in reservas_mba['data']:
                 
                 if i['PRODUCT_ID'] == 'ETIQUE' or i['PRODUCT_ID'] == 'MANTEN' or i['PRODUCT_ID'] == 'TRANS':

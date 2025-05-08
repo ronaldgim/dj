@@ -331,38 +331,6 @@ class PedidoTemporal(models.Model):
         enum = f'PT-{total_registros:03d}'
         return enum 
 
-
-class Reservas(models.Model):
-    
-    contrato_id      = models.CharField(max_length=20, blank=True)
-    codigo_cliente   = models.CharField(max_length=20, blank=True)
-    product_id       = models.CharField(max_length=30, blank=True)
-    quantity         = models.IntegerField(default=0)
-    ware_code        = models.CharField(max_length=5, blank=True)
-    confirmed        = models.IntegerField(default=0)
-    fecha_pedido     = models.DateField(null=True)
-    hora_llegada     = models.TimeField(null=True)
-    sec_name_cliente = models.CharField(max_length=30, blank=True)
-    alterado         = models.BooleanField(default=False)
-    creado           = models.DateField(auto_now_add=True)
-    
-    def __str__(self):
-        return f"contrato_id: {self.contrato_id} - codigo_cliente {self.codigo_cliente}"
-    
-    # @staticmethod
-    # def generar_clave_unica(
-    #     contrato_id, 
-    #     codigo_cliente, 
-    #     product_id, 
-    #     ware_code,
-    #     fecha_pedido,
-    #     ):
-        
-    #     clave_unica = f"{contrato_id}|{codigo_cliente}|{product_id}|{ware_code}|{fecha_pedido}"
-    #     return hashlib.sha256(clave_unica.encode('utf-8')).hexdigest()
-
-
-
 class ProductosTransfCerAnd(models.Model):
     
     product_id = models.CharField(max_length=50)
