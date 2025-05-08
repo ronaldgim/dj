@@ -1,0 +1,404 @@
+{#% extends 'base_side_navbar.html' %#}
+{% extends 'base_vue.html' %}
+{#% extends 'base_dos.html' %#}
+
+{% block title %}
+<title>WMS Home</title>
+{% endblock%}
+
+
+{% block navbar %}
+{% include 'wms/topnavbar.html' %}
+{% endblock %}
+
+
+{% comment %}
+{% block menu_app %}
+{% include 'wms/z_menu_app.html' %}
+{% endblock %}
+{% endcomment %}
+
+{% block body %}
+
+<style>
+    
+    thead {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background-color: #ffffff;
+    }
+    
+    .table-responsive-tiempo-almacenamiento {
+        height: 520px;
+        overflow-y: scroll;
+    }
+</style>
+
+
+<h5 class="m-4 text-center fw-bold">WMS ANDAGOYA</h5>
+
+<h6 class="text-center">KPI(s) - WMS ANDAGOYA</h6>
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success'%}
+<div class="alert text-center alert-success" role="alert">
+    {{message}}
+</div>
+{% elif message.tags == 'error'%}
+<div class="alert text-center alert-danger" role="alert">
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endif %}
+
+
+<div class="row">
+    <div class="col mb-6">
+        <div class="card mb-2">
+            <h6 class="card-header text-center fw-bold">Ocupación de bodegas</h6>
+            <div class="card-body">
+                <canvas id="OcupacionBodegaChart"></canvas><br>
+                <table class="table mb-0 pb-0" style="font-size: small;">
+                    <thead>
+                        <tr>
+                            <th>Bodega</th>
+                            <th class="text-end">Total</th>
+                            <th class="text-end">Utilizada</th>
+                            <th class="text-end">Disponible</th>
+                            <th class="text-end">% Ocupación</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for i in capacidad %}
+                        <tr>
+                            <td>
+                                <button name="modal" data-bs-toggle="modal" data-bs-target="#staticBackdrop" class="btn btn-sm btn-light m-0 p-0 {% if i.bodega != 'CN6' %} disabled {% endif %}">
+                                    {{i.bodega}}
+                                </button>
+                                <!--button name="modal" class="btn btn-sm btn-light m-0 p-0 {% if i.bodega != 'CN6' %} disabled {% endif %}">
+                                    {{i.bodega}}
+                                </button-->
+                            </td>
+                            <td class="text-end">{{i.capacidad_posicion_m3|floatformat:"0g"}} m<sup>3</sup></td>
+                            <td class="text-end">{{i.ocupacion_posicion_m3|floatformat:"0g"}} m<sup>3</sup></td>
+                            <td class="text-end">{{i.disponible_posicion_m3|floatformat:"0g"}} m<sup>3</sup></td>
+                            <td class="text-end">{{i.porcentaje_ocupacion|floatformat:"0g"}} %</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!--div class="col mb-6">
+        <div class="card mb-2">
+            <h6 class="card-header text-center fw-bold">Tiempo de ciclo de un pedido</h6>
+            <div class="card-body">
+                <canvas id="CicloPedidoChart"></canvas><br>
+                <table class="table mb-0 pb-0" style="font-size: small;">
+                    <tr>
+                        <th>Ciclos</th>
+                        <th>Tiempo promedio</th>
+                    </tr>
+                    <tr>
+                        <td>Tiempo promedio entre toma de pedido e inicio de picking</td>
+                        <td class="text-end">{{t_cliclo.t_p_pedido}} (h)</td>
+                    </tr>
+                    <tr>
+                        <td>Tiempo promedio entre inicio y fin de picking</td>
+                        <td class="text-end">{{t_cliclo.t_p_picking}} (h)</td>
+                    </tr>
+                    <tr>
+                        <td>Tiempo promedio entre fin de picking y facturación</td>
+                        <td class="text-end">{{t_cliclo.t_p_facturado}} (h)</td>
+                    </tr>
+                    <tr>
+                        <td>Total</td>
+                        <td class="text-end">{{t_cliclo.t_p_total}} (h)</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div-->
+
+    <div class="col mb-6">
+        <div class="card">
+            <h6 class="card-header text-center fw-bold">Tiempo de almacenamiento</h6>
+            <div class="card-body">
+                <div class="table-responsive-tiempo-almacenamiento">
+                    <table class="table" style="font-size: small;">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <!--th>Nombre</th-->
+                                <th>Lote</th>
+                                <!--th class="text-end">Unidades</th-->
+                                <th>Ubicación</th>
+                                <th class="text-end">Tiempo</th>
+                            </tr>
+                        </thead>
+                        <tbody >
+                            {% for i in tiempo_de_almacenamiento %}
+                            <tr>
+                                <td>{{i.product_id}}</td>
+                                <!--td>{{i.Nombre}}</td-->
+                                <td>{{i.lote_id}}</td>
+                                <!--td class="text-end">{{i.unidades}}</td-->
+                                <td>{{i.ubicacion__bodega}}-{{i.ubicacion__pasillo}}-{{i.ubicacion__modulo}}-{{i.ubicacion__nivel}}</td>
+                                <td class="text-end">{{i.tiempo_dias}} días</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal -->
+<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+
+
+            <div class="modal-header mb-2">
+                <h5 class="modal-title fw-bold" id="staticBackdropLabel">Ubicaciones disponibles CN6 ({{len_ubicaciones_disponibles}})</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body mt-0 pt-0">
+
+                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true">Resumen</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="false">Detalle</button>
+                    </li>
+                </ul>
+                <div class="tab-content" id="myTabContent">
+                    <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+                        {{ubicaciones_disponibles_row|safe}}
+                    </div>
+                    <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+                        <table class="table mb-0 pb-0" style="font-size: small;">
+                            <thead>
+                                <tr>
+                                    <th class="text-center">Bodega</th>
+                                    <th class="text-center">Pasillo</th>
+                                    <th class="text-center">Columna</th>
+                                    <th class="text-center">Nivel</th>
+                                    <th class="text-center">Capacidad</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for i in ubicaciones_disponibles %}
+                                <tr 
+                                    {% if i.pasillo == 'A' %} 
+                                        class="table-primary" 
+                                    {% elif i.pasillo == 'B' %}
+                                        class="table-secondary"
+                                    {% elif i.pasillo == 'C' %}
+                                        class="table-success"
+                                    {% elif i.pasillo == 'D' %}
+                                        class="table-danger"
+                                    {% elif i.pasillo == 'E' %}
+                                        class="table-warning"
+                                    {% elif i.pasillo == 'F' %}
+                                        class="table-info"
+                                    {% endif %}
+                                >
+                                    <td class="text-center">{{i.bodega}}</td>
+                                    <td class="text-center">{{i.pasillo}}</td>
+                                    <td class="text-center">{{i.modulo}}</td>
+                                    <td class="text-center">{{i.nivel}}</td>
+                                    <td class="text-center">{{i.capacidad_m3}} {% if i.capacidad_m3 == 0.96 %}<span style="color:red">E</span>{% endif %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- OCUPACIÓN BODEGA -->
+<script>
+    const ctx = document.getElementById('OcupacionBodegaChart').getContext('2d');
+    const myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+        //labels: ['Valor 1', 'Valor 2', 'Valor 3', 'Valor 4'],
+        labels: {% autoescape off %}{{bodegas|safe}}{% endautoescape %},
+        datasets: [
+            {
+                label: '% Ocupado',
+                data: {% autoescape off %}{{ocupacion|safe}}{% endautoescape %},
+                backgroundColor: ['#BAF690'],
+            },
+            {
+                label: '% En Despacho',
+                data: {% autoescape off %}{{despacho|safe}}{% endautoescape %},
+                backgroundColor: ['#53aefe'],
+            },
+            {
+                label: '% Disponible',
+                data: {% autoescape off %}{{disponible|safe}}{% endautoescape %},
+                backgroundColor: ['#e4e4e4'],
+            }
+        ]
+        },
+        options: {
+            plugins:{
+                legend:{display: false},
+                //tooltip:{enabled:false},
+            },
+            indexAxis: 'y',
+            scales: {
+                x: {
+                    stacked: true,
+                    max: 100,
+                    //ticks:{display:false}
+                    },
+                y: {
+                    stacked: true,
+                    //ticks:{display:false}
+                    }
+                }
+            },
+    });
+</script>
+
+
+<!-- BOD6 POSICIONES LIBRES -->
+<script>
+
+    $(document).ready(function() {
+
+        $("#ubicaciones_rows > thead > tr:first").remove();
+
+        $("#ubicaciones_rows > tbody > tr > td").each(function() {
+            $(this).addClass("text-end")
+            if ($(this).text() === '0') {
+                $(this).text('-')
+            }
+        });
+
+        $("#ubicaciones_rows > tbody > tr:last > td").each(function() {
+            $(this).addClass("fw-bold");
+        });
+    
+        $("#ubicaciones_rows > tbody > tr:first > td").each(function() {
+            $(this).addClass("fw-bold");
+            if ($(this).text()==='pasillo') {
+                $(this).text('P/N')
+            }
+        });
+
+        $("#ubicaciones_rows > tbody > tr").each(function() {
+            $(this).find("td:first").addClass("fw-bold");
+            $(this).find("td:last").addClass("fw-bold");
+        });
+    
+    })
+
+
+</script>
+
+
+
+<!-- CICLO PEDIDO -->
+<!--script>
+    const pie = document.getElementById('CicloPedidoChart') //.getContext('2d');
+    const myChartPie = new Chart(pie, {
+        type: 'pie',
+        data: {
+        //labels: ['Valor 1', 'Valor 2', 'Valor 3', 'Valor 4'],
+        labels: {% autoescape off %}{{t_cliclo_labels|safe}}{% endautoescape %},
+        //labels: ['T.Pedido','T.Picking','T.Facturación'],
+        datasets: [
+            {
+            //label: 'Valor',
+            data: {% autoescape off %}{{t_cliclo_data|safe}}{% endautoescape %},
+            //data: [75, 25, 50],
+            backgroundColor: [
+                'rgba(255, 99, 132, 1)',
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 206, 86, 1)',
+            ],
+            }
+        ]
+        },
+    });
+</script-->
+
+
+<!--
+Grafico de velocimetro
+<script>
+    const gris = '#DDDDDD'
+    const verde = '#BAF690'
+    const amarillo = '#F6F490'
+    const rojo = '#F6B690'  
+
+    const ctx = document.getElementById('myChart').getContext('2d');
+
+    var myChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            //labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+            datasets: [{
+                //label: '# of Votes',
+                //data: [70, 30],
+                data: [{{capacidad.capacidad_utilizada_m3}}, {{capacidad.capacidad_no_utilizada_m3}}],
+                borderWidth: 1,
+                //backgroundColor :[verde,gris],
+                hoverOffset:4,
+                }]
+            },
+        options: {
+            cutout:'60%',
+            rotation:270,
+            circumference:180,
+            plugins:{
+                legend:{display: false},
+                tooltip:{enabled:false},
+            },
+            layout:{padding:16}
+        },
+        plugins:[{
+            beforeDraw: function(chart){
+                var width = chart.width,
+                    height = chart.height,
+                    ctx = chart.ctx;
+                ctx.restore();
+                const fontSize = (height/124).toFixed(2);
+                ctx.font = fontSize + "em sans-serif";
+                ctx.textBaseline = "middle";
+                //const text = "70%",
+                const text = "{{capacidad.porcentaje_utilizacion}}%",
+                    textX = Math.round((width-ctx.measureText(text).width)/2),
+                    textY = height/1.5;
+                ctx.fillText(text, textX, textY);
+                ctx.save();
+            }
+        }]
+    });
+
+</script>
+-->
+{% endblock %}
