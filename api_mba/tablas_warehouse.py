@@ -2,11 +2,14 @@
 from api_mba.mba import api_mba_sql #, api_mba_sql_pedidos
 
 # BD Connection
-from django.db import connections, transaction
+from django.db import connections #, transaction
+
+# ODBC
+import pyodbc
 
 # Send mail
-from django.core.mail import send_mail
-from django.conf import settings
+# from django.core.mail import send_mail
+# from django.conf import settings
 
 # datetime
 from datetime import datetime, timedelta
@@ -370,77 +373,114 @@ def api_actualizar_imp_transito_warehouse():
         admin_warehouse_timestamp(tabla='imp_transito', actualizar_datetime=False, mensaje=f'Error exception {e}')
 
 
-
 ### 5 ACTUALIZAR PEDIDOS
 def api_actualizar_pedidos_warehouse():
     
-    try:
-        pedidos_mba = api_mba_sql(
-        # pedidos_mba = api_mba_sql_pedidos(
-            # """
-            # SELECT 
-            #     CLNT_Pedidos_Principal.CONTRATO_ID, 
-            #     CLNT_Pedidos_Principal.FECHA_PEDIDO, 
-            #     CLNT_Pedidos_Principal.WARE_CODE, 
-            #     CLNT_Pedidos_Principal.CONFIRMED, 
-            #     CLNT_Pedidos_Principal.HORA_LLEGADA, 
-            #     CLNT_Pedidos_Principal.Preparacion_numero 
-            # FROM 
-            #     CLNT_Pedidos_Principal CLNT_Pedidos_Principal ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID DESC
-            # """
-            """
-                SELECT 
-                    CLNT_Pedidos_Principal.CONTRATO_ID, 
-                    CLNT_Pedidos_Principal.FECHA_PEDIDO, 
-                    CLNT_Pedidos_Principal.WARE_CODE,
-                    CLNT_Pedidos_Principal.CONFIRMED, 
-                    CLNT_Pedidos_Principal.HORA_LLEGADA,
-                    CLNT_Pedidos_Principal.Preparacion_numero, 
-                    CLNT_Pedidos_Principal.Entry_by
-                FROM 
-                CLNT_Pedidos_Principal CLNT_Pedidos_Principal ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID DESC
-            """
-        )
-        # print(pedidos_mba)
+    # try:
+    #     pedidos_mba = api_mba_sql(
+    #         """ 
+    #         SELECT 
+    #             CLNT_Pedidos_Principal.CONTRATO_ID, 
+    #             CLNT_Pedidos_Principal.FECHA_PEDIDO, 
+    #             CLNT_Pedidos_Principal.WARE_CODE,
+    #             CLNT_Pedidos_Principal.CONFIRMED, 
+    #             CLNT_Pedidos_Principal.HORA_LLEGADA,
+    #             CLNT_Pedidos_Principal.Preparacion_numero, 
+    #             CLNT_Pedidos_Principal.Entry_by
+    #         FROM 
+    #             CLNT_Pedidos_Principal CLNT_Pedidos_Principal
+    #         ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID DESC
+    #         """
+    #     )
+    #     # print(pedidos_mba)
 
-        if pedidos_mba['status'] == 200:
+    #     if pedidos_mba['status'] == 200:
             
-            data = []
-            for i in pedidos_mba['data']:
+    #         data = []
+    #         for i in pedidos_mba['data']:
 
-                contrato_id = str(i['CONTRATO_ID']) + '.0'
-                fecha_pedido = datetime.strptime(i['FECHA_PEDIDO'][:10], '%d/%m/%Y')
-                ware_code = i['WARE_CODE']
-                confirmed = 0 if i['CONFIRMED'] == 'false' else 1
-                hora_llegada = i['HORA_LLEGADA']
-                num_print = i['PREPARACION_NUMERO']
-                entry_by = i['ENTRY_BY']
+    #             contrato_id = str(i['CONTRATO_ID']) + '.0'
+    #             fecha_pedido = datetime.strptime(i['FECHA_PEDIDO'][:10], '%d/%m/%Y')
+    #             ware_code = i['WARE_CODE']
+    #             confirmed = 0 if i['CONFIRMED'] == 'false' else 1
+    #             hora_llegada = i['HORA_LLEGADA']
+    #             num_print = i['PREPARACION_NUMERO']
+    #             entry_by = i['ENTRY_BY']
                 
-                row = (
-                    contrato_id,
-                    fecha_pedido,
-                    ware_code,
-                    confirmed,
-                    hora_llegada,
-                    num_print,
-                    entry_by
-                )
+    #             row = (
+    #                 contrato_id,
+    #                 fecha_pedido,
+    #                 ware_code,
+    #                 confirmed,
+    #                 hora_llegada,
+    #                 num_print,
+    #                 entry_by
+    #             )
                 
-                data.append(row)
+    #             data.append(row)
                 
-            #with transaction.atomic():
-            # Borrar datos de tabla imp_transito
+    #         #with transaction.atomic():
+    #         # Borrar datos de tabla imp_transito
+    #         delete_data_warehouse('pedidos')
+            
+    #         # # Insertar datos de tabla imp_transito
+    #         insert_data_warehouse('pedidos', data)
+            
+    #         admin_warehouse_timestamp(tabla='pedidos', actualizar_datetime=True, mensaje='Actualizado correctamente')
+    #     else:
+    #         admin_warehouse_timestamp(tabla='pedidos', actualizar_datetime=False, mensaje=f'Error api: status {pedidos_mba["status"]}')
+    # except Exception as e:
+    #     print(e)
+    #     admin_warehouse_timestamp(tabla='pedidos', actualizar_datetime=False, mensaje=f'Error exception {e}')
+
+
+    try:
+        cnxn = pyodbc.connect('DSN=mba3;PWD=API')
+        cursor = cnxn.cursor()
+        
+        pedidos_query_mba = cursor.execute(
+        """ 
+        SELECT 
+            CLNT_Pedidos_Principal.CONTRATO_ID, 
+            CLNT_Pedidos_Principal.FECHA_PEDIDO, 
+            CLNT_Pedidos_Principal.WARE_CODE,
+            CLNT_Pedidos_Principal.CONFIRMED, 
+            CLNT_Pedidos_Principal.HORA_LLEGADA,
+            CLNT_Pedidos_Principal.Preparacion_numero, 
+            CLNT_Pedidos_Principal.Entry_by
+        FROM 
+            CLNT_Pedidos_Principal CLNT_Pedidos_Principal
+        ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID DESC
+        """
+        )
+
+        data = [tuple(i) for i in pedidos_query_mba.fetchall()]
+
+        
+        if len(data) > 0:
+            
+            #while transaction.atomic():
+            # Borrar datos de tabla stock_lote
             delete_data_warehouse('pedidos')
             
-            # # Insertar datos de tabla imp_transito
+            # Insertar datos de tabla stock_lote
             insert_data_warehouse('pedidos', data)
             
             admin_warehouse_timestamp(tabla='pedidos', actualizar_datetime=True, mensaje='Actualizado correctamente')
+            
         else:
-            admin_warehouse_timestamp(tabla='pedidos', actualizar_datetime=False, mensaje=f'Error api: status {pedidos_mba["status"]}')
+            
+            admin_warehouse_timestamp(tabla='pedidos', actualizar_datetime=False, mensaje='Error fetch ODBC')
+            
     except Exception as e:
         print(e)
-        admin_warehouse_timestamp(tabla='pedidos', actualizar_datetime=False, mensaje=f'Error exception {e}')
+        admin_warehouse_timestamp(tabla='pedidos', actualizar_datetime=False, mensaje=f'Error ODBC exception: {e}')
+        
+    finally:
+        cnxn.close()
+
+
+
 
 
 
@@ -806,148 +846,6 @@ def api_actualizar_reservas_warehouse():
         admin_warehouse_timestamp(tabla='reservas', actualizar_datetime=False, mensaje=f'Error exception: {e}')
 
 
-### 9 ACTUALIZAR RESERVAS MODELO DE ETIQUETADO
-def api_actualizar_reservas_etiquetado():
-    
-    try:
-    
-        reservas_mba = api_mba_sql(
-            """
-            SELECT 
-                CLNT_Pedidos_Principal.FECHA_PEDIDO, 
-                CLNT_Pedidos_Principal.CONTRATO_ID, 
-                CLNT_Ficha_Principal.CODIGO_CLIENTE, 
-                CLNT_Ficha_Principal.NOMBRE_CLIENTE, 
-                CLNT_Pedidos_Detalle.PRODUCT_ID, 
-                CLNT_Pedidos_Detalle.PRODUCT_NAME, 
-                CLNT_Pedidos_Detalle.QUANTITY, 
-                CLNT_Pedidos_Detalle.Despachados, 
-                CLNT_Pedidos_Principal.WARE_CODE, 
-                CLNT_Pedidos_Principal.CONFIRMED, 
-                CLNT_Pedidos_Principal.HORA_LLEGADA, 
-                CLNT_Pedidos_Principal.SEC_NAME_CLIENTE 
-            FROM 
-                CLNT_Ficha_Principal CLNT_Ficha_Principal, 
-                CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, 
-                CLNT_Pedidos_Principal CLNT_Pedidos_Principal 
-            WHERE 
-                CLNT_Pedidos_Principal.CONTRATO_ID_CORP = CLNT_Pedidos_Detalle.CONTRATO_ID_CORP AND 
-                CLNT_Ficha_Principal.CODIGO_CLIENTE = CLNT_Pedidos_Principal.CLIENT_ID AND 
-                CLNT_Pedidos_Detalle.Despachados=0 AND 
-                ((CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND 
-                (CLNT_Pedidos_Detalle.TIPO_DOCUMENTO='PE') AND 
-                (CLNT_Pedidos_Detalle.PRODUCT_ID<>'MANTEN')) ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID DESC
-            """
-        )
-        
-        if  reservas_mba["status"] == 200:
-            
-            data = []
-            claves = set()
-            for i in reservas_mba['data']:
-                
-                if i['PRODUCT_ID'] == 'ETIQUE' or i['PRODUCT_ID'] == 'MANTEN' or i['PRODUCT_ID'] == 'TRANS':
-                    continue
-                else:
-                    contrato_id = str(i['CONTRATO_ID']) + '.0' # str
-                    codigo_cliente = i['CODIGO_CLIENTE']
-                    product_id = i['PRODUCT_ID']
-                    quantity = i['QUANTITY']
-                    ware_code = i['WARE_CODE']
-                    confirmed = 0 if i['CONFIRMED'] == 'false' else 1  
-                    fecha_pedido = datetime.strptime(i['FECHA_PEDIDO'][:10], '%d/%m/%Y') # date
-                    hora_llegada = datetime.strptime(i['HORA_LLEGADA'], '%H:%M:%S').time() # time
-                    
-                    s_n_c = i['SEC_NAME_CLIENTE']
-                    if s_n_c.startswith('P'):
-                        sec_name_cliente = 'PUBLICO'
-                    elif s_n_c.startswith('R'):
-                        sec_name_cliente = 'RESERVA'
-                    else:
-                        sec_name_cliente = ''
-                    
-                    row = Reservas(
-                        contrato_id = contrato_id,
-                        codigo_cliente = codigo_cliente,
-                        product_id = product_id,
-                        quantity = quantity,
-                        ware_code = ware_code,
-                        confirmed = confirmed,
-                        fecha_pedido = fecha_pedido,
-                        hora_llegada = hora_llegada,
-                        sec_name_cliente = sec_name_cliente
-                    )
-                    
-                    mi_reserva = Reservas.objects.get(
-                        contrato_id = row.contrato_id,
-                        codigo_cliente = row.codigo_cliente,
-                        product_id = row.product_id,
-                        # quantity = quantity,
-                        # ware_code = ware_code,
-                        # confirmed = confirmed, ### si 1 ya no se modifica
-                        fecha_pedido = row.fecha_pedido,
-                        hora_llegada = row.hora_llegada,
-                        sec_name_cliente = row.sec_name_cliente
-                    )
-                    
-                    print(mi_reserva)
-                    
-                    
-                    
-                    
-                    
-                    # data.append(row)
-                    
-                    # #clave_unica = f'{contrato_id}-{codigo_cliente}-{product_id}-{ware_code}'
-                    # clave_unica = Reservas.generar_clave_unica(contrato_id, codigo_cliente, product_id, ware_code, fecha_pedido)
-                    # claves.add(clave_unica)
-                    
-
-                    # mi_reserva = Reservas.objects.get(clave_unica=clave_unica)
-                    # print(mi_reserva)
-
-                    #print(row.codigo_cliente, row.contrato_id, row.product_id)
-
-
-                    # try:
-                    #     reserva = Reservas.objects.get(clave_unica=clave_unica)
-                    #     if reserva.alterado == False:
-                    #         pass
-                    # except :
-                    #     pass
-
-
-            # print(data)
-            
-            # start_date = datetime.now() - timedelta(days=30)  # Example: last 30 days
-            # end_date = datetime.now()
-            # mis_reservas = Reservas.objects.filter(creado__range=(start_date, end_date))
-            
-            # for mi_reserva in mis_reservas:
-            #     if mi_reserva.alterado == False:
-            #         mi_reserva.contrato_id = ''
-
-            
-            
-            # # with transaction.atomic():
-            # # Borrar datos de tabla reservas
-            # delete_data_warehouse('reservas')
-            
-            # # Insertar datos de tabla reservas
-            # insert_data_warehouse('reservas', data)
-            
-            # admin_warehouse_timestamp(tabla='reservas', actualizar_datetime=True, mensaje='Actualizado correctamente')
-
-        else:
-            pass
-            # admin_warehouse_timestamp(tabla='reservas', actualizar_datetime=False, mensaje=f'Error api: status {reservas_mba["status"]}')
-
-    except Exception as e:
-        print(e)
-        # admin_warehouse_timestamp(tabla='reservas', actualizar_datetime=False, mensaje=f'Error exception: {e}')
-
-
-
 ### 10 ACTUALIZAR RESERVAS LOTES WAREHOUSE
 def api_actualizar_reservas_lotes_warehouse():
     
@@ -1127,9 +1025,7 @@ def api_actualizar_reservas_lotes_2_warehouse():
         admin_warehouse_timestamp(tabla='reservas_lote_2', actualizar_datetime=False, mensaje=f'Error exception: {e}')
 
 
-
 ### 12 ACTULIZAR STOCK LOTE POR ODBC
-import pyodbc
 def odbc_actualizar_stock_lote():
 
     try:
@@ -1189,6 +1085,147 @@ def odbc_actualizar_stock_lote():
         
     finally:
         cnxn.close()
+
+
+### 14 ACTUALIZAR RESERVAS MODELO DE ETIQUETADO
+def api_actualizar_reservas_etiquetado():
+    
+    try:
+    
+        reservas_mba = api_mba_sql(
+            """
+            SELECT 
+                CLNT_Pedidos_Principal.FECHA_PEDIDO, 
+                CLNT_Pedidos_Principal.CONTRATO_ID, 
+                CLNT_Ficha_Principal.CODIGO_CLIENTE, 
+                CLNT_Ficha_Principal.NOMBRE_CLIENTE, 
+                CLNT_Pedidos_Detalle.PRODUCT_ID, 
+                CLNT_Pedidos_Detalle.PRODUCT_NAME, 
+                CLNT_Pedidos_Detalle.QUANTITY, 
+                CLNT_Pedidos_Detalle.Despachados, 
+                CLNT_Pedidos_Principal.WARE_CODE, 
+                CLNT_Pedidos_Principal.CONFIRMED, 
+                CLNT_Pedidos_Principal.HORA_LLEGADA, 
+                CLNT_Pedidos_Principal.SEC_NAME_CLIENTE 
+            FROM 
+                CLNT_Ficha_Principal CLNT_Ficha_Principal, 
+                CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, 
+                CLNT_Pedidos_Principal CLNT_Pedidos_Principal 
+            WHERE 
+                CLNT_Pedidos_Principal.CONTRATO_ID_CORP = CLNT_Pedidos_Detalle.CONTRATO_ID_CORP AND 
+                CLNT_Ficha_Principal.CODIGO_CLIENTE = CLNT_Pedidos_Principal.CLIENT_ID AND 
+                CLNT_Pedidos_Detalle.Despachados=0 AND 
+                ((CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND 
+                (CLNT_Pedidos_Detalle.TIPO_DOCUMENTO='PE') AND 
+                (CLNT_Pedidos_Detalle.PRODUCT_ID<>'MANTEN')) ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID DESC
+            """
+        )
+        
+        if  reservas_mba["status"] == 200:
+            
+            data = []
+            claves = set()
+            for i in reservas_mba['data']:
+                
+                if i['PRODUCT_ID'] == 'ETIQUE' or i['PRODUCT_ID'] == 'MANTEN' or i['PRODUCT_ID'] == 'TRANS':
+                    continue
+                else:
+                    contrato_id = str(i['CONTRATO_ID']) + '.0' # str
+                    codigo_cliente = i['CODIGO_CLIENTE']
+                    product_id = i['PRODUCT_ID']
+                    quantity = i['QUANTITY']
+                    ware_code = i['WARE_CODE']
+                    confirmed = 0 if i['CONFIRMED'] == 'false' else 1  
+                    fecha_pedido = datetime.strptime(i['FECHA_PEDIDO'][:10], '%d/%m/%Y') # date
+                    hora_llegada = datetime.strptime(i['HORA_LLEGADA'], '%H:%M:%S').time() # time
+                    
+                    s_n_c = i['SEC_NAME_CLIENTE']
+                    if s_n_c.startswith('P'):
+                        sec_name_cliente = 'PUBLICO'
+                    elif s_n_c.startswith('R'):
+                        sec_name_cliente = 'RESERVA'
+                    else:
+                        sec_name_cliente = ''
+                    
+                    row = Reservas(
+                        contrato_id = contrato_id,
+                        codigo_cliente = codigo_cliente,
+                        product_id = product_id,
+                        quantity = quantity,
+                        ware_code = ware_code,
+                        confirmed = confirmed,
+                        fecha_pedido = fecha_pedido,
+                        hora_llegada = hora_llegada,
+                        sec_name_cliente = sec_name_cliente
+                    )
+                    
+                    mi_reserva = Reservas.objects.get(
+                        contrato_id = row.contrato_id,
+                        codigo_cliente = row.codigo_cliente,
+                        product_id = row.product_id,
+                        # quantity = quantity,
+                        # ware_code = ware_code,
+                        # confirmed = confirmed, ### si 1 ya no se modifica
+                        fecha_pedido = row.fecha_pedido,
+                        hora_llegada = row.hora_llegada,
+                        sec_name_cliente = row.sec_name_cliente
+                    )
+                    
+                    print(mi_reserva)
+                    
+                    
+                    
+                    
+                    
+                    # data.append(row)
+                    
+                    # #clave_unica = f'{contrato_id}-{codigo_cliente}-{product_id}-{ware_code}'
+                    # clave_unica = Reservas.generar_clave_unica(contrato_id, codigo_cliente, product_id, ware_code, fecha_pedido)
+                    # claves.add(clave_unica)
+                    
+
+                    # mi_reserva = Reservas.objects.get(clave_unica=clave_unica)
+                    # print(mi_reserva)
+
+                    #print(row.codigo_cliente, row.contrato_id, row.product_id)
+
+
+                    # try:
+                    #     reserva = Reservas.objects.get(clave_unica=clave_unica)
+                    #     if reserva.alterado == False:
+                    #         pass
+                    # except :
+                    #     pass
+
+
+            # print(data)
+            
+            # start_date = datetime.now() - timedelta(days=30)  # Example: last 30 days
+            # end_date = datetime.now()
+            # mis_reservas = Reservas.objects.filter(creado__range=(start_date, end_date))
+            
+            # for mi_reserva in mis_reservas:
+            #     if mi_reserva.alterado == False:
+            #         mi_reserva.contrato_id = ''
+
+            
+            
+            # # with transaction.atomic():
+            # # Borrar datos de tabla reservas
+            # delete_data_warehouse('reservas')
+            
+            # # Insertar datos de tabla reservas
+            # insert_data_warehouse('reservas', data)
+            
+            # admin_warehouse_timestamp(tabla='reservas', actualizar_datetime=True, mensaje='Actualizado correctamente')
+
+        else:
+            pass
+            # admin_warehouse_timestamp(tabla='reservas', actualizar_datetime=False, mensaje=f'Error api: status {reservas_mba["status"]}')
+
+    except Exception as e:
+        print(e)
+        # admin_warehouse_timestamp(tabla='reservas', actualizar_datetime=False, mensaje=f'Error exception: {e}')
 
 
 
