@@ -558,4 +558,12 @@ urlpatterns = [
         name  = 'transferencia_cer_and_email_ajax'
     ),
     
+    
+    ### WMS ANDAGOYA
+    path(
+        route = 'wms-andagoya/home',
+        view  = views.wms_andagoya_home,
+        name  = 'wms_andagoya_home'
+    ),
+    
 ]
