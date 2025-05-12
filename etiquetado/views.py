@@ -981,8 +981,6 @@ def pedidos_estado_list(request):
     else:
         messages.error(request, 'No tienes los permisos necesarios !!!')
         return HttpResponseRedirect('/')
-
-
     return render(request, 'etiquetado/etiquetado_estado/lista_estado_pedidos.html', context)#reservas
 
 
@@ -4404,3 +4402,7 @@ def delete_producto_transf_ajax(request):
         transferencia.save()
         
         return JsonResponse({'msg':'ok'})
+
+
+def wms_andagoya_home(request):
+    return render(request, 'etiquetado/wms_andagoya/home.html')

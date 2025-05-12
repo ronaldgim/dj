@@ -1,0 +1,45 @@
+<!-- Top nav bar etiquetado -->
+<nav class="navbar navbar-expand-lg bg-light">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'inicio' %}">Gimpromed Cía. Ltda.</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+            <!--span class="navbar-toggler-icon"></span--><i class="bi bi-list"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavDropdown">
+            <ul class="navbar-nav">
+    
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Picking
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                    <!--li><a class="dropdown-item" href="{% url 'pedidos_estado_list' %}">Estado de Etiquetado</a></li-->
+                    <li><a class="dropdown-item" href="{% url 'picking_estado' %}">Estado de Picking</a></li> 
+                </ul>
+            </li>
+    
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Inventario
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                    <li><a class="dropdown-item" href="{% url 'inventario_andagoya_ubicaciones' %}">Inventario</a></li>
+                </ul>
+            </li>
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Ubicaciones
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                    <li><a class="dropdown-item" href="{% url 'ubicaciones_andagoya_list' %}">Lista de Ubicaciones</a></li>
+                    <li><a class="dropdown-item" href="{% url 'producto_ubicacion_lista' %}">Producto-Ubicaciones</a></li>
+                    <li><a class="dropdown-item" href="{% url 'transferencias_ingreso_andagoya' %}">Transferencias</a></li>
+                </ul>
+            </li>
+            </ul>
+        </div>
+        <a class="navbar-brand" href="{% url 'logout' %}">
+            {{request.user}} <i class="bi bi-box-arrow-right"></i>
+        </a>
+    </div>
+</nav>

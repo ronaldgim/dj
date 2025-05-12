@@ -57,14 +57,20 @@
           <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
               <li><a class="dropdown-item" href="{% url 'analisis_transferencia' %}">Análisis de transferencia</a></li>
               <li><a class="dropdown-item" href="{% url 'inventario_transferencia' %}">Inventario de transferencia</a></li>
+              
+              <!-- WMS ANDAGOYA -->
               <li><a class="dropdown-item" href="{% url 'pedidos_estado_list' %}">Estado de Etiquetado</a></li>
-              <li><a class="dropdown-item" href="{% url 'picking_estado' %}">Estado de Picking</a></li> 
+              <!--li><a class="dropdown-item" href="{% url 'picking_estado' %}">Estado de Picking</a></li--> 
+              <!-- WMS ANDAGOYA -->
+
               <!--li><a class="dropdown-item" href="{% url 'inventario_bodega' %}">Inventario</a></li-->
               <li><a class="dropdown-item" href="{% url 'list_instructo_etiquetado' %}">Instructivo Etiquetado</a></li>
               <li><a class="dropdown-item" href="{% url 'preventivo__por_realizar_list' %}">Realizar M. Preventivo</a></li>
           </ul>
         </li>
-        <li class="nav-item dropdown">
+
+        <!-- WMS ANDAGOYA -->
+        <!--li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             Ubicaciones Andagoya
           </a>
@@ -74,7 +80,7 @@
               <li><a class="dropdown-item" href="{% url 'inventario_andagoya_ubicaciones' %}">Inventario-Andagoya</a></li>
               <li><a class="dropdown-item" href="{% url 'transferencias_ingreso_andagoya' %}">Transferencias</a></li>
           </ul>
-        </li>
+        </li-->
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             Control de guias 
