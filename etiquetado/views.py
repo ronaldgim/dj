@@ -1639,35 +1639,19 @@ def picking_estado_bodega(request, n_pedido):
             if j['product_id'] == product_id:
                 i['ubicaciones'] = j['ubicaciones']
                 break
-
-    # Datos
-    cliente        = pedido['NOMBRE_CLIENTE'].iloc[0]
-    fecha_pedido   = pedido['FECHA_PEDIDO'].iloc[0]
-    tipo_cliente   = pedido['CLIENT_TYPE'].iloc[0]
-    bodega         = pedido['WARE_CODE'].iloc[0]
-    codigo_cliente = pedido['CODIGO_CLIENTE'].iloc[0]
     
-    estados_list_inicial = ['EN PROCESO']
-
     context = {
         'reservas':data,
         'pedido':n_pedido,
-        'cliente':cliente,
-        'fecha_pedido':fecha_pedido,
-        'tipo_cliente':tipo_cliente,
-        'bodega':bodega,
-        'codigo_cliente':codigo_cliente,
-        'f_pedido':f_pedido,
 
+        'cabecera':data[0],
+        'fecha_pedido': pedido['FECHA_PEDIDO'].iloc[0],
+        
+        'f_pedido':f_pedido,
         't_cartones':t_cartones,
         't_unidades':t_unidades,
-
         'detalle':p_str,
-
-        #'form':form,
-
-        'estados':estados_list_inicial,
-        
+        'estados':['EN PROCESO'],
         'estado':estado,
         'estado_id':estado_id
     }

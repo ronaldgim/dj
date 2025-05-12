@@ -20,9 +20,9 @@
 
 <div class="row">
     <div class="col-md-6 col-sm-12">
-        <span class="fw-bold">N. Pedido: </span>{{pedido|slice:':-2'}}<br>
-        <span class="fw-bold">Bodega: </span><span id="bodega">{{bodega}}</span><br>
-        <span class="fw-bold">Cliente: </span> {{cliente}}<br>
+        <span class="fw-bold">N. Pedido: </span>{{cabecera.CONTRATO_ID|slice:':-2'}}<br>
+        <span class="fw-bold">Bodega: </span><span id="bodega">{{cabecera.WARE_CODE}}</span><br>
+        <span class="fw-bold">Cliente: </span> {{cabecera.NOMBRE_CLIENTE}}<br>
         <span class="fw-bold">Fecha de pedido: </span> {{fecha_pedido|date:'d-M-Y'}}
     </div>
 </div>
@@ -125,7 +125,6 @@
                         <tr>
                             <th scope="col">Item</th>
                             <th scope="col">Unidades</th>
-                            <!--th scope="col">Ubicación(es)</th-->
                         </tr>
                     </thead>
                     
@@ -142,25 +141,24 @@
                         </td>
                         <td class="text-end">
                             <span id="p_unds">{{i.QUANTITY|floatformat:"0g"}}</span> <br>
-                            <span style="color:grey">{{i.Cartones|floatformat:"2g"}}</span>
-                        </td>
-                        <!--td class="text-end">
+                            <span style="color:grey">{{i.Cartones|floatformat:"2g"}}</span> <br>
+
                             {% if i.ubicaciones %}
                             {% for j in i.ubicaciones %}
                                 {% if j.estanteria %}
-                                <span class="badge bg-warning" style="font-size:14px">
+                                <span class="ubicacion badge bg-warning" style="font-size:14px">
                                     {{j.nombre}}
                                 </span>
                                 {% else %}
-                                <span class="badge bg-info" style="font-size:14px">
+                                <span class="ubicacion badge bg-info" style="font-size:14px">
                                     {{j.nombre}}
                                 </span>
                                 {% endif %}
                             {% endfor %}
                             {% else %}
-                                <span class="badge bg-secondary" style="font-size:12px">Sin ubicación(es)</span>
+                                <span class="ubicacion badge bg-secondary" style="font-size:12px">Sin ubicación(es)</span>
                             {% endif %}
-                        </td-->
+                        </td>
                     </tr>
                     {% endfor %}
                     </tbody>
@@ -170,7 +168,6 @@
                             {{t_unidades|floatformat:"0g"}} <br> 
                             <span style="color:grey">{{t_cartones|floatformat:"2g"}}</span>
                         </td>
-                        <!--td class="text-end">-</td-->
                     </tr>
                 </table>
             </div>
@@ -206,6 +203,20 @@
         var nombre     = $(this).closest("tr").find("#nombre").html();
         var marca      = $(this).closest("tr").find("#marca").html();
         var p_unds     = $(this).closest("tr").find("#p_unds").html();
+        var ubicacion  = $(this).closest("tr").find(".ubicacion");
+
+        var ubicaiones_prods = "";
+                
+        // Recorremos cada ubicación y la añadimos al HTML del modal
+        ubicacion.each(function() {
+            // Clonamos el span y lo añadimos al HTML
+            ubicaiones_prods += $(this).prop('outerHTML');
+        });
+        
+        // Si no hay ubicaciones, mostramos un mensaje
+        if (ubicaiones_prods === "") {
+            ubicaiones_prods = "<p>No hay ubicaciones disponibles</p>";
+        }
 
         $.ajax({
             url : "{% url 'ajax_lotes_bodega' %}",
@@ -218,10 +229,14 @@
             
             success: function(response) {
                 
+                // titulo
                 $(".modal-title").html(`Stock de bodega: ${bodega}`);
+
+                // item
                 $(".modal-body").html(`
                 <span class="fw-bold">Item:</span> ${product_id} - ${nombre} - ${marca} <br> 
-                <span class="fw-bold">Unds:</span> ${p_unds} <br> ${response}`);
+                <span class="fw-bold">Unds:</span> ${p_unds} <br> 
+                <span class="fw-bold">Ubicación(es):</span> ${ubicaiones_prods} <br> ${response}`);
 
                 if ($("#lotes tbody tr").length===0){
                     $('.modal-body').append('No hay lotes registrados');
