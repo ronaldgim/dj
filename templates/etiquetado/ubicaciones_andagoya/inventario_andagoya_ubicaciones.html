@@ -38,7 +38,7 @@
 </div>
 
 <div class="col-12 mt-2">
-    <input id="inputbuscar" type="text" placeholder="Filtro" class="form-control">
+    <input id="inputbuscar" type="text" placeholder="Buscar..." class="form-control">
 </div>
 
 
@@ -64,29 +64,35 @@
                             <span class="fw-bold">FExp:</span> {{i.FECHA_CADUCIDAD}}
                         </td>
                         <td>
-                            <span class="fw-bold">Unidades:</span> {{i.OH2|floatformat:"0g"}}<br>
+                            <span class="fw-bold ">Unidades:</span> <span class="fs-5">{{i.OH2|floatformat:"0g"}}</span><br>
                             <span class="fw-bold">Estado:</span> 
                                 {% if i.WARE_CODE == 'BAN' %}
-                                <span class="badge bg-success" style="font-size:12px">Disponible</span>
+                                <!-- span class="badge bg-success" style="font-size:12px">Disponible</span-->
+                                Disponible
                                 {% elif i.WARE_CODE == 'CUA' %}
                                 <span class="badge bg-danger" style="font-size:12px">Cuarentena</span>
                                 {% endif %}
                             <br>
                             <span class="fw-bold">Ubicación(es):</span><br>
-                            {% if i.ubicaciones %}
-                            {% for j in i.ubicaciones %}
-                                {% if j.estanteria %}
-                                <span class="badge bg-warning" style="font-size:14px">
-                                    {{j.nombre}}
-                                </span>
+
+                            {% if i.WARE_CODE == 'BAN' %}
+                                {% if i.ubicaciones %}
+                                    {% for j in i.ubicaciones %}
+                                        {% if j.estanteria %}
+                                        <span class="badge bg-warning" style="font-size:14px">
+                                            {{j.nombre}}
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-info" style="font-size:14px">
+                                            {{j.nombre}}
+                                        </span>
+                                        {% endif %}
+                                    {% endfor %}
                                 {% else %}
-                                <span class="badge bg-info" style="font-size:14px">
-                                    {{j.nombre}}
-                                </span>
+                                    <span class="badge bg-secondary" style="font-size:12px">Sin ubicación(es)</span>
                                 {% endif %}
-                            {% endfor %}
                             {% else %}
-                                <span class="badge bg-secondary" style="font-size:12px">Sin ubicación(es)</span>
+                                <span class="badge bg-info" style="font-size:14px">AN4</span>
                             {% endif %}
                         </td>
                     </tr>
