@@ -1640,7 +1640,21 @@ def picking_estado_bodega(request, n_pedido):
         product_id = i['PRODUCT_ID']
         for j in ubicaciones_andagoya:
             if j['product_id'] == product_id:
-                i['ubicaciones'] = j['ubicaciones']
+                #i['ubicaciones'] = j['ubicaciones']
+                ubicaciones = j['ubicaciones']
+                
+                # ubi_estanteria = [ubi for ubi in ubicaciones if ubi.estanteria]
+                ubi_estanteria = sorted([ubi for ubi in ubicaciones if ubi.estanteria], key = lambda x: (x.bodega, x.pasillo, x.modulo, x.nivel))
+                #ubi_no_estanteria = [ubi for ubi in ubicaciones if not ubi.estanteria]
+                ubi_no_estanteria = sorted([ubi for ubi in ubicaciones if not ubi.estanteria], key = lambda x: (x.bodega, x.pasillo, x.modulo, x.nivel))
+                
+                if len(ubi_estanteria) >= 1:
+                    # i['ubicaciones'] = sorted(ubi_estanteria, key = lambda x: (x.bodega, x.pasillo, x.modulo, x.nivel))
+                    i['ubicaciones'] = ubi_estanteria[:1]
+                elif not ubi_estanteria and len(ubi_no_estanteria) >= 1:
+                    # i['ubicaciones'] = sorted(ubi_no_estanteria, key = lambda x: (x.bodega, x.pasillo, x.modulo, x.nivel))
+                    i['ubicaciones'] = ubi_no_estanteria[:1]
+                    
                 break
     
     context = {
@@ -1670,6 +1684,20 @@ def ajax_lotes_bodega(request):
     
     lotes = lotes_bodega(bodega, product_id)
     
+    ubicaciones = ProductoUbicacion.objects.filter(product_id=product_id)
+    
+    if ubicaciones.exists():
+        ubis = ""
+        for i in ubicaciones.first().ubicaciones.all().order_by('-estanteria'):
+            if not i.estanteria:
+                span = f' <span class="badge bg-info" style="font-size:14px">{i.bodega}-{i.pasillo}</span> '
+            else:
+                span = f' <span class="badge bg-warning" style="font-size:14px">{i.bodega}-{i.pasillo}-{i.modulo}-{i.nivel}</span> '
+                
+            ubis += span
+    else:
+        ubis = '<span class="badge bg-info" style="font-size:14px">Sin ubicación(es)</span>'
+    
     if not lotes.empty:
         lotes['Unds'] = lotes['Unds'].apply(lambda x:'{:,.0f}'.format(x))
     
@@ -1681,7 +1709,10 @@ def ajax_lotes_bodega(request):
         justify='start'
     )
     
-    return HttpResponse(lotes)
+    return JsonResponse({
+        'table':lotes,
+        'ubicaciones':ubis
+    })
 
 
 
@@ -3681,7 +3712,7 @@ def productos_ubicacion_lista_template():
             for j in productos:
                 if j.product_id == product_id:
                     i['ubicaciones'] = list(j.ubicaciones.all().order_by('bodega','pasillo','modulo','nivel'))
-                    
+
         return productos_completo
     else:
         return []

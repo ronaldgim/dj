@@ -31,35 +31,7 @@
     <button type="button" class="btn btn-sm btn-info disabled">Estado: {{estado}}</button>
 </div>
 
-{% comment %}
-<div class="text-end">
-    {% if estado == 'SIN ESTADO' %}
-    <button type="button" id="{{pedido}}" name="estado_picking" class="btn btn-sm btn-warning">EN PROCESO</button>
-    
-    {% elif estado == 'FINALIZADO' %}
-    <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
-        <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-sm btn-warning">EN PROCESO</button>
-        <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-sm btn-primary">EN TRANSITO</button>
-    </div>
-    <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
-        <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-sm btn-danger">EN PAUSA</button>
-        <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-sm btn text-white" style="background-color:#bf03c8 ;">INCOMPLETO</button>
-        <button type="button" class="btn btn-success disabled">FINALIZADO</button>
-    </div>
-    {% else %}
-    <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
-        <button type="button" class="btn btn-warning">EN PROCESO</button>
-        <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-sm btn-primary">EN TRANSITO</button>
-    </div>
-    <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
-        <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-sm btn-danger">EN PAUSA</button>
-        <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-sm btn text-white" style="background-color:#bf03c8 ;">INCOMPLETO</button>
-        <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-sm btn-success">FINALIZADO</button>
-    </div>
-    {% endif %}
-</div>
-<hr>
-{% endcomment %}
+
 <div class="text-end">
     {% if estado == 'SIN ESTADO' %}
         <button type="button" id="{{pedido}}" name="estado_picking" class="btn btn-warning" value="EN PROCESO">EN PROCESO</button>
@@ -203,20 +175,6 @@
         var nombre     = $(this).closest("tr").find("#nombre").html();
         var marca      = $(this).closest("tr").find("#marca").html();
         var p_unds     = $(this).closest("tr").find("#p_unds").html();
-        var ubicacion  = $(this).closest("tr").find(".ubicacion");
-
-        var ubicaiones_prods = "";
-                
-        // Recorremos cada ubicación y la añadimos al HTML del modal
-        ubicacion.each(function() {
-            // Clonamos el span y lo añadimos al HTML
-            ubicaiones_prods += $(this).prop('outerHTML');
-        });
-        
-        // Si no hay ubicaciones, mostramos un mensaje
-        if (ubicaiones_prods === "") {
-            ubicaiones_prods = "<p>No hay ubicaciones disponibles</p>";
-        }
 
         $.ajax({
             url : "{% url 'ajax_lotes_bodega' %}",
@@ -236,7 +194,7 @@
                 $(".modal-body").html(`
                 <span class="fw-bold">Item:</span> ${product_id} - ${nombre} - ${marca} <br> 
                 <span class="fw-bold">Unds:</span> ${p_unds} <br> 
-                <span class="fw-bold">Ubicación(es):</span> ${ubicaiones_prods} <br> ${response}`);
+                <span class="fw-bold">Ubicación(es):</span> ${response.ubicaciones} <br> ${response.table}`);
 
                 if ($("#lotes tbody tr").length===0){
                     $('.modal-body').append('No hay lotes registrados');
