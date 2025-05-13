@@ -31,35 +31,7 @@
     <button type="button" class="btn btn-sm btn-info disabled">Estado: {{estado}}</button>
 </div>
 
-{% comment %}
-<div class="text-end">
-    {% if estado == 'SIN ESTADO' %}
-    <button type="button" id="{{pedido}}" name="estado_picking" class="btn btn-sm btn-warning">EN PROCESO</button>
-    
-    {% elif estado == 'FINALIZADO' %}
-    <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
-        <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-sm btn-warning">EN PROCESO</button>
-        <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-sm btn-primary">EN TRANSITO</button>
-    </div>
-    <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
-        <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-sm btn-danger">EN PAUSA</button>
-        <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-sm btn text-white" style="background-color:#bf03c8 ;">INCOMPLETO</button>
-        <button type="button" class="btn btn-success disabled">FINALIZADO</button>
-    </div>
-    {% else %}
-    <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
-        <button type="button" class="btn btn-warning">EN PROCESO</button>
-        <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-sm btn-primary">EN TRANSITO</button>
-    </div>
-    <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
-        <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-sm btn-danger">EN PAUSA</button>
-        <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-sm btn text-white" style="background-color:#bf03c8 ;">INCOMPLETO</button>
-        <button type="button" id="{{estado_id}}" name="estado_actualizar" class="btn btn-sm btn-success">FINALIZADO</button>
-    </div>
-    {% endif %}
-</div>
-<hr>
-{% endcomment %}
+
 <div class="text-end">
     {% if estado == 'SIN ESTADO' %}
         <button type="button" id="{{pedido}}" name="estado_picking" class="btn btn-warning" value="EN PROCESO">EN PROCESO</button>
