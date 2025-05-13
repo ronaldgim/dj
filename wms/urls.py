@@ -631,4 +631,11 @@ urlpatterns = [
         name = 'anulacion_factura_movimientos_ajax'
     ),
     
+    # Reporte dif mba wms
+    path(
+        route='wms_reporte_diferencia_mba_wms', 
+        view = views.wms_reporte_diferencia_mba_wms,
+        name = 'wms_reporte_diferencia_mba_wms'
+    ),
+    
 ]

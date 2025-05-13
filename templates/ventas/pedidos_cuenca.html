@@ -45,9 +45,9 @@
 
 
 <br>
-<label class="fw-bold">Pedido:   </label>{{n_pedido}}<br>
-<label class="fw-bold">Cliente:  </label>{{cli}}<br>
-<label class="fw-bold">Ruc:      </label>{{ruc}}<br>
+<label class="fw-bold">Pedido:   </label> {{n_pedido}}<br>
+<label class="fw-bold">Cliente:  </label> {{cli}}<br>
+<label class="fw-bold">Ruc:      </label> {{ruc}}<br>
 <br>
 
 <div class="card mt-2 mb-2">
@@ -76,11 +76,13 @@
                         <td class="text-end">{{i.price|floatformat:'2g'}}</td>
                         <td class="text-center">
                             {% if i.ALERTA == None %}
-                            <i style="color:red" class="bi bi-exclamation-triangle-fill"></i>
+                            <i style="color:red" class="bi bi-exclamation-triangle-fill"></i> > 6 meses
                             {% elif i.ALERTA == 'tres_meses' %}
-                            <i style="color:orange" class="bi bi-exclamation-triangle-fill"></i>
+                            <!--i style="color:orange" class="bi bi-exclamation-triangle-fill"></i-->
+                            <i style="color:green" class="bi bi-exclamation-triangle-fill"></i> < 3 meses
                             {% elif i.ALERTA == 'seis_meses' %}
-                            <i style="color:green" class="bi bi-exclamation-triangle-fill"></i>
+                            <!--i style="color:green" class="bi bi-exclamation-triangle-fill"></i-->
+                            <i style="color:orange" class="bi bi-exclamation-triangle-fill"></i> > 3 meses < 6 meses
                             {% endif %}
                         </td>
                         <td>{% if not i.FECHA %}

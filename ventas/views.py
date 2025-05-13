@@ -143,7 +143,7 @@ def pedidos_cuenca_datos(n_pedido):
     seis_meses = datetime.combine(seis_meses, datetime.min.time()) 
     tres_meses = hoy - timedelta(days=90) 
     tres_meses = datetime.combine(tres_meses, datetime.min.time()) 
-    
+    print(tres_meses, seis_meses)
     pedido = pedidos_cuenca_odbc(n_pedido) 
     codigo_cliente = pedido['client_code'][0]
 
@@ -168,7 +168,7 @@ def pedidos_cuenca(request):
     if request.method == 'POST' :
         n_pedido = request.POST['n_pedido']
         try:
-            pedido = pedidos_cuenca_datos(n_pedido)
+            pedido = pedidos_cuenca_datos(n_pedido) 
             
             cli = pedido['client_name'][0] 
             ruc = pedido['client_identification'][0] 

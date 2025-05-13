@@ -562,12 +562,6 @@ def wms_ubicaciones_disponibles_rows():
 @login_required(login_url='login')
 def wms_home(request):
     
-    # from api_mba.tablas_warehouse import api_actualizar_reservas_etiquetado
-    # api_actualizar_reservas_etiquetado()
-    
-    # if request.user.id == 2:    
-    #     wms_correo_picking('88601.0')    
-    
     tiempo_de_almacenamiento = kpi_tiempo_de_almacenamiento()
     capacidad_tabla = de_dataframe_a_template(kpi_capacidad()) 
     data_grafico = capacidad_data_grafico()
@@ -1175,7 +1169,7 @@ def wms_inventario(request): #OK
     """ Inventario
         Suma de ingresos y egresos que dan el total de todo el inventario
     """
-    # wms_existencias_query_product_lote("2014","476790")         
+    # wms_existencias_query_product_lote("2014","476790")
     
     prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     productos = pd.DataFrame(Existencias.objects.all().values('product_id'))
@@ -3065,7 +3059,8 @@ def wms_transferencia_picking(request, n_transf):
             .order_by('fecha_caducidad'))
             .drop_duplicates(subset=['product_id','lote_id','ubicacion__bodega','ubicacion__pasillo']))
     
-    existencias_bodega_df['ubi_show'] = existencias_bodega_df['ubicacion__bodega'] + '-' + existencias_bodega_df['ubicacion__pasillo']
+    if not existencias_bodega_df.empty:
+        existencias_bodega_df['ubi_show'] = existencias_bodega_df['ubicacion__bodega'] + '-' + existencias_bodega_df['ubicacion__pasillo']
     
     existencias_bodega_df = de_dataframe_a_template(existencias_bodega_df)
 
@@ -5678,3 +5673,40 @@ def factura_anulada_detalle(request, n_factura):
     }
     
     return render(request, 'wms/anulacion_factura_detail.html', context)
+
+
+def wms_reporte_diferencia_mba_wms(request):
+    
+    from datos.views import resporte_diferencia_mba_wms
+    reporte  = resporte_diferencia_mba_wms()
+    
+        # Excel
+    if not reporte.empty:
+        hoy = datetime.today().strftime('%Y-%m-%d_%H-%M-%S')
+        nombre_archivo = f'Reporte-Diferencia_MBA_WMS_{hoy}.xlsx'
+        content_disposition = f'attachment; filename="{nombre_archivo}"'
+
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = content_disposition
+
+        with pd.ExcelWriter(response, engine='openpyxl') as writer:
+            
+            reporte.to_excel(writer, sheet_name='Reporte-Reservas', index=False)
+            
+            workbook = writer.book
+            worksheet = writer.sheets['Reporte-Reservas']
+            
+            worksheet.column_dimensions['A'].width = 20 # PRODUCT_ID
+            worksheet.column_dimensions['B'].width = 20 # LOTE_ID
+            worksheet.column_dimensions['C'].width = 20 # WARE_CODE
+            worksheet.column_dimensions['D'].width = 20 # LOCATION
+            worksheet.column_dimensions['E'].width = 15 # OH2
+            worksheet.column_dimensions['F'].width = 20 # WARE_CODE_WMS
+            worksheet.column_dimensions['G'].width = 20 # LOCATION_WMS
+            worksheet.column_dimensions['H'].width = 15 # OH2_WMS
+            
+        return response
+
+    else:
+        messages.success(request, 'Reservas actualizadas, no hay items que mover !!!')
+        return HttpResponseRedirect('/etiquetado/revision/imp/llegadas/list')

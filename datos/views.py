@@ -2531,3 +2531,46 @@ def inventario_transferencia_data():
     data = data.sort_values(by=['PRODUCT_ID','FECHA_CADUCIDAD','BODEGA'], ascending=[True,True,True])
     
     return data
+
+
+
+def resporte_diferencia_mba_wms():
+    
+    def stock_cerezos_mba():
+        with connections['gimpromed_sql'].cursor() as cursor:
+            cursor.execute("SELECT PRODUCT_ID, LOTE_ID, OH2,  WARE_CODE, LOCATION FROM warehouse.stock_lote WHERE WARE_CODE = 'BCT' or WARE_CODE = 'CUC'")
+            columns = [col[0] for col in cursor.description]
+            data = [dict(zip(columns, row)) for row in cursor.fetchall()]
+            data = pd.DataFrame(data)
+            data['LOTE_ID'] = data['LOTE_ID'].str.replace('.','')
+            data = data.groupby(by=['PRODUCT_ID','LOTE_ID','WARE_CODE','LOCATION'])['OH2'].sum().reset_index().sort_values(by='WARE_CODE')
+            return data
+    
+    def stock_cerezos_wms():
+        data = pd.DataFrame(Existencias.objects.all().values(
+            'product_id', 'lote_id', 'estado', 'ubicacion__bodega','unidades'
+        ))
+        data['lote_id'] = data['lote_id'].str.replace('.','')
+        data = data.groupby(by=['product_id','lote_id','estado','ubicacion__bodega'])['unidades'].sum().reset_index()
+        data['WARE_CODE_WMS'] = data.apply(lambda x: 'BCT' if x['estado'] == 'Disponible' else 'CUC', axis=1)
+        data = data.rename(columns={
+            'product_id':'PRODUCT_ID',
+            'lote_id':'LOTE_ID',
+            'unidades':'OH2_WMS',
+            'ubicacion__bodega':'LOCATION_WMS'
+        })
+        data = data[['PRODUCT_ID','LOTE_ID','WARE_CODE_WMS','LOCATION_WMS','OH2_WMS']].sort_values(by='WARE_CODE_WMS')
+        return data
+    
+    reporte = pd.merge(
+        left  = stock_cerezos_mba(),
+        right = stock_cerezos_wms(),
+        on = ['PRODUCT_ID', 'LOTE_ID'],
+        how='outer'
+    )
+    
+    reporte['bodega'] = reporte['LOCATION'] == reporte['LOCATION_WMS']
+    reporte = reporte[reporte['bodega']==False]
+    reporte = reporte[['PRODUCT_ID', 'LOTE_ID', 'WARE_CODE', 'LOCATION', 'OH2', 'WARE_CODE_WMS', 'LOCATION_WMS', 'OH2_WMS']].fillna('')
+    
+    return reporte
