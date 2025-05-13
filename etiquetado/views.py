@@ -21,7 +21,7 @@ import pandas as pd
 import numpy as np
 
 # Datos Models
-from datos.models import Product, Vehiculos, TimeStamp, StockConsulta
+from datos.models import Product, Vehiculos, TimeStamp, StockConsulta, AdminActualizationWarehaouse
 from wms.models import Transferencia
 from etiquetado.models import (
     Calculadora,
@@ -1452,27 +1452,30 @@ def picking(request):
 def picking_estado(request):
     
     if request.user.has_perm('etiquetado.view_estadopicking'):
-        # HABILITAR ACTUALIZACIÓN
-        actualizado = pd.DataFrame(TimeStamp.objects.all().values())
-        actualizado = list(actualizado['actulization_stoklote'])
-        act = []
-        for i in actualizado:
-            if i != '':
-                act.append(i)
-        actualizado = act[-1][0:19]
+        
+        # # HABILITAR ACTUALIZACIÓN
+        # actualizado = pd.DataFrame(TimeStamp.objects.all().values())
+        # actualizado = list(actualizado['actulization_stoklote'])
+        # act = []
+        # for i in actualizado:
+        #     if i != '':
+        #         act.append(i)
+        # actualizado = act[-1][0:19]
 
-        act = datetime.strptime(actualizado, '%Y-%m-%d %H:%M:%S') #%H:%M:%S
-        aho = datetime.now()
+        # act = datetime.strptime(actualizado, '%Y-%m-%d %H:%M:%S') #%H:%M:%S
+        # aho = datetime.now()
 
-        d = aho-act
-        d = pd.Timedelta(d)
-        d = d.total_seconds()
-        t_s = 60
+        # d = aho-act
+        # d = pd.Timedelta(d)
+        # d = d.total_seconds()
+        # t_s = 60
 
-        if d > t_s:
-            dd = None
-        else:
-            dd = 'disabled'
+        # if d > t_s:
+        #     dd = None
+        # else:
+        #     dd = 'disabled'
+
+        reservas_actualizado = AdminActualizationWarehaouse.objects.get(table_name='reservas').datetime
 
         # Tablas
         reservas = pd.DataFrame(reservas_table())
@@ -1513,61 +1516,61 @@ def picking_estado(request):
         reservas = de_dataframe_a_template(reservas)
 
 
-        if request.method == 'POST':
-            if d > t_s:
-                import pyodbc
-                import mysql.connector
+        # if request.method == 'POST':
+        #     if d > t_s:
+        #         import pyodbc
+        #         import mysql.connector
 
-                try:
-                    mydb = mysql.connector.connect(
-                            host="172.16.28.102",
-                            user="standard",
-                            passwd="gimpromed",
-                            database="warehouse"
-                    )
+        #         try:
+        #             mydb = mysql.connector.connect(
+        #                     host="172.16.28.102",
+        #                     user="standard",
+        #                     passwd="gimpromed",
+        #                     database="warehouse"
+        #             )
 
-                    cnxn = pyodbc.connect('DSN=mba3;PWD=API')
-                    cursorOdbc = cnxn.cursor()
-                    cursor_write = mydb.cursor()
+        #             cnxn = pyodbc.connect('DSN=mba3;PWD=API')
+        #             cursorOdbc = cnxn.cursor()
+        #             cursor_write = mydb.cursor()
 
-                    cursorOdbc.execute(
-                    "SELECT CLNT_Pedidos_Principal.FECHA_PEDIDO, CLNT_Pedidos_Principal.CONTRATO_ID, CLNT_Ficha_Principal.NOMBRE_CLIENTE, "
-                    "CLNT_Pedidos_Detalle.PRODUCT_ID, CLNT_Pedidos_Detalle.PRODUCT_NAME, CLNT_Pedidos_Detalle.QUANTITY, CLNT_Pedidos_Detalle.Despachados, CLNT_Pedidos_Principal.WARE_CODE, CLNT_Pedidos_Principal.CONFIRMED, CLNT_Pedidos_Principal.HORA_LLEGADA, CLNT_Pedidos_Principal.SEC_NAME_CLIENTE "
-                    "FROM CLNT_Ficha_Principal CLNT_Ficha_Principal, CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, CLNT_Pedidos_Principal CLNT_Pedidos_Principal "
-                    "WHERE CLNT_Pedidos_Principal.CONTRATO_ID_CORP = CLNT_Pedidos_Detalle.CONTRATO_ID_CORP AND CLNT_Ficha_Principal.CODIGO_CLIENTE = CLNT_Pedidos_Principal.CLIENT_ID "
-                    "AND ((CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND (CLNT_Pedidos_Detalle.TIPO_DOCUMENTO='PE')) ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID DESC"
-                    )
+        #             cursorOdbc.execute(
+        #             "SELECT CLNT_Pedidos_Principal.FECHA_PEDIDO, CLNT_Pedidos_Principal.CONTRATO_ID, CLNT_Ficha_Principal.NOMBRE_CLIENTE, "
+        #             "CLNT_Pedidos_Detalle.PRODUCT_ID, CLNT_Pedidos_Detalle.PRODUCT_NAME, CLNT_Pedidos_Detalle.QUANTITY, CLNT_Pedidos_Detalle.Despachados, CLNT_Pedidos_Principal.WARE_CODE, CLNT_Pedidos_Principal.CONFIRMED, CLNT_Pedidos_Principal.HORA_LLEGADA, CLNT_Pedidos_Principal.SEC_NAME_CLIENTE "
+        #             "FROM CLNT_Ficha_Principal CLNT_Ficha_Principal, CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, CLNT_Pedidos_Principal CLNT_Pedidos_Principal "
+        #             "WHERE CLNT_Pedidos_Principal.CONTRATO_ID_CORP = CLNT_Pedidos_Detalle.CONTRATO_ID_CORP AND CLNT_Ficha_Principal.CODIGO_CLIENTE = CLNT_Pedidos_Principal.CLIENT_ID "
+        #             "AND ((CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND (CLNT_Pedidos_Detalle.TIPO_DOCUMENTO='PE')) ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID DESC"
+        #             )
 
-                    reservas = cursorOdbc.fetchall()
+        #             reservas = cursorOdbc.fetchall()
 
-                    sql_delete="DELETE FROM reservas"
-                    cursor_write.execute(sql_delete)
+        #             sql_delete="DELETE FROM reservas"
+        #             cursor_write.execute(sql_delete)
 
-                    sql_insert_reservas = """INSERT INTO reservas (FECHA_PEDIDO, CONTRATO_ID, NOMBRE_CLIENTE,
-                    PRODUCT_ID, PRODUCT_NAME, QUANTITY, Despachados, WARE_CODE, CONFIRMED, HORA_LLEGADA, SEC_NAME_CLIENTE) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);"""
-                    data_reservas = [list(rows) for rows in reservas]
-                    res = cursor_write.executemany(sql_insert_reservas, data_reservas)
-                    mydb.commit()
+        #             sql_insert_reservas = """INSERT INTO reservas (FECHA_PEDIDO, CONTRATO_ID, NOMBRE_CLIENTE,
+        #             PRODUCT_ID, PRODUCT_NAME, QUANTITY, Despachados, WARE_CODE, CONFIRMED, HORA_LLEGADA, SEC_NAME_CLIENTE) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);"""
+        #             data_reservas = [list(rows) for rows in reservas]
+        #             res = cursor_write.executemany(sql_insert_reservas, data_reservas)
+        #             mydb.commit()
 
-                    time = str(datetime.now())
-                    TimeStamp.objects.create(actulization_stoklote=time)
+        #             time = str(datetime.now())
+        #             TimeStamp.objects.create(actulization_stoklote=time)
 
-                    return redirect('picking_estado') #render(request, 'etiquetado/picking_estado/picking_estado.html', context)
+        #             return redirect('picking_estado') #render(request, 'etiquetado/picking_estado/picking_estado.html', context)
 
-                except:
-                    print('NO SE ACTULIZO')
+        #         except:
+        #             print('NO SE ACTULIZO')
                     
-                finally:
-                    cnxn.close()
-                    cursorOdbc.close()
+        #         finally:
+        #             cnxn.close()
+        #             cursorOdbc.close()
                     
-            else:
-                print('menos 1 min - RESERVAS')
+        #     else:
+        #         print('menos 1 min - RESERVAS')
 
         context = {
             'reservas':reservas,
-            'disabled':dd,
-            'actualizado':actualizado
+            # 'disabled':dd,
+            'actualizado':reservas_actualizado
         }
 
     else:
