@@ -1696,7 +1696,7 @@ def ajax_lotes_bodega(request):
                 
             ubis += span
     else:
-        ubis = '<span class="badge bg-info" style="font-size:14px">Sin ubicación(es)</span>'
+        ubis = '<span class="badge bg-secondary" style="font-size:14px">Sin ubicación(es)</span>'
     
     if not lotes.empty:
         lotes['Unds'] = lotes['Unds'].apply(lambda x:'{:,.0f}'.format(x))
