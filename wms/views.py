@@ -3065,7 +3065,8 @@ def wms_transferencia_picking(request, n_transf):
             .order_by('fecha_caducidad'))
             .drop_duplicates(subset=['product_id','lote_id','ubicacion__bodega','ubicacion__pasillo']))
     
-    existencias_bodega_df['ubi_show'] = existencias_bodega_df['ubicacion__bodega'] + '-' + existencias_bodega_df['ubicacion__pasillo']
+    if not existencias_bodega_df.empty:
+        existencias_bodega_df['ubi_show'] = existencias_bodega_df['ubicacion__bodega'] + '-' + existencias_bodega_df['ubicacion__pasillo']
     
     existencias_bodega_df = de_dataframe_a_template(existencias_bodega_df)
 
