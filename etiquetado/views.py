@@ -1684,6 +1684,20 @@ def ajax_lotes_bodega(request):
     
     lotes = lotes_bodega(bodega, product_id)
     
+    ubicaciones = ProductoUbicacion.objects.filter(product_id=product_id)
+    
+    if ubicaciones.exists():
+        ubis = ""
+        for i in ubicaciones.first().ubicaciones.all().order_by('-estanteria'):
+            if not i.estanteria:
+                span = f' <span class="badge bg-info" style="font-size:14px">{i.bodega}-{i.pasillo}</span> '
+            else:
+                span = f' <span class="badge bg-warning" style="font-size:14px">{i.bodega}-{i.pasillo}-{i.modulo}-{i.nivel}</span> '
+                
+            ubis += span
+    else:
+        ubis = '<span class="badge bg-info" style="font-size:14px">Sin ubicación(es)</span>'
+    
     if not lotes.empty:
         lotes['Unds'] = lotes['Unds'].apply(lambda x:'{:,.0f}'.format(x))
     
@@ -1695,7 +1709,10 @@ def ajax_lotes_bodega(request):
         justify='start'
     )
     
-    return HttpResponse(lotes)
+    return JsonResponse({
+        'table':lotes,
+        'ubicaciones':ubis
+    })
 
 
 
