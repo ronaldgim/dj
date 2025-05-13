@@ -61,15 +61,21 @@
 </style>
 
 
-<h5 class="m-4 text-center"><strong>LISTADO DE PICKING ANDAGOYA</strong></h5>
+<h5 class="m-4 text-center fw-bold">LISTADO DE PICKING ANDAGOYA</h5>
 <h6 class="text-start"><strong>Actulizado: </strong>{{actualizado}}</h6>
 
-<form method="post">
+<!--form method="post">
     {% csrf_token %}
     <button class="btn btn-primary btn-sm mt-2 mb-2" type="submit"> 
         <i class="bi bi-arrow-clockwise"></i> Actualizar
     </button>
-</form>
+</form-->
+
+<button class="btn btn-primary btn-sm mt-2 mb-2" type="button" onclick="actualizar()"> 
+    <i class="bi bi-arrow-clockwise"></i> Actualizar
+</button>
+
+<br>
 
 <button class="btn btn-info btn-sm mb-2" id="mispedidos"> 
     <i class="bi bi-person-lines-fill"></i> Mis pedidos
@@ -79,13 +85,6 @@
     <i class="bi bi-list-ccolumns-reverse"></i> Todos los pedidos
 </button>
 
-
-<!--div class="switch-field">
-    <input type="radio" id="radio-one" name="bod_select" value="BAN"/>
-    <label for="radio-one">Andagoya</label>
-    <input type="radio" id="radio-two" name="bod_select" value="BCT"/>
-    <label for="radio-two">Cerezos</label>
-</div-->
 
 <div class="col-12 mt-2">
     <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
@@ -204,6 +203,13 @@
 </script>
 
 <script>
+    // Refresh para ver todos los pedidos
+    function actualizar () {
+        window.location.reload()
+    }
+</script>
+
+<script>
     // Switch bodega filter
     $(document).ready(function() {
         $("input[name='bod_select']").click(function() {
@@ -223,32 +229,31 @@
     $('.filter-est').change(function(){
         filter_function_estado(); //calling filter function each select box value change
     });
-      
+    
     $('table tbody tr').show(); //intially all rows will be shown
-      
+    
     function filter_function_estado(){
         $('table tbody tr').hide(); //hide all rows
         
         var tipoFlag = 'ESTADO';
         var tipoValue = $('#filter-estado').val();
         
-       //traversing each row one by one
-        $('table tr').each(function() {  
-          if(tipoValue == 'ESTADO'){
-            tipoFlag = 1;
-          }
-          else if(tipoValue == $(this).find('td.estado').data('estado')){
-            tipoFlag = 1;
-          }
-          else{
-            tipoFlag = 0;
-          }
+        //traversing each row one by one
+            $('table tr').each(function() {  
+            if(tipoValue == 'ESTADO'){
+                tipoFlag = 1;
+            }
+            else if(tipoValue == $(this).find('td.estado').data('estado')){
+                tipoFlag = 1;
+            } else{
+                tipoFlag = 0;
+                }
 
-         if(tipoFlag){
-            $(this).show();
-         }
-      
-      });
+            if(tipoFlag){
+                $(this).show();
+            }
+        
+        });
     }
 </script>
 
