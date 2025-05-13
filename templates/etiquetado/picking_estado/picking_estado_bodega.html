@@ -175,20 +175,6 @@
         var nombre     = $(this).closest("tr").find("#nombre").html();
         var marca      = $(this).closest("tr").find("#marca").html();
         var p_unds     = $(this).closest("tr").find("#p_unds").html();
-        // var ubicacion  = $(this).closest("tr").find(".ubicacion");
-
-        // var ubicaiones_prods = "";
-                
-        // // Recorremos cada ubicación y la añadimos al HTML del modal
-        // ubicacion.each(function() {
-        //     // Clonamos el span y lo añadimos al HTML
-        //     ubicaiones_prods += $(this).prop('outerHTML');
-        // });
-        
-        // // Si no hay ubicaciones, mostramos un mensaje
-        // if (ubicaiones_prods === "") {
-        //     ubicaiones_prods = "<p>No hay ubicaciones disponibles</p>";
-        // }
 
         $.ajax({
             url : "{% url 'ajax_lotes_bodega' %}",
