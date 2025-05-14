@@ -103,7 +103,7 @@ from django.db.models import Q
 
 # Models
 from users.models import User, UserPerfil
-from etiquetado.models import EstadoPicking
+from etiquetado.models import EstadoPicking, ProductoUbicacion
 
 # Transactions INTEGRITY OF DATA
 from django.db import transaction
@@ -2920,6 +2920,79 @@ def wms_transferencias_estatus_transf(n_transf):
     })
 
 
+def wms_transferencia_data_pdf_email(n_transferencia):
+    
+    transferencia = pd.DataFrame(Transferencia.objects.filter(n_transferencia=n_transferencia).order_by('ubicacion','product_id').values())
+    transferencia['fecha_caducidad'] = transferencia['fecha_caducidad'].astype('str')
+    productos = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+    transferencia = transferencia.merge(productos, on='product_id', how='left')
+    
+    transferencia = de_dataframe_a_template(transferencia)
+    
+    for i in transferencia:
+        product_id = i['product_id']
+        ubicacion = ProductoUbicacion.objects.filter(product_id=product_id)
+        if ubicacion.exists():
+            i['ubicacion_andagoya'] = ubicacion.first().ubicaciones.all().order_by('bodega','estanteria')
+    
+    return transferencia
+
+
+@pdf_decorator(pdfname='transferencia.pdf')
+def wms_transferencia_pdf(request, n_transferencia):
+
+    context = {
+        'n_transferencia':n_transferencia, 
+        'transferencia':wms_transferencia_data_pdf_email(n_transferencia)
+    }
+    return render(request, 'emails/transferencia_pdf.html', context)
+
+
+def wms_transferencia_correo(n_transferencia):
+    
+    transferencia = wms_transferencia_data_pdf_email(n_transferencia) 
+    correos = [
+        'bcerezos@gimpromed.com',
+        'ncastillo@gimpromed.com',
+        'jgualotuna@gimpromed.com',
+        'egarces@gimpromed.com',
+        'pespinosa@gimpromed.com',
+        'carcosh@gimpromed.com',
+        'dreyes@gimpromed.com'
+        ]
+    
+    if len(transferencia) >= 1:
+        context = {'n_transferencia':n_transferencia, 'transferencia':transferencia}
+        html_message  = render_to_string('emails/transferencia.html', context)
+        html_pdf_file = render_to_string('emails/transferencia_pdf.html', context)
+        plain_message = strip_tags(html_message)
+        
+        output = io.BytesIO()
+        pdf_status = pisa.CreatePDF(html_pdf_file, dest=output)
+        
+        if not pdf_status.err:
+        
+            output.seek(0)
+            
+            email = EmailMultiAlternatives(
+                subject    = f'TRASFERENCIA DE BODEGA {n_transferencia}',
+                body       = plain_message,
+                from_email = settings.EMAIL_HOST_USER,
+                to         = correos
+            )
+        
+            email.attach_alternative(html_message, 'text/html')
+            email.attach(f'Transferencia_{n_transferencia}.pdf', output.getvalue(), 'application/pdf')
+            email.send()
+            return True
+        else:
+            return False  # Retornar False si hubo un error
+        
+    else:
+        print(f"No se encontró transferencia con número {n_transferencia}")
+        return False
+
+
 # Agregar transferencia para realizar picking de transferencia 
 @login_required(login_url='login')
 def wms_transferencia_input_ajax(request):
@@ -2962,6 +3035,8 @@ def wms_transferencia_input_ajax(request):
                 unidades_wms    = 0,
                 avance          = 0.0
             )
+        
+        wms_transferencia_correo(n_trasf)
 
         return JsonResponse({
             'msg':f'La Transferencia {n_trasf} fue añadida exitosamente !!!',
@@ -2969,7 +3044,6 @@ def wms_transferencia_input_ajax(request):
         })
 
     else:
-    #elif new_transf.exists():
         return JsonResponse({
             'msg':f'La Transferencia {n_trasf} ya fue añadida anteriormente !!!',
             'alert':'danger'

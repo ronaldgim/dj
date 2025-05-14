@@ -10,34 +10,6 @@
 
 {% block body %}
 
-<style>
-    .btn.btn-warning.btn-sm.active {
-    background-color: blue;}
-
-    .mensaje-temporal {
-        display: none;
-        position: absolute;
-        background-color: #4CAF50;
-        color: white;
-        padding: 10px;
-        border-radius: 5px;
-    }
-
-    #msg_ss {
-        display: none;
-        position: fixed; /* Cambiado a fixed para que sea relativo a la ventana */
-        /*bottom: 10px; */ /* Distancia desde la parte inferior */
-        top:40%;
-        right: 10px; /* Distancia desde la derecha */
-        /*background-color: #4CAF50;*/
-        color: white;
-        padding: 10px;
-        border-radius: 5px;
-        width:auto;
-        z-index: 3;
-        }
-</style>
-
 <h5 class="m-4 fw-bold text-center">TRANSFERENCIAS</h5>
 
 <div class="input-group mb-3">
@@ -61,7 +33,6 @@
 {% endif %}
 
 <div id="msg"></div>
-<!--div id="msg_ss"></div-->
 
 <div class="card mb-2">
     <div class="card-body m-0 p-0">
@@ -83,17 +54,22 @@
 
                         <td>
                             {% if i.estado == 'CREADO' %}
-                            <a class="btn btn-sm btn-primary disabled">{{i.estado}}</a>
+                            <span class="badge bg-primary rounded-pill text-wrap fs-6">{{i.estado}}</span>
                             {% elif i.estado == 'EN PROCESO' %}
-                            <a class="btn btn-sm btn-warning disabled">{{i.estado}} - {{i.avance}}%</a>
+                            <span class="badge bg-warning rounded-pill text-wrap fs-6">{{i.estado}}</span>
+                            <span class="badge bg-info rounded-pill text-wrap fs-6">{{i.avance}}%</span>
                             {% elif i.estado == 'FINALIZADO' %}
-                            <a class="btn btn-sm btn-success disabled">{{i.estado}}</a>
+                            <span class="badge bg-success rounded-pill text-wrap fs-6">{{i.estado}}</span>
                             {% endif %}
                         </td>
 
                         <td>
                             <a class="btn btn-primary btn-sm" href="{% url 'wms_transferencia_picking' i.n_transferencia %}">
                                 <i class="bi bi-truck"></i>
+                            </a>
+
+                            <a class="btn btn-secondary btn-sm" href="{% url 'wms_transferencia_pdf' i.n_transferencia %}">
+                                <i class="bi bi-printer"></i>
                             </a>
                         </td>
                     </tr>
@@ -142,28 +118,4 @@
     })
 </script>
 
-
-<!--script>
-    // Función para mostrar un mensaje temporal
-    function mostrarMensajeTemporal(mensaje, boton) {
-        var mensajeTemporal = $("button[name='cruce']");
-        var botonOffset = boton.offset();
-
-        // Colocar el mensaje al lado del botón
-        mensajeTemporal.css({
-            top: botonOffset.top + boton.outerHeight(),
-            left: botonOffset.left
-        });
-
-        // Establecer el contenido del mensaje
-        mensajeTemporal.text(mensaje);
-
-        // Mostrar el mensaje
-        mensajeTemporal.fadeIn();
-
-        // Ocultar el mensaje después de 3 segundos
-        setTimeout(function() {
-            mensajeTemporal.fadeOut();
-        }, 3000)}
-</script-->
 {% endblock %}

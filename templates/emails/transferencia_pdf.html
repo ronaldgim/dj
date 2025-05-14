@@ -1,0 +1,62 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transferencia {{n_transferencia}}</title>
+</head>
+<body>
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+        td, th {
+            padding-top: 5px;
+            padding-bottom: 5px;
+            padding-left: 5px;
+            padding-right: 5px;
+        }
+    </style>
+    
+    <p style="text-align:right"><strong>Generado por:</strong> Dayanne</p>
+
+    <h1 style="text-align:center"><strong>Listado de Lotes</strong></h1>
+
+    <p><strong>Transferencia:</strong> {{n_transferencia}}</p>
+    <p><strong>Bodega de salida :</strong> CEREZOS</p>
+    <p><strong>Bodega de llegada :</strong> ANDAGOYA</p>
+
+    <table style="width: 100%; table-layout: fixed;">
+        <thead>
+            <th>Código</th>
+            <th>Nombre</th>
+            <th>Marca</th>
+            <th>Lotes</th>
+            <th>Fecha Cad</th>
+            <th>Cantidad</th>
+            <th>Ubicación de Salida</th>
+            <th>Ubicación de Llegada</th>
+        </thead>
+        <tbody>
+            {% for i in transferencia %}
+            <tr>
+                <td>{{i.product_id}}</td>
+                <td>{{i.Nombre}}</td>
+                <td style="width: 70px;">{{i.Marca}}</td>
+                <td style="text-align:right;">{{i.lote_id}}</td>
+                <td style="text-align:right; width: 70px;">{{i.fecha_caducidad}}</td>
+                <td style="text-align:right; width: 70px;">{{i.unidades}}</td>
+                <td style="text-align:center; width: 70px;">{{i.ubicacion}}</td>
+                <td style="width: 80px;">
+                    {% for j in i.ubicacion_andagoya.all %}
+                        {{j}}
+                    {% endfor %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
