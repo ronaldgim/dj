@@ -562,6 +562,8 @@ def wms_ubicaciones_disponibles_rows():
 @login_required(login_url='login')
 def wms_home(request):
     
+    print(correo_vendedor_n_pedido('89284.0'))
+    
     tiempo_de_almacenamiento = kpi_tiempo_de_almacenamiento()
     capacidad_tabla = de_dataframe_a_template(kpi_capacidad()) 
     data_grafico = capacidad_data_grafico()
@@ -2228,6 +2230,8 @@ def reservas_lote_n_picking(n_picking): #request
 
 
 def correo_vendedor_n_pedido(n_picking): 
+    
+    n_picking = n_picking.split('.')[0]
 
     try:
         with connections['gimpromed_sql'].cursor() as cursor:
@@ -2238,7 +2242,8 @@ def correo_vendedor_n_pedido(n_picking):
                 for row in cursor.fetchall()
             ][0]       
         return correo['MAIL']
-    except:
+    except: # Exception as e:
+        # print(e)
         return 'egarces@gimpromed.com'
 
 
