@@ -2293,9 +2293,26 @@ def wms_correo_picking(n_pedido):
         data = de_dataframe_a_template(data)
     except:
         data = {}
-        
+    
+    lista_correos = [
+        #'egarces@gimpromed.com',
+        'bcerezos@gimpromed.com',
+        'ncastillo@gimpromed.com',
+        'jgualotuna@gimpromed.com',
+        correo_vendedor_n_pedido(n_pedido)
+    ]
+    
     picking = EstadoPicking.objects.get(n_pedido=n_pedido)
     ciudad = ciudad_principal_cliente(picking.codigo_cliente)
+    
+    hostipitales = [
+        'CLI00015',  # CLI00015   HOSPITAL EUGENIO ESPEJO
+        'CLI00125',  # CLI00125   HOSPITAL JOSE CARRASCO ARETEAGA
+        'CLI01205'   # CLI01205   HOSPITAL PROVINCIAL GENERAL DOCENTE RIOBAMBA
+    ]
+    
+    if picking.codigo_cliente in hostipitales:
+        lista_correos += ['Dtrujillo@gimpromed.com']
     
     context = {
         'picking': picking,
@@ -2305,15 +2322,6 @@ def wms_correo_picking(n_pedido):
     
     html_message = render_to_string('emails/picking.html', context)
     plain_message = strip_tags(html_message)
-    
-    lista_correos = [
-        #'egarces@gimpromed.com',
-        'bcerezos@gimpromed.com',
-        'ncastillo@gimpromed.com',
-        'jgualotuna@gimpromed.com',
-        correo_vendedor_n_pedido(n_pedido)
-    ]
-    # print(correo_vendedor_n_pedido(n_pedido))
     
     email = EmailMultiAlternatives(
         subject=f'Cerezos-Picking Finalizado - {picking.cliente}',
@@ -3036,7 +3044,7 @@ def wms_transferencia_input_ajax(request):
                 avance          = 0.0
             )
         
-        wms_transferencia_correo(n_trasf)
+        # wms_transferencia_correo(n_trasf)
 
         return JsonResponse({
             'msg':f'La Transferencia {n_trasf} fue añadida exitosamente !!!',
