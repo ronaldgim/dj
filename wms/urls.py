@@ -318,6 +318,12 @@ urlpatterns = [
         view = views.wms_transferencia_picking,
         name = 'wms_transferencia_picking'
     ),
+
+    path(
+        route='wms_transferencia_product_observacion_ajax', #/<str:n_transf>/<str:product_id>',
+        view = views.wms_transferencia_product_observacion_ajax,
+        name = 'wms_transferencia_product_observacion_ajax'
+    ),
     
     # Lista de transferencias ingresadas a Cerezos
     path(

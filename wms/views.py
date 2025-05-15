@@ -562,8 +562,6 @@ def wms_ubicaciones_disponibles_rows():
 @login_required(login_url='login')
 def wms_home(request):
     
-    print(correo_vendedor_n_pedido('89284.0'))
-    
     tiempo_de_almacenamiento = kpi_tiempo_de_almacenamiento()
     capacidad_tabla = de_dataframe_a_template(kpi_capacidad()) 
     data_grafico = capacidad_data_grafico()
@@ -3180,6 +3178,46 @@ def wms_transferencia_picking(request, n_transf):
     }
     return render(request, 'wms/transferencia_picking.html', context)
 
+
+# def wms_transferencia_observacion_ajax(request, n_transf, product_id):
+def wms_transferencia_product_observacion_ajax(request):
+
+    if request.method == 'GET':
+        
+        n_transf = request.GET.get('n_transf')
+        prod_id = request.GET.get('prod_id')
+        lote_id = request.GET.get('lote_id')
+        
+        trasnferencia = Transferencia.objects.filter(
+            Q(n_transferencia=n_transf) &
+            Q(product_id=prod_id) &
+            Q(lote_id=lote_id)
+            )
+        transf = trasnferencia.first()
+        
+        return JsonResponse({
+            'observacion':transf.observacion
+        })
+    
+    if request.method == 'POST':
+        
+        n_transf = request.POST.get('n_transf')
+        prod_id = request.POST.get('prod_id')
+        lote_id = request.POST.get('lote_id')
+        obs = request.POST.get('obs')
+        
+        trasnferencia = Transferencia.objects.filter(
+            Q(n_transferencia=n_transf) &
+            Q(product_id=prod_id) &
+            Q(lote_id=lote_id)
+            )
+        
+        transf = trasnferencia.first()
+        transf.observacion = obs
+        transf.save()
+        return JsonResponse({
+            'msg':'ok'
+        })
 
 
 # Ingreso de transferencias a bodega Cerezos List

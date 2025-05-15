@@ -10,36 +10,7 @@
 
 {% block body %}
 
-<style>
-    .btn.btn-warning.btn-sm.active {
-    background-color: blue;}
-
-    .mensaje-temporal {
-        display: none;
-        position: absolute;
-        background-color: #4CAF50;
-        color: white;
-        padding: 10px;
-        border-radius: 5px;
-    }
-
-    #msg_ss {
-        display: none;
-        position: fixed; /* Cambiado a fixed para que sea relativo a la ventana */
-        /*bottom: 10px; */ /* Distancia desde la parte inferior */
-        top:40%;
-        right: 10px; /* Distancia desde la derecha */
-        /*background-color: #4CAF50;*/
-        color: white;
-        padding: 10px;
-        border-radius: 5px;
-        width:auto;
-        z-index: 3;
-        }
-</style>
-
-<h5 class="m-4 fw-bold text-center">TRANSFERENCIA {{n_transf}}</h5>
-
+<h5 class="m-4 fw-bold text-center">TRANSFERENCIA <span id="n_transf">{{n_transf}}</span></h5>
 
 {% if messages %}
 {% for message in messages %}
@@ -55,6 +26,7 @@
 {% endfor %}
 {% endif %}
 
+<div id="msg"></div>
 
 
 <div class="mt-2 mb-2">
@@ -72,6 +44,10 @@
 </div>
 
 
+<button class="btn btn-sm btn-warning text-white fw-bold mb-2">
+    <i class="bi bi-envelope"></i> Enviar PDF
+</button>
+
 <div class="card mb-2">
     <div class="card-body m-0 p-0">
         <div class="container table-responsive">
@@ -82,7 +58,6 @@
                         <th scope="col">Lote</th>
                         <th scope="col">Unidades</th>
                         <th scope="col">Ubicación(es)</th>
-                        <!--th scope="col">C</th-->
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
@@ -111,14 +86,12 @@
                             <button class="btn btn-primary btn-sm" name="boton_ubicaciones"> 
                                 <i class="bi bi-geo-fill"></i>
                             </button>
+                            <button class="btn btn-sm btn-white" type="button" name="obs" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                                <!--i class="bi bi-card-text"></i--> ✏
+                            </button>
                             <br>
                             <span style="font-size:smaller">{{i.primera_bodega}}</span>
                         </td>
-                        <!--td>
-                            <button class="btn btn-sm btn-secondary" type="button">
-                                <i class="bi bi-card-text"></i>
-                            </button>
-                        </td-->
                     </tr>
                     
                     {# FILA OCULA CON INVENTARIO Y MOVIMIENTOS #}
@@ -215,6 +188,28 @@
     </div>
 </div>
 
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Observacion</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <p><strong>Código:</strong>  <span id="prod_modal"></span></p>
+            <p><strong>Lote:</strong>  <span id="lote_modal"></span></p>
+            <textarea class="form-control" name="obs" id="obs_modal"></textarea>
+        </div>
+        <div class="modal-footer">
+            <!--button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button-->
+            <button type="button" class="btn btn-primary" name="save-obs">Guardar</button>
+        </div>
+        </div>
+    </div>
+</div>
+
+
+
 <!-- Desplegar ubicaciones -->
 <script>
     $(document).ready(function(){
@@ -303,34 +298,61 @@
     })
 </script>
 
-
-{% comment %}
 <script>
-
-    $("button[name='boton_ubicaciones']").click(function(){
-        var fila = $(this).closest("tr").toggleClass("table-info") //.addClass("table-info")
-        var product_id = $(this).closest("tr").find("#product_id").html()
-        var lote_id    = $(this).closest("tr").find("#lote_id").html()
-        console.log(product_id, lote_id)
+    $("button[name='obs']").click(function() {
+        var n_transf = $("#n_transf").text();
+        var prod_id = $(this).closest("tr").find("#product_id").text();
+        var lote_id = $(this).closest("tr").find("#lote_id").text();
         
         $.ajax({
-            type:"POST",
-            url:"{% url 'wms_transferencia_input_ajax' %}",
-            data:{
-                'csrfmiddlewaretoken': '{{ csrf_token }}',
-                'n_trasf':n_trasf,
+            type: "GET",
+            url: "{% url 'wms_transferencia_product_observacion_ajax' %}",
+            data: {
+                'n_transf': n_transf,
+                'prod_id': prod_id,
+                'lote_id': lote_id,
             },
-
             success: function(response) {
-                $('#msg').fadeIn().html(`<div class="text-center alert alert-danger" role="alert"> ${response} !!! </div>`).fadeOut(6000)
-            },
-            
-            error: function() {
-                $('#msg').fadeIn().html('<div class="text-center alert alert-danger" role="alert"> Error !!! </div>').fadeOut(6000)
-            }
-        })
+                $(".modal-body").find("#prod_modal").html(prod_id);
+                $(".modal-body").find("#lote_modal").html(lote_id);
         
-    })
+                $(".modal-body").find("#obs_modal").val('');
+                $(".modal-body").find("#obs_modal").val(response.observacion);
+            },
+            error: function(xhr, status, error) {
+                console.error("Error fetching observation data:", error);
+                $("#msg").html("ERROR");
+            }
+        });
+    });
 </script>
-{% endcomment %}
+
+<script>
+    $("button[name='save-obs']").click(function() {
+        var n_transf = $("#n_transf").text();
+        var prod_id = $(".modal-body").find("#prod_modal").text();
+        var lote_id = $(".modal-body").find("#lote_modal").text();
+        var obs     = $(".modal-body").find("#obs_modal").val();        
+        
+        $.ajax({
+            type: "POST",
+            url: "{% url 'wms_transferencia_product_observacion_ajax' %}",
+            data: {
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'n_transf': n_transf,
+                'prod_id': prod_id,
+                'lote_id': lote_id,
+                'obs':obs,
+            },
+            success: function(response) {
+                window.location.reload()
+            },
+            error: function(xhr, status, error) {
+                console.error("Error fetching observation data:", error);
+                alert("An error occurred while fetching observation data.");
+            }
+        });
+    });
+</script>
+
 {% endblock %}
