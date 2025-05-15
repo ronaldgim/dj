@@ -40,7 +40,7 @@
             <th>Ubicación de Llegada</th>
         </thead>
         <tbody>
-            {% for i in transferencia %}
+            {% for i in transferencia.transferencia %}
             <tr>
                 <td>{{i.product_id}}</td>
                 <td>{{i.Nombre}}</td>
@@ -56,6 +56,31 @@
                 </td>
             </tr>
             {% endfor %}
+        </tbody>
+    </table>
+    
+    <br>
+    <p><strong>Comentarios:</strong></p>
+    <table style="width: 100%; table-layout: fixed;">
+        <thead>
+            <th>Código</th>
+            <th>Lotes</th>
+            <th>Comentario</th>
+        </thead>
+        <tbody>
+            {% if transferencia.obs %}
+                {% for i in transferencia.obs %}
+                    <tr>
+                        <td>{{i.product_id}}</td>
+                        <td style="text-align:right;">{{i.lote_id}}</td>
+                        <td>{{i.observacion|default:"No hay comentario"}}</td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="3" style="text-align:center;">No hay comentarios</td>
+                </tr>
+            {% endif %}
         </tbody>
     </table>
 </body>

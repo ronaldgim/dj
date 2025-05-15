@@ -2941,7 +2941,15 @@ def wms_transferencia_data_pdf_email(n_transferencia):
         if ubicacion.exists():
             i['ubicacion_andagoya'] = ubicacion.first().ubicaciones.all().order_by('bodega','estanteria')
     
-    return transferencia
+    obs = []
+    for i in  Transferencia.objects.filter(n_transferencia=n_transferencia).order_by('ubicacion','product_id'):
+        if i.observacion:
+            obs.append(i)
+    
+    return {
+        'transferencia':transferencia,
+        'obs':obs
+    }
 
 
 @pdf_decorator(pdfname='transferencia.pdf')
@@ -3042,8 +3050,6 @@ def wms_transferencia_input_ajax(request):
                 avance          = 0.0
             )
         
-        # wms_transferencia_correo(n_trasf)
-
         return JsonResponse({
             'msg':f'La Transferencia {n_trasf} fue añadida exitosamente !!!',
             'alert':'success'
@@ -3179,7 +3185,6 @@ def wms_transferencia_picking(request, n_transf):
     return render(request, 'wms/transferencia_picking.html', context)
 
 
-# def wms_transferencia_observacion_ajax(request, n_transf, product_id):
 def wms_transferencia_product_observacion_ajax(request):
 
     if request.method == 'GET':
@@ -3219,6 +3224,24 @@ def wms_transferencia_product_observacion_ajax(request):
             'msg':'ok'
         })
 
+
+def wms_transferencia_correo_request(request):
+    
+    n_transf = request.POST.get('n_transf')
+    email = wms_transferencia_correo(n_transf)
+    
+    if email:
+        return JsonResponse({
+            'type':'success',
+            'msg':'Correo de detalle de lotes enviado !!!'
+            })
+    else:
+        return JsonResponse({
+            'type':'danger',
+            'msg':'Error al enviar el correo'
+            })
+    
+    
 
 # Ingreso de transferencias a bodega Cerezos List
 @login_required(login_url='login')

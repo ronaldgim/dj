@@ -320,7 +320,13 @@ urlpatterns = [
     ),
 
     path(
-        route='wms_transferencia_product_observacion_ajax', #/<str:n_transf>/<str:product_id>',
+        route='wms_transferencia_correo_request',
+        view = views.wms_transferencia_correo_request,
+        name = 'wms_transferencia_correo_request'
+    ),
+    
+    path(
+        route='wms_transferencia_product_observacion_ajax',
         view = views.wms_transferencia_product_observacion_ajax,
         name = 'wms_transferencia_product_observacion_ajax'
     ),

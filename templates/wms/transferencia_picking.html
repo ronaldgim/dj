@@ -28,7 +28,6 @@
 
 <div id="msg"></div>
 
-
 <div class="mt-2 mb-2">
 {% if estado %}
     <label class="fw-bold">Estado:</label><br>
@@ -43,10 +42,14 @@
 {% endif %}
 </div>
 
-
-<button class="btn btn-sm btn-warning text-white fw-bold mb-2">
+{% if request.user.id == 19 or request.user.id == 16 or request.user.is_superuser %}
+<button class="btn btn-warning text-white fw-bold mb-2" name="email" value="{{n_transf}}">
     <i class="bi bi-envelope"></i> Enviar PDF
+    <div class="spinner-border text-white spinner-border-sm" role="status" id="email-status" style="display: none;">
+        <span class="visually-hidden">Loading...</span>
+    </div>
 </button>
+{% endif %}
 
 <div class="card mb-2">
     <div class="card-body m-0 p-0">
@@ -86,9 +89,11 @@
                             <button class="btn btn-primary btn-sm" name="boton_ubicaciones"> 
                                 <i class="bi bi-geo-fill"></i>
                             </button>
+                            {% if request.user.id == 19 or request.user.id == 16 or request.user.is_superuser %}
                             <button class="btn btn-sm btn-white" type="button" name="obs" data-bs-toggle="modal" data-bs-target="#exampleModal">
                                 <!--i class="bi bi-card-text"></i--> ✏
                             </button>
+                            {% endif %}
                             <br>
                             <span style="font-size:smaller">{{i.primera_bodega}}</span>
                         </td>
@@ -349,7 +354,36 @@
             },
             error: function(xhr, status, error) {
                 console.error("Error fetching observation data:", error);
+                $("#msg").html("ERROR");
+            }
+        });
+    });
+</script>
+
+<script>
+    $("button[name='email']").click(function() {
+        var n_transf = $(this).val();
+        $("#email-status").show();
+
+        $.ajax({
+            type: "POST",
+            url: "{% url 'wms_transferencia_correo_request' %}",
+            data: {
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'n_transf': n_transf,
+            },
+            success: function(response) {
+                $("#msg").html(
+                    '<div class="alert alert-' + (response.type || 'info') + ' alert-dismissible fade show" role="alert">'+
+                    '<strong>' + (response.msg || 'No message provided') + '</strong>'+
+                    '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>'+
+                    '</div>'
+                );
+                $("#email-status").hide();
+            },
+            error: function(xhr, status, error) {
                 alert("An error occurred while fetching observation data.");
+                $("#email-status").hide();
             }
         });
     });
