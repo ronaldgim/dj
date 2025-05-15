@@ -187,6 +187,7 @@ class Transferencia(models.Model):
     unidades        = models.PositiveIntegerField(verbose_name='Unidades ingresadas')
     fecha_hora      = models.DateTimeField(verbose_name='Fecha Hora', auto_now_add=True)
     ubicacion       = models.CharField(verbose_name='Ubicacion', max_length=10, blank=True)
+    observacion     = models.TextField(blank=True)
     
     def __str__(self):
         return self.n_transferencia
