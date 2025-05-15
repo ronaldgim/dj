@@ -61,11 +61,12 @@
 {% if estado %}
     <label class="fw-bold">Estado:</label><br>
     {% if estado == 'CREADO' %}
-    <a class="btn btn-sm btn-primary disabled">{{estado}}</a>
+    <span class="badge bg-primary rounded-pill text-wrap fs-6">{{estado}}</span>
     {% elif estado == 'EN PROCESO' %}
-    <a class="btn btn-sm btn-warning disabled">{{estado}} - {{avance}}%</a>
+    <span class="badge bg-warning rounded-pill text-wrap fs-6">{{estado}}</span>
+    <span class="badge bg-info rounded-pill text-wrap fs-6">{{avance}}%</span>
     {% elif estado == 'FINALIZADO' %}
-    <a class="btn btn-sm btn-success disabled">{{estado}}</a>
+    <span class="badge bg-success rounded-pill text-wrap fs-6">{{estado}}</span>
     {% endif %}
 {% endif %}
 </div>
@@ -81,6 +82,7 @@
                         <th scope="col">Lote</th>
                         <th scope="col">Unidades</th>
                         <th scope="col">Ubicación(es)</th>
+                        <!--th scope="col">C</th-->
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
@@ -112,6 +114,11 @@
                             <br>
                             <span style="font-size:smaller">{{i.primera_bodega}}</span>
                         </td>
+                        <!--td>
+                            <button class="btn btn-sm btn-secondary" type="button">
+                                <i class="bi bi-card-text"></i>
+                            </button>
+                        </td-->
                     </tr>
                     
                     {# FILA OCULA CON INVENTARIO Y MOVIMIENTOS #}
