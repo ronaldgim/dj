@@ -64,6 +64,9 @@ urlpatterns = [
     path('wms/', include('wms.urls')),
     
     # API
-    path('api/', include('api.urls'))
+    path('api/', include('api.urls')),
+    
+    # API
+    path('metro/', include('metro.urls'))
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

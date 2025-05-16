@@ -1,0 +1,345 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Productos</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'metro/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+<h5 class="m-4 text-center fw-bold">LISTA DE PRODUCTOS</h5>
+
+<!-- MESSAGES -->
+<div class="container mt-3">
+    {% if form.errors %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong>Por favor corrija los siguientes errores:</strong>
+            <ul class="mb-0 mt-2">
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <li><strong>{{ field.label }}</strong>: {{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+                
+                {% for error in form.non_field_errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endif %}
+    
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
+
+<!-- Contenedor para alertas -->
+<div id="alertsContainer"></div>
+
+<hr>
+
+<button type="button" class="btn btn-primary mb-2" data-bs-toggle="modal" data-bs-target="#exampleModal">
+    Nuevo Producto
+</button>
+
+
+<div class="col-12">
+    <input id="inputbuscar" type="text" placeholder="Filtro" class="form-control">
+</div>
+
+<div id="msg"></div>
+
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table" style="font-size: small;">
+                <thead>
+                    <tr>
+                        <th scope="col">Código GIM</th>
+                        <th scope="col">Código HM</th>
+                        <th scope="col">Nombre GIM</th>
+                        <th scope="col">Nombre HM</th>
+                        <th scope="col">Marca</th>
+                        <th scope="col">UM</th>
+                        <th scope="col">U.Empaque</th>
+                        <th scope="col">Ubicación</th>
+                        <th scope="col">Activo</th>
+                        <th scope="col">Consignación</th>
+                        <th scope="col">Creado</th>
+                        <th scope="col">Modificado</th>
+                        <th scope="col">Usuario</th>
+                        <th scope="col">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in products %}
+                    <tr>
+                        <td>{{i.codigo_gim}}</td>
+                        <td>{{i.codigo_hm}}</td>
+                        <td>{{i.nombre_gim}}</td>
+                        <td>{{i.nombre_hm}}</td>
+                        <td>{{i.marca}}</td>
+                        <td>{{i.unidad}}</td>
+                        <td class="text-end">{{i.u_empaque | floatformat:"0g"}}</td>
+                        <td>{{i.ubicacion}}</td>
+                        <td>
+                            {% if i.activo %}
+                                <i class="bi bi-check-circle-fill" style="color:green"></i>
+                            {% else %}
+                                <i class="bi bi-x-circle-fill" style="color:red"></i>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">{{i.consignacion | floatformat:"0g"}}</td>
+                        <td>{{i.creado|date:'Y-m-d H:m'}}</td>
+                        <td>{{i.actualizado|date:'Y-m-d H:m'}}</td>
+                        <td>{{i.usuario.first_name}} {{i.usuario.last_name}}</td>
+                        <td>
+                            <div class="btn-group" role="group" aria-label="Basic example">
+                                <button 
+                                    class="btn btn-sm btn-secondary edit-product-btn" 
+                                    data-product-id="{{ i.id }}" 
+                                    data-product-name="Editar: {{ i.codigo_gim }}"
+                                    >
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-danger">
+                                    <i class="bi bi-trash3-fill"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<!-- Nuevo Producto -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Nuevo Producto</h5>
+            <button type="reset" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            
+            <div class="container mt-2">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <form method="post">
+                            {% csrf_token %}
+                            
+                            <!--input name="usuario" value="{{request.user}}"/-->
+                            <!-- Campos ocultos -->
+                            {% for hidden_field in form.hidden_fields %}
+                                {{ hidden_field }}
+                            {% endfor %}
+
+                            <!-- Campos visibles con estructura responsiva -->
+                            {% for field in form.visible_fields %}
+                                <div class="row mb-3 align-items-center">
+                                    <!-- En dispositivos pequeños, la etiqueta está arriba del campo -->
+                                    <!-- En dispositivos medianos y grandes, la etiqueta está a la izquierda -->
+                                    <div class="col-12 col-md-4 text-md-end mb-2 mb-md-0">
+                                        <label for="{{ field.id_for_label }}" class="form-label fw-bold">
+                                            {{ field.label }}
+                                            {% if field.field.required %}
+                                                <span class="text-danger">*</span>
+                                            {% endif %}
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="col-12 col-md-8">
+                                        {% if field.name == 'activo' %}
+                                            <div class="form-check form-switch">
+                                                {{ field }}
+                                            </div>
+                                        {% else %}
+                                            {{ field }}
+                                        {% endif %}
+                                        
+                                        {% if field.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in field.errors %}
+                                                    <small>{{ error }}</small>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                        
+                                        {% if field.help_text %}
+                                            <div class="form-text text-muted">
+                                                <small>{{ field.help_text }}</small>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                            <hr>
+                            <!-- Botones de acción -->
+                            <div class="col-12 col-md-8">
+                                <button type="submit" class="btn btn-primary">
+                                    Guardar
+                                </button>
+                                <button type="reset" class="btn btn-secondary ms-2" data-bs-dismiss="modal">
+                                    Cancelar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Editar Producto -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">Editar Producto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div id="editModalErrors"></div>
+            <form method="post" id="form-edit">
+                {% csrf_token %}
+                <div class="modal-body" id="editModalBody">
+                    <!-- El contenido del formulario se cargará aquí vía AJAX -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!--filtro buscar-->
+<script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+
+<script>
+    $(document).ready(function() {
+        // Abrir el modal de edición al hacer clic en un botón de editar
+        $(".edit-product-btn").click(function() {
+            const productId = $(this).data('product-id');
+            const modalTitle = $(this).data('product-name') || 'Editar Producto';
+
+            // Limpiar el modal antes de cargar el nuevo contenido
+            $("#editModalBody").html('<div class="text-center"><div class="spinner-border" role="status"></div></div>');
+            $("#editModalLabel").text(modalTitle);
+            
+            // Mostrar el modal
+            $("#editModal").modal('show');
+            
+            // Cargar el formulario mediante AJAX
+            $.ajax({
+                url: `/metro/products-edit/${productId}`,
+                type: 'GET',
+                success: function(response) {
+                    $("#form-edit").attr("action", `/metro/products-edit/${productId}`);
+                    $("#editModalBody").html(response);
+                    $("#editModalBody label").addClass("fw-bold");
+                    $("#editModalBody .row").addClass("mb-3");
+                },
+                error: function() {
+                    $("#editModalBody").html('<div class="alert alert-danger">Error al cargar el formulario.</div>');
+                }
+            });
+        });
+        
+        // Manejar el envío del formulario mediante AJAX
+        $("#editModal").on('submit', 'form', function(e) {
+            e.preventDefault();
+            
+            const form = $(this);
+            const url = form.attr('action'); // || form.data('url');
+            console.log(url);
+            $.ajax({
+                url: url,
+                type: 'POST',
+                data: form.serialize(),
+                success: function(response) {
+                    if (response.success) {
+                        // Cerrar el modal
+                        $("#editModal").modal('hide');
+                        
+                        // Mostrar mensaje de éxito
+                        showAlert('success', response.message);
+                        
+                        // Actualizar la fila en la tabla sin recargar
+                        updateProductRow(response.product);
+                    }
+                },
+                error: function(xhr) {
+                    let errorMsg = 'Ha ocurrido un error al guardar los cambios.';
+                    
+                    // Mostrar errores de validación si están disponibles
+                    if (xhr.responseJSON && xhr.responseJSON.errors) {
+                        errorMsg = xhr.responseJSON.errors;
+                    }
+                    
+                    // Mostrar los errores en el modal
+                    $("#editModalErrors").html(`
+                        <div class="alert alert-danger">
+                            ${errorMsg}
+                        </div>
+                    `).show();
+                }
+            });
+        });
+        
+        // Función para actualizar una fila en la tabla
+        function updateProductRow(product) {
+            const row = $(`tr[data-product-id="${product.id}"]`);
+            
+            if (row.length) {
+                row.find('.product-codigo').text(product.codigo_gim);
+                row.find('.product-nombre').text(product.nombre_gim);
+                row.find('.product-marca').text(product.marca);
+                // Actualizar otros campos según sea necesario
+            } else {
+                // Si es necesario, recargar la tabla o agregar la nueva fila
+                location.reload();
+            }
+        }
+        
+        // Función para mostrar alertas
+        function showAlert(type, message) {
+            const alertHtml = `
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+            
+            $("#alertsContainer").html(alertHtml);
+        }
+    });
+</script>
+
+{% endblock %}
