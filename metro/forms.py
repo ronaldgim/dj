@@ -1,0 +1,224 @@
+from django import forms
+from django.contrib.auth.models import User
+from metro.models import Product, Inventario, TomaFisica
+
+
+class ProductForm(forms.ModelForm):
+    class Meta:
+        model = Product
+        fields = '__all__'
+        exclude = ['usuario',]
+        labels = {
+            'codigo_gim'  : 'Código GIM',
+            'codigo_hm'   : 'Código HM',
+            'nombre_gim'  : 'Nombre GIM',
+            'nombre_hm'   : 'Nombre HM',
+            'marca'       : 'Marca',
+            'unidad'      : 'UM',
+            'u_empaque'   : 'U.Empaque',
+            'consignacion': 'Consignación',
+            'ubicacion'   : 'Ubicación',
+            'activo'      : 'Activo',
+            'usuario'     : 'Usuario',
+        }
+        # help_texts = {
+        #     'codigo_gim'  : 'Código GIM',
+        #     'codigo_hm'   : 'Código HM',
+        #     'u_empaque'   : 'Cantidad de unidades por empaque',
+        #     'consignacion': 'Cantidad en consignación (si aplica)',
+        #     'ubicacion'   : 'Ubicación física del producto',
+        # }
+        widgets = {
+            'codigo_gim': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej. GIM-12345',
+                'autocomplete': 'off',
+                'data-bs-toggle': 'tooltip',
+                'title': 'Ingrese el código GIM único'
+            }),
+            'codigo_hm': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej. HM-12345',
+                'autocomplete': 'off'
+            }),
+            'nombre_gim': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Nombre del producto en GIM'
+            }),
+            'nombre_hm': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Nombre del producto en HM'
+            }),
+            'marca': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej. ANNUY, HSINER, etc'
+            }),
+            'unidad': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej. UND, CJ, PQ, SB, etc.'
+            }),
+            'u_empaque': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '0',
+                'placeholder': 'Cantidad por empaque'
+            }),
+            'consignacion': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '0',
+                'placeholder': 'Cantidad en consignación'
+            }),
+            'ubicacion': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej. Bodega A, Estante 5, etc.'
+            }),
+            'activo': forms.CheckboxInput(attrs={
+                'class': 'form-check-input',
+                'role': 'switch',
+                'id': 'flexSwitchCheckChecked'
+            }),
+            # 'usuario': forms.HiddenInput(),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super(ProductForm, self).__init__(*args, **kwargs)
+        
+        # Marcar campos requeridos para Bootstrap
+        for field_name, field in self.fields.items():
+            if field.required:
+                self.fields[field_name].widget.attrs['required'] = 'required'
+                if isinstance(field.widget, forms.TextInput) or isinstance(field.widget, forms.NumberInput):
+                    self.fields[field_name].widget.attrs['class'] += ' is-required'
+        
+        for field_name, field in self.fields.items():
+            self.fields[field_name].error_messages = {
+                'required': f'{field.label} es requerido.',
+                'invalid': f'{field.label} tiene un formato inválido.',
+            }
+        
+    def clean_codigo_gim(self):
+        """Validar que el código GIM sea único y tenga el formato correcto"""
+        codigo = self.cleaned_data.get('codigo_gim')
+        if not self.instance.pk and Product.objects.filter(codigo_gim=codigo).exists():
+            raise forms.ValidationError("Este código GIM ya existe en el sistema.")
+        
+        # Aquí podrías agregar validación personalizada del formato
+        return codigo
+        
+    def clean_u_empaque(self):
+        """Asegurar que unidades por empaque sea un número positivo"""
+        u_empaque = self.cleaned_data.get('u_empaque')
+        if u_empaque is not None and u_empaque < 0:
+            raise forms.ValidationError("Las unidades por empaque no pueden ser negativas.")
+        return u_empaque
+
+
+class InventarioForm(forms.ModelForm):
+
+    class Meta:
+        model = Inventario
+        fields = '__all__'
+        exclude = ['usuario', 'estado_inv', 'estado_tm', 'inicio_tf', 'fin_tf']
+        labels = {
+            'nombre' : 'Nombre',
+        }
+
+        widgets = {
+            'nombre': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Inventario 001',
+                'autocomplete': 'off',
+                'data-bs-toggle': 'tooltip',
+                'title': 'Nombre de inventario'
+            }),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super(InventarioForm, self).__init__(*args, **kwargs)
+        
+        # Marcar campos requeridos para Bootstrap
+        for field_name, field in self.fields.items():
+            if field.required:
+                self.fields[field_name].widget.attrs['required'] = 'required'
+                if isinstance(field.widget, forms.TextInput) or isinstance(field.widget, forms.NumberInput):
+                    self.fields[field_name].widget.attrs['class'] += ' is-required'
+        
+        for field_name, field in self.fields.items():
+            self.fields[field_name].error_messages = {
+                'required': f'{field.label} es requerido.',
+                'invalid': f'{field.label} tiene un formato inválido.',
+            }
+
+
+class TomaFisicaForm(forms.ModelForm):
+    class Meta:
+        model = TomaFisica
+        fields = '__all__'
+        exclude = ['usuario', 'product', 'inventario', 'llenado', 'agregado', 'cantidad_total']
+        labels = {
+            'cantidad_estanteria'  : 'Und. Estanteria',
+            'cantidad_bulto'  : 'Und. Bulto',
+            'observaciones':'Observaciones',
+        }
+        # help_texts = {
+        #     'codigo_gim'  : 'Código GIM',
+        #     'codigo_hm'   : 'Código HM',
+        #     'u_empaque'   : 'Cantidad de unidades por empaque',
+        #     'consignacion': 'Cantidad en consignación (si aplica)',
+        #     'ubicacion'   : 'Ubicación física del producto',
+        # }
+        widgets = {
+            
+            'cantidad_estanteria': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '0',
+                'placeholder': 'Unidades en estanteria'
+            }),
+            
+            'cantidad_bulto': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '0',
+                'placeholder': 'Unidades en bulto'
+            }),
+            
+            # 'observaciones': forms.TextInput(attrs={
+            'observaciones': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': '',
+                'autocomplete': 'off',
+                'cols': '1'
+            }),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super(TomaFisicaForm, self).__init__(*args, **kwargs)
+        
+        # Marcar campos requeridos para Bootstrap
+        for field_name, field in self.fields.items():
+            if field.required:
+                self.fields[field_name].widget.attrs['required'] = 'required'
+                if isinstance(field.widget, forms.TextInput) or isinstance(field.widget, forms.NumberInput):
+                    self.fields[field_name].widget.attrs['class'] += ' is-required'
+        
+        for field_name, field in self.fields.items():
+            self.fields[field_name].error_messages = {
+                'required': f'{field.label} es requerido.',
+                'invalid': f'{field.label} tiene un formato inválido.',
+            }
+        
+        
+    def clean_cantidad_estanteria(self):
+        """Asegurar que unidades por empaque sea un número positivo"""
+        cantidad_estanteria = self.cleaned_data.get('cantidad_estanteria')
+        if cantidad_estanteria is not None and cantidad_estanteria < 0:
+            raise forms.ValidationError("Las unidades en estanteria no pueden ser negativas.")
+        return cantidad_estanteria
+    
+    def clean_cantidad_bulto(self):
+        """Asegurar que unidades por empaque sea un número positivo"""
+        cantidad_bulto = self.cleaned_data.get('cantidad_bulto')
+        if cantidad_bulto is not None and cantidad_bulto < 0:
+            raise forms.ValidationError("Las unidades en bulto no pueden ser negativas.")
+        return cantidad_bulto

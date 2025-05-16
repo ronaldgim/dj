@@ -61,7 +61,10 @@ INSTALLED_APPS = [
     'ventas',
 
     # WMS
-    'wms'
+    'wms',
+    
+    # H.METROPOLITANO
+    'metro'
 ]
 
 X_FRAME_OPTIONS = 'SAMEORIGIN'
