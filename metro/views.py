@@ -156,6 +156,42 @@ def metro_inventario_eliminar(request):
     pass
 
 
+
+
+# Toma física template
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import TemplateView
+
+
+class TomaFisicaView(LoginRequiredMixin, TemplateView):
+    template_name = 'metro/toma_fisica.html'
+
+
+
+
+# Toma Física
+# @login_required(login_url='login')
+# def metro_toma_fisica_data(request, inventario_id):
+#     print(inventario)
+#     inventario = Inventario.objects.get(id=inventario_id)
+#     products = TomaFisica.objects.filter(inventario = inventario_id)
+    
+#     return JsonResponse({
+#         # 'inventario':inventario,
+#         'inventario': model_to_dict(inventario),
+#         # 'products':products
+#         'products':list(products.values())
+#     })
+
+#     # context = {
+#     #     'inventario':inventario,
+#     #     'products':products
+#     # }
+#     # return render(request, 'metro/toma-fisica.html', context)
+
+
+
+
 # Toma Física
 @login_required(login_url='login')
 def metro_toma_fisica(request, inventario_id):
