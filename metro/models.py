@@ -45,7 +45,7 @@ class Inventario(models.Model):
     
     nombre       = models.CharField(max_length=100, blank=True)
     estado_inv   = models.CharField(max_length=50, blank=True, default='ABIERTO')
-    estado_tm    = models.CharField(max_length=50, blank=True, default='CREADO')
+    estado_tf    = models.CharField(max_length=50, blank=True, default='CREADO')
     
     inicio_tf    = models.DateTimeField(null=True, blank=True)  
     fin_tf       = models.DateTimeField(null=True, blank=True)  

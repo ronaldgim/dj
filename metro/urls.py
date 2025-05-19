@@ -32,6 +32,19 @@ urlpatterns = [
         name = 'metro_inventario_edit'
     ),
     
+    
+    # path(
+    #     route = 'toma-fisica/<int:inventario_id>',
+    #     view = views.TomaFisicaView.as_view(),
+    #     name = 'metro_toma_fisica'
+    # ),
+    
+    # path(
+    #     route = 'toma-fisica-data/<int:inventario_id>',
+    #     view = views.metro_toma_fisica_data,
+    #     name = 'metro_toma_fisica_data'
+    # ),
+    
     path(
         route = 'toma-fisica/<int:inventario_id>',
         view = views.metro_toma_fisica,
