@@ -26,7 +26,7 @@ class Product(models.Model):
     marca        = models.CharField(max_length=30)
     
     # Inf logistica
-    unidad       = models.CharField(max_length=10)
+    unidad       = models.CharField(max_length=10, blank=True)
     u_empaque    = models.IntegerField(blank=True, null=True, default=0)
     consignacion = models.IntegerField(blank=True, null=True, default=0)
     ubicacion    = models.CharField(max_length=30)
