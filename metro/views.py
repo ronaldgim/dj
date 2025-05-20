@@ -12,6 +12,11 @@ from django.views.decorators.http import require_POST
 import datetime
 
 
+from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import ensure_csrf_cookie
+
+
+
 ### PRODUCTOS
 @login_required(login_url='login')
 def metro_products_list(request):
@@ -160,6 +165,82 @@ def metro_inventario_edit(request, id):
         return HttpResponse(form.as_p())
 
 
+
+
+
+
+@ensure_csrf_cookie  # Asegura que se envíe el token CSRF
+@require_http_methods(["PATCH"])
+def metro_inventario_patch(request, id):
+    try:
+        # Obtener el producto
+        inventario = Inventario.objects.get(id=id)
+        
+        # Parsear los datos recibidos
+        datos = json.loads(request.body)
+        
+        # Actualizar solo los campos recibidos
+        if 'nombre' in datos:
+            inventario.nombre = datos['nombre']
+        
+        if 'estado_inv' in datos:
+            inventario.estado_inv = datos['estado_inv']
+            
+        if 'estado_tf' in datos:
+            inventario.estado_tf = datos['estado_tf']
+
+            # INICIO TF FIN TF
+            if inventario.estado_tf == 'CREADO' and datos['estado_tf'] == 'EN PROCESO':
+                inventario.inicio_tf = datetime.datetime.now()
+            
+            if datos['estado_tf'] == 'FINALIZADO':
+                inventario.fin_tf = datetime.datetime.now()
+        
+        # Guardar los cambios
+        inventario.save()
+        
+        # Devolver respuesta exitosa
+        return JsonResponse({
+            'status': 'success',
+            'data':model_to_dict(inventario)
+            # 'data': {
+            #     'id': producto.id,
+            #     'nombre': producto.nombre,
+            #     'precio': float(producto.precio),
+            #     'stock': producto.stock,
+            #     'descripcion': producto.descripcion,
+            #     'activo': producto.activo
+            # }
+        })
+    except Inventario.DoesNotExist:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Producto no encontrado'
+        }, status=404)
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'JSON inválido'
+        }, status=400)
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 @login_required(login_url='login')
 def metro_inventario_eliminar(request):
     pass
@@ -257,8 +338,6 @@ def metro_inventario_estado_tf(request, id):
         
         inventario.estado_tf = nuevo_estado  # Asumiendo que el campo se llama "estado"
         inventario.save()
-        
-
         
         # Devolver respuesta exitosa con datos serializados manualmente
         return JsonResponse({

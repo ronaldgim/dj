@@ -87,6 +87,24 @@ class Inventario(models.Model):
         total_registros = Inventario.objects.filter(id__lte=self.id).count()
         enum = f'{total_registros:03d}'
         return enum 
+    
+    @property
+    def diff_tiempo(self):
+        """Formatea la diferencia de tiempo en formato HH:MM"""
+        if self.inicio_tf and self.fin_tf:
+            
+            diff_tiempo = self.fin_tf - self.inicio_tf
+            
+            # Calcular horas y minutos totales
+            total_seconds = int(diff_tiempo.total_seconds())
+            hours = total_seconds // 3600
+            minutes = (total_seconds % 3600) // 60
+            
+            # Formatear como HH:MM
+            return f"{hours:02d}:{minutes:02d}"
+        else:
+            return "--:--"
+
 
 
 class TomaFisica(models.Model):

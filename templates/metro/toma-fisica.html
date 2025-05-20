@@ -1,5 +1,5 @@
-{%extends 'base.html' %}
-
+{% extends 'base.html' %}
+{% load static %}
 {% block title %}
 <title>Toma física {{inventario.enum}}</title>
 {% endblock %}
@@ -258,7 +258,7 @@
 {% endcomment %}
 
 
-<!-- Editar Producto -->
+<!-- Editar -->
 <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -426,44 +426,12 @@
 <!-- Estado inventario -->
 <script>
     function change_estado_tf(btn) {
+        var id_inv    = btn.getAttribute('data-inventario-id');
         var estado_tf = btn.value;
-        var id_tf     = btn.getAttribute('data-inventario-id');
-
-        fetch(`/metro/inventario-estado-tf/${id_tf}`, {
-            method: 'POST',
-            headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': obtenerCSRFToken() // Función para obtener el token CSRF
-            },
-            body: JSON.stringify({'estado_tf':estado_tf})
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Error en la respuesta: ' + response.status);
-            }
-            return response.json();
-        })
-        .then(data => {
-            // console.log('Respuesta:', data);
-            // Aquí puedes actualizar la UI si es necesario
-            location.reload();
-            // Por ejemplo, cambiar algún indicador visual
-        })
-        .catch(error => {
-            console.error('Error al cambiar estado:', error);
-        });
-    }
-
-    // Función para obtener el token CSRF de Django
-    function obtenerCSRFToken() {
-    // Busca la cookie con el token CSRF
-        const cookieValue = document.cookie
-            .split('; ')
-            .find(row => row.startsWith('csrftoken='))
-            ?.split('=')[1];
-        
-        return cookieValue;
+        metro_patch_inventario(id_inv, {'estado_tf':estado_tf});
     }
 </script>
+
+<script src="{% static 'js/metro/metro.js' %}"></script>
 
 {% endblock %}
