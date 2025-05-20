@@ -150,14 +150,10 @@
                         <td>
                             <label class="fw-bold">Código GIM: </label>
                             <span class="codigo_gim">{{i.product.codigo_gim}}</span>
-
-                            <div class="float-end">
-                                <label class="fw-bold">Código HM: </label> 
-                                <span class="codigo_hm">{{i.product.codigo_hm}}</span> 
-                            </div>
-
+                            
+                            <label class="fw-bold">Código HM: </label> 
+                            <span class="codigo_hm">{{i.product.codigo_hm}}</span> 
                             <br>
-
                             <label class="fw-bold">Nombre: </label> 
                             <span class="nombre_gim">{{i.product.nombre_gim}}</span> <br>
                             <label class="fw-bold">Marca: </label> 
@@ -171,16 +167,6 @@
                             <label class="fw-bold">Ubicación Hospital:</label>
                             <span>{{i.product.ubicacion}}</span><br>
                             <div class="btn-group" role="group" aria-label="Basic example">
-                                <!--button 
-                                    class="btn btn-sm btn-primary edit-toma-fisica-btn
-                                        {% if inventario.estado_inv == 'CERRADO' %} disabled {% endif %}
-                                    "
-                                    data-product-id="{{ i.id }}" 
-                                    data-product-name="Toma Física: GIM: {{ i.product.codigo_gim }} - HM: {{ i.product.codigo_hm }}"
-                                    >
-                                    <i class="bi bi-boxes"></i>
-                                </button-->
-
                                 <button 
                                     class="btn btn-sm btn-primary edit-toma-fisica-btn mt-2
                                         {% if inventario.estado_inv == 'CERRADO' %} disabled {% endif %}
@@ -307,7 +293,6 @@
                     {% csrf_token %}
                     
                     <hr>
-
                     <div id="form-body-edit"></div>
                     
                     <div class="modal-footer">

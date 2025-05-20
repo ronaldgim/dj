@@ -350,5 +350,3 @@ def metro_toma_fisica_edit(request, id):
                 'success': False,
                 'errors': errors
             }, status=400)
-    
-
