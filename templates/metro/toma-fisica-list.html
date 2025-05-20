@@ -1,0 +1,81 @@
+{% load static %}
+{% include 'base.html' %}
+{% block title %}
+<title>GIM Operaciones</title>
+{% endblock %}
+
+{% block navbar %}
+{% include 'metro/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+
+<div class="container mt-4">
+
+    {% if messages %}
+        {% for message in messages %}
+        {% if message.tags == 'success'%}
+        <div class="alert text-center alert-success" role="alert">
+            {{message}}
+        </div>
+        {% elif message.tags == 'error'%}
+        <div class="alert text-center alert-danger" role="alert">
+            {{message}}
+        </div>
+        {%endif%}
+        {% endfor %}
+    {% endif %}
+
+    <h5 class="text-center fw-bold">LISTADO</h5>
+
+    <div class="row">
+
+        {% for i in inventarios %}
+        <div class="col-xl-4 col-md-6">
+            <div class="card border-primary mb-3">
+                <div class="card-body text-primary">
+                <h3 class="card-title text-center">
+                    <i class="bi bi-card-checklist"></i>
+                    {{i.enum}} 
+                </h3>
+                <h5 class="text-center">{{i.nombre | upper}} - {{i.creado | date:"Y-m-d"}}</h5>
+                <div class="text-center mb-2">
+                    Estado Inventario: 
+                    <span 
+                        class="badge
+                        fs-6 
+                        {% if i.estado_inv == 'ABIERTO' %} bg-primary {% elif i.estado_inv == 'CERRADO' %} bg-secondary {% endif %}"
+                    > {{i.estado_inv}}
+                    </span>
+                </div>
+                
+                <div class="text-center mb-2">
+                    Estado Toma Física: 
+                    <span 
+                        class="badge
+                        fs-6 
+                        {% if i.estado_tf == 'CREADO' %} 
+                            bg-primary 
+                        {% elif i.estado_tf == 'EN PROCESO' %} 
+                            bg-warning 
+                        {% elif i.estado_tf == 'EN PAUSA' %} 
+                            bg-secondary 
+                        {% elif i.estado_tf == 'FINALIZADO' %} 
+                            bg-success 
+                        {% endif %}"
+                    > {{i.estado_tf}}
+                    </span>
+                </div>
+                </div>
+                <div class="card-footer bg-transparent border-primary">
+                    <a class="btn btn-primary" href="{% url 'metro_toma_fisica' i.id %}">
+                        Ingresar <i class="bi bi-box-arrow-in-up-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}

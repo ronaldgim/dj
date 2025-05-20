@@ -45,6 +45,9 @@
 <!-- Contenedor para alertas -->
 <div id="alertsContainer"></div>
 
+<span class="fw-bold">Total productos:</span>: {{products_data.total}} <br>
+<span class="fw-bold">Productos activo:</span>: {{products_data.activos}} <br>
+<span class="fw-bold">Productos inactivos:</span>: {{products_data.inactivos}} <br>
 <hr>
 
 <button type="button" class="btn btn-primary mb-2" data-bs-toggle="modal" data-bs-target="#exampleModal">
@@ -82,9 +85,9 @@
                 </thead>
                 <tbody id="pedidosbuscar">
                     {% for i in products %}
-                    <tr>
-                        <td>{{i.codigo_gim}}</td>
-                        <td>{{i.codigo_hm}}</td>
+                    <tr data-product-id="i.id">
+                        <td class="codigo-gim">{{i.codigo_gim}}</td>
+                        <td class="codigo-hm">{{i.codigo_hm}}</td>
                         <td>{{i.nombre_gim}}</td>
                         <td>{{i.nombre_hm}}</td>
                         <td>{{i.marca}}</td>
@@ -278,7 +281,7 @@
             
             const form = $(this);
             const url = form.attr('action'); // || form.data('url');
-            console.log(url);
+            // console.log(url);
             $.ajax({
                 url: url,
                 type: 'POST',
@@ -287,12 +290,13 @@
                     if (response.success) {
                         // Cerrar el modal
                         $("#editModal").modal('hide');
-                        
+                        location.reload();
                         // Mostrar mensaje de éxito
-                        showAlert('success', response.message);
+                        // showAlert('success', response.message);
                         
                         // Actualizar la fila en la tabla sin recargar
-                        updateProductRow(response.product);
+                        // updateProductRow(response.product);
+                        // console.log(response.product);
                     }
                 },
                 error: function(xhr) {
@@ -313,20 +317,6 @@
             });
         });
         
-        // Función para actualizar una fila en la tabla
-        function updateProductRow(product) {
-            const row = $(`tr[data-product-id="${product.id}"]`);
-            
-            if (row.length) {
-                row.find('.product-codigo').text(product.codigo_gim);
-                row.find('.product-nombre').text(product.nombre_gim);
-                row.find('.product-marca').text(product.marca);
-                // Actualizar otros campos según sea necesario
-            } else {
-                // Si es necesario, recargar la tabla o agregar la nueva fila
-                location.reload();
-            }
-        }
         
         // Función para mostrar alertas
         function showAlert(type, message) {

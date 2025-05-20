@@ -1,8 +1,8 @@
 {%extends 'base.html' %}
 
 {% block title %}
-<title>Inventarios</title>
-{% endblock%}
+<title>Toma física {{inventario.enum}}</title>
+{% endblock %}
 
 {% block navbar %}
 {% include 'metro/topnavbar.html' %}
@@ -13,7 +13,21 @@
 <h5 class="m-4 text-center fw-bold mb-0">HOSPITAL METROPOLITANO</h5>
 <h6 class="m-4 text-center fw-bold mt-0">TOMA FÍSICA INVENTARIO {{inventario.enum}}</h6>
 
-
+<span
+    class="
+    mb-2
+    badge 
+    fs-6
+    {% if inventario.estado_inv == 'ABIERTO' %} 
+        bg-primary 
+    {% elif inventario.estado_inv == 'CERRADO' %} 
+        bg-secondary 
+    {% endif %}
+    "
+>
+    {{inventario.estado_inv}}
+</span>
+<br>
 <span class="fw-bold"># Total productos: </span> {{inventario.total_productos | floatformat:"0g"}} <br>
 <span class="fw-bold"># Contados: </span> {{inventario.productos_contados | floatformat:"0g"}} <br>
 <span class="fw-bold"># Pendientes: </span> {{inventario.productos_pendientes | floatformat:"0g"}} <br>
@@ -55,8 +69,62 @@
 <div id="alertsContainer"></div>
 
 <hr>
+<span
+    class="
+    mb-2
+    badge 
+    fs-6
+    bg-info
+    "
+>
+    ESTADO: {{inventario.estado_tf}}
+</span>
+<br>
 
-<!--button type="button" class="btn btn-primary mb-2" data-bs-toggle="modal" data-bs-target="#exampleModal">
+{% if inventario.estado_tf == 'CREADO' %}
+<button
+    class="btn btn-sm btn-warning text-white fw-bold 
+    {% if inventario.estado_inv == 'CERRADO' %} disabled {% endif %}"
+    data-inventario-id="{{ inventario.id }}" 
+    value="EN PROCESO"
+    onclick=change_estado_tf(this)
+>
+    EN PROCESO
+</button>
+{% else %}
+<button
+    class="btn btn-sm btn-warning text-white fw-bold 
+    {% if inventario.estado_inv == 'CERRADO' %} disabled {% endif %}"
+    data-inventario-id="{{ inventario.id }}" 
+    value="EN PROCESO"
+    onclick=change_estado_tf(this)
+>
+    EN PROCESO
+</button>
+<button
+    class="btn btn-sm btn-danger text-white fw-bold 
+    {% if inventario.estado_inv == 'CERRADO' %} disabled {% endif %}"
+    data-inventario-id="{{ inventario.id }}" 
+    value="EN PAUSA"
+    onclick=change_estado_tf(this)
+
+>
+    EN PAUSA
+</button>
+<button
+    class="btn btn-sm btn-success text-white fw-bold {% if inventario.estado_inv == 'CERRADO' %} disabled {% endif %}"
+    data-inventario-id="{{ inventario.id }}" 
+    value="FINALIZADO"
+    onclick=change_estado_tf(this)
+
+>
+    FINALIZADO
+</button>
+{% endif %}
+
+<hr>
+
+<!--button type="button" class="btn btn-sm btn-primary mt-2 mb-2" data-bs-toggle="modal" data-bs-target="#exampleModal">
     Nuevo Inventario
 </button-->
 
@@ -89,7 +157,9 @@
                         <td>
                             <div class="btn-group" role="group" aria-label="Basic example">
                                 <button 
-                                    class="btn btn-sm btn-primary edit-toma-fisica-btn"
+                                    class="btn btn-sm btn-primary edit-toma-fisica-btn
+                                        {% if inventario.estado_inv == 'CERRADO' %} disabled {% endif %}
+                                    "
                                     data-product-id="{{ i.id }}" 
                                     data-product-name="Toma Física: GIM: {{ i.product.codigo_gim }} - HM: {{ i.product.codigo_hm }}"
                                     >
@@ -350,6 +420,50 @@
             $("#alertsContainer").html(alertHtml);
         }
     });
+</script>
+
+
+<!-- Estado inventario -->
+<script>
+    function change_estado_tf(btn) {
+        var estado_tf = btn.value;
+        var id_tf     = btn.getAttribute('data-inventario-id');
+
+        fetch(`/metro/inventario-estado-tf/${id_tf}`, {
+            method: 'POST',
+            headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': obtenerCSRFToken() // Función para obtener el token CSRF
+            },
+            body: JSON.stringify({'estado_tf':estado_tf})
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error en la respuesta: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(data => {
+            // console.log('Respuesta:', data);
+            // Aquí puedes actualizar la UI si es necesario
+            location.reload();
+            // Por ejemplo, cambiar algún indicador visual
+        })
+        .catch(error => {
+            console.error('Error al cambiar estado:', error);
+        });
+    }
+
+    // Función para obtener el token CSRF de Django
+    function obtenerCSRFToken() {
+    // Busca la cookie con el token CSRF
+        const cookieValue = document.cookie
+            .split('; ')
+            .find(row => row.startsWith('csrftoken='))
+            ?.split('=')[1];
+        
+        return cookieValue;
+    }
 </script>
 
 {% endblock %}

@@ -118,7 +118,7 @@ class InventarioForm(forms.ModelForm):
     class Meta:
         model = Inventario
         fields = '__all__'
-        exclude = ['usuario', 'estado_inv', 'estado_tm', 'inicio_tf', 'fin_tf']
+        exclude = ['usuario', 'estado_inv', 'estado_tf', 'inicio_tf', 'fin_tf']
         labels = {
             'nombre' : 'Nombre',
         }

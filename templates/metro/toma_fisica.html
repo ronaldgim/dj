@@ -27,24 +27,17 @@
     <h5 class="m-4 text-center fw-bold mb-0">HOSPITAL METROPOLITANO</h5>
     <h6 class="m-4 text-center fw-bold mt-0">TOMA FÍSICA INVENTARIO {{inventario.enum}}</h6>
 
-    <h5 class="m-4 text-center fw-bold">STOCK BODEGA {{ mi_bodega }} - {{ mi_ubicacion }}</h5>
     <div id="msg"></div>
-    <h6 class="text-start"><strong># Total de Items: </strong>{{n_inventario}}</h6>
-    <h6 class="text-start"><strong># Items por contabilizar: </strong>{{n_inventario_nollenado}}</h6>
-    <h6 class="text-start"><strong># Items contabilizados: </strong>{{n_inventario_llenado}}</h6>
+    <h6 class="text-start"><strong># Total de Items: </strong>{#{n_inventario}#}</h6>
+    <h6 class="text-start"><strong># Items por contabilizar: </strong>{#{n_inventario_nollenado}#}</h6>
+    <h6 class="text-start"><strong># Items contabilizados: </strong>{#{n_inventario_llenado}#}</h6>
     {% endverbatim %}
 
 
-    <a class="btn btn-secondary" href="{% url 'inventario_cerezos_home' %}">
-        <i class="bi bi-arrow-bar-left"></i> Lista de bodegas
-    </a>
-
-    <button @click="getUbicaciones(mi_bodega, mi_ubicacion)" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#agregarItemForm">
-        <i class="bi bi-plus-circle"></i> Añadir
-    </button>
 
     <hr>
 
+    {% comment %}
     <div v-if="mi_bodega == 'CN6'">
         <button @click="activarFiltro(0)" class="btn btn-sm btn-light">
             <i class="bi bi-layers"></i> Todo <i v-if="filtroActivo === 0" class="bi bi-check-circle-fill"></i>
@@ -66,9 +59,10 @@
             <i class="bi bi-layers"></i> N-4 <i v-if="filtroActivo === 4" class="bi bi-check-circle-fill"></i>
         </button>
     </div>
+    {% endcomment %}
 
     <div class="col-12 mt-2">
-        <input v-model="filtro" placeholder="Buscar..." type="text" class="form-control">
+        <!--input v-model="filtro" placeholder="Buscar..." type="text" class="form-control"-->
     </div>
 
     <!-- LISTA -->
@@ -387,97 +381,10 @@
 
             // INVENTARIO
             inventario :{},
-            products:[]
+            products:[],
 
 
 
-
-
-            // LISTADO
-            mi_bodega:'',
-            mi_ubicacion:'',
-            n_inventario:'',
-            n_inventario_nollenado:'',
-            n_inventario_llenado:'',
-
-            filtro:'',
-            filtroActivo:0,
-            stock:[],
-
-            // ITEM
-            item:'',
-            ubicacion:'',
-
-            // TOTALES
-            type_msg_totales:'',
-            msg_totales:'',
-            formTotales:{
-                product_id_t:'',
-                ubicacion_id:'',
-                unidades_caja_t:'',
-                numero_cajas_t:'',
-                unidades_sueltas_t:'',
-                user_id: Number(document.getElementById("user-id").value)
-            },
-
-            // LOTES
-            lotes:[],
-            total_lotes:'',
-            
-            // CONTEO LOTE
-            type_msg_lote:'',
-            msg_lote:'',
-            formLote:{
-                unidades_caja:'',
-                numero_cajas:'',
-                unidades_sueltas:'',
-                observaciones:'',
-                llenado:true,
-                user_id: Number(document.getElementById("user-id").value)
-            },
-            
-            // AGREGAR ITEM
-            type_msg_product:'',
-            msg_product:'',
-            formBuscar:{
-                product_id:'',
-            },
-            listaLotesAgregar:[],
-
-            // input date
-            rawDate:'',
-            //formattedDate: '',
-            validDateInputs: {
-                fecha_elab_lote: true,
-                fecha_cadu_lote: true,
-            },
-
-            type_msg_agregar_lote:'',
-            msg_agregar_lote:'',
-
-            lote_input:true,
-            // form agregar
-            formAgregar:{
-                product_id:'',
-                product_name:'',
-                group_code:'',
-                um:'',
-                estado:'',
-
-                oh2:0,
-
-                lote_id:'',
-                fecha_elab_lote:'',
-                fecha_cadu_lote:'',
-                unidades_caja:'',
-                numero_cajas:'',
-                unidades_sueltas:'',
-                observaciones:'',
-                llenado:true,
-                agregado:true,
-                ubicacion_id: '',
-                user_id: Number(document.getElementById("user-id").value)
-            },
 
             ubicaciones:[],
         },
@@ -485,32 +392,32 @@
             this.getTomaFisicaData();
         },
         computed: {
-            total_agrupado() {
-                const u_cajas_t = this.formTotales.unidades_caja_t ? this.formTotales.unidades_caja_t : 0;
-                const n_cajas_t = this.formTotales.numero_cajas_t ? this.formTotales.numero_cajas_t : 0;
-                const u_sueltas_t = this.formTotales.unidades_sueltas_t ? this.formTotales.unidades_sueltas_t : 0;
-                return Number(u_cajas_t * n_cajas_t) + Number(u_sueltas_t)
-            },
+        //     total_agrupado() {
+        //         const u_cajas_t = this.formTotales.unidades_caja_t ? this.formTotales.unidades_caja_t : 0;
+        //         const n_cajas_t = this.formTotales.numero_cajas_t ? this.formTotales.numero_cajas_t : 0;
+        //         const u_sueltas_t = this.formTotales.unidades_sueltas_t ? this.formTotales.unidades_sueltas_t : 0;
+        //         return Number(u_cajas_t * n_cajas_t) + Number(u_sueltas_t)
+        //     },
 
-            conteo_fisico_lote() {
-                const u_cajas = this.formLote.unidades_caja ? this.formLote.unidades_caja : 0;
-                const n_cajas = this.formLote.numero_cajas ? this.formLote.numero_cajas : 0;
-                const u_sueltas = this.formLote.unidades_sueltas ? this.formLote.unidades_sueltas : 0;
-                return Number(u_cajas * n_cajas) + Number(u_sueltas)
-            },
+        //     conteo_fisico_lote() {
+        //         const u_cajas = this.formLote.unidades_caja ? this.formLote.unidades_caja : 0;
+        //         const n_cajas = this.formLote.numero_cajas ? this.formLote.numero_cajas : 0;
+        //         const u_sueltas = this.formLote.unidades_sueltas ? this.formLote.unidades_sueltas : 0;
+        //         return Number(u_cajas * n_cajas) + Number(u_sueltas)
+        //     },
 
-            conteo_fisico_agregar_lote() {
-                const u_cajas = this.formAgregar.unidades_caja ? this.formAgregar.unidades_caja : 0;
-                const n_cajas = this.formAgregar.numero_cajas ? this.formAgregar.numero_cajas : 0;
-                const u_sueltas = this.formAgregar.unidades_sueltas ? this.formAgregar.unidades_sueltas : 0;
-                return Number(u_cajas * n_cajas) + Number(u_sueltas)
-            },
+        //     conteo_fisico_agregar_lote() {
+        //         const u_cajas = this.formAgregar.unidades_caja ? this.formAgregar.unidades_caja : 0;
+        //         const n_cajas = this.formAgregar.numero_cajas ? this.formAgregar.numero_cajas : 0;
+        //         const u_sueltas = this.formAgregar.unidades_sueltas ? this.formAgregar.unidades_sueltas : 0;
+        //         return Number(u_cajas * n_cajas) + Number(u_sueltas)
+        //     },
 
-            diferencia() {
-                const t_lotes = this.total_lotes ? this.total_lotes : 0;
-                const t_agrupado = this.total_agrupado ? this.total_agrupado : 0;
-                return Number(t_lotes - t_agrupado)
-            },
+        //     diferencia() {
+        //         const t_lotes = this.total_lotes ? this.total_lotes : 0;
+        //         const t_agrupado = this.total_agrupado ? this.total_agrupado : 0;
+        //         return Number(t_lotes - t_agrupado)
+        //     },
 
             stockFiltrado() {
                 // Copia inicial de la lista original para aplicar filtros
@@ -545,38 +452,38 @@
                 );
                 }
 
-                let todo = this.stock
-                let filtro_1 = this.stock.filter((item) => ["1",].includes(item.ubicacion__nivel));
-                let filtro_2 = this.stock.filter((item) => ["2",].includes(item.ubicacion__nivel));
-                let filtro_3 = this.stock.filter((item) => ["3",].includes(item.ubicacion__nivel));
-                let filtro_4 = this.stock.filter((item) => ["4",].includes(item.ubicacion__nivel));
-                if (this.filtroActivo === 0) {
-                    this.n_inventario = todo.length;
-                    this.n_inventario_nollenado = todo.filter((item) => item.llenado === false).length;
-                    this.n_inventario_llenado = todo.filter((item) => item.llenado === true).length;
-                } else if(this.filtroActivo === 1) {
-                    this.n_inventario = filtro_1.length;
-                    this.n_inventario_nollenado = filtro_1.filter((item) => item.llenado === false).length;
-                    this.n_inventario_llenado = filtro_1.filter((item) => item.llenado === true).length;
-                } else if(this.filtroActivo === 2) {
-                    this.n_inventario = filtro_2.length;
-                    this.n_inventario_nollenado = filtro_2.filter((item) => item.llenado === false).length;
-                    this.n_inventario_llenado = filtro_2.filter((item) => item.llenado === true).length;
-                } else if(this.filtroActivo === 3) {
-                    this.n_inventario = filtro_3.length;
-                    this.n_inventario_nollenado = filtro_3.filter((item) => item.llenado === false).length;
-                    this.n_inventario_llenado = filtro_3.filter((item) => item.llenado === true).length;
-                } else if(this.filtroActivo === 4) {
-                    this.n_inventario = filtro_4.length;
-                    this.n_inventario_nollenado = filtro_4.filter((item) => item.llenado === false).length;
-                    this.n_inventario_llenado = filtro_4.filter((item) => item.llenado === true).length;
-                }
+        //         let todo = this.stock
+        //         let filtro_1 = this.stock.filter((item) => ["1",].includes(item.ubicacion__nivel));
+        //         let filtro_2 = this.stock.filter((item) => ["2",].includes(item.ubicacion__nivel));
+        //         let filtro_3 = this.stock.filter((item) => ["3",].includes(item.ubicacion__nivel));
+        //         let filtro_4 = this.stock.filter((item) => ["4",].includes(item.ubicacion__nivel));
+        //         if (this.filtroActivo === 0) {
+        //             this.n_inventario = todo.length;
+        //             this.n_inventario_nollenado = todo.filter((item) => item.llenado === false).length;
+        //             this.n_inventario_llenado = todo.filter((item) => item.llenado === true).length;
+        //         } else if(this.filtroActivo === 1) {
+        //             this.n_inventario = filtro_1.length;
+        //             this.n_inventario_nollenado = filtro_1.filter((item) => item.llenado === false).length;
+        //             this.n_inventario_llenado = filtro_1.filter((item) => item.llenado === true).length;
+        //         } else if(this.filtroActivo === 2) {
+        //             this.n_inventario = filtro_2.length;
+        //             this.n_inventario_nollenado = filtro_2.filter((item) => item.llenado === false).length;
+        //             this.n_inventario_llenado = filtro_2.filter((item) => item.llenado === true).length;
+        //         } else if(this.filtroActivo === 3) {
+        //             this.n_inventario = filtro_3.length;
+        //             this.n_inventario_nollenado = filtro_3.filter((item) => item.llenado === false).length;
+        //             this.n_inventario_llenado = filtro_3.filter((item) => item.llenado === true).length;
+        //         } else if(this.filtroActivo === 4) {
+        //             this.n_inventario = filtro_4.length;
+        //             this.n_inventario_nollenado = filtro_4.filter((item) => item.llenado === false).length;
+        //             this.n_inventario_llenado = filtro_4.filter((item) => item.llenado === true).length;
+        //         }
                 
-                // Devolver la lista filtrada
-                return filtrada;
-            }
-
+        //         // Devolver la lista filtrada
+        //         return filtrada;
+        //     }
         },
+
         methods: {
             // activarFiltro(boton) {
             //     this.filtroActivo = boton;
@@ -782,122 +689,122 @@
                 }
             },
 
-            async buscarProducto() {
-                try {
-                    const response = await fetch('/inventario/cerezos/toma-fisica/buscar-producto', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify(this.formBuscar)
-                    });
-                    const data = await response.json();
+            // async buscarProducto() {
+            //     try {
+            //         const response = await fetch('/inventario/cerezos/toma-fisica/buscar-producto', {
+            //             method: 'POST',
+            //             headers: {'Content-Type': 'application/json'},
+            //             body: JSON.stringify(this.formBuscar)
+            //         });
+            //         const data = await response.json();
                     
-                    // Msg product
-                    this.type_msg_product = data.type;
-                    this.msg_product = data.msg;
+            //         // Msg product
+            //         this.type_msg_product = data.type;
+            //         this.msg_product = data.msg;
                     
-                    // Form Agregar
-                    if (data.product) {
-                        this.formAgregar.product_id = data.product.product_id;
-                        this.formAgregar.product_name = data.product.Nombre;
-                        this.formAgregar.group_code = data.product.Marca;
-                        this.formAgregar.um = data.product.Unidad;
-                        this.formAgregar.unidades_caja = data.product.Unidad_Empaque;
+            //         // Form Agregar
+            //         if (data.product) {
+            //             this.formAgregar.product_id = data.product.product_id;
+            //             this.formAgregar.product_name = data.product.Nombre;
+            //             this.formAgregar.group_code = data.product.Marca;
+            //             this.formAgregar.um = data.product.Unidad;
+            //             this.formAgregar.unidades_caja = data.product.Unidad_Empaque;
 
-                        // agregar lista de lotes
-                        this.listaLotesAgregar = data.data_lotes || [];
-                    } 
-                    else {
-                        this.formAgregar.product_id = '';
-                        this.formAgregar.product_name = '';
-                        this.formAgregar.group_code = '';
-                        this.formAgregar.um = '';
-                        this.formAgregar.unidades_caja = '';
-                        this.listaLotesAgregar = [];
-                    }
-                } catch (error) {
-                    this.type_msg_product = 'danger';
-                    this.msg_product = error;
-                }
-            },
+            //             // agregar lista de lotes
+            //             this.listaLotesAgregar = data.data_lotes || [];
+            //         } 
+            //         else {
+            //             this.formAgregar.product_id = '';
+            //             this.formAgregar.product_name = '';
+            //             this.formAgregar.group_code = '';
+            //             this.formAgregar.um = '';
+            //             this.formAgregar.unidades_caja = '';
+            //             this.listaLotesAgregar = [];
+            //         }
+            //     } catch (error) {
+            //         this.type_msg_product = 'danger';
+            //         this.msg_product = error;
+            //     }
+            // },
 
-            async agregarProducto() {
-                try {
-                    const response = await fetch('/inventario/cerezos/toma-fisica/agregar-producto', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify(this.formAgregar)
-                    }); 
-                    const data = await response.json();
-                    this.type_msg_agregar_lote = data.type;
-                    this.msg_agregar_lote = data.msg;
+            // async agregarProducto() {
+            //     try {
+            //         const response = await fetch('/inventario/cerezos/toma-fisica/agregar-producto', {
+            //             method: 'POST',
+            //             headers: {'Content-Type': 'application/json'},
+            //             body: JSON.stringify(this.formAgregar)
+            //         }); 
+            //         const data = await response.json();
+            //         this.type_msg_agregar_lote = data.type;
+            //         this.msg_agregar_lote = data.msg;
 
-                    // set form buscarProducto
-                    this.formBuscar.product_id = '';
-                    this.type_msg_product='',
-                    this.msg_product='';
+            //         // set form buscarProducto
+            //         this.formBuscar.product_id = '';
+            //         this.type_msg_product='',
+            //         this.msg_product='';
 
-                    // reset form
-                    this.formAgregar.product_id = '';
-                    this.formAgregar.product_name = '';
-                    this.formAgregar.group_code = '';
-                    this.formAgregar.um = '';
-                    this.formAgregar.estado='',
+            //         // reset form
+            //         this.formAgregar.product_id = '';
+            //         this.formAgregar.product_name = '';
+            //         this.formAgregar.group_code = '';
+            //         this.formAgregar.um = '';
+            //         this.formAgregar.estado='',
 
-                    this.formAgregar.oh2 = 0;
+            //         this.formAgregar.oh2 = 0;
 
-                    this.formAgregar.lote_id = '';
-                    this.formAgregar.fecha_elab_lote = '';
-                    this.formAgregar.fecha_cadu_lote = '';
+            //         this.formAgregar.lote_id = '';
+            //         this.formAgregar.fecha_elab_lote = '';
+            //         this.formAgregar.fecha_cadu_lote = '';
                     
-                    this.formAgregar.unidades_caja = '';
-                    this.formAgregar.numero_cajas = '';
-                    this.formAgregar.unidades_sueltas = '';
-                    this.formAgregar.observaciones = '';
-                    this.formAgregar.ubicacion_id='',
+            //         this.formAgregar.unidades_caja = '';
+            //         this.formAgregar.numero_cajas = '';
+            //         this.formAgregar.unidades_sueltas = '';
+            //         this.formAgregar.observaciones = '';
+            //         this.formAgregar.ubicacion_id='',
                     
-                    this.formAgregar.lotes = [];
+            //         this.formAgregar.lotes = [];
 
-                    await this.getStock();
+            //         await this.getStock();
 
-                    setTimeout(
-                        () => {
-                            this.msg_agregar_lote = '';
-                        }, 2000)
+            //         setTimeout(
+            //             () => {
+            //                 this.msg_agregar_lote = '';
+            //             }, 2000)
                     
-                } catch (error) {
-                    this.type_msg_agregar_lote = 'danger';
-                    this.msg_agregar_lote = error;
-                }
-            },
+            //     } catch (error) {
+            //         this.type_msg_agregar_lote = 'danger';
+            //         this.msg_agregar_lote = error;
+            //     }
+            // },
 
-            async getUbicaciones(mi_bodega, mi_ubicacion) {
-                try {
-                    const response = await fetch('/inventario/ubicaciones/wms');
-                    const data = await response.json();
-                    this.ubicaciones = data.ubicaciones.filter(i=>
-                        i.bodega === mi_bodega &&
-                        i.pasillo == mi_ubicacion
-                    ); 
-                } catch (error) {
-                    // this.type_msg_ubicacion = 'danger';
-                    console.error(error);
-                }
-            },
+            // async getUbicaciones(mi_bodega, mi_ubicacion) {
+            //     try {
+            //         const response = await fetch('/inventario/ubicaciones/wms');
+            //         const data = await response.json();
+            //         this.ubicaciones = data.ubicaciones.filter(i=>
+            //             i.bodega === mi_bodega &&
+            //             i.pasillo == mi_ubicacion
+            //         ); 
+            //     } catch (error) {
+            //         // this.type_msg_ubicacion = 'danger';
+            //         console.error(error);
+            //     }
+            // },
             
-            async eliminarAgregado(item_id) {
-                try {
-                    const response = await fetch(`/inventario/cerezos/toma-fisica/eliminar-item-agregado`, {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json',},
-                        body: JSON.stringify({'item_id':item_id})  
-                    });
+            // async eliminarAgregado(item_id) {
+            //     try {
+            //         const response = await fetch(`/inventario/cerezos/toma-fisica/eliminar-item-agregado`, {
+            //             method: 'POST',
+            //             headers: {'Content-Type': 'application/json',},
+            //             body: JSON.stringify({'item_id':item_id})  
+            //         });
             
-                    const data = await response.json();
-                    this.stock = this.stock.filter((item) => item.id !== item_id);
-                } catch(error) {
-                    console.log(error);
-                }
-            },
+            //         const data = await response.json();
+            //         this.stock = this.stock.filter((item) => item.id !== item_id);
+            //     } catch(error) {
+            //         console.log(error);
+            //     }
+            // },
         }
     })
 </script>
