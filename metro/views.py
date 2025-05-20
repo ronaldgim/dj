@@ -7,6 +7,8 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.forms.models import model_to_dict
+import json
+from django.views.decorators.http import require_POST
 
 
 ### PRODUCTOS
@@ -195,7 +197,86 @@ def metro_inventario_eliminar(request):
 
 
 
+# Estado inventario
+@require_POST  # Asegura que solo se acepten solicitudes POST
+@login_required(login_url='login')
+def metro_inventario_estado(request, id):
+    try:
+        # Decodificar el JSON recibido
+        data = json.loads(request.body) 
+        nuevo_estado = data.get('estado_inv')
+        
+        # Validar que se recibió el estado
+        if not nuevo_estado:
+            return JsonResponse({'error': 'No se proporcionó el estado'}, status=400)
+        
+        # Obtener y actualizar el inventario
+        inventario = Inventario.objects.get(id=id) 
+        inventario.estado_inv = nuevo_estado  # Asumiendo que el campo se llama "estado"
+        inventario.save()
+        
+        # Devolver respuesta exitosa con datos serializados manualmente
+        return JsonResponse({
+            'success': True,
+            'inventario': {
+                'id': inventario.id,
+                'estado': inventario.estado_inv,
+            }
+        })
+    except Inventario.DoesNotExist:
+        return JsonResponse({'error': 'Inventario no encontrado'}, status=404)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'JSON inválido'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
+
+# Estado inventario toma fisica
+@require_POST  # Asegura que solo se acepten solicitudes POST
+@login_required(login_url='login')
+def metro_inventario_estado_tf(request, id):
+    import datetime
+    try:
+        # Decodificar el JSON recibido
+        data = json.loads(request.body) 
+        nuevo_estado = data.get('estado_tf')
+        
+        # Validar que se recibió el estado
+        if not nuevo_estado:
+            return JsonResponse({'error': 'No se proporcionó el estado'}, status=400)
+        
+        # Obtener y actualizar el inventario
+        inventario = Inventario.objects.get(id=id) 
+        
+        if inventario.estado_tf == 'CREADO' and nuevo_estado == 'EN PROCESO':
+            inventario.inicio_tf = datetime.datetime.now()
+            
+        if nuevo_estado == 'FINALIZADO':
+            inventario.fin_tf = datetime.datetime.now()
+        
+        inventario.estado_tf = nuevo_estado  # Asumiendo que el campo se llama "estado"
+        inventario.save()
+        
+
+        
+        # Devolver respuesta exitosa con datos serializados manualmente
+        return JsonResponse({
+            'success': True,
+            'inventario': {
+                'id': inventario.id,
+                'estado': inventario.estado_tf,
+            }
+        })
+    except Inventario.DoesNotExist:
+        return JsonResponse({'error': 'Inventario no encontrado'}, status=404)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'JSON inválido'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+
+### TOMA FISICA
 # Toma Física Lista
 @login_required(login_url='login')
 def metro_toma_fisica_list(request):
@@ -205,9 +286,6 @@ def metro_toma_fisica_list(request):
         'inventarios':inventarios
     }
     return render(request, 'metro/toma-fisica-list.html', context)
-
-
-
 
 
 # Toma Física

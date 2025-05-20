@@ -32,6 +32,19 @@ urlpatterns = [
         name = 'metro_inventario_edit'
     ),
     
+    path(
+        route = 'inventario-estado/<int:id>',
+        view = views.metro_inventario_estado,
+        name = 'metro_inventario_estado'
+    ),
+    
+    path(
+        route = 'inventario-estado-tf/<int:id>',
+        view = views.metro_inventario_estado_tf,
+        name = 'metro_inventario_estado_tf'
+    ),
+    
+    
     
     # path(
     #     route = 'toma-fisica/<int:inventario_id>',

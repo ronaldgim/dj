@@ -47,10 +47,15 @@
 
 <hr>
 
-<button type="button" class="btn btn-primary mb-2" data-bs-toggle="modal" data-bs-target="#exampleModal">
-    Nuevo Inventario
+<button type="button" class="btn btn-sm btn-primary mb-2 fw-bold" data-bs-toggle="modal" data-bs-target="#exampleModal">
+    NUEVO INVENTARIO
 </button>
 
+
+<button class="btn btn-sm btn-primary float-end" onclick="actualizar()">
+    <i class="bi bi-arrow-clockwise"></i>
+</button>
+    
 <div class="col-12">
     <input id="inputbuscar" type="text" placeholder="Filtro" class="form-control">
 </div>
@@ -88,7 +93,7 @@
                                     {% if i.estado_inv == 'ABIERTO' %}
                                         bg-primary
                                     {% elif i.estado_inv == 'CERRADO' %}
-                                        bg-danger
+                                        bg-secondary
                                     {% endif %}
                                     "
                             >
@@ -114,7 +119,6 @@
                                 {{i.estado_tf}}
                             </span>
 
-
                         </td>
                         <td>{{i.inicio_tf|date:'Y-m-d H:m'|default:"-"}}</td>
                         <td>{{i.fin_tf|date:'Y-m-d H:m'|default:"-"}}</td>
@@ -124,24 +128,38 @@
                         <td>
                             <div class="btn-group" role="group" aria-label="Basic example">
                                 <button 
-                                    class="btn btn-sm btn-secondary edit-inventario-btn"
+                                    class="btn btn-sm btn-white border edit-inventario-btn"
                                     data-inventario-id="{{ i.id }}" 
                                     data-inventario-name="Editar: {{ i.nombre }}"
-                                    >
-                                    <i class="bi bi-pencil"></i>
+                                >
+                                    <!--i class="bi bi-pencil"></i-->
+                                    ✏
                                 </button>
+                                <a class="btn btn-sm btn-white border" href="{% url 'metro_toma_fisica' i.id %}">
+                                    <!--i class="bi bi-eye"></i-->
+                                    📄
+                                </a>
 
-                                <button type="button" class="btn btn-sm btn-success" name="change-estado_inv">
+                                <button 
+                                    type="button" 
+                                    class="btn btn-sm btn-primary" 
+                                    data-inventario-id="{{ i.id }}" 
+                                    value="ABIERTO"
+                                    onclick=change_estado_inv(this)
+                                >
                                     <i class="bi bi-check-square-fill"></i>
                                 </button>
 
-                                <button type="button" class="btn btn-sm btn-danger" name="change-estado_inv">
+                                <button 
+                                    type="button" 
+                                    class="btn btn-sm btn-secondary"
+                                    data-inventario-id="{{ i.id }}" 
+                                    value="CERRADO"
+                                    onclick=change_estado_inv(this)
+                                >
                                     <i class="bi bi-x-square-fill"></i>
                                 </button>
 
-                                <a class="btn btn-sm btn-primary" href="{% url 'metro_toma_fisica' i.id %}">
-                                    <i class="bi bi-eye"></i>
-                                </a>
                             </div>
                         </td>
                     </tr>
@@ -257,13 +275,6 @@
     </div>
 </div>
 
-<script>
-    $(document).ready(function() {
-        $("button[name='buscar']").click(function(){
-            $("#buscar").toggle()
-        })
-    })
-</script>
 
 <!--filtro buscar-->
 <script>
@@ -278,6 +289,8 @@
     });
 </script>
 
+
+<!-- Editar nombre -->
 <script>
     $(document).ready(function() {
         // Abrir el modal de edición al hacer clic en un botón de editar
@@ -356,10 +369,10 @@
             if (row.length) {
                 row.find('.inventario-nombre').text(inventario.nombre);
                 // Actualizar otros campos según sea necesario
-            } else {
+            } // else {
                 // Si es necesario, recargar la tabla o agregar la nueva fila
-                location.reload();
-            }
+                // location.reload();
+            //}
         }
         
         // Función para mostrar alertas
@@ -376,4 +389,53 @@
     });
 </script>
 
+<script>
+    function actualizar() {
+        location.reload();
+    }
+</script>
+
+
+<!-- Estado inventario -->
+<script>
+    function change_estado_inv(btn) {
+        var estado_inv = btn.value;
+        var id_inv     = btn.getAttribute('data-inventario-id');
+
+        fetch(`/metro/inventario-estado/${id_inv}`, {
+            method: 'POST',
+            headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': obtenerCSRFToken() // Función para obtener el token CSRF
+            },
+            body: JSON.stringify({'estado_inv':estado_inv})
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error en la respuesta: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Respuesta:', data);
+            // Aquí puedes actualizar la UI si es necesario
+            location.reload();
+            // Por ejemplo, cambiar algún indicador visual
+        })
+        .catch(error => {
+            console.error('Error al cambiar estado:', error);
+        });
+    }
+
+    // Función para obtener el token CSRF de Django
+    function obtenerCSRFToken() {
+    // Busca la cookie con el token CSRF
+        const cookieValue = document.cookie
+            .split('; ')
+            .find(row => row.startsWith('csrftoken='))
+            ?.split('=')[1];
+        
+        return cookieValue;
+    }
+</script>
 {% endblock %}
