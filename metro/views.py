@@ -14,6 +14,11 @@ from django.forms.models import model_to_dict
 def metro_products_list(request):
     
     products = Product.objects.all().order_by('codigo_gim', 'marca')
+    products_data = {
+        'total':products.count(),
+        'activos':products.filter(activo=True).count(),
+        'inactivos':products.filter(activo=False).count(),
+    }
     
     if request.method == 'POST':
         form = ProductForm(request.POST)
@@ -28,6 +33,7 @@ def metro_products_list(request):
     
     context = {
         'products':products,
+        'products_data':products_data,
         'form':form
     }
     
@@ -46,13 +52,13 @@ def metro_product_edit(request, id):
     
     if request.method == 'POST':
         # Procesar el formulario enviado
-        form = ProductForm(request.POST, instance=product, user=request.user) ;print(form)
+        form = ProductForm(request.POST, instance=product, user=request.user) 
         if form.is_valid():
             form.save()
             messages.success(request, f'Producto {form.clean_codigo_gim()} editado correctamente !!!')
             return JsonResponse({
                 'success': True,
-                'message': 'Producto actualizado correctamente.',
+                'message': f'Producto actualizado {form.clean_codigo_gim()} correctamente.',
                 # Datos actualizados para refrescar la tabla sin recargar
                 'product': {
                     'id': product.id,
@@ -158,18 +164,16 @@ def metro_inventario_eliminar(request):
 
 
 
-# Toma física template
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import TemplateView
+# # Toma física template
+# from django.contrib.auth.mixins import LoginRequiredMixin
+# from django.views.generic import TemplateView
 
 
-class TomaFisicaView(LoginRequiredMixin, TemplateView):
-    template_name = 'metro/toma_fisica.html'
+# class TomaFisicaView(LoginRequiredMixin, TemplateView):
+#     template_name = 'metro/toma_fisica.html'
 
 
-
-
-# Toma Física
+# # Toma Física
 # @login_required(login_url='login')
 # def metro_toma_fisica_data(request, inventario_id):
 #     print(inventario)
@@ -188,6 +192,20 @@ class TomaFisicaView(LoginRequiredMixin, TemplateView):
 #     #     'products':products
 #     # }
 #     # return render(request, 'metro/toma-fisica.html', context)
+
+
+
+
+# Toma Física Lista
+@login_required(login_url='login')
+def metro_toma_fisica_list(request):
+    
+    inventarios = Inventario.objects.all().order_by('-id')
+    context = {
+        'inventarios':inventarios
+    }
+    return render(request, 'metro/toma-fisica-list.html', context)
+
 
 
 
@@ -250,5 +268,3 @@ def metro_toma_fisica_edit(request, id):
             'form':form.as_p(),
             'product':model_to_dict(toma_fisica.product)
         })
-
-    

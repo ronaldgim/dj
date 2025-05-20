@@ -46,6 +46,12 @@ urlpatterns = [
     # ),
     
     path(
+        route = 'toma-fisica-list',
+        view = views.metro_toma_fisica_list,
+        name = 'metro_toma_fisica_list'
+    ),
+    
+    path(
         route = 'toma-fisica/<int:inventario_id>',
         view = views.metro_toma_fisica,
         name = 'metro_toma_fisica'
