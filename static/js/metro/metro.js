@@ -32,7 +32,7 @@ function metro_patch_inventario(id, datosParciales) {
         }
         return response.json();
     })
-    .then(inventarioActualizado => {
+    .then(data => {
         // Aquí puedes actualizar la UI con los datos actualizados
         // actualizarInterfaz(inventarioActualizado);
         // console.log(inventarioActualizado);

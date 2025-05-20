@@ -95,6 +95,7 @@ def metro_product_eliminar(request):
 
 
 ### INVENTARIOS
+@login_required(login_url='login')
 def metro_inventarios_list(request):
     
     inventarios = Inventario.objects.all().order_by('-id')
@@ -113,7 +114,7 @@ def metro_inventarios_list(request):
                     product_id = i.id
                 )
                 
-                toma_fisica.save()            
+                toma_fisica.save() 
             
             messages.success(request, f"Inventario {inventario.nombre} creado exitosamente")
             form = InventarioForm()
@@ -126,47 +127,6 @@ def metro_inventarios_list(request):
     }
     
     return render(request, 'metro/inventarios-list.html', context)
-
-
-@login_required(login_url='login')
-def metro_inventario_edit(request, id):
-    """
-    Vista para manejar la edición de productos en un modal.
-    GET: Devuelve el formulario HTML para mostrar en el modal
-    POST: Procesa el formulario enviado y devuelve respuesta JSON
-    """
-    # Obtener el producto o devolver 404 si no existe
-    inventario = get_object_or_404(Inventario, id=id)
-    
-    if request.method == 'POST':
-        # Procesar el formulario enviado
-        form = InventarioForm(request.POST, instance=inventario, user=request.user)
-        if form.is_valid():
-            form.save()
-            messages.success(request, f'Inventario editado correctamente !!!')
-            return JsonResponse({
-                'success': True,
-                'message': 'Inventario actualizado correctamente.',
-                # Datos actualizados para refrescar la tabla sin recargar
-                'inventario': {
-                    'nombre': inventario.nombre,
-                }
-            })
-        else:
-            # Devolver errores si el formulario no es válido
-            errors = form.get_formatted_errors() if hasattr(form, 'get_formatted_errors') else str(form.errors)
-            return JsonResponse({
-                'success': False,
-                'errors': errors
-            }, status=400)
-    else:
-        # Para solicitudes GET, crear el formulario con el producto existente
-        form = InventarioForm(instance=inventario, user=request.user)
-        return HttpResponse(form.as_p())
-
-
-
-
 
 
 @ensure_csrf_cookie  # Asegura que se envíe el token CSRF
@@ -187,14 +147,14 @@ def metro_inventario_patch(request, id):
             inventario.estado_inv = datos['estado_inv']
             
         if 'estado_tf' in datos:
-            inventario.estado_tf = datos['estado_tf']
-
-            # INICIO TF FIN TF
             if inventario.estado_tf == 'CREADO' and datos['estado_tf'] == 'EN PROCESO':
+                inventario.estado_tf = datos['estado_tf']
                 inventario.inicio_tf = datetime.datetime.now()
-            
-            if datos['estado_tf'] == 'FINALIZADO':
+            elif datos['estado_tf'] == 'FINALIZADO':
+                inventario.estado_tf = datos['estado_tf']
                 inventario.fin_tf = datetime.datetime.now()
+            else:
+                inventario.estado_tf = datos['estado_tf']
         
         # Guardar los cambios
         inventario.save()
@@ -227,18 +187,6 @@ def metro_inventario_patch(request, id):
             'status': 'error',
             'message': str(e)
         }, status=500)
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 @login_required(login_url='login')
@@ -278,39 +226,6 @@ def metro_inventario_eliminar(request):
 #     # return render(request, 'metro/toma-fisica.html', context)
 
 
-
-# Estado inventario
-@require_POST  # Asegura que solo se acepten solicitudes POST
-@login_required(login_url='login')
-def metro_inventario_estado(request, id):
-    try:
-        # Decodificar el JSON recibido
-        data = json.loads(request.body) 
-        nuevo_estado = data.get('estado_inv')
-        
-        # Validar que se recibió el estado
-        if not nuevo_estado:
-            return JsonResponse({'error': 'No se proporcionó el estado'}, status=400)
-        
-        # Obtener y actualizar el inventario
-        inventario = Inventario.objects.get(id=id) 
-        inventario.estado_inv = nuevo_estado  # Asumiendo que el campo se llama "estado"
-        inventario.save()
-        
-        # Devolver respuesta exitosa con datos serializados manualmente
-        return JsonResponse({
-            'success': True,
-            'inventario': {
-                'id': inventario.id,
-                'estado': inventario.estado_inv,
-            }
-        })
-    except Inventario.DoesNotExist:
-        return JsonResponse({'error': 'Inventario no encontrado'}, status=404)
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'JSON inválido'}, status=400)
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
 
 
 # Estado inventario toma fisica
@@ -392,6 +307,23 @@ def metro_toma_fisica_edit(request, id):
     # Obtener el producto o devolver 404 si no existe
     toma_fisica = get_object_or_404(TomaFisica, id=id)
     
+    
+    if request.method == 'GET':
+        # Para solicitudes GET, crear el formulario con el producto existente
+        form = TomaFisicaForm(
+            instance=toma_fisica, 
+            user=request.user, 
+            initial = {
+                'cantidad_estanteria': '' if toma_fisica.cantidad_estanteria == 0 else toma_fisica.cantidad_estanteria,
+                'cantidad_bulto': '' if toma_fisica.cantidad_bulto == 0 else toma_fisica.cantidad_bulto
+                }
+            )
+        
+        return JsonResponse({
+            'form':form.as_p(),
+            'product':model_to_dict(toma_fisica.product)
+        })
+    
     if request.method == 'POST':
         # Procesar el formulario enviado
         form = TomaFisicaForm(request.POST, instance=toma_fisica)
@@ -418,11 +350,5 @@ def metro_toma_fisica_edit(request, id):
                 'success': False,
                 'errors': errors
             }, status=400)
-    else:
-        # Para solicitudes GET, crear el formulario con el producto existente
-        form = TomaFisicaForm(instance=toma_fisica, user=request.user)
-        
-        return JsonResponse({
-            'form':form.as_p(),
-            'product':model_to_dict(toma_fisica.product)
-        })
+    
+
