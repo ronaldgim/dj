@@ -1,5 +1,5 @@
-{%extends 'base.html' %}
-
+{% extends 'base.html' %}
+{% load static %}
 {% block title %}
 <title>Toma física {{inventario.enum}}</title>
 {% endblock %}
@@ -10,8 +10,10 @@
 
 {% block body %}
 
-<h5 class="m-4 text-center fw-bold mb-0">HOSPITAL METROPOLITANO</h5>
-<h6 class="m-4 text-center fw-bold mt-0">TOMA FÍSICA INVENTARIO {{inventario.enum}}</h6>
+<h5 class="m-4 text-center fw-bold mb-0">HOSPITAL METROPOLITANO</h5> <!--button class="btn btn-sm btn-primary">R</button-->
+<!--h6 class="m-4 text-center fw-bold mt-0">TOMA FÍSICA INVENTARIO {{inventario.enum}} - {{inventario.nombre}}</h6-->
+<h6 class="m-4 text-center fw-bold mt-0">{{inventario.enum}} - {{inventario.nombre}}</h6>
+
 
 <span
     class="
@@ -107,7 +109,6 @@
     data-inventario-id="{{ inventario.id }}" 
     value="EN PAUSA"
     onclick=change_estado_tf(this)
-
 >
     EN PAUSA
 </button>
@@ -116,7 +117,6 @@
     data-inventario-id="{{ inventario.id }}" 
     value="FINALIZADO"
     onclick=change_estado_tf(this)
-
 >
     FINALIZADO
 </button>
@@ -148,20 +148,48 @@
                     {% for i in products %}
                     <tr {% if i.llenado %} style="background-color:#BAF690" {% endif %}>
                         <td>
-                            <span class="fw-bold">Código GIM: </span>{{i.product.codigo_gim}}  <span class="fw-bold">Código HM: </span> {{i.product.codigo_hm}} <br>
-                            <span class="fw-bold">Nombre: </span> {{i.product.nombre_gim}} <br>
-                            <span class="fw-bold">Marca: </span> {{i.product.marca}} <br>
-                            <span class="fw-bold">Unidad: </span> {{i.product.unidad}} <br>
-                            <span class="fw-bold">Total: </span> {{i.cantidad_total}} 
+                            <label class="fw-bold">Código GIM: </label>
+                            <span class="codigo_gim">{{i.product.codigo_gim}}</span>
+
+                            <div class="float-end">
+                                <label class="fw-bold">Código HM: </label> 
+                                <span class="codigo_hm">{{i.product.codigo_hm}}</span> 
+                            </div>
+
+                            <br>
+
+                            <label class="fw-bold">Nombre: </label> 
+                            <span class="nombre_gim">{{i.product.nombre_gim}}</span> <br>
+                            <label class="fw-bold">Marca: </label> 
+                            <span class="marca">{{i.product.marca}}</span> <br>
+                            <label class="fw-bold">Unidad: </label> 
+                            <span class="unidad">{{i.product.unidad}}</span> <br>
+                            <label class="fw-bold">Total: </label> 
+                            <span>{{i.cantidad_total}}</span> 
                         </td>
                         <td>
+                            <label class="fw-bold">Ubicación Hospital:</label>
+                            <span>{{i.product.ubicacion}}</span><br>
                             <div class="btn-group" role="group" aria-label="Basic example">
-                                <button 
+                                <!--button 
                                     class="btn btn-sm btn-primary edit-toma-fisica-btn
                                         {% if inventario.estado_inv == 'CERRADO' %} disabled {% endif %}
                                     "
                                     data-product-id="{{ i.id }}" 
                                     data-product-name="Toma Física: GIM: {{ i.product.codigo_gim }} - HM: {{ i.product.codigo_hm }}"
+                                    >
+                                    <i class="bi bi-boxes"></i>
+                                </button-->
+
+                                <button 
+                                    class="btn btn-sm btn-primary edit-toma-fisica-btn mt-2
+                                        {% if inventario.estado_inv == 'CERRADO' %} disabled {% endif %}
+                                    "
+                                    data-product-id="{{ i.id }}" 
+                                    data-product-name="Toma Física: GIM: {{ i.product.codigo_gim }} - HM: {{ i.product.codigo_hm }}"
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#editModal"
+                                    onclick="get_data(this)"
                                     >
                                     <i class="bi bi-boxes"></i>
                                 </button>
@@ -258,26 +286,38 @@
 {% endcomment %}
 
 
-<!-- Editar Producto -->
+<!-- Editar -->
 <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="editModalLabel">Editar Inventario</h5>
+                <h5 class="modal-title" id="editModalLabel">Toma física de inventario</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div id="editModalErrors"></div>
-            <div class="modal-body" id="productInfo"><div>
-            <form method="post" id="form-edit">
-                {% csrf_token %}
-                <div class="modal-body" id="editModalBody">
-                    <!-- El contenido del formulario se cargará aquí vía AJAX -->
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Guardar cambios</button>
-                </div>
-            </form>
+            <!--div class="modal-body" id="productInfo"><div-->
+            <div class="modal-body">
+                <label class="fw-bold">Código GIM:</label> <span id="codigo_gim"></span><br>
+                <label class="fw-bold">Código HM:</label> <span id="codigo_hm"></span><br>
+                <label class="fw-bold">Nombre:</label> <span id="nombre_gim"></span><br>
+                <label class="fw-bold">Marca:</label> <span id="marca"></span><br>
+                <label class="fw-bold">Ubicación:</label> <span id="ubicacion"></span><br>
+
+                <form method="post" id="form-edit">
+                    {% csrf_token %}
+                    
+                    <hr>
+
+                    <div id="form-body-edit"></div>
+                    
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                    </div>
+                </form>
+
+                <!--label class="fw-bold">Total:</label> <span id="total"></span-->
+            </div>
         </div>
     </div>
 </div>
@@ -304,166 +344,114 @@
 </script>
 
 <script>
-    $(document).ready(function() {
-        // Abrir el modal de edición al hacer clic en un botón de editar
-        $(".edit-toma-fisica-btn").click(function() {
-            const productId = $(this).data('product-id');
-            const modalTitle = $(this).data('product-name') || 'Editar Inventario';
+    // Estado inventario
+    function change_estado_tf(btn) {
+        const id_inv    = btn.getAttribute('data-inventario-id');
+        const estado_tf = btn.value;
+        metro_patch_inventario(id_inv, {'estado_tf':estado_tf});
+    }
 
-            // Limpiar el modal antes de cargar el nuevo contenido
-            $("#editModalBody").html('<div class="text-center"><div class="spinner-border" role="status"></div></div>');
-            $("#editModalLabel").text(modalTitle);
-            
-            // Mostrar el modal
-            $("#editModal").modal('show');
-            
-            // Cargar el formulario mediante AJAX
-            $.ajax({
-                url: `/metro/toma-fisica-edit/${productId}`,
-                type: 'GET',
-                success: function(response) {
-                    
-                    if (!response.form) {
-                        $("#editModalBody").html('<div class="alert alert-danger">Error: No se recibió el formulario correctamente.</div>');
-                        return;
-                    }
-                    
-                    // Mostrar información del producto
-                    if (response.product && response.product.codigo_gim) {
-                        $("#productTomaFisica").text(response.product.codigo_gim);
-                        // Opcionalmente, mostrar más información del producto
-                        let productInfo = `
-                            <div class="mb-3">
-                                <strong>Código:</strong> ${response.product.codigo_gim}<br>
-                                <strong>Nombre:</strong> ${response.product.nombre_gim || ''}<br>
-                                <strong>Marca:</strong> ${response.product.marca || ''}<br>
-                                <strong>Ubicación:</strong> ${response.product.ubicacion || ''}
-                            </div>
-                        `;
-                        $("#productInfo").html(productInfo);
-                    }
-                    
-                    $("#editModalBody").html(response.form);
-                    $("#form-edit").attr("action", `/metro/toma-fisica-edit/${productId}`);
-                    $("#editModalBody label").addClass("fw-bold");
-                    $("#editModalBody .row").addClass("mb-3");
-                },
-                error: function() {
-                    $("#editModalBody").html('<div class="alert alert-danger">Error al cargar el formulario.</div>');
-                }
-            });
-        });
-        
-        // Manejar el envío del formulario mediante AJAX
-        $("#editModal").on('submit', 'form', function(e) {
-            e.preventDefault();
-            
-            const form = $(this);
-            const url = form.attr('action'); // || form.data('url');
-            console.log(url);
-            $.ajax({
-                url: url,
-                type: 'POST',
-                data: form.serialize(),
-                success: function(response) {
-                    if (response.success) {
-                        // Cerrar el modal
-                        $("#editModal").modal('hide');
-                        
-                        // Mostrar mensaje de éxito
-                        showAlert('success', response.message);
-                        
-                        // Actualizar la fila en la tabla sin recargar
-                        updateProductRow(response.toma_fisica);
-                    }
-                },
-                error: function(xhr) {
-                    let errorMsg = 'Ha ocurrido un error al guardar los cambios.';
-                    
-                    // Mostrar errores de validación si están disponibles
-                    if (xhr.responseJSON && xhr.responseJSON.errors) {
-                        errorMsg = xhr.responseJSON.errors;
-                    }
-                    
-                    // Mostrar los errores en el modal
-                    $("#editModalErrors").html(`
-                        <div class="alert alert-danger">
-                            ${errorMsg}
-                        </div>
-                    `).show();
-                }
-            });
-        });
-        
-        // Función para actualizar una fila en la tabla
-        function updateProductRow(toma_fisica) {
-            const row = $(`tr[data-product-id="${toma_fisica.id}"]`);
-            
-            if (row.length) {
-                row.find('.inventario-nombre').text(toma_fisica.cantidad_total);
-                // Actualizar otros campos según sea necesario
-            } else {
-                // Si es necesario, recargar la tabla o agregar la nueva fila
-                location.reload();
+    // get data tf
+    function get_data(btn) {
+        const id_tf = btn.getAttribute('data-product-id');
+        const title = btn.getAttribute('data-product-name');
+        const url = `/metro/toma-fisica-edit/${id_tf}`;
+
+        fetch(url).then(response => {
+            if (!response.ok) {
+                throw new Error(`Error: ${response.status} ${response.statusText}`);
             }
+            return response.json();
+            }).then(data => {
+                const product = data.product;
+                const form = data.form;
+                
+                document.getElementById('codigo_gim').innerHTML = product.codigo_gim;
+                document.getElementById('codigo_hm').innerHTML = product.codigo_hm;
+                document.getElementById('nombre_gim').innerHTML = product.nombre_gim;
+                document.getElementById('marca').innerHTML = product.marca;
+                document.getElementById('ubicacion').innerHTML = product.ubicacion;
+                document.getElementById('form-body-edit').innerHTML = form
+
+                initSumTotal();
+            })
+    }
+
+    // suma de total
+    function initSumTotal() {
+        // Seleccionar los campos de entrada
+        const undEstanteria = document.getElementById('id_cantidad_estanteria');
+        const undBulto = document.getElementById('id_cantidad_bulto');
+        
+        // Verificar si los campos existen
+        if (!undEstanteria || !undBulto) {
+            console.error('No se encontraron los campos de cantidad');
+            return;
         }
         
-        // Función para mostrar alertas
-        function showAlert(type, message) {
-            const alertHtml = `
-                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-                    ${message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        // Crear/buscar el elemento para mostrar el total
+        let totalElement = document.getElementById('total');
+        
+        // Si no existe el elemento total, crearlo
+        if (!totalElement) {
+            // Buscar el elemento después del cual queremos agregar el total
+            const parentElement = undBulto.closest('.mb-3') || undBulto.parentElement;
+            
+            // Crear contenedor para el total
+            const totalContainer = document.createElement('div');
+            totalContainer.className = 'mb-3 mt-2';
+            
+            // Añadir HTML con la etiqueta y el span para el total
+            totalContainer.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <label class="form-label me-2 mb-0 fw-bold">Total:</label>
+                    <span id="total" class="fw-bold fs-5">0</span>
                 </div>
             `;
             
-            $("#alertsContainer").html(alertHtml);
-        }
-    });
-</script>
-
-
-<!-- Estado inventario -->
-<script>
-    function change_estado_tf(btn) {
-        var estado_tf = btn.value;
-        var id_tf     = btn.getAttribute('data-inventario-id');
-
-        fetch(`/metro/inventario-estado-tf/${id_tf}`, {
-            method: 'POST',
-            headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': obtenerCSRFToken() // Función para obtener el token CSRF
-            },
-            body: JSON.stringify({'estado_tf':estado_tf})
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Error en la respuesta: ' + response.status);
+            // Insertar después del campo de bulto
+            if (parentElement.nextElementSibling) {
+                parentElement.parentNode.insertBefore(totalContainer, parentElement.nextElementSibling);
+            } else {
+                parentElement.parentNode.appendChild(totalContainer);
             }
-            return response.json();
-        })
-        .then(data => {
-            // console.log('Respuesta:', data);
-            // Aquí puedes actualizar la UI si es necesario
-            location.reload();
-            // Por ejemplo, cambiar algún indicador visual
-        })
-        .catch(error => {
-            console.error('Error al cambiar estado:', error);
-        });
+            
+            // Ahora podemos obtener la referencia al elemento total
+            totalElement = document.getElementById('total');
+        }
+        
+        // Función para calcular y actualizar el total
+        function updateTotal() {
+            // Obtener valores como números (o 0 si no son válidos)
+            const estanteriaValue = parseInt(undEstanteria.value) || 0;
+            const bultoValue = parseInt(undBulto.value) || 0;
+            
+            // Calcular el total
+            const total = estanteriaValue + bultoValue;
+            
+            // Actualizar el elemento total
+            document.getElementById('total').textContent = total;
+            
+            // También podemos guardar el valor en un campo oculto si necesitamos enviarlo al backend
+            const hiddenTotal = document.getElementById('id_total');
+            if (hiddenTotal) {
+                hiddenTotal.value = total;
+            }
+        }
+        
+        // Agregar event listeners a los campos
+        undEstanteria.addEventListener('input', updateTotal);
+        undBulto.addEventListener('input', updateTotal);
+        
+        // Calcular el total inicial
+        updateTotal();
+        
+        console.log('Suma automática inicializada correctamente');
+
     }
 
-    // Función para obtener el token CSRF de Django
-    function obtenerCSRFToken() {
-    // Busca la cookie con el token CSRF
-        const cookieValue = document.cookie
-            .split('; ')
-            .find(row => row.startsWith('csrftoken='))
-            ?.split('=')[1];
-        
-        return cookieValue;
-    }
 </script>
+
+<script src="{% static 'js/metro/metro.js' %}"></script>
 
 {% endblock %}

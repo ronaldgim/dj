@@ -26,16 +26,16 @@ urlpatterns = [
         name = 'metro_inventarios_list'
     ),
     
+    # path(
+    #     route = 'inventario-edit/<int:id>',
+    #     view = views.metro_inventario_edit,
+    #     name = 'metro_inventario_edit'
+    # ),
+
     path(
-        route = 'inventario-edit/<int:id>',
-        view = views.metro_inventario_edit,
-        name = 'metro_inventario_edit'
-    ),
-    
-    path(
-        route = 'inventario-estado/<int:id>',
-        view = views.metro_inventario_estado,
-        name = 'metro_inventario_estado'
+        route = 'inventario-edit-patch/<int:id>',
+        view = views.metro_inventario_patch,
+        name = 'metro_inventario_patch'
     ),
     
     path(

@@ -1,5 +1,5 @@
-{%extends 'base.html' %}
-
+{% extends 'base.html' %}
+{% load static %}
 {% block title %}
 <title>Inventarios</title>
 {% endblock%}
@@ -71,9 +71,10 @@
                         <th scope="col">#</th>
                         <th scope="col">Nombre</th>
                         <th scope="col">Estado Inventario</th>
-                        <th scope="col">Estado Toma Física</th>
-                        <th scope="col">Inicio Toma Física</th>
-                        <th scope="col">Fin Toma Física</th>
+                        <th scope="col">Estado T.F.</th>
+                        <th scope="col">Inicio T.F.</th>
+                        <th scope="col">Fin T.F.</th>
+                        <th scope="col">Tiempo T.F.(H:M)</th>
                         <th scope="col">Creado</th>
                         <th scope="col">Modificado</th>
                         <th scope="col">Usuario</th>
@@ -120,46 +121,60 @@
                             </span>
 
                         </td>
-                        <td>{{i.inicio_tf|date:'Y-m-d H:m'|default:"-"}}</td>
-                        <td>{{i.fin_tf|date:'Y-m-d H:m'|default:"-"}}</td>
+                        
+                        <td class="text-end">{{i.inicio_tf|date:'Y-m-d H:i'|default:'-'}}</td>
+                        <td class="text-end">{{i.fin_tf|date:'Y-m-d H:i'|default:"-"}}</td>
+                        <td class="text-end">{{i.diff_tiempo}}</td>
                         <td>{{i.creado|date:'Y-m-d H:m'}}</td>
                         <td>{{i.actualizado|date:'Y-m-d H:m'}}</td>
                         <td>{{i.usuario.first_name}} {{i.usuario.last_name}}</td>
                         <td>
                             <div class="btn-group" role="group" aria-label="Basic example">
-                                <button 
+                                <!--button 
                                     class="btn btn-sm btn-white border edit-inventario-btn"
                                     data-inventario-id="{{ i.id }}" 
                                     data-inventario-name="Editar: {{ i.nombre }}"
                                 >
-                                    <!--i class="bi bi-pencil"></i-->
+                                    ✏
+                                </button-->
+                                <button 
+                                    class="btn btn-sm btn-white border"
+                                    data-inventario-id="{{ i.id }}" 
+                                    data-inventario-name="{{ i.nombre | upper }}"
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#editModalNombre"
+                                    onclick=open_modal_actualizar_nombre(this)
+                                >
                                     ✏
                                 </button>
                                 <a class="btn btn-sm btn-white border" href="{% url 'metro_toma_fisica' i.id %}">
                                     <!--i class="bi bi-eye"></i-->
                                     📄
                                 </a>
-
+                                {% if i.estado_inv == 'CERRADO' %}
                                 <button 
                                     type="button" 
                                     class="btn btn-sm btn-primary" 
                                     data-inventario-id="{{ i.id }}" 
+                                    name="estado_inv"
                                     value="ABIERTO"
-                                    onclick=change_estado_inv(this)
+                                    onclick=estado_inventario_inv(this)
                                 >
                                     <i class="bi bi-check-square-fill"></i>
                                 </button>
-
+                                {% endif %}
+                                {% if i.estado_inv == 'ABIERTO' %}
                                 <button 
                                     type="button" 
                                     class="btn btn-sm btn-secondary"
                                     data-inventario-id="{{ i.id }}" 
+                                    name="estado_inv"
                                     value="CERRADO"
-                                    onclick=change_estado_inv(this)
+                                    onclick=estado_inventario_inv(this)
                                 >
                                     <i class="bi bi-x-square-fill"></i>
                                 </button>
-
+                                {% endif %}
                             </div>
                         </td>
                     </tr>
@@ -171,7 +186,7 @@
 </div>
 
 
-<!-- Nuevo Producto -->
+<!-- Nuevo -->
 <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -252,23 +267,29 @@
 </div>
 
 
-<!-- Editar Producto -->
-<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+<!-- Editar -->
+<div class="modal fade" id="editModalNombre" tabindex="-1" aria-labelledby="editModalNombreLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="editModalLabel">Editar Inventario</h5>
+                <h5 class="modal-title" id="editModalLabel">Editar Nombre</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div id="editModalErrors"></div>
-            <form method="post" id="form-edit">
+            <div id="editModalNombreErrors"></div>
+            <form onsubmit="nombre_inventario(); return false;">
                 {% csrf_token %}
-                <div class="modal-body" id="editModalBody">
-                    <!-- El contenido del formulario se cargará aquí vía AJAX -->
+                <div class="modal-body" id="editModalNombreBody">
+                    <input id="inv_nombre" class="form-control">
+                    <input id="id_inv" type="hidden">
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                    <button type="reset" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button 
+                        type="submit" 
+                        class="btn btn-primary"
+                    >
+                        Guardar cambios
+                    </button>
                 </div>
             </form>
         </div>
@@ -290,105 +311,7 @@
 </script>
 
 
-<!-- Editar nombre -->
-<script>
-    $(document).ready(function() {
-        // Abrir el modal de edición al hacer clic en un botón de editar
-        $(".edit-inventario-btn").click(function() {
-            const productId = $(this).data('inventario-id');
-            const modalTitle = $(this).data('inventario-name') || 'Editar Inventario';
-
-            // Limpiar el modal antes de cargar el nuevo contenido
-            $("#editModalBody").html('<div class="text-center"><div class="spinner-border" role="status"></div></div>');
-            $("#editModalLabel").text(modalTitle);
-            
-            // Mostrar el modal
-            $("#editModal").modal('show');
-            
-            // Cargar el formulario mediante AJAX
-            $.ajax({
-                url: `/metro/inventario-edit/${productId}`,
-                type: 'GET',
-                success: function(response) {
-                    $("#form-edit").attr("action", `/metro/inventario-edit/${productId}`);
-                    $("#editModalBody").html(response);
-                    $("#editModalBody label").addClass("fw-bold");
-                    $("#editModalBody .row").addClass("mb-3");
-                },
-                error: function() {
-                    $("#editModalBody").html('<div class="alert alert-danger">Error al cargar el formulario.</div>');
-                }
-            });
-        });
-        
-        // Manejar el envío del formulario mediante AJAX
-        $("#editModal").on('submit', 'form', function(e) {
-            e.preventDefault();
-            
-            const form = $(this);
-            const url = form.attr('action'); // || form.data('url');
-            console.log(url);
-            $.ajax({
-                url: url,
-                type: 'POST',
-                data: form.serialize(),
-                success: function(response) {
-                    if (response.success) {
-                        // Cerrar el modal
-                        $("#editModal").modal('hide');
-                        
-                        // Mostrar mensaje de éxito
-                        showAlert('success', response.message);
-                        
-                        // Actualizar la fila en la tabla sin recargar
-                        updateProductRow(response.inventario);
-                    }
-                },
-                error: function(xhr) {
-                    let errorMsg = 'Ha ocurrido un error al guardar los cambios.';
-                    
-                    // Mostrar errores de validación si están disponibles
-                    if (xhr.responseJSON && xhr.responseJSON.errors) {
-                        errorMsg = xhr.responseJSON.errors;
-                    }
-                    
-                    // Mostrar los errores en el modal
-                    $("#editModalErrors").html(`
-                        <div class="alert alert-danger">
-                            ${errorMsg}
-                        </div>
-                    `).show();
-                }
-            });
-        });
-        
-        // Función para actualizar una fila en la tabla
-        function updateProductRow(inventario) {
-            const row = $(`tr[data-product-id="${inventario.id}"]`);
-            
-            if (row.length) {
-                row.find('.inventario-nombre').text(inventario.nombre);
-                // Actualizar otros campos según sea necesario
-            } // else {
-                // Si es necesario, recargar la tabla o agregar la nueva fila
-                // location.reload();
-            //}
-        }
-        
-        // Función para mostrar alertas
-        function showAlert(type, message) {
-            const alertHtml = `
-                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-                    ${message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            `;
-            
-            $("#alertsContainer").html(alertHtml);
-        }
-    });
-</script>
-
+<!-- Actualizar vista -->
 <script>
     function actualizar() {
         location.reload();
@@ -396,46 +319,31 @@
 </script>
 
 
-<!-- Estado inventario -->
+<!-- Actualizar estado estado_inv 'ABIERTO' - 'CERRADO' -->
 <script>
-    function change_estado_inv(btn) {
-        var estado_inv = btn.value;
-        var id_inv     = btn.getAttribute('data-inventario-id');
+    // actualizar nombre  
+    function open_modal_actualizar_nombre(btn) {
+        const nombre = btn.getAttribute('data-inventario-name');
+        const id_inv = btn.getAttribute('data-inventario-id');
+        document.getElementById('inv_nombre').value = nombre;
+        document.getElementById('id_inv').value = id_inv;
+    };
 
-        fetch(`/metro/inventario-estado/${id_inv}`, {
-            method: 'POST',
-            headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': obtenerCSRFToken() // Función para obtener el token CSRF
-            },
-            body: JSON.stringify({'estado_inv':estado_inv})
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Error en la respuesta: ' + response.status);
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Respuesta:', data);
-            // Aquí puedes actualizar la UI si es necesario
-            location.reload();
-            // Por ejemplo, cambiar algún indicador visual
-        })
-        .catch(error => {
-            console.error('Error al cambiar estado:', error);
-        });
-    }
+    function nombre_inventario() {
+        const nombreValue = document.getElementById('inv_nombre').value;
+        const id_inv = document.getElementById('id_inv').value;
+        metro_patch_inventario(id_inv, {'nombre':nombreValue});
+    };
 
-    // Función para obtener el token CSRF de Django
-    function obtenerCSRFToken() {
-    // Busca la cookie con el token CSRF
-        const cookieValue = document.cookie
-            .split('; ')
-            .find(row => row.startsWith('csrftoken='))
-            ?.split('=')[1];
-        
-        return cookieValue;
-    }
+    function estado_inventario_inv(btn) {
+        const id_inv = btn.getAttribute('data-inventario-id');
+        const campo  = btn.name;
+        const estado_inv = btn.value;
+        const cambios = {[campo]:estado_inv};
+        metro_patch_inventario(id_inv, cambios)
+    };
 </script>
+
+<script src="{% static 'js/metro/metro.js' %}"></script>
+
 {% endblock %}

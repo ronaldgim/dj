@@ -187,7 +187,8 @@ class TomaFisicaForm(forms.ModelForm):
                 'class': 'form-control',
                 'placeholder': '',
                 'autocomplete': 'off',
-                'cols': '1'
+                'cols': '1',
+                'rows':'2'
             }),
         }
     
