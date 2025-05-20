@@ -9,6 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.forms.models import model_to_dict
 import json
 from django.views.decorators.http import require_POST
+import datetime
 
 
 ### PRODUCTOS
@@ -235,7 +236,7 @@ def metro_inventario_estado(request, id):
 @require_POST  # Asegura que solo se acepten solicitudes POST
 @login_required(login_url='login')
 def metro_inventario_estado_tf(request, id):
-    import datetime
+
     try:
         # Decodificar el JSON recibido
         data = json.loads(request.body) 
