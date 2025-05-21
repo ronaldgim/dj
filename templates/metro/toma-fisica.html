@@ -279,12 +279,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="editModalLabel">Toma física de inventario</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <div id="editModalErrors"></div>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                <!--button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button-->
             </div>
 
             <div class="modal-body">
@@ -488,15 +483,11 @@
                 bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
 
             } else {
-                document.getElementById('editModalErrors').innerHTML = data.errors_html || "Error al guardar.";
+                msg_alert('danger', `❌ Error al guardar !!!`);
             }
         })
         .catch(error => {
-            // console.error("Fetch error:", error);
-            // document.getElementById('editModalErrors').innerHTML =
-            //     "Error al procesar la solicitud: " + error.message;
             msg_alert('danger', `❌ Error ${error.message} !!!`);
-
         });
     }
 </script>

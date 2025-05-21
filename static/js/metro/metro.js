@@ -44,7 +44,6 @@ function metro_patch_inventario(id, datosParciales) {
     });
 }
 
-
 function msg_alert(type, msg) {
     // Crear contenedor si no existe
     let toastContainer = document.getElementById('toast-container');
@@ -54,20 +53,20 @@ function msg_alert(type, msg) {
         toastContainer.style.position = 'fixed';
         toastContainer.style.top = '1rem';
         toastContainer.style.right = '1rem';
-        toastContainer.style.zIndex = '1060'; // Sobre modals
+        toastContainer.style.zIndex = '1060';
+        toastContainer.style.pointerEvents = 'none'; // Evita que afecte la interacción general
         document.body.appendChild(toastContainer);
     }
 
     // Crear toast
-    const toastId = `toast-${Date.now()}`;
     const toast = document.createElement('div');
-    toast.className = `toast align-items-center text-bg-${type} border-0 show`;
+    toast.className = `toast text-bg-${type} border-0`;
     toast.setAttribute('role', 'alert');
     toast.setAttribute('aria-live', 'assertive');
     toast.setAttribute('aria-atomic', 'true');
-    toast.id = toastId;
     toast.style.minWidth = '250px';
     toast.style.marginBottom = '0.5rem';
+    toast.style.pointerEvents = 'auto'; // Permite clicks dentro del toast
 
     toast.innerHTML = `
         <div class="d-flex">
@@ -80,9 +79,10 @@ function msg_alert(type, msg) {
 
     toastContainer.appendChild(toast);
 
-    // Eliminar después de 5s automáticamente
-    setTimeout(() => {
-        toast.classList.remove('show');
-        toast.addEventListener('transitionend', () => toast.remove());
-    }, 5000);
+    // Inicializar Bootstrap Toast con JavaScript
+    const bsToast = new bootstrap.Toast(toast, { delay: 5000 });
+    bsToast.show();
+
+    // Eliminar del DOM cuando desaparece
+    toast.addEventListener('hidden.bs.toast', () => toast.remove());
 }
