@@ -131,10 +131,6 @@
 
 <hr>
 
-<!--button type="button" class="btn btn-sm btn-primary mt-2 mb-2" data-bs-toggle="modal" data-bs-target="#exampleModal">
-    Nuevo Inventario
-</button-->
-
 <div class="col-12">
     <input id="inputbuscar" type="text" placeholder="Buscar..." class="form-control">
 </div>
@@ -199,88 +195,6 @@
     </div>
 </div>
 
-{% comment %}
-<!-- Nuevo Producto -->
-<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-        <div class="modal-header">
-            <h5 class="modal-title" id="exampleModalLabel">Nuevo Producto</h5>
-            <button type="reset" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-            
-            <div class="container mt-2">
-                <div class="card shadow-sm">
-                    <div class="card-body">
-                        <form method="post">
-                            {% csrf_token %}
-                            
-                            <!--input name="usuario" value="{{request.user}}"/-->
-                            <!-- Campos ocultos -->
-                            {% for hidden_field in form.hidden_fields %}
-                                {{ hidden_field }}
-                            {% endfor %}
-
-                            <!-- Campos visibles con estructura responsiva -->
-                            {% for field in form.visible_fields %}
-                                <div class="row mb-3 align-items-center">
-                                    <!-- En dispositivos pequeños, la etiqueta está arriba del campo -->
-                                    <!-- En dispositivos medianos y grandes, la etiqueta está a la izquierda -->
-                                    <div class="col-12 col-md-4 text-md-end mb-2 mb-md-0">
-                                        <label for="{{ field.id_for_label }}" class="form-label fw-bold">
-                                            {{ field.label }}
-                                            {% if field.field.required %}
-                                                <span class="text-danger">*</span>
-                                            {% endif %}
-                                        </label>
-                                    </div>
-                                    
-                                    <div class="col-12 col-md-8">
-                                        {% if field.name == 'activo' %}
-                                            <div class="form-check form-switch">
-                                                {{ field }}
-                                            </div>
-                                        {% else %}
-                                            {{ field }}
-                                        {% endif %}
-                                        
-                                        {% if field.errors %}
-                                            <div class="invalid-feedback d-block">
-                                                {% for error in field.errors %}
-                                                    <small>{{ error }}</small>
-                                                {% endfor %}
-                                            </div>
-                                        {% endif %}
-                                        
-                                        {% if field.help_text %}
-                                            <div class="form-text text-muted">
-                                                <small>{{ field.help_text }}</small>
-                                            </div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            {% endfor %}
-                            <hr>
-                            <!-- Botones de acción -->
-                            <div class="col-12 col-md-8">
-                                <button type="submit" class="btn btn-primary">
-                                    Guardar
-                                </button>
-                                <button type="reset" class="btn btn-secondary ms-2" data-bs-dismiss="modal">
-                                    Cancelar
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-        </div>
-    </div>
-</div>
-{% endcomment %}
-
 
 <!-- TOMA FISICA -->
 <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
@@ -309,8 +223,6 @@
                         <button type="submit" class="btn btn-success">Guardar</button>
                     </div>
                 </form>
-
-                <!--label class="fw-bold">Total:</label> <span id="total"></span-->
             </div>
         </div>
     </div>
@@ -472,8 +384,6 @@
         })
         .then(data => {
             if (data.success) {
-                msg_alert('success', `✔ Toma física del producto ${data.toma_fisica.codigo_gim} datos existosa !!!`);
-
                 const toma = data.toma_fisica;
                 const row = document.querySelector(`#row-${toma.id}`);
                 row.style.backgroundColor = '#BAF690';
@@ -483,6 +393,7 @@
                 }
 
                 bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+                msg_alert('success', `✔ Toma física del producto ${data.toma_fisica.codigo_gim} datos existosa !!!`);
 
             } else if (data.cerrado) {
                 bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();

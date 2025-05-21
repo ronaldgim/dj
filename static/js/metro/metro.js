@@ -64,9 +64,11 @@ function msg_alert(type, msg) {
     toastWrapper.setAttribute('role', 'alert');
     toastWrapper.setAttribute('aria-live', 'assertive');
     toastWrapper.setAttribute('aria-atomic', 'true');
+    toastWrapper.setAttribute('tabindex', '-1');
     toastWrapper.style.minWidth = '250px';
     toastWrapper.style.marginBottom = '0.5rem';
     toastWrapper.style.pointerEvents = 'auto'; // Botón cerrable
+
     toastWrapper.innerHTML = `
         <div class="d-flex">
             <div class="toast-body">${msg}</div>
