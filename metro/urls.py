@@ -43,31 +43,6 @@ urlpatterns = [
         view = views.metro_inventario_informe_excel,
         name = 'metro_inventario_informe_excel'
     ),
-        
-    path(
-        route = 'inventario-estado-tf/<int:id>',
-        view = views.metro_inventario_estado_tf,
-        name = 'metro_inventario_estado_tf'
-    ),
-    
-    path(
-        route = 'inventario-estado-tf/<int:id>',
-        view = views.metro_inventario_estado_tf,
-        name = 'metro_inventario_estado_tf'
-    ),
-    
-    
-    # path(
-    #     route = 'toma-fisica/<int:inventario_id>',
-    #     view = views.TomaFisicaView.as_view(),
-    #     name = 'metro_toma_fisica'
-    # ),
-    
-    # path(
-    #     route = 'toma-fisica-data/<int:inventario_id>',
-    #     view = views.metro_toma_fisica_data,
-    #     name = 'metro_toma_fisica_data'
-    # ),
     
     path(
         route = 'toma-fisica-list',

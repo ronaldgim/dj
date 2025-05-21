@@ -284,82 +284,6 @@ def metro_inventario_informe_excel(request, id):
     else:
         messages.success(request, 'Reservas actualizadas, no hay items que mover !!!')
         return HttpResponseRedirect(f'/metro/inventario-informe/{inventario.id}')
-    
-    
-
-# # Toma física template
-# from django.contrib.auth.mixins import LoginRequiredMixin
-# from django.views.generic import TemplateView
-
-
-# class TomaFisicaView(LoginRequiredMixin, TemplateView):
-#     template_name = 'metro/toma_fisica.html'
-
-
-# # Toma Física
-# @login_required(login_url='login')
-# def metro_toma_fisica_data(request, inventario_id):
-#     print(inventario)
-#     inventario = Inventario.objects.get(id=inventario_id)
-#     products = TomaFisica.objects.filter(inventario = inventario_id)
-    
-#     return JsonResponse({
-#         # 'inventario':inventario,
-#         'inventario': model_to_dict(inventario),
-#         # 'products':products
-#         'products':list(products.values())
-#     })
-
-#     # context = {
-#     #     'inventario':inventario,
-#     #     'products':products
-#     # }
-#     # return render(request, 'metro/toma-fisica.html', context)
-
-
-
-
-# Estado inventario toma fisica
-@require_POST  # Asegura que solo se acepten solicitudes POST
-@login_required(login_url='login')
-def metro_inventario_estado_tf(request, id):
-
-    try:
-        # Decodificar el JSON recibido
-        data = json.loads(request.body) 
-        nuevo_estado = data.get('estado_tf')
-        
-        # Validar que se recibió el estado
-        if not nuevo_estado:
-            return JsonResponse({'error': 'No se proporcionó el estado'}, status=400)
-        
-        # Obtener y actualizar el inventario
-        inventario = Inventario.objects.get(id=id) 
-        
-        if inventario.estado_tf == 'CREADO' and nuevo_estado == 'EN PROCESO':
-            inventario.inicio_tf = datetime.datetime.now()
-            
-        if nuevo_estado == 'FINALIZADO':
-            inventario.fin_tf = datetime.datetime.now()
-        
-        inventario.estado_tf = nuevo_estado  # Asumiendo que el campo se llama "estado"
-        inventario.save()
-        
-        # Devolver respuesta exitosa con datos serializados manualmente
-        return JsonResponse({
-            'success': True,
-            'inventario': {
-                'id': inventario.id,
-                'estado': inventario.estado_tf,
-            }
-        })
-    except Inventario.DoesNotExist:
-        return JsonResponse({'error': 'Inventario no encontrado'}, status=404)
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'JSON inválido'}, status=400)
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
-
 
 
 ### TOMA FISICA
@@ -379,7 +303,7 @@ def metro_toma_fisica_list(request):
 def metro_toma_fisica(request, inventario_id):
     
     inventario = Inventario.objects.get(id=inventario_id)
-    products = TomaFisica.objects.filter(inventario = inventario_id)
+    products = TomaFisica.objects.filter(inventario=inventario_id)
     
     context = {
         'inventario':inventario,
@@ -417,19 +341,21 @@ def metro_toma_fisica_edit(request, id):
     
     if request.method == 'POST':
         # Procesar el formulario enviado
-        form = TomaFisicaForm(request.POST, instance=toma_fisica)
+        form = TomaFisicaForm(request.POST, instance=toma_fisica) 
         if form.is_valid():
             toma = form.save(commit=False)
             toma.usuario = request.user
             toma.llenado = True
             toma.save()
             
-            messages.success(request, f'Toma física exitosa !!!')
+            # messages.success(request, f'Toma física exitosa !!!')
             return JsonResponse({
                 'success': True,
                 'message': 'Toma física exitosa.',
                 # Datos actualizados para refrescar la tabla sin recargar
                 'toma_fisica': {
+                    'codigo_gim':toma_fisica.product.codigo_gim,
+                    'id':toma_fisica.id,
                     'cantidad_total': toma_fisica.cantidad_total,
                     'llenado':toma_fisica.llenado
                 }
