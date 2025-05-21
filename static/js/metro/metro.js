@@ -50,9 +50,9 @@ function msg_alert(type, msg) {
     if (!toastContainer) {
         toastContainer = document.createElement('div');
         toastContainer.id = 'toast-container';
-        toastContainer.style.position = 'fixed';
+        // toastContainer.style.position = 'fixed';
         toastContainer.style.top = '1rem';
-        toastContainer.style.right = '1rem';
+        // toastContainer.style.right = '1rem';
         toastContainer.style.zIndex = '1060';
         toastContainer.style.pointerEvents = 'none'; // No afecta interacciones debajo
         document.body.appendChild(toastContainer);
