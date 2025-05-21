@@ -1,19 +1,21 @@
-from django.shortcuts import render
+# Utils
+import json
+import datetime
+import pandas as pd
 
-from metro.models import Product, Inventario, TomaFisica
-from metro.forms import ProductForm, InventarioForm, TomaFisicaForm
+# Django
+from django.shortcuts import render
 from django.contrib import messages
 from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.forms.models import model_to_dict
-import json
-from django.views.decorators.http import require_POST
-import datetime
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import ensure_csrf_cookie
-import pandas as pd
 
+# Models
+from metro.models import Product, Inventario, TomaFisica
+from metro.forms import ProductForm, InventarioForm, TomaFisicaForm
 
 ### PRODUCTOS
 @login_required(login_url='login')
@@ -314,14 +316,9 @@ def metro_toma_fisica(request, inventario_id):
 
 @login_required(login_url='login')
 def metro_toma_fisica_edit(request, id):
-    """
-    Vista para manejar la edición de productos en un modal.
-    GET: Devuelve el formulario HTML para mostrar en el modal
-    POST: Procesa el formulario enviado y devuelve respuesta JSON
-    """
+    
     # Obtener el producto o devolver 404 si no existe
     toma_fisica = get_object_or_404(TomaFisica, id=id)
-    
     
     if request.method == 'GET':
         # Para solicitudes GET, crear el formulario con el producto existente
