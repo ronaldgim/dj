@@ -340,6 +340,12 @@ def metro_toma_fisica_edit(request, id):
         })
     
     if request.method == 'POST':
+        
+        if toma_fisica.inventario.estado_inv == 'CERRADO':
+            return JsonResponse({
+                'cerrado':True,
+            })
+        
         # Procesar el formulario enviado
         form = TomaFisicaForm(request.POST, instance=toma_fisica) 
         if form.is_valid():

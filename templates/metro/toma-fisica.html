@@ -74,7 +74,16 @@
     mb-2
     badge 
     fs-6
-    bg-info
+    text-white
+    {% if inventario.estado_tf == 'CREADO' %}
+        bg-primary
+    {% elif inventario.estado_tf == 'EN PROCESO' %}
+        bg-warning
+    {% elif inventario.estado_tf == 'EN PAUSA' %}
+        bg-danger
+    {% elif inventario.estado_tf == 'FINALIZADO' %}
+        bg-success
+    {% endif %}
     "
 >
     ESTADO: {{inventario.estado_tf}}
@@ -307,13 +316,6 @@
     </div>
 </div>
 
-<script>
-    $(document).ready(function() {
-        $("button[name='buscar']").click(function(){
-            $("#buscar").toggle()
-        })
-    })
-</script>
 
 <!--filtro buscar-->
 <script>
@@ -482,6 +484,12 @@
 
                 bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
 
+            } else if (data.cerrado) {
+                bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+                msg_alert('danger', `❌ El Inventario ha sido CERRADO !!!`);
+                setTimeout(function() {
+                    location.reload();
+                }, 5000)
             } else {
                 msg_alert('danger', `❌ Error al guardar !!!`);
             }
