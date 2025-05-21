@@ -54,35 +54,35 @@ function msg_alert(type, msg) {
         toastContainer.style.top = '1rem';
         toastContainer.style.right = '1rem';
         toastContainer.style.zIndex = '1060';
-        toastContainer.style.pointerEvents = 'none'; // Evita que afecte la interacción general
+        toastContainer.style.pointerEvents = 'none'; // No afecta interacciones debajo
         document.body.appendChild(toastContainer);
     }
 
-    // Crear toast
-    const toast = document.createElement('div');
-    toast.className = `toast text-bg-${type} border-0`;
-    toast.setAttribute('role', 'alert');
-    toast.setAttribute('aria-live', 'assertive');
-    toast.setAttribute('aria-atomic', 'true');
-    toast.style.minWidth = '250px';
-    toast.style.marginBottom = '0.5rem';
-    toast.style.pointerEvents = 'auto'; // Permite clicks dentro del toast
-
-    toast.innerHTML = `
+    // Crear elemento toast
+    const toastWrapper = document.createElement('div');
+    toastWrapper.className = 'toast align-items-center text-bg-' + type;
+    toastWrapper.setAttribute('role', 'alert');
+    toastWrapper.setAttribute('aria-live', 'assertive');
+    toastWrapper.setAttribute('aria-atomic', 'true');
+    toastWrapper.style.minWidth = '250px';
+    toastWrapper.style.marginBottom = '0.5rem';
+    toastWrapper.style.pointerEvents = 'auto'; // Botón cerrable
+    toastWrapper.innerHTML = `
         <div class="d-flex">
-            <div class="toast-body">
-                ${msg}
-            </div>
-            <button type="button" class="btn-close btn-close-black me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            <div class="toast-body">${msg}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
     `;
 
-    toastContainer.appendChild(toast);
+    // Agregar al contenedor sin causar scroll
+    toastContainer.appendChild(toastWrapper);
 
-    // Inicializar Bootstrap Toast con JavaScript
-    const bsToast = new bootstrap.Toast(toast, { delay: 5000 });
+    // Inicializar correctamente con Bootstrap Toast API
+    const bsToast = new bootstrap.Toast(toastWrapper, {
+        animation: true,
+        autohide: true,
+        delay: 5000
+    });
+
     bsToast.show();
-
-    // Eliminar del DOM cuando desaparece
-    toast.addEventListener('hidden.bs.toast', () => toast.remove());
 }

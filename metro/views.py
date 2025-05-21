@@ -276,8 +276,8 @@ def metro_inventario_informe_excel(request, id):
             worksheet.column_dimensions['L'].width = 13 # Und.Total
             worksheet.column_dimensions['M'].width = 25 # Observaciones
             worksheet.column_dimensions['N'].width = 11 # Llenado
-            worksheet.column_dimensions['N'].width = 11 # Agregado
-            worksheet.column_dimensions['N'].width = 20 # Usuario
+            worksheet.column_dimensions['O'].width = 11 # Agregado
+            worksheet.column_dimensions['P'].width = 20 # Usuario
             
         return response
 
