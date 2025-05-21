@@ -10,10 +10,8 @@
 
 {% block body %}
 
-<h5 class="m-4 text-center fw-bold mb-0">HOSPITAL METROPOLITANO</h5> <!--button class="btn btn-sm btn-primary">R</button-->
-<!--h6 class="m-4 text-center fw-bold mt-0">TOMA FÍSICA INVENTARIO {{inventario.enum}} - {{inventario.nombre}}</h6-->
+<h5 class="m-4 text-center fw-bold mb-0">HOSPITAL METROPOLITANO</h5>
 <h6 class="m-4 text-center fw-bold mt-0">{{inventario.enum}} - {{inventario.nombre}}</h6>
-
 
 <span
     class="
@@ -129,7 +127,7 @@
 </button-->
 
 <div class="col-12">
-    <input id="inputbuscar" type="text" placeholder="Filtro" class="form-control">
+    <input id="inputbuscar" type="text" placeholder="Buscar..." class="form-control">
 </div>
 
 <div id="msg"></div>
@@ -146,7 +144,7 @@
                 </thead>
                 <tbody id="pedidosbuscar">
                     {% for i in products %}
-                    <tr {% if i.llenado %} style="background-color:#BAF690" {% endif %}>
+                    <tr id="row-{{i.id}}" data-id="{{i.id}}" {% if i.llenado %} style="background-color:#BAF690" {% endif %}>
                         <td>
                             <label class="fw-bold">Código GIM: </label>
                             <span class="codigo_gim">{{i.product.codigo_gim}}</span>
@@ -164,7 +162,7 @@
                             <span class="unidad">{{i.product.unidad}}</span> 
                             <br>
                             <label class="fw-bold">Total: </label> 
-                            <span>{{i.cantidad_total}}</span> 
+                            <span class="cantidad_total">{{i.cantidad_total}}</span> 
                         </td>
                         <td>
                             <label class="fw-bold">Ubicación Hospital:</label>
@@ -176,12 +174,12 @@
                                     "
                                     data-product-id="{{ i.id }}" 
                                     data-product-name="Toma Física: GIM: {{ i.product.codigo_gim }} - HM: {{ i.product.codigo_hm }}"
-                                    data-bs-toggle="modal" 
-                                    data-bs-target="#editModal"
                                     onclick="get_data(this)"
                                     >
                                     <i class="bi bi-boxes"></i>
                                 </button>
+                                    <!--data-bs-toggle="modal" 
+                                    data-bs-target="#editModal"-->
                             </div>
                         </td>
                     </tr>
@@ -275,7 +273,7 @@
 {% endcomment %}
 
 
-<!-- Editar -->
+<!-- TOMA FISICA -->
 <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -283,8 +281,12 @@
                 <h5 class="modal-title" id="editModalLabel">Toma física de inventario</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div id="editModalErrors"></div>
-            <!--div class="modal-body" id="productInfo"><div-->
+            
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <div id="editModalErrors"></div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
             <div class="modal-body">
                 <label class="fw-bold">Código GIM:</label> <span id="codigo_gim"></span><br>
                 <label class="fw-bold">Código HM:</label> <span id="codigo_hm"></span><br>
@@ -292,7 +294,7 @@
                 <label class="fw-bold">Marca:</label> <span id="marca"></span><br>
                 <label class="fw-bold">Ubicación:</label> <span id="ubicacion"></span><br>
 
-                <form method="post" id="form-edit">
+                <form method="post" id="form-edit" onsubmit="post_data(event)">
                     {% csrf_token %}
                     
                     <hr>
@@ -300,7 +302,7 @@
                     
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                        <button type="submit" class="btn btn-success">Guardar</button>
                     </div>
                 </form>
 
@@ -344,6 +346,11 @@
         const id_tf = btn.getAttribute('data-product-id');
         const title = btn.getAttribute('data-product-name');
         const url = `/metro/toma-fisica-edit/${id_tf}`;
+
+        var modal = new bootstrap.Modal(document.getElementById('editModal'));
+        modal.show();
+
+        document.getElementById('form-edit').action = url;
 
         fetch(url).then(response => {
             if (!response.ok) {
@@ -433,11 +440,65 @@
         
         // Calcular el total inicial
         updateTotal();
-        
-        console.log('Suma automática inicializada correctamente');
-
+        // console.log('Suma automática inicializada correctamente');
     }
 
+    // post data tf
+    function post_data(event) {
+        event.preventDefault();
+
+        const form = document.getElementById('form-edit');
+        const url = form.action;
+        const formData = new FormData(form);
+
+        fetch(url, {
+            method: "POST",
+            headers: {
+                'X-CSRFToken': obtenerCSRFToken()
+            },
+            body: formData
+        })
+        .then(async response => {
+            const contentType = response.headers.get("content-type");
+
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`Error HTTP ${response.status}: ${text}`);
+            }
+
+            if (contentType && contentType.includes("application/json")) {
+                return await response.json();
+            } else {
+                const text = await response.text();
+                throw new Error("La respuesta no es JSON válida: " + text);
+            }
+        })
+        .then(data => {
+            if (data.success) {
+                msg_alert('success', `✔ Toma física del producto ${data.toma_fisica.codigo_gim} datos existosa !!!`);
+
+                const toma = data.toma_fisica;
+                const row = document.querySelector(`#row-${toma.id}`);
+                row.style.backgroundColor = '#BAF690';
+                if (row) {
+                    row.querySelector('.cantidad_total').textContent = toma.cantidad_total;
+                    // Puedes actualizar más campos aquí si están disponibles en data.toma_fisica
+                }
+
+                bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+
+            } else {
+                document.getElementById('editModalErrors').innerHTML = data.errors_html || "Error al guardar.";
+            }
+        })
+        .catch(error => {
+            // console.error("Fetch error:", error);
+            // document.getElementById('editModalErrors').innerHTML =
+            //     "Error al procesar la solicitud: " + error.message;
+            msg_alert('danger', `❌ Error ${error.message} !!!`);
+
+        });
+    }
 </script>
 
 <script src="{% static 'js/metro/metro.js' %}"></script>

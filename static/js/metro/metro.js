@@ -43,3 +43,46 @@ function metro_patch_inventario(id, datosParciales) {
         // mostrarError('No se pudo actualizar el producto');
     });
 }
+
+
+function msg_alert(type, msg) {
+    // Crear contenedor si no existe
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.style.position = 'fixed';
+        toastContainer.style.top = '1rem';
+        toastContainer.style.right = '1rem';
+        toastContainer.style.zIndex = '1060'; // Sobre modals
+        document.body.appendChild(toastContainer);
+    }
+
+    // Crear toast
+    const toastId = `toast-${Date.now()}`;
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-bg-${type} border-0 show`;
+    toast.setAttribute('role', 'alert');
+    toast.setAttribute('aria-live', 'assertive');
+    toast.setAttribute('aria-atomic', 'true');
+    toast.id = toastId;
+    toast.style.minWidth = '250px';
+    toast.style.marginBottom = '0.5rem';
+
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                ${msg}
+            </div>
+            <button type="button" class="btn-close btn-close-black me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    `;
+
+    toastContainer.appendChild(toast);
+
+    // Eliminar después de 5s automáticamente
+    setTimeout(() => {
+        toast.classList.remove('show');
+        toast.addEventListener('transitionend', () => toast.remove());
+    }, 5000);
+}
