@@ -75,8 +75,8 @@
                         <th scope="col">Inicio T.F.</th>
                         <th scope="col">Fin T.F.</th>
                         <th scope="col">Tiempo T.F.(H:M)</th>
+                        <th scope="col">Avance</th>
                         <th scope="col">Creado</th>
-                        <th scope="col">Modificado</th>
                         <th scope="col">Usuario</th>
                         <th scope="col">Acciones</th>
                     </tr>
@@ -125,18 +125,11 @@
                         <td class="text-end">{{i.inicio_tf|date:'Y-m-d H:i'|default:'-'}}</td>
                         <td class="text-end">{{i.fin_tf|date:'Y-m-d H:i'|default:"-"}}</td>
                         <td class="text-end">{{i.diff_tiempo}}</td>
+                        <td class="text-end">{{i.avance}} %</td>
                         <td>{{i.creado|date:'Y-m-d H:m'}}</td>
-                        <td>{{i.actualizado|date:'Y-m-d H:m'}}</td>
                         <td>{{i.usuario.first_name}} {{i.usuario.last_name}}</td>
                         <td>
                             <div class="btn-group" role="group" aria-label="Basic example">
-                                <!--button 
-                                    class="btn btn-sm btn-white border edit-inventario-btn"
-                                    data-inventario-id="{{ i.id }}" 
-                                    data-inventario-name="Editar: {{ i.nombre }}"
-                                >
-                                    ✏
-                                </button-->
                                 <button 
                                     class="btn btn-sm btn-white border"
                                     data-inventario-id="{{ i.id }}" 
@@ -147,8 +140,7 @@
                                 >
                                     ✏
                                 </button>
-                                <a class="btn btn-sm btn-white border" href="{% url 'metro_toma_fisica' i.id %}">
-                                    <!--i class="bi bi-eye"></i-->
+                                <a class="btn btn-sm btn-white border" href="{% url 'metro_inventario_informe' i.id %}">
                                     📄
                                 </a>
                                 {% if i.estado_inv == 'CERRADO' %}

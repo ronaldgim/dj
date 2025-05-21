@@ -3,18 +3,16 @@ from django.shortcuts import render
 from metro.models import Product, Inventario, TomaFisica
 from metro.forms import ProductForm, InventarioForm, TomaFisicaForm
 from django.contrib import messages
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.forms.models import model_to_dict
 import json
 from django.views.decorators.http import require_POST
 import datetime
-
-
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import ensure_csrf_cookie
-
+import pandas as pd
 
 
 ### PRODUCTOS
@@ -89,9 +87,9 @@ def metro_product_edit(request, id):
         return HttpResponse(form.as_p())
 
 
-@login_required(login_url='login')
-def metro_product_eliminar(request):
-    pass
+# @login_required(login_url='login')
+# def metro_product_eliminar(request):
+#     pass
 
 
 ### INVENTARIOS
@@ -189,12 +187,105 @@ def metro_inventario_patch(request, id):
         }, status=500)
 
 
+# @login_required(login_url='login')
+# def metro_inventario_eliminar(request):
+#     pass
+
+
 @login_required(login_url='login')
-def metro_inventario_eliminar(request):
-    pass
+def metro_inventario_informe(request, id):
+    
+    inventario = Inventario.objects.get(id=id)
+    products = TomaFisica.objects.filter(inventario=id)
+    
+    context = {
+        'inventario':inventario,
+        'products':products
+    }
+    return render(request, 'metro/inventario-informe.html', context)
 
 
+@login_required(login_url='login')
+def metro_inventario_informe_excel(request, id):
+    inventario = Inventario.objects.get(id=id)
+    products = TomaFisica.objects.filter(inventario=id).values(
+        'product__codigo_gim',
+        'product__codigo_hm',
+        'product__nombre_gim',
+        'product__nombre_hm',
+        'product__marca',
+        'product__unidad',
+        'product__u_empaque',
+        'product__consignacion',
+        'product__ubicacion',
+        'cantidad_estanteria',
+        'cantidad_bulto',
+        'cantidad_total',
+        'observaciones',
+        'llenado',
+        'agregado',
+        'usuario__username'
+    )
+    
+    reporte = pd.DataFrame(products)
+    reporte = reporte.rename(columns={
+        'product__codigo_gim':'Código GIM',
+        'product__codigo_hm':'Código HM',
+        'product__nombre_gim':'Nombre GIM',
+        'product__nombre_hm':'Nombre HM',
+        'product__marca':'Marca',
+        'product__unidad':'UM',
+        'product__u_empaque':'U.Empaque',
+        'product__consignacion':'Und.Consignación',
+        'product__ubicacion':'Ubicación',
+        'cantidad_estanteria':'Und.Estantería',
+        'cantidad_bulto':'Und.Bulto',
+        'cantidad_total':'Und.Total',
+        'observaciones':'Observaciones',
+        'llenado':'Llenado',
+        'agregado':'Agregado',
+        'usuario__username':'Usuario'
+    })
+    
+    if not reporte.empty:
+        # hoy = datetime.today().strftime('%Y-%m-%d_%H-%M-%S')
+        nombre_archivo = f'Reporte-{inventario.nombre}_{inventario.creado}.xlsx'
+        content_disposition = f'attachment; filename="{nombre_archivo}"'
 
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = content_disposition
+
+        with pd.ExcelWriter(response, engine='openpyxl') as writer:
+            
+            reporte.to_excel(writer, sheet_name='Reporte-Reservas', index=False)
+            
+            workbook = writer.book
+            worksheet = writer.sheets['Reporte-Reservas']
+            
+            worksheet.column_dimensions['A'].width = 16 # Código GIM
+            worksheet.column_dimensions['B'].width = 16 # Código HM
+            worksheet.column_dimensions['C'].width = 50 # Nombre GIM
+            worksheet.column_dimensions['D'].width = 60 # Nombre HM
+            worksheet.column_dimensions['E'].width = 12 # Marca
+            worksheet.column_dimensions['F'].width = 5 # UM
+            worksheet.column_dimensions['G'].width = 12 # U.Empaque
+            worksheet.column_dimensions['H'].width = 16 # Und.Consignación
+            worksheet.column_dimensions['I'].width = 10 # Ubicación
+            worksheet.column_dimensions['J'].width = 13 # Und.Estantería
+            worksheet.column_dimensions['K'].width = 13 # Und.Bulto
+            worksheet.column_dimensions['L'].width = 13 # Und.Total
+            worksheet.column_dimensions['M'].width = 25 # Observaciones
+            worksheet.column_dimensions['N'].width = 11 # Llenado
+            worksheet.column_dimensions['N'].width = 11 # Agregado
+            worksheet.column_dimensions['N'].width = 20 # Usuario
+            
+        return response
+
+    else:
+        messages.success(request, 'Reservas actualizadas, no hay items que mover !!!')
+        return HttpResponseRedirect(f'/metro/inventario-informe/{inventario.id}')
+    
+    
 
 # # Toma física template
 # from django.contrib.auth.mixins import LoginRequiredMixin
