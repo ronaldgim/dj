@@ -69,25 +69,23 @@
 <div id="alertsContainer"></div>
 
 <hr>
+<span class="mb-2 fw-bold">ESTADO: </span>
 <span
     class="
-    mb-2
-    badge 
-    fs-6
-    text-white
+    fw-bold
     {% if inventario.estado_tf == 'CREADO' %}
-        bg-primary
+        text-primary
     {% elif inventario.estado_tf == 'EN PROCESO' %}
-        bg-warning
+        text-warning
     {% elif inventario.estado_tf == 'EN PAUSA' %}
-        bg-danger
+        text-danger
     {% elif inventario.estado_tf == 'FINALIZADO' %}
-        bg-success
+        text-success
     {% endif %}
     "
->
-    ESTADO: {{inventario.estado_tf}}
-</span>
+> {{inventario.estado_tf}}</span>
+
+
 <br>
 
 {% if inventario.estado_tf == 'CREADO' %}
