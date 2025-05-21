@@ -26,12 +26,6 @@ urlpatterns = [
         name = 'metro_inventarios_list'
     ),
     
-    # path(
-    #     route = 'inventario-edit/<int:id>',
-    #     view = views.metro_inventario_edit,
-    #     name = 'metro_inventario_edit'
-    # ),
-
     path(
         route = 'inventario-edit-patch/<int:id>',
         view = views.metro_inventario_patch,
@@ -39,11 +33,28 @@ urlpatterns = [
     ),
     
     path(
+        route = 'inventario-informe/<int:id>',
+        view = views.metro_inventario_informe,
+        name = 'metro_inventario_informe'
+    ),
+    
+    path(
+        route = 'inventario-informe-excel/<int:id>',
+        view = views.metro_inventario_informe_excel,
+        name = 'metro_inventario_informe_excel'
+    ),
+        
+    path(
         route = 'inventario-estado-tf/<int:id>',
         view = views.metro_inventario_estado_tf,
         name = 'metro_inventario_estado_tf'
     ),
     
+    path(
+        route = 'inventario-estado-tf/<int:id>',
+        view = views.metro_inventario_estado_tf,
+        name = 'metro_inventario_estado_tf'
+    ),
     
     
     # path(

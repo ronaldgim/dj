@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}
+<title>Informe {{inventario.enum}}</title>
+{% endblock %}
+
+{% block navbar %}
+{% include 'metro/topnavbar.html' %}
+{% endblock %}
+
+{% block body_2 %}
+
+<h5 class="m-4 text-center fw-bold mb-0">INFORME INVENTARIO {{inventario.enum}} - {{inventario.nombre}}</h5>
+<h6 class="text-center fw-bold mt-0">{{inventario.creado}}</h6>
+
+<!-- MESSAGES -->
+<div class="container mt-3">
+    {% if form.errors %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong>Por favor corrija los siguientes errores:</strong>
+            <ul class="mb-0 mt-2">
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <li><strong>{{ field.label }}</strong>: {{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+                
+                {% for error in form.non_field_errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endif %}
+    
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
+
+<span class="fw-bold">Estado Inventario:</span class="fw-bold"> <span
+    class="
+    mb-2
+    badge 
+    fs-6
+    {% if inventario.estado_inv == 'ABIERTO' %} 
+        bg-primary 
+    {% elif inventario.estado_inv == 'CERRADO' %} 
+        bg-secondary 
+    {% endif %}
+    "
+>
+    {{inventario.estado_inv}}
+</span>
+<br>
+<span class="fw-bold">Estado Toma Física:</span class="fw-bold"> <span
+    class="
+    mb-2
+    badge 
+    fs-6
+    {% if inventario.estado_tf == 'CREADO' %} 
+        bg-primary 
+    {% elif inventario.estado_tf == 'EN PROCESO' %} 
+        bg-warning 
+    {% elif inventario.estado_tf == 'EN PAUSA' %} 
+        bg-danger 
+    {% elif inventario.estado_tf == 'FINALIZADO' %} 
+        bg-success 
+    {% endif %}
+    "
+>
+    {{inventario.estado_tf}}
+</span>
+<br>
+<span class="fw-bold">Inicio T.F.:</span> <span>{{inventario.inicio_tf|date:'Y-m-d H:i'|default:'-'}}</span>
+<br>
+<span class="fw-bold">Fin T.F.:</span> <span>{{inventario.fin_tf|date:'Y-m-d H:i'|default:'-'}}</span>
+<br>
+<span class="fw-bold">Duración T.F.:</span> <span>{{inventario.diff_tiempo}}</span>
+<br>
+
+<hr>
+<span class="fw-bold"># Total productos: </span> {{inventario.total_productos | floatformat:"0g"}} <br>
+<span class="fw-bold"># Contados: </span> {{inventario.productos_contados | floatformat:"0g"}} <br>
+<span class="fw-bold"># Pendientes: </span> {{inventario.productos_pendientes | floatformat:"0g"}} <br>
+<span class="fw-bold"># Avance: </span> {{inventario.avance | floatformat:"0g"}} %<br>
+
+
+
+
+<!-- Contenedor para alertas -->
+<div id="alertsContainer"></div>
+
+<hr>
+
+<div id="msg"></div>
+
+<div class="card mb-2 mt-2"> 
+    <div class="card-header">
+        INFORME TOMA FÍSICA
+        <div class="btn-group float-end" role="group" >
+            <a class="btn btn-sm btn-success" href="{% url 'metro_inventario_informe_excel' inventario.id %}">
+                <i class="bi bi-file-earmark-spreadsheet"></i>
+            </a>
+            <button class="btn btn-sm btn-primary" onclick="actualizar()">
+                <i class="bi bi-arrow-clockwise"></i>
+            </button>
+        </div>
+    </div>
+    <div class="card-body"> 
+    <div class="col-4">
+        <input id="inputbuscar" type="text" placeholder="Buscar..." class="form-control">
+    </div>
+        <div class="table-responsive">
+            <table class="table" style="font-size: small;">
+                <thead>
+                    <tr>
+                        <th scope="col">Código GIM</th>
+                        <th scope="col">Código HM</th>
+                        <th scope="col">Nombre GIM</th>
+                        <th scope="col">Nombre HM</th>
+                        <th scope="col">Marca</th>
+                        <th scope="col">UM</th>
+                        <th scope="col">Ubicación</th>
+                        <th scope="col">Consignación</th>
+                        <th scope="col">Und.Estanteria</th>
+                        <th scope="col">Und.Bulto</th>
+                        <th scope="col">Und.Total</th>
+                        <th scope="col">Llenado</th>
+                        <th scope="col">Agregado</th>
+                        <th scope="col">Usuario</th>
+                        <th scope="col">Observaciones</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in products %}
+                    <tr>
+                        <td class="codigo_gim">{{i.product.codigo_gim}}</td>
+                        <td class="codigo_hm">{{i.product.codigo_hm}}</td>
+                        <td class="nombre_gim">{{i.product.nombre_gim}}</td>
+                        <td class="nombre_gim">{{i.product.nombre_hm}}</td>
+                        <td class="marca">{{i.product.marca}}</td>
+                        <td class="unidad">{{i.product.unidad}}</td>
+                        <td class="text-end ubicacion">{{i.product.ubicacion}}</td>
+                        <td class="text-end consignacion">{{i.product.consignacion|floatformat:"0g"}}</td>
+                        <td class="text-end estanteria">{{i.cantidad_estanteria|floatformat:"0g"}}</td>
+                        <td class="text-end bulto">{{i.cantidad_bulto|floatformat:"0g"}}</td>
+                        <td class="text-end total">{{i.cantidad_total|floatformat:"0g"}}</td>
+                        <td class="text-center lenado">
+                            {% if i.llenado %} 
+                            <i class="bi bi-check-circle-fill" style="color:green"></i>
+                            {% else %}
+                            <i class="bi bi-x-circle-fill" style="color:red"></i>
+                            {% endif %}
+                        </td>
+                        <td class="text-center agregado">
+                            {% if i.agregado %} 
+                            <i class="bi bi-check-circle-fill" style="color:green"></i>
+                            {% else %}
+                            <i class="bi bi-x-circle-fill" style="color:red"></i>
+                            {% endif %}
+                        </td>
+                        <!--td class="usuario">{{i.usuario.first_name}} {{i.usuario.last_name}}</td-->
+                        <td class="usuario">{{i.usuario.username}}</td>
+                        <td class="observaciones">{{i.observaciones}}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<!--filtro buscar-->
+<script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+
+<script>
+    function actualizar() {
+        location.reload();
+    }
+</script>    
+
+{% endblock %}
