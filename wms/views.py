@@ -2353,11 +2353,11 @@ def wms_estado_picking_actualizar_ajax(request):
     if estado_post == 'FINALIZADO':
 
         pick = pedido_por_cliente(n_pedido=estado_picking.n_pedido)
-        pick_total_unidades = pick['QUANTITY'].sum() ;print(pick_total_unidades)
+        pick_total_unidades = pick['QUANTITY'].sum() #;print(pick_total_unidades)
         #movs = Movimiento.objects.filter(referencia='Picking').filter(estado_picking='En Despacho').filter(n_referencia=estado_picking.n_pedido).values_list('unidades', flat=True)
         movs = Movimiento.objects.filter(n_referencia=estado_picking.n_pedido).filter(estado_picking='En Despacho').values_list('unidades', flat=True)
         
-        movs_total_unidades = sum(movs) * -1 ; print(movs_total_unidades)
+        movs_total_unidades = sum(movs) * -1 #; print(movs_total_unidades)
             
         if estado_picking.bodega == 'BCT':
             

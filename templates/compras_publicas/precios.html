@@ -197,7 +197,7 @@
 <script>
     $("button[name='codigo']").click(function(){
         var codigo = $("#codigo").val();
-
+        console.log(codigo);
         $.ajax({
             type:"POST",
             url:"{% url 'facturas_busqueda_solo_por_product_ajax' %}",
@@ -207,7 +207,7 @@
             },
 
             success: function(response) {
-                console.log(response)
+                // console.log(response)
                 $('#ventas').html(
                     `<h5 class="text-center"><strong>VENTAS ${codigo}</strong></h5>
                     <div class="card mt-2 mb-2">
