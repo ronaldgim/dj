@@ -148,7 +148,7 @@ def tabla_facturas_menos_notadecredito_pro_producto(producto):
             dict(zip(columns, row))
             for row in cursor.fetchall()
         ]
-        facturas = pd.DataFrame(facturas)
+        facturas = pd.DataFrame(facturas) 
         
     with connections['gimpromed_sql'].cursor() as cursor:
         cursor.execute(
@@ -163,11 +163,14 @@ def tabla_facturas_menos_notadecredito_pro_producto(producto):
             for row in cursor.fetchall()
         ]
         
-        notas = pd.DataFrame(notas)
+        notas = pd.DataFrame(notas) 
         notas['nota_de_credito'] = 'nota_de_credito'
-        
+    
+    if not notas.empty:    
         data = facturas.merge(notas, on=['CODIGO_CLIENTE', 'PRODUCT_ID', 'FECHA', 'QUANTITY', 'UNIT_PRICE'], how='left').sort_values(by='FECHA')
         data = data[data['nota_de_credito']!='nota_de_credito']
+    else:
+        data = facturas
         
     prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     prod = prod.rename(columns={'product_id':'PRODUCT_ID'})
@@ -288,7 +291,7 @@ def facturas_por_product_ajax(request):
     product_id = request.POST['producto']
     #ventas = facturas_por_product(product_id)
     ventas = tabla_facturas_menos_notadecredito_pro_producto(product_id)
-    ventas['Precio Unitario'] = ventas['Precio Unitario'].astype(float)
+    ventas['Precio Unitario'] = ventas['Precio Unitario'].astype('float')
     ventas['Cantidad'] = ventas['Cantidad'].apply(lambda x:'{:,.0f}'.format(x)) 
     ventas['Precio Unitario'] = ventas['Precio Unitario'].apply(lambda x:f'$ {x}')
     
@@ -307,7 +310,7 @@ def facturas_busqueda_solo_por_product_ajax(request):
     product_id = request.POST.get('codigo') 
     #ventas = facturas_por_product(product_id) ; print(ventas)
     ventas = tabla_facturas_menos_notadecredito_pro_producto(product_id)
-    ventas['Precio Unitario'] = ventas['Precio Unitario'].astype(float)
+    ventas['Precio Unitario'] = ventas['Precio Unitario'].astype('float')
     ventas['Cantidad'] = ventas['Cantidad'].apply(lambda x:'{:,.0f}'.format(x))
     ventas['Precio Unitario'] = ventas['Precio Unitario'].apply(lambda x:f'$ {x}')
     
