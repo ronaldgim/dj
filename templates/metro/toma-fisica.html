@@ -10,7 +10,7 @@
 
 {% block body %}
 
-<h5 class="m-4 text-center fw-bold mb-0">HOSPITAL METROPOLITANO</h5>
+<h5 class="m-4 text-center fw-bold mb-0">TOMA DE INVENTARIO HOSPITAL METROPOLITANO</h5>
 <h6 class="m-4 text-center fw-bold mt-0">{{inventario.enum}} - {{inventario.nombre}}</h6>
 
 <span
@@ -164,8 +164,8 @@
                             <label class="fw-bold">Unidad: </label> 
                             <span class="unidad">{{i.product.unidad}}</span> 
                             <br>
-                            <label class="fw-bold">Total: </label> 
-                            <span class="cantidad_total">{{i.cantidad_total}}</span> 
+                            <label class="fw-bold">Total Unidades: </label> 
+                            <span class="cantidad_total fs-6">{{i.cantidad_total | floatformat:"0g"}}</span> 
                         </td>
                         <td>
                             <label class="fw-bold">Ubicación Hospital:</label>
@@ -391,6 +391,12 @@
                 }
 
                 bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+                
+                setTimeout(function() {
+                    document.getElementById('inputbuscar').value = '';
+                    location.reload();
+                }, 2000)
+
                 msg_alert('success', `✔ Toma física del producto ${data.toma_fisica.codigo_gim} datos existosa !!!`);
 
             } else if (data.cerrado) {
