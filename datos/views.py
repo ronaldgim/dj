@@ -658,7 +658,6 @@ def doc_transferencia_odbc(n_transf):
             "INVT_Producto_Lotes.FECHA_CADUCIDAD, INVT_Producto_Lotes.ENTRADA_TIPO, INVT_Lotes_Ubicacion.UBICACION, INVT_Lotes_Ubicacion.WARE_CODE_CORP "
             "FROM INVT_Lotes_Ubicacion INVT_Lotes_Ubicacion, INVT_Producto_Lotes INVT_Producto_Lotes "
             "WHERE INVT_Lotes_Ubicacion.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND INVT_Producto_Lotes.LOTE_ID = INVT_Lotes_Ubicacion.LOTE_ID AND "
-            # "((INVT_Lotes_Ubicacion.DOC_ID_CORP='A-0000063572-GIMPR') AND (INVT_Lotes_Ubicacion.EGRESO_TEMP>0) AND (INVT_Producto_Lotes.WARE_CODE_CORP='BCT')) "
             f"((INVT_Lotes_Ubicacion.DOC_ID_CORP='{n}') AND (INVT_Lotes_Ubicacion.EGRESO_TEMP>0) AND (INVT_Producto_Lotes.WARE_CODE_CORP='BCT'))"
         )
         
@@ -672,7 +671,7 @@ def doc_transferencia_odbc(n_transf):
             'LOTE_ID':'lote_id',
             'EGRESO_TEMP': 'unidades',
             'WARE_CODE_CORP': 'bodega_salida',
-            'FECHA_CADUCIDAD': 'f_elab',
+            'FECHA_ELABORACION_LOTE': 'f_elab',
             'FECHA_CADUCIDAD': 'f_cadu',
         })
         

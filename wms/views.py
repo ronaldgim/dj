@@ -2932,7 +2932,8 @@ def wms_transferencia_data_pdf_email(n_transferencia):
     transferencia['fecha_caducidad'] = transferencia['fecha_caducidad'].astype('str')
     productos = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     transferencia = transferencia.merge(productos, on='product_id', how='left')
-    
+    transferencia['fecha_hora'] = pd.to_datetime(transferencia['fecha_hora']).dt.date 
+    transferencia['fecha_hora'] = transferencia['fecha_hora'].astype('str')
     transferencia = de_dataframe_a_template(transferencia)
     
     for i in transferencia:
@@ -2947,6 +2948,7 @@ def wms_transferencia_data_pdf_email(n_transferencia):
             obs.append(i)
     
     return {
+        'cabecera':transferencia[0],
         'transferencia':transferencia,
         'obs':obs
     }
@@ -3031,6 +3033,7 @@ def wms_transferencia_input_ajax(request):
                 n_transferencia = i['n_transferencia'],
                 product_id      = i['product_id'],
                 lote_id         = i['lote_id'],
+                fecha_elaboracion = i['f_elab'],
                 fecha_caducidad = i['f_cadu'],
                 bodega_salida   = i['bodega_salida'],
                 unidades        = i['unidades'],
