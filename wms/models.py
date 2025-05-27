@@ -182,6 +182,7 @@ class Transferencia(models.Model):
     n_transferencia = models.CharField(verbose_name='Número de trasferencia', max_length=50)
     product_id      = models.CharField(verbose_name='Product id', max_length=50)
     lote_id         = models.CharField(verbose_name='Lote id', max_length=50)
+    fecha_elaboracion = models.DateField(verbose_name='Fecha de elaboracion', blank=True, null=True)
     fecha_caducidad = models.DateField(verbose_name='Fecha de caducidad')
     bodega_salida   = models.CharField(verbose_name='Bodega de salida', max_length=10)
     unidades        = models.PositiveIntegerField(verbose_name='Unidades ingresadas')
