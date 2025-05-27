@@ -112,8 +112,8 @@
                             <span id="marca">{{i.marca2}}</span><br>
                         </td>
                         <td class="text-end">
-                            <span id="p_unds">{{i.QUANTITY|floatformat:"0g"}}</span> <br>
-                            <span style="color:grey">{{i.Cartones|floatformat:"2g"}}</span> <br>
+                            <span id="p_unds" class="fw-bold">{{i.QUANTITY|floatformat:"0g"}}</span> <br>
+                            <span style="color:grey; font-size:smaller">{{i.Cartones|floatformat:"2g"}}</span> <br>
 
                             {% if i.ubicaciones %}
                             {% for j in i.ubicaciones %}
@@ -136,9 +136,9 @@
                     </tbody>
                     <tr>
                         <th scope="row"></th>
-                        <td class="text-end">
+                        <td class="text-end fw-bold">
                             {{t_unidades|floatformat:"0g"}} <br> 
-                            <span style="color:grey">{{t_cartones|floatformat:"2g"}}</span>
+                            <span style="color:grey; font-size:smaller">{{t_cartones|floatformat:"2g"}}</span>
                         </td>
                     </tr>
                 </table>
