@@ -1169,7 +1169,7 @@ def wms_inventario(request): #OK
     """ Inventario
         Suma de ingresos y egresos que dan el total de todo el inventario
     """
-    # wms_existencias_query_product_lote("2014","476790")
+    # wms_existencias_query_product_lote("2014","476790")    
     
     prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     productos = pd.DataFrame(Existencias.objects.all().values('product_id'))
@@ -3024,6 +3024,8 @@ def wms_transferencia_input_ajax(request):
         trans_mba = trans_mba.groupby(by=['doc','n_transferencia','product_id','lote_id','f_cadu','bodega_salida','UBICACION']).sum().reset_index()
         trans_mba['lote_id'] = trans_mba['lote_id'].str.replace('.','')
         trans_mba['f_cadu'] = trans_mba['f_cadu'].astype(str)
+        trans_mba['f_elab'] = trans_mba['f_elab'].astype(str)
+        
         trans_mba = de_dataframe_a_template(trans_mba)
 
         tr_list = []
