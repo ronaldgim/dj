@@ -2929,6 +2929,7 @@ def wms_transferencias_estatus_transf(n_transf):
 def wms_transferencia_data_pdf_email(n_transferencia):
     
     transferencia = pd.DataFrame(Transferencia.objects.filter(n_transferencia=n_transferencia).order_by('ubicacion','product_id').values())
+    transferencia['fecha_elaboracion'] = transferencia['fecha_elaboracion'].astype('str')
     transferencia['fecha_caducidad'] = transferencia['fecha_caducidad'].astype('str')
     productos = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     transferencia = transferencia.merge(productos, on='product_id', how='left')
