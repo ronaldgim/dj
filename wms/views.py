@@ -3021,10 +3021,11 @@ def wms_transferencia_input_ajax(request):
     if not new_transf.exists():
 
         trans_mba['n_transferencia'] = n_trasf
-        trans_mba = trans_mba.groupby(by=['doc','n_transferencia','product_id','lote_id','f_cadu','bodega_salida','UBICACION']).sum().reset_index()
         trans_mba['lote_id'] = trans_mba['lote_id'].str.replace('.','')
-        trans_mba['f_cadu'] = trans_mba['f_cadu'].astype(str)
-        trans_mba['f_elab'] = trans_mba['f_elab'].astype(str)
+        trans_mba = trans_mba.groupby(by=['doc','n_transferencia','product_id','lote_id','f_elab','f_cadu','bodega_salida','UBICACION']).sum().reset_index()
+        # trans_mba['lote_id'] = trans_mba['lote_id'].str.replace('.','')
+        trans_mba['f_cadu'] = trans_mba['f_cadu'].astype('str')
+        trans_mba['f_elab'] = trans_mba['f_elab'].astype('str')
         
         trans_mba = de_dataframe_a_template(trans_mba)
 
