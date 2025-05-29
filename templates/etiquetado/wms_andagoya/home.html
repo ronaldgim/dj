@@ -11,13 +11,6 @@
 {% include 'etiquetado/wms_andagoya/topnavbar.html' %}
 {% endblock %}
 
-
-{% comment %}
-{% block menu_app %}
-{% include 'wms/z_menu_app.html' %}
-{% endblock %}
-{% endcomment %}
-
 {% block body %}
 
 <style>
@@ -54,9 +47,10 @@
 {% endfor %}
 {% endif %}
 
-{% comment %}
+
 <div class="row">
-    <div class="col mb-6">
+    <!-- div class="col mb-6"-->
+    <div class="col-6 container">
         <div class="card mb-2">
             <h6 class="card-header text-center fw-bold">Ocupación de bodegas</h6>
             <div class="card-body">
@@ -74,15 +68,8 @@
                     <tbody>
                         {% for i in capacidad %}
                         <tr>
-                            <td>
-                                <button name="modal" data-bs-toggle="modal" data-bs-target="#staticBackdrop" class="btn btn-sm btn-light m-0 p-0 {% if i.bodega != 'CN6' %} disabled {% endif %}">
-                                    {{i.bodega}}
-                                </button>
-                                <!--button name="modal" class="btn btn-sm btn-light m-0 p-0 {% if i.bodega != 'CN6' %} disabled {% endif %}">
-                                    {{i.bodega}}
-                                </button-->
-                            </td>
-                            <td class="text-end">{{i.capacidad_posicion_m3|floatformat:"0g"}} m<sup>3</sup></td>
+                            <td>{{i.bodega}}</td>
+                            <td class="text-end text-danger">{{i.capacidad_posicion_m3|floatformat:"0g"}} m<sup>3</sup></td>
                             <td class="text-end">{{i.ocupacion_posicion_m3|floatformat:"0g"}} m<sup>3</sup></td>
                             <td class="text-end">{{i.disponible_posicion_m3|floatformat:"0g"}} m<sup>3</sup></td>
                             <td class="text-end">{{i.porcentaje_ocupacion|floatformat:"0g"}} %</td>
@@ -95,37 +82,6 @@
     </div>
 
     <!--div class="col mb-6">
-        <div class="card mb-2">
-            <h6 class="card-header text-center fw-bold">Tiempo de ciclo de un pedido</h6>
-            <div class="card-body">
-                <canvas id="CicloPedidoChart"></canvas><br>
-                <table class="table mb-0 pb-0" style="font-size: small;">
-                    <tr>
-                        <th>Ciclos</th>
-                        <th>Tiempo promedio</th>
-                    </tr>
-                    <tr>
-                        <td>Tiempo promedio entre toma de pedido e inicio de picking</td>
-                        <td class="text-end">{{t_cliclo.t_p_pedido}} (h)</td>
-                    </tr>
-                    <tr>
-                        <td>Tiempo promedio entre inicio y fin de picking</td>
-                        <td class="text-end">{{t_cliclo.t_p_picking}} (h)</td>
-                    </tr>
-                    <tr>
-                        <td>Tiempo promedio entre fin de picking y facturación</td>
-                        <td class="text-end">{{t_cliclo.t_p_facturado}} (h)</td>
-                    </tr>
-                    <tr>
-                        <td>Total</td>
-                        <td class="text-end">{{t_cliclo.t_p_total}} (h)</td>
-                    </tr>
-                </table>
-            </div>
-        </div>
-    </div-->
-
-    <div class="col mb-6">
         <div class="card">
             <h6 class="card-header text-center fw-bold">Tiempo de almacenamiento</h6>
             <div class="card-body">
@@ -134,9 +90,7 @@
                         <thead>
                             <tr>
                                 <th>Código</th>
-                                <!--th>Nombre</th-->
                                 <th>Lote</th>
-                                <!--th class="text-end">Unidades</th-->
                                 <th>Ubicación</th>
                                 <th class="text-end">Tiempo</th>
                             </tr>
@@ -145,9 +99,7 @@
                             {% for i in tiempo_de_almacenamiento %}
                             <tr>
                                 <td>{{i.product_id}}</td>
-                                <!--td>{{i.Nombre}}</td-->
                                 <td>{{i.lote_id}}</td>
-                                <!--td class="text-end">{{i.unidades}}</td-->
                                 <td>{{i.ubicacion__bodega}}-{{i.ubicacion__pasillo}}-{{i.ubicacion__modulo}}-{{i.ubicacion__nivel}}</td>
                                 <td class="text-end">{{i.tiempo_dias}} días</td>
                             </tr>
@@ -157,12 +109,12 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div-->
 </div>
-{% endcomment %}
+
 
 <!-- Modal -->
-<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+<!--div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-scrollable">
         <div class="modal-content">
 
@@ -232,7 +184,7 @@
             </div>
         </div>
     </div>
-</div>
+</div-->
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -250,11 +202,11 @@
                 data: {% autoescape off %}{{ocupacion|safe}}{% endautoescape %},
                 backgroundColor: ['#BAF690'],
             },
-            {
-                label: '% En Despacho',
-                data: {% autoescape off %}{{despacho|safe}}{% endautoescape %},
-                backgroundColor: ['#53aefe'],
-            },
+            //{
+                //label: '% En Despacho',
+                //data: {% autoescape off %}{{ocupacion|safe}}{% endautoescape %},
+                //backgroundColor: ['#53aefe'],
+            //},
             {
                 label: '% Disponible',
                 data: {% autoescape off %}{{disponible|safe}}{% endautoescape %},
@@ -285,7 +237,7 @@
 
 
 <!-- BOD6 POSICIONES LIBRES -->
-<script>
+<!--script>
 
     $(document).ready(function() {
 
@@ -317,8 +269,7 @@
     })
 
 
-</script>
-
+</script-->
 
 
 <!-- CICLO PEDIDO -->

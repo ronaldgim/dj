@@ -179,7 +179,9 @@ def productos_odbc_and_django():
         p = pd.DataFrame(Product.objects.filter(activo=True).values())
 
         products = products.merge(p, on='product_id', how='left')
-
+        products['vol_m3'] = products['Volumen'] / 1000000
+        products['vol_m3'] = products['vol_m3'].replace(np.inf, 0)
+        
     return products
 
 
