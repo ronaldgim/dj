@@ -144,6 +144,8 @@ from datos.views import (
     lista_proformas_odbc,
     proformas_por_contrato_id_odbc,
     
+    # Permisos costum @decorador
+    permisos,
     
     # Extraer número de factura
     extraer_numero_de_factura,
@@ -1449,133 +1451,54 @@ def picking(request):
 
 # Vista personal de picking (lista)
 @login_required(login_url='login')
+@permisos(['OPERACIONES','BODEGA'], '/etiquetado/wms-andagoya/home', 'lista de picking andagoya')
 def picking_estado(request):
     
-    if request.user.has_perm('etiquetado.view_estadopicking'):
-        
-        # # HABILITAR ACTUALIZACIÓN
-        # actualizado = pd.DataFrame(TimeStamp.objects.all().values())
-        # actualizado = list(actualizado['actulization_stoklote'])
-        # act = []
-        # for i in actualizado:
-        #     if i != '':
-        #         act.append(i)
-        # actualizado = act[-1][0:19]
+    
+    reservas_actualizado = AdminActualizationWarehaouse.objects.get(table_name='reservas').datetime
 
-        # act = datetime.strptime(actualizado, '%Y-%m-%d %H:%M:%S') #%H:%M:%S
-        # aho = datetime.now()
+    # Tablas
+    reservas = pd.DataFrame(reservas_table())
+    clientes = pd.DataFrame(clientes_table())
+    estados  = pd.DataFrame(EstadoPicking.objects.all().values())
+    users    = pd.DataFrame(User.objects.all().values())
+    perfil   = pd.DataFrame(UserPerfil.objects.all().values())
 
-        # d = aho-act
-        # d = pd.Timedelta(d)
-        # d = d.total_seconds()
-        # t_s = 60
+    meses_2 = date.today() - timedelta(days=60) #;print(type(meses_2))
+    reservas = reservas[reservas['FECHA_PEDIDO']>meses_2]
+    reservas = reservas[reservas['SEC_NAME_CLIENTE']!='RESERVA']
 
-        # if d > t_s:
-        #     dd = None
-        # else:
-        #     dd = 'disabled'
+    # Config Users
+    users = users.rename(columns={'id':'user_id'})
+    perfil = perfil.merge(users, on='user_id', how='left')
+    perfil = perfil.rename(columns={'user_id':'perfil_id', 'id':'user_id'})
 
-        reservas_actualizado = AdminActualizationWarehaouse.objects.get(table_name='reservas').datetime
+    # Estado Merge Perfil
+    estados = estados.merge(perfil, on='user_id', how='left')
+    estados = estados.rename(columns={'n_pedido':'CONTRATO_ID'})
+    estados['fecha_creado'] = estados['fecha_creado'].astype(str)
+    estados['fecha_actualizado'] = estados['fecha_actualizado'].astype(str)
+    estados = estados.rename(columns={'id_x':'id'})
 
-        # Tablas
-        reservas = pd.DataFrame(reservas_table())
-        clientes = pd.DataFrame(clientes_table())
-        estados  = pd.DataFrame(EstadoPicking.objects.all().values())
-        users    = pd.DataFrame(User.objects.all().values())
-        perfil   = pd.DataFrame(UserPerfil.objects.all().values())
+    # Merges Clientes
+    reservas = reservas.merge(clientes, on='NOMBRE_CLIENTE', how='left')
+    reservas = reservas.drop_duplicates(subset=['CONTRATO_ID'])
+    reservas = reservas.merge(estados, on='CONTRATO_ID', how='left')
+    reservas = reservas.fillna('-')
 
-        meses_2 = date.today() - timedelta(days=60) #;print(type(meses_2))
-        reservas = reservas[reservas['FECHA_PEDIDO']>meses_2]
-        reservas = reservas[reservas['SEC_NAME_CLIENTE']!='RESERVA']
+    # Config
+    reservas['FECHA_PEDIDO'] = reservas['FECHA_PEDIDO'].astype(str)
 
-        # Config Users
-        users = users.rename(columns={'id':'user_id'})
-        perfil = perfil.merge(users, on='user_id', how='left')
-        perfil = perfil.rename(columns={'user_id':'perfil_id', 'id':'user_id'})
+    # Filtrar solo por bodega Andagoya
+    reservas = reservas[reservas['WARE_CODE']=='BAN']
+    
+    # Convertir en lista de diccionarios para pasar al template        
+    reservas = de_dataframe_a_template(reservas)
 
-        # Estado Merge Perfil
-        estados = estados.merge(perfil, on='user_id', how='left')
-        estados = estados.rename(columns={'n_pedido':'CONTRATO_ID'})
-        estados['fecha_creado'] = estados['fecha_creado'].astype(str)
-        estados['fecha_actualizado'] = estados['fecha_actualizado'].astype(str)
-        estados = estados.rename(columns={'id_x':'id'})
-
-        # Merges Clientes
-        reservas = reservas.merge(clientes, on='NOMBRE_CLIENTE', how='left')
-        reservas = reservas.drop_duplicates(subset=['CONTRATO_ID'])
-        reservas = reservas.merge(estados, on='CONTRATO_ID', how='left')
-        reservas = reservas.fillna('-')
-
-        # Config
-        reservas['FECHA_PEDIDO'] = reservas['FECHA_PEDIDO'].astype(str)
-
-        # Filtrar solo por bodega Andagoya
-        reservas = reservas[reservas['WARE_CODE']=='BAN']
-        
-        # Convertir en lista de diccionarios para pasar al template        
-        reservas = de_dataframe_a_template(reservas)
-
-
-        # if request.method == 'POST':
-        #     if d > t_s:
-        #         import pyodbc
-        #         import mysql.connector
-
-        #         try:
-        #             mydb = mysql.connector.connect(
-        #                     host="172.16.28.102",
-        #                     user="standard",
-        #                     passwd="gimpromed",
-        #                     database="warehouse"
-        #             )
-
-        #             cnxn = pyodbc.connect('DSN=mba3;PWD=API')
-        #             cursorOdbc = cnxn.cursor()
-        #             cursor_write = mydb.cursor()
-
-        #             cursorOdbc.execute(
-        #             "SELECT CLNT_Pedidos_Principal.FECHA_PEDIDO, CLNT_Pedidos_Principal.CONTRATO_ID, CLNT_Ficha_Principal.NOMBRE_CLIENTE, "
-        #             "CLNT_Pedidos_Detalle.PRODUCT_ID, CLNT_Pedidos_Detalle.PRODUCT_NAME, CLNT_Pedidos_Detalle.QUANTITY, CLNT_Pedidos_Detalle.Despachados, CLNT_Pedidos_Principal.WARE_CODE, CLNT_Pedidos_Principal.CONFIRMED, CLNT_Pedidos_Principal.HORA_LLEGADA, CLNT_Pedidos_Principal.SEC_NAME_CLIENTE "
-        #             "FROM CLNT_Ficha_Principal CLNT_Ficha_Principal, CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, CLNT_Pedidos_Principal CLNT_Pedidos_Principal "
-        #             "WHERE CLNT_Pedidos_Principal.CONTRATO_ID_CORP = CLNT_Pedidos_Detalle.CONTRATO_ID_CORP AND CLNT_Ficha_Principal.CODIGO_CLIENTE = CLNT_Pedidos_Principal.CLIENT_ID "
-        #             "AND ((CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND (CLNT_Pedidos_Detalle.TIPO_DOCUMENTO='PE')) ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID DESC"
-        #             )
-
-        #             reservas = cursorOdbc.fetchall()
-
-        #             sql_delete="DELETE FROM reservas"
-        #             cursor_write.execute(sql_delete)
-
-        #             sql_insert_reservas = """INSERT INTO reservas (FECHA_PEDIDO, CONTRATO_ID, NOMBRE_CLIENTE,
-        #             PRODUCT_ID, PRODUCT_NAME, QUANTITY, Despachados, WARE_CODE, CONFIRMED, HORA_LLEGADA, SEC_NAME_CLIENTE) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);"""
-        #             data_reservas = [list(rows) for rows in reservas]
-        #             res = cursor_write.executemany(sql_insert_reservas, data_reservas)
-        #             mydb.commit()
-
-        #             time = str(datetime.now())
-        #             TimeStamp.objects.create(actulization_stoklote=time)
-
-        #             return redirect('picking_estado') #render(request, 'etiquetado/picking_estado/picking_estado.html', context)
-
-        #         except:
-        #             print('NO SE ACTULIZO')
-                    
-        #         finally:
-        #             cnxn.close()
-        #             cursorOdbc.close()
-                    
-        #     else:
-        #         print('menos 1 min - RESERVAS')
-
-        context = {
-            'reservas':reservas,
-            # 'disabled':dd,
-            'actualizado':reservas_actualizado
-        }
-
-    else:
-        messages.error(request, 'No tienes los permisos necesarios !!!')
-        return HttpResponseRedirect('/')
+    context = {
+        'reservas':reservas,
+        'actualizado':reservas_actualizado
+    }
 
     return render(request, 'etiquetado/picking_estado/picking_estado.html', context)
 
@@ -1601,6 +1524,7 @@ def lista_correos(n_cliente):
 
 # From
 @login_required(login_url='login')
+@permisos(['BODEGA'], '/etiquetado/wms-andagoya/home', 'detalle de picking andagoya')
 @csrf_exempt
 def picking_estado_bodega(request, n_pedido):
 
@@ -3651,6 +3575,7 @@ def existencias_wms_analisis_transferencia(request):
 # UbicacionAndagoya
 # ProductoUbicacion
 @login_required(login_url='login')
+@permisos(['OPERACIONES'], '/etiquetado/wms-andagoya/home', 'lista de ubicaciones andagoya')
 def ubicaciones_andagoya_list(request):
     #update_andagoya_ubis()
     ubicaciones = UbicacionAndagoya.objects.all().order_by('bodega','pasillo','modulo','nivel')
@@ -3719,6 +3644,7 @@ def productos_ubicacion_lista_template():
 
 
 @login_required(login_url='login')
+@permisos(['OPERACIONES'], '/etiquetado/wms-andagoya/home', 'lista de producto-ubicación andagoya')
 def producto_ubicacion_lista(request):
     
     productos_mba = productos_odbc_and_django()[['product_id', 'Nombre', 'Marca']]
@@ -3818,6 +3744,7 @@ def stock_lote_andagoya_ban_cua():
 
 
 @login_required(login_url='login')
+@permisos(['OPERACIONES','BODEGA'], '/etiquetado/wms-andagoya/home', 'lista de picking andagoya')
 def inventario_andagoya_ubicaciones(request):
     # Obtenemos la lista de ubicaciones
     stock = stock_lote_andagoya_ban_cua()
@@ -3838,6 +3765,7 @@ def inventario_andagoya_ubicaciones(request):
 
 
 @login_required(login_url='login')
+@permisos(['OPERACIONES','BODEGA'], '/etiquetado/wms-andagoya/home', 'lista de transferencias andagoya')
 def transferencias_ingreso_andagoya(request):
     
     desde = datetime.today() - timedelta(days=15)
@@ -3856,6 +3784,7 @@ def transferencias_ingreso_andagoya(request):
 
 
 @login_required(login_url='login')
+@permisos(['OPERACIONES','BODEGA'], '/etiquetado/wms-andagoya/home', 'detalle de transferencia andagoya')
 def transferencia_ingres_andagoya_detalle(request, n_transferencia):
     
     transferencia = Transferencia.objects.filter(n_transferencia=n_transferencia).values()
@@ -4422,5 +4351,72 @@ def delete_producto_transf_ajax(request):
         return JsonResponse({'msg':'ok'})
 
 
+
+def wms_andagoya_data_home():
+    
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute(
+        """
+            SELECT PRODUCT_ID, OH2, WARE_CODE, LOCATION
+            FROM 
+                warehouse.stock_lote 
+            WHERE 
+                WARE_CODE = 'BAN' OR WARE_CODE = 'CUA'
+        """)
+        columns = [col[0] for col in cursor.description]
+        stock = [dict(zip(columns, row)) for row in cursor.fetchall()]
+    
+    stock = pd.DataFrame(stock).rename(columns={'PRODUCT_ID':'product_id'})
+    prods = productos_odbc_and_django()[['product_id','Unidad_Empaque', 'vol_m3']]
+    
+    data = stock.merge(prods, on='product_id', how='left')
+    data['cartones'] = data['OH2'] / data['Unidad_Empaque']
+    data['vol'] = data['cartones'] * data['vol_m3']
+    data['vol'] = data['vol'].replace(np.inf, 0)
+    
+    data = data.rename(columns={'LOCATION':'bodega'})
+    data = data.groupby(by=['bodega'])['vol'].sum().reset_index()
+    data['vol'] = data['vol'].round(0)
+
+    capacidad = {
+        'AN1':40,
+        'AN4':40,
+        'BN1':40,
+        'BN2':40,
+        'BN3':40,
+        'BN4':40,
+        'N/U':5,
+    }
+    
+    data['capacidad_posicion_m3'] = data['bodega'].map(capacidad)
+    data['ocupacion'] = round((data['vol'] / data['capacidad_posicion_m3']) * 100, 0)
+    data['disponible'] = 100 - data['ocupacion']
+    data['ocupacion_posicion_m3'] = data['vol']
+    data['disponible_posicion_m3'] = data['capacidad_posicion_m3'] - data['ocupacion_posicion_m3']
+    data['porcentaje_ocupacion'] = data['ocupacion']
+    
+    data_grafico = data[['bodega', 'ocupacion', 'disponible']]
+    data_table = data[['bodega', 'capacidad_posicion_m3', 'ocupacion_posicion_m3', 'disponible_posicion_m3', 'porcentaje_ocupacion']]
+    
+    return {
+        'data_grafico':data_grafico.to_dict('list'),
+        'data_table':data_table
+    }
+
+
+@login_required(login_url='login')
 def wms_andagoya_home(request):
-    return render(request, 'etiquetado/wms_andagoya/home.html')
+    
+    data_grafico = wms_andagoya_data_home()['data_grafico']
+    capacidad = wms_andagoya_data_home()['data_table']
+    
+    context = {
+        # DATA GRAFICO
+        'bodegas': data_grafico['bodega'],
+        'ocupacion': data_grafico['ocupacion'],
+        'disponible': data_grafico['disponible'],
+        
+        'capacidad':de_dataframe_a_template(capacidad)
+    }
+    
+    return render(request, 'etiquetado/wms_andagoya/home.html', context)
