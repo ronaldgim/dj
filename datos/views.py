@@ -693,8 +693,8 @@ def doc_transferencia_odbc(n_transf):
 
 def transferencias_mba(n_transf):
     
-    n_transf = f'{int(n_transf):010d}' 
-    n = 'A-' + n_transf + '-GIMPR' 
+    n_transf_str = f'{int(n_transf):010d}' 
+    n = 'A-' + n_transf_str + '-GIMPR' 
     
     data = api_mba_sql(
         f"""
