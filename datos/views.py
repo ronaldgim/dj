@@ -691,7 +691,6 @@ def doc_transferencia_odbc(n_transf):
 
 
 
-
 def transferencias_mba(n_transf):
     
     n_transf = f'{int(n_transf):010d}' 
@@ -734,8 +733,8 @@ def transferencias_mba(n_transf):
                     'n_transferencia':n_transf,
                     'product_id':i['PRODUCT_ID_CORP'].split('-')[0],
                     'lote_id':i['LOTE_ID'],
-                    'fecha_elab': datetime.strptime(i['FECHA_ELABORACION_LOTE'][:10], '%d/%m/%Y'),
-                    'fecha_cadu': datetime.strptime(i['FECHA_CADUCIDAD'][:10], '%d/%m/%Y'),
+                    'f_elab': datetime.strptime(i['FECHA_ELABORACION_LOTE'][:10], '%d/%m/%Y'),
+                    'f_cadu': datetime.strptime(i['FECHA_CADUCIDAD'][:10], '%d/%m/%Y'),
                     'bodega_salida':i['WARE_CODE_CORP'],
                     'unidades':i['EGRESO_TEMP'],
                     'ubicacion': i['UBICACION'],
@@ -743,6 +742,9 @@ def transferencias_mba(n_transf):
             
             transf_list.append(row)
         transf_df = pd.DataFrame(transf_list)
+        transf_df['lote_id'] = transf_df['lote_id'].str.replace('.', '')
+        transf_df = transf_df.groupby(by=['doc','n_transferencia','product_id','lote_id','f_elab','f_cadu','bodega_salida','ubicacion'])['unidades'].sum().reset_index()
+        
         return transf_df
     
     else:
@@ -1787,7 +1789,7 @@ def revision_reservas_fun():
                 
                 if lote_origen['UND_RESERVA'] > 0:
                     reserva_total = lote_destino['UND_RESERVA'] + lote_origen['UND_RESERVA']
-                    if lote_destino['UND_EXISTENCIA'] >= reserva_total:
+                    if lote_destino['UND_EXISTENCIA'] >= reserva_total:   ### cambio PARCIAL de reserva
                         reporte.append({
                             'CONTRATO':lote_origen['CONTRATO_ID'],
                             'PRODUCT_ID': product_id,
