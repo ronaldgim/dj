@@ -3016,27 +3016,24 @@ def wms_transferencia_input_ajax(request):
     
     n_trasf = request.POST['n_trasf']
     
-    # from datos.views import transferencias_mba 
-    # api_transf = transferencias_mba(n_trasf)
-    # print(api_transf)
-
-    trans_mba  = doc_transferencia_odbc(n_trasf)
+    from datos.views import transferencias_mba 
+    trans_mba = transferencias_mba(n_trasf)
+    # trans_mba  = doc_transferencia_odbc(n_trasf)
     # print(trans_mba)
     
-    # if api_transf.empty:
-    #     return JsonResponse({
-    #         'msg':f'La Transferencia {n_trasf} no existe !!!',
-    #         'alert':'danger'
-    #     })
+    if trans_mba.empty:
+        return JsonResponse({
+            'msg':f'La Transferencia {n_trasf} no existe !!!',
+            'alert':'danger'
+        })
     
     
     new_transf = Transferencia.objects.filter(n_transferencia=n_trasf)
     if not new_transf.exists():
 
-        trans_mba['n_transferencia'] = n_trasf
-        trans_mba['lote_id'] = trans_mba['lote_id'].str.replace('.','')
-        trans_mba = trans_mba.groupby(by=['doc','n_transferencia','product_id','lote_id','f_elab','f_cadu','bodega_salida','UBICACION']).sum().reset_index()
+        # trans_mba['n_transferencia'] = n_trasf
         # trans_mba['lote_id'] = trans_mba['lote_id'].str.replace('.','')
+        # trans_mba = trans_mba.groupby(by=['doc','n_transferencia','product_id','lote_id','f_elab','f_cadu','bodega_salida','UBICACION']).sum().reset_index()
         trans_mba['f_cadu'] = trans_mba['f_cadu'].astype('str')
         trans_mba['f_elab'] = trans_mba['f_elab'].astype('str')
         
@@ -3053,7 +3050,9 @@ def wms_transferencia_input_ajax(request):
                 fecha_caducidad = i['f_cadu'],
                 bodega_salida   = i['bodega_salida'],
                 unidades        = i['unidades'],
-                ubicacion       = i['UBICACION']
+                # ubicacion       = i['UBICACION']
+                ubicacion       = i['ubicacion']
+                
             )
 
             tr_list.append(tr)
