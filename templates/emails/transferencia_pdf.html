@@ -70,7 +70,7 @@
                 <td style="width: 60px;">{{i.Marca}}</td>
                 <td style="text-align:right; width: 80px">{{i.lote_id}}</td>
                 <td style="text-align:right; width: 70px;">{{i.fecha_elaboracion | default:"-"}}</td>
-                <td style="text-align:right; width: 70px;">{{i.fecha_caducidad |default:"-"}}</td>
+                <td style="text-align:right; width: 70px;">{{ i.fecha_caducidad|default_if_none:"-"|default:"-" }}</td>
                 <td style="text-align:right; width: 70px;">{{i.unidades | floatformat:"0g"}}</td>
                 <td style="text-align:center; width: 70px;">{{i.ubicacion}}</td>
                 <td style="width: 60px;">
