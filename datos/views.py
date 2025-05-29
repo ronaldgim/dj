@@ -682,45 +682,72 @@ def doc_transferencia_odbc(n_transf):
         
     finally:
         cursorOdbc.close()
-        cnxn.close()
-
-    """
-    try:
-        cursorOdbc.execute(
-            "SELECT INVT_Lotes_Ubicacion.DOC_ID_CORP, INVT_Lotes_Ubicacion.PRODUCT_ID_CORP, INVT_Lotes_Ubicacion.LOTE_ID, "
-            "INVT_Lotes_Ubicacion.EGRESO_TEMP, INVT_Lotes_Ubicacion.COMMITED, INVT_Lotes_Ubicacion.WARE_CODE_CORP, INVT_Lotes_Ubicacion.UBICACION, "
-            "INVT_Producto_Lotes.Fecha_elaboracion_lote, INVT_Producto_Lotes.FECHA_CADUCIDAD "
-            "FROM INVT_Lotes_Ubicacion INVT_Lotes_Ubicacion, INVT_Producto_Lotes INVT_Producto_Lotes "
-            "WHERE INVT_Lotes_Ubicacion.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND INVT_Producto_Lotes.LOTE_ID = INVT_Lotes_Ubicacion.LOTE_ID AND "
-            # "((INVT_Lotes_Ubicacion.DOC_ID_CORP='A-0000054509-gimpr') AND (INVT_Producto_Lotes.ENTRADA_TIPO='ae') AND (INVT_Lotes_Ubicacion.EGRESO_TEMP>0))"
-            f"((INVT_Lotes_Ubicacion.DOC_ID_CORP='{n}') AND (INVT_Producto_Lotes.ENTRADA_TIPO='ae') AND (INVT_Lotes_Ubicacion.EGRESO_TEMP>0))"
-        )
-        transferencia2 = cursorOdbc.fetchall()
-        transferencia2 = [list(rows) for rows in transferencia2]
-        transferencia2 = pd.DataFrame(transferencia2)
-        transferencia2['product_id'] = list(map(lambda x:x[:-6], list(transferencia2[1])))
-
-        transferencia2 = transferencia2.rename(columns={
-            0:'doc',
-            2:'lote_id',
-            4:'unidades',
-            5:'bodega_salida',
-            #5:'boleano',
-            #6:'bodega_entrada',
-            7:'f_elab',
-            8:'f_cadu'
-        })
-
-        transferencia2 = transferencia2[['doc', 'product_id', 'lote_id', 'unidades', 'bodega_salida', 'f_elab', 'f_cadu']]
-    except:
-        transferencia2 = pd.DataFrame()
-    """
+        cnxn.close()   
     
-    #t = pd.concat([transferencia, transferencia2])
     t = transferencia.sort_values('UBICACION')
     t = t.reset_index(drop=True) 
 
     return t
+
+
+
+
+def transferencias_mba(n_transf):
+    
+    n_transf = f'{int(n_transf):010d}' 
+    n = 'A-' + n_transf + '-GIMPR' 
+    
+    data = api_mba_sql(
+        f"""
+        SELECT 
+            INVT_Lotes_Ubicacion.DOC_ID_CORP, 
+            INVT_Lotes_Ubicacion.PRODUCT_ID_CORP, 
+            INVT_Lotes_Ubicacion.LOTE_ID, 
+            INVT_Lotes_Ubicacion.EGRESO_TEMP, 
+            INVT_Producto_Lotes.WARE_CODE_CORP, 
+            INVT_Producto_Lotes.ANIADIDO, 
+            INVT_Lotes_Ubicacion.UBICACION, 
+            INVT_Producto_Lotes.Fecha_elaboracion_lote, 
+            INVT_Producto_Lotes.FECHA_CADUCIDAD, 
+            INVT_Producto_Lotes.ENTRADA_TIPO, 
+            INVT_Lotes_Ubicacion.UBICACION, 
+            INVT_Lotes_Ubicacion.WARE_CODE_CORP 
+        FROM 
+            INVT_Lotes_Ubicacion INVT_Lotes_Ubicacion, 
+            INVT_Producto_Lotes INVT_Producto_Lotes 
+        WHERE 
+            INVT_Lotes_Ubicacion.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND 
+            INVT_Producto_Lotes.LOTE_ID = INVT_Lotes_Ubicacion.LOTE_ID AND 
+            ((INVT_Lotes_Ubicacion.DOC_ID_CORP='{n}') AND 
+            (INVT_Lotes_Ubicacion.EGRESO_TEMP>0) AND 
+            (INVT_Producto_Lotes.WARE_CODE_CORP='BCT'))
+        """
+    )
+    
+    
+    if data['status'] == 200:
+        
+        transf_list = []
+        for i in data['data']:
+            row = {
+                    'doc':i['DOC_ID_CORP'],
+                    'n_transferencia':n_transf,
+                    'product_id':i['PRODUCT_ID_CORP'].split('-')[0],
+                    'lote_id':i['LOTE_ID'],
+                    'fecha_elab': datetime.strptime(i['FECHA_ELABORACION_LOTE'][:10], '%d/%m/%Y'),
+                    'fecha_cadu': datetime.strptime(i['FECHA_CADUCIDAD'][:10], '%d/%m/%Y'),
+                    'bodega_salida':i['WARE_CODE_CORP'],
+                    'unidades':i['EGRESO_TEMP'],
+                    'ubicacion': i['UBICACION'],
+                }
+            
+            transf_list.append(row)
+        transf_df = pd.DataFrame(transf_list)
+        return transf_df
+    
+    else:
+        return pd.DataFrame()
+
 
 
 def importaciones_llegadas_odbc():

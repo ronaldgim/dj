@@ -3016,8 +3016,20 @@ def wms_transferencia_input_ajax(request):
     
     n_trasf = request.POST['n_trasf']
     
-    trans_mba  = doc_transferencia_odbc(n_trasf)
+    # from datos.views import transferencias_mba 
+    # api_transf = transferencias_mba(n_trasf)
+    # print(api_transf)
 
+    trans_mba  = doc_transferencia_odbc(n_trasf)
+    # print(trans_mba)
+    
+    # if api_transf.empty:
+    #     return JsonResponse({
+    #         'msg':f'La Transferencia {n_trasf} no existe !!!',
+    #         'alert':'danger'
+    #     })
+    
+    
     new_transf = Transferencia.objects.filter(n_transferencia=n_trasf)
     if not new_transf.exists():
 
