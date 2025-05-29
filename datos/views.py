@@ -731,7 +731,7 @@ def transferencias_mba(n_transf):
             row = {
                     'doc':i['DOC_ID_CORP'],
                     'n_transferencia':n_transf,
-                    'product_id':i['PRODUCT_ID_CORP'].split('-')[0],
+                    'product_id':i['PRODUCT_ID_CORP'].replace('-GIMPR', ''),
                     'lote_id':i['LOTE_ID'],
                     'f_elab': datetime.strptime(i['FECHA_ELABORACION_LOTE'][:10], '%d/%m/%Y'),
                     'f_cadu': datetime.strptime(i['FECHA_CADUCIDAD'][:10], '%d/%m/%Y'),
