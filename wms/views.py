@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect 
 
 # Datos de importaciones
 from datos.views import (
@@ -30,7 +30,10 @@ from datos.views import (
     permisos,
     
     # Fecuencia de ventas
-    frecuancia_ventas
+    frecuancia_ventas,
+    
+    # api transferencias mba
+    transferencias_mba
     )
 
 # PDF
@@ -3016,10 +3019,8 @@ def wms_transferencia_input_ajax(request):
     
     n_trasf = request.POST['n_trasf']
     
-    from datos.views import transferencias_mba 
     trans_mba = transferencias_mba(n_trasf)
     # trans_mba  = doc_transferencia_odbc(n_trasf)
-    # print(trans_mba)
     
     if trans_mba.empty:
         return JsonResponse({
@@ -3027,57 +3028,53 @@ def wms_transferencia_input_ajax(request):
             'alert':'danger'
         })
     
-    
-    new_transf = Transferencia.objects.filter(n_transferencia=n_trasf)
-    if not new_transf.exists():
-
-        # trans_mba['n_transferencia'] = n_trasf
-        # trans_mba['lote_id'] = trans_mba['lote_id'].str.replace('.','')
-        # trans_mba = trans_mba.groupby(by=['doc','n_transferencia','product_id','lote_id','f_elab','f_cadu','bodega_salida','UBICACION']).sum().reset_index()
-        trans_mba['f_cadu'] = trans_mba['f_cadu'].astype('str')
-        trans_mba['f_elab'] = trans_mba['f_elab'].astype('str')
-        
-        trans_mba = de_dataframe_a_template(trans_mba)
-
-        tr_list = []
-        for i in trans_mba:
-            tr = Transferencia(
-                doc_gimp        = i['doc'],
-                n_transferencia = i['n_transferencia'],
-                product_id      = i['product_id'],
-                lote_id         = i['lote_id'],
-                fecha_elaboracion = i['f_elab'],
-                fecha_caducidad = i['f_cadu'],
-                bodega_salida   = i['bodega_salida'],
-                unidades        = i['unidades'],
-                # ubicacion       = i['UBICACION']
-                ubicacion       = i['ubicacion']
-                
-            )
-
-            tr_list.append(tr)
-            
-        Transferencia.objects.bulk_create(tr_list)
-        
-        if len(tr_list) > 0 and tr.bodega_salida == 'BCT' or tr.bodega_salida == 'CUC':
-            TransferenciaStatus.objects.create(
-                n_transferencia = n_trasf,
-                estado          = 'CREADO',
-                unidades_mba    = 0,
-                unidades_wms    = 0,
-                avance          = 0.0
-            )
-        
-        return JsonResponse({
-            'msg':f'La Transferencia {n_trasf} fue añadida exitosamente !!!',
-            'alert':'success'
-        })
-
-    else:
+    if Transferencia.objects.filter(n_transferencia=n_trasf).exists():
         return JsonResponse({
             'msg':f'La Transferencia {n_trasf} ya fue añadida anteriormente !!!',
             'alert':'danger'
         })
+
+    # trans_mba['n_transferencia'] = n_trasf
+    # trans_mba['lote_id'] = trans_mba['lote_id'].str.replace('.','')
+    # trans_mba = trans_mba.groupby(by=['doc','n_transferencia','product_id','lote_id','f_elab','f_cadu','bodega_salida','UBICACION']).sum().reset_index()
+    trans_mba['f_cadu'] = trans_mba['f_cadu'].astype('str')
+    trans_mba['f_elab'] = trans_mba['f_elab'].astype('str')
+    
+    trans_mba = de_dataframe_a_template(trans_mba)
+
+    tr_list = []
+    for i in trans_mba:
+        tr = Transferencia(
+            doc_gimp        = i['doc'],
+            n_transferencia = i['n_transferencia'],
+            product_id      = i['product_id'],
+            lote_id         = i['lote_id'],
+            fecha_elaboracion = i['f_elab'],
+            fecha_caducidad = i['f_cadu'],
+            bodega_salida   = i['bodega_salida'],
+            unidades        = i['unidades'],
+            # ubicacion       = i['UBICACION']
+            ubicacion       = i['ubicacion']
+            
+        )
+
+        tr_list.append(tr)
+        
+    Transferencia.objects.bulk_create(tr_list)
+    
+    if len(tr_list) > 0 and tr.bodega_salida == 'BCT' or tr.bodega_salida == 'CUC':
+        TransferenciaStatus.objects.create(
+            n_transferencia = n_trasf,
+            estado          = 'CREADO',
+            unidades_mba    = 0,
+            unidades_wms    = 0,
+            avance          = 0.0
+        )
+    
+    return JsonResponse({
+        'msg':f'La Transferencia {n_trasf} fue añadida exitosamente !!!',
+        'alert':'success'
+    })
 
 
 @login_required(login_url='login')
