@@ -74,10 +74,9 @@
                 <td style="text-align:right; width: 70px;">{{i.unidades | floatformat:"0g"}}</td>
                 <td style="text-align:center; width: 70px;">{{i.ubicacion}}</td>
                 <td style="width: 60px;">
+                    {#{i.ubicacion_andagoya}#}
                     {% for j in i.ubicacion_andagoya.all %}
-                        {% if not j.estanteria %}
-                            <span style="background-color: #00b7d8; color:white;">{{j}}</span>
-                        {% endif %}
+                        <span>{{j}}</span>
                     {% endfor %}
                 </td>
             </tr>

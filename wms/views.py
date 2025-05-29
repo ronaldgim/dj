@@ -2938,13 +2938,23 @@ def wms_transferencia_data_pdf_email(n_transferencia):
     transferencia = transferencia.merge(productos, on='product_id', how='left')
     transferencia['fecha_hora'] = pd.to_datetime(transferencia['fecha_hora']).dt.date 
     transferencia['fecha_hora'] = transferencia['fecha_hora'].astype('str')
+    transferencia['fecha_elaboracion'] = transferencia.apply(lambda x: '-' if x['fecha_elaboracion'] else x['fecha_elaboracion'], axis=1)
     transferencia = de_dataframe_a_template(transferencia)
     
     for i in transferencia:
         product_id = i['product_id']
         ubicacion = ProductoUbicacion.objects.filter(product_id=product_id)
         if ubicacion.exists():
-            i['ubicacion_andagoya'] = ubicacion.first().ubicaciones.all().order_by('bodega','estanteria')
+            
+            # i['ubicacion_andagoya'] = ubicacion.first().ubicaciones.all().order_by('bodega','estanteria')
+            ubicaciones = ubicacion.first().ubicaciones.all().order_by('bodega','estanteria')
+            ubi_estanteria = ubicaciones.filter(estanteria=True)
+            ubi_no_estanteria = ubicaciones.filter(estanteria=False)
+            
+            if ubi_no_estanteria:
+                i['ubicacion_andagoya'] = ubi_no_estanteria #.first()
+            elif not ubi_no_estanteria and ubi_estanteria:
+                i['ubicacion_andagoya'] = ubi_estanteria #.first()
     
     obs = []
     for i in  Transferencia.objects.filter(n_transferencia=n_transferencia).order_by('ubicacion','product_id'):
