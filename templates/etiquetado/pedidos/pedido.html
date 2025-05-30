@@ -33,7 +33,6 @@
             <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
                 <div class="card-body m-0 p-0">
                     <div class="container table-responsive">
-
                         {% include 'datos/vehiculos.html' %}
                         
                     </div>
@@ -156,40 +155,6 @@
                         </button>
                     </div>
                 </div>
-
-                {% comment %}
-                {% if estado == 'FINALIZADO' %}
-                <div class="row">
-                    <div class="col-4">
-                        <label class="mb-1"><strong>Estado de entrega:</strong></label><br>
-                        <select class="form-select" id="entrega_estado">
-                            {% if fecha_entrega.est_entrega == 'ENTREGADO' %}
-                            <option value="PENDIENTE">PENDIENTE</option>
-                            <option value="ENTREGADO" selected>ENTREGADO</option>
-                            {% else %}
-                            <option value="PENDIENTE" selected>PENDIENTE</option>
-                            <option value="ENTREGADO">ENTREGADO</option>
-                            {% endif %}
-                        </select>
-                    </div>
-
-                    <div class="col-3">
-                        <label class="mb-1"><strong>Registrado por:</strong></label><br>
-                        {{fecha_entrega.reg_entrega.user.first_name}} {{fecha_entrega.reg_entrega.user.last_name}}
-                    </div>
-                    
-                    <input type="hidden" id="pedido" value="{{cabecera.CONTRATO_ID}}">
-                    <input type="hidden" id="user" value="{{request.user.userperfil.id}}">
-
-                    <div class="col-3 mt-4 pt-1">
-                        <button id="estado_entrega" class="btn btn-primary">
-                            <i class="bi bi-send"></i>
-                        </button>
-                    </div>
-                </div>
-                {% endif %}
-                {% endcomment %}
-
             </div>
             {% endif %}
         </div>
@@ -516,7 +481,7 @@
                 $(".modal-title").html(`Stock de bodega: ${bodega}`);
                 $(".modal-body").html(`
                 <span class="fw-bold">Item:</span> ${product_id} - ${nombre} - ${marca} <br> 
-                <span class="fw-bold">Unds:</span> ${p_unds} <br> ${response}`);
+                <span class="fw-bold">Unds:</span> ${p_unds} <br> <span class="fw-bold">Ubicaciones:</span>${response.ubicaciones} <br> ${response.table}`);
 
                 if ($("#lotes tbody tr").length===0){
                     $('.modal-body').append('No hay lotes registrados');
