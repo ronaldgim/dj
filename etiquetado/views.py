@@ -1451,7 +1451,7 @@ def picking(request):
 
 # Vista personal de picking (lista)
 @login_required(login_url='login')
-@permisos(['OPERACIONES','BODEGA'], '/etiquetado/wms-andagoya/home', 'lista de picking andagoya')
+@permisos(['OPERACIONES','BODEGA'], '/etiquetado/wms-andagoya/home', 'ingresar a Lista de picking Andagoya')
 def picking_estado(request):
     
     
@@ -1524,7 +1524,7 @@ def lista_correos(n_cliente):
 
 # From
 @login_required(login_url='login')
-@permisos(['BODEGA'], '/etiquetado/wms-andagoya/home', 'detalle de picking andagoya')
+@permisos(['BODEGA'], '/etiquetado/wms-andagoya/home', 'ingresar a Estado Picking')
 @csrf_exempt
 def picking_estado_bodega(request, n_pedido):
 
@@ -3575,7 +3575,7 @@ def existencias_wms_analisis_transferencia(request):
 # UbicacionAndagoya
 # ProductoUbicacion
 @login_required(login_url='login')
-@permisos(['OPERACIONES'], '/etiquetado/wms-andagoya/home', 'lista de ubicaciones andagoya')
+@permisos(['OPERACIONES'], '/etiquetado/wms-andagoya/home', 'ingresar a Lista-Ubicaciones')
 def ubicaciones_andagoya_list(request):
     #update_andagoya_ubis()
     ubicaciones = UbicacionAndagoya.objects.all().order_by('bodega','pasillo','modulo','nivel')
@@ -3644,7 +3644,7 @@ def productos_ubicacion_lista_template():
 
 
 @login_required(login_url='login')
-@permisos(['OPERACIONES'], '/etiquetado/wms-andagoya/home', 'lista de producto-ubicación andagoya')
+@permisos(['OPERACIONES'], '/etiquetado/wms-andagoya/home', 'ingresar a lista de Producto-Ubicaciones')
 def producto_ubicacion_lista(request):
     
     productos_mba = productos_odbc_and_django()[['product_id', 'Nombre', 'Marca']]
@@ -3744,7 +3744,7 @@ def stock_lote_andagoya_ban_cua():
 
 
 @login_required(login_url='login')
-@permisos(['OPERACIONES','BODEGA'], '/etiquetado/wms-andagoya/home', 'lista de picking andagoya')
+@permisos(['OPERACIONES','BODEGA'], '/etiquetado/wms-andagoya/home', 'ingresar a lista de Picking Andagoya')
 def inventario_andagoya_ubicaciones(request):
     # Obtenemos la lista de ubicaciones
     stock = stock_lote_andagoya_ban_cua()
@@ -3765,7 +3765,7 @@ def inventario_andagoya_ubicaciones(request):
 
 
 @login_required(login_url='login')
-@permisos(['OPERACIONES','BODEGA'], '/etiquetado/wms-andagoya/home', 'lista de transferencias andagoya')
+@permisos(['OPERACIONES','BODEGA'], '/etiquetado/wms-andagoya/home', 'ingresar a lista de Transferencias Andagoya')
 def transferencias_ingreso_andagoya(request):
     
     desde = datetime.today() - timedelta(days=15)
@@ -3784,7 +3784,7 @@ def transferencias_ingreso_andagoya(request):
 
 
 @login_required(login_url='login')
-@permisos(['OPERACIONES','BODEGA'], '/etiquetado/wms-andagoya/home', 'detalle de transferencia andagoya')
+@permisos(['OPERACIONES','BODEGA'], '/etiquetado/wms-andagoya/home', 'ingresar a detalle de Transferencia Andagoya')
 def transferencia_ingres_andagoya_detalle(request, n_transferencia):
     
     transferencia = Transferencia.objects.filter(n_transferencia=n_transferencia).values()
@@ -4385,7 +4385,7 @@ def wms_andagoya_data_home():
         'BN2':40,
         'BN3':40,
         'BN4':40,
-        'N/U':5,
+        'N/U':1,
     }
     
     data['capacidad_posicion_m3'] = data['bodega'].map(capacidad)

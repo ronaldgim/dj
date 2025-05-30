@@ -60,6 +60,7 @@ class MovimientoAdmin(admin.ModelAdmin):
         'product_id', 
         'lote_id', 
         'tipo', 
+        'referencia',
         'estado',
         'estado_picking',
         'ubicacion', 

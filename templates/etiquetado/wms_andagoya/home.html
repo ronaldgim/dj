@@ -50,33 +50,37 @@
 
 <div class="row">
     <!-- div class="col mb-6"-->
-    <div class="col-6 container">
-        <div class="card mb-2">
-            <h6 class="card-header text-center fw-bold">Ocupación de bodegas</h6>
-            <div class="card-body">
-                <canvas id="OcupacionBodegaChart"></canvas><br>
-                <table class="table mb-0 pb-0" style="font-size: small;">
-                    <thead>
-                        <tr>
-                            <th>Bodega</th>
-                            <th class="text-end">Total</th>
-                            <th class="text-end">Utilizada</th>
-                            <th class="text-end">Disponible</th>
-                            <th class="text-end">% Ocupación</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for i in capacidad %}
-                        <tr>
-                            <td>{{i.bodega}}</td>
-                            <td class="text-end text-danger">{{i.capacidad_posicion_m3|floatformat:"0g"}} m<sup>3</sup></td>
-                            <td class="text-end">{{i.ocupacion_posicion_m3|floatformat:"0g"}} m<sup>3</sup></td>
-                            <td class="text-end">{{i.disponible_posicion_m3|floatformat:"0g"}} m<sup>3</sup></td>
-                            <td class="text-end">{{i.porcentaje_ocupacion|floatformat:"0g"}} %</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+    <div class="d-flex justify-content-center">
+        <div class="col-sm-12 col-mb-6 col-lg-4">
+            <div class="card mb-2">
+                <h6 class="card-header text-center fw-bold">Ocupación de bodegas</h6>
+                <div class="card-body">
+                    <canvas id="OcupacionBodegaChart"></canvas><br>
+                    <div class="table-responsive">
+                        <table class="table mb-0 pb-0" style="font-size: small;">
+                            <thead>
+                                <tr>
+                                    <th>Bodega</th>
+                                    <th class="text-end">Total</th>
+                                    <th class="text-end">Utilizada</th>
+                                    <th class="text-end">Disponible</th>
+                                    <th class="text-end">% Ocupación</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for i in capacidad %}
+                                <tr>
+                                    <td>{{i.bodega}}</td>
+                                    <td class="text-end text-danger">{{i.capacidad_posicion_m3|floatformat:"0g"}} m<sup>3</sup></td>
+                                    <td class="text-end">{{i.ocupacion_posicion_m3|floatformat:"0g"}} m<sup>3</sup></td>
+                                    <td class="text-end">{{i.disponible_posicion_m3|floatformat:"0g"}} m<sup>3</sup></td>
+                                    <td class="text-end">{{i.porcentaje_ocupacion|floatformat:"0g"}} %</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
