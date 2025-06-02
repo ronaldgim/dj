@@ -64,7 +64,8 @@
     <div class="col">
         <select id="id_tipo_liberacion" class="form-select" aria-label="Default select example">
             <option selected></option>
-            <option value="Liberación Acondicionamiento">Liberación Acondicionamiento</option>
+            <!--option value="Liberación Acondicionamiento">Liberación Acondicionamiento</option-->
+            <option value="Liberación Acondicionamiento">Liberación Impresión</option>
             <option value="Liberación Importación">Liberación Importación</option>
         </select>
     </div>
@@ -107,19 +108,11 @@
                         <td>{{i.doc_id}}</td>
                         <td>{{i.tipo}}</td>
 
-                        <!--td>
-                            {#% if i.tipo == 'Liberación Acondicionamiento' %#}
-                                Liberación Impresión
-                            {#% else %#}
-                                {#{i.tipo}#}
-                            {#% endif %#}
-                        </td-->
-
                         <td>
                             {% if i.estado == 'Liberado' %}
-                            <a class="btn btn-success btn-sm disabled">{{i.estado}}</a>
+                            <span class="badge bg-success rounded-pill text-wrap fs-6">{{i.estado}}</span>
                             {% else %}
-                            <a class="btn btn-warning btn-sm disabled">{{i.estado}}</a>
+                            <span class="badge bg-warning rounded-pill text-wrap fs-6">{{i.estado}}</span>
                             {% endif %}
                         </td>
                         <td>

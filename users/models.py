@@ -37,3 +37,6 @@ class UserPerfil(models.Model):
         
     def __str__(self):
         return self.user.username
+    
+    # def tiene_permiso(self, nombre_permiso):
+    #     return self.permisos.filter(nombre=nombre_permiso).exists()
