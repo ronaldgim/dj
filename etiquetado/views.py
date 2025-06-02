@@ -1524,7 +1524,7 @@ def lista_correos(n_cliente):
 
 # From
 @login_required(login_url='login')
-@permisos(['BODEGA'], '/etiquetado/wms-andagoya/home', 'ingresar a Estado Picking')
+@permisos(['BODEGA'], '/etiquetado/wms-andagoya/home', 'cambiar el Estado Picking')
 @csrf_exempt
 def picking_estado_bodega(request, n_pedido):
 
@@ -4377,25 +4377,28 @@ def wms_andagoya_data_home():
     data = data.rename(columns={'LOCATION':'bodega'})
     data = data.groupby(by=['bodega'])['vol'].sum().reset_index()
     data['vol'] = data['vol'].round(0)
-
+    
     capacidad = {
-        'AN1':40,
-        'AN4':40,
-        'BN1':40,
-        'BN2':40,
-        'BN3':40,
-        'BN4':40,
-        'N/U':1,
+        'AN1':55,
+        'AN4':91,
+        'BN1':74,
+        'BN2':104,
+        'BN3':99,
+        'BN4':60,
+        'N/U':0,
     }
     
-    data['capacidad_posicion_m3'] = data['bodega'].map(capacidad)
+    data['capacidad_posicion_m3'] = data['bodega'].map(capacidad) 
     data['ocupacion'] = round((data['vol'] / data['capacidad_posicion_m3']) * 100, 0)
     data['disponible'] = 100 - data['ocupacion']
     data['ocupacion_posicion_m3'] = data['vol']
     data['disponible_posicion_m3'] = data['capacidad_posicion_m3'] - data['ocupacion_posicion_m3']
     data['porcentaje_ocupacion'] = data['ocupacion']
+    data = data.replace(np.inf, 0)
+    data = data.replace(-np.inf, 0)
     
-    data_grafico = data[['bodega', 'ocupacion', 'disponible']]
+    data_grafico = data[['bodega', 'ocupacion', 'disponible']] 
+    data_grafico = data_grafico[data_grafico['bodega']!='N/U']
     data_table = data[['bodega', 'capacidad_posicion_m3', 'ocupacion_posicion_m3', 'disponible_posicion_m3', 'porcentaje_ocupacion']]
     
     return {

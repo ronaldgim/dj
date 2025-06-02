@@ -71,7 +71,7 @@
                                 {% for i in capacidad %}
                                 <tr>
                                     <td>{{i.bodega}}</td>
-                                    <td class="text-end text-danger">{{i.capacidad_posicion_m3|floatformat:"0g"}} m<sup>3</sup></td>
+                                    <td class="text-end">{{i.capacidad_posicion_m3|floatformat:"0g"}} m<sup>3</sup></td>
                                     <td class="text-end">{{i.ocupacion_posicion_m3|floatformat:"0g"}} m<sup>3</sup></td>
                                     <td class="text-end">{{i.disponible_posicion_m3|floatformat:"0g"}} m<sup>3</sup></td>
                                     <td class="text-end">{{i.porcentaje_ocupacion|floatformat:"0g"}} %</td>
