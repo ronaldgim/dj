@@ -42,14 +42,17 @@
 {% endif %}
 </div>
 
-{% if request.user.id == 19 or request.user.id == 16 or request.user.is_superuser %}
-<button class="btn btn-warning text-white fw-bold mb-2" name="email" value="{{n_transf}}">
-    <i class="bi bi-envelope"></i> Enviar PDF
-    <div class="spinner-border text-white spinner-border-sm" role="status" id="email-status" style="display: none;">
-        <span class="visually-hidden">Loading...</span>
-    </div>
-</button>
-{% endif %}
+
+{% for permiso in request.user.userperfil.permisos.all %}
+    {% if permiso.permiso == 'OPERACIONES' %}
+        <button class="btn btn-warning text-white fw-bold mb-2" name="email" value="{{n_transf}}">
+            <i class="bi bi-envelope"></i> Enviar PDF
+            <div class="spinner-border text-white spinner-border-sm" role="status" id="email-status" style="display: none;">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </button>
+    {% endif %}
+{% endfor %}
 
 <div class="card mb-2">
     <div class="card-body m-0 p-0">
@@ -86,14 +89,24 @@
                             WMS: {{i.unidades_wms|floatformat:"0g"}}
                         </td>
                         <td class="text-end">
-                            <button class="btn btn-primary btn-sm" name="boton_ubicaciones"> 
-                                <i class="bi bi-geo-fill"></i>
-                            </button>
-                            {% if request.user.id == 19 or request.user.id == 16 or request.user.is_superuser %}
-                            <button class="btn btn-sm btn-white" type="button" name="obs" data-bs-toggle="modal" data-bs-target="#exampleModal">
-                                <!--i class="bi bi-card-text"></i--> ✏
-                            </button>
-                            {% endif %}
+                            
+                            
+
+                            {% for permiso in request.user.userperfil.permisos.all %}
+                                {% if permiso.permiso == 'BODEGA' %}
+                                    <button class="btn btn-primary btn-sm" name="boton_ubicaciones"> 
+                                        <i class="bi bi-geo-fill"></i>
+                                    </button>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% for permiso in request.user.userperfil.permisos.all %}
+                                {% if permiso.permiso == 'OPERACIONES' %}
+                                    <button class="btn btn-sm btn-white" type="button" name="obs" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                                        <i class="bi bi-card-text"></i>
+                                    </button>
+                                {% endif %}
+                            {% endfor %}
                             <br>
                             <span style="font-size:smaller">{{i.primera_bodega}}</span>
                         </td>

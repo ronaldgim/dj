@@ -3088,7 +3088,7 @@ def wms_transferencia_input_ajax(request):
 
 
 @login_required(login_url='login')
-@permisos(['BODEGA'], '/wms/home', 'ingresar una transferencia nueva')
+@permisos(['BODEGA', 'OPERACIONES'], '/wms/home', 'ingresar a lista de transferencias')
 def wms_transferencias_list(request):
     
     transf_wms = pd.DataFrame(Transferencia.objects.all().values()).drop_duplicates(subset='n_transferencia')
@@ -3114,6 +3114,7 @@ def wms_transferencias_list(request):
 
 
 @login_required(login_url='login')
+@permisos(['BODEGA', 'OPERACIONES'], '/wms/home', 'ingresar a picking de transferencia')
 def wms_transferencia_picking(request, n_transf):
     
     estado = TransferenciaStatus.objects.get(n_transferencia=n_transf)
@@ -3250,6 +3251,7 @@ def wms_transferencia_product_observacion_ajax(request):
         })
 
 
+@permisos(['BODEGA'], '/wms/home', 'ingresar a picking de transferencia')
 def wms_transferencia_correo_request(request):
     
     n_transf = request.POST.get('n_transf')
