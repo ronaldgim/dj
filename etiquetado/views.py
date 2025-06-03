@@ -1648,7 +1648,7 @@ def picking_historial(request):
     picking_hist_len = (EstadoPicking.objects.filter().exclude(id__in=[1,]).order_by('-n_pedido')).count()
 
     context = {
-        'picking_hist':picking_hist,
+        'picking_hist':picking_hist[:500],
         'picking_hist_len':picking_hist_len
     }
 
@@ -1658,7 +1658,7 @@ def picking_historial(request):
 # Picking HIstorial Detail
 @login_required(login_url='login')
 def picking_historial_detail(request, id):
-
+    
     vehiculos = Vehiculos.objects.all()
 
     picking = EstadoPicking.objects.get(id=id)
@@ -1711,8 +1711,8 @@ def picking_historial_detail(request, id):
         't_t2' : t_t2,
         't_t3' : t_t3,
         't_vol' : t_vol,
-        't_peso' : t_peso,
-
+        # 't_peso' : t_peso,
+        't_total_pes' : t_peso,
     }
     return render(request, 'etiquetado/picking_estado/picking_detail.html', context)
 
