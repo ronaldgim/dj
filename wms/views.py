@@ -2938,7 +2938,7 @@ def wms_transferencia_data_pdf_email(n_transferencia):
     transferencia = transferencia.merge(productos, on='product_id', how='left')
     transferencia['fecha_hora'] = pd.to_datetime(transferencia['fecha_hora']).dt.date 
     transferencia['fecha_hora'] = transferencia['fecha_hora'].astype('str')
-    transferencia['fecha_elaboracion'] = transferencia.apply(lambda x: '-' if x['fecha_elaboracion'] else x['fecha_elaboracion'], axis=1)
+    transferencia = transferencia.replace('None', '-')
     transferencia = de_dataframe_a_template(transferencia)
     
     for i in transferencia:
@@ -2992,7 +2992,7 @@ def wms_transferencia_correo(n_transferencia):
         ]
     
     if len(transferencia) >= 1:
-        context = {'n_transferencia':n_transferencia, 'transferencia':transferencia}
+        context = {'n_transferencia':n_transferencia, 'transferencia':transferencia, 'STATIC_ROOT': settings.STATIC_ROOT}
         html_message  = render_to_string('emails/transferencia.html', context)
         html_pdf_file = render_to_string('emails/transferencia_pdf.html', context)
         plain_message = strip_tags(html_message)
@@ -3251,7 +3251,7 @@ def wms_transferencia_product_observacion_ajax(request):
         })
 
 
-@permisos(['BODEGA'], '/wms/home', 'ingresar a picking de transferencia')
+# @permisos(['OPERACIONES'], '/wms/home', 'ingresar a picking de transferencia')
 def wms_transferencia_correo_request(request):
     
     n_transf = request.POST.get('n_transf')
