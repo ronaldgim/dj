@@ -1,6 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,7 +18,7 @@
     <table>
         <tr>
             <td>
-                <img src="{% static 'gim_muestreo.png' %}">
+                <img src="https://gimpromed.com/themes/gimpromed-theme/assets/img/blue/logo.png" width="230px" height="50px" alt="Imagen">
             </td>
             <td></td>
             <td style="text-align:right"><strong>Generado por:</strong> {{request.user.first_name | default:"Dayanne" }}</td>
@@ -68,11 +68,11 @@
                 <td style="width: 78px;">{{i.product_id}}</td>
                 <td>{{i.Nombre}}</td>
                 <td style="width: 60px;">{{i.Marca}}</td>
-                <td style="text-align:right; width: 80px">{{i.lote_id}}</td>
-                <td style="text-align:right; width: 70px;">{{i.fecha_elaboracion | default:"-"}}</td>
-                <td style="text-align:right; width: 70px;">{{ i.fecha_caducidad|default_if_none:"-"|default:"-" }}</td>
-                <td style="text-align:right; width: 70px;">{{i.unidades | floatformat:"0g"}}</td>
-                <td style="text-align:center; width: 70px;">{{i.ubicacion}}</td>
+                <td style="width: 80px">{{i.lote_id}}</td>
+                <td style="width: 70px;">{{i.fecha_elaboracion|default_if_none:"-"|default:"-"}}</td>
+                <td style="width: 70px;">{{i.fecha_caducidad|default_if_none:"-"|default:"-" }}</td>
+                <td style="width: 70px;">{{i.unidades | floatformat:"0g"}}</td>
+                <td style="width: 70px;">{{i.ubicacion}}</td>
                 <td style="width: 60px;">
                     {#{i.ubicacion_andagoya}#}
                     {% for j in i.ubicacion_andagoya.all %}
@@ -99,7 +99,7 @@
                 {% for i in transferencia.obs %}
                     <tr style="font-size:small">
                         <td style="width: 78px;">{{i.product_id}}</td>
-                        <td style="text-align:right; width: 78px;">{{i.lote_id}}</td>
+                        <td style="width: 78px;">{{i.lote_id}}</td>
                         <td style="width: 250px;">{{i.observacion|default:"No hay comentario"}}</td>
                     </tr>
                 {% endfor %}
