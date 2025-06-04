@@ -22,6 +22,12 @@ urlpatterns = [
         route = 'logout/',
         view  = LogoutView.as_view(),
         name  = 'logout'
+    ),
+    
+    path(
+        route = 'list/',
+        view  = views.users_list,
+        name  = 'users_list'
     )
 ]
 
