@@ -137,10 +137,10 @@
         <button id="todos" class="btn btn-primary btn-sm w-100">Mostrar Todos</button>
     </div>
     <div class="col-4 col-md-2">
-        <button id="solollenos" class="btn btn-info btn-sm w-100">Mostrar Llenos</button>
+        <button id="solollenos" class="btn btn-info btn-sm w-100">Llenos</button>
     </div>
     <div class="col-4 col-md-2">
-        <button id="nollenos" class="btn btn-info btn-sm w-100">Mostrar No Llenos</button>
+        <button id="nollenos" class="btn btn-info btn-sm w-100">No Llenos</button>
     </div>
 </div>
 
@@ -315,11 +315,116 @@
                 document.getElementById('nombre_gim').innerHTML = product.nombre_gim;
                 document.getElementById('marca').innerHTML = product.marca;
                 document.getElementById('ubicacion').innerHTML = product.ubicacion;
+
                 document.getElementById('form-body-edit').innerHTML = form
 
                 initSumTotal();
+                suma_resta();
             })
     }
+
+
+    function suma_resta() {
+        let inputEstanteria = document.getElementById('id_cantidad_estanteria');
+        let inputBulto = document.getElementById('id_cantidad_bulto');
+
+        // Crear el botón solo si no existe
+        if (!document.getElementById('btn-sumar-estanteria')) {
+            let btn = document.createElement('button');
+            btn.type = 'button';
+            btn.id = 'btn-sumar-estanteria';
+            btn.className = 'btn btn-success ms-2';
+            btn.textContent = '=';
+
+            // Insertar el botón al lado del input
+            // Crear un contenedor flex para el input y el botón si no existe
+            let parent = inputEstanteria.parentNode;
+            if (!parent.classList.contains('d-flex')) {
+                // Crear un div con d-flex y gap-2
+                let flexDiv = document.createElement('div');
+                flexDiv.className = 'd-flex align-items-center gap-2';
+
+                // Mover el inputBulto al flexDiv
+                parent.replaceChild(flexDiv, inputEstanteria);
+                flexDiv.appendChild(inputEstanteria);
+
+                // Aplicar clases Bootstrap al input
+                inputEstanteria.classList.add('form-control', 'w-100', 'me-2');
+            }
+
+            // Insertar el botón al lado del input
+            inputEstanteria.parentNode.appendChild(btn);
+            // Aplicar clases Bootstrap al botón
+            btn.classList.add('ms-0');
+
+            btn.addEventListener('click', function() {
+                let value = inputEstanteria.value.trim();
+                // Si contiene + o -
+                if (value.includes('+') || value.includes('-')) {
+                    // Reemplazar caracteres no válidos y dividir por + o -
+                    let tokens = value.match(/([+-]?\d+)/g);
+                    let total = 0;
+                    if (tokens) {
+                        tokens.forEach(function(token) {
+                            total += parseInt(token, 10) || 0;
+                        });
+                        inputEstanteria.value = total;
+                        // Disparar el evento input para actualizar el total general
+                        inputEstanteria.dispatchEvent(new Event('input'));
+                    }
+                }
+            });
+        }
+
+        // Crear el botón solo si no existe
+        if (!document.getElementById('btn-sumar-bulto')) {
+            let btn = document.createElement('button');
+            btn.type = 'button';
+            btn.id = 'btn-sumar-bulto';
+            btn.className = 'btn btn-success ms-2';
+            btn.textContent = '=';
+
+            // Insertar el botón al lado del input
+            // Crear un contenedor flex para el input y el botón si no existe
+            let parent = inputBulto.parentNode;
+            if (!parent.classList.contains('d-flex')) {
+                // Crear un div con d-flex y gap-2
+                let flexDiv = document.createElement('div');
+                flexDiv.className = 'd-flex align-items-center gap-2';
+
+                // Mover el inputBulto al flexDiv
+                parent.replaceChild(flexDiv, inputBulto);
+                flexDiv.appendChild(inputBulto);
+
+                // Aplicar clases Bootstrap al input
+                inputBulto.classList.add('form-control', 'w-100', 'me-2');
+            }
+
+            // Insertar el botón al lado del input
+            inputBulto.parentNode.appendChild(btn);
+            // Aplicar clases Bootstrap al botón
+            btn.classList.add('ms-0');
+
+            btn.addEventListener('click', function() {
+                let value = inputBulto.value.trim();
+                // Si contiene + o -
+                if (value.includes('+') || value.includes('-')) {
+                    // Reemplazar caracteres no válidos y dividir por + o -
+                    let tokens = value.match(/([+-]?\d+)/g);
+                    let total = 0;
+                    if (tokens) {
+                        tokens.forEach(function(token) {
+                            total += parseInt(token, 10) || 0;
+                        });
+                        inputBulto.value = total;
+                        // Disparar el evento input para actualizar el total general
+                        inputBulto.dispatchEvent(new Event('input'));
+                    }
+                }
+            });
+        }
+    }
+
 
     // suma de total
     function initSumTotal() {

@@ -157,8 +157,8 @@ class TomaFisicaForm(forms.ModelForm):
         fields = '__all__'
         exclude = ['usuario', 'product', 'inventario', 'llenado', 'agregado', 'cantidad_total']
         labels = {
-            'cantidad_estanteria'  : 'Und. Estanteria',
-            'cantidad_bulto'  : 'Und. Bulto',
+            'cantidad_estanteria'  : 'Und. Estanteria (+, -)',
+            'cantidad_bulto'  : 'Und. Bulto (+, -)',
             'observaciones':'Observaciones',
         }
         # help_texts = {
@@ -170,15 +170,17 @@ class TomaFisicaForm(forms.ModelForm):
         # }
         widgets = {
             
-            'cantidad_estanteria': forms.NumberInput(attrs={
+            # 'cantidad_estanteria': forms.NumberInput(attrs={
+            'cantidad_estanteria': forms.TextInput(attrs={  
                 'class': 'form-control',
-                'min': '0',
+                # 'min': '0',
                 'placeholder': 'Unidades en estanteria'
             }),
             
-            'cantidad_bulto': forms.NumberInput(attrs={
+            # 'cantidad_bulto': forms.NumberInput(attrs={
+            'cantidad_bulto': forms.TextInput(attrs={
                 'class': 'form-control',
-                'min': '0',
+                # 'min': '0',
                 'placeholder': 'Unidades en bulto'
             }),
             

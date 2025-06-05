@@ -332,7 +332,7 @@ def metro_toma_fisica_edit(request, id):
             )
         
         return JsonResponse({
-            'form':form.as_p(),
+            'form':form.as_div(),
             'product':model_to_dict(toma_fisica.product)
         })
     
