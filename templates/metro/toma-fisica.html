@@ -129,8 +129,19 @@
 
 <hr>
 
-<div class="col-12">
-    <input id="inputbuscar" type="text" placeholder="Buscar..." class="form-control">
+<div class="row g-2 align-items-center mb-3">
+    <div class="col-12 col-md-6">
+        <input id="inputbuscar" type="text" placeholder="Buscar..." class="form-control w-100">
+    </div>
+    <div class="col-4 col-md-2">
+        <button id="todos" class="btn btn-primary btn-sm w-100">Mostrar Todos</button>
+    </div>
+    <div class="col-4 col-md-2">
+        <button id="solollenos" class="btn btn-info btn-sm w-100">Mostrar Llenos</button>
+    </div>
+    <div class="col-4 col-md-2">
+        <button id="nollenos" class="btn btn-info btn-sm w-100">Mostrar No Llenos</button>
+    </div>
 </div>
 
 <div id="msg"></div>
@@ -147,7 +158,12 @@
                 </thead>
                 <tbody id="pedidosbuscar">
                     {% for i in products %}
-                    <tr id="row-{{i.id}}" data-id="{{i.id}}" {% if i.llenado %} style="background-color:#BAF690" {% endif %}>
+                    <tr 
+                        id="row-{{i.id}}" 
+                        data-id="{{i.id}}" 
+                        data-llenado="{{i.llenado|yesno:'true,false'}}"
+                        {% if i.llenado %} style="background-color:#BAF690" {% endif %}
+                    >
                         <td>
                             <label class="fw-bold">Código GIM: </label>
                             <span class="codigo_gim">{{i.product.codigo_gim}}</span>
@@ -236,6 +252,32 @@
                 $(this).toggle($(this).text()
                 .toLowerCase().indexOf(value) > -1)
             });
+        });
+    });
+</script>
+
+<script>
+    // Mis pedidos
+    $(document).ready(function() {
+        // Mostrar solo no llenados
+        $("#nollenos").on("click", function() {
+            $("#pedidosbuscar tr").each(function() {
+                var isLlenado = $(this).data('llenado');
+                $(this).toggle(isLlenado === 'false' || isLlenado === false);
+            });
+        });
+        
+        // Mostrar solo llenados
+        $("#solollenos").on("click", function() {
+            $("#pedidosbuscar tr").each(function() {
+                var isLlenado = $(this).data('llenado');
+                $(this).toggle(isLlenado === 'true' || isLlenado === true);
+            });
+        });
+        
+        // Mostrar todos
+        $("#todos").on("click", function() {
+            $("#pedidosbuscar tr").show();
         });
     });
 </script>

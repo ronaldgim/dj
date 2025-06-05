@@ -95,6 +95,13 @@ class UbicacionAndagoyaForm(forms.ModelForm):
     class Meta:
         model = UbicacionAndagoya
         fields = ['bodega','pasillo','estanteria','modulo','nivel']
+        labels = {
+            'bodega'    : 'Edificio-Piso',
+            'pasillo'   : 'Sección-Fila',
+            'estanteria': 'Estanteria',
+            'modulo'    : 'Estanteria',
+            'nivel'     : 'Bandeja',
+        }
         widgets = {
             'bodega': forms.Select(attrs={'class': 'form-select'}),
             'pasillo': forms.Select(attrs={'class': 'form-select'}),
