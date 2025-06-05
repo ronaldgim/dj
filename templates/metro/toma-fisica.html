@@ -315,15 +315,15 @@
                 document.getElementById('nombre_gim').innerHTML = product.nombre_gim;
                 document.getElementById('marca').innerHTML = product.marca;
                 document.getElementById('ubicacion').innerHTML = product.ubicacion;
-
                 document.getElementById('form-body-edit').innerHTML = form
-
+                
+                // functions
                 initSumTotal();
                 inputs_suma_resta();
             })
     }
 
-
+    // agregar boton y funcion de suma o resta
     function inputs_suma_resta() {
         let inputEstanteria = document.getElementById('id_cantidad_estanteria');
         let inputBulto = document.getElementById('id_cantidad_bulto');
@@ -424,7 +424,6 @@
             });
         }
     }
-
 
     // suma de total
     function initSumTotal() {
