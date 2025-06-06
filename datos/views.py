@@ -1511,8 +1511,20 @@ def reservas_lote_2():
 
     ''' Colusta de clientes por ruc a la base de datos '''
     with connections['gimpromed_sql'].cursor() as cursor:
-        # cursor.execute("SELECT * FROM reservas_lote_2")
         cursor.execute("SELECT * FROM reservas_lote_2 WHERE SEC_NAME_CLIENTE LIKE '%RESERV%'")
+        columns = [col[0] for col in cursor.description]
+        reservas_lote = [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+        reservas_lote = pd.DataFrame(reservas_lote) 
+    return reservas_lote
+
+def reservas_publico_lote_2():
+
+    ''' Colusta de clientes por ruc a la base de datos '''
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute("SELECT * FROM reservas_lote_2 WHERE SEC_NAME_CLIENTE LIKE '%PUBLIC%'")
         columns = [col[0] for col in cursor.description]
         reservas_lote = [
             dict(zip(columns, row))
@@ -1562,6 +1574,7 @@ def revision_reservas_fun():
         
         # 1. Obtener datos
         df_reservas_lote    = reservas_lote_2()
+        df_reservas_publico = reservas_publico_lote_2()
         stock               = stock_lote_odbc()
         productos_list = df_reservas_lote['PRODUCT_ID'].unique() 
         
@@ -1571,7 +1584,6 @@ def revision_reservas_fun():
         df_reservas_productos['LOTE_ID'] = df_reservas_productos['LOTE_ID'].str.replace('.', '')
         df_reservas_productos['LOTE_ID'] = df_reservas_productos['LOTE_ID'].str.strip()
         df_reservas_productos = df_reservas_productos.pivot_table(
-            # index=['PRODUCT_ID', 'LOTE_ID', 'FECHA_CADUCIDAD'],
             index=['PRODUCT_ID', 'LOTE_ID', 'FECHA_CADUCIDAD','WARE_CODE'],
             values='UND_RESERVA',
             aggfunc='sum'
@@ -1580,21 +1592,28 @@ def revision_reservas_fun():
         # 3. DATAFRAME RESERVAS AGRUPADAS POR CONTRATO_ID
         df_reservas_contratos = df_reservas_lote.copy()
         df_reservas_contratos['CONTRATO_ID'] = df_reservas_contratos['CONTRATO_ID'].astype('str')
-        # df_reservas_contratos['UND-EGRESO'] = df_reservas_contratos['EGRESO_TEMP'].astype('str')
-        # df_reservas_contratos['DETALLE'] = 
         df_reservas_contratos = df_reservas_contratos.pivot_table(
-            # index=['PRODUCT_ID', 'LOTE_ID', 'FECHA_CADUCIDAD'], 
             index=['PRODUCT_ID', 'LOTE_ID', 'FECHA_CADUCIDAD', 'WARE_CODE'], 
             values='CONTRATO_ID', 
             aggfunc = lambda x: ' - '.join(x)
         ).reset_index()
+        
+        # 3.1 AGREGAR DATOS DE COMPRAS PUBLICAS
+        df_reservas_publico = df_reservas_publico.copy()
+        df_reservas_publico = df_reservas_publico.rename(columns={'EGRESO_TEMP':'UND_PUBLICO'})
+        df_reservas_publico['LOTE_ID'] = df_reservas_publico['LOTE_ID'].str.replace('.', '')
+        df_reservas_publico['LOTE_ID'] = df_reservas_publico['LOTE_ID'].str.strip()
+        df_reservas_publico = df_reservas_publico.pivot_table(
+            index=['PRODUCT_ID', 'LOTE_ID', 'FECHA_CADUCIDAD','WARE_CODE'],
+            values='UND_PUBLICO',
+            aggfunc='sum'
+        ).reset_index()        
         
         # 4. DATAFRAME STOCK
         stock = stock.rename(columns={'OH2':'UND_EXISTENCIA'})
         stock['LOTE_ID'] = stock['LOTE_ID'].str.replace('.', '')
         stock['LOTE_ID'] = stock['LOTE_ID'].str.strip()
         stock = stock.pivot_table(
-            # index=['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD'],
             index=['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD','WARE_CODE'],
             values='UND_EXISTENCIA',
             aggfunc='sum'
@@ -1602,23 +1621,24 @@ def revision_reservas_fun():
         
         # 5. MERGE STOCK - RESERVAS
         stock_reservas = stock.merge(
-            df_reservas_productos, 
-            #on=['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD'], 
-            on=['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD','WARE_CODE'], 
+            df_reservas_productos,
+            on=['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD','WARE_CODE'],
             how='left'
-        ).fillna(0) #.sort_values(
-        #     by        = ['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD'], 
-        #     ascending = [True, True, True]
-        # ).fillna(0)
+        ).fillna(0)
+        stock_reservas = stock_reservas.merge(
+            df_reservas_publico,
+            on=['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD','WARE_CODE'],
+            how='left',
+            suffixes=('', '_PUBLICO')
+        ).fillna(0)
         
         # 5.1 CREAR COLUMNA DISPONIBLE-RESERVAS
-        stock_reservas['DISPONIBLE'] =  stock_reservas['UND_EXISTENCIA'] - stock_reservas['UND_RESERVA']
+        stock_reservas['DISPONIBLE'] =  stock_reservas['UND_EXISTENCIA'] - stock_reservas['UND_RESERVA'] - stock_reservas['UND_PUBLICO']
         
         # 5.2 FILTRAR SOLO POR PRODUCTOS Y LOTES QUE TIENEN RESERVAS
         stock_reservas = stock_reservas[stock_reservas['PRODUCT_ID'].isin(productos_list)]
         
         # 5.3 UNIR RESERVAS POR CONTRATO
-        # stock_reservas = stock_reservas.merge(df_reservas_contratos, on=['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD'], how='left')
         stock_reservas = stock_reservas.merge(df_reservas_contratos, on=['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD','WARE_CODE'], how='left')
         
         # 5.4 PRODUCTO_UNICO
@@ -1632,7 +1652,7 @@ def revision_reservas_fun():
         # 6.1 FILTRO POR DISPONIBLE MENOR A CERO
         stock_reservas = stock_reservas[stock_reservas['DISPONIBLE'] >= 0]
         
-        # stock_reservas.to_excel('stock.xlsx', index=False)
+        # stock_reservas.to_excel('stock2.xlsx', index=False)
         # print(stock_reservas)
         
         df = stock_reservas.sort_values(
@@ -1651,6 +1671,7 @@ def revision_reservas_fun():
                 if lote_origen['UND_RESERVA'] > 0:
                     reserva_total = lote_destino['UND_RESERVA'] + lote_origen['UND_RESERVA']
                     if lote_destino['UND_EXISTENCIA'] >= reserva_total:   ### cambio PARCIAL de reserva
+                    # if lote_destino['UND_EXISTENCIA'] > 0:    
                         reporte.append({
                             'CONTRATO':lote_origen['CONTRATO_ID'],
                             'PRODUCT_ID': product_id,
@@ -1671,7 +1692,7 @@ def revision_reservas_fun():
         df_reporte = pd.DataFrame(reporte)
         df_reporte['OBSERVACIONES'] = df_reporte.apply(
             lambda x: 
-                #"LAS FECHAS DE LOS LOTES SON IGUALES" if x['FECHA_RESERVADO'] == x['FECHA_DISPONIBLE'] 
+                # "LAS FECHAS DE LOS LOTES SON IGUALES" if x['FECHA_RESERVADO'] == x['FECHA_DISPONIBLE'] 
                 "EXCLUIR" if x['FECHA_RESERVADO'] == x['FECHA_DISPONIBLE'] 
                 else f"CAMBIAR ESTA RESERVA A UN LOTE CON FECHA DE CADUCIDAD POSTERIOR LA CANTIDAD {x['RESERVA_RESERVADO']}"
                 , axis=1
@@ -1682,7 +1703,7 @@ def revision_reservas_fun():
         return df_reporte
 
     except Exception as e:
-        print(e)
+        print('EXCEPTION', e)
         return pd.DataFrame()
 
 
