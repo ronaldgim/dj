@@ -85,5 +85,5 @@ class VehiculosAdmin(admin.ModelAdmin):
         'actualizado',
         'usuario',
     )
-    search_fields = ['unique_id', 'product_id']
+    search_fields = ['unique_id', 'contrato_id', 'product_id']
     
