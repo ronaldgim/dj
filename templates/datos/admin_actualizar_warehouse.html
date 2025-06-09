@@ -80,6 +80,8 @@
             setInterval(() => this.actualizarTablaWarehouse('stock_lote'), cadaCincoMin);
             setInterval(() => this.actualizarTablaWarehouse('etiquetado_stock'), cadaCincoMin);
             setInterval(() => this.actualizarTablaWarehouse('pedidos'), cadaCincoMin);
+            setInterval(() => this.actualizarTablaWarehouse('mis_pedidos'), cadaCincoMin);
+
         },
         computed:{
             tablasData() {
