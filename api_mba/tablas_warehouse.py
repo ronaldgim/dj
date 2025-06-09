@@ -1150,7 +1150,7 @@ def api_actualizar_mis_reservas_etiquetado():
                         # El registro existe, verificar si necesita actualización                        
                         reserva_existente = row.first()
                         
-                        if reserva_existente.quantity == 0 and not reserva_existente.product_id:
+                        if reserva_existente.quantity == 0 and (reserva_existente.product_id is None or reserva_existente.product_id == ''):
                             row.delete()
                         
                         # Campos que siempre se pueden actualizar
