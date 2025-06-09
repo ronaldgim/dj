@@ -1,5 +1,6 @@
 # Models
 from django.db import models
+from django.contrib.auth.models import User
 
 
 # Personas
@@ -158,6 +159,8 @@ class Reservas(models.Model):
     unique_id        = models.BigIntegerField(blank=True, null=True)
     alterado         = models.BooleanField(default=False)
     creado           = models.DateField(auto_now_add=True)
+    actualizado      = models.DateField(auto_now=True)
+    usuario          = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
     
     def __str__(self):
-        return f"unique_id: {self.codigo_cliente} - contrato_id: {self.contrato_id}"
+        return f"unique_id: {self.unique_id} - contrato_id: {self.contrato_id}"

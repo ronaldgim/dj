@@ -76,7 +76,8 @@ from api_mba.tablas_warehouse import (
     api_actualizar_reservas_lotes_warehouse,
     api_actualizar_reservas_lotes_2_warehouse,
     
-    odbc_actualizar_stock_lote
+    odbc_actualizar_stock_lote,
+    api_actualizar_mis_reservas_etiquetado
     )
 
 
@@ -577,6 +578,10 @@ def stock_lote(request):
             # 13 tabla de etiquetado estock
             actualizar_datos_etiquetado_fun()
             
+            ### TABLA DJANGO
+            # 14 Tabla mis reservas
+            # api_actualizar_mis_reservas_etiquetado()
+            
         elif table_name:
             
             if table_name == "clientes":
@@ -605,6 +610,8 @@ def stock_lote(request):
                 odbc_actualizar_stock_lote()
             elif table_name == "etiquetado_stock":
                 actualizar_datos_etiquetado_fun()
+            elif table_name == "mis_reservas":
+                api_actualizar_mis_reservas_etiquetado()
 
     #return render(request, 'datos/stock_lote.html', {})
     return render(request, 'datos/stock_lote.html', context)
