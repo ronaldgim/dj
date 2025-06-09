@@ -1147,8 +1147,11 @@ def api_actualizar_mis_reservas_etiquetado():
                     row = Reservas.objects.filter(unique_id=unique_id)
 
                     if row.exists():
-                        # El registro existe, verificar si necesita actualización
+                        # El registro existe, verificar si necesita actualización                        
                         reserva_existente = row.first()
+                        
+                        if reserva_existente.quantity == 0 and not reserva_existente.product_id:
+                            row.delete()
                         
                         # Campos que siempre se pueden actualizar
                         campos_actualizables = {
