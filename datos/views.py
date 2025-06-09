@@ -580,7 +580,7 @@ def stock_lote(request):
             
             ### TABLA DJANGO
             # 14 Tabla mis reservas
-            # api_actualizar_mis_reservas_etiquetado()
+            api_actualizar_mis_reservas_etiquetado()
             
         elif table_name:
             
