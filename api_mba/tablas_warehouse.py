@@ -1188,20 +1188,22 @@ def api_actualizar_mis_reservas_etiquetado():
                     else:
                         # El registro no existe, crear uno nuevo
                         # nueva_reserva = Reservas.objects.create(
-                        Reservas.objects.create(
-                            contrato_id=contrato_id,
-                            codigo_cliente=codigo_cliente,
-                            product_id=product_id,
-                            quantity=quantity,
-                            ware_code=ware_code,
-                            confirmed=confirmed,
-                            fecha_pedido=fecha_pedido,
-                            hora_llegada=hora_llegada,
-                            sec_name_cliente=sec_name_cliente,
-                            unique_id=unique_id,
-                            alterado=False
-                            # usuario se puede asignar aquí si tienes el usuario actual
-                        )
+                            
+                        if product_id:
+                            Reservas.objects.create(
+                                contrato_id=contrato_id,
+                                codigo_cliente=codigo_cliente,
+                                product_id=product_id,
+                                quantity=quantity,
+                                ware_code=ware_code,
+                                confirmed=confirmed,
+                                fecha_pedido=fecha_pedido,
+                                hora_llegada=hora_llegada,
+                                sec_name_cliente=sec_name_cliente,
+                                unique_id=unique_id,
+                                alterado=False
+                                # usuario se puede asignar aquí si tienes el usuario actual
+                            )
                         # print(f"Creada nueva reserva con unique_id: {unique_id}")
                         
                         # 
