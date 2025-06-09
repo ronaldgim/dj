@@ -1670,7 +1670,7 @@ def revision_reservas_fun():
                 
                 if lote_origen['UND_RESERVA'] > 0:
                     reserva_total = lote_destino['UND_RESERVA'] + lote_origen['UND_RESERVA']
-                    if lote_destino['UND_EXISTENCIA'] >= reserva_total:   ### cambio PARCIAL de reserva
+                    if lote_destino['UND_EXISTENCIA'] >= reserva_total:   # filtrar y solucionar condición
                     # if lote_destino['UND_EXISTENCIA'] > 0:    
                         reporte.append({
                             'CONTRATO':lote_origen['CONTRATO_ID'],
