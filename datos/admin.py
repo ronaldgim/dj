@@ -2,7 +2,7 @@
 from django.contrib import admin
 
 # Model
-from datos.models import Product, Vehiculos, AdminActualizationWarehaouse , Marca #, MarcaImportExcel
+from datos.models import Product, Vehiculos, AdminActualizationWarehaouse, Marca, Reservas
 
 
 # Register your models here.
@@ -65,3 +65,25 @@ class VehiculosAdmin(admin.ModelAdmin):
     list_display_links = ['id','transportista', 'placa']
     search_fields = ['id', 'placa']
     ordering = ['placa']
+
+
+@admin.register(Reservas)
+class VehiculosAdmin(admin.ModelAdmin):
+    list_display = (
+        'contrato_id',
+        'codigo_cliente',
+        'product_id',
+        'quantity',
+        'ware_code',
+        'confirmed',
+        'fecha_pedido',
+        'hora_llegada',
+        'sec_name_cliente',
+        'unique_id',
+        'alterado',
+        'creado',
+        'actualizado',
+        'usuario',
+    )
+    search_fields = ['unique_id', 'product_id']
+    
