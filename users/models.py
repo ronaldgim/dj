@@ -40,16 +40,16 @@ class UserPerfil(models.Model):
     
     @property
     def permiso_operaciones(self):
-        return self.permisos.filter(permiso='OPERACIONES').exists()
+        return self.permisos.filter(permiso='OPERACIONES').exists() or self.user.is_superuser
     
     @property
     def permiso_bodega(self):
-        return self.permisos.filter(permiso='BODEGA').exists()
+        return self.permisos.filter(permiso='BODEGA').exists() or self.user.is_superuser
     
     @property
     def permiso_compraspublicas(self):
-        return self.permisos.filter(permiso='COMPRAS PUBLICAS').exists()
+        return self.permisos.filter(permiso='COMPRAS PUBLICAS').exists() or self.user.is_superuser
 
     @property
     def permiso_ventas(self):
-        return self.permisos.filter(permiso='VENTAS').exists()
+        return self.permisos.filter(permiso='VENTAS').exists() or self.user.is_superuser
