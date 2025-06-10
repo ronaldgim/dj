@@ -104,12 +104,13 @@ from django.contrib import messages
 # Query's
 from django.db.models import Q
 
+from django.db import transaction
+
 # Models
 from users.models import User, UserPerfil
 from etiquetado.models import EstadoPicking, ProductoUbicacion
+from datos.models import Reservas
 
-# Transactions INTEGRITY OF DATA
-from django.db import transaction
 
 # Login
 from django.contrib.auth.decorators import login_required, permission_required
@@ -1989,27 +1990,58 @@ def wms_movimientos_list(request): #OK
 ### PICKDING
 # Lista de pedidos
 # url: picking/list
+# @login_required(login_url='login')
+# @permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'], '/wms/home', 'ingrear a Listado de Pedidos')
+# def wms_listado_pedidos(request): #OK
+#     """ Listado de pedidos (picking) """
+#     pedidos = pd.DataFrame(reservas_table()) 
+#     pedidos = pedidos[pedidos['WARE_CODE']=='BCT']
+#     pedidos['FECHA_PEDIDO'] = pedidos['FECHA_PEDIDO'].astype(str)
+#     pedidos = pedidos.drop_duplicates(subset='CONTRATO_ID')
+    
+#     estados = pd.DataFrame(EstadoPicking.objects.all().values('n_pedido','estado','user__user__first_name','user__user__last_name'))
+#     estados = estados.rename(columns={'n_pedido':'CONTRATO_ID'})
+#     pedidos = pedidos.merge(estados, on='CONTRATO_ID', how='left')
+
+#     pedidos = de_dataframe_a_template(pedidos)
+
+#     context = {
+#         'reservas':pedidos
+#     }
+
+#     return render(request, 'wms/listado_pedidos.html', context)
+
+
 @login_required(login_url='login')
 @permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'], '/wms/home', 'ingrear a Listado de Pedidos')
 def wms_listado_pedidos(request): #OK
     """ Listado de pedidos (picking) """
-
-    pedidos = pd.DataFrame(reservas_table())
-    pedidos = pedidos[pedidos['WARE_CODE']=='BCT']
-    pedidos['FECHA_PEDIDO'] = pedidos['FECHA_PEDIDO'].astype(str)
-    pedidos = pedidos.drop_duplicates(subset='CONTRATO_ID')
-
+    
+    
+    clientes = clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE']]
+    clientes = clientes.rename(columns={'CODIGO_CLIENTE':'codigo_cliente'})
+    
+    mis_reservas = Reservas.objects.filter(ware_code='BCT').order_by('-fecha_pedido', '-hora_llegada')
+    
+    pedidos = pd.DataFrame(       
+        mis_reservas.values('contrato_id', 'codigo_cliente', 'ware_code', 'fecha_pedido', 'hora_llegada')
+    )
+    pedidos['contrato_id'] = pedidos['contrato_id'] + '.0'
+    pedidos = pedidos.drop_duplicates(subset='contrato_id', keep='first').reset_index(drop=True)
+    pedidos['fecha_pedido'] = pedidos['fecha_pedido'].astype(str)
+    pedidos = pedidos.merge(clientes, on='codigo_cliente', how='left')
+    
     estados = pd.DataFrame(EstadoPicking.objects.all().values('n_pedido','estado','user__user__first_name','user__user__last_name'))
-    estados = estados.rename(columns={'n_pedido':'CONTRATO_ID'})
-    pedidos = pedidos.merge(estados, on='CONTRATO_ID', how='left')
+    estados = estados.rename(columns={'n_pedido':'contrato_id'})
+    pedidos = pedidos.merge(estados, on='contrato_id', how='left')
 
-    pedidos = de_dataframe_a_template(pedidos)
-
+    pedidos = de_dataframe_a_template(pedidos)[:200]
+    
     context = {
         'reservas':pedidos
     }
 
-    return render(request, 'wms/listado_pedidos.html', context)
+    return render(request, 'wms/listado_pedidos_misreservas.html', context)
 
 
 
@@ -2142,7 +2174,6 @@ def wms_egreso_picking(request, n_pedido): #OK
     return render(request, 'wms/picking.html', context)
 
 
-from datos.models import Reservas
 # Detalle de pedido
 # url: picking/<n_pedido>
 @login_required(login_url='login')
