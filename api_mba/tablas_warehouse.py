@@ -1153,8 +1153,8 @@ def api_actualizar_mis_reservas_etiquetado():
                         if reserva_existente.product_id is None or reserva_existente.product_id == '':
                             row.delete()
                         
-                        if  reserva_existente.quantity == 0:
-                            row.delete()
+                        # if  reserva_existente.quantity == 0:
+                        #     row.delete()
                             
                         # Campos que siempre se pueden actualizar
                         campos_actualizables = {
@@ -1207,9 +1207,12 @@ def api_actualizar_mis_reservas_etiquetado():
                                 alterado=False
                                 # usuario se puede asignar aquí si tienes el usuario actual
                             )
-                        # print(f"Creada nueva reserva con unique_id: {unique_id}")
                         
-                        # 
+                        
+                        # Add delete
+                        Reservas.objects.filter(quantity=0).delete()
+                        
+                        # Actualización automatica
                         admin_warehouse_timestamp(tabla='mis_reservas', actualizar_datetime=True, mensaje='Actualizado correctamente')
                         
         else:
