@@ -2142,6 +2142,147 @@ def wms_egreso_picking(request, n_pedido): #OK
     return render(request, 'wms/picking.html', context)
 
 
+from datos.models import Reservas
+# Detalle de pedido
+# url: picking/<n_pedido>
+@login_required(login_url='login')
+@permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'], '/picking/list', 'ingresar a Detalle de Pedido')
+def wms_egreso_picking_misreservas(request, n_pedido): #OK
+    
+    estado_picking = EstadoPicking.objects.filter(n_pedido=n_pedido).exists()
+    if estado_picking:
+        est = EstadoPicking.objects.get(n_pedido=n_pedido)
+        estado = est.estado
+        estado_id = est.id
+        foto = est.foto_picking
+        foto_2 = est.foto_picking_2
+    else:
+        estado = 'SIN ESTADO'
+        estado_id = ''
+        foto = ''
+        foto_2 = ''
+
+    prod   = productos_odbc_and_django()[['product_id','Nombre','Marca','Unidad_Empaque']]
+    #prod   = prod.rename(columns={'product_id':'PRODUCT_ID'})
+    
+    # pedido = pedido_por_cliente(n_pedido).sort_values('PRODUCT_ID')
+    contrato_id = n_pedido.split('.')[0]
+    pedido = pd.DataFrame(Reservas.objects.filter(contrato_id=contrato_id).values())
+    
+    # pedido = pedido.groupby(by=['CONTRATO_ID','CODIGO_CLIENTE','NOMBRE_CLIENTE','FECHA_PEDIDO','HORA_LLEGADA','PRODUCT_ID','PRODUCT_NAME']).sum().reset_index()
+    pedido = pedido.groupby(by=['contrato_id','codigo_cliente','product_id'])['quantity'].sum().reset_index()
+    # pedido = pedido.merge(prod, on='PRODUCT_ID',how='left')
+    pedido = pedido.merge(prod, on='product_id',how='left')
+    
+    
+    # cli    = clientes_warehouse()[['CODIGO_CLIENTE','CIUDAD_PRINCIPAL']]
+    # pedido = pedido.merge(cli, on='CODIGO_CLIENTE', how='left')
+
+    cli    = clientes_warehouse()[['CODIGO_CLIENTE','CIUDAD_PRINCIPAL', 'NOMBRE_CLIENTE']]
+    cli    = cli.rename(columns={'CODIGO_CLIENTE':'codigo_cliente'})
+    # pedido = pedido.merge(cli, on='CODIGO_CLIENTE', how='left')
+    pedido = pedido.merge(cli, on='codigo_cliente', how='left')
+    
+
+    # prod_list = list(pedido['PRODUCT_ID'].unique())
+    prod_list = list(pedido['product_id'].unique())
+    
+    movimientos = Movimiento.objects.filter(referencia='Picking').filter(n_referencia=n_pedido)
+
+    if movimientos.exists():
+        mov = pd.DataFrame(movimientos.values(
+            'id','product_id','lote_id','fecha_caducidad','tipo','unidades',
+            'ubicacion_id','ubicacion__bodega','ubicacion__pasillo','ubicacion__modulo','ubicacion__nivel'
+        ))
+
+        mov['fecha_caducidad'] = mov['fecha_caducidad'].astype(str)
+        mov['unidades'] = pd.Series.abs(mov['unidades'])
+
+        unds_pickeadas = mov[['product_id','unidades']].groupby(by='product_id').sum().reset_index()
+        # unds_pickeadas = unds_pickeadas.rename(columns={'product_id':'PRODUCT_ID'})
+        # pedido = pedido.merge(unds_pickeadas, on='PRODUCT_ID', how='left')
+        pedido = pedido.merge(unds_pickeadas, on='product_id', how='left')
+        
+        mov = de_dataframe_a_template(mov)
+
+    else:
+        mov = {}
+
+    # Inventario
+    inv = Existencias.objects.filter(product_id__in=prod_list).values(
+        'product_id','lote_id','fecha_caducidad','unidades',
+        'ubicacion_id','ubicacion__bodega','ubicacion__pasillo','ubicacion__modulo','ubicacion__nivel',
+        'ubicacion__distancia_puerta',
+        'unidades',
+        'estado'
+    )
+
+    mov_bodega_df = pd.DataFrame(movimientos.order_by('fecha_caducidad').values('product_id', 'ubicacion__bodega'))
+    mov_bodega_df = mov_bodega_df.rename(columns={'ubicacion__bodega':'bodega_mov'})
+    mov_bodega_df = mov_bodega_df.drop_duplicates(subset='product_id', keep='first').fillna('')
+    
+    exi_bodega_df = pd.DataFrame(inv.order_by('fecha_caducidad'))#[['product_id','ubicacion__bodega']]
+    exi_bodega_df = exi_bodega_df.rename(columns={'ubicacion__bodega':'bodega_exi'})
+    exi_bodega_df = exi_bodega_df.drop_duplicates(subset='product_id', keep='first').fillna('')
+    
+    if not mov_bodega_df.empty and not exi_bodega_df.empty:
+        bodega_df = exi_bodega_df.merge(mov_bodega_df, on='product_id', how='left').fillna('')
+    elif not mov_bodega_df.empty and exi_bodega_df.empty:
+        bodega_df = mov_bodega_df
+    else:
+        bodega_df = exi_bodega_df
+        bodega_df['bodega_mov'] = ''
+    
+    bodega_df['primera_bodega'] = bodega_df.apply(lambda x: x['bodega_exi'] if not x['bodega_mov'] else x['bodega_mov'], axis=1)       
+    # bodega_df = bodega_df.rename(columns={'product_id':'PRODUCT_ID'})[['PRODUCT_ID','primera_bodega']]
+    bodega_df = bodega_df[['product_id','primera_bodega']]
+    
+    
+    if inv.exists():
+        inv = pd.DataFrame(inv).sort_values(by=['lote_id','fecha_caducidad','ubicacion__distancia_puerta'], ascending=[True,True,True])
+        inv['fecha_caducidad'] = inv['fecha_caducidad'].astype(str)
+
+        r_lote = wms_reservas_lotes_datos()
+        if not r_lote.empty:
+            inv = inv.merge(r_lote, on=['product_id','lote_id'], how='left')
+            inv = de_dataframe_a_template(inv)
+    else:
+        inv = {}
+
+    # Calculo Cartones
+    # pedido['cartones'] = pedido['QUANTITY'] / pedido['Unidad_Empaque']
+    pedido['cartones'] = pedido['quantity'] / pedido['Unidad_Empaque'] 
+    # pedido = pedido.merge(bodega_df, on='PRODUCT_ID', how='left').sort_values(by='primera_bodega')
+    pedido = pedido.merge(bodega_df, on='product_id', how='left').sort_values(by='primera_bodega') 
+    ped = de_dataframe_a_template(pedido)
+
+    for i in prod_list:
+        for j in ped:
+            # if j['PRODUCT_ID'] == i:
+            if j['product_id'] == i:  
+                j['ubi'] = ubi_list = []
+                j['pik'] = pik_list = []
+                for k in inv:
+                    if k['product_id'] == i:
+                        ubi_list.append(k)
+                for m in mov:
+                    if m['product_id'] == i:
+                        pik_list.append(m)
+    
+    context = {
+        'cabecera':Reservas.objects.filter(contrato_id=contrato_id).first(),
+        'cli':ped[0],
+        'pedido':ped,
+        'estado':estado,
+        'estado_id':estado_id,
+        'foto':foto,
+        'foto_2':foto_2
+    }
+
+    return render(request, 'wms/picking_misreservas.html', context)
+
+
+
 # Estado Picking AJAX
 @permisos(['BODEGA'], '/wms/picking/list', 'cambio de estado de picking')
 def wms_estado_picking_ajax(request):

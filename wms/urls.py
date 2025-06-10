@@ -191,6 +191,12 @@ urlpatterns = [
         view = views.wms_egreso_picking, #OK
         name = 'wms_egreso_picking'
     ),
+    
+    path(
+        route='picking/mis-reservas/<str:n_pedido>', 
+        view = views.wms_egreso_picking_misreservas, #OK
+        name = 'wms_egreso_picking_misreservas'
+    ),
 
     # Estado Picking AJAX
     path(
