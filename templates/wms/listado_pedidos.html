@@ -59,7 +59,7 @@
 </style>
 
 
-<h5 class="m-4 text-center fw-bold">LISTADO DE PICKING CEREZOS</h5>
+<h5 class="m-4 text-center fw-bold">LISTADO DE PICKING CEREZOS (WMS)</h5>
 <h6 class="text-start"><strong>Actulizado: </strong>{{actualizado}}</h6>
 
 <form method="post">
@@ -122,7 +122,9 @@
                         </td>
 
                         <td>
-                            <a class="btn btn-primary btn-sm" href="{% url 'wms_egreso_picking' i.CONTRATO_ID %}">PICKING</a>
+                            <!--a class="btn btn-primary btn-sm" href="{% url 'wms_egreso_picking' i.CONTRATO_ID %}">PICKING</a-->
+                            <a class="btn btn-primary btn-sm" href="{% url 'wms_egreso_picking_misreservas' i.CONTRATO_ID %}">PICKING</a>
+
 
                             {% if i.estado == 'EN PAUSA' %}
                             <a class="btn btn-danger btn-sm disabled">{{i.estado}}</a><br>{{i.user__user__first_name}} {{i.user__user__last_name}}
