@@ -67,14 +67,11 @@
                             <a class="btn btn-primary btn-sm" href="{% url 'wms_transferencia_picking' i.n_transferencia %}">
                                 <i class="bi bi-truck"></i>
                             </a>
-
-                            {% for permiso in request.user.userperfil.permisos.all %}
-                                {% if permiso.permiso == 'OPERACIONES' or permiso.permiso == 'BODEGA' %}
-                                    <a class="btn btn-secondary btn-sm" href="{% url 'wms_transferencia_pdf' i.n_transferencia %}">
-                                        <i class="bi bi-printer"></i>
-                                    </a>
-                                {% endif %}
-                            {% endfor %}
+                            {% if request.user.userperfil.permiso_operaciones or request.user.userperfil.permiso_bodega %}
+                                <a class="btn btn-secondary btn-sm" href="{% url 'wms_transferencia_pdf' i.n_transferencia %}">
+                                    <i class="bi bi-printer"></i>
+                                </a>
+                            {% endif %}
                         </td>
                     </tr>
                     {% endfor %}

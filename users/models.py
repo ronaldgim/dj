@@ -33,10 +33,23 @@ class UserPerfil(models.Model):
     
     def save(self, *args, **kwargs):
         self.slug = slugify(self.user.username)
-        super(UserPerfil, self).save(*args, *kwargs)
+        super(UserPerfil, self).save(*args, **kwargs)
         
     def __str__(self):
         return self.user.username
     
-    # def tiene_permiso(self, nombre_permiso):
-    #     return self.permisos.filter(nombre=nombre_permiso).exists()
+    @property
+    def permiso_operaciones(self):
+        return self.permisos.filter(permiso='OPERACIONES').exists()
+    
+    @property
+    def permiso_bodega(self):
+        return self.permisos.filter(permiso='BODEGA').exists()
+    
+    @property
+    def permiso_compraspublicas(self):
+        return self.permisos.filter(permiso='COMPRAS PUBLICAS').exists()
+
+    @property
+    def permiso_ventas(self):
+        return self.permisos.filter(permiso='VENTAS').exists()
