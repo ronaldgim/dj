@@ -2269,8 +2269,11 @@ def wms_egreso_picking_misreservas(request, n_pedido): #OK
                     if m['product_id'] == i:
                         pik_list.append(m)
     
+    cabecera = Reservas.objects.filter(contrato_id=contrato_id).first()
+    
     context = {
-        'cabecera':Reservas.objects.filter(contrato_id=contrato_id).first(),
+        'cabecera':cabecera,
+        'n_ped':cabecera.contrato_id + '.0',
         'cli':ped[0],
         'pedido':ped,
         'estado':estado,
