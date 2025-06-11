@@ -169,7 +169,25 @@ urlpatterns = [
         view = views.wms_listado_pedidos, #OK
         name = 'wms_listado_pedidos'
     ),
-
+    
+    path(
+        route='picking/misreservas/<str:contrato_id>',  
+        view = views.wms_detalle_misreservas, #OK
+        name = 'wms_detalle_misreservas'
+    ),
+    
+    path(
+        route='wms_detalle_misreservas_edit_ajax',  
+        view = views.wms_detalle_misreservas_edit_ajax, #OK
+        name = 'wms_detalle_misreservas_edit_ajax'
+    ),    
+    
+    path(
+        route='wms_detalle_misreservas_delete_ajax',  
+        view = views.wms_detalle_misreservas_delete_ajax, #OK
+        name = 'wms_detalle_misreservas_delete_ajax'
+    ),
+    
     ### INGRESO AJUSTE
     #Buscar ajuste
     path(

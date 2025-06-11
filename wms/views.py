@@ -2044,6 +2044,104 @@ def wms_listado_pedidos(request): #OK
     return render(request, 'wms/listado_pedidos_misreservas.html', context)
 
 
+@login_required(login_url='login')
+@permisos(['ADMINISTRADOR','OPERACIONES'], '/picking/list', 'ingresar a Detalle de Pedido')
+def wms_detalle_misreservas(request, contrato_id):
+    
+    estado = EstadoPicking.objects.filter(n_pedido=contrato_id)
+    
+    if estado.exists():
+        estado = estado.first()
+    else:
+        estado = ''
+    
+    contrato_id_int = contrato_id.split('.')[0]
+    reserva = Reservas.objects.filter(contrato_id=contrato_id_int)
+    contrato = pd.DataFrame(reserva.values(
+        'id', 'product_id','codigo_cliente','contrato_id','quantity','ware_code','confirmed',
+        'fecha_pedido','hora_llegada','sec_name_cliente','alterado','usuario__first_name','usuario__last_name'
+    ))
+    clientes = clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE','CIUDAD_PRINCIPAL']]
+    clientes = clientes.rename(columns={'CODIGO_CLIENTE':'codigo_cliente'})
+    productos = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+    
+    contrato = contrato.merge(clientes, on='codigo_cliente', how='left')
+    contrato = contrato.merge(productos, on='product_id', how='left') 
+    contrato['fecha_pedido'] = contrato['fecha_pedido'].astype('str') 
+    contrato = de_dataframe_a_template(contrato)
+    
+    if request.method == "POST":
+        codigo = request.POST.get('codigo')
+        unidades = request.POST.get('quantity')
+        Reservas.objects.create(
+            contrato_id = reserva.first().contrato_id,
+            codigo_cliente = reserva.first().codigo_cliente,
+            product_id = codigo,
+            quantity = int(unidades),
+            ware_code = reserva.first().ware_code,
+            confirmed = reserva.first().confirmed,
+            fecha_pedido = reserva.first().fecha_pedido,
+            hora_llegada = reserva.first().hora_llegada,
+            sec_name_cliente = '',
+            unique_id = None,
+            alterado = True,
+            usuario_id = request.user.id
+        )
+        return HttpResponseRedirect(f'/wms/picking/misreservas/{contrato_id_int}')
+    
+    context = {
+        'estado':estado,
+        'cabecera':contrato[0],
+        'contrato':contrato,
+        'productos':de_dataframe_a_template(productos)
+    }
+    
+    return render(request, 'wms/detalle_misreservas.html', context)
+
+
+@login_required(login_url='login')
+def wms_detalle_misreservas_edit_ajax(request):
+    
+    try:
+        
+        unidades = request.POST.get('unidades')
+        id = request.POST.get('id')
+        
+        row = Reservas.objects.get(id=id)
+        row.quantity = int(unidades)
+        row.usuario_id = request.user.id
+        row.alterado = True
+        row.save()
+        
+        return JsonResponse({
+            'type':'success',
+            'msg': f'Producto {row.product_id} editado exitosamente !!!'
+        })
+    except:
+        return JsonResponse({
+            'type':'danger',
+            'msg': f'Error al editar el producto {row.product_id} !!!'
+        })
+
+
+@login_required(login_url='login')
+def wms_detalle_misreservas_delete_ajax(request):
+    
+    try:
+        id = request.POST.get('id')
+        row = Reservas.objects.get(id=id)
+        row.delete()
+        
+        return JsonResponse({
+            'type':'success',
+            'msg': f'Producto {row.product_id} eliminado exitosamente !!!'
+        })
+    except:
+        return JsonResponse({
+            'type':'danger',
+            'msg': f'Error al eliminar el producto {row.product_id} !!!'
+        })
+
 
 # Detalle de pedido
 # url: picking/<n_pedido>
