@@ -1,0 +1,222 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Picking</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'wms/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+
+
+<h5 class="m-4 text-center fw-bold">{{cabecera.NOMBRE_CLIENTE}}</h5>
+
+<div id="msg"></div>
+
+<h6 class="text-start"><strong># PEDIDO: </strong>{{cabecera.contrato_id}}</h6>
+<h6 class="text-start"><strong>FECHA: </strong>{{cabecera.fecha_pedido}} {{cabecera.hora_llegada}}</h6>
+<h6 class="text-start"><strong>CIUDAD: </strong>{{cabecera.CIUDAD_PRINCIPAL}}</h6>
+<h6 class="text-start"><strong>BODEGA: </strong>{{cabecera.ware_code}}</h6>
+<h6 class="text-start"><strong>CONFIRAMDO: </strong>{% if cabecera.confirmed == 1 %} <i class="bi bi-check-circle-fill" style="color:green"></i> {% else %} <i class="bi bi-x-circle-fill" style="color:red"></i> {% endif %}</h6>
+<h6 class="text-start"><strong>DETALLE: </strong>{{cabecera.sec_name_cliente | default:"-"}}</h6>
+
+<h6 class="text-start"><strong>ESTADO: </strong>
+    {% if estado.estado == 'EN PAUSA' %}
+        <span class="badge bg-danger rounded-pill shadow fs-6">{{estado.estado}}</span>
+    {% elif estado.estado == 'EN TRANSITO' %}
+        <span class="badge bg-primary rounded-pill shadow fs-6">{{estado.estado}}</span>
+    {% elif estado.estado == 'EN PROCESO' %}
+        <span class="badge bg-warning rounded-pill shadow fs-6">{{estado.estado}}</span>
+    {% elif estado.estado == 'INCOMPLETO' %} 
+        <span class="badge text-white rounded-pill shadow fs-6" style="background-color: #bf03c8 ;">{{i.estado}}</span>
+    {% elif estado.estado == 'FINALIZADO' %}
+        <span class="badge bg-success rounded-pill shadow fs-6">{{estado.estado}}</span>
+    {% else %}
+    -
+    {% endif %}
+</h6>
+<h6 class="text-start"><strong>OPERARIO: </strong>{{estado.user|default:"-"}}</h6>
+
+<!-- Button trigger modal -->
+<button type="button" class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#exampleModal">
+    Añadir Producto
+</button>
+
+
+<div class="card mt-2 mb-2">
+    <div class="card-body m-0 p-0">
+        <div class="container table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Código</th>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Marca</th>
+                        <th scope="col">Unidades</th>
+                        <th scope="col">Alterado</th>
+                        <th scope="col">Usuario</th>
+                        <th scope="col">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in contrato %}
+                    <tr class="content">
+
+                        <td>{{i.product_id}}</td>
+                        <td>{{i.Nombre}}</td>
+                        <td>{{i.Marca}}</td>
+                        <td>
+                            <input value="{{i.quantity}}" type="number" name="quantity" />
+                        </td>
+                        <td>
+                            {% if i.alterado %}
+                                <i class="bi bi-check-circle-fill" style="color:green"></i>
+                            {% else %}
+                                <i class="bi bi-x-circle-fill" style="color:red"></i>
+                            {% endif %}
+                        </td>
+                        <td>{{i.usuario__first_name | default:"MBA"}} {{i.usuario__last_name | default:""}}</td>
+                        <td>
+                            <div class="btn-group" role="group" aria-label="Basic example">
+                                <button type="button" class="btn btn-sm btn-warning" name="edit" value={{i.id}}>
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-danger" name="delete" value={{i.id}}>
+                                    <i class="bi bi-trash-fill"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">AÑADIR PRODUCTO</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <form id="add-producto" method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="codigo" class="form-label fw-bold">Código:</label>
+                    <select id="codigo" name="codigo" class="form-select select2" style="width: 100%;" required>
+                        <option value="">Seleccione un producto</option>
+                        {% for producto in productos %}
+                            <option value="{{ producto.product_id }}">{{ producto.product_id }} - {{ producto.Nombre }} - {{ producto.Marca }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="quantity" class="form-label fw-bold">Unidades:</label>
+                    <input type="number" class="form-control" id="quantity" name="quantity" min="1" required>
+                </div>
+                <script>
+                    $(document).ready(function() {
+                        $('.select2').select2({
+                            dropdownParent: $('#exampleModal')
+                        });
+                    });
+                </script>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-success" form="add-producto">Guardar</button>
+        </div>
+        </div>
+    </div>
+</div>
+
+<!-- Editar -->
+<script>
+    $(document).ready(function() {
+        $("button[name='edit']").click(function() {
+            const id = $(this).val();
+            const unidades = $(this).closest('tr').find('input[name="quantity"]').val();
+
+            $.ajax({
+                type:"POST",
+                url:"{% url 'wms_detalle_misreservas_edit_ajax' %}",
+                data:{
+                    'csrfmiddlewaretoken': '{{ csrf_token }}',
+                    'id':id,
+                    'unidades':unidades
+                },
+                success: function(response) {
+                    if (response.type == 'success') {
+                        $('#msg').html(`<div class="text-center alert alert-success" role="alert"> ${response.msg} !!! </div>`)
+                        setTimeout(function(){
+                            location.reload();
+                        }, 3000);
+                    }
+
+                    if (response.type == 'danter') {
+                        $('#msg').html(`<div class="text-center alert alert-danger" role="alert"> ${response.msg} !!! </div>`)
+                        setTimeout(function(){
+                            location.reload();
+                        }, 3000);
+                    }
+                },
+
+                error: function(error) {
+                $('#msg').html(`<div class="text-center alert alert-danger" role="alert"> ${error} !!! </div>`)
+                    setTimeout(function(){
+                    window.location.reload();
+                    }, 3000)
+                }
+            })
+        })
+    })
+</script>
+
+<!-- Eliminar -->
+<script>
+    $(document).ready(function() {
+        $("button[name='delete']").click(function() {
+            const id = $(this).val();
+
+            $.ajax({
+                type:"POST",
+                url:"{% url 'wms_detalle_misreservas_delete_ajax' %}",
+                data:{
+                    'csrfmiddlewaretoken': '{{ csrf_token }}',
+                    'id':id,
+                },
+                success: function(response) {
+                    if (response.type == 'success') {
+                        $('#msg').html(`<div class="text-center alert alert-success" role="alert"> ${response.msg} !!! </div>`)
+                        setTimeout(function(){
+                            location.reload();
+                        }, 3000);
+                    }
+
+                    if (response.type == 'danter') {
+                        $('#msg').html(`<div class="text-center alert alert-danger" role="alert"> ${response.msg} !!! </div>`)
+                        setTimeout(function(){
+                            location.reload();
+                        }, 3000);
+                    }
+                },
+
+                error: function(error) {
+                $('#msg').html(`<div class="text-center alert alert-danger" role="alert"> ${error} !!! </div>`)
+                    setTimeout(function(){
+                    window.location.reload();
+                    }, 3000)
+                }
+            })
+        })
+    })
+</script>
+
+{% endblock %}

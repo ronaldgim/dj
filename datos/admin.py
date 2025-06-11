@@ -5,6 +5,10 @@ from django.contrib import admin
 from datos.models import Product, Vehiculos, AdminActualizationWarehaouse, Marca, Reservas
 
 
+admin.site.site_header = 'GIM OPERACIONES'
+# admin.site.site_title = 'ADMINISTRAICÓN DE DB'
+# admin.site.index_title = 'ADMINISTRAICÓN DE DB'
+
 # Register your models here.
 # @admin.register(MarcaImportExcel)
 # class MarcaExcelAdmin(admin.ModelAdmin):
