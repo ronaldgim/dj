@@ -2650,7 +2650,8 @@ def wms_estado_picking_actualizar_ajax(request):
                 
             elif movs_total_unidades != data_reservas_total_unidades: #pick_total_unidades: 
                 return JsonResponse({
-                    'msg':f' ⚠ El total de items de WMS {movs_total_unidades} es diferente al total de items MBA {pick_total_unidades} !!!',
+                    # 'msg':f' ⚠ El total de items de WMS {movs_total_unidades} es diferente al total de items MBA {pick_total_unidades} !!!',
+                    'msg':f' ⚠ El total de items de WMS {movs_total_unidades} es diferente al total de items MBA {data_reservas_total_unidades} !!!',
                     'alert':'warning'
                 })
             
@@ -2660,8 +2661,9 @@ def wms_estado_picking_actualizar_ajax(request):
                     'alert':'warning'
                 })
             
-            elif pick_total_unidades == movs_total_unidades:
-
+            # elif pick_total_unidades == movs_total_unidades:
+            elif data_reservas_total_unidades == movs_total_unidades:
+                
                 estado_picking.estado = estado_post
                 estado_picking.fecha_actualizado = datetime.now()
 
