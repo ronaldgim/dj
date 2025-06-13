@@ -117,7 +117,7 @@
                             <a class="btn btn-primary btn-sm" href="{% url 'wms_egreso_picking_misreservas' i.contrato_id %}">PICKING</a>
                             
                             {% if request.user.userperfil.permiso_operaciones %}
-                                <!--a class="btn btn-sm btn-warning text-white" href="{% url 'wms_detalle_misreservas' i.contrato_id %}">Detalle</a-->
+                                <a class="btn btn-sm btn-warning text-white" href="{% url 'wms_detalle_misreservas' i.contrato_id %}">Detalle</a>
                             {% endif %}
                             
                             {% if i.estado == 'EN PAUSA' %}
