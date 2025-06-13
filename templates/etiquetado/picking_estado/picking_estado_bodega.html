@@ -16,14 +16,12 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 
-<h5 class="m-4 text-center fw-bold">ESTADO DE PICKING DE PEDIDO</h5>
+<h5 class="m-4 text-center fw-bold">{{cabecera.NOMBRE_CLIENTE}}</h5>
 
 <div class="row">
     <div class="col-md-6 col-sm-12">
-        <span class="fw-bold">N. Pedido: </span>{{cabecera.CONTRATO_ID|slice:':-2'}}<br>
-        <span class="fw-bold">Bodega: </span><span id="bodega">{{cabecera.WARE_CODE}}</span><br>
-        <span class="fw-bold">Cliente: </span> {{cabecera.NOMBRE_CLIENTE}}<br>
-        <span class="fw-bold">Fecha de pedido: </span> {{fecha_pedido|date:'d-M-Y'}}
+        <span class="fw-bold">Pedido: </span>{{cabecera.CONTRATO_ID|slice:':-2'}}<br>
+        <span class="fw-bold">Fecha: </span> {{fecha_pedido|date:'Y-m-d'}}<br>
     </div>
 </div>
 

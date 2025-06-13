@@ -2634,7 +2634,7 @@ def wms_estado_picking_actualizar_ajax(request):
         contrato_id = estado_picking.n_pedido
         contrato_id = contrato_id.split('.')[0]
         
-        data_reservas = Reservas.objects.filter(contrato_id=contrato_id).values('quantity', flat=True)
+        data_reservas = Reservas.objects.filter(contrato_id=contrato_id).values_list('quantity', flat=True)
         movs = Movimiento.objects.filter(n_referencia=estado_picking.n_pedido).values_list('unidades', flat=True)
         
         movs_total_unidades = sum(movs) * -1 
