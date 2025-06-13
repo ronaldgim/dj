@@ -170,15 +170,15 @@ class TomaFisicaForm(forms.ModelForm):
         # }
         widgets = {
             
-            # 'cantidad_estanteria': forms.NumberInput(attrs={
-            'cantidad_estanteria': forms.TextInput(attrs={  
+            'cantidad_estanteria': forms.NumberInput(attrs={
+            # 'cantidad_estanteria': forms.TextInput(attrs={  
                 'class': 'form-control',
                 # 'min': '0',
                 'placeholder': 'Unidades en estanteria'
             }),
             
-            # 'cantidad_bulto': forms.NumberInput(attrs={
-            'cantidad_bulto': forms.TextInput(attrs={
+            'cantidad_bulto': forms.NumberInput(attrs={
+            # 'cantidad_bulto': forms.TextInput(attrs={
                 'class': 'form-control',
                 # 'min': '0',
                 'placeholder': 'Unidades en bulto'
