@@ -1454,7 +1454,6 @@ def picking(request):
 @permisos(['OPERACIONES','BODEGA'], '/etiquetado/wms-andagoya/home', 'ingresar a Lista de picking Andagoya')
 def picking_estado(request):
     
-    
     reservas_actualizado = AdminActualizationWarehaouse.objects.get(table_name='reservas').datetime
 
     # Tablas
@@ -1527,7 +1526,7 @@ def lista_correos(n_cliente):
 @permisos(['BODEGA'], '/etiquetado/wms-andagoya/home', 'cambiar el Estado Picking')
 @csrf_exempt
 def picking_estado_bodega(request, n_pedido):
-
+    
     estado_picking = EstadoPicking.objects.filter(n_pedido=n_pedido).exists()
     if estado_picking:
         est = EstadoPicking.objects.get(n_pedido=n_pedido)
