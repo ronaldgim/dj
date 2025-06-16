@@ -566,4 +566,10 @@ urlpatterns = [
         name  = 'wms_andagoya_home'
     ),
     
+    path(
+        route = 'wms_andagoya_reporte_mba',
+        view  = views.wms_andagoya_reporte_mba,
+        name  = 'wms_andagoya_reporte_mba'
+    ),
+    
 ]
