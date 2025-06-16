@@ -4423,3 +4423,77 @@ def wms_andagoya_home(request):
     }
     
     return render(request, 'etiquetado/wms_andagoya/home.html', context)
+
+
+def wms_andagoya_reporte_mba(request):
+    
+    
+    def data_wms():
+    
+        wms_andagoya = ProductoUbicacion.objects.all()
+        
+        data_list = []
+        for i in wms_andagoya:
+            product_id = i.product_id
+            
+            for j in i.ubicaciones.all():
+                
+                data = {
+                    'product_id':product_id,
+                    'Ubicación WMS':j.__str__(),
+                    'Bodega WMS':j.bodega
+                }
+                
+                data_list.append(data)
+        
+        df = pd.DataFrame(data_list)
+        return df
+    
+    def data_mba():
+        with connections['gimpromed_sql'].cursor() as cursor:
+            cursor.execute("SELECT PRODUCT_ID, LOTE_ID, OH2, WARE_CODE, LOCATION FROM warehouse.stock_lote WHERE WARE_CODE = 'BAN' or WARE_CODE = 'CUA' ")
+            columns = [col[0] for col in cursor.description]
+            stock = [dict(zip(columns, row)) for row in cursor.fetchall()]
+            stock = pd.DataFrame(stock)
+            stock['LOTE_ID'] = stock['LOTE_ID'].str.replace('.', '')
+            stock = stock.groupby(by=['PRODUCT_ID','WARE_CODE','LOTE_ID','LOCATION'])['OH2'].sum().reset_index()
+            stock = stock.rename(columns={'PRODUCT_ID':'product_id'})
+            stock['Estado MBA'] = stock.apply(lambda x: 'Disponible' if x['WARE_CODE'] == 'BAN' else 'Cuarentena', axis=1)
+            return stock
+    
+    data_wms_df = data_wms()
+    data_mba_df = data_mba()
+    
+    data = pd.merge(left=data_mba_df, right=data_wms_df, on='product_id', how='outer')
+    data = data.rename(columns={
+        'LOCATION':'Bodega MBA',
+        'OH2':'Unidades MBA'
+    })
+    
+    data['location_conf'] = data['Bodega MBA'] == data['Bodega WMS']
+    data = data[data['location_conf']==False]
+    data = data[['product_id', 'LOTE_ID', 'Estado MBA', 'Bodega MBA', 'Bodega WMS', 'Ubicación WMS', 'Unidades MBA']]
+    
+    hoy = datetime.today().strftime('%Y-%m-%d_%H-%M-%S')
+    nombre_archivo = f'Reporte-WMS-MBA_{hoy}.xlsx'
+    content_disposition = f'attachment; filename="{nombre_archivo}"'
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = content_disposition
+    
+    with pd.ExcelWriter(response, engine='openpyxl') as writer:
+            
+        data.to_excel(writer, sheet_name='Reporte-Reservas', index=False)
+        
+        workbook = writer.book
+        worksheet = writer.sheets['Reporte-Reservas']
+        
+        worksheet.column_dimensions['A'].width = 16 # CONTRATO
+        worksheet.column_dimensions['B'].width = 20 # PRODUCT_ID
+        worksheet.column_dimensions['C'].width = 20 # LOTE_RESERVAS
+        worksheet.column_dimensions['D'].width = 20 # FECHA_RESERVA
+        worksheet.column_dimensions['E'].width = 20 # RESERVA_RESERVADO
+        worksheet.column_dimensions['F'].width = 20 # BODEGA_RESERVA
+        worksheet.column_dimensions['G'].width = 20 # LOTE_DISPONIBLE
+        
+    return response
