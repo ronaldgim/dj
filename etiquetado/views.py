@@ -4483,7 +4483,7 @@ def wms_andagoya_reporte_mba(request):
     
     with pd.ExcelWriter(response, engine='openpyxl') as writer:
             
-        data.to_excel(writer, sheet_name='Reporte-Reservas', index=False)
+        data.to_excel(writer, sheet_name='Reporte-WMS-MBA-BAN', index=False)
         
         workbook = writer.book
         worksheet = writer.sheets['Reporte-WMS-MBA-BAN']
