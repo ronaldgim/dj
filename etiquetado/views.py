@@ -4475,7 +4475,7 @@ def wms_andagoya_reporte_mba(request):
     data = data[['product_id', 'LOTE_ID', 'Estado MBA', 'Bodega MBA', 'Bodega WMS', 'Ubicación WMS', 'Unidades MBA']]
     
     hoy = datetime.today().strftime('%Y-%m-%d_%H-%M-%S')
-    nombre_archivo = f'Reporte-WMS-MBA_{hoy}.xlsx'
+    nombre_archivo = f'Reporte-WMS-MBA-BAN_{hoy}.xlsx'
     content_disposition = f'attachment; filename="{nombre_archivo}"'
 
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
@@ -4486,7 +4486,7 @@ def wms_andagoya_reporte_mba(request):
         data.to_excel(writer, sheet_name='Reporte-Reservas', index=False)
         
         workbook = writer.book
-        worksheet = writer.sheets['Reporte-Reservas']
+        worksheet = writer.sheets['Reporte-WMS-MBA-BAN']
         
         worksheet.column_dimensions['A'].width = 16 # CONTRATO
         worksheet.column_dimensions['B'].width = 20 # PRODUCT_ID
