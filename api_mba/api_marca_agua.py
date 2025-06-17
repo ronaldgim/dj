@@ -1,7 +1,7 @@
 import requests
 
-# URL_MARA_AGUA = 'https://www.gimpromed.com/app/api/procesarPdf'
-URL_MARA_AGUA = 'http://www.gimpromed.com/app/api/procesarPdf'
+URL_MARA_AGUA = 'https://www.gimpromed.com/app/api/procesarPdf'
+# URL_MARA_AGUA = 'http://www.gimpromed.com/app/api/procesarPdf'
 
 
 def api_marca_agua(texto, file_path, opacidad):
