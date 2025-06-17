@@ -2618,16 +2618,22 @@ def wms_estado_picking_actualizar_ajax(request):
     estado_post = request.POST['estado']
     estado_picking = EstadoPicking.objects.get(id=id_picking)
     
-    # pedido = pedido_por_cliente(n_pedido=estado_picking.n_pedido) 
-    contrato_id = estado_picking.n_pedido
-    contrato_id = contrato_id.split('.')[0]
+    if estado_picking.bodega == 'BCT':
     
-    pedido = Reservas.objects.filter(contrato_id=contrato_id) #.values('product_id', 'quantity')
-    # data   = (pedido[['PRODUCT_ID', 'QUANTITY']]).to_dict()
-    data   = pedido.values('product_id', 'quantity')
-    data   = json.dumps(data)
-    estado_picking.detalle = data
-    estado_picking.save()
+        contrato_id = estado_picking.n_pedido
+        contrato_id = contrato_id.split('.')[0]    
+        pedido = Reservas.objects.filter(contrato_id=contrato_id)
+        data = list(pedido.values('product_id', 'quantity'))
+        data   = json.dumps(data)
+        estado_picking.detalle = data
+        estado_picking.save()
+        
+    elif estado_picking.bodega == 'BAN':
+        pedido = pedido_por_cliente(n_pedido=estado_picking.n_pedido) 
+        data   = (pedido[['PRODUCT_ID', 'QUANTITY']]).to_dict()
+        data   = json.dumps(data)
+        estado_picking.detalle = data
+        estado_picking.save()
 
     if estado_post == 'FINALIZADO':
 
