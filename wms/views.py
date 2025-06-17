@@ -2624,7 +2624,7 @@ def wms_estado_picking_actualizar_ajax(request):
     
     pedido = Reservas.objects.filter(contrato_id=contrato_id) #.values('product_id', 'quantity')
     # data   = (pedido[['PRODUCT_ID', 'QUANTITY']]).to_dict()
-    data   = pedido.values('product_id', 'quantity')
+    data = list(pedido.values('product_id', 'quantity'))
     data   = json.dumps(data)
     estado_picking.detalle = data
     estado_picking.save()
