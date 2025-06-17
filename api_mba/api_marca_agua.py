@@ -1,6 +1,7 @@
 import requests
 
-URL_MARA_AGUA = 'https://www.gimpromed.com/app/api/procesarPdf'
+URL_MARA_AGUA = 'http://10.10.3.4/app/api/procesarPdf'
+# URL_MARA_AGUA = 'https://www.gimpromed.com/app/api/procesarPdf'
 # URL_MARA_AGUA = 'http://www.gimpromed.com/app/api/procesarPdf'
 
 
