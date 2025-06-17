@@ -1,8 +1,8 @@
 import requests
 
-URL_MARA_AGUA = 'http://10.10.3.4/app/api/procesarPdf'
-# URL_MARA_AGUA = 'https://www.gimpromed.com/app/api/procesarPdf'
-# URL_MARA_AGUA = 'http://www.gimpromed.com/app/api/procesarPdf'
+URL_MARCA_AGUA = 'http://10.10.3.4/app/api/procesarPdf'
+# URL_MARCA_AGUA = 'https://www.gimpromed.com/app/api/procesarPdf'
+# URL_MARCA_AGUA = 'http://www.gimpromed.com/app/api/procesarPdf'
 
 
 def api_marca_agua(texto, file_path, opacidad):
@@ -17,7 +17,7 @@ def api_marca_agua(texto, file_path, opacidad):
         with open(file_path, 'rb') as pdf_file:
             files = {'pdf': pdf_file}
         
-            response = requests.post(url=URL_MARA_AGUA, data=data, files=files) 
+            response = requests.post(url=URL_MARCA_AGUA, data=data, files=files) 
             if response.status_code == 200:
                 return response
             else:
