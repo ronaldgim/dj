@@ -2778,7 +2778,7 @@ def wms_movimiento_egreso_picking(request): #OK
     pedido = Reservas.objects.filter(
         Q (contrato_id=contrato_id) &
         Q (product_id = prod_id)
-        ).values_list('quantity')
+        ).values_list('quantity', flat=True)
     total_pedido = sum(pedido)
 
     if not existencia.exists():
