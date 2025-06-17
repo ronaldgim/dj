@@ -2618,8 +2618,13 @@ def wms_estado_picking_actualizar_ajax(request):
     estado_post = request.POST['estado']
     estado_picking = EstadoPicking.objects.get(id=id_picking)
     
-    pedido = pedido_por_cliente(n_pedido=estado_picking.n_pedido) 
-    data   = (pedido[['PRODUCT_ID', 'QUANTITY']]).to_dict()
+    # pedido = pedido_por_cliente(n_pedido=estado_picking.n_pedido) 
+    contrato_id = estado_picking.n_pedido
+    contrato_id = contrato_id.split('.')[0]
+    
+    pedido = Reservas.objects.filter(contrato_id=contrato_id) #.values('product_id', 'quantity')
+    # data   = (pedido[['PRODUCT_ID', 'QUANTITY']]).to_dict()
+    data   = pedido.values('product_id', 'quantity')
     data   = json.dumps(data)
     estado_picking.detalle = data
     estado_picking.save()
@@ -2630,9 +2635,6 @@ def wms_estado_picking_actualizar_ajax(request):
         # pick_total_unidades = pick['QUANTITY'].sum() #;print(pick_total_unidades)
         # movs = Movimiento.objects.filter(referencia='Picking').filter(estado_picking='En Despacho').filter(n_referencia=estado_picking.n_pedido).values_list('unidades', flat=True)
         # movs = Movimiento.objects.filter(n_referencia=estado_picking.n_pedido).filter(estado_picking='En Despacho').values_list('unidades', flat=True)
-        
-        contrato_id = estado_picking.n_pedido
-        contrato_id = contrato_id.split('.')[0]
         
         data_reservas = Reservas.objects.filter(contrato_id=contrato_id).values_list('quantity', flat=True)
         movs = Movimiento.objects.filter(n_referencia=estado_picking.n_pedido).values_list('unidades', flat=True)
