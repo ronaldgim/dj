@@ -2769,13 +2769,17 @@ def wms_movimiento_egreso_picking(request): #OK
     else:
         total_mov = int(unds_egreso)
 
-    pedido = pedido_por_cliente(n_picking)
+    # pedido = pedido_por_cliente(n_picking)
     # pedido = pedido[pedido['PRODUCT_ID']==prod_id][['PRODUCT_ID','QUANTITY']]#.reset_index()
     # pedido = pedido.groupby(by='PRODUCT_ID').sum().to_dict('records')[0]
-    
-    pedido = pedido[pedido['product_id']==prod_id][['product_id','quantity']]#.reset_index()
-    pedido = pedido.groupby(by='product_id').sum().to_dict('records')[0]
-    total_pedido = pedido['quantity']
+    # total_pedido = pedido['quantity']
+
+    contrato_id = n_picking.split('.')[0]
+    pedido = Reservas.objects.filter(
+        Q (contrato_id=contrato_id) &
+        Q (product_id = prod_id)
+        ).values_list('quantity')
+    total_pedido = sum(pedido)
 
     if not existencia.exists():
         return JsonResponse({'msg':'❌ Error, revise las existencias o refresque la pagina !!!'})
