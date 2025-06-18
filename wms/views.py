@@ -2618,10 +2618,11 @@ def wms_estado_picking_actualizar_ajax(request):
     estado_post = request.POST['estado']
     estado_picking = EstadoPicking.objects.get(id=id_picking)
     
+    contrato_id = estado_picking.n_pedido
+    contrato_id = contrato_id.split('.')[0]   
+        
     if estado_picking.bodega == 'BCT':
     
-        contrato_id = estado_picking.n_pedido
-        contrato_id = contrato_id.split('.')[0]    
         pedido = Reservas.objects.filter(contrato_id=contrato_id)
         data = list(pedido.values('product_id', 'quantity'))
         data   = json.dumps(data)
