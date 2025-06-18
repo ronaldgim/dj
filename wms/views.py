@@ -2682,8 +2682,8 @@ def wms_estado_picking_actualizar_ajax(request):
                     if estado_picking.id:
                         return JsonResponse({'msg':f'✅ Estado de picking {estado_picking.estado}',
                                         'alert':'success'}, status=200)
-                except:
-                    return JsonResponse({'msg':'❌ Error, intente nuevamente !!!',
+                except Exception as e:
+                    return JsonResponse({'msg':f'❌ Exception, {e} !!!',
                                         'alert':'danger'})
         
         elif estado_picking.bodega == 'BAN':
@@ -2697,8 +2697,8 @@ def wms_estado_picking_actualizar_ajax(request):
                 if estado_picking.id:
                     return JsonResponse({'msg':f'✅ Estado de picking {estado_picking.estado}',
                                     'alert':'success'}, status=200)
-            except:
-                return JsonResponse({'msg':'❌ Error, intente nuevamente !!!',
+            except Exception as e:
+                return JsonResponse({'msg': f'❌ Exception, {e} !!!',
                                     'alert':'danger'})
             
     else:
@@ -2711,8 +2711,8 @@ def wms_estado_picking_actualizar_ajax(request):
                 if estado_picking.id:
                     return JsonResponse({'msg':f'✅ Estado de picking {estado_picking.estado}',
                                     'alert':'success'}, status=200)
-            except:
-                return JsonResponse({'msg':'❌ Error, intente nuevamente !!!',
+            except Exception as e:
+                return JsonResponse({'msg': f'❌ Exception, {e} !!!',
                                     'alert':'danger'})
 
 
