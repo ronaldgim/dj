@@ -37,7 +37,8 @@ def delete_data_warehouse(table_name):
             print("Borrando tabla datawarehouse " + table_name)
     except Exception as e:
         print(e)
-
+    finally:
+        connections['gimpromed_sql'].close()
 
 
 # obtener columnas de tabla por nombre de la tabla
@@ -51,6 +52,9 @@ def get_columns_table_warehouse(table_name):
         return columns
     except Exception as e:
         print(e)
+    finally:
+        connections['gimpromed_sql'].close()
+
 
 # insertar datos en tabla de warehouse
 def insert_data_warehouse(table_name, data):   
@@ -67,6 +71,8 @@ def insert_data_warehouse(table_name, data):
             print("Insertando datos en warehouse " + table_name)
     except Exception as e:
         print(e)
+    finally:
+        connections['gimpromed_sql'].close()
 
 
 def admin_warehouse_timestamp(tabla, actualizar_datetime, mensaje):
