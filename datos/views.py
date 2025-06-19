@@ -1498,6 +1498,7 @@ def reservas_sinlote():
 
 
 def stock_lote_odbc(): 
+    
     # Stock
     with connections['gimpromed_sql'].cursor() as cursor:
         cursor.execute("SELECT * FROM stock_lote")
@@ -1508,10 +1509,11 @@ def stock_lote_odbc():
         ]
         stock_lote = pd.DataFrame(stock_lote)
     
-    stock_lote = stock_lote[stock_lote['WARE_CODE']!='CUC']
-    stock_lote = stock_lote[stock_lote['WARE_CODE']!='CUA']
+        stock_lote = stock_lote[stock_lote['WARE_CODE']!='CUC']
+        stock_lote = stock_lote[stock_lote['WARE_CODE']!='CUA']
 
-    return stock_lote
+        connections['gimpromed_sql'].close()
+        return stock_lote
 
 
 def reservas_lote_2():
@@ -1525,7 +1527,8 @@ def reservas_lote_2():
             for row in cursor.fetchall()
         ]
         reservas_lote = pd.DataFrame(reservas_lote) 
-    return reservas_lote
+        connections['gimpromed_sql'].close()
+        return reservas_lote
 
 def reservas_publico_lote_2():
 
@@ -1538,7 +1541,8 @@ def reservas_publico_lote_2():
             for row in cursor.fetchall()
         ]
         reservas_lote = pd.DataFrame(reservas_lote) 
-    return reservas_lote
+        connections['gimpromed_sql'].close()
+        return reservas_lote
 
 
 def pickin_de_reservas_finalizado():
@@ -1552,10 +1556,7 @@ def pickin_de_reservas_finalizado():
 
 
 def etiquetados_no_finalizados():
-        
-    #data = PedidosEstadoEtiquetado.objects.exclude(estado_id=3).values_list('n_pedido', flat=True)
     
-    #with connection[]
     with connections['gimpromed_sql'].cursor() as cursor:
         cursor.execute("SELECT * FROM reservas WHERE SEC_NAME_CLIENTE = 'PUBLICO' ")
         columns = [col[0] for col in cursor.description]
@@ -1563,14 +1564,13 @@ def etiquetados_no_finalizados():
             dict(zip(columns, row))
             for row in cursor.fetchall()
         ]
+        cursor.close()
         publico = pd.DataFrame(publico) 
         publico['CONTRATO_ID'] = publico['CONTRATO_ID'].astype('float')
         publico['CONTRATO_ID'] = publico['CONTRATO_ID'].astype('int') #;print(publico)
         
-        # print(publico)
-        #publico = publico['CONTRATO_ID'].unique()
-        # print(lista_publico)
-    return publico
+        connections['gimpromed_sql'].close()
+        return publico
 
 
 
@@ -1727,7 +1727,9 @@ def stock_lote_cuc_etiquetado_detalle_odbc():
         ]
         stock_lote = pd.DataFrame(stock_lote)
         stock_lote = stock_lote.sort_values('FECHA_CADUCIDAD')
-    return stock_lote
+        
+        connections['gimpromed_sql'].close()
+        return stock_lote
 
 
 
@@ -1814,8 +1816,7 @@ def lotes_bodega(bodega, product_id):
         stock_lote = [
             dict(zip(columns, row))
             for row in cursor.fetchall()
-        ]
-        
+        ]    
         
         stock_lote = pd.DataFrame(stock_lote)
         if not stock_lote.empty:
@@ -1828,7 +1829,8 @@ def lotes_bodega(bodega, product_id):
                 'OH2':'Unds'
                 })
         
-    return stock_lote
+        connections['gimpromed_sql'].close()
+        return stock_lote
 
 
 def wms_reservas_lotes_datos():
@@ -1837,9 +1839,6 @@ def wms_reservas_lotes_datos():
         'PRODUCT_ID':'product_id',
         'LOTE_ID':'lote_id'}
     ).drop_duplicates(subset=['product_id','lote_id'])   
-    
-    # cli = clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE']]
-    # r_lote = r_lote.merge(cli, on='CODIGO_CLIENTE', how='left').drop_duplicates(subset=['product_id','lote_id'])
     
     return r_lote
 
@@ -1855,6 +1854,8 @@ def wms_reservas_lote_consulta(product_id, lote_id):
             dict(zip(columns, row))
             for row in cursor.fetchall()
         ]
+        
+        connections['gimpromed_sql'].close()
         r_lote = pd.DataFrame(r_lote)
         
     cli = clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE']]
@@ -1922,7 +1923,6 @@ def wms_detalle_factura(n_factura):
     return df
 
 
-
 def wms_reserva_por_contratoid(contrato_id):
     
     with connections['gimpromed_sql'].cursor() as cursor:
@@ -1934,7 +1934,8 @@ def wms_reserva_por_contratoid(contrato_id):
         ]
         reserva = pd.DataFrame(reserva)
         
-    return reserva
+        connections['gimpromed_sql'].close()
+        return reserva
 
 
 def wms_stock_lote_products():
@@ -1958,7 +1959,9 @@ def wms_stock_lote_products():
             }).sort_values(by=['Marca','product_id'], ascending=[True, True])
         
         products = de_dataframe_a_template(products)
-    return products
+        
+        connections['gimpromed_sql'].close()
+        return products
 
 
 def wms_stock_lote_cerezos_by_product(product_id):
@@ -1972,7 +1975,8 @@ def wms_stock_lote_cerezos_by_product(product_id):
         ]
         stock = pd.DataFrame(stock)
         
-    return stock
+        connections['gimpromed_sql'].close()
+        return stock
 
 
 def wms_datos_nota_entrega(nota_entrega):
@@ -2074,6 +2078,7 @@ def whastapp_cliente_por_codigo(codigo_cliente):
         wp = cursor.fetchone()[0] 
         wp = wp.replace(' ', '')
         
+        connections['gimpromed_sql'].close()
         return wp 
     
     
@@ -2101,7 +2106,8 @@ def email_cliente_por_codigo(codigo_cliente):
             email.append(e)
         else:
             email = None
-        
+            
+        connections['gimpromed_sql'].close()
         return email
     
     
@@ -2114,7 +2120,8 @@ def lista_proformas_odbc():
         proformas = [dict(zip(columns, row)) for row in cursor.fetchall()]
         proformas = pd.DataFrame(proformas)
         
-    return proformas
+        connections['gimpromed_sql'].close()
+        return proformas
 
 
 # Obtener una proforma por contrato_id
@@ -2126,7 +2133,8 @@ def proformas_por_contrato_id_odbc(contrato_id):
         proformas = [dict(zip(columns, row)) for row in cursor.fetchall()]
         proformas = pd.DataFrame(proformas)
         
-    return proformas
+        connections['gimpromed_sql'].close()
+        return proformas
     
     
 # Obtener una datos picking por contrato_id -PARA CABECERA DE ANEXO
@@ -2155,7 +2163,8 @@ def datos_anexo(contrato_id):
         columns = [col[0] for col in cursor.description]
         anexo = [dict(zip(columns, row)) for row in cursor.fetchall()][0]
         
-    return anexo
+        connections['gimpromed_sql'].close()
+        return anexo
 
 
 # Obtener una datos picking por contrato_id -PARA LISTA DE PRODUCTOS DE ANEXO
@@ -2189,7 +2198,8 @@ def datos_anexo_product_list(contrato_id):
         columns = [col[0] for col in cursor.description]
         anexo_product_list = [dict(zip(columns, row)) for row in cursor.fetchall()]
         
-    return anexo_product_list
+        connections['gimpromed_sql'].close()
+        return anexo_product_list
 
 
 
@@ -2315,6 +2325,8 @@ def inventario_transferencia_data():
             stock['LOTE_ID'] = stock['LOTE_ID'].str.replace('.','')
             stock = stock.groupby(by=['PRODUCT_ID','LOTE_ID','FECHA_CADUCIDAD','LOCATION','WARE_CODE'])['OH2'].sum().reset_index()
             stock['BODEGA'] = 'BAN'
+            
+            connections['gimpromed_sql'].close()
             return stock
     
     def df_stock_cerezos():
@@ -2353,6 +2365,8 @@ def inventario_transferencia_data():
             reservas = pd.DataFrame(reservas)
             reservas['LOTE_ID'] = reservas['LOTE_ID'].str.replace('.','')
             reservas = reservas.groupby(by=['CONTRATO_ID','CODIGO_CLIENTE','PRODUCT_ID','LOTE_ID','WARE_CODE'])['EGRESO_TEMP'].sum().reset_index()
+            
+            connections['gimpromed_sql'].close()
             return reservas
     
     def df_reservas_unidades():
@@ -2463,6 +2477,8 @@ def resporte_diferencia_mba_wms():
             data = pd.DataFrame(data)
             data['LOTE_ID'] = data['LOTE_ID'].str.replace('.','')
             data = data.groupby(by=['PRODUCT_ID','LOTE_ID','WARE_CODE','LOCATION'])['OH2'].sum().reset_index().sort_values(by='WARE_CODE')
+            
+            connections['gimpromed_sql'].close()
             return data
     
     def stock_cerezos_wms():

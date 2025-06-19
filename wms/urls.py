@@ -676,5 +676,4 @@ urlpatterns = [
         view = views.wms_reporte_diferencia_mba_wms,
         name = 'wms_reporte_diferencia_mba_wms'
     ),
-    
 ]
