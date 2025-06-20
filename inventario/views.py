@@ -497,38 +497,103 @@ def inventario_toma_fisica_agregar_producto(request):
             return JsonResponse({'type':'danger','msg':form.errors})
 
 
+# Wms andagoya 
+def producto_ubicacion_wms_andagoya():
+    from etiquetado.models import ProductoUbicacion
+    producto_ubicacion = ProductoUbicacion.objects.all() 
+    
+    data_list = []
+    for i in producto_ubicacion:
+        product_id = i.product_id
+        ubicaciones_len = len(i.ubicaciones.all())
+        
+        if ubicaciones_len > 1:
+            data = {
+                'product_id':product_id,
+                'doble_ubicacion':'SI'
+            }
+            
+            data_list.append(data)
+            
+    data_df = pd.DataFrame(data_list)
+    data_df = data_df.drop_duplicates(subset='product_id')
+    
+    if not data_df.empty:
+        return data_df
+    
+    return pd.DataFrame()
+
+
 ## Reporte completo excel ###
 @login_required(login_url='login')
 def reporte_completo_excel(request):
-    
-    # Conf Usuario
-    users    = pd.DataFrame(User.objects.all().values())
-    users = users.rename(columns={'id':'user_id'})
-    users = users[['user_id', 'first_name', 'last_name']]
-    users['usuario'] = users['first_name'] + ' ' + users['last_name']
-    users = users[['user_id', 'usuario']]
-    users['user_id'] = users['user_id'].astype(int)
 
-    # Reporte 
-    reporte_completo_excel = pd.DataFrame(Inventario.objects.all().values().order_by('group_code', 'product_id', 'fecha_cadu_lote'))
-    reporte_completo_excel = reporte_completo_excel.fillna(0)
-    reporte_completo_excel['user_id'] = reporte_completo_excel['user_id'].astype(int)
-    reporte_completo_excel = reporte_completo_excel.merge(users, on='user_id', how='left')
-    reporte_completo_excel = reporte_completo_excel.drop(['id', 'user_id'], axis=1)
-    reporte_completo_excel = reporte_completo_excel.set_index('product_id')
+    doble_ubicacion = producto_ubicacion_wms_andagoya()
 
-    reporte_completo_excel['diferencia_ok'] = reporte_completo_excel['total_unidades'] - reporte_completo_excel['oh2']
+    reporte_completo_excel = pd.DataFrame(Inventario.objects.all().values(
+        'product_id',
+        'product_name',
+        'group_code',
+        'um',
+        'oh',
+        'oh2',
+        'commited',
+        'quantity',
+        'lote_id',
+        'fecha_elab_lote',
+        'fecha_cadu_lote',
+        'ware_code',
+        'location',
+        'unidades_caja',
+        'numero_cajas',
+        'unidades_sueltas',
+        'unidades_estanteria',
+        'total_unidades',
+        'diferencia',
+        'observaciones',
+        'llenado',
+        'agregado',
+        'user__username'
+    ).order_by('group_code', 'product_id', 'fecha_cadu_lote'))
 
-    reporte_completo_excel = reporte_completo_excel[[
-        'product_name', 'group_code', 'um', 'oh', 'oh2', 'commited', 
-        'quantity', 
-        'lote_id', 'fecha_elab_lote','fecha_cadu_lote', 'ware_code', 'location', 'unidades_caja', 'numero_cajas', 'unidades_sueltas', 
-        'unidades_estanteria', 'total_unidades',
-        'diferencia_ok', 'observaciones', 'llenado', 'agregado', 'usuario'
-    ]]
+    # reporte_completo_excel['diferencia_ok'] = reporte_completo_excel['total_unidades'] - reporte_completo_excel['oh2']
 
     reporte_completo_excel['fecha_elab_lote'] = reporte_completo_excel['fecha_elab_lote'].astype(str)
     reporte_completo_excel['fecha_cadu_lote'] = reporte_completo_excel['fecha_cadu_lote'].astype(str)
+    
+    if not doble_ubicacion.empty:
+        reporte_completo_excel = reporte_completo_excel.merge(doble_ubicacion, on='product_id', how='left')
+        reporte_completo_excel['doble_ubicacion'] = reporte_completo_excel['doble_ubicacion'].fillna('NO')
+    elif doble_ubicacion.empty:
+        reporte_completo_excel['doble_ubicacion'] = 'NO'
+    
+    reporte_completo_excel = reporte_completo_excel[[
+        'product_id',
+        'product_name',
+        'group_code',
+        'um',
+        'oh',
+        'oh2',
+        'commited',
+        'quantity',
+        'lote_id',
+        'fecha_elab_lote',
+        'fecha_cadu_lote',
+        'ware_code',
+        'location',
+        'unidades_caja',
+        'numero_cajas',
+        'unidades_sueltas',
+        'unidades_estanteria',
+        'total_unidades',
+        # 'diferencia_ok',
+        'diferencia',
+        'doble_ubicacion',
+        'observaciones',
+        'llenado',
+        'agregado',
+        'user__username'
+        ]]
 
     date_time = str(datetime.now())
     date_time = date_time[0:16]
@@ -538,7 +603,7 @@ def reporte_completo_excel(request):
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     response['Content-Disposition'] = nombre
 
-    reporte_completo_excel.to_excel(response)
+    reporte_completo_excel.to_excel(response, index=False)
 
     return response
 
