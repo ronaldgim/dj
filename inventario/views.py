@@ -277,6 +277,7 @@ def inventario_andagoya_get_stock(request):
         'unidades_caja',
         'numero_cajas',
         'unidades_sueltas',
+        'unidades_estanteria',
         'total_unidades',
         'diferencia',
         'observaciones',
@@ -521,7 +522,8 @@ def reporte_completo_excel(request):
     reporte_completo_excel = reporte_completo_excel[[
         'product_name', 'group_code', 'um', 'oh', 'oh2', 'commited', 
         'quantity', 
-        'lote_id', 'fecha_elab_lote','fecha_cadu_lote', 'ware_code', 'location', 'unidades_caja', 'numero_cajas', 'unidades_sueltas', 'total_unidades',
+        'lote_id', 'fecha_elab_lote','fecha_cadu_lote', 'ware_code', 'location', 'unidades_caja', 'numero_cajas', 'unidades_sueltas', 
+        'unidades_estanteria', 'total_unidades',
         'diferencia_ok', 'observaciones', 'llenado', 'agregado', 'usuario'
     ]]
 
@@ -604,6 +606,7 @@ def reporte_andagoya_bpa(request):
         'unidades_caja',
         'numero_cajas',
         'unidades_sueltas',
+        'unidades_estanteria',
         'total_unidades',
         'diferencia',
         'observaciones',
@@ -632,6 +635,7 @@ def reporte_andagoya_bpa(request):
             'oh2',
             'numero_cajas',
             'unidades_sueltas',
+            'unidades_estanteria',
             'total_unidades',
             'diferencia',
             'observaciones',
