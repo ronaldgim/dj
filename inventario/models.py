@@ -58,9 +58,7 @@ class Inventario(models.Model):
         self.unidades_estanteria = 0 if not self.unidades_estanteria else self.unidades_estanteria
         
         self.total_unidades = (self.unidades_caja * self.numero_cajas) + self.unidades_sueltas + self.unidades_estanteria
-        # self.diferencia = self.total_unidades - self.oh2
         self.diferencia = ((self.unidades_caja * self.numero_cajas) + self.unidades_sueltas + self.unidades_estanteria) - self.oh2
-        
         
         return super().save(*args, **kwargs)
 
