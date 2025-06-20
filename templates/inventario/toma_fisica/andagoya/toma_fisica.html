@@ -79,9 +79,9 @@
                     <div class="mt-2 w-100">
                         <div class="card">
                             <div class="card-body">
-                                <label class="fw-bold m-0 p-0">Código:</label> {{item.product_id}}<br>
-                                <label class="fw-bold m-0 p-0">Nombre:</label> {{item.product_name}}<br>
-                                <label class="fw-bold m-0 p-0">Marca:</label> {{item.group_code}}<br>
+                                <label class="fw-bold m-0 p-0">Código:</label> <span>{{item.product_id}}</span><br>
+                                <label class="fw-bold m-0 p-0">Nombre:</label> <span>{{item.product_name}}</span><br>
+                                <label class="fw-bold m-0 p-0">Marca:</label> <span>{{item.group_code}}</span><br>
                             </div>
                         </div>
                         <div class="card" :style="{backgroundColor:diferenciaColor(diferencia)}">
@@ -189,16 +189,26 @@
                             <div v-if="msg_lote" :class="`alert alert-${type_msg_lote} text-center p-2 m-0`" role="alert" style="font-size: smaller;">
                                 {{msg_lote}}
                             </div>
+
                             <mark><label class="fw-bold m-0 p-0">Lote:</label> {{item.lote_id}}</mark><br>
                             <label class="fw-bold m-0 p-0">F.Elab:</label> {{item.fecha_elab_lote}}<br>
                             <label class="fw-bold m-0 p-0">F.Cadu:</label> {{item.fecha_cadu_lote}}<br>
+                            
                             <form @submit.prevent="actualizarItem(formLote.id)">
                                 <label>Unidades por cartón:</label>
                                 <input class="form-control form-control-sm" v-model="formLote.unidades_caja" type="number" required>
+                                
                                 <label>Número total de cartones:</label>
                                 <input class="form-control form-control-sm" v-model="formLote.numero_cajas" type="number">
+                                
                                 <label>Unidades sueltas:</label>
                                 <input class="form-control form-control-sm" v-model="formLote.unidades_sueltas" type="number">
+                                
+                                <div class="bg-info p-2 mt-2 mb-2 rounded">
+                                <label>Unidades estanteria:</label>
+                                <input class="form-control form-control-sm" v-model="formLote.unidades_estanteria" type="number">
+                                </div>
+
                                 <label>Observaciones:</label>
                                 <textarea class="form-control form-control-sm" v-model="formLote.observaciones"></textarea>
                                 <label class="fw-bold">Total Unidades:</label> {{ conteo_fisico_lote.toLocaleString() }}<br>
@@ -359,6 +369,7 @@
                 unidades_caja:'',
                 numero_cajas:'',
                 unidades_sueltas:'',
+                unidades_estanteria:'',
                 observaciones:'',
                 llenado:true,
                 user_id: Number(document.getElementById("user-id").value)
@@ -425,13 +436,15 @@
                 const u_cajas = this.formLote.unidades_caja ? this.formLote.unidades_caja : 0;
                 const n_cajas = this.formLote.numero_cajas ? this.formLote.numero_cajas : 0;
                 const u_sueltas = this.formLote.unidades_sueltas ? this.formLote.unidades_sueltas : 0;
-                return Number(u_cajas * n_cajas) + Number(u_sueltas)
+                const u_estanteria = this.formLote.unidades_estanteria ? this.formLote.unidades_estanteria : 0;
+                return Number(u_cajas * n_cajas) + Number(u_sueltas) + Number(u_estanteria)
             },
 
             conteo_fisico_agregar_lote() {
                 const u_cajas = this.formAgregar.unidades_caja ? this.formAgregar.unidades_caja : 0;
                 const n_cajas = this.formAgregar.numero_cajas ? this.formAgregar.numero_cajas : 0;
                 const u_sueltas = this.formAgregar.unidades_sueltas ? this.formAgregar.unidades_sueltas : 0;
+                const u_estanteria = this.formAgregar.unidades_estanteria ? this.formAgregar.unidades_estanteria : 0;
                 return Number(u_cajas * n_cajas) + Number(u_sueltas)
             },
 
@@ -590,6 +603,7 @@
                     this.formLote.unidades_caja = data.item.unidades_caja;
                     this.formLote.numero_cajas = (!data.item.llenado && data.item.numero_cajas === 0) ? '' : data.item.numero_cajas;
                     this.formLote.unidades_sueltas = (!data.item.llenado && data.item.unidades_sueltas === 0) ? '' :data.item.unidades_sueltas;
+                    this.formLote.unidades_estanteria = (!data.item.llenado && data.item.unidades_estanteria === 0) ? '' :data.item.unidades_estanteria;
 
                     setTimeout(
                         () => {

@@ -67,6 +67,8 @@ urlpatterns = [
     path('api/', include('api.urls')),
     
     # API
-    path('metro/', include('metro.urls'))
+    path('metro/', include('metro.urls')),
+    
+    path('dashboards/', include('dashboards.urls')),
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

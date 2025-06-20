@@ -191,6 +191,7 @@ def stock_lote_tupla():
         
         numero_cajas = 0 
         unidades_sueltas = 0 
+        unidades_estanteria = 0
         total_unidades = 0 
         diferencia = 0 
         
@@ -224,6 +225,7 @@ def stock_lote_tupla():
             llenado,
             agregado,
             user_id,
+            unidades_estanteria,
         )
 
         lista_stock_mba.append(s_lote)

@@ -15,6 +15,7 @@ class InventarioForm(forms.ModelForm):
             'unidades_caja', 
             'numero_cajas', 
             'unidades_sueltas', 
+            'unidades_estanteria', 
             'observaciones',
             'llenado',
             'user'

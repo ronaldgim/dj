@@ -35,6 +35,8 @@ class Inventario(models.Model):
     unidades_caja    = models.IntegerField(verbose_name='Unidades por caja', blank=True)  # default = 0
     numero_cajas     = models.IntegerField(verbose_name='Número de cajas', blank=True)  # default = 0
     unidades_sueltas = models.IntegerField(verbose_name='Unidades sueltas', blank=True)  # default = 0
+    unidades_estanteria = models.IntegerField(verbose_name='Unidades estanteria', blank=True)  # default = 0
+    
     total_unidades   = models.IntegerField(verbose_name='Total de unidades', blank=True)  # default = 0
     diferencia       = models.IntegerField(verbose_name='Diferencia', blank=True)  # default = 0
     observaciones    = models.CharField(verbose_name='Observaciones', max_length=100, blank=True)
@@ -53,8 +55,9 @@ class Inventario(models.Model):
         
         self.numero_cajas = 0 if not self.numero_cajas else self.numero_cajas
         self.unidades_sueltas = 0 if not self.unidades_sueltas else self.unidades_sueltas
+        self.unidades_estanteria = 0 if not self.unidades_estanteria else self.unidades_estanteria
         
-        self.total_unidades = (self.unidades_caja * self.numero_cajas) + self.unidades_sueltas
+        self.total_unidades = (self.unidades_caja * self.numero_cajas) + self.unidades_sueltas + self.unidades_estanteria
         self.diferencia = self.total_unidades - self.oh2
         
         return super().save(*args, **kwargs)
