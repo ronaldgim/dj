@@ -312,6 +312,11 @@
                                 <label>Unidades sueltas:</label>
                                 <input class="form-control form-control-sm" v-model="formAgregar.unidades_sueltas" type="number">
 
+                                <div class="bg-info p-2 mt-2 mb-2 rounded">
+                                <label>Unidades estanteria:</label>
+                                <input class="form-control form-control-sm" v-model="formAgregar.unidades_estanteria" type="number">
+                                </div>
+
                                 <label>Observaciones:</label>
                                 <textarea class="form-control form-control-sm" v-model="formAgregar.observaciones"></textarea>
 
@@ -415,6 +420,7 @@
                 unidades_caja:'',
                 numero_cajas:'',
                 unidades_sueltas:'',
+                unidades_estanteria:'',
                 observaciones:'',
                 llenado:true,
                 agregado:true,
