@@ -556,7 +556,7 @@ def reporte_completo_excel(request):
         'user__username'
     ).order_by('group_code', 'product_id', 'fecha_cadu_lote'))
 
-    # reporte_completo_excel['diferencia_ok'] = reporte_completo_excel['total_unidades'] - reporte_completo_excel['oh2']
+    reporte_completo_excel['diferencia_ok'] = reporte_completo_excel['total_unidades'] - reporte_completo_excel['oh2']
 
     reporte_completo_excel['fecha_elab_lote'] = reporte_completo_excel['fecha_elab_lote'].astype(str)
     reporte_completo_excel['fecha_cadu_lote'] = reporte_completo_excel['fecha_cadu_lote'].astype(str)
@@ -586,8 +586,8 @@ def reporte_completo_excel(request):
         'unidades_sueltas',
         'unidades_estanteria',
         'total_unidades',
-        # 'diferencia_ok',
-        'diferencia',
+        'diferencia_ok',
+        # 'diferencia',
         'doble_ubicacion',
         'observaciones',
         'llenado',
