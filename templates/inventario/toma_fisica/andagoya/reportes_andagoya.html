@@ -8,7 +8,7 @@
 {% include 'inventario/topnavbar.html' %}
 {% endblock %}
 
-{% block body %}
+{% block body_2 %}
 
 <div id="app">
 
@@ -45,28 +45,32 @@
         {% endif %}
     </div>
 
-    <div class="row g-2 mb-2">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    Avance de toma física por ubicación
-                </div>
-                <div class="card-body d-flex justify-content-center align-items-center" style="height: 300px;">
-                    <canvas id="myBarChart" style="height: 300px;"></canvas>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    Avance de toma física
-                </div>
-                <div class="card-body d-flex justify-content-center align-items-center" style="height: 300px;">
-                    <canvas id="myPieChart" style="height: 300px;"></canvas>
+    <!--div class="container"-->
+        <div class="row g-2 mb-2">
+            <!-- div class="col-md-6"-->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        Avance de toma física por ubicación
+                    </div>
+                    <div class="card-body d-flex justify-content-center align-items-center" style="height: 300px;">
+                        <canvas id="myBarChart" style="height: 300px;"></canvas>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>    
+            <!--div class="col-md-6"-->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        Avance de toma física
+                    </div>
+                    <div class="card-body d-flex justify-content-center align-items-center" style="height: 300px;">
+                        <canvas id="myPieChart" style="height: 300px;"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>  
+    <!--/div-->
 
     <div class="card">
         <div class="card-header">TOMA FISICA ANDAGOYA</div>
@@ -80,15 +84,19 @@
                             <th scope="col">Nombre</th>
                             <th scope="col">Marca</th>
                             <th scope="col">Lote</th>
-                            <th scope="col">F.Elaboración</th>
-                            <th scope="col">F.Caducidad</th>
+                            <th scope="col">F.Elab</th>
+                            <th scope="col">F.Cadu</th>
                             <th scope="col">Bodega</th>
                             <th scope="col">Ubicación</th>
-                            <th scope="col">T.F-Unds</th>
+                            <th scope="col">Und.Caja</th>
+                            <th scope="col">N.Cajas</th>
+                            <th scope="col">Und.Sue</th>
+                            <th scope="col">Und.Est</th>
+                            <th scope="col">T.Unds</th>
                             <th scope="col">MBA-Unds</th>
                             <th scope="col">Diferencia</th>
-                            <!--th scope="col">Llenado</th>
-                            <th scope="col">Agregado</th-->
+                            <th scope="col">Llenado</th>
+                            <th scope="col">Agregado</th>
                             <th scope="col">Usuario</th>
                         </tr>
                     </thead>
@@ -104,17 +112,23 @@
                             <td>{{i.fecha_cadu_lote}}</td>
                             <td>{{i.ware_code}}</td>
                             <td>{{i.location}}</td>
+
+                            <td class="text-end">{{i.unidades_caja.toLocaleString()}}</td>
+                            <td class="text-end">{{i.numero_cajas.toLocaleString()}}</td>
+                            <td class="text-end">{{i.unidades_sueltas.toLocaleString()}}</td>
+                            <td class="text-end">{{i.unidades_estanteria.toLocaleString()}}</td>
+
                             <td class="text-end">{{i.total_unidades.toLocaleString()}}</td>
                             <td class="text-end">{{i.oh2.toLocaleString()}}</td>
                             <td class="text-end" :style="{backgroundColor:colorDiferencia(i.diferencia)}">{{i.diferencia.toLocaleString()}}</td>
-                            <!--td class="text-center">
+                            <td class="text-center">
                                 <i v-if="i.llenado" style = "color:green;" class="bi bi-check-square-fill"></i>
                                 <i v-else style = "color:red;" class="bi bi-x-square-fill"></i>
-                            </td-->
-                            <!--td class="text-center">
+                            </td>
+                            <td class="text-center">
                                 <i v-if="i.agregado" style = "color:green;" class="bi bi-check-square-fill"></i>
                                 <i v-else style = "color:red;" class="bi bi-x-square-fill"></i>
-                            </td-->
+                            </td>
                             <td>{{i.user__username}}</td>
                         </tr>
                         {% endverbatim %}
