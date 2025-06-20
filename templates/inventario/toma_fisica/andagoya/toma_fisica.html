@@ -312,11 +312,17 @@
                                 <label>Unidades sueltas:</label>
                                 <input class="form-control form-control-sm" v-model="formAgregar.unidades_sueltas" type="number">
 
+                                <div class="bg-info p-2 mt-2 mb-2 rounded">
+                                <label>Unidades estanteria:</label>
+                                <input class="form-control form-control-sm" v-model="formAgregar.unidades_estanteria" type="number">
+                                </div>
+
                                 <label>Observaciones:</label>
                                 <textarea class="form-control form-control-sm" v-model="formAgregar.observaciones"></textarea>
 
                                 <label class="fw-bold">Total Unidades:</label> {{ conteo_fisico_agregar_lote.toLocaleString() }}<br>
                                 <button type="submit" class="btn btn-sm btn-primary float-sm-end mt-2">GUARDAR</button>
+                                <button type="reset" class="btn btn-sm btn-secondary float-sm-end mt-2">BOORAR</button>
                             </form>                      
                         </div>
                     </div>
@@ -415,6 +421,7 @@
                 unidades_caja:'',
                 numero_cajas:'',
                 unidades_sueltas:'',
+                unidades_estanteria:'',
                 observaciones:'',
                 llenado:true,
                 agregado:true,
@@ -445,7 +452,7 @@
                 const n_cajas = this.formAgregar.numero_cajas ? this.formAgregar.numero_cajas : 0;
                 const u_sueltas = this.formAgregar.unidades_sueltas ? this.formAgregar.unidades_sueltas : 0;
                 const u_estanteria = this.formAgregar.unidades_estanteria ? this.formAgregar.unidades_estanteria : 0;
-                return Number(u_cajas * n_cajas) + Number(u_sueltas)
+                return Number(u_cajas * n_cajas) + Number(u_sueltas) + Number(u_estanteria)
             },
 
             diferencia() {
@@ -647,7 +654,17 @@
                     this.msg_lote = data.msg; 
 
                     await this.getStock();
-                    await this.getItem(item_id);        
+                    await this.getItem(item_id);     
+                    
+                    // cerrar el modal id="tomaFisicaForm"
+                    // var modal = bootstrap.Modal.getInstance(document.getElementById('tomaFisicaForm'));
+                    // if (modal) {
+                    //     modal.hide();
+                    //     // Eliminar manualmente el backdrop si queda
+                    //     const backdrops = document.querySelectorAll('.modal-backdrop');
+                    //     backdrops.forEach(b => b.parentNode.removeChild(b));
+                    //     document.body.classList.remove('modal-open');
+                    // }
                     
                 } catch (error) {
                     this.type_msg_lote = 'danger';
@@ -735,6 +752,15 @@
                     this.formAgregar.lotes = [];
 
                     await this.getStock();
+
+                    // var modal = bootstrap.Modal.getInstance(document.getElementById('agregarItemForm'));
+                    // if (modal) {
+                    //     modal.hide();
+                    //     // Eliminar manualmente el backdrop si queda
+                    //     const backdrops = document.querySelectorAll('.modal-backdrop');
+                    //     backdrops.forEach(b => b.parentNode.removeChild(b));
+                    //     document.body.classList.remove('modal-open');
+                    // }
 
                     setTimeout(
                         () => {
