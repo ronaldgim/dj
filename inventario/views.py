@@ -313,19 +313,21 @@ def inventario_andagoya_actualizar_db(request):
     try:
         with connections['default'].cursor() as cursor:
             cursor.execute("TRUNCATE TABLE inventario_inventario")
+            connections['default'].close()
         
         
         with connections['default'].cursor() as cursor:
             cursor.execute("TRUNCATE TABLE inventario_inventariototale")
-        
+            connections['default'].close()
         
         with connections['default'].cursor() as cursor:
             stock_mba = stock_lote_tupla()
             cursor.executemany("""
                 INSERT INTO inventario_inventario 
-                (id, product_id, product_name, group_code, um, oh, oh2, commited, quantity, lote_id, fecha_elab_lote, fecha_cadu_lote, ware_code, location, unidades_caja, numero_cajas, unidades_sueltas, total_unidades, diferencia, observaciones, llenado, agregado, user_id) 
-                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""", 
+                (id, product_id, product_name, group_code, um, oh, oh2, commited, quantity, lote_id, fecha_elab_lote, fecha_cadu_lote, ware_code, location, unidades_caja, numero_cajas, unidades_sueltas, total_unidades, diferencia, observaciones, llenado, agregado, user_id, unidades_estanteria) 
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""", 
                 stock_mba)
+            connections['default'].close()
         
         return JsonResponse({'msg':'ok'})
     except Exception as e:
