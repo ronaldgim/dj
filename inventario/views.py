@@ -358,7 +358,8 @@ def inventario_andagoya_home(request):
     bodega = de_dataframe_a_template(bodega)
     
     context = {
-        'bodega':bodega
+        'bodega':bodega,
+        'general':Inventario.objects.all().count()
     }
 
     return render(request, 'inventario/toma_fisica/andagoya/home.html', context)
@@ -392,6 +393,32 @@ def inventario_por_bodega(request, bodega, ubicacion):
 @login_required(login_url='login')
 def inventario_toma_fisica_andagoya_vue(request, bodega, location):
     return render(request, 'inventario/toma_fisica/andagoya/toma_fisica.html')
+
+
+@login_required(login_url='login')
+def inventario_general(request): 
+    
+    inventario = pd.DataFrame(Inventario.objects.all().order_by('group_code', 'product_id'). values())    
+    inventario = de_dataframe_a_template(inventario)
+
+    n_inventario =len(inventario)
+    n_inventario_llenado = Inventario.objects.filter(llenado=True).count()
+    n_inventario_nollenado = Inventario.objects.filter(llenado=False).count()
+
+    context = {
+        'inventario':inventario,
+        'n_inventario':n_inventario,
+        'n_inventario_llenado':n_inventario_llenado,
+        'n_inventario_nollenado':n_inventario_nollenado,
+    }
+
+    return JsonResponse(context)
+
+
+
+@login_required(login_url='login')
+def inventario_general_toma_fisica_andagoya_vue(request):
+    return render(request, 'inventario/toma_fisica/andagoya/toma_fisica_general.html')
 
 
 @csrf_exempt
