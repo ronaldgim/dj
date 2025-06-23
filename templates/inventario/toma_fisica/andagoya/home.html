@@ -26,10 +26,29 @@
     {% endif %}
 
     <div class="row">
+        <!--h5 class="m-2 fw-bold">General</h5>        
+        <div class="col-xl-4 col-md-6">
+            <div class="card border-primary mb-3">
+                <div class="card-body text-primary">
+                <h3 class="card-title text-center">
+                    <i class="bi bi-card-checklist"></i>
+                    GENERAL
+                </h3>
+                <h5 class="text-center">
+                    Cantidad de items: {{general}}
+                </h5>
+                </div>
+                <div class="card-footer bg-transparent border-primary">
+                    <a class="btn btn-primary" href="{% url 'inventario_general_toma_fisica_andagoya_vue' %}">
+                        Ingresar <i class="bi bi-box-arrow-in-up-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div-->
 
         {% regroup bodega by Bodega as bodega_list %}
         {% for bodega in bodega_list %}
-        <h5 class="m-2"><strong>{{bodega.grouper}}</strong></h5>
+        <h5 class="m-2 fw-bold">{{bodega.grouper}}</h5>
             {% for i in bodega.list %}
             <div class="col-xl-4 col-md-6">
                 <div class="card border-primary mb-3">
@@ -43,9 +62,6 @@
                     </h5>
                     </div>
                     <div class="card-footer bg-transparent border-primary">
-                        <!--a class="btn btn-primary" href="{#% url 'inventario_por_bodega' i.ware_code i.location %#}">
-                            Ingresar <i class="bi bi-box-arrow-in-up-right"></i>
-                        </a-->
                         <a class="btn btn-primary" href="{% url 'inventario_toma_fisica_andagoya_vue' i.ware_code i.location %}">
                             Ingresar <i class="bi bi-box-arrow-in-up-right"></i>
                         </a>

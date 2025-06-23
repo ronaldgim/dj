@@ -51,8 +51,19 @@ urlpatterns = [
         view = views.inventario_toma_fisica_andagoya_vue,
         name= 'inventario_toma_fisica_andagoya_vue'
     ),
+    
+    path(
+        route='toma-fisica/general',
+        view = views.inventario_general_toma_fisica_andagoya_vue,
+        name= 'inventario_general_toma_fisica_andagoya_vue'
+    ),
 
-    # GET ITEM TOMA FISICA
+    path(
+        route='inv/general',
+        view = views.inventario_general,
+        name = 'inventario_general'
+    ),
+    
     path(
         route='toma-fisica/<int:item_id>',
         view = views.inventario_toma_fisica_item,
