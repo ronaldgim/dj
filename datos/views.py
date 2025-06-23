@@ -320,7 +320,7 @@ def stock_de_seguridad():
     df = run_query("SELECT product_id, sum(sum_quantity) FROM gimpromed_api.output_ventasTotales group by product_id;")
     df['stock_seguridad_mensual'] = round(df['sum(sum_quantity)'] / 12, 0)
     df['stock_seguridad_semanal'] = round(df['stock_seguridad_mensual'] / 4, 0)
-    df = df.rename(columns={'product_id':'PRODUCT_ID'})
+    #df = df.rename(columns={'product_id':'PRODUCT_ID'})
     
     mysql_disconnect()
     close_ssh_tunnel()
