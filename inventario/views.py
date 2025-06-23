@@ -398,7 +398,7 @@ def inventario_toma_fisica_andagoya_vue(request, bodega, location):
 @login_required(login_url='login')
 def inventario_general(request): 
     
-    inventario = pd.DataFrame(Inventario.objects.all().order_by('group_code', 'product_id'). values())    
+    inventario = pd.DataFrame(Inventario.objects.all().order_by('ware_code','location','group_code', 'product_id').values())    
     inventario = de_dataframe_a_template(inventario)
 
     n_inventario =len(inventario)
@@ -413,7 +413,6 @@ def inventario_general(request):
     }
 
     return JsonResponse(context)
-
 
 
 @login_required(login_url='login')
