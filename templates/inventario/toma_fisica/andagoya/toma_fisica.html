@@ -84,11 +84,14 @@
                                 <label class="fw-bold m-0 p-0">Marca:</label> <span>{{item.group_code}}</span><br>
                             </div>
                         </div>
-                        <div class="card" :style="{backgroundColor:diferenciaColor(diferencia)}">
+                        <!-- div class="card" :style="{backgroundColor:diferenciaColor(diferencia)}"-->
+                        <div class="card" :style="{backgroundColor:diferenciaColor()}">
+
                             <!--h6 class="text-center fw-bold">DIFERENCIA</h6-->
                             <label class="text-center fs-6">T.Lotes - T.Agrupado = Diferencia</label>
                             <div class="fs-6 card-body d-flex justify-content-center align-items-center m-0 p-0">
-                                {{ total_lotes.toLocaleString() }} - {{ total_agrupado.toLocaleString() }} = {{ diferencia.toLocaleString() }}
+                                {{ total_lotes.toLocaleString() }} - {{ total_agrupado.toLocaleString() }} = {{ diferencia_calculo }}
+                                <!--{{ total_lotes.toLocaleString() }} - {{ total_agrupado.toLocaleString() }} = {{ diferencia.toLocaleString() }} -->
                             </div>
                         </div>
                     </div>
@@ -364,6 +367,8 @@
                 unidades_sueltas_t:'',
                 user_id: Number(document.getElementById("user-id").value)
             },
+            total_agrupado:'',
+            diferencia:'',
 
             // LOTES
             lotes:[],
@@ -456,11 +461,18 @@
                 return Number(u_cajas * n_cajas) + Number(u_sueltas) // + Number(u_estanteria)
             },
 
-            diferencia() {
+            //diferencia() {
+            //    const t_lotes = this.total_lotes ? this.total_lotes : 0;
+            //    const t_agrupado = this.total_agrupado ? this.total_agrupado : 0;
+            //    // const t_unidades_estanteria = this.unidades_estanteria ? this.unidades_estanteria : 0;
+            //    return Number(t_lotes - t_agrupado) // - t_unidades_estanteria)
+            //},
+            
+            diferencia_calculo(){
                 const t_lotes = this.total_lotes ? this.total_lotes : 0;
                 const t_agrupado = this.total_agrupado ? this.total_agrupado : 0;
-                // const t_unidades_estanteria = this.unidades_estanteria ? this.unidades_estanteria : 0;
-                return Number(t_lotes - t_agrupado) // - t_unidades_estanteria)
+                return this.diferencia = Number(t_lotes - t_agrupado);
+                // return Number(t_lotes - t_agrupado);
             },
 
             stockFiltrado() {
@@ -480,7 +492,27 @@
                 }
             },
 
-            diferenciaColor(diferencia){
+            // diferenciaColor(diferencia){
+            //     if (diferencia === 0) {
+            //         return '#BAF690';
+            //     } else {
+            //         return '#F6B690';
+            //     }
+            // },
+
+            // diferencia_calculo(){
+            //     const t_lotes = this.total_lotes ? this.total_lotes : 0;
+            //     const t_agrupado = this.total_agrupado ? this.total_agrupado : 0;
+            //     return this.diferencia = Number(t_lotes - t_agrupado);
+            //     // return Number(t_lotes - t_agrupado);
+            // },
+
+            diferenciaColor(){
+                const t_lotes = this.total_lotes ? this.total_lotes : 0;
+                const t_agrupado = this.total_agrupado ? this.total_agrupado : 0;
+                // const t_unidades_estanteria = this.unidades_estanteria ? this.unidades_estanteria : 0;
+                const diferencia = Number(t_lotes - t_agrupado);
+
                 if (diferencia === 0) {
                     return '#BAF690';
                 } else {
@@ -587,8 +619,10 @@
                     // this.total_lotes = this.lotes.reduce((acumulador, unidades) => acumulador + unidades.total_unidades, 0)
 
                     // lotes
-                    this.lotes = data.lotes
-                    this.total_lotes = data.total_lotes
+                    this.lotes = data.lotes;
+                    this.total_lotes = data.total_lotes;
+                    this.total_agrupado = data.total_agrupado;
+                    this.diferencia = data.diferencia;
 
                     // Form totales
                     if (data.item_totales){
@@ -640,7 +674,7 @@
                     const data = await response.json();
                     this.type_msg_totales = data.type;
                     this.msg_totales = data.msg;
-                    
+                    this.total_agrupado = data.unidades;
                 } catch (error) {
                     this.msg_totales = error;
                     this.type_msg_totales = 'danger';
