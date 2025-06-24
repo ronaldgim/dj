@@ -448,21 +448,20 @@ def inventario_toma_fisica_item(request, item_id):
         # .values('lote_id', 'total_unidades', 'unidades_estanteria', 'unidades_ok')
         
         total_lotes = lotes.aggregate(unidades=Sum('unidades_ok'))
-        # total_agrupado = item_totales.aggregate(unidades=Sum('total_unidades_t')) if item_totales.exists() else {'unidades':0}
-        # diferencia = total_lotes['unidades'] - total_agrupado['unidades']
+        total_agrupado = item_totales.aggregate(unidades=Sum('total_unidades_t')) if item_totales.exists() else {'unidades':0}
+        diferencia = total_lotes['unidades'] - total_agrupado['unidades']
         
-        # print(total_lotes)
-        # print(total_agrupado)
-        # print(diferencia)    
-        
+        # print('T.Lotes', total_lotes['unidades'])
+        # print('T.Agrupado', total_agrupado['unidades'])
+        # print('Diferencia', diferencia)    
         
         return JsonResponse({
             'item': item_dict,
             'item_totales': model_to_dict(item_totales.first()) if item_totales.first() else None,
             'lotes':list(lotes.values('product_id', 'lote_id', 'unidades_ok')),
             'total_lotes':total_lotes['unidades'],
-            # 'total_agrupado':total_agrupado['unidades'],
-            # 'diferencia':diferencia
+            'total_agrupado':total_agrupado['unidades'],
+            'diferencia':diferencia
             })
     
     elif request.method == 'POST':
@@ -531,8 +530,11 @@ def inventario_toma_fisica_total_agrupado(request):
             item_totales = InventarioTotale.objects.get(id=data.get('id'))            
             form = InventarioTotalesForm(data, instance=item_totales)
             if form.is_valid():                
-                form.save()
-                return JsonResponse({'type':'success','msg':'Actualizado Correctamiente'})
+                item = form.save()
+                return JsonResponse({
+                    'type':'success','msg':'Actualizado Correctamiente',
+                    'unidades':item.total_unidades_t
+                    })
             else:
                 return JsonResponse({'type':'danger','msg':form.errors})
         
@@ -540,8 +542,10 @@ def inventario_toma_fisica_total_agrupado(request):
         else:
             form = form = InventarioTotalesForm(data)
             if form.is_valid():
-                form.save()
-                return JsonResponse({'type':'success', 'msg':'Registrado Correctamente'})
+                item = form.save()
+                return JsonResponse({
+                    'type':'success', 'msg':'Registrado Correctamente',
+                    'unidades':item.total_unidades_t})
             else:
                 return JsonResponse({'type':'danger','msg':form.errors})
 
