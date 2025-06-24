@@ -15,12 +15,21 @@ class InventarioForm(forms.ModelForm):
             'unidades_caja', 
             'numero_cajas', 
             'unidades_sueltas', 
-            'unidades_estanteria', 
+            # 'unidades_estanteria', 
             'observaciones',
             'llenado',
             'user'
         ]
 
+
+class InventarioEstanteriaForm(forms.ModelForm):
+
+    class Meta:
+        model = Inventario
+        fields = [
+            'unidades_estanteria', 
+            'llenado_estanteria'
+        ]
 
 # Inventario Agregar
 class InventarioAgregarForm(forms.ModelForm):

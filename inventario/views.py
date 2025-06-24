@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect
 
 # BD
 from django.db import connections
-from django.db.models import Sum, F, Value
+from django.db.models import Sum, F, Value, Q
 from django.db.models.functions import Concat
 
 
@@ -70,7 +70,7 @@ def stock_lote(): #request
         ]
         
         stock_lote = pd.DataFrame(stock)
-        
+        connections['gimpromed_sql'].close()
     return stock_lote 
 
 
@@ -89,7 +89,7 @@ def stock_lote_inventario_andagoya(): #request
         productos = productos_odbc_and_django()[['product_id','Unidad_Empaque']]
         productos = productos.rename(columns={'product_id':'PRODUCT_ID'})
         stock_lote = stock_lote.merge(productos, on='PRODUCT_ID', how='left')
-        
+        connections['gimpromed_sql'].close()
     return stock_lote 
 
 
@@ -199,6 +199,7 @@ def stock_lote_tupla():
         llenado = False
         agregado = False
         user_id = None
+        llenado_estanteria = False
 
         s_lote = (
             pk,
@@ -226,6 +227,7 @@ def stock_lote_tupla():
             agregado,
             user_id,
             unidades_estanteria,
+            llenado_estanteria
         )
 
         lista_stock_mba.append(s_lote)
@@ -324,8 +326,8 @@ def inventario_andagoya_actualizar_db(request):
             stock_mba = stock_lote_tupla()
             cursor.executemany("""
                 INSERT INTO inventario_inventario 
-                (id, product_id, product_name, group_code, um, oh, oh2, commited, quantity, lote_id, fecha_elab_lote, fecha_cadu_lote, ware_code, location, unidades_caja, numero_cajas, unidades_sueltas, total_unidades, diferencia, observaciones, llenado, agregado, user_id, unidades_estanteria) 
-                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""", 
+                (id, product_id, product_name, group_code, um, oh, oh2, commited, quantity, lote_id, fecha_elab_lote, fecha_cadu_lote, ware_code, location, unidades_caja, numero_cajas, unidades_sueltas, total_unidades, diferencia, observaciones, llenado, agregado, user_id, unidades_estanteria, llenado_estanteria) 
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""", 
                 stock_mba)
             connections['default'].close()
         
@@ -402,8 +404,8 @@ def inventario_general(request):
     inventario = de_dataframe_a_template(inventario)
 
     n_inventario =len(inventario)
-    n_inventario_llenado = Inventario.objects.filter(llenado=True).count()
-    n_inventario_nollenado = Inventario.objects.filter(llenado=False).count()
+    n_inventario_llenado = Inventario.objects.filter(llenado_estanteria=True).count()  # Inventario.objects.filter(llenado=True).count()
+    n_inventario_nollenado = Inventario.objects.filter(llenado_estanteria=False).count()  # Inventario.objects.filter(llenado=False).count()
 
     context = {
         'inventario':inventario,
@@ -430,15 +432,37 @@ def inventario_toma_fisica_item(request, item_id):
         item_dict = model_to_dict(item)
         
         # item totales
-        item_totales = (InventarioTotale.objects
-            .filter(product_id_t=item.product_id)
-            .filter(ware_code_t=item.ware_code)
-            .filter(location_t=item.location)
+        item_totales = InventarioTotale.objects.filter(
+            Q(product_id_t=item.product_id) &
+            Q(ware_code_t=item.ware_code) &
+            Q(location_t=item.location)
         )
+        
+        lotes = Inventario.objects.filter(
+            Q(product_id=item.product_id) &
+            Q(ware_code=item.ware_code) &
+            Q(location=item.location)
+        ).annotate(unidades_ok=F('total_unidades') - F('unidades_estanteria'))
+        
+        # print(lotes.values('total_unidades','unidades_estanteria','unidades_ok'))
+        # .values('lote_id', 'total_unidades', 'unidades_estanteria', 'unidades_ok')
+        
+        total_lotes = lotes.aggregate(unidades=Sum('unidades_ok'))
+        # total_agrupado = item_totales.aggregate(unidades=Sum('total_unidades_t')) if item_totales.exists() else {'unidades':0}
+        # diferencia = total_lotes['unidades'] - total_agrupado['unidades']
+        
+        # print(total_lotes)
+        # print(total_agrupado)
+        # print(diferencia)    
+        
         
         return JsonResponse({
             'item': item_dict,
             'item_totales': model_to_dict(item_totales.first()) if item_totales.first() else None,
+            'lotes':list(lotes.values('product_id', 'lote_id', 'unidades_ok')),
+            'total_lotes':total_lotes['unidades'],
+            # 'total_agrupado':total_agrupado['unidades'],
+            # 'diferencia':diferencia
             })
     
     elif request.method == 'POST':
@@ -447,6 +471,44 @@ def inventario_toma_fisica_item(request, item_id):
         data['user'] = User.objects.get(id=data.get('user_id'))
         my_instance = Inventario.objects.get(id=item_id)
         form = InventarioForm(data, instance = my_instance)
+        
+        if form.is_valid():
+            form.save()
+            return JsonResponse({
+                'type':'success',
+                'msg':'Registrado Correctamiente'})
+        else:
+            return JsonResponse({'type':'danger','msg':form.errors})
+
+
+@csrf_exempt
+def inventario_toma_fisica_estanteria_item(request, item_id):
+    
+    if request.method == 'GET':
+        
+        # item
+        item = Inventario.objects.get(id=item_id)
+        item_dict = model_to_dict(item)
+        
+        # # item totales
+        # item_totales = (InventarioTotale.objects
+        #     .filter(product_id_t=item.product_id)
+        #     .filter(ware_code_t=item.ware_code)
+        #     .filter(location_t=item.location)
+        # )
+        
+        return JsonResponse({
+            'item': item_dict,
+            # 'item_totales': model_to_dict(item_totales.first()) if item_totales.first() else None,
+            })
+    
+    elif request.method == 'POST':
+        from .forms import InventarioEstanteriaForm
+        
+        data = json.loads(request.body)
+        # data['user'] = User.objects.get(id=data.get('user_id'))
+        my_instance = Inventario.objects.get(id=item_id)
+        form = InventarioEstanteriaForm(data, instance = my_instance)
         
         if form.is_valid():
             form.save()
