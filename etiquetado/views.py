@@ -4426,34 +4426,6 @@ def wms_andagoya_home(request):
 
 def wms_andagoya_reporte_mba(request):
     
-    
-    # def data_wms():
-    
-    #     wms_andagoya = ProductoUbicacion.objects.all()
-        
-    #     data_list = []
-    #     for i in wms_andagoya:
-    #         product_id = i.product_id
-            
-    #         for j in i.ubicaciones.all():
-    #             print(product_id, j)
-    #     #         data = {
-    #     #             'product_id':product_id,
-    #     #             'Ubicación WMS':j.__str__(),
-    #     #             'Bodega WMS':j.bodega
-    #     #         }
-                
-    #     #         data_list.append(data)
-        
-    #     # df = pd.DataFrame(data_list) 
-        
-        
-    #     # print(df[df['product_id']=='LS44121'])
-        
-        
-    #     return pd.DataFrame()  # df
-    
-    
     def data_wms():
         wms_andagoya = ProductoUbicacion.objects.all()
         
