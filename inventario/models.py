@@ -44,6 +44,7 @@ class Inventario(models.Model):
     # De control
     llenado = models.BooleanField(verbose_name='Llenado', default=False)
     agregado = models.BooleanField(verbose_name='Añadido', default=False)
+    llenado_estanteria = models.BooleanField(verbose_name='Llenado estanteria', default=False)
 
     # Usuario
     user     = models.ForeignKey(User, verbose_name='User', blank=True, null=True, on_delete=models.CASCADE)

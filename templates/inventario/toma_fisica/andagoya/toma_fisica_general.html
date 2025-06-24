@@ -43,14 +43,16 @@
                     </thead>
                     <tbody id="pedidosbuscar">
                         {% verbatim %}
-                        <tr v-for="(i, index) in stockFiltrado" :key="index" :style="{backgroundColor:llenadoColor(i.llenado)}">
+                        <!--tr v-for="(i, index) in stockFiltrado" :key="index" :style="{backgroundColor:llenadoColor(i.llenado)}"-->
+                        <tr v-for="(i, index) in stockFiltrado" :key="index" :style="{backgroundColor:llenadoColor(i.llenado_estanteria)}">
                             <td>
                                 <label class="fw-bold">Código:</label> {{i.product_id}} <br>
                                 <label class="fw-bold">Nombre:</label> {{i.product_name}}<br>
                                 <label class="fw-bold">Marca: </label> {{i.group_code}}<br>
                                 <label class="fw-bold">Unidad de Venta:</label> {{i.um}}<br> 
                                 <label class="fw-bold">Lote:</label>{{i.lote_id}} <br>
-                                <label class="fw-bold">Total Unidades Lote:</label> {{i.total_unidades.toLocaleString()}}<br> 
+                                <!-- label class="fw-bold">Total Unidades Lote:</label> {{i.total_unidades.toLocaleString()}}<br --> 
+                                <label class="fw-bold">Unidades Estanteria:</label> {{ i.unidades_estanteria !== 0 ? i.unidades_estanteria.toLocaleString() : '-' }}<br>
                             </td>
                             <td>
                                 <label class="fw-bold">Bodega:</label> {{i.ware_code}}<br>
@@ -88,19 +90,21 @@
                                 <label class="fw-bold m-0 p-0">Marca:</label> <span>{{item.group_code}}</span><br>
                             </div>
                         </div>
-                        <div class="card" :style="{backgroundColor:diferenciaColor(diferencia)}">
-                            <!--h6 class="text-center fw-bold">DIFERENCIA</h6-->
+                        
+                        <!--div class="card" :style="{backgroundColor:diferenciaColor(diferencia)}">
+                            <h6 class="text-center fw-bold">DIFERENCIA</h6>
                             <label class="text-center fs-6">T.Lotes - T.Agrupado = Diferencia</label>
                             <div class="fs-6 card-body d-flex justify-content-center align-items-center m-0 p-0">
                                 {{ total_lotes.toLocaleString() }} - {{ total_agrupado.toLocaleString() }} = {{ diferencia.toLocaleString() }}
                             </div>
-                        </div>
+                        </div-->
+                        
                     </div>
                 </div>
             
                 <div class="modal-body">                    
                     <!-- TOTAL AGRUPADO -->
-                    <div class="card" style="background-color: #e5f9fd;">
+                    <!--div class="card" style="background-color: #e5f9fd;">
                         <div class="card-body">
                             <h6 class="text-center fw-bold">TOTAL AGRUPADO</h6>
                             <div v-if="msg_totales" :class="`alert alert-${type_msg_totales} text-center p-2 m-0`" role="alert" style="font-size: smaller;">
@@ -111,7 +115,6 @@
                                 <input class="form-control form-control-sm" v-model="formTotales.unidades_caja_t" type="number" required>
                                 <label>Número de cartones totales:</label><br>
                                 <small style="color: gray; font-size:smaller">Este campo puede hacer calulos (+, -)</small> <small style="color: red; font-size:smaller">solo dos números</small><br>
-                                <!--input class="form-control form-control-sm" v-model="formTotales.numero_cajas_t" @input="sumarInput(formTotales.numero_cajas_t, 'numero_cajas_t')" required-->
                                 
                                 <div class="row g-2">
                                     <div class="col-11">
@@ -126,7 +129,6 @@
                                 
                                 <label>Unidades sueltas totales:</label><br>
                                 <small style="color: gray; font-size:smaller">Este campo puede hacer calulos (+, -)</small> <small style="color: red; font-size:smaller">solo dos números</small> <br>
-                                <!--input class="form-control form-control-sm" v-model="formTotales.unidades_sueltas_t" @input="sumarInput(formTotales.unidades_sueltas_t, 'unidades_sueltas_t')" required-->
                                 
                                 <div class="row g-2">
                                     <div class="col-11">
@@ -145,10 +147,10 @@
                         </div>
                     </div>
 
-                    <hr>
+                    <hr-->
 
                     <!-- DETALLE LOTES -->
-                    <div class="card">
+                    <!--div class="card">
                         <div class="card-body mb-0 pb-0"> 
                             <h6 class="fw-bold text-center">DETALLE DE LOTES</h6> 
                             <table class="table">
@@ -173,7 +175,7 @@
                         </div>
                     </div>
 
-                    <hr>
+                    <hr-->
 
                     <!-- DIFERENCIA -->
                     <!--div class="card" :style="{backgroundColor:diferenciaColor(diferencia)}">
@@ -184,7 +186,7 @@
                         </div>
                     </div-->
 
-                    <hr>
+                    <!-- hr -->
 
                     <!-- CONTEO POR LOTE -->
                     <div class="card">
@@ -199,14 +201,14 @@
                             <label class="fw-bold m-0 p-0">F.Cadu:</label> {{item.fecha_cadu_lote}}<br>
                             
                             <form @submit.prevent="actualizarItem(formLote.id)">
-                                <label>Unidades por cartón:</label>
+                                <!--label>Unidades por cartón:</label>
                                 <input class="form-control form-control-sm" v-model="formLote.unidades_caja" type="number" required>
                                 
                                 <label>Número total de cartones:</label>
                                 <input class="form-control form-control-sm" v-model="formLote.numero_cajas" type="number">
                                 
                                 <label>Unidades sueltas:</label>
-                                <input class="form-control form-control-sm" v-model="formLote.unidades_sueltas" type="number">
+                                <input class="form-control form-control-sm" v-model="formLote.unidades_sueltas" type="number"-->
                                 
                                 <div class="bg-info p-2 mt-2 mb-2 rounded">
                                 <label>Unidades estanteria:</label>
@@ -215,7 +217,8 @@
 
                                 <label>Observaciones:</label>
                                 <textarea class="form-control form-control-sm" v-model="formLote.observaciones"></textarea>
-                                <label class="fw-bold">Total Unidades:</label> {{ conteo_fisico_lote.toLocaleString() }}<br>
+                                <!-- label class="fw-bold">Total Unidades:</label> {{ conteo_fisico_lote.toLocaleString() }}<br-->
+                                <label class="fw-bold">Total Unidades:</label> {{ item.unidades_estanteria }}<br>
                                 <button type="submit" class="btn btn-sm btn-primary float-sm-end mt-2">GUARDAR</button>
                             </form>                      
                         </div>
@@ -228,7 +231,7 @@
     </div>
 
     <!-- AGREGAR ITEM -->
-    <div class="modal fade" id="agregarItemForm" tabindex="-1" aria-labelledby="agregarItemFormLabel" aria-hidden="true">
+    <!--div class="modal fade" id="agregarItemForm" tabindex="-1" aria-labelledby="agregarItemFormLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-scrollable">
             <div class="modal-content">
                 <input type="hidden" id="user-id" value="{{ request.user.id }}">
@@ -244,7 +247,7 @@
                 </div>
             
                 <div class="modal-body">                    
-                    <!-- BUSCAR PRODUCTO -->
+                    
                     <div class="card" style="background-color: #e5f9fd;">
                         <div class="card-body">
                             <h6 class="text-center fw-bold">BUSCAR PRODUCTO</h6>
@@ -263,13 +266,12 @@
 
                     <hr>
 
-                    <!-- AGREGAR ITEM -->
                     <div class="card">
                         <div class="card-body">
                             <h6 class="text-center fw-bold">CONTEO POR LOTE</h6> 
-                            <!--div v-if="msg_agregar_lote" :class="`alert alert-${type_msg_agregar_lote} text-center p-2 m-0`" role="alert" style="font-size: smaller;">
+                            <div v-if="msg_agregar_lote" :class="`alert alert-${type_msg_agregar_lote} text-center p-2 m-0`" role="alert" style="font-size: smaller;">
                                 {{msg_agregar_lote}}
-                            </div-->
+                            </div>
                             <form @submit.prevent="agregarProducto()" id="form-agregar">
                                 
                                 <label>Código:</label>
@@ -281,8 +283,8 @@
                                 <label>Marca:</label>
                                 <input class="form-control form-control-sm" v-model="formAgregar.group_code" type="text" required>
                                 
-                                <!--label>Presentación:</label>
-                                <input class="form-control form-control-sm" v-model="formAgregar.um" type="text" required-->
+                                <label>Presentación:</label>
+                                <input class="form-control form-control-sm" v-model="formAgregar.um" type="text" required>
 
                                 <label>Lote:</label>
                                 <div class="row g-2">
@@ -335,7 +337,7 @@
                 {% endverbatim %}
             </div>
         </div>
-    </div>
+    </div-->
 </div>
 
 <script>
@@ -356,17 +358,17 @@
             item:'',
 
             // TOTALES
-            type_msg_totales:'',
-            msg_totales:'',
-            formTotales:{
-                product_id_t:'',
-                ware_code_t:'',
-                location_t:'',
-                unidades_caja_t:'',
-                numero_cajas_t:'',
-                unidades_sueltas_t:'',
-                user_id: Number(document.getElementById("user-id").value)
-            },
+            // type_msg_totales:'',
+            // msg_totales:'',
+            // formTotales:{
+            //     product_id_t:'',
+            //     ware_code_t:'',
+            //     location_t:'',
+            //     unidades_caja_t:'',
+            //     numero_cajas_t:'',
+            //     unidades_sueltas_t:'',
+            //     user_id: Number(document.getElementById("user-id").value)
+            // },
 
             // LOTES
             lotes:[],
@@ -376,13 +378,15 @@
             type_msg_lote:'',
             msg_lote:'',
             formLote:{
-                unidades_caja:'',
-                numero_cajas:'',
-                unidades_sueltas:'',
+            // formEstanteria:{
+                // unidades_caja:'',
+                // numero_cajas:'',
+                // unidades_sueltas:'',
                 unidades_estanteria:'',
-                observaciones:'',
-                llenado:true,
-                user_id: Number(document.getElementById("user-id").value)
+                llenado_estanteria: true,
+                // observaciones:'',
+                // llenado:true,
+                // user_id: Number(document.getElementById("user-id").value)
             },
             
             // AGREGAR ITEM
@@ -406,31 +410,31 @@
 
             lote_input:true,
             // form agregar
-            formAgregar:{
-                product_id:'',
-                product_name:'',
-                group_code:'',
-                um:'',
+            // formAgregar:{
+            //     product_id:'',
+            //     product_name:'',
+            //     group_code:'',
+            //     um:'',
 
-                oh:0,
-                oh2:0,
-                commited:0,
-                quantity:0,
+            //     oh:0,
+            //     oh2:0,
+            //     commited:0,
+            //     quantity:0,
 
-                lote_id:'',
-                fecha_elab_lote:'',
-                fecha_cadu_lote:'',
-                ware_code:'',
-                location:'',
-                unidades_caja:'',
-                numero_cajas:'',
-                unidades_sueltas:'',
-                unidades_estanteria:'',
-                observaciones:'',
-                llenado:true,
-                agregado:true,
-                user_id: Number(document.getElementById("user-id").value)
-            }
+            //     lote_id:'',
+            //     fecha_elab_lote:'',
+            //     fecha_cadu_lote:'',
+            //     ware_code:'',
+            //     location:'',
+            //     unidades_caja:'',
+            //     numero_cajas:'',
+            //     unidades_sueltas:'',
+            //     unidades_estanteria:'',
+            //     observaciones:'',
+            //     llenado:true,
+            //     agregado:true,
+            //     user_id: Number(document.getElementById("user-id").value)
+            // }
         },
         mounted() {
             this.getStock();
@@ -574,7 +578,7 @@
             async getItem(item_id) {
                 
                 try {
-                    const response = await fetch(`/inventario/toma-fisica/${item_id}`);
+                    const response = await fetch(`/inventario/toma-fisica-estanteria/${item_id}`);
                     const data = await response.json();
                     
                     // Item
@@ -590,25 +594,24 @@
                     this.total_lotes = this.lotes.reduce((acumulador, unidades) => acumulador + unidades.total_unidades, 0)
 
                     // Form totales
-                    if (data.item_totales){
-                        this.formTotales.id = data.item_totales.id;
-                        this.formTotales.product_id_t = data.item_totales.product_id_t;
-                        this.formTotales.ware_code_t = data.item_totales.ware_code_t;
-                        this.formTotales.location_t = data.item_totales.location_t;
-                        this.formTotales.unidades_caja_t = data.item_totales.unidades_caja_t;
-                        this.formTotales.numero_cajas_t = (data.item_totales.numero_cajas_t === 0) ? '' : data.item_totales.numero_cajas_t;
-                        this.formTotales.unidades_sueltas_t = (data.item_totales.unidades_sueltas_t === 0) ? '' : data.item_totales.unidades_sueltas_t;
-                        
-                    } 
-                    else {
-                        this.formTotales.id = null;  
-                        this.formTotales.product_id_t = data.item.product_id;
-                        this.formTotales.ware_code_t = data.item.ware_code;
-                        this.formTotales.location_t = data.item.location;
-                        this.formTotales.unidades_caja_t = data.item.unidades_caja;
-                        this.formTotales.numero_cajas_t = '';
-                        this.formTotales.unidades_sueltas_t = '';
-                    }
+                    // if (data.item_totales){
+                    //     this.formTotales.id = data.item_totales.id;
+                    //     this.formTotales.product_id_t = data.item_totales.product_id_t;
+                    //     this.formTotales.ware_code_t = data.item_totales.ware_code_t;
+                    //     this.formTotales.location_t = data.item_totales.location_t;
+                    //     this.formTotales.unidades_caja_t = data.item_totales.unidades_caja_t;
+                    //     this.formTotales.numero_cajas_t = (data.item_totales.numero_cajas_t === 0) ? '' : data.item_totales.numero_cajas_t;
+                    //     this.formTotales.unidades_sueltas_t = (data.item_totales.unidades_sueltas_t === 0) ? '' : data.item_totales.unidades_sueltas_t;
+                    // } 
+                    // else {
+                    //     this.formTotales.id = null;  
+                    //     this.formTotales.product_id_t = data.item.product_id;
+                    //     this.formTotales.ware_code_t = data.item.ware_code;
+                    //     this.formTotales.location_t = data.item.location;
+                    //     this.formTotales.unidades_caja_t = data.item.unidades_caja;
+                    //     this.formTotales.numero_cajas_t = '';
+                    //     this.formTotales.unidades_sueltas_t = '';
+                    // }
                     
                     // Form lote 
                     this.formLote.id = data.item.id;
@@ -648,10 +651,11 @@
             
             async actualizarItem(item_id) {
                 try {
-                    const response = await fetch(`/inventario/toma-fisica/${item_id}`, {
+                    const response = await fetch(`/inventario/toma-fisica-estanteria/${item_id}`, {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json',},
                         body: JSON.stringify(this.formLote)
+                        // body: JSON.stringify(this.formEstanteria)
                     });
                     const data = await response.json();
 
@@ -717,46 +721,46 @@
                 }
             },
 
-            async agregarProducto() {
-                try {
-                    const response = await fetch('/inventario/toma-fisica/agregar-producto', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify(this.formAgregar)
-                    }); 
-                    const data = await response.json();
-                    this.type_msg_agregar_lote = data.type;
-                    this.msg_agregar_lote = data.msg;
+            // async agregarProducto() {
+            //     try {
+            //         const response = await fetch('/inventario/toma-fisica/agregar-producto', {
+            //             method: 'POST',
+            //             headers: {'Content-Type': 'application/json'},
+            //             body: JSON.stringify(this.formAgregar)
+            //         }); 
+            //         const data = await response.json();
+            //         this.type_msg_agregar_lote = data.type;
+            //         this.msg_agregar_lote = data.msg;
 
-                    // set form buscarProducto
-                    this.formBuscar.product_id = '';
-                    this.type_msg_product='',
-                    this.msg_product='';
+            //         // set form buscarProducto
+            //         this.formBuscar.product_id = '';
+            //         this.type_msg_product='',
+            //         this.msg_product='';
 
-                    // reset form
-                    this.formAgregar.product_id = '';
-                    this.formAgregar.product_name = '';
-                    this.formAgregar.group_code = '';
-                    this.formAgregar.um = '';
+            //         // reset form
+            //         this.formAgregar.product_id = '';
+            //         this.formAgregar.product_name = '';
+            //         this.formAgregar.group_code = '';
+            //         this.formAgregar.um = '';
 
-                    this.formAgregar.oh = 0;
-                    this.formAgregar.oh2 = 0;
-                    this.formAgregar.commited = 0;
-                    this.formAgregar.quantity = 0;
+            //         this.formAgregar.oh = 0;
+            //         this.formAgregar.oh2 = 0;
+            //         this.formAgregar.commited = 0;
+            //         this.formAgregar.quantity = 0;
 
-                    this.formAgregar.lote_id = '';
-                    this.formAgregar.fecha_elab_lote = '';
-                    this.formAgregar.fecha_cadu_lote = '';
-                    this.formAgregar.ware_code = '';
-                    this.formAgregar.location = '';
-                    this.formAgregar.unidades_caja = '';
-                    this.formAgregar.numero_cajas = '';
-                    this.formAgregar.unidades_sueltas = '';
-                    this.formAgregar.observaciones = '';
+            //         this.formAgregar.lote_id = '';
+            //         this.formAgregar.fecha_elab_lote = '';
+            //         this.formAgregar.fecha_cadu_lote = '';
+            //         this.formAgregar.ware_code = '';
+            //         this.formAgregar.location = '';
+            //         this.formAgregar.unidades_caja = '';
+            //         this.formAgregar.numero_cajas = '';
+            //         this.formAgregar.unidades_sueltas = '';
+            //         this.formAgregar.observaciones = '';
                     
-                    this.formAgregar.lotes = [];
+            //         this.formAgregar.lotes = [];
 
-                    await this.getStock();
+            //         await this.getStock();
 
                     // var modal = bootstrap.Modal.getInstance(document.getElementById('agregarItemForm'));
                     // if (modal) {
@@ -767,16 +771,16 @@
                     //     document.body.classList.remove('modal-open');
                     // }
 
-                    setTimeout(
-                        () => {
-                            this.msg_agregar_lote = '';
-                        }, 2000)
+            //         setTimeout(
+            //             () => {
+            //                 this.msg_agregar_lote = '';
+            //             }, 2000)
                         
-                } catch (error) {
-                    this.type_msg_agregar_lote = 'danger';
-                    this.msg_agregar_lote = error;
-                }
-            },
+            //     } catch (error) {
+            //         this.type_msg_agregar_lote = 'danger';
+            //         this.msg_agregar_lote = error;
+            //     }
+            // },
         }
     })
 </script>

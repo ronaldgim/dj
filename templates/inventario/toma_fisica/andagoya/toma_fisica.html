@@ -157,7 +157,8 @@
                                     <tr v-for="(i, index) in lotes">
                                         <td>{{ i.product_id }}</td>
                                         <td>{{ i.lote_id }}</td>
-                                        <td class="text-end">{{ i.total_unidades.toLocaleString() }}</td>
+                                        <!-- td class="text-end">{{ i.total_unidades.toLocaleString() }}</td-->
+                                        <td class="text-end">{{ i.unidades_ok }}</td>
                                     </tr>
                                     <tr>
                                         <th>TOTAL</th>
@@ -204,10 +205,10 @@
                                 <label>Unidades sueltas:</label>
                                 <input class="form-control form-control-sm" v-model="formLote.unidades_sueltas" type="number">
                                 
-                                <div class="bg-info p-2 mt-2 mb-2 rounded">
+                                <!--div class="bg-info p-2 mt-2 mb-2 rounded">
                                 <label>Unidades estanteria:</label>
                                 <input class="form-control form-control-sm" v-model="formLote.unidades_estanteria" type="number">
-                                </div>
+                                </div-->
 
                                 <label>Observaciones:</label>
                                 <textarea class="form-control form-control-sm" v-model="formLote.observaciones"></textarea>
@@ -312,17 +313,17 @@
                                 <label>Unidades sueltas:</label>
                                 <input class="form-control form-control-sm" v-model="formAgregar.unidades_sueltas" type="number">
 
-                                <div class="bg-info p-2 mt-2 mb-2 rounded">
+                                <!--div class="bg-info p-2 mt-2 mb-2 rounded">
                                 <label>Unidades estanteria:</label>
                                 <input class="form-control form-control-sm" v-model="formAgregar.unidades_estanteria" type="number">
-                                </div>
+                                </div-->
 
                                 <label>Observaciones:</label>
                                 <textarea class="form-control form-control-sm" v-model="formAgregar.observaciones"></textarea>
 
                                 <label class="fw-bold">Total Unidades:</label> {{ conteo_fisico_agregar_lote.toLocaleString() }}<br>
+                                <button type="reset" class="btn btn-sm btn-secondary float-sm-end mt-2 ms-2 me-2">BOORAR</button>
                                 <button type="submit" class="btn btn-sm btn-primary float-sm-end mt-2">GUARDAR</button>
-                                <button type="reset" class="btn btn-sm btn-secondary float-sm-end mt-2">BOORAR</button>
                             </form>                      
                         </div>
                     </div>
@@ -443,8 +444,8 @@
                 const u_cajas = this.formLote.unidades_caja ? this.formLote.unidades_caja : 0;
                 const n_cajas = this.formLote.numero_cajas ? this.formLote.numero_cajas : 0;
                 const u_sueltas = this.formLote.unidades_sueltas ? this.formLote.unidades_sueltas : 0;
-                const u_estanteria = this.formLote.unidades_estanteria ? this.formLote.unidades_estanteria : 0;
-                return Number(u_cajas * n_cajas) + Number(u_sueltas) + Number(u_estanteria)
+                // const u_estanteria = this.formLote.unidades_estanteria ? this.formLote.unidades_estanteria : 0;
+                return Number(u_cajas * n_cajas) + Number(u_sueltas) // + Number(u_estanteria)
             },
 
             conteo_fisico_agregar_lote() {
@@ -452,13 +453,14 @@
                 const n_cajas = this.formAgregar.numero_cajas ? this.formAgregar.numero_cajas : 0;
                 const u_sueltas = this.formAgregar.unidades_sueltas ? this.formAgregar.unidades_sueltas : 0;
                 const u_estanteria = this.formAgregar.unidades_estanteria ? this.formAgregar.unidades_estanteria : 0;
-                return Number(u_cajas * n_cajas) + Number(u_sueltas) + Number(u_estanteria)
+                return Number(u_cajas * n_cajas) + Number(u_sueltas) // + Number(u_estanteria)
             },
 
             diferencia() {
                 const t_lotes = this.total_lotes ? this.total_lotes : 0;
                 const t_agrupado = this.total_agrupado ? this.total_agrupado : 0;
-                return Number(t_lotes - t_agrupado)
+                // const t_unidades_estanteria = this.unidades_estanteria ? this.unidades_estanteria : 0;
+                return Number(t_lotes - t_agrupado) // - t_unidades_estanteria)
             },
 
             stockFiltrado() {
@@ -576,13 +578,17 @@
                     this.item = data.item;
 
                     // List de lotes
-                    this.lotes = this.stock.filter(i => 
-                        i.product_id == this.item.product_id &&
-                        i.ware_code == this.item.ware_code &&
-                        i.location == this.item.location);
+                    // this.lotes = this.stock.filter(i => 
+                    //     i.product_id == this.item.product_id &&
+                    //     i.ware_code == this.item.ware_code &&
+                    //     i.location == this.item.location);
                     
-                    // Total lotes
-                    this.total_lotes = this.lotes.reduce((acumulador, unidades) => acumulador + unidades.total_unidades, 0)
+                    // // Total lotes
+                    // this.total_lotes = this.lotes.reduce((acumulador, unidades) => acumulador + unidades.total_unidades, 0)
+
+                    // lotes
+                    this.lotes = data.lotes
+                    this.total_lotes = data.total_lotes
 
                     // Form totales
                     if (data.item_totales){
