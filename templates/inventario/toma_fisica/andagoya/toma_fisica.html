@@ -138,7 +138,8 @@
                                     </div>
                                 </div>
 
-                                <label class="fw-bold">Total Unidades:</label> {{ total_agrupado.toLocaleString() }}<br>
+                                <!--label class="fw-bold">Total Unidades:</label> {{ total_agrupado.toLocaleString() }}<br-->
+                                <label class="fw-bold">Total Unidades:</label> {{ total_agrupado_function.toLocaleString() }}<br>
                                 <button type="submit" class="btn btn-sm btn-primary float-sm-end mt-2">GUARDAR</button>
                             </form>
                         </div>
@@ -438,7 +439,7 @@
             this.getStock();
         },
         computed: {
-            total_agrupado() {
+            total_agrupado_function() {
                 const u_cajas_t = this.formTotales.unidades_caja_t ? this.formTotales.unidades_caja_t : 0;
                 const n_cajas_t = this.formTotales.numero_cajas_t ? this.formTotales.numero_cajas_t : 0;
                 const u_sueltas_t = this.formTotales.unidades_sueltas_t ? this.formTotales.unidades_sueltas_t : 0;
