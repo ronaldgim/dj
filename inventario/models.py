@@ -80,9 +80,13 @@ class InventarioTotale(models.Model):
 
     user     = models.ForeignKey(User, verbose_name='User', blank=True, null=True, on_delete=models.CASCADE)
 
+    
+    class Meta:
+        unique_together = ('product_id_t', 'ware_code_t', 'location_t')
+    
     def __str__(self):
         return self.product_id_t
-
+    
     
     def save(self, *args, **kwargs):
         
