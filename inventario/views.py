@@ -370,10 +370,18 @@ def inventario_andagoya_home(request):
 @login_required(login_url='login')
 def inventario_por_bodega(request, bodega, ubicacion): 
     
-    inventario = pd.DataFrame(Inventario.objects.all().order_by('group_code', 'product_id'). values())
-    inventario = inventario.loc[(inventario['ware_code'] == bodega) & (inventario['location'] == ubicacion)]
+    inv = (
+    Inventario.objects.filter(
+        Q(ware_code=bodega) &
+        Q(location=ubicacion)
+        )
+        .order_by('group_code', 'product_id')
+        .annotate(total_unidades_ok=F('total_unidades') - F('unidades_estanteria'))
+    )
     
-    inventario = de_dataframe_a_template(inventario)
+    inv_df = pd.DataFrame(inv.values())
+    
+    inventario = de_dataframe_a_template(inv_df)
 
     n_inventario =len(inventario)
     n_inventario_llenado = len(Inventario.objects.filter(ware_code=bodega).filter(location=ubicacion).filter(llenado=True))

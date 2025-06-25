@@ -50,7 +50,7 @@
                                 <label class="fw-bold">Marca: </label> {{i.group_code}}<br>
                                 <label class="fw-bold">Unidad de Venta:</label> {{i.um}}<br> 
                                 <label class="fw-bold">Lote:</label>{{i.lote_id}} <br>
-                                <label class="fw-bold">Total Unidades Lote:</label> {{i.total_unidades.toLocaleString()}}<br> 
+                                <label class="fw-bold">Total Unidades Lote:</label> {{i.total_unidades_ok.toLocaleString()}}<br> 
                             </td>
                             <td>
                                 <button @click="getItem(i.id)" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#tomaFisicaForm">
