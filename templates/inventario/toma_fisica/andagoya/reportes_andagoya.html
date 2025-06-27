@@ -37,7 +37,8 @@
             <i class="bi bi-file-earmark-spreadsheet"></i> FORMATO BPA
         </a>
 
-        {% if request.user.is_superuser %}
+        {#% if request.user.is_superuser %#}
+        {% if request.user.username == 'admin' %}
         <button @click="updateDB()" class="btn btn-sm btn-danger">
             <span v-if="actualizandoDB" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
             <i v-else class="bi bi-arrow-clockwise"></i> ACTUALIZAR DB
@@ -65,7 +66,7 @@
                         Avance de toma física
                     </div>
                     <div class="card-body d-flex justify-content-center align-items-center" style="height: 300px;">
-                        <canvas id="myPieChart" style="height: 300px;"></canvas>
+                        <canvas id="myPieChart" style="width:100% !important; height:100% !important; max-width:100%; max-height:100%;"></canvas>
                     </div>
                 </div>
             </div>
@@ -76,28 +77,209 @@
         <div class="card-header">TOMA FISICA ANDAGOYA</div>
         <div class="card-body">
             <div class="col-4"><input v-model="filtro" placeholder="Buscar..." type="text" class="form-control"></div>
+            <div class="mt-2">
+                <button 
+                    @click="limpiarOrden()" 
+                    class="btn btn-sm btn-secondary"
+                    v-if="sortField"
+                >
+                    Limpiar Ordenamiento
+                </button>
+            </div>
             <div class="table-responsive">
                 <table class="table" id="inv_table" style="font-size: small;">
                     <thead>
-                        <tr>
-                            <th scope="col">Código</th>
-                            <th scope="col">Nombre</th>
-                            <th scope="col">Marca</th>
-                            <th scope="col">Lote</th>
-                            <th scope="col">F.Elab</th>
-                            <th scope="col">F.Cadu</th>
-                            <th scope="col">Bodega</th>
-                            <th scope="col">Ubicación</th>
-                            <th scope="col">Und.Caja</th>
-                            <th scope="col">N.Cajas</th>
-                            <th scope="col">Und.Sue</th>
-                            <th scope="col">Und.Est</th>
-                            <th scope="col">T.Unds</th>
-                            <th scope="col">MBA-Unds</th>
-                            <th scope="col">Diferencia</th>
-                            <th scope="col">Llenado</th>
-                            <th scope="col">Agregado</th>
-                            <th scope="col">Usuario</th>
+                        <tr class="text-smaller">
+                            <th 
+                                scope="col"              
+                                @click="ordenarPor('product_id')" 
+                                style="cursor: pointer; user-select: none;"
+                                :class="{ 'sorted': sortField === 'product_id' }"
+                            >
+                            <span style="white-space: nowrap;">
+                                Código {% verbatim %} {{ getIconoOrden('product_id') }} {% endverbatim %}
+                            </span>
+                            </th>
+                            <th 
+                                scope="col"
+                                @click="ordenarPor('product_name')" 
+                                style="cursor: pointer; user-select: none;"
+                                :class="{ 'sorted': sortField === 'product_name' }"
+                            >
+                            <span style="white-space: nowrap;">
+                                Nombre {% verbatim %} {{ getIconoOrden('product_name') }} {% endverbatim %}
+                            </span>
+                            </th>
+                            <th 
+                                scope="col"
+                                @click="ordenarPor('group_code')" 
+                                style="cursor: pointer;user-select: none;"
+                                :class="{ 'sorted': sortField === 'group_code' }"
+                            > 
+                            <span style="white-space: nowrap;">
+                                Marca {% verbatim %} {{ getIconoOrden('group_code') }} {% endverbatim %}
+                            </span>
+                            </th>
+                            <th 
+                                scope="col"
+                                @click="ordenarPor('lote_id')" 
+                                style="cursor: pointer;user-select: none;"
+                                :class="{ 'sorted': sortField === 'lote_id' }"
+                            >
+                            <span style="white-space: nowrap;">
+                                Lote {% verbatim %} {{ getIconoOrden('lote_id') }} {% endverbatim %}
+                            </span>
+                            </th>
+                            <th 
+                                scope="col"
+                                @click="ordenarPor('fecha_elab_lote')" 
+                                style="cursor: pointer;user-select: none;"
+                                :class="{ 'sorted': sortField === 'fecha_elab_lote' }"
+                            >
+                            <span style="white-space: nowrap;">
+                                F.Elab {% verbatim %} {{ getIconoOrden('fecha_elab_lote') }} {% endverbatim %}
+                            </span>
+                            </th>
+                            <th 
+                                scope="col"
+                                @click="ordenarPor('fecha_cadu_lote')" 
+                                style="cursor: pointer;user-select: none;"
+                                :class="{ 'sorted': sortField === 'fecha_cadu_lote' }"
+                            >
+                            <span style="white-space: nowrap;">
+                                F.Cadu {% verbatim %} {{ getIconoOrden('fecha_cadu_lote') }} {% endverbatim %}
+                            </span>
+                            </th>
+                            <th 
+                                scope="col"
+                                @click="ordenarPor('ware_code')" 
+                                style="cursor: pointer;user-select: none;"
+                                :class="{ 'sorted': sortField === 'ware_code' }"
+                            >
+                            <span style="white-space: nowrap;">
+                                Bodega {% verbatim %} {{ getIconoOrden('ware_code') }} {% endverbatim %}
+                            </span>
+                            </th>
+                            <th 
+                                scope="col"
+                                @click="ordenarPor('location')" 
+                                style="cursor: pointer;user-select: none;"
+                                :class="{ 'sorted': sortField === 'location' }"
+                            >
+                            <span style="white-space: nowrap;">
+                                Ubicación {% verbatim %} {{ getIconoOrden('location') }} {% endverbatim %}
+                            </span>
+                            </th>
+                            <th 
+                                scope="col"
+                                @click="ordenarPor('unidades_caja')" 
+                                style="cursor: pointer;user-select: none;"
+                                :class="{ 'sorted': sortField === 'unidades_caja' }"
+                            >
+                            <span style="white-space: nowrap;">
+                                Und.Caja {% verbatim %} {{ getIconoOrden('unidades_caja') }} {% endverbatim %}
+                            </span>
+                            </th>
+                            <th 
+                                scope="col"
+                                @click="ordenarPor('doble_ubicacion')" 
+                                style="cursor: pointer;user-select: none;"
+                                :class="{ 'sorted': sortField === 'doble_ubicacion' }"
+                            >
+                            <span style="white-space: nowrap;">
+                                Doble.Ubi {% verbatim %} {{ getIconoOrden('doble_ubicacion') }} {% endverbatim %}
+                            </span>
+                            </th>
+                            <th 
+                                scope="col"
+                                @click="ordenarPor('numero_cajas')" 
+                                style="cursor: pointer;user-select: none;"
+                                :class="{ 'sorted': sortField === 'numero_cajas' }"
+                            >
+                            <span style="white-space: nowrap;">
+                                N.Cajas {% verbatim %} {{ getIconoOrden('numero_cajas') }} {% endverbatim %}
+                            </span>
+                            </th>
+                            <th 
+                                scope="col"
+                                @click="ordenarPor('unidades_sueltas')" 
+                                style="cursor: pointer;user-select: none;"
+                                :class="{ 'sorted': sortField === 'unidades_sueltas' }"
+                            >
+                            <span style="white-space: nowrap;">
+                                Und.Sue {% verbatim %} {{ getIconoOrden('unidades_sueltas') }} {% endverbatim %}
+                            </span>
+                            </th>
+                            <th 
+                                scope="col"
+                                @click="ordenarPor('unidades_estanteria')" 
+                                style="cursor: pointer;user-select: none;"
+                                :class="{ 'sorted': sortField === 'unidades_estanteria' }"
+                            >
+                            <span style="white-space: nowrap;">
+                                Und.Est {% verbatim %} {{ getIconoOrden('unidades_estanteria') }} {% endverbatim %}
+                            </span>
+                            </th>
+                            <th 
+                                scope="col"
+                                @click="ordenarPor('total_unidades')" 
+                                style="cursor: pointer;user-select: none;"
+                                :class="{ 'sorted': sortField === 'total_unidades' }"
+                            >
+                            <span style="white-space: nowrap;">
+                                T.Unds {% verbatim %} {{ getIconoOrden('total_unidades') }} {% endverbatim %}
+                            </span>
+                            </th>
+                            <th 
+                                scope="col"
+                                @click="ordenarPor('oh2')" 
+                                style="cursor: pointer;user-select: none;"
+                                :class="{ 'sorted': sortField === 'oh2' }"
+                            >
+                            <span style="white-space: nowrap;">
+                                MBA.Unds {% verbatim %} {{ getIconoOrden('oh2') }} {% endverbatim %}
+                            </span>
+                            </th>
+                            <th 
+                                scope="col"
+                                @click="ordenarPor('diferencia')" 
+                                style="cursor: pointer;user-select: none;"
+                                :class="{ 'sorted': sortField === 'diferencia' }"
+                            >
+                            <span style="white-space: nowrap;">
+                                Diferencia {% verbatim %} {{ getIconoOrden('diferencia') }} {% endverbatim %}
+                            </span>
+                            </th>
+                            <th 
+                                scope="col"
+                                @click="ordenarPor('llenado')" 
+                                style="cursor: pointer;user-select: none;"
+                                :class="{ 'sorted': sortField === 'llenado' }"
+                            >
+                            <span style="white-space: nowrap;">
+                                Llenado {% verbatim %} {{ getIconoOrden('llenado') }} {% endverbatim %}
+                            </span>
+                            </th>
+                            <th 
+                                scope="col"
+                                @click="ordenarPor('agregado')" 
+                                style="cursor: pointer;user-select: none;"
+                                :class="{ 'sorted': sortField === 'agregado' }"
+                            >
+                            <span style="white-space: nowrap;">
+                                Agregado {% verbatim %} {{ getIconoOrden('llenado') }} {% endverbatim %}
+                            </span>
+                            </th>
+                            <th 
+                                scope="col"
+                                @click="ordenarPor('user__username')" 
+                                style="cursor: pointer;user-select: none;"
+                                :class="{ 'sorted': sortField === 'user__username' }"
+                            >
+                            <span style="white-space: nowrap;">
+                                Usuario {% verbatim %} {{ getIconoOrden('user__username') }} {% endverbatim %}
+                            </span>
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
@@ -112,8 +294,9 @@
                             <td>{{i.fecha_cadu_lote}}</td>
                             <td>{{i.ware_code}}</td>
                             <td>{{i.location}}</td>
-
                             <td class="text-end">{{i.unidades_caja.toLocaleString()}}</td>
+                            <td class="text-center">{{i.doble_ubicacion}}</td>
+
                             <td class="text-end">{{i.numero_cajas.toLocaleString()}}</td>
                             <td class="text-end">{{i.unidades_sueltas.toLocaleString()}}</td>
                             <td class="text-end">{{i.unidades_estanteria.toLocaleString()}}</td>
@@ -174,29 +357,133 @@
             },
             // DB
             actualizandoDB: false,
+
+            sortField:null,
+            sortDirection:'asc',
+            sotockOrdenado:[],
         },
         mounted() {
             this.getStock();
         },
         computed:{
+            // stockFiltrado() {
+            //     return this.stock.filter(i => 
+            //         i.product_id.toLowerCase().includes(this.filtro.toLowerCase()) |
+            //         i.product_name.toLowerCase().includes(this.filtro.toLowerCase()) |
+            //         i.group_code.toLowerCase().includes(this.filtro.toLowerCase()) |
+            //         i.lote_id.toLowerCase().includes(this.filtro.toLowerCase()) |
+            //         i.ware_code.toLowerCase().includes(this.filtro.toLowerCase()) |
+            //         i.location.toLowerCase().includes(this.filtro.toLowerCase())
+            //     )
+            // }
+
             stockFiltrado() {
-                return this.stock.filter(i => 
-                    i.product_id.toLowerCase().includes(this.filtro.toLowerCase()) |
-                    i.product_name.toLowerCase().includes(this.filtro.toLowerCase()) |
-                    i.group_code.toLowerCase().includes(this.filtro.toLowerCase()) |
-                    i.lote_id.toLowerCase().includes(this.filtro.toLowerCase()) |
-                    i.ware_code.toLowerCase().includes(this.filtro.toLowerCase()) |
-                    i.location.toLowerCase().includes(this.filtro.toLowerCase())
-                )
+                // Paso 1: Aplicar filtro de búsqueda
+                let resultadoFiltrado = this.stock.filter(i => {
+                    // Usar toString() para manejar getters/setters de Vue
+                    const productId = (i.product_id || '').toString().toLowerCase();
+                    const productName = (i.product_name || '').toString().toLowerCase();
+                    const groupCode = (i.group_code || '').toString().toLowerCase();
+                    const loteId = (i.lote_id || '').toString().toLowerCase();
+                    const wareCode = (i.ware_code || '').toString().toLowerCase();
+                    const location = (i.location || '').toString().toLowerCase();
+                    const filtroLower = this.filtro.toLowerCase();
+                    
+                    return productId.includes(filtroLower) ||
+                        productName.includes(filtroLower) ||
+                        groupCode.includes(filtroLower) ||
+                        loteId.includes(filtroLower) ||
+                        wareCode.includes(filtroLower) ||
+                        location.includes(filtroLower);
+                });
+                
+                // Paso 2: Aplicar ordenamiento si hay un campo seleccionado
+                if (!this.sortField) {
+                    return resultadoFiltrado;
+                }
+                
+                return resultadoFiltrado.sort((a, b) => {
+                    // Acceder a los valores de los objetos reactivos
+                    let valorA = a[this.sortField];
+                    let valorB = b[this.sortField];
+                    
+                    // Manejar valores null/undefined
+                    if (valorA == null) valorA = '';
+                    if (valorB == null) valorB = '';
+                    
+                    let resultado = 0;
+                    
+                    // Ordenamiento específico por tipo de campo
+                    if (this.sortField === 'fecha_elab_lote' || this.sortField === 'fecha_cadu_lote') {
+                        // Ordenamiento para fechas
+                        const fechaA = new Date(valorA);
+                        const fechaB = new Date(valorB);
+                        resultado = fechaA.getTime() - fechaB.getTime();
+                    }
+                    else if (this.sortField === 'llenado' || this.sortField === 'agregado' || this.sortField === 'commited') {
+                        // Ordenamiento para booleanos
+                        const boolA = !!valorA ? 1 : 0;
+                        const boolB = !!valorB ? 1 : 0;
+                        resultado = boolA - boolB;
+                    }
+                    else if (this.esNumerico(this.sortField)) {
+                        // Ordenamiento para números - convertir explícitamente
+                        const numA = this.convertirANumero(valorA);
+                        const numB = this.convertirANumero(valorB);
+                        resultado = numA - numB;
+                    }
+                    else {
+                        // Ordenamiento para strings
+                        const strA = valorA.toString().toLowerCase();
+                        const strB = valorB.toString().toLowerCase();
+                        resultado = strA.localeCompare(strB);
+                    }
+                    
+                    // Aplicar dirección del ordenamiento
+                    return this.sortDirection === 'asc' ? resultado : -resultado;
+                });
             }
+
+
         },
         methods: {
+
+            esNumerico(campo) {
+                const camposNumericos = [
+                    'index',
+                    'unidades_caja',
+                    'numero_cajas', 
+                    'unidades_sueltas',
+                    'unidades_estanteria',
+                    'total_unidades',
+                    'oh',
+                    'oh2',
+                    'diferencia',
+                    'quantity'
+                ];
+                return camposNumericos.includes(campo);
+            },
+            
+            convertirANumero(valor) {
+                if (valor === null || valor === undefined || valor === '') {
+                    return 0;
+                }
+                
+                // Si es string, remover comas y espacios
+                if (typeof valor === 'string') {
+                    valor = valor.replace(/,/g, '').replace(/\s/g, '');
+                }
+                
+                const numero = parseFloat(valor);
+                return isNaN(numero) ? 0 : numero;
+            },
+
             async getStock() {
                 this.actualizandoStock = true;
                 try {
                     const response = await fetch('/inventario/andagoya_get_stock');
                     const data = await response.json();
-                    
+                    // console.log(data.inventario)
                     // Actualizar datos
                     this.stock = data.inventario || [];
                     this.total = data.total;
@@ -247,6 +534,7 @@
                     })
                 }
             },
+
             async updateDB(){
                 this.actualizandoDB = true;
                 try {
@@ -261,11 +549,38 @@
                     this.actualizandoDB = false
                 }
             },
+
             colorDiferencia(diff) {
                 if (diff != 0){
                     return '#F6B690'
                 }
             },
+
+            // Nuevas funciones para el ordenamiento
+            ordenarPor(campo) {
+                // Si ya está ordenado por este campo, cambiar dirección
+                if (this.sortField === campo) {
+                this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+                } else {
+                // Nuevo campo, ordenar ascendente
+                this.sortField = campo;
+                this.sortDirection = 'asc';
+                }
+            },
+            
+            // Función auxiliar para obtener el ícono de ordenamiento
+            getIconoOrden(campo) {
+                if (this.sortField !== campo) {
+                return '↕️'; // Ícono neutral
+                }
+                return this.sortDirection === 'asc' ? '↑' : '↓';
+            },
+
+            // Función para limpiar el ordenamiento
+            limpiarOrden() {
+                this.sortField = null;
+                this.sortDirection = 'asc';
+            }
         },
     })
 </script>
