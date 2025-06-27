@@ -676,6 +676,7 @@ def reporte_completo_excel(request):
         'diferencia',
         'observaciones',
         'llenado',
+        'llenado_estanteria',
         'agregado',
         'user__username'
     ).order_by('group_code', 'product_id', 'fecha_cadu_lote'))
