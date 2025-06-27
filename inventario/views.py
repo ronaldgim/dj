@@ -311,6 +311,7 @@ def inventario_andagoya_get_stock(request):
         'diferencia',
         'observaciones',
         'llenado',
+        'llenado_estanteria',
         'agregado',
         'user__username',
     )
@@ -326,15 +327,21 @@ def inventario_andagoya_get_stock(request):
     
     inventario_df['fecha_elab_lote'] = inventario_df['fecha_elab_lote'].astype('str')
     inventario_df['fecha_cadu_lote'] = inventario_df['fecha_cadu_lote'].astype('str')
+    inventario_df['llenado_ok'] = inventario_df['llenado'] | inventario_df['llenado_estanteria']
     
-    total      = len(inventario)
-    procesados = len(inventario.filter(llenado=True))
+    total      = len(inventario) ; print('total:', total)
+    procesados = len(inventario.filter(llenado=True)) 
+    estanteria = len(inventario.filter(llenado_estanteria=True)) 
+    procesados_bod_est = len(inventario_df[inventario_df['llenado_ok']==True]) 
     
-    porcentaje_avance = 0 if total == 0 else round((procesados / total) * 100, 0)
+    # porcentaje_avance = 0 if total == 0 else round((procesados / total) * 100, 0)
+    porcentaje_avance = 0 if total == 0 else round((procesados_bod_est / total) * 100, 0)
     procentaje_falta  = 100 - porcentaje_avance
     
+    
     lista_ubicaciones = sorted(list(inventario.filter(ware_code='BAN').values_list('location', flat=True).distinct()))
-    lista_avance = [round((inventario.filter(location=i, llenado=True).count()/inventario.filter(location=i).count())*100,1) for i in lista_ubicaciones]
+    # lista_avance = [round((inventario.filter(location=i, llenado=True).count()/inventario.filter(location=i).count())*100,1) for i in lista_ubicaciones]
+    lista_avance = [round((inventario.filter(location=i).filter(Q(llenado=True) | Q(llenado_estanteria=True)).count()/inventario.filter(location=i).count())*100,1) for i in lista_ubicaciones]    
     
     lista_totales = [porcentaje_avance, procentaje_falta]    
     
@@ -343,6 +350,8 @@ def inventario_andagoya_get_stock(request):
         'inventario':de_dataframe_a_template(inventario_df),
         'total':total,
         'procesados':procesados,
+        'estanteria':estanteria,
+        'procesados_bod_est':procesados_bod_est,
         'ubicaciones': lista_ubicaciones,
         'avances': lista_avance,
         'totales': lista_totales
@@ -706,6 +715,7 @@ def reporte_completo_excel(request):
         'doble_ubicacion',
         'observaciones',
         'llenado',
+        'llenado_estanteria',
         'agregado',
         'user__username'
         ]]

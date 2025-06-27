@@ -16,7 +16,9 @@
     
     {% verbatim %}
     <h6 class="text-start"> <span class="fw-bold">Total de items:</span> {{total}} </h6>
-    <h6 class="text-start"> <span class="fw-bold">Items procesados:</span> {{procesados}} </h6>
+    <h6 class="text-start"> <span class="fw-bold">Items procesados bodega o estanteria:</span> {{procesados_bod_est}} </h6>
+    <h6 class="text-start"> <span class="fw-bold">Items procesados bodega:</span> {{procesados}} </h6>
+    <h6 class="text-start"> <span class="fw-bold">Items procesados estantería:</span> {{estanteria}} </h6>
     {% endverbatim %}
 
     <div class="mt-2 mb-2">
@@ -257,7 +259,17 @@
                                 :class="{ 'sorted': sortField === 'llenado' }"
                             >
                             <span style="white-space: nowrap;">
-                                Llenado {% verbatim %} {{ getIconoOrden('llenado') }} {% endverbatim %}
+                                Llenado.Bod {% verbatim %} {{ getIconoOrden('llenado') }} {% endverbatim %}
+                            </span>
+                            </th>
+                            <th 
+                                scope="col"
+                                @click="ordenarPor('llenado_estanteria')" 
+                                style="cursor: pointer;user-select: none;"
+                                :class="{ 'sorted': sortField === 'llenado_estanteria' }"
+                            >
+                            <span style="white-space: nowrap;">
+                                Llenado.Est {% verbatim %} {{ getIconoOrden('llenado_estanteria') }} {% endverbatim %}
                             </span>
                             </th>
                             <th 
@@ -309,6 +321,10 @@
                                 <i v-else style = "color:red;" class="bi bi-x-square-fill"></i>
                             </td>
                             <td class="text-center">
+                                <i v-if="i.llenado_estanteria" style = "color:green;" class="bi bi-check-square-fill"></i>
+                                <i v-else style = "color:red;" class="bi bi-x-square-fill"></i>
+                            </td>
+                            <td class="text-center">
                                 <i v-if="i.agregado" style = "color:green;" class="bi bi-check-square-fill"></i>
                                 <i v-else style = "color:red;" class="bi bi-x-square-fill"></i>
                             </td>
@@ -334,6 +350,8 @@
             stock:[],
             total:'',
             procesados:'',
+            estanteria:'',
+            procesados_bod_est:'',
             avance:'',
             ubicaciones:[],
             avances:[],
@@ -488,9 +506,13 @@
                     this.stock = data.inventario || [];
                     this.total = data.total;
                     this.procesados = data.procesados;
-                    this.avance = data.avance;
+                    this.estanteria = data.estanteria;
+                    this.procesados_bod_est = data.procesados_bod_est;
+                    
                     // Actualizar datos de grafico de barras
                     this.chartData.labels = data.ubicaciones || [];
+                    this.avance = data.avance;
+
                     this.chartData.datasets[0].data = data.avances || [];
                     // Actualizar datos de garfico de pastel
                     this.chartPie.datasets[0].data = data.totales || [];
