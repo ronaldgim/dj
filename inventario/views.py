@@ -57,6 +57,7 @@ from django.views.decorators.http import require_GET, require_POST
 
 from django.views.decorators.csrf import csrf_exempt
 from django.forms.models import model_to_dict
+from etiquetado.models import ProductoUbicacion
 
 
 def stock_lote(): #request
@@ -257,6 +258,32 @@ def inventario_home(request):
     
     return render(request, 'inventario/toma_fisica/home.html', context)
 
+# Wms andagoya 
+def producto_ubicacion_wms_andagoya():
+    
+    producto_ubicacion = ProductoUbicacion.objects.all() 
+    
+    data_list = []
+    for i in producto_ubicacion:
+        product_id = i.product_id
+        ubicaciones_len = len(i.ubicaciones.all())
+        
+        if ubicaciones_len > 1:
+            data = {
+                'product_id':product_id,
+                'doble_ubicacion':'SI'
+            }
+            
+            data_list.append(data)
+            
+    data_df = pd.DataFrame(data_list)
+    data_df = data_df.drop_duplicates(subset='product_id')
+    
+    if not data_df.empty:
+        return data_df
+    
+    return pd.DataFrame()
+
 
 ## GET REPORTE
 @require_GET
@@ -288,6 +315,18 @@ def inventario_andagoya_get_stock(request):
         'user__username',
     )
     
+    doble_ubicacion = producto_ubicacion_wms_andagoya()
+    inventario_df = pd.DataFrame(inventario)
+    
+    if not doble_ubicacion.empty:
+        inventario_df = inventario_df.merge(doble_ubicacion, on='product_id', how='left')
+        inventario_df['doble_ubicacion'] = inventario_df['doble_ubicacion'].fillna('NO')
+    elif doble_ubicacion.empty:
+        inventario_df['doble_ubicacion'] = 'NO'
+    
+    inventario_df['fecha_elab_lote'] = inventario_df['fecha_elab_lote'].astype('str')
+    inventario_df['fecha_cadu_lote'] = inventario_df['fecha_cadu_lote'].astype('str')
+    
     total      = len(inventario)
     procesados = len(inventario.filter(llenado=True))
     
@@ -300,7 +339,8 @@ def inventario_andagoya_get_stock(request):
     lista_totales = [porcentaje_avance, procentaje_falta]    
     
     return JsonResponse({
-        'inventario': list(inventario),
+        #'inventario': list(inventario),
+        'inventario':de_dataframe_a_template(inventario_df),
         'total':total,
         'procesados':procesados,
         'ubicaciones': lista_ubicaciones,
@@ -340,7 +380,7 @@ def inventario_andagoya_reportes(request):
     return render(request, 'inventario/toma_fisica/andagoya/reportes_andagoya.html')
 
 
-### Reporte completo ###
+### ANDAGOYA ###
 @login_required(login_url='login')
 def inventario_andagoya_home(request):
     
@@ -597,33 +637,6 @@ def inventario_toma_fisica_agregar_producto(request):
             return JsonResponse({'type':'success','msg':'Producto agregado correctamente'})
         else:
             return JsonResponse({'type':'danger','msg':form.errors})
-
-
-# Wms andagoya 
-def producto_ubicacion_wms_andagoya():
-    from etiquetado.models import ProductoUbicacion
-    producto_ubicacion = ProductoUbicacion.objects.all() 
-    
-    data_list = []
-    for i in producto_ubicacion:
-        product_id = i.product_id
-        ubicaciones_len = len(i.ubicaciones.all())
-        
-        if ubicaciones_len > 1:
-            data = {
-                'product_id':product_id,
-                'doble_ubicacion':'SI'
-            }
-            
-            data_list.append(data)
-            
-    data_df = pd.DataFrame(data_list)
-    data_df = data_df.drop_duplicates(subset='product_id')
-    
-    if not data_df.empty:
-        return data_df
-    
-    return pd.DataFrame()
 
 
 ## Reporte completo excel ###
