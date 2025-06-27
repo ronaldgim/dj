@@ -16,7 +16,7 @@
             Inventario Andagoya 
           </a>
           <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-            {% if request.user.is_superuser or request.user.id == 12 %}
+            {% if request.user.is_superuser or request.user.id == 12 or request.user.id == 16 or request.user.id == 19 %}
             <li><a class="dropdown-item" href="{% url 'inventario_andagoya_reportes' %}">Reporte Andagoya</a></li>
             {% endif %}
 
