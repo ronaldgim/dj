@@ -10,9 +10,11 @@ from datetime import timedelta
 from typing import Dict, List, Optional, Any
 import numpy as np
 
-from etiquetado.models import AddEtiquetadoPublico, PedidosEstadoEtiquetado #PedidoTemporal
+from etiquetado.models import AddEtiquetadoPublico, PedidosEstadoEtiquetado, FechaEntrega #PedidoTemporal
 from django.forms.models import model_to_dict
 from django.db import connections
+from datetime import datetime, timedelta
+from wms.models import Existencias
 
 # # publico = ['90447', '90420', '90392', '90456', '90324']
 # publico = ['90324']
@@ -227,10 +229,10 @@ def _calcular_totales(pedido: pd.DataFrame) -> Dict[str, Any]:
     """
     # Calcular totales usando operaciones vectorizadas de pandas
     totales = {
-        't_total_vol': pedido['vol_total'].sum(),
-        't_total_pes': pedido['pes_total'].sum(), 
-        't_cartones': pedido['Cartones'].sum(),
-        't_unidades': pedido['quantity'].sum(),
+        't_total_vol': float(pedido['vol_total'].sum()),
+        't_total_pes': float(pedido['pes_total'].sum()), 
+        't_cartones': float(pedido['Cartones'].sum()),
+        't_unidades': float(pedido['quantity'].sum()),
         
         # Tiempos totales
         'tt_str_1p': _segundos_a_timedelta_str(pedido['t_s_1p'].sum()),
@@ -238,7 +240,7 @@ def _calcular_totales(pedido: pd.DataFrame) -> Dict[str, Any]:
         'tt_str_3p': _segundos_a_timedelta_str(pedido['t_s_3p'].sum()),
         
         # Indicador de peso cero
-        'p_cero': (pedido['pes_total'] == 0).any()
+        'p_cero': bool((pedido['pes_total'] == 0).any())
     }
     
     return totales
@@ -292,13 +294,42 @@ def lista_pedidos_publico():
     return list(publico_dashboard)
 
 
+def stock_mba_wms():
+    def stock_mba_andagoya():
+        with connections['gimpromed_sql'].cursor() as cursor:
+            cursor.execute(f"SELECT PRODUCT_ID, WARE_CODE, OH2 FROM warehouse.stock_lote WHERE WARE_CODE = 'BAN';") # OR WARE_CODE = 'BCT'; ")
+            connections['gimpromed_sql'].close()
+            columns = [col[0].lower() for col in cursor.description]
+            stock = [dict(zip(columns, row)) for row in cursor.fetchall()]
+            stock = pd.DataFrame(stock)
+            stock = stock.groupby(['product_id', 'ware_code'])['oh2'].sum().reset_index()
+            stock = stock.rename(columns={'oh2':'unidades'})
+            return stock
+    
+    def stock_wms_cerezos():
+        stock = Existencias.objects.filter(estado='Disponible').values('product_id','unidades')
+        stock = pd.DataFrame(stock).groupby('product_id')['unidades'].sum().reset_index()
+        stock['ware_code'] = 'BCT'
+        stock = stock[['product_id','ware_code','unidades']]
+        return stock
+    
+    mba = stock_mba_andagoya() 
+    wms = stock_wms_cerezos() 
+    
+    data = pd.concat([mba, wms]) 
+    return data
+
+
 def metricas_pedido(contrato_id):
 
-    pedido_db = Reservas.objects.filter(contrato_id=contrato_id).values('product_id', 'quantity')
-    pedido_df = pd.DataFrame(pedido_db).groupby('product_id')['quantity'].sum().reset_index()
+    pedido_db = Reservas.objects.filter(contrato_id=contrato_id).values('product_id', 'ware_code', 'quantity')
+    pedido_df = pd.DataFrame(pedido_db).groupby(['product_id','ware_code'])['quantity'].sum().reset_index()
     products_master = productos_odbc_and_django()[['product_id','Nombre','Marca','Unidad_Empaque', 't_etiq_1p', 't_etiq_2p', 't_etiq_3p', 'vol_m3', 'Peso']]
     
     pedido = pedido_df.merge(products_master, on='product_id', how='left').fillna(0)
+    pedido = pedido.merge(stock_mba_wms(), on=['product_id','ware_code'], how='left').fillna(0)
+    pedido['cartones'] = pedido['quantity'] / pedido['Unidad_Empaque']
+    pedido['diff'] = pedido['unidades'] >= pedido['quantity']
     
     # Operaciones vectorizadas (mucho más rápido que iteraciones)
     with np.errstate(divide='ignore', invalid='ignore'):
@@ -331,19 +362,85 @@ def metricas_pedido(contrato_id):
     
     # Reemplazar infinitos y NaN
     pedido = pedido.replace([np.inf, -np.inf], 0).fillna(0)
-    
-    return pedido
+
+    # Stock completo
+    stock_completo = bool((pedido['diff'] == False ).any()) 
+
+    return {
+        'pedido':pedido,
+        'stock_completo':stock_completo
+    }
+    #return pedido
 
 
 def cliente_from_codigo(codigo_cliente):
     with connections['gimpromed_sql'].cursor() as cursor:
         cursor.execute(f"SELECT * FROM warehouse.clientes WHERE CODIGO_CLIENTE = '{codigo_cliente}';")
         connections['gimpromed_sql'].close()
-        columns = [col[0] for col in cursor.description]
+        columns = [col[0].lower() for col in cursor.description]
         result = cursor.fetchone()
         if result:
             return dict(zip(columns, result))
         return {}
+
+
+def prints_pedidos_por_contrato_id(contrato_id):
+    with connections['gimpromed_sql'].cursor() as cursor:
+        query = """
+            SELECT 
+                p.CONTRATO_ID,
+                p.FECHA_PEDIDO,
+                p.WARE_CODE,
+                p.CONFIRMED,
+                p.HORA_LLEGADA,
+                p.NUM_PRINT,
+                p.Entry_by,
+                u.USER_NAME,
+                u.FIRST_NAME,
+                u.LAST_NAME,
+                u.MAIL
+            FROM 
+                pedidos p
+            JOIN 
+                user_mba u
+            ON 
+                p.Entry_by = u.CODIGO_USUARIO
+            WHERE 
+                p.CONTRATO_ID = %s;
+        """
+        cursor.execute(query, [contrato_id])
+        result = cursor.fetchone()
+
+        if result:
+            columns = [col[0].lower() for col in cursor.description]
+            return dict(zip(columns, result))
+        return {}
+
+
+def estado_avance_etiquetado(contrato_id):
+    
+    from etiquetado.models import EtiquetadoAvance, PedidosEstadoEtiquetado
+    
+    avance = EtiquetadoAvance.objects.filter(n_pedido=contrato_id+'.0')
+    if avance.exists():
+        t_unidades_avance = sum(avance.values_list('unidades', flat=True))
+        t_unidades_pedido = _calcular_totales(contrato_id)['t_unidades']
+        porcentaje_avance = round(t_unidades_avance / t_unidades_pedido, 2)
+        
+    else:
+        porcentaje_avance= 0
+    
+    etiquetado = PedidosEstadoEtiquetado.objects.filter(n_pedido=contrato_id+'.0')
+    if etiquetado.exists():
+        estado_etiquetado = model_to_dict(etiquetado)
+    else:
+        estado_etiquetado = {}
+    
+    return {
+        'avance':porcentaje_avance,
+        'estado_etiquetado':estado_etiquetado
+    }
+    
 
 
 def calcular_cabecera_totales(contrato_id):
@@ -352,23 +449,65 @@ def calcular_cabecera_totales(contrato_id):
 
     cabecera = model_to_dict(instance=contrato.first(), fields=['contrato_id', 'fecha_pedido', 'hora_llegada','ware_code','confirmed'])
     cliente = cliente_from_codigo(contrato.first().codigo_cliente)
+    pedido = prints_pedidos_por_contrato_id(contrato_id=contrato_id)
     
+    entrega = FechaEntrega.objects.filter(pedido=(contrato_id+'.0'))
+    if entrega.exists():
+        entrega_data = model_to_dict(entrega.first())
+        fecha_entrega = entrega.first().fecha_hora#.date()
+        to_day = datetime.today()#.date()
+        dias_faltantes = (fecha_entrega - to_day).days
+        if dias_faltantes < 0 :
+            dias_faltantes = None
+        else:
+            dias_faltantes = dias_faltantes
+    else:
+        entrega_data = {}
+        dias_faltantes = None
+    
+    tiempo = _determinar_tipo_tiempo(metricas_pedido(contrato_id)['pedido'])
+    
+    if tiempo in ('t1', 't2', 't3'):  #, 'F'):
+        totales = _calcular_totales(metricas_pedido(contrato_id)['pedido'])
+        
+        clave_por_tiempo = {
+            't1': 'tt_str_1p',
+            't2': 'tt_str_2p',
+            't3': 'tt_str_3p',
+            'F': 'tt_str_F',
+        }
+    
+        tiempo_total = totales.get(clave_por_tiempo[tiempo])
+    elif tiempo == 'F':
+        tiempo_total = 'F' # None  # o lanzar un error si es un caso inválido
+    else:
+        tiempo_total = 'F'
     
     return {
         'cabecera':cabecera,
         'cliente':cliente,
-        'totales':_calcular_totales(metricas_pedido(contrato_id)),
-        'tiempo':_determinar_tipo_tiempo(metricas_pedido(contrato_id))
+        'totales':_calcular_totales(metricas_pedido(contrato_id)['pedido']),
+        'tiempo_total':tiempo_total,
+        'tiempos':_determinar_tipo_tiempo(metricas_pedido(contrato_id)['pedido']),
+        'entrega':entrega_data,
+        'pedido':pedido,
+        'dias_faltantes':dias_faltantes,
+        'stock_completo':metricas_pedido(contrato_id)['stock_completo'],
+        'estado_etiquetado':estado_avance_etiquetado(contrato_id)
     }
 
 
 def pedido_data(request):
     
-    publico = lista_pedidos_publico()[:1]
+    publico = lista_pedidos_publico() # [:1]
     
     for i in publico:
+        print(i)
         cal = calcular_cabecera_totales(i)
+        print('----------------------')
         print(cal)
+        # ped = metricas_pedido(i)
+        
     
     
     
