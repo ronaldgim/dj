@@ -205,12 +205,13 @@ def clientes_table(): #request
 # Calculadora PESOS Y VOLUMEN FUNCTION Y TIEMPOS
 def calculadora_funtion(data):
 
-    prod = pd.DataFrame(Product.objects.all().values())
+    # prod = pd.DataFrame(Product.objects.all().values())
     data = pd.DataFrame(data)
+    prod = productos_odbc_and_django()
 
     data = data[['item_id', 'cant', 'lote']]
     data = data.rename(columns={'item_id':'id'})
-    data = data.merge(prod, on='id', how='left')
+    data = data.merge(prod, on='id', how='left') #.fillna(0)
 
     data['cart'] = (data['cant'] / data['unidad_empaque']).round(2)
     data['t_v']  = data['cart'] * data['volumen']
