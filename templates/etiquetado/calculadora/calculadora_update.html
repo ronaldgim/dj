@@ -66,15 +66,15 @@
                     </thead>
                     <tbody>
                     <tr>
-                        <th scope="row">
+                        <td>
                             <select id="chosen-select" class="form-select" data-placeholder="Seleccione el item" name="item">
                                 {% for i in form_row.item %}
                                     {{i}}
                                 {% endfor %}
                             </select>
-                        </th>
+                        </td>
                         <td>
-                            <input id="cant_id" type="number" name="cant" step="1" >
+                            <input id="cant_id" class="form-control" style="width:300px" type="number" name="cant" step="1" >
                         </td>
                         <td class="text-start">
                             <button type="submit" class="btn btn-primary btn-sm" id="add_id">
