@@ -211,12 +211,12 @@ def calculadora_funtion(data):
 
     data = data[['item_id', 'cant', 'lote']]
     data = data.rename(columns={'item_id':'id'})
-    data = data.merge(prod, on='id', how='left').fillna(0)
+    data = data.merge(prod, on='id', how='left') #.fillna(0)
 
     # data['cart'] = (data['cant'] / data['unidad_empaque']).round(2)
     data['cart'] = (data['cant'] / data['Unidad_Empaque']).round(2)
-    data['t_v']  = data['cart'] * data['volumen']
-    data['t_p']  = data['cart'] * data['peso']
+    data['t_v']  = data['cart'] * data['vol_m3']
+    data['t_p']  = data['cart'] * data['Peso']
     
     data['t_1p'] = (data['cart'] * data['t_etiq_1p'].round(0)) #/ 3600
     data['t_str_1p'] = [str(timedelta(seconds=int(i))) for i in data['t_1p']]
