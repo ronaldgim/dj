@@ -233,7 +233,7 @@ def ventas_desde_fecha(fecha, codigo_cliente):
 # SSH DATA TUNEL
 ssh_host = '10.10.3.4'
 ssh_username = 'root'
-ssh_password = 'Gimcen2021'
+ssh_password =  'Gimcen2025/*$' #'Gimcen2021'
 database_username = 'felipe'
 database_password = '19860915'
 database_name = 'gimpromed_api'
