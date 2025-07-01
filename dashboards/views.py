@@ -520,52 +520,54 @@ def calcular_cabecera_totales(contrato_id):
 
 def data_dashboard_pedido_publico(contratos_list):
     
-    data_list = []
-    for i in contratos_list:
-        
-        reserva = Reservas.objects.filter(contrato_id=i).first()
-        
-        data = {
-            'contrato_id':i,
-            'estado_picking': picking(i)['estado_picking'],
-            'user_picking': picking(i)['user'],
-            'user_picking_full_name': picking(i)['user_full_name'],
-            'confirmado': reserva.confirmed,
-            'stock_completo': metricas_pedido(i)['stock_completo'],
-            'print': prints_pedidos_por_contrato_id(i)['num_print'],
-            'nombre_cliente': cliente_from_codigo(reserva.codigo_cliente)['nombre_cliente'], 
-            'ciudad_cliente': cliente_from_codigo(reserva.codigo_cliente)['ciudad_principal'], 
-            'fecha_hora_entrega': entrega(i)['fecha_hora'],
-            'estado_fecha_hora_entrega': entrega(i)['estado'], 
-            'dias_faltantes': entrega(i)['dias_faltantes'], 
-            'estado_etiquetado': etiquetado(i)['estado_etiquetado'],
-            'avance_etiquetado':etiquetado(i)['avance'],
-            'estado_entrega':entrega(i)['est_entrega'],
-            'tiempo':_determinar_tipo_tiempo(metricas_pedido(i)['pedido'])['tiempo'],
-            'tiempo_1':_determinar_tipo_tiempo(metricas_pedido(i)['pedido'])['tiempo_1'],
-            'tiempo_2':_determinar_tipo_tiempo(metricas_pedido(i)['pedido'])['tiempo_2'],
-            'tiempo_3': _determinar_tipo_tiempo(metricas_pedido(i)['pedido'])['tiempo_3'],
-        }
-        
-        data_list.append(data)
-        
-    # Ordenar la lista por 'fecha_hora_entrega' como objeto de tiempo si es posible
+    try:
+        data_list = []
+        for i in contratos_list:
+            
+            reserva = Reservas.objects.filter(contrato_id=i) # .first()
+            
+            if reserva.exists():
+                reserva = reserva.first()
 
-    def parse_fecha(fecha):
-        if isinstance(fecha, datetime):
-            return fecha
-        try:
-            # Intenta parsear si es string
-            return datetime.fromisoformat(fecha)
-        except Exception:
-            return datetime.min
+                data = {
+                    'contrato_id':i,
+                    'estado_picking': picking(i)['estado_picking'],
+                    'user_picking': picking(i)['user'],
+                    'user_picking_full_name': picking(i)['user_full_name'],
+                    'confirmado': reserva.confirmed,
+                    'stock_completo': metricas_pedido(i)['stock_completo'],
+                    'print': prints_pedidos_por_contrato_id(i)['num_print'],
+                    'nombre_cliente': cliente_from_codigo(reserva.codigo_cliente)['nombre_cliente'], 
+                    'ciudad_cliente': cliente_from_codigo(reserva.codigo_cliente)['ciudad_principal'], 
+                    'fecha_hora_entrega': entrega(i)['fecha_hora'],
+                    'estado_fecha_hora_entrega': entrega(i)['estado'], 
+                    'dias_faltantes': entrega(i)['dias_faltantes'], 
+                    'estado_etiquetado': etiquetado(i)['estado_etiquetado'],
+                    'avance_etiquetado':etiquetado(i)['avance'],
+                    'estado_entrega':entrega(i)['est_entrega'],
+                    'tiempo':_determinar_tipo_tiempo(metricas_pedido(i)['pedido'])['tiempo'],
+                    'tiempo_1':_determinar_tipo_tiempo(metricas_pedido(i)['pedido'])['tiempo_1'],
+                    'tiempo_2':_determinar_tipo_tiempo(metricas_pedido(i)['pedido'])['tiempo_2'],
+                    'tiempo_3': _determinar_tipo_tiempo(metricas_pedido(i)['pedido'])['tiempo_3'],
+                }
+                
+                data_list.append(data)
+                
+        # Ordenar la lista por 'fecha_hora_entrega' como objeto de tiempo si es posible
+        def parse_fecha(fecha):
+            if isinstance(fecha, datetime):
+                return fecha
+            try:
+                # Intenta parsear si es string
+                return datetime.fromisoformat(fecha)
+            except Exception:
+                return datetime.min
 
-    data_list = sorted(data_list, key=lambda x: parse_fecha(x.get('fecha_hora_entrega')))
-    
-    # return HttpResponse('ok')
-    return JsonResponse({
-        'data':data_list
-    })
+        data_list = sorted(data_list, key=lambda x: parse_fecha(x.get('fecha_hora_entrega')))
+        
+        return data_list
+    except Exception as e:
+        print(e)
 
 
 
@@ -581,7 +583,7 @@ def lista_publicos_dashboard_completo():
     pedidos_publicos = Reservas.objects.filter(sec_name_cliente='PUBLICO').values_list('contrato_id', flat=True).distinct()
     agregados = AddEtiquetadoPublico.objects.all().values_list('contrato_id', flat=True).distinct()
     pedidos_mas_agregados = pedidos_publicos.union(agregados)
-    finalizados = PedidosEstadoEtiquetado.objects.filter(estado__id=3).order_by('-n_pedido').values_list('n_pedido', flat=True).distinct()[:500]
+    finalizados = PedidosEstadoEtiquetado.objects.filter(estado__id=3).order_by('-n_pedido').values_list('n_pedido', flat=True).distinct()[:50]
     # temporales = PedidoTemporal.objects.all()
     
     pedidos_mas_agregados_set = set(pedidos_mas_agregados)
@@ -594,12 +596,36 @@ def lista_publicos_dashboard_completo():
     finalizados_set = set(finalizados_list)
     
     publico_dashboard = pedidos_mas_agregados_set - finalizados_set
-    
+
     return list(publico_dashboard)
 
 
+def lista_publicos_finalizados():
+    
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute(f"SELECT CONTRATO_ID FROM warehouse.reservas WHERE SEC_NAME_CLIENTE = 'PUBLICO';")
+        contratos = [ i[0] for i in cursor.fetchall()]
+        connections['gimpromed_sql'].close()
+    finalizados = PedidosEstadoEtiquetado.objects.filter(estado__id=3).order_by('-n_pedido').values_list('n_pedido', flat=True).distinct()[:50]
+    contratos_list = set(contratos) & set(finalizados)
+    
+    pedidos_por_entregar = []
+    for i in contratos_list:
+        contrato = i.split('.')[0]
+        pedidos_por_entregar.append(contrato)
+    
+    return pedidos_por_entregar
+    
+
 def data_publicos_dashboard_completo(request):
-    return data_dashboard_pedido_publico(lista_publicos_dashboard_completo())
+
+    pedidos = data_dashboard_pedido_publico(lista_publicos_dashboard_completo())
+    por_entregar = data_dashboard_pedido_publico(lista_publicos_finalizados())
+
+    return JsonResponse({
+        'pedidos':pedidos,
+        'por_entregar':por_entregar
+    })
 
 
 def dashboard_publico(request):
