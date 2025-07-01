@@ -430,7 +430,7 @@ def picking(contrato_id):
         return {
             'estado_picking':picking.first().estado,
             'user':f'{picking.first().user.user.first_name[:1]}.{picking.first().user.user.last_name[:1]}',
-            'user_full_name': f'{picking.first().user.user.first_name} - {picking.first().user.user.last_name}'
+            'user_full_name': f'{picking.first().user.user.first_name} {picking.first().user.user.last_name}'
         }
     else:
         return {
@@ -528,6 +528,8 @@ def data_dashboard_pedido_publico(contratos_list):
         data = {
             'contrato_id':i,
             'estado_picking': picking(i)['estado_picking'],
+            'user_picking': picking(i)['user'],
+            'user_picking_full_name': picking(i)['user_full_name'],
             'confirmado': reserva.confirmed,
             'stock_completo': metricas_pedido(i)['stock_completo'],
             'print': prints_pedidos_por_contrato_id(i)['num_print'],
@@ -536,7 +538,7 @@ def data_dashboard_pedido_publico(contratos_list):
             'fecha_hora_entrega': entrega(i)['fecha_hora'],
             'estado_fecha_hora_entrega': entrega(i)['estado'], 
             'dias_faltantes': entrega(i)['dias_faltantes'], 
-            'estado_etiquetado': etiquetado(i)['estado_etiquetado'], #[],
+            'estado_etiquetado': etiquetado(i)['estado_etiquetado'],
             'avance_etiquetado':etiquetado(i)['avance'],
             'estado_entrega':entrega(i)['est_entrega'],
             'tiempo':_determinar_tipo_tiempo(metricas_pedido(i)['pedido'])['tiempo'],
