@@ -416,7 +416,7 @@ def etiquetado(contrato_id):
     if etiquetado.exists():
         estado_etiquetado = etiquetado.first().estado.estado  
     else:
-        estado_etiquetado = '' 
+        estado_etiquetado = '-' 
     
     return {
         'avance':f'{porcentaje_avance} %',
@@ -434,9 +434,9 @@ def picking(contrato_id):
         }
     else:
         return {
-            'estado_picking':'',
-            'user':'',
-            'user_full_name': ''
+            'estado_picking':'-',
+            'user':'-',
+            'user_full_name': '-'
         }
 
 
@@ -447,19 +447,19 @@ def entrega(contrato_id):
         try:
             dias_faltantes = (entrega_obj.fecha_hora - datetime.today()).days
         except (AttributeError, TypeError):
-            dias_faltantes = None
+            dias_faltantes = '-'
         data = model_to_dict(entrega_obj)
         data['dias_faltantes'] = dias_faltantes
         return data
     else:
         return {
-            'fecha_hora': '',
-            'estado': '',
-            'pedido': '',
-            'user': '',
-            'est_entrega': '',
-            'reg_entrega': '',
-            'dias_faltantes': None
+            'fecha_hora': '-',
+            'estado': '-',
+            'pedido': '-',
+            'user': '-',
+            'est_entrega': '-',
+            'reg_entrega': '-',
+            'dias_faltantes': '-'
         }
 
 
