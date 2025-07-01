@@ -17,7 +17,7 @@ from datetime import datetime, timedelta
 from wms.models import Existencias
 
 
-
+"""
 # # publico = ['90447', '90420', '90392', '90456', '90324']
 # publico = ['90324']
 
@@ -107,7 +107,7 @@ from wms.models import Existencias
     
 #     else:
 #         return {}
-
+"""
 
 
 
@@ -314,8 +314,8 @@ def metricas_pedido(contrato_id):
     pedido = pedido_df.merge(products_master, on='product_id', how='left').fillna(0)
     pedido = pedido.merge(stock_mba_wms(), on=['product_id','ware_code'], how='left').fillna(0)
     pedido['cartones'] = pedido['quantity'] / pedido['Unidad_Empaque']
-    pedido['diff'] = pedido['unidades'] >= pedido['quantity']
-
+    pedido['diff'] = pedido['quantity'] >= pedido['unidades']
+    
     # Operaciones vectorizadas (mucho más rápido que iteraciones)
     with np.errstate(divide='ignore', invalid='ignore'):
         # Cálculo base
@@ -354,7 +354,6 @@ def metricas_pedido(contrato_id):
         'pedido':pedido,
         'stock_completo':stock_completo
     }
-    #return pedido
 
 
 def cliente_from_codigo(codigo_cliente):
@@ -518,23 +517,6 @@ def calcular_cabecera_totales(contrato_id):
     }
 
 
-def pedido_data(request):
-    
-    publico = lista_pedidos_publico() # [:1]
-    
-    for i in publico:
-        print(i)
-        cal = calcular_cabecera_totales(i)
-        print('----------------------')
-        print(cal)
-        # ped = metricas_pedido(i)
-        
-    
-    
-    
-    return HttpResponse('ok')
-
-
 
 def data_dashboard_pedido_publico(contratos_list):
     
@@ -547,7 +529,7 @@ def data_dashboard_pedido_publico(contratos_list):
             'contrato_id':i,
             'estado_picking': picking(i)['estado_picking'],
             'confirmado': reserva.confirmed,
-            'stock_disponible': metricas_pedido(i)['stock_completo'],
+            'stock_completo': metricas_pedido(i)['stock_completo'],
             'print': prints_pedidos_por_contrato_id(i)['num_print'],
             'nombre_cliente': cliente_from_codigo(reserva.codigo_cliente)['nombre_cliente'], 
             'ciudad_cliente': cliente_from_codigo(reserva.codigo_cliente)['ciudad_principal'], 
