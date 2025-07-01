@@ -18,12 +18,14 @@
         <div v-if="errorDatos"><i style="color:red" class="bi bi-bug-fill"></i></div>
     </div>
 
-    <h6 class="mt-0 pt-0 text-end fw-bold">
-        <button class="btn btn-sm btn-light ms-auto d-block"
-        @click="actualizarDashboard()"
-        >
+    <button 
+        class="btn btn-sm btn-light ms-auto d-block"
+        @click="actualizarDashboard()">
             <i class="bi bi-arrow-clockwise"></i>
-        </button>
+    </button>
+    <h6 
+        v-if="fechaHoraActual" 
+        class="mt-0 pt-0 text-end fw-bold">
         Actualizado: {% verbatim %}{{ fechaHoraActual }}{% endverbatim %}
     </h6>
 
