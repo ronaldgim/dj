@@ -1,6 +1,6 @@
 {% extends 'base_vue.html' %}
 {% block title %}
-<title>PUBLICOS</title>
+<title>PEDIDOS PÚBLICOS</title>
 {% endblock %}
 
 {#% block navbar %#}
@@ -10,7 +10,7 @@
 {% block body_2 %}
 <div id="app">
 
-    <div class="text-center mt-2">
+    <div class="text-center mt-2 mb-4">
         <h1 class="m-4 text-center fw-bold d-inline">
             ETIQUETADO PEDIDOS PUBLICOS
         </h1>
@@ -18,22 +18,39 @@
         <div v-if="errorDatos"><i style="color:red" class="bi bi-bug-fill"></i></div>
     </div>
 
-    <h6 class="mt-0 pt-0 text-end fw-bold">Actualizado: {% verbatim %}{{ fechaHoraActual }}{% endverbatim %}</h6>
+    <h6 class="mt-0 pt-0 text-end fw-bold">
+        <button class="btn btn-sm btn-light ms-auto d-block"
+        @click="actualizarDashboard()"
+        >
+            <i class="bi bi-arrow-clockwise"></i>
+        </button>
+        Actualizado: {% verbatim %}{{ fechaHoraActual }}{% endverbatim %}
+    </h6>
 
     <div class="row">
         <div class="col-4">
             <div class="card text-white bg-primary">
-                <h5 class="card-header text-center fs-4">NÚMERO DE PEDIDOS</h5>
+                <h5 class="card-header text-center fs-4">
+                    NÚMERO DE PEDIDOS
+                    <!--button class="btn btn-sm btn-light float-end ms-auto d-block">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button-->  
+                </h5>
                 <div class="card-body">
-                    <h5 class="card-title text-center fs-1">{% verbatim %}{{length_reservas}}{% endverbatim %}</h5>
+                    <h5 class="card-title text-center fs-1">{% verbatim %}{{length_pedidos}}{% endverbatim %}</h5>
                 </div>
             </div>
         </div>
         <div class="col-4">
             <div class="card text-white bg-info">
-                <h5 class="card-header text-center fs-4">PENDIENTES POR ENTREGAR</h5>
+                <h5 class="card-header text-center fs-4">
+                    PENDIENTES POR ENTREGAR
+                    <!--button class="btn btn-sm btn-light float-end ms-auto d-block">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button-->  
+                </h5>
                 <div class="card-body">
-                    <h5 class="card-title text-center fs-1">{#% verbatim %}{{ayer}}{% endverbatim %#}</h5>
+                    <h5 class="card-title text-center fs-1">{% verbatim %}{{length_por_entregar}}{% endverbatim %}</h5>
                 </div>
             </div>
         </div>
@@ -73,8 +90,8 @@
                     </thead>
                     
                     <tbody style="font-size: small;">
-                        <tr v-for="i in reservasData">
-                            {% verbatim %}
+                        {% verbatim %}
+                        <tr v-for="i in pedidosData">
                             <th>
                                 <a :href="'/etiquetado/pedidos/' + i.CONTRATO_ID" target="_blank">
                                     {{i.contrato_id}}
@@ -82,6 +99,7 @@
                                 <i v-if="i.stock_completo=='true'" style="color:red;" class="bi bi-file-earmark-x-fill"></i>
                                 <i v-if="i.confirmed" class="bi bi-check2"></i>
                                 <i v-if="i.num_print == 0" style="color:grey;" class="bi bi-printer-fill"></i>
+                                <i v-if="i.estado_picking=='FINALIZADO'" style = "color:green;" class="bi bi-check2-square"></i>
                             </th>
                             <td>{{i.nombre_cliente}}</td>
                             <td>{{i.ciudad_cliente}}</td>
@@ -107,8 +125,50 @@
                             <td>{{i.tiempo_1}}</td>
                             <td>{{i.tiempo_2}}</td>
                             <td>{{i.tiempo_3}}</td>
-                            {% endverbatim %}
-                        </tr>                        
+                        </tr> 
+                        <tr v-if="length_por_entregar > 0">
+                            <td 
+                                colspan="11" 
+                                class="text-center bg-info fw-bold text-white">
+                                PENDIENTES POR ENTREGAR
+                            </td>
+                        </tr>
+                        <tr v-for="i in porEntregarData">
+                            <th>
+                                <a :href="'/etiquetado/pedidos/' + i.CONTRATO_ID" target="_blank">
+                                    {{i.contrato_id}}
+                                </a>
+                                <i v-if="i.stock_completo=='true'" style="color:red;" class="bi bi-file-earmark-x-fill"></i>
+                                <i v-if="i.confirmed" class="bi bi-check2"></i>
+                                <i v-if="i.num_print == 0" style="color:grey;" class="bi bi-printer-fill"></i>
+                                <i v-if="i.estado_picking=='FINALIZADO'" style = "color:green;" class="bi bi-check2-square"></i>
+                            </th>
+                            <td>{{i.nombre_cliente}}</td>
+                            <td>{{i.ciudad_cliente}}</td>
+                            <td :style="{backgroundColor: obtenerColorFondoEntrega(i.estado_fecha_hora_entrega)}">{{i.fecha_entrega}}</td>
+                            <td :style="{backgroundColor: obtenerColorFondoEntrega(i.estado_fecha_hora_entrega)}">{{i.hora_entrega}}</td>
+                            <td class="text-end">{{i.dias_faltantes}} días</td>
+                            <td>
+                                <span 
+                                    :class="obtenerColorFondoEstado(i.estado_etiquetado)" 
+                                    :style="{backgroundColor: obtenerColorFondoEstadoIncompleto(i.estado_etiquetado)}"
+                                    style="font-size:small">
+                                    {{i.estado_etiquetado}}
+                                </span>
+                                <span 
+                                    v-if="i.estado_etiquetado!='-'"
+                                    class="badge rounded-pill text-wrap shadow rounded text-dark"
+                                    style="font-size:small;background-color: #BAF690; "
+                                    >
+                                    {{i.avance_etiquetado}}
+                                </span>
+                            </td>
+                            <td>-</td>
+                            <td>{{i.tiempo_1}}</td>
+                            <td>{{i.tiempo_2}}</td>
+                            <td>{{i.tiempo_3}}</td>
+                        </tr>
+                        {% endverbatim %}
                     </tbody>
                 </table>
             </div>
@@ -126,20 +186,23 @@
             cargandoDashboard:false,
             errorDatos:false,
             fechaHoraActual:'',
-            reservas:[],
-            length_reservas:''
-
+            pedidos:[],
+            length_pedidos:'',
+            por_entregar:[],
+            length_por_entregar:'',
         },
         mounted(){            
             this.actualizarDashboard();
             setInterval(this.actualizarDashboard, 300000);
         },
         computed:{
-            reservasData() {
-                return this.reservas.map(i => {
+            pedidosData() {
+                return this.pedidos.map(i => {
                     return {
                         ...i,
                         fecha_entrega: (() => {
+                            if (i.fecha_hora_entrega === '-') {
+                                return '-'}
                             const fecha = new Date(i.fecha_hora_entrega);
                             const dias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
                             const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiempre', 'Octubre', 'Noviembre', 'Diciembre'];
@@ -147,8 +210,44 @@
                             const dia = fecha.getDate().toString().padStart(2, '0');
                             const mes = meses[fecha.getMonth()];
                             return `${diaSemana}. ${dia} de ${mes}`;
+                            
+
                         })(),
                         hora_entrega: (() => {
+                            if (i.fecha_hora_entrega === '-') {
+                                return '-'}
+                            const fecha = new Date(i.fecha_hora_entrega);
+                            let horas = fecha.getHours();
+                            const minutos = fecha.getMinutes().toString().padStart(2, '0');
+                            const ampm = horas >= 12 ? 'pm' : 'am';
+                            horas = horas % 12;
+                            horas = horas ? horas : 12; // 0 should be 12
+                            return `${horas.toString().padStart(2, '0')}:${minutos} ${ampm}`;
+                        })(),
+                    }
+                })
+            },
+
+            porEntregarData() {
+                return this.por_entregar.map(i => {
+                    return {
+                        ...i,
+                        fecha_entrega: (() => {
+                            if (i.fecha_hora_entrega === '-') {
+                                return '-'}
+                            const fecha = new Date(i.fecha_hora_entrega);
+                            const dias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+                            const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiempre', 'Octubre', 'Noviembre', 'Diciembre'];
+                            const diaSemana = dias[fecha.getDay()];
+                            const dia = fecha.getDate().toString().padStart(2, '0');
+                            const mes = meses[fecha.getMonth()];
+                            return `${diaSemana}. ${dia} de ${mes}`;
+                            
+
+                        })(),
+                        hora_entrega: (() => {
+                            if (i.fecha_hora_entrega === '-') {
+                                return '-'}
                             const fecha = new Date(i.fecha_hora_entrega);
                             let horas = fecha.getHours();
                             const minutos = fecha.getMinutes().toString().padStart(2, '0');
@@ -199,11 +298,14 @@
                     if(!response.ok) {
                         throw new Error(response.statusText);
                     }
-                    const data = await response.json();
+                    const data = await response.json(); 
                     this.errorDatos = false;
                     this.fechaHoraActual = new Date().toLocaleDateString('es-Es', {hour: 'numeric', minute: 'numeric'});
-                    this.reservas = data.data || [];
-                    this.length_reservas = data.data.length;
+                    this.pedidos = data.pedidos || [];
+                    this.length_pedidos = data.pedidos.length;
+
+                    this.por_entregar = data.por_entregar || [];
+                    this.length_por_entregar = data.por_entregar.length;
                 } catch (error) {
                     this.errorDatos = true;
                     console.log(error)
