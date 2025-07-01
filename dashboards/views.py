@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 
 # Create your views here.
 from datos.models import Reservas
@@ -10,11 +10,13 @@ from datetime import timedelta
 from typing import Dict, List, Optional, Any
 import numpy as np
 
-from etiquetado.models import AddEtiquetadoPublico, PedidosEstadoEtiquetado, FechaEntrega #PedidoTemporal
+from etiquetado.models import AddEtiquetadoPublico, PedidosEstadoEtiquetado, EtiquetadoAvance, FechaEntrega, EstadoPicking #PedidoTemporal
 from django.forms.models import model_to_dict
 from django.db import connections
 from datetime import datetime, timedelta
 from wms.models import Existencias
+
+
 
 # # publico = ['90447', '90420', '90392', '90456', '90324']
 # publico = ['90324']
@@ -258,40 +260,23 @@ def _determinar_tipo_tiempo(pedido: pd.DataFrame) -> str:
     
     # Lógica optimizada con early return
     if not cero_in_t2:
-        return 't2'
+        # return 't2'
+        tiempo =  _calcular_totales(pedido)['tt_str_2p']
     elif not cero_in_t1:
-        return 't1'
+        # return 't1'
+        tiempo = _calcular_totales(pedido)['tt_str_1p']
     elif not cero_in_t3:
-        return 't3'
+        # return 't3'
+        tiempo = _calcular_totales(pedido)['tt_str_3p']
     else:
-        return 'F'
-
-
-def lista_pedidos_publico():
-    """
-    Lista de pedidos publicos sec_name_cliente = 'PUBLICO'
-    Lista de pedidos agregados etiquetado models 'AddEtiquetadoPublico'
-    Lista de pedidos temporales
-    """
+        tiempo = 'F'
     
-    pedidos_publicos = Reservas.objects.filter(sec_name_cliente='PUBLICO').values_list('contrato_id', flat=True).distinct()
-    agregados = AddEtiquetadoPublico.objects.all().values_list('contrato_id', flat=True).distinct()
-    pedidos_mas_agregados = pedidos_publicos.union(agregados)
-    finalizados = PedidosEstadoEtiquetado.objects.filter(estado__id=3).order_by('-n_pedido').values_list('n_pedido', flat=True).distinct()[:500]
-    # temporales = PedidoTemporal.objects.all()
-    
-    pedidos_mas_agregados_set = set(pedidos_mas_agregados)
-    
-    finalizados_list = []
-    for i in finalizados:
-        contrato_id = i.split('.')[0]
-        finalizados_list.append(contrato_id)
-    
-    finalizados_set = set(finalizados_list)
-    
-    publico_dashboard = pedidos_mas_agregados_set - finalizados_set
-    
-    return list(publico_dashboard)
+    return {
+        'tiempo':tiempo,
+        'tiempo_1':_calcular_totales(pedido)['tt_str_1p'],
+        'tiempo_2':_calcular_totales(pedido)['tt_str_2p'],
+        'tiempo_3':_calcular_totales(pedido)['tt_str_3p']
+    }
 
 
 def stock_mba_wms():
@@ -330,7 +315,7 @@ def metricas_pedido(contrato_id):
     pedido = pedido.merge(stock_mba_wms(), on=['product_id','ware_code'], how='left').fillna(0)
     pedido['cartones'] = pedido['quantity'] / pedido['Unidad_Empaque']
     pedido['diff'] = pedido['unidades'] >= pedido['quantity']
-    
+
     # Operaciones vectorizadas (mucho más rápido que iteraciones)
     with np.errstate(divide='ignore', invalid='ignore'):
         # Cálculo base
@@ -347,7 +332,6 @@ def metricas_pedido(contrato_id):
         
         # Volumen y peso totales
         pedido['vol_total'] = cartones * pedido['vol_m3']
-        
         pedido['pes_total'] = cartones * pedido['Peso']
         
         # Tiempos en segundos para formato string
@@ -417,30 +401,67 @@ def prints_pedidos_por_contrato_id(contrato_id):
         return {}
 
 
-def estado_avance_etiquetado(contrato_id):
-    
-    from etiquetado.models import EtiquetadoAvance, PedidosEstadoEtiquetado
+def etiquetado(contrato_id):
     
     avance = EtiquetadoAvance.objects.filter(n_pedido=contrato_id+'.0')
+    reserva = Reservas.objects.filter(contrato_id=contrato_id)
     if avance.exists():
-        t_unidades_avance = sum(avance.values_list('unidades', flat=True))
-        t_unidades_pedido = _calcular_totales(contrato_id)['t_unidades']
-        porcentaje_avance = round(t_unidades_avance / t_unidades_pedido, 2)
+        t_unidades_avance = sum(avance.values_list('unidades', flat=True)) 
+        t_unidades_pedido = sum(reserva.values_list('quantity', flat=True)) 
+        porcentaje_avance = round((t_unidades_avance / t_unidades_pedido) * 100, 1) 
         
     else:
-        porcentaje_avance= 0
+        porcentaje_avance = 0
     
     etiquetado = PedidosEstadoEtiquetado.objects.filter(n_pedido=contrato_id+'.0')
     if etiquetado.exists():
-        estado_etiquetado = model_to_dict(etiquetado)
+        estado_etiquetado = etiquetado.first().estado.estado  
     else:
-        estado_etiquetado = {}
+        estado_etiquetado = '' 
     
     return {
-        'avance':porcentaje_avance,
+        'avance':f'{porcentaje_avance} %',
         'estado_etiquetado':estado_etiquetado
     }
-    
+
+
+def picking(contrato_id):
+    picking = EstadoPicking.objects.filter(n_pedido=contrato_id+'.0')
+    if picking.exists():
+        return {
+            'estado_picking':picking.first().estado,
+            'user':f'{picking.first().user.user.first_name[:1]}.{picking.first().user.user.last_name[:1]}',
+            'user_full_name': f'{picking.first().user.user.first_name} - {picking.first().user.user.last_name}'
+        }
+    else:
+        return {
+            'estado_picking':'',
+            'user':'',
+            'user_full_name': ''
+        }
+
+
+def entrega(contrato_id):
+    entrega_qs = FechaEntrega.objects.filter(pedido=contrato_id+'.0')
+    entrega_obj = entrega_qs.first()
+    if entrega_obj:
+        try:
+            dias_faltantes = (entrega_obj.fecha_hora - datetime.today()).days
+        except (AttributeError, TypeError):
+            dias_faltantes = None
+        data = model_to_dict(entrega_obj)
+        data['dias_faltantes'] = dias_faltantes
+        return data
+    else:
+        return {
+            'fecha_hora': '',
+            'estado': '',
+            'pedido': '',
+            'user': '',
+            'est_entrega': '',
+            'reg_entrega': '',
+            'dias_faltantes': None
+        }
 
 
 def calcular_cabecera_totales(contrato_id):
@@ -493,7 +514,7 @@ def calcular_cabecera_totales(contrato_id):
         'pedido':pedido,
         'dias_faltantes':dias_faltantes,
         'stock_completo':metricas_pedido(contrato_id)['stock_completo'],
-        'estado_etiquetado':estado_avance_etiquetado(contrato_id)
+        # 'estado_etiquetado':estado_avance_etiquetado(contrato_id)
     }
 
 
@@ -515,3 +536,83 @@ def pedido_data(request):
 
 
 
+def data_dashboard_pedido_publico(contratos_list):
+    
+    data_list = []
+    for i in contratos_list:
+        
+        reserva = Reservas.objects.filter(contrato_id=i).first()
+        
+        data = {
+            'contrato_id':i,
+            'estado_picking': picking(i)['estado_picking'],
+            'confirmado': reserva.confirmed,
+            'stock_disponible': metricas_pedido(i)['stock_completo'],
+            'print': prints_pedidos_por_contrato_id(i)['num_print'],
+            'nombre_cliente': cliente_from_codigo(reserva.codigo_cliente)['nombre_cliente'], 
+            'ciudad_cliente': cliente_from_codigo(reserva.codigo_cliente)['ciudad_principal'], 
+            'fecha_hora_entrega': entrega(i)['fecha_hora'],
+            'estado_fecha_hora_entrega': entrega(i)['estado'], 
+            'dias_faltantes': entrega(i)['dias_faltantes'], 
+            'estado_etiquetado': etiquetado(i)['estado_etiquetado'], #[],
+            'avance_etiquetado':etiquetado(i)['avance'],
+            'estado_entrega':entrega(i)['est_entrega'],
+            'tiempo':_determinar_tipo_tiempo(metricas_pedido(i)['pedido'])['tiempo'],
+            'tiempo_1':_determinar_tipo_tiempo(metricas_pedido(i)['pedido'])['tiempo_1'],
+            'tiempo_2':_determinar_tipo_tiempo(metricas_pedido(i)['pedido'])['tiempo_2'],
+            'tiempo_3': _determinar_tipo_tiempo(metricas_pedido(i)['pedido'])['tiempo_3'],
+        }
+        
+        data_list.append(data)
+        
+    # Ordenar la lista por 'fecha_hora_entrega' como objeto de tiempo si es posible
+
+    def parse_fecha(fecha):
+        if isinstance(fecha, datetime):
+            return fecha
+        try:
+            # Intenta parsear si es string
+            return datetime.fromisoformat(fecha)
+        except Exception:
+            return datetime.min
+
+    data_list = sorted(data_list, key=lambda x: parse_fecha(x.get('fecha_hora_entrega')))
+    
+    # return HttpResponse('ok')
+    return JsonResponse({
+        'data':data_list
+    })
+
+
+
+
+
+def lista_publicos_dashboard_completo():
+    """
+    Lista de pedidos publicos sec_name_cliente = 'PUBLICO'
+    Lista de pedidos agregados etiquetado models 'AddEtiquetadoPublico'
+    Lista de pedidos temporales
+    """
+    
+    pedidos_publicos = Reservas.objects.filter(sec_name_cliente='PUBLICO').values_list('contrato_id', flat=True).distinct()
+    agregados = AddEtiquetadoPublico.objects.all().values_list('contrato_id', flat=True).distinct()
+    pedidos_mas_agregados = pedidos_publicos.union(agregados)
+    finalizados = PedidosEstadoEtiquetado.objects.filter(estado__id=3).order_by('-n_pedido').values_list('n_pedido', flat=True).distinct()[:500]
+    # temporales = PedidoTemporal.objects.all()
+    
+    pedidos_mas_agregados_set = set(pedidos_mas_agregados)
+    
+    finalizados_list = []
+    for i in finalizados:
+        contrato_id = i.split('.')[0]
+        finalizados_list.append(contrato_id)
+    
+    finalizados_set = set(finalizados_list)
+    
+    publico_dashboard = pedidos_mas_agregados_set - finalizados_set
+    
+    return list(publico_dashboard)
+
+
+def data_publicos_dashboard_completo(request):
+    return data_dashboard_pedido_publico(lista_publicos_dashboard_completo())
