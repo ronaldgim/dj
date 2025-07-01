@@ -600,3 +600,7 @@ def lista_publicos_dashboard_completo():
 
 def data_publicos_dashboard_completo(request):
     return data_dashboard_pedido_publico(lista_publicos_dashboard_completo())
+
+
+def dashboard_publico(request):
+    return render(request, 'dashboards/etiquetado_publico_vue.html')
