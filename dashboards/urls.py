@@ -6,10 +6,9 @@ from dashboards import views
 
 urlpatterns = [
     
-    # FRON ADMIN ACTULIZACIONES WAREHOUSE
     path(
-        route = 'pedido_data',
-        view = views.pedido_data,
-        name = 'pedido_data'
+        route = 'data_publicos_dashboard_completo',
+        view = views.data_publicos_dashboard_completo,  #pedido_data, 
+        name = 'data_publicos_dashboard_completo'
     )
 ]
