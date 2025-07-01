@@ -155,15 +155,23 @@
                                     style="font-size:small">
                                     {{i.estado_etiquetado}}
                                 </span>
-                                <span 
+                                <!--span 
                                     v-if="i.estado_etiquetado!='-'"
                                     class="badge rounded-pill text-wrap shadow rounded text-dark"
                                     style="font-size:small;background-color: #BAF690; "
                                     >
                                     {{i.avance_etiquetado}}
+                                </span-->
+                            </td>
+                            <td>
+                                <span 
+                                    v-if="i.estado_etiquetado!='-'"
+                                    class="badge rounded-pill text-wrap shadow rounded bg-warning"
+                                    style="font-size:small"
+                                    >
+                                    PENDIENTE
                                 </span>
                             </td>
-                            <td>-</td>
                             <td>{{i.tiempo_1}}</td>
                             <td>{{i.tiempo_2}}</td>
                             <td>{{i.tiempo_3}}</td>

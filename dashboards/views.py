@@ -395,9 +395,21 @@ def prints_pedidos_por_contrato_id(contrato_id):
         result = cursor.fetchone()
 
         if result:
-            columns = [col[0].lower() for col in cursor.description]
+            columns = [col[0].lower() for col in cursor.description] 
             return dict(zip(columns, result))
-        return {}
+        return {
+            'contrato_id':'-',
+            'fecha_pedido':'-',
+            'ware_code':'-',
+            'confirmed':'-',
+            'hora_llegada':'-',
+            'num_print':'-',
+            'entry_by':'-',
+            'user_name':'-',
+            'first_name':'-',
+            'last_name':'-',
+            'mail':'-'
+        }
 
 
 def etiquetado(contrato_id):
