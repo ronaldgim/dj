@@ -1,0 +1,218 @@
+{% extends 'base_vue.html' %}
+{% block title %}
+<title>PUBLICOS</title>
+{% endblock %}
+
+{#% block navbar %#}
+{#% include 'etiquetado/topnavbar.html' %#}
+{#% endblock %#}
+
+{% block body_2 %}
+<div id="app">
+
+    <div class="text-center mt-2">
+        <h1 class="m-4 text-center fw-bold d-inline">
+            ETIQUETADO PEDIDOS PUBLICOS
+        </h1>
+        <div v-if="cargandoDashboard" class="spinner-border" role="status"></div>
+        <div v-if="errorDatos"><i style="color:red" class="bi bi-bug-fill"></i></div>
+    </div>
+
+    <h6 class="mt-0 pt-0 text-end fw-bold">Actualizado: {% verbatim %}{{ fechaHoraActual }}{% endverbatim %}</h6>
+
+    <div class="row">
+        <div class="col-4">
+            <div class="card text-white bg-primary">
+                <h5 class="card-header text-center fs-4">NÚMERO DE PEDIDOS</h5>
+                <div class="card-body">
+                    <h5 class="card-title text-center fs-1">{% verbatim %}{{length_reservas}}{% endverbatim %}</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="card text-white bg-info">
+                <h5 class="card-header text-center fs-4">PENDIENTES POR ENTREGAR</h5>
+                <div class="card-body">
+                    <h5 class="card-title text-center fs-1">{#% verbatim %}{{ayer}}{% endverbatim %#}</h5>
+                </div>
+            </div>
+        </div>
+        <!--div class="col-4">
+            <div class="card text-white bg-success">
+                <h5 class="card-header text-center fs-4">PEDIDOS HOY</h5>
+                <div class="card-body">
+                    <h5 class="card-title text-center fs-1">{% verbatim %}{{hoy}}{% endverbatim %}</h5>
+                </div>
+            </div>
+        </div-->
+    </div>
+
+    <a class="btn btn-primary mt-2" href="{% url 'lista_pedidos_temporales' %}">
+        Lista de pedidos temporales
+    </a>
+
+
+    <div class="card mt-4 mb-4">
+        <div class="card-body">
+            <div class="table-responsive"> 
+                <table class="table" style="font-size: small;">
+                    <thead>
+                        <tr>
+                            <th scope="col">N° Pedido</th>
+                            <th scope="col">Cliente</th>
+                            <th scope="col">Ciudad</th>
+                            <th scope="col">Fecha entrega</th>
+                            <th scope="col">Hora entrega</th>
+                            <th scope="col">Días faltantes</th>
+                            <th scope="col">Estado etiquetado</th>
+                            <th scope="col">Estado entrega</th>
+                            <th scope="col">Tiempo 1P</th>
+                            <th scope="col">Tiempo 2P</th>
+                            <th scope="col">Tiempo 3P</th>
+                        </tr>
+                    </thead>
+                    
+                    <tbody style="font-size: small;">
+                        <tr v-for="i in reservasData">
+                            {% verbatim %}
+                            <th>
+                                <a :href="'/etiquetado/pedidos/' + i.CONTRATO_ID" target="_blank">
+                                    {{i.contrato_id}}
+                                </a>
+                                <i v-if="i.stock_completo=='true'" style="color:red;" class="bi bi-file-earmark-x-fill"></i>
+                                <i v-if="i.confirmed" class="bi bi-check2"></i>
+                                <i v-if="i.num_print == 0" style="color:grey;" class="bi bi-printer-fill"></i>
+                            </th>
+                            <td>{{i.nombre_cliente}}</td>
+                            <td>{{i.ciudad_cliente}}</td>
+                            <td :style="{backgroundColor: obtenerColorFondoEntrega(i.estado_fecha_hora_entrega)}">{{i.fecha_entrega}}</td>
+                            <td :style="{backgroundColor: obtenerColorFondoEntrega(i.estado_fecha_hora_entrega)}">{{i.hora_entrega}}</td>
+                            <td class="text-end">{{i.dias_faltantes}} días</td>
+                            <td>
+                                <span 
+                                    :class="obtenerColorFondoEstado(i.estado_etiquetado)" 
+                                    :style="{backgroundColor: obtenerColorFondoEstadoIncompleto(i.estado_etiquetado)}"
+                                    style="font-size:small">
+                                    {{i.estado_etiquetado}}
+                                </span>
+                                <span 
+                                    v-if="i.estado_etiquetado!='-'"
+                                    class="badge rounded-pill text-wrap shadow rounded text-dark"
+                                    style="font-size:small;background-color: #BAF690; "
+                                    >
+                                    {{i.avance_etiquetado}}
+                                </span>
+                            </td>
+                            <td>-</td>
+                            <td>{{i.tiempo_1}}</td>
+                            <td>{{i.tiempo_2}}</td>
+                            <td>{{i.tiempo_3}}</td>
+                            {% endverbatim %}
+                        </tr>                        
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    const dashboardUrl = `/dashboards/data_publicos_dashboard_completo`;
+
+    new Vue({
+        el:'#app',
+        data:{
+            cargandoDashboard:false,
+            errorDatos:false,
+            fechaHoraActual:'',
+            reservas:[],
+            length_reservas:''
+
+        },
+        mounted(){            
+            this.actualizarDashboard();
+            setInterval(this.actualizarDashboard, 300000);
+        },
+        computed:{
+            reservasData() {
+                return this.reservas.map(i => {
+                    return {
+                        ...i,
+                        fecha_entrega: (() => {
+                            const fecha = new Date(i.fecha_hora_entrega);
+                            const dias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+                            const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiempre', 'Octubre', 'Noviembre', 'Diciembre'];
+                            const diaSemana = dias[fecha.getDay()];
+                            const dia = fecha.getDate().toString().padStart(2, '0');
+                            const mes = meses[fecha.getMonth()];
+                            return `${diaSemana}. ${dia} de ${mes}`;
+                        })(),
+                        hora_entrega: (() => {
+                            const fecha = new Date(i.fecha_hora_entrega);
+                            let horas = fecha.getHours();
+                            const minutos = fecha.getMinutes().toString().padStart(2, '0');
+                            const ampm = horas >= 12 ? 'pm' : 'am';
+                            horas = horas % 12;
+                            horas = horas ? horas : 12; // 0 should be 12
+                            return `${horas.toString().padStart(2, '0')}:${minutos} ${ampm}`;
+                        })(),
+                    }
+                })
+            },
+        },
+        methods:{
+            obtenerColorFondoEntrega(estado_entrega) {
+                switch (estado_entrega) {
+                    case 'CONFIRMADO':
+                        return '#AED6F1';
+                    default:"white"
+                }
+            },
+
+            obtenerColorFondoEstado(estado){
+                switch (estado) {
+                    case 'EN PAUSA':
+                        return 'badge bg-danger rounded-pill text-wrap shadow rounded';
+                    case 'EN TRANSITO':
+                        return 'badge bg-primary rounded-pill text-wrap shadow rounded';
+                    case 'EN PROCESO':
+                        return 'badge bg-warning rounded-pill text-wrap shadow rounded'; 
+                    case 'FINALIZADO':
+                        return 'badge bg-success rounded-pill text-wrap shadow rounded';
+                    case 'INCOMPLETO':
+                        return 'badge rounded-pill shadow rounded';
+                }
+            },
+
+            obtenerColorFondoEstadoIncompleto(estado) {
+                switch (estado) {
+                    case 'INCOMPLETO':
+                        return '#bf03c8';
+                }
+            },
+
+            async actualizarDashboard() {
+                this.cargandoDashboard = true;
+                try {
+                    const response = await fetch(dashboardUrl);
+                    if(!response.ok) {
+                        throw new Error(response.statusText);
+                    }
+                    const data = await response.json();
+                    this.errorDatos = false;
+                    this.fechaHoraActual = new Date().toLocaleDateString('es-Es', {hour: 'numeric', minute: 'numeric'});
+                    this.reservas = data.data || [];
+                    this.length_reservas = data.data.length;
+                } catch (error) {
+                    this.errorDatos = true;
+                    console.log(error)
+                } finally {
+                    this.cargandoDashboard = false;
+                }
+            }
+        }
+    })
+</script>
+
+{% endblock %}
