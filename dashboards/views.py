@@ -367,49 +367,51 @@ def cliente_from_codigo(codigo_cliente):
         return {}
 
 
-# def prints_pedidos_por_contrato_id(contrato_id):
-#     with connections['gimpromed_sql'].cursor() as cursor:
-#         query = """
-#             SELECT 
-#                 p.CONTRATO_ID,
-#                 p.FECHA_PEDIDO,
-#                 p.WARE_CODE,
-#                 p.CONFIRMED,
-#                 p.HORA_LLEGADA,
-#                 p.NUM_PRINT,
-#                 p.Entry_by,
-#                 u.USER_NAME,
-#                 u.FIRST_NAME,
-#                 u.LAST_NAME,
-#                 u.MAIL
-#             FROM 
-#                 pedidos p
-#             JOIN 
-#                 user_mba u
-#             ON 
-#                 p.Entry_by = u.CODIGO_USUARIO
-#             WHERE 
-#                 p.CONTRATO_ID = %s;
-#         """
-#         cursor.execute(query, [contrato_id])
-#         result = cursor.fetchone()
+"""
+def prints_pedidos_por_contrato_id(contrato_id):
+    with connections['gimpromed_sql'].cursor() as cursor:
+        query = "
+            SELECT 
+                p.CONTRATO_ID,
+                p.FECHA_PEDIDO,
+                p.WARE_CODE,
+                p.CONFIRMED,
+                p.HORA_LLEGADA,
+                p.NUM_PRINT,
+                p.Entry_by,
+                u.USER_NAME,
+                u.FIRST_NAME,
+                u.LAST_NAME,
+                u.MAIL
+            FROM 
+                pedidos p
+            JOIN 
+                user_mba u
+            ON 
+                p.Entry_by = u.CODIGO_USUARIO
+            WHERE 
+                p.CONTRATO_ID = %s;
+        "
+        cursor.execute(query, [contrato_id])
+        result = cursor.fetchone()
 
-#         if result:
-#             columns = [col[0].lower() for col in cursor.description] 
-#             return dict(zip(columns, result))
-#         return {
-#             'contrato_id':'-',
-#             'fecha_pedido':'-',
-#             'ware_code':'-',
-#             'confirmed':'-',
-#             'hora_llegada':'-',
-#             'num_print':'-',
-#             'entry_by':'-',
-#             'user_name':'-',
-#             'first_name':'-',
-#             'last_name':'-',
-#             'mail':'-'
-#         }
+        if result:
+            columns = [col[0].lower() for col in cursor.description] 
+            return dict(zip(columns, result))
+        return {
+            'contrato_id':'-',
+            'fecha_pedido':'-',
+            'ware_code':'-',
+            'confirmed':'-',
+            'hora_llegada':'-',
+            'num_print':'-',
+            'entry_by':'-',
+            'user_name':'-',
+            'first_name':'-',
+            'last_name':'-',
+            'mail':'-'
+        }
+"""
 
 
 def prints_pedidos_por_contrato(contrato_id):
@@ -495,7 +497,7 @@ def calcular_cabecera_totales(contrato_id):
 
     cabecera = model_to_dict(instance=contrato.first(), fields=['contrato_id', 'fecha_pedido', 'hora_llegada','ware_code','confirmed'])
     cliente = cliente_from_codigo(contrato.first().codigo_cliente)
-    pedido = prints_pedidos_por_contrato_id(contrato_id=contrato_id)
+    pedido = prints_pedidos_por_contrato(contrato_id=contrato_id)
     
     entrega = FechaEntrega.objects.filter(pedido=(contrato_id+'.0'))
     if entrega.exists():
