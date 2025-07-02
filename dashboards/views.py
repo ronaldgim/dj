@@ -558,81 +558,86 @@ def entrega(contrato_id):
 
 
 def pedidos_temporales_func():
-    pedidos = PedidoTemporal.objects.filter(estado='PENDIENTE')
-    if not pedidos.exists():
+    
+    try: 
+        pedidos = PedidoTemporal.objects.filter(estado='PENDIENTE')
+        if not pedidos.exists():
+            return []
+        
+        product_master = productos_odbc_and_django()[['product_id','Nombre','Marca','Unidad_Empaque', 't_etiq_1p', 't_etiq_2p', 't_etiq_3p', 'vol_m3', 'Peso']]
+        
+        data_list = []
+        for i in pedidos:
+            pedido = pd.DataFrame(i.productos.all().values('product_id','cantidad'))
+            pedido = pedido.rename(columns={'cantidad':'quantity'})
+            pedido = pedido.merge(product_master, on='product_id', how='left')
+            pedido['cartones'] = pedido['quantity'] / pedido['Unidad_Empaque']
+            
+            with np.errstate(divide='ignore', invalid='ignore'):
+                # Cálculo base
+                pedido['Cartones'] = (pedido['quantity'] / pedido['Unidad_Empaque'].replace(0, 1)) #.round(2)
+                
+                # Tiempos en diferentes formatos (vectorizado)
+                cartones = pedido['Cartones']
+                
+                # Tiempos en horas
+                pedido['t_una_p_min'] = (cartones * pedido['t_etiq_1p']) / 60
+                pedido['t_una_p_hor'] = pedido['t_una_p_min'] / 60
+                pedido['t_dos_p_hor'] = (cartones * pedido['t_etiq_2p']) / 3600  # Directo a horas
+                pedido['t_tre_p_hor'] = (cartones * pedido['t_etiq_3p']) / 3600
+                
+                # Volumen y peso totales
+                pedido['vol_total'] = cartones * pedido['vol_m3']
+                pedido['pes_total'] = cartones * pedido['Peso']
+                
+                # Tiempos en segundos para formato string
+                pedido['t_s_1p'] = (cartones * pedido['t_etiq_1p']).round(0).astype(int)
+                pedido['t_s_2p'] = (cartones * pedido['t_etiq_2p']).round(0).astype(int)
+                pedido['t_s_3p'] = (cartones * pedido['t_etiq_3p']).round(0).astype(int)
+        
+            # Convertir tiempos a string format (solo una vez al final)
+            pedido['t_str_1p'] = pedido['t_s_1p'].apply(_segundos_a_timedelta_str)
+            pedido['t_str_2p'] = pedido['t_s_2p'].apply(_segundos_a_timedelta_str)
+            pedido['t_str_3p'] = pedido['t_s_3p'].apply(_segundos_a_timedelta_str)
+            
+            # Reemplazar infinitos y NaN
+            pedido = pedido.replace([np.inf, -np.inf], 0).fillna(0)
+            
+            try:
+                dias_faltantes = (i.entrega - datetime.today()).days
+            except (AttributeError, TypeError):
+                dias_faltantes = '-'
+            
+            data = {
+                'id':i.id,
+                'tipo_pedido':'temporal',
+                'contrato_id':i.enum,
+                'estado_picking': '-',
+                'user_picking': '-',
+                'user_picking_full_name': '',
+                'confirmado': '-',
+                'stock_completo': '-',
+                'print': '-',
+                'nombre_cliente': i.cliente, 
+                'ciudad_cliente': cliente_ciudad_from_nombre(i.cliente)['ciudad_principal'], 
+                'fecha_hora_entrega': i.entrega,
+                'estado_fecha_hora_entrega': '-', 
+                'dias_faltantes': dias_faltantes,
+                'estado_etiquetado': '-',
+                'avance_etiquetado':'-',
+                'estado_entrega': '-', #entrega(i)['est_entrega'],
+                'tiempo':_determinar_tipo_tiempo(pedido)['tiempo'],
+                'tiempo_1':_determinar_tipo_tiempo(pedido)['tiempo_1'],
+                'tiempo_2':_determinar_tipo_tiempo(pedido)['tiempo_2'],
+                'tiempo_3': _determinar_tipo_tiempo(pedido)['tiempo_3'],
+            }
+        
+            data_list.append(data)  
+        
+        return data_list
+    except Exception as e:
+        print(e)
         return []
-    
-    product_master = productos_odbc_and_django()[['product_id','Nombre','Marca','Unidad_Empaque', 't_etiq_1p', 't_etiq_2p', 't_etiq_3p', 'vol_m3', 'Peso']]
-    
-    data_list = []
-    for i in pedidos:
-        pedido = pd.DataFrame(i.productos.all().values('product_id','cantidad'))
-        pedido = pedido.rename(columns={'cantidad':'quantity'})
-        pedido = pedido.merge(product_master, on='product_id', how='left')
-        pedido['cartones'] = pedido['quantity'] / pedido['Unidad_Empaque']
-        
-        with np.errstate(divide='ignore', invalid='ignore'):
-            # Cálculo base
-            pedido['Cartones'] = (pedido['quantity'] / pedido['Unidad_Empaque'].replace(0, 1)) #.round(2)
-            
-            # Tiempos en diferentes formatos (vectorizado)
-            cartones = pedido['Cartones']
-            
-            # Tiempos en horas
-            pedido['t_una_p_min'] = (cartones * pedido['t_etiq_1p']) / 60
-            pedido['t_una_p_hor'] = pedido['t_una_p_min'] / 60
-            pedido['t_dos_p_hor'] = (cartones * pedido['t_etiq_2p']) / 3600  # Directo a horas
-            pedido['t_tre_p_hor'] = (cartones * pedido['t_etiq_3p']) / 3600
-            
-            # Volumen y peso totales
-            pedido['vol_total'] = cartones * pedido['vol_m3']
-            pedido['pes_total'] = cartones * pedido['Peso']
-            
-            # Tiempos en segundos para formato string
-            pedido['t_s_1p'] = (cartones * pedido['t_etiq_1p']).round(0).astype(int)
-            pedido['t_s_2p'] = (cartones * pedido['t_etiq_2p']).round(0).astype(int)
-            pedido['t_s_3p'] = (cartones * pedido['t_etiq_3p']).round(0).astype(int)
-    
-        # Convertir tiempos a string format (solo una vez al final)
-        pedido['t_str_1p'] = pedido['t_s_1p'].apply(_segundos_a_timedelta_str)
-        pedido['t_str_2p'] = pedido['t_s_2p'].apply(_segundos_a_timedelta_str)
-        pedido['t_str_3p'] = pedido['t_s_3p'].apply(_segundos_a_timedelta_str)
-        
-        # Reemplazar infinitos y NaN
-        pedido = pedido.replace([np.inf, -np.inf], 0).fillna(0)
-        
-        try:
-            dias_faltantes = (i.entrega - datetime.today()).days
-        except (AttributeError, TypeError):
-            dias_faltantes = '-'
-        
-        data = {
-            'tipo_pedido':'temporal',
-            'contrato_id':i.enum,
-            'estado_picking': '-',
-            'user_picking': '-',
-            'user_picking_full_name': '',
-            'confirmado': '-',
-            'stock_completo': '-',
-            'print': '-',
-            'nombre_cliente': i.cliente, 
-            'ciudad_cliente': cliente_ciudad_from_nombre(i.cliente)['ciudad_principal'], 
-            'fecha_hora_entrega': i.entrega,
-            'estado_fecha_hora_entrega': '-', 
-            'dias_faltantes': dias_faltantes,
-            'estado_etiquetado': '-',
-            'avance_etiquetado':'-',
-            'estado_entrega': '-', #entrega(i)['est_entrega'],
-            'tiempo':_determinar_tipo_tiempo(pedido)['tiempo'],
-            'tiempo_1':_determinar_tipo_tiempo(pedido)['tiempo_1'],
-            'tiempo_2':_determinar_tipo_tiempo(pedido)['tiempo_2'],
-            'tiempo_3': _determinar_tipo_tiempo(pedido)['tiempo_3'],
-        }
-    
-        data_list.append(data)  
-    
-    return data_list
-
 
 
 def data_dashboard_pedido_publico(contratos_list):
@@ -646,6 +651,7 @@ def data_dashboard_pedido_publico(contratos_list):
                 reserva = reserva.first()
 
                 data = {
+                    'id':reserva.id,
                     'tipo_pedido':'mba',
                     'contrato_id':i,
                     'estado_picking': picking(i)['estado_picking'],
@@ -736,7 +742,6 @@ def data_publicos_dashboard_completo(request):
     pedidos = data_dashboard_pedido_publico(lista_publicos_dashboard_completo())
     
     if pedidos_temporales:
-        #pedidos = pedidos + pedidos_temporales
         pedidos += pedidos_temporales
         
     por_entregar = data_dashboard_pedido_publico(lista_publicos_finalizados())

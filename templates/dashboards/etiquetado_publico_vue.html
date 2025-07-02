@@ -98,9 +98,13 @@
                         >
                             <th>
                                 <!--a :href="'/etiquetado/pedidos/' + i.contrato_id" target="_blank"-->
-                                <a :href="'/etiquetado/pedidos/' + i.contratoIdRef" target="_blank">
+                                <a v-if="i.tipo_pedido == 'mba'" :href="'/etiquetado/pedidos/' + i.contratoIdRef" target="_blank">
                                     {{i.contrato_id}}
                                 </a>
+                                <a v-else-if="i.tipo_pedido == 'temporal'" :href="'/etiquetado/pedidos-temporales/' + i.id" target="_blank">
+                                    {{i.contrato_id}}
+                                </a>
+                                
                                 <i v-if="i.stock_completo=='true'" style="color:red;" class="bi bi-file-earmark-x-fill"></i>
                                 <i v-if="i.confirmed" class="bi bi-check2"></i>
                                 <i v-if="i.num_print == 0" style="color:grey;" class="bi bi-printer-fill"></i>
