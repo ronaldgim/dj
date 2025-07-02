@@ -367,9 +367,10 @@ def cliente_from_codigo(codigo_cliente):
         return {}
 
 
+"""
 def prints_pedidos_por_contrato_id(contrato_id):
     with connections['gimpromed_sql'].cursor() as cursor:
-        query = """
+        query = "
             SELECT 
                 p.CONTRATO_ID,
                 p.FECHA_PEDIDO,
@@ -390,7 +391,7 @@ def prints_pedidos_por_contrato_id(contrato_id):
                 p.Entry_by = u.CODIGO_USUARIO
             WHERE 
                 p.CONTRATO_ID = %s;
-        """
+        "
         cursor.execute(query, [contrato_id])
         result = cursor.fetchone()
 
@@ -409,6 +410,21 @@ def prints_pedidos_por_contrato_id(contrato_id):
             'first_name':'-',
             'last_name':'-',
             'mail':'-'
+        }
+"""
+
+
+def prints_pedidos_por_contrato(contrato_id):
+    with connections['gimpromed_sql'].cursor() as cursor:
+        query = f"SELECT NUM_PRINT FROM warehouse.pedidos WHERE CONTRATO_ID = '{contrato_id}';"
+        cursor.execute(query)
+        result = cursor.fetchone()
+
+        if result:
+            columns = [col[0].lower() for col in cursor.description] 
+            return dict(zip(columns, result))
+        return {
+            'num_print':'-',
         }
 
 
@@ -460,17 +476,17 @@ def entrega(contrato_id):
             dias_faltantes = (entrega_obj.fecha_hora - datetime.today()).days
         except (AttributeError, TypeError):
             dias_faltantes = '-'
-        data = model_to_dict(entrega_obj)
+        data = model_to_dict(entrega_obj, ['fecha_hora','estado'])
         data['dias_faltantes'] = dias_faltantes
         return data
     else:
         return {
             'fecha_hora': '-',
             'estado': '-',
-            'pedido': '-',
-            'user': '-',
-            'est_entrega': '-',
-            'reg_entrega': '-',
+            #'pedido': '-',
+            #'user': '-',
+            #'est_entrega': '-',
+            #'reg_entrega': '-',
             'dias_faltantes': '-'
         }
 
@@ -481,7 +497,7 @@ def calcular_cabecera_totales(contrato_id):
 
     cabecera = model_to_dict(instance=contrato.first(), fields=['contrato_id', 'fecha_pedido', 'hora_llegada','ware_code','confirmed'])
     cliente = cliente_from_codigo(contrato.first().codigo_cliente)
-    pedido = prints_pedidos_por_contrato_id(contrato_id=contrato_id)
+    pedido = prints_pedidos_por_contrato(contrato_id=contrato_id)
     
     entrega = FechaEntrega.objects.filter(pedido=(contrato_id+'.0'))
     if entrega.exists():
@@ -548,7 +564,7 @@ def data_dashboard_pedido_publico(contratos_list):
                     'user_picking_full_name': picking(i)['user_full_name'],
                     'confirmado': reserva.confirmed,
                     'stock_completo': metricas_pedido(i)['stock_completo'],
-                    'print': prints_pedidos_por_contrato_id(i)['num_print'],
+                    'print': prints_pedidos_por_contrato(i)['num_print'],
                     'nombre_cliente': cliente_from_codigo(reserva.codigo_cliente)['nombre_cliente'], 
                     'ciudad_cliente': cliente_from_codigo(reserva.codigo_cliente)['ciudad_principal'], 
                     'fecha_hora_entrega': entrega(i)['fecha_hora'],
@@ -556,7 +572,7 @@ def data_dashboard_pedido_publico(contratos_list):
                     'dias_faltantes': entrega(i)['dias_faltantes'], 
                     'estado_etiquetado': etiquetado(i)['estado_etiquetado'],
                     'avance_etiquetado':etiquetado(i)['avance'],
-                    'estado_entrega':entrega(i)['est_entrega'],
+                    'estado_entrega': '-', #entrega(i)['est_entrega'],
                     'tiempo':_determinar_tipo_tiempo(metricas_pedido(i)['pedido'])['tiempo'],
                     'tiempo_1':_determinar_tipo_tiempo(metricas_pedido(i)['pedido'])['tiempo_1'],
                     'tiempo_2':_determinar_tipo_tiempo(metricas_pedido(i)['pedido'])['tiempo_2'],
