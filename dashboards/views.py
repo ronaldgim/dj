@@ -10,7 +10,7 @@ from datetime import timedelta
 from typing import Dict, List, Optional, Any
 import numpy as np
 
-from etiquetado.models import AddEtiquetadoPublico, PedidosEstadoEtiquetado, EtiquetadoAvance, FechaEntrega, EstadoPicking #PedidoTemporal
+from etiquetado.models import AddEtiquetadoPublico, PedidosEstadoEtiquetado, EtiquetadoAvance, FechaEntrega, EstadoPicking, PedidoTemporal
 from django.forms.models import model_to_dict
 from django.db import connections
 from datetime import datetime, timedelta
@@ -367,6 +367,18 @@ def cliente_from_codigo(codigo_cliente):
         return {}
 
 
+def cliente_ciudad_from_nombre(nombre_cliente):
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute(f"SELECT CIUDAD_PRINCIPAL FROM warehouse.clientes WHERE NOMBRE_CLIENTE = '{nombre_cliente}';")
+        connections['gimpromed_sql'].close()
+        columns = [col[0].lower() for col in cursor.description]
+        result = cursor.fetchone()
+        if result:
+            return dict(zip(columns, result))
+        return {
+            'ciudad_principal':'-'
+        }
+
 """
 def prints_pedidos_por_contrato_id(contrato_id):
     with connections['gimpromed_sql'].cursor() as cursor:
@@ -491,63 +503,139 @@ def entrega(contrato_id):
         }
 
 
-def calcular_cabecera_totales(contrato_id):
+# def calcular_cabecera_totales(contrato_id):
     
-    contrato = Reservas.objects.filter(contrato_id=contrato_id) #.first()
+#     contrato = Reservas.objects.filter(contrato_id=contrato_id) #.first()
 
-    cabecera = model_to_dict(instance=contrato.first(), fields=['contrato_id', 'fecha_pedido', 'hora_llegada','ware_code','confirmed'])
-    cliente = cliente_from_codigo(contrato.first().codigo_cliente)
-    pedido = prints_pedidos_por_contrato(contrato_id=contrato_id)
+#     cabecera = model_to_dict(instance=contrato.first(), fields=['contrato_id', 'fecha_pedido', 'hora_llegada','ware_code','confirmed'])
+#     cliente = cliente_from_codigo(contrato.first().codigo_cliente)
+#     pedido = prints_pedidos_por_contrato(contrato_id=contrato_id)
     
-    entrega = FechaEntrega.objects.filter(pedido=(contrato_id+'.0'))
-    if entrega.exists():
-        entrega_data = model_to_dict(entrega.first())
-        fecha_entrega = entrega.first().fecha_hora#.date()
-        to_day = datetime.today()#.date()
-        dias_faltantes = (fecha_entrega - to_day).days
-        if dias_faltantes < 0 :
-            dias_faltantes = None
-        else:
-            dias_faltantes = dias_faltantes
-    else:
-        entrega_data = {}
-        dias_faltantes = None
+#     entrega = FechaEntrega.objects.filter(pedido=(contrato_id+'.0'))
+#     if entrega.exists():
+#         entrega_data = model_to_dict(entrega.first())
+#         fecha_entrega = entrega.first().fecha_hora#.date()
+#         to_day = datetime.today()#.date()
+#         dias_faltantes = (fecha_entrega - to_day).days
+#         if dias_faltantes < 0 :
+#             dias_faltantes = None
+#         else:
+#             dias_faltantes = dias_faltantes
+#     else:
+#         entrega_data = {}
+#         dias_faltantes = None
     
-    tiempo = _determinar_tipo_tiempo(metricas_pedido(contrato_id)['pedido'])
+#     tiempo = _determinar_tipo_tiempo(metricas_pedido(contrato_id)['pedido'])
     
-    if tiempo in ('t1', 't2', 't3'):  #, 'F'):
-        totales = _calcular_totales(metricas_pedido(contrato_id)['pedido'])
+#     if tiempo in ('t1', 't2', 't3'):  #, 'F'):
+#         totales = _calcular_totales(metricas_pedido(contrato_id)['pedido'])
         
-        clave_por_tiempo = {
-            't1': 'tt_str_1p',
-            't2': 'tt_str_2p',
-            't3': 'tt_str_3p',
-            'F': 'tt_str_F',
+#         clave_por_tiempo = {
+#             't1': 'tt_str_1p',
+#             't2': 'tt_str_2p',
+#             't3': 'tt_str_3p',
+#             'F': 'tt_str_F',
+#         }
+    
+#         tiempo_total = totales.get(clave_por_tiempo[tiempo])
+#     elif tiempo == 'F':
+#         tiempo_total = 'F' # None  # o lanzar un error si es un caso inválido
+#     else:
+#         tiempo_total = 'F'
+    
+#     return {
+#         'cabecera':cabecera,
+#         'cliente':cliente,
+#         'totales':_calcular_totales(metricas_pedido(contrato_id)['pedido']),
+#         'tiempo_total':tiempo_total,
+#         'tiempos':_determinar_tipo_tiempo(metricas_pedido(contrato_id)['pedido']),
+#         'entrega':entrega_data,
+#         'pedido':pedido,
+#         'dias_faltantes':dias_faltantes,
+#         'stock_completo':metricas_pedido(contrato_id)['stock_completo'],
+#         # 'estado_etiquetado':estado_avance_etiquetado(contrato_id)
+#     }
+
+
+def pedidos_temporales_func():
+    pedidos = PedidoTemporal.objects.filter(estado='PENDIENTE')
+    if not pedidos.exists():
+        return []
+    
+    product_master = productos_odbc_and_django()[['product_id','Nombre','Marca','Unidad_Empaque', 't_etiq_1p', 't_etiq_2p', 't_etiq_3p', 'vol_m3', 'Peso']]
+    
+    data_list = []
+    for i in pedidos:
+        pedido = pd.DataFrame(i.productos.all().values('product_id','cantidad'))
+        pedido = pedido.rename(columns={'cantidad':'quantity'})
+        pedido = pedido.merge(product_master, on='product_id', how='left')
+        pedido['cartones'] = pedido['quantity'] / pedido['Unidad_Empaque']
+        
+        with np.errstate(divide='ignore', invalid='ignore'):
+            # Cálculo base
+            pedido['Cartones'] = (pedido['quantity'] / pedido['Unidad_Empaque'].replace(0, 1)) #.round(2)
+            
+            # Tiempos en diferentes formatos (vectorizado)
+            cartones = pedido['Cartones']
+            
+            # Tiempos en horas
+            pedido['t_una_p_min'] = (cartones * pedido['t_etiq_1p']) / 60
+            pedido['t_una_p_hor'] = pedido['t_una_p_min'] / 60
+            pedido['t_dos_p_hor'] = (cartones * pedido['t_etiq_2p']) / 3600  # Directo a horas
+            pedido['t_tre_p_hor'] = (cartones * pedido['t_etiq_3p']) / 3600
+            
+            # Volumen y peso totales
+            pedido['vol_total'] = cartones * pedido['vol_m3']
+            pedido['pes_total'] = cartones * pedido['Peso']
+            
+            # Tiempos en segundos para formato string
+            pedido['t_s_1p'] = (cartones * pedido['t_etiq_1p']).round(0).astype(int)
+            pedido['t_s_2p'] = (cartones * pedido['t_etiq_2p']).round(0).astype(int)
+            pedido['t_s_3p'] = (cartones * pedido['t_etiq_3p']).round(0).astype(int)
+    
+        # Convertir tiempos a string format (solo una vez al final)
+        pedido['t_str_1p'] = pedido['t_s_1p'].apply(_segundos_a_timedelta_str)
+        pedido['t_str_2p'] = pedido['t_s_2p'].apply(_segundos_a_timedelta_str)
+        pedido['t_str_3p'] = pedido['t_s_3p'].apply(_segundos_a_timedelta_str)
+        
+        # Reemplazar infinitos y NaN
+        pedido = pedido.replace([np.inf, -np.inf], 0).fillna(0)
+        
+        try:
+            dias_faltantes = (i.entrega - datetime.today()).days
+        except (AttributeError, TypeError):
+            dias_faltantes = '-'
+        
+        data = {
+            'tipo_pedido':'temporal',
+            'contrato_id':i.enum,
+            'estado_picking': '-',
+            'user_picking': '-',
+            'user_picking_full_name': '',
+            'confirmado': '-',
+            'stock_completo': '-',
+            'print': '-',
+            'nombre_cliente': i.cliente, 
+            'ciudad_cliente': cliente_ciudad_from_nombre(i.cliente)['ciudad_principal'], 
+            'fecha_hora_entrega': i.entrega,
+            'estado_fecha_hora_entrega': '-', 
+            'dias_faltantes': dias_faltantes,
+            'estado_etiquetado': '-',
+            'avance_etiquetado':'-',
+            'estado_entrega': '-', #entrega(i)['est_entrega'],
+            'tiempo':_determinar_tipo_tiempo(pedido)['tiempo'],
+            'tiempo_1':_determinar_tipo_tiempo(pedido)['tiempo_1'],
+            'tiempo_2':_determinar_tipo_tiempo(pedido)['tiempo_2'],
+            'tiempo_3': _determinar_tipo_tiempo(pedido)['tiempo_3'],
         }
     
-        tiempo_total = totales.get(clave_por_tiempo[tiempo])
-    elif tiempo == 'F':
-        tiempo_total = 'F' # None  # o lanzar un error si es un caso inválido
-    else:
-        tiempo_total = 'F'
+        data_list.append(data)  
     
-    return {
-        'cabecera':cabecera,
-        'cliente':cliente,
-        'totales':_calcular_totales(metricas_pedido(contrato_id)['pedido']),
-        'tiempo_total':tiempo_total,
-        'tiempos':_determinar_tipo_tiempo(metricas_pedido(contrato_id)['pedido']),
-        'entrega':entrega_data,
-        'pedido':pedido,
-        'dias_faltantes':dias_faltantes,
-        'stock_completo':metricas_pedido(contrato_id)['stock_completo'],
-        # 'estado_etiquetado':estado_avance_etiquetado(contrato_id)
-    }
+    return data_list
 
 
 
 def data_dashboard_pedido_publico(contratos_list):
-    
     try:
         data_list = []
         for i in contratos_list:
@@ -558,6 +646,7 @@ def data_dashboard_pedido_publico(contratos_list):
                 reserva = reserva.first()
 
                 data = {
+                    'tipo_pedido':'mba',
                     'contrato_id':i,
                     'estado_picking': picking(i)['estado_picking'],
                     'user_picking': picking(i)['user'],
@@ -592,13 +681,9 @@ def data_dashboard_pedido_publico(contratos_list):
                 return datetime.min
 
         data_list = sorted(data_list, key=lambda x: parse_fecha(x.get('fecha_hora_entrega')))
-        
         return data_list
     except Exception as e:
         print(e)
-
-
-
 
 
 def lista_publicos_dashboard_completo():
@@ -646,8 +731,14 @@ def lista_publicos_finalizados():
     
 
 def data_publicos_dashboard_completo(request):
-
+    
+    pedidos_temporales = pedidos_temporales_func()
     pedidos = data_dashboard_pedido_publico(lista_publicos_dashboard_completo())
+    
+    if pedidos_temporales:
+        #pedidos = pedidos + pedidos_temporales
+        pedidos += pedidos_temporales
+        
     por_entregar = data_dashboard_pedido_publico(lista_publicos_finalizados())
 
     return JsonResponse({
