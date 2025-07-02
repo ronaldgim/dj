@@ -93,7 +93,9 @@
                     
                     <tbody style="font-size: small;">
                         {% verbatim %}
-                        <tr v-for="i in pedidosData">
+                        <tr v-for="i in pedidosData"
+                        :style="{backgroundColor: obtenerColorPedidoTemporal(i.tipo_pedido)}"
+                        >
                             <th>
                                 <!--a :href="'/etiquetado/pedidos/' + i.contrato_id" target="_blank"-->
                                 <a :href="'/etiquetado/pedidos/' + i.contratoIdRef" target="_blank">
@@ -300,6 +302,13 @@
                 switch (estado) {
                     case 'INCOMPLETO':
                         return '#bf03c8';
+                }
+            },
+
+            obtenerColorPedidoTemporal(tipo_pedido){
+                switch (tipo_pedido) {
+                    case 'temporal':
+                        return '#DEDEDE';
                 }
             },
 
