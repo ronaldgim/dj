@@ -2677,9 +2677,8 @@ def wms_estado_picking_actualizar_ajax(request):
                 estado_picking.fecha_actualizado = datetime.now()
 
                 try:
-                    #estado_picking.save()
-                    #wms_correo_picking(estado_picking.n_pedido)
-                    print(estado_picking)
+                    estado_picking.save()
+                    wms_correo_picking(estado_picking.n_pedido)
                     if estado_picking.id:
                         return JsonResponse({'msg':f'✅ Estado de picking {estado_picking.estado}',
                                         'alert':'success'}, status=200)
