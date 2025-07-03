@@ -725,6 +725,7 @@ def lista_publicos_finalizados():
         cursor.execute(f"SELECT CONTRATO_ID FROM warehouse.reservas WHERE SEC_NAME_CLIENTE = 'PUBLICO';")
         contratos = [ i[0] for i in cursor.fetchall()]
         connections['gimpromed_sql'].close()
+    
     finalizados = PedidosEstadoEtiquetado.objects.filter(estado__id=3).order_by('-n_pedido').values_list('n_pedido', flat=True).distinct()[:50]
     contratos_list = set(contratos) & set(finalizados)
     
@@ -734,8 +735,9 @@ def lista_publicos_finalizados():
         pedidos_por_entregar.append(contrato)
     
     return pedidos_por_entregar
-    
 
+
+# Dashboard completo
 def data_publicos_dashboard_completo(request):
     
     pedidos_temporales = pedidos_temporales_func()
