@@ -640,7 +640,7 @@ def pedidos_temporales_func():
         return []
 
 
-def data_dashboard_pedido_publico(contratos_list):
+def data_dashboard_pedidos(contratos_list):
     try:
         data_list = []
         for i in contratos_list:
@@ -741,12 +741,12 @@ def lista_publicos_finalizados():
 def data_publicos_dashboard_completo(request):
     
     pedidos_temporales = pedidos_temporales_func()
-    pedidos = data_dashboard_pedido_publico(lista_publicos_dashboard_completo())
+    pedidos = data_dashboard_pedidos(lista_publicos_dashboard_completo())
     
     if pedidos_temporales:
         pedidos += pedidos_temporales
         
-    por_entregar = data_dashboard_pedido_publico(lista_publicos_finalizados())
+    por_entregar = data_dashboard_pedidos(lista_publicos_finalizados())
 
     return JsonResponse({
         'pedidos':pedidos,
@@ -756,3 +756,7 @@ def data_publicos_dashboard_completo(request):
 
 def dashboard_publico(request):
     return render(request, 'dashboards/etiquetado_publico_vue.html')
+
+
+def dashboard_completo(request):
+    return render(request, 'dashboards/dashboard_completo_nuevo_vue.html')
