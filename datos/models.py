@@ -164,3 +164,28 @@ class Reservas(models.Model):
     
     def __str__(self):
         return f"unique_id: {self.unique_id} - contrato_id: {self.contrato_id}"
+
+
+class ErrorLoteReporte(models.Model):
+    
+    product_id = models.CharField(max_length=50)
+    nombre = models.CharField(max_length=50)
+    marca = models.CharField(max_length=50)
+    unds_total = models.IntegerField(default=0) #OH
+    unds_lotes = models.IntegerField(default=0) #OH2
+    unds_diff = models.IntegerField(default=0) 
+    
+    def __str__(self):
+        return self.product_id
+
+class ErrorLoteDetalle(models.Model):
+    
+    product_id = models.CharField(max_length=50)
+    lote_id = models.CharField(max_length=50)
+    oh = models.IntegerField(default=0) #OH
+    oh2 = models.IntegerField(default=0) #OH2
+    diff = models.IntegerField(default=0) 
+    error = models.BooleanField(default=False)
+    
+    def __str__(self):
+        return self.product_id
