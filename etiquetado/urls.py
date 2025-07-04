@@ -571,10 +571,22 @@ urlpatterns = [
         view  = views.wms_andagoya_reporte_mba,
         name  = 'wms_andagoya_reporte_mba'
     ),
-
+    
+    path(
+        route = 'reporte_error_lote_data',
+        view  = views.reporte_error_lote_data,
+        name  = 'reporte_error_lote_data'
+    ),
+    path(
+        route = 'detalle_error_lote_data/<str:product_id>',
+        view  = views.detalle_error_lote_data,
+        name  = 'detalle_error_lote_data'
+    ),
+    
     path(
         route = 'reporte-error-lote',
         view  = views.reporte_error_lote,
         name  = 'reporte_error_lote'
     ),
 ]
+

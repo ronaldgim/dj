@@ -1,0 +1,172 @@
+{% extends 'base_vue.html' %}
+{% block title %}
+<title>ERROR LOTE</title>
+{% endblock %}
+
+{% block navbar %}
+{% include 'etiquetado/topnavbar.html' %}
+{% endblock %}
+
+{% block body%}
+<div id="app">
+
+    <div class="text-center mt-4 mb-4">
+        <h5 class="m-4 text-center fw-bold d-inline">
+            REPORTE DE ERROR DE LOTE
+        </h5>
+        <div v-if="cargandoReporte" class="spinner-border" role="status"></div>
+        <div v-if="errorReporte"><i style="color:red" class="bi bi-bug-fill"></i></div>
+        <span>{% verbatim %} {{errorReporteData}} {% endverbatim %}</span>
+    </div>
+
+    <button 
+        class="btn btn-sm btn-light ms-auto d-block"
+        @click="getReporteData()">
+            <i class="bi bi-arrow-clockwise"></i>
+    </button>
+    <h6 
+        v-if="actualizado" 
+        class="mt-0 pt-0 text-end fw-bold">
+        Actualizado: {% verbatim %} {{actualizado}} {% endverbatim %}
+    </h6>
+
+    <div class="card mt-4 mb-4">
+        <div class="card-body">
+            <div class="table-responsive"> 
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Código</th>
+                            <th scope="col">Nombre</th>
+                            <th scope="col">Marca</th>
+                            <th scope="col">Total Agrupado</th>
+                            <th scope="col">Total Lotes</th>
+                            <th scope="col">Diferencia</th>
+                            <th scope="col">Lotes</th>
+                        </tr>
+                    </thead>
+                    
+                    <tbody>
+                        {% verbatim %}
+                        <tr v-for="i in reporte">
+                            <td>{{i.product_id}}</td>
+                            <td>{{i.nombre}}</td>
+                            <td>{{i.marca}}</td>
+                            <td class="text-end">{{i.unds_total.toLocaleString()}}</td>
+                            <td class="text-end">{{i.unds_lotes.toLocaleString()}}</td>
+                            <td class="text-end">{{i.unds_diff.toLocaleString()}}</td>
+                            <td>
+                                <button 
+                                    class="btn btn-sm btn-primary" @click="getDetalleLote(i.product_id)"
+                                    data-bs-toggle="modal" data-bs-target="#exampleModal">
+                                    <i class="bi bi-box2"></i> Lotes
+                                </button>
+                            </td>
+                        </tr> 
+                        {% endverbatim %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Código:{% verbatim %} {{product_idDetalle}} {% endverbatim %}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Lote</th>
+                                <th scope="col">OH</th>
+                                <th scope="col">OH2</th>
+                                <th scope="col">DIFF</th>
+                            </tr>
+                        </thead>
+                        
+                        <tbody>
+                            {% verbatim %}
+                            <tr v-for="i in detalle">
+                                <td>{{i.lote_id}} <i v-if="i.error" style="color:red" class="bi bi-exclamation-triangle-fill"></i></td>
+                                <td class="text-end">{{i.oh.toLocaleString()}}</td>
+                                <td class="text-end">{{i.oh2.toLocaleString()}}</td>
+                                <td class="text-end">{{i.diff.toLocaleString()}}</td>
+                            </tr> 
+                            {% endverbatim %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+
+    new Vue({
+        el:'#app',
+        data:{
+            actualizado:'',
+
+            // reporte
+            cargandoReporte:false,
+            errorReporte:false,
+            errorReporteData:'',
+            reporte:[],
+
+            // detalle
+            cargadoDetalle:false,
+            errorDetalle:false,
+            errorDetalleLote:'',
+            product_idDetalle:'',
+            detalle:[]
+        },
+        mounted(){            
+            this.getReporteData();
+        },
+        methods:{
+            async getReporteData() {
+                this.cargandoReporte = true;
+                try {
+                    const response = await fetch('/etiquetado/reporte_error_lote_data');
+                    if(!response.ok) {
+                        throw new Error(response.statusText);
+                    }
+                    const data = await response.json(); 
+                    this.reporte = data.data || [];
+                    this.actualizado = new Date(data.actualizado).toLocaleString('es-EC');
+                } catch (error) {
+                    this.errorReporte = true;
+                    this.errorReporteData = error
+                } finally {
+                    this.cargandoReporte = false;
+                }
+            },
+
+            async getDetalleLote(product_id) {
+                this.cargadoDetalle = true;
+                try {
+                    const response = await fetch(`/etiquetado/detalle_error_lote_data/${product_id}`);
+                    if(!response.ok) {
+                        throw new Error(response.statusText);
+                    }
+                    const data = await response.json(); 
+                    console.log(data);
+                    this.product_idDetalle = product_id;
+                    this.detalle = data.data || [];
+                } catch (error) {
+                    this.errorDetalle = true;
+                    this.errorDetalleLote = error
+                } finally {
+                    this.cargadoDetalle = false;
+                }
+            },
+        }
+    })
+</script>
+{% endblock %}
