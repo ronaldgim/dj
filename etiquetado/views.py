@@ -21,8 +21,16 @@ import pandas as pd
 import numpy as np
 
 # Datos Models
-from datos.models import Product, Vehiculos, TimeStamp, StockConsulta, AdminActualizationWarehaouse
-from wms.models import Transferencia
+from datos.models import (
+    Product, 
+    Vehiculos, 
+    TimeStamp, 
+    StockConsulta, 
+    AdminActualizationWarehaouse,
+    ErrorLoteDetalle,
+    ErrorLoteReporte
+    )
+from wms.models import Transferencia, OrdenEmpaque, Existencias
 from etiquetado.models import (
     Calculadora,
     PedidosEstadoEtiquetado,
@@ -46,9 +54,6 @@ from etiquetado.models import (
 
 from mantenimiento.models import Equipo
 from users.models import UserPerfil, User
-
-# Wms models
-from wms.models import OrdenEmpaque
 
 # Forms
 from etiquetado.forms import (
@@ -105,9 +110,6 @@ from django.views.decorators.csrf import csrf_exempt
 
 # Requests
 import requests
-
-# Existencias
-from wms.models import Existencias
 
 # Etiquetado
 from etiquetado.models import TransfCerAnd, ProductosTransfCerAnd
@@ -4504,8 +4506,19 @@ def wms_andagoya_reporte_mba(request):
     return response
 
 
+def reporte_error_lote_data(request):
+    data = ErrorLoteReporte.objects.all().values()
+    acutalizado = AdminActualizationWarehaouse.objects.get(table_name='error_lote').datetime
+    return JsonResponse({
+        'data':list(data),
+        'actualizado':acutalizado
+        })
+
+
+def detalle_error_lote_data(request, product_id):
+    data = ErrorLoteDetalle.objects.filter(product_id=product_id).values()
+    return JsonResponse({'data':list(data)})
+
+
 def reporte_error_lote(request):
-    from datos.views import analisis_error_lote_data, actualizar_data_error_lote
-    # analisis_error_lote_data()
-    actualizar_data_error_lote()
-    return render(request, 'etiquetado/reporte-error-lote.html')
+    return render(request, 'etiquetado/error-lote/reporte-error-lote.html')
