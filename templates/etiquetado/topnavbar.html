@@ -101,14 +101,16 @@
               <li><a class="dropdown-item" href="{% url 'inventario_bodega' %}">Inventario</a></li> 
           </ul-->
         </li>
-        <!--li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            Mantenimiento
+        <li class="nav-item dropdown">
+          <a class="nav-link" id="navbarDropdownMenuLink" href="{% url 'reporte_error_lote' %}">
+            Errores de lote
           </a>
-          <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-              <li><a class="dropdown-item" href="{% url 'mantenimientos_list' %}">Lista de mantenimiento</a></li>
-          </ul>
-        </li-->
+          <!--ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+              <li><a class="dropdown-item" href="{% url 'revision_reservas' %}">Revision Reservas</a></li>
+              <li><a class="dropdown-item" href="{% url 'picking_estado' %}">Estado de Picking</a></li> 
+              <li><a class="dropdown-item" href="{% url 'inventario_bodega' %}">Inventario</a></li> 
+          </ul-->
+        </li>
       </ul>
     </div>
     <a class="navbar-brand" href="{% url 'logout' %}">
