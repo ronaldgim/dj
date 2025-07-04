@@ -4502,3 +4502,10 @@ def wms_andagoya_reporte_mba(request):
         worksheet.column_dimensions['G'].width = 20 # LOTE_DISPONIBLE
         
     return response
+
+
+def reporte_error_lote(request):
+    from datos.views import analisis_error_lote_data, actualizar_data_error_lote
+    # analisis_error_lote_data()
+    actualizar_data_error_lote()
+    return render(request, 'etiquetado/reporte-error-lote.html')

@@ -12,7 +12,7 @@ from django.contrib import messages
 from django.views.generic import TemplateView
 
 # Models
-from datos.models import TimeStamp, Product, AdminActualizationWarehaouse, Vehiculos #,MarcaImportExcel
+from datos.models import TimeStamp, Product, AdminActualizationWarehaouse, ErrorLoteReporte, ErrorLoteDetalle #Vehiculos 
 from etiquetado.models import EstadoPicking, PedidosEstadoEtiquetado
 from etiquetado.models import EtiquetadoAvance
 from wms.models import Existencias
@@ -2509,3 +2509,126 @@ def resporte_diferencia_mba_wms():
     reporte = reporte[['PRODUCT_ID', 'LOTE_ID', 'WARE_CODE', 'LOCATION', 'OH2', 'WARE_CODE_WMS', 'LOCATION_WMS', 'OH2_WMS']].fillna('')
     
     return reporte
+
+
+def analisis_error_lote_data():
+    
+    def stock_sin_lote():
+        stock_sin_lote = api_mba_sql(            
+            """
+                SELECT 
+                    INVT_Ficha_Principal.PRODUCT_ID, 
+                    INVT_Ficha_Principal.OH 
+                FROM 
+                    INVT_Ficha_Principal INVT_Ficha_Principal 
+                WHERE (INVT_Ficha_Principal.INACTIVE=FALSE)
+            """
+        )
+        
+        if stock_sin_lote['status'] == 200:
+            
+            stock_sin_lote_df = pd.DataFrame(stock_sin_lote['data']) 
+            stock_sin_lote_df = stock_sin_lote_df.groupby('PRODUCT_ID')['OH'].sum().reset_index()
+            stock_sin_lote_df['OH'] = stock_sin_lote_df['OH'].astype('int')
+            
+            stock_sin_lote_df = stock_sin_lote_df[stock_sin_lote_df['PRODUCT_ID']!='ETIQUE']
+            stock_sin_lote_df = stock_sin_lote_df[stock_sin_lote_df['PRODUCT_ID']!='MANTEN']
+            stock_sin_lote_df = stock_sin_lote_df[stock_sin_lote_df['PRODUCT_ID']!='TRANS']
+            
+            return stock_sin_lote_df
+        
+        return pd.DataFrame()
+        
+        
+    def stock_con_lote():
+        with connections['gimpromed_sql'].cursor() as cursor:
+            cursor.execute("SELECT PRODUCT_ID, LOTE_ID, OH, OH2 FROM warehouse.stock_lote")
+            connections['gimpromed_sql'].close()
+            columns = [col[0] for col in cursor.description]
+            data = [dict(zip(columns, row)) for row in cursor.fetchall()]
+            data = pd.DataFrame(data)
+            data['LOTE_ID'] = data['LOTE_ID'].str.replace('.','')
+            data = data.groupby(by=['PRODUCT_ID','LOTE_ID']).sum().reset_index()
+            data['OH'] = data['OH'].astype('int')
+            data['OH2'] = data['OH2'].astype('int')
+            data = data[data['OH2']!=0]
+            return data
+    
+    stock_sin_lote_df = stock_sin_lote()
+    stock_con_lote_df = stock_con_lote()
+    
+    stock_con_lote_agrupado = stock_con_lote_df.groupby('PRODUCT_ID')['OH2'].sum().reset_index()
+    reporte = stock_sin_lote_df.merge(stock_con_lote_agrupado, on='PRODUCT_ID', how='left').fillna(0)
+    reporte['error'] = reporte['OH'] != reporte['OH2']
+    reporte = reporte[reporte['error']==True]
+    reporte['diff'] = reporte['OH'] - reporte['OH2']
+    
+    if reporte.empty:
+        return None
+    
+    productos = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+    productos = productos.rename(columns={'product_id':'PRODUCT_ID'})
+    reporte = reporte.merge(productos, on='PRODUCT_ID',how='left')
+    lotes_list = reporte['PRODUCT_ID'].unique()
+    lotes = stock_con_lote().copy()
+    lotes = lotes[lotes['PRODUCT_ID'].isin(lotes_list)]
+    lotes['diff'] = lotes['OH'] - lotes['OH2']
+    lotes['error'] = lotes['OH'] != lotes['OH2']
+    
+    return {
+        'reporte':de_dataframe_a_template(reporte),
+        'lotes':de_dataframe_a_template(lotes)
+    }
+
+
+def actualizar_data_error_lote():
+    data = analisis_error_lote_data()
+    
+    if data is None:
+        ErrorLoteReporte.objects.all().delete()
+        ErrorLoteDetalle.objects.all().delete()
+        adm_table = AdminActualizationWarehaouse.objects.get(table_name='error_lote')
+        adm_table.datetime = datetime.now()
+        adm_table.mensaje = 'No se encuntran lotes con error'
+        adm_table.save()
+    
+    elif data is not None:
+        # reporte
+        ErrorLoteReporte.objects.all().delete()
+        reporte = data['reporte']
+        obj_list = []
+        for i in reporte:
+            obj = ErrorLoteReporte(
+                product_id = i.get('PRODUCT_ID'),
+                nombre = i.get('Nombre'),
+                marca = i.get('Marca'),
+                unds_total = i.get('OH'),
+                unds_lotes = i.get('OH2'),
+                unds_diff = i.get('diff')
+            )
+            
+            obj_list.append(obj)
+
+        ErrorLoteReporte.objects.bulk_create(obj_list)
+        
+        # lotes
+        ErrorLoteDetalle.objects.all().delete()
+        lotes = data['lotes']
+        obj_lotes = []
+        for j in lotes:
+            obj_l = ErrorLoteDetalle(
+                product_id = j.get('PRODUCT_ID'),
+                lote_id = j.get('LOTE_ID'),
+                oh = j.get('OH'),
+                oh2 = j.get('OH2'),
+                diff = j.get('diff'),
+                error = j.get('error')
+            )
+            
+            obj_lotes.append(obj_l)
+        ErrorLoteDetalle.objects.bulk_create(obj_lotes)
+        
+        adm_table = AdminActualizationWarehaouse.objects.get(table_name='error_lote')
+        adm_table.datetime = datetime.now()
+        adm_table.mensaje = 'Actualizado correctamente'
+        adm_table.save()
