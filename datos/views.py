@@ -582,6 +582,10 @@ def stock_lote(request):
             # 14 Tabla mis reservas
             api_actualizar_mis_reservas_etiquetado()
             
+            ### TABLA ERROR LOTE
+            # 15 Tabla datos_errorlotereporte, datos_errorlotedetalle
+            actualizar_data_error_lote()
+            
         elif table_name:
             
             if table_name == "clientes":
@@ -612,6 +616,8 @@ def stock_lote(request):
                 actualizar_datos_etiquetado_fun()
             elif table_name == "mis_reservas":
                 api_actualizar_mis_reservas_etiquetado()
+            elif table_name == 'error_lote':
+                actualizar_data_error_lote()
 
     #return render(request, 'datos/stock_lote.html', {})
     return render(request, 'datos/stock_lote.html', context)
