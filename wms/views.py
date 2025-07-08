@@ -2354,16 +2354,20 @@ def wms_egreso_picking_misreservas(request, n_pedido): #OK
     
     if not mov_bodega_df.empty and not exi_bodega_df.empty:
         bodega_df = exi_bodega_df.merge(mov_bodega_df, on='product_id', how='left').fillna('')
+        bodega_df['primera_bodega'] = bodega_df.apply(lambda x: x['bodega_exi'] if not x['bodega_mov'] else x['bodega_mov'], axis=1)       
+        bodega_df = bodega_df.rename(columns={'product_id':'PRODUCT_ID'})[['PRODUCT_ID','primera_bodega']]
+        bodega_df = bodega_df[['product_id','primera_bodega']]
     elif not mov_bodega_df.empty and exi_bodega_df.empty:
         bodega_df = mov_bodega_df
+        bodega_df['primera_bodega'] = ''
     else:
         bodega_df = exi_bodega_df
         bodega_df['bodega_mov'] = ''
+        bodega_df['primera_bodega'] = ''
     
-    bodega_df['primera_bodega'] = bodega_df.apply(lambda x: x['bodega_exi'] if not x['bodega_mov'] else x['bodega_mov'], axis=1)       
+    # bodega_df['primera_bodega'] = bodega_df.apply(lambda x: x['bodega_exi'] if not x['bodega_mov'] else x['bodega_mov'], axis=1)       
     # bodega_df = bodega_df.rename(columns={'product_id':'PRODUCT_ID'})[['PRODUCT_ID','primera_bodega']]
-    bodega_df = bodega_df[['product_id','primera_bodega']]
-    
+    # bodega_df = bodega_df[['product_id','primera_bodega']]
     
     if inv.exists():
         inv = pd.DataFrame(inv).sort_values(by=['lote_id','fecha_caducidad','ubicacion__distancia_puerta'], ascending=[True,True,True])
@@ -2378,9 +2382,12 @@ def wms_egreso_picking_misreservas(request, n_pedido): #OK
 
     # Calculo Cartones
     # pedido['cartones'] = pedido['QUANTITY'] / pedido['Unidad_Empaque']
-    pedido['cartones'] = pedido['quantity'] / pedido['Unidad_Empaque'] 
+    pedido['cartones'] = pedido['quantity'] / pedido['Unidad_Empaque']  
     # pedido = pedido.merge(bodega_df, on='PRODUCT_ID', how='left').sort_values(by='primera_bodega')
-    pedido = pedido.merge(bodega_df, on='product_id', how='left').sort_values(by='primera_bodega') 
+    try:
+        pedido = pedido.merge(bodega_df, on='product_id', how='left').sort_values(by='primera_bodega') 
+    except:
+        pass
     ped = de_dataframe_a_template(pedido)
 
     for i in prod_list:
