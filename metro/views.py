@@ -308,7 +308,38 @@ def metro_toma_fisica_list(request):
 def metro_toma_fisica(request, inventario_id):
     
     inventario = Inventario.objects.get(id=inventario_id)
-    products = TomaFisica.objects.filter(inventario=inventario_id)
+    
+    # from django.db.models.functions import Substr, StrIndex #, Length
+    # from django.db.models import Func, F, Value
+    # # from django.db.models.functions import Locate
+
+    # # Annotate with the substring before the first '-'
+    # products = TomaFisica.objects.filter(inventario=inventario_id).annotate(
+    #     n_order=Substr('product__ubicacion', 1, StrIndex(F('product__ubicacion'), Value('-')) - 1)
+    # ).annotate(
+    #     l_order=Substr('product__ubicacion', 3, StrIndex(F('product__ubicacion'), Value('-')) - 1)
+    # ).order_by('n_order', 'l_order')
+    # print(products.values())
+    
+    
+    from django.db.models import Func, F, Value, CharField
+
+    class SubstringIndex(Func):
+        function = 'SUBSTRING_INDEX'
+        arity = 3
+
+        def __init__(self, expression, delimiter, count, **extra):
+            super().__init__(expression, delimiter, count, output_field=CharField(), **extra)
+
+    products = TomaFisica.objects.filter(inventario=inventario_id).annotate(
+        n_order=SubstringIndex(F('product__ubicacion'), Value('-'), Value(1)),
+        l_order=SubstringIndex(
+            SubstringIndex(F('product__ubicacion'), Value('-'), Value(2)),
+            Value('-'),
+            Value(-1)
+        )
+    ).order_by('n_order', 'l_order')
+    print(products.values())
     
     context = {
         'inventario':inventario,
