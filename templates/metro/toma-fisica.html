@@ -328,6 +328,8 @@
         let inputEstanteria = document.getElementById('id_cantidad_estanteria');
         let inputBulto = document.getElementById('id_cantidad_bulto');
 
+        // ESTANTERIA
+        // Crear boton '+' en input estanteria
         if (!document.getElementById('btn-estanteria-mas')) {
             let btn = document.createElement('button');
             btn.type = 'button';
@@ -348,7 +350,7 @@
                 flexDiv.appendChild(inputEstanteria);
 
                 // Aplicar clases Bootstrap al input
-                inputEstanteria.classList.add('form-control', 'w-100', 'me-2');
+                inputEstanteria.classList.add('form-control', 'w-100');//, 'me-2');
             }
 
             // Insertar el botón al lado del input
@@ -364,6 +366,7 @@
             });
         }
 
+        // Crear boton '-' en input estanteria
         if (!document.getElementById('btn-estanteria-menos')) {
             let btn = document.createElement('button');
             btn.type = 'button';
@@ -384,7 +387,7 @@
                 flexDiv.appendChild(inputEstanteria);
 
                 // Aplicar clases Bootstrap al input
-                inputEstanteria.classList.add('form-control', 'w-100', 'me-2');
+                inputEstanteria.classList.add('form-control', 'w-100'); //, 'me-2');
             }
 
             // Insertar el botón al lado del input
@@ -400,7 +403,7 @@
             });
         }
 
-        // Crear el botón solo si no existe
+        // Crear el botón '=' input etanteria
         if (!document.getElementById('btn-estanteria-igual')) {
             let btn = document.createElement('button');
             btn.type = 'button';
@@ -448,14 +451,82 @@
             });
         }
 
+        // ESTANTERIA
+        // Crear boton '+' en input bulto
+        if (!document.getElementById('btn-bulto-mas')) {
+            let btn = document.createElement('button');
+            btn.type = 'button';
+            btn.id = 'btn-bulto-mas';
+            btn.className = 'btn btn-primary ms-2';
+            btn.textContent = '+';
 
+            // Insertar el botón al lado del input
+            // Crear un contenedor flex para el input y el botón si no existe
+            let parent = inputBulto.parentNode;
+            if (!parent.classList.contains('d-flex')) {
+                // Crear un div con d-flex y gap-2
+                let flexDiv = document.createElement('div');
+                flexDiv.className = 'd-flex align-items-center gap-2';
 
+                // Mover el inputBulto al flexDiv
+                parent.replaceChild(flexDiv, inputBulto);
+                flexDiv.appendChild(inputBulto);
 
+                // Aplicar clases Bootstrap al input
+                inputBulto.classList.add('form-control', 'w-100');//, 'me-2');
+            }
 
+            // Insertar el botón al lado del input
+            inputBulto.parentNode.appendChild(btn);
+            // Aplicar clases Bootstrap al botón
+            btn.classList.add('ms-0');
 
+            btn.addEventListener('click', function() {
 
+                inputBulto.value += '+';
+                inputBulto.focus();
 
-        // Crear el botón solo si no existe
+            });
+        }
+
+        // Crear boton '-' en input bulto
+        if (!document.getElementById('btn-bulto-menos')) {
+            let btn = document.createElement('button');
+            btn.type = 'button';
+            btn.id = 'btn-bulto-menos';
+            btn.className = 'btn btn-secondary ms-2';
+            btn.textContent = '-';
+
+            // Insertar el botón al lado del input
+            // Crear un contenedor flex para el input y el botón si no existe
+            let parent = inputBulto.parentNode;
+            if (!parent.classList.contains('d-flex')) {
+                // Crear un div con d-flex y gap-2
+                let flexDiv = document.createElement('div');
+                flexDiv.className = 'd-flex align-items-center gap-2';
+
+                // Mover el inputBulto al flexDiv
+                parent.replaceChild(flexDiv, inputBulto);
+                flexDiv.appendChild(inputBulto);
+
+                // Aplicar clases Bootstrap al input
+                inputBulto.classList.add('form-control', 'w-100'); //, 'me-2');
+            }
+
+            // Insertar el botón al lado del input
+            inputBulto.parentNode.appendChild(btn);
+            // Aplicar clases Bootstrap al botón
+            btn.classList.add('ms-0');
+
+            btn.addEventListener('click', function() {
+
+                inputBulto.value += '-';
+                inputBulto.focus();
+
+            });
+        }
+
+        // Crear el botón '=' en input bulto
         if (!document.getElementById('btn-sumar-bulto')) {
             let btn = document.createElement('button');
             btn.type = 'button';
