@@ -2355,8 +2355,11 @@ def wms_egreso_picking_misreservas(request, n_pedido): #OK
     if not mov_bodega_df.empty and not exi_bodega_df.empty:
         bodega_df = exi_bodega_df.merge(mov_bodega_df, on='product_id', how='left').fillna('')
         bodega_df['primera_bodega'] = bodega_df.apply(lambda x: x['bodega_exi'] if not x['bodega_mov'] else x['bodega_mov'], axis=1)       
-        bodega_df = bodega_df.rename(columns={'product_id':'PRODUCT_ID'})[['PRODUCT_ID','primera_bodega']]
+        #bodega_df = bodega_df.rename(columns={'product_id':'PRODUCT_ID'})[['PRODUCT_ID','primera_bodega']]
         bodega_df = bodega_df[['product_id','primera_bodega']]
+        #bodega_df = bodega_df[['PRODUCT_ID','primera_bodega']]
+        #bodega_df = bodega_df.rename(columns={'PRODUCT_ID':'product_id'})
+        
     elif not mov_bodega_df.empty and exi_bodega_df.empty:
         bodega_df = mov_bodega_df
         bodega_df['primera_bodega'] = ''
@@ -2387,7 +2390,7 @@ def wms_egreso_picking_misreservas(request, n_pedido): #OK
     try:
         pedido = pedido.merge(bodega_df, on='product_id', how='left').sort_values(by='primera_bodega') 
     except:
-        pass
+        pedido = pedido #pedido.merge(bodega_df, on='product_id', how='left') #.sort_values(by='primera_bodega')
     ped = de_dataframe_a_template(pedido)
 
     for i in prod_list:
