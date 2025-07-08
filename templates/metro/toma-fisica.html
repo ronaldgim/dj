@@ -134,7 +134,7 @@
         <input id="inputbuscar" type="text" placeholder="Buscar..." class="form-control w-100">
     </div>
     <div class="col-4 col-md-2">
-        <button id="todos" class="btn btn-primary btn-sm w-100">Mostrar Todos</button>
+        <button id="todos" class="btn btn-primary btn-sm w-100">Todos</button>
     </div>
     <div class="col-4 col-md-2">
         <button id="solollenos" class="btn btn-info btn-sm w-100">Llenos</button>
@@ -327,6 +327,7 @@
     function inputs_suma_resta() {
         let inputEstanteria = document.getElementById('id_cantidad_estanteria');
         let inputBulto = document.getElementById('id_cantidad_bulto');
+        let inputSuministro = document.getElementById('id_cantidad_suministro');
 
         // ESTANTERIA
         // Crear boton '+' en input estanteria
@@ -519,7 +520,7 @@
             btn.classList.add('ms-0');
 
             btn.addEventListener('click', function() {
-
+                
                 inputBulto.value += '-';
                 inputBulto.focus();
 
@@ -573,6 +574,129 @@
                 }
             });
         }
+
+        // SUMINISTRO
+        // Crear boton '+' en input suministro
+        if (!document.getElementById('btn-suministro-mas')) {
+            let btn = document.createElement('button');
+            btn.type = 'button';
+            btn.id = 'btn-suministro-mas';
+            btn.className = 'btn btn-primary ms-2';
+            btn.textContent = '+';
+
+            // Insertar el botón al lado del input
+            // Crear un contenedor flex para el input y el botón si no existe
+            let parent = inputSuministro.parentNode;
+            if (!parent.classList.contains('d-flex')) {
+                // Crear un div con d-flex y gap-2
+                let flexDiv = document.createElement('div');
+                flexDiv.className = 'd-flex align-items-center gap-2';
+
+                // Mover el inputSuministro al flexDiv
+                parent.replaceChild(flexDiv, inputSuministro);
+                flexDiv.appendChild(inputSuministro);
+
+                // Aplicar clases Bootstrap al input
+                inputSuministro.classList.add('form-control', 'w-100');//, 'me-2');
+            }
+
+            // Insertar el botón al lado del input
+            inputSuministro.parentNode.appendChild(btn);
+            // Aplicar clases Bootstrap al botón
+            btn.classList.add('ms-0');
+
+            btn.addEventListener('click', function() {
+
+                inputSuministro.value += '+';
+                inputSuministro.focus();
+
+            });
+        }
+
+        // Crear boton '-' en input suministro
+        if (!document.getElementById('btn-suministro-menos')) {
+            let btn = document.createElement('button');
+            btn.type = 'button';
+            btn.id = 'btn-suministro-menos';
+            btn.className = 'btn btn-secondary ms-2';
+            btn.textContent = '-';
+
+            // Insertar el botón al lado del input
+            // Crear un contenedor flex para el input y el botón si no existe
+            let parent = inputSuministro.parentNode;
+            if (!parent.classList.contains('d-flex')) {
+                // Crear un div con d-flex y gap-2
+                let flexDiv = document.createElement('div');
+                flexDiv.className = 'd-flex align-items-center gap-2';
+
+                // Mover el inputSuministro al flexDiv
+                parent.replaceChild(flexDiv, inputSuministro);
+                flexDiv.appendChild(inputSuministro);
+
+                // Aplicar clases Bootstrap al input
+                inputSuministro.classList.add('form-control', 'w-100'); //, 'me-2');
+            }
+
+            // Insertar el botón al lado del input
+            inputSuministro.parentNode.appendChild(btn);
+            // Aplicar clases Bootstrap al botón
+            btn.classList.add('ms-0');
+
+            btn.addEventListener('click', function() {
+                
+                inputSuministro.value += '-';
+                inputSuministro.focus();
+
+            });
+        }
+
+        // Crear el botón '=' en input suministro
+        if (!document.getElementById('btn-sumar-suministro')) {
+            let btn = document.createElement('button');
+            btn.type = 'button';
+            btn.id = 'btn-sumar-suministro';
+            btn.className = 'btn btn-success ms-2';
+            btn.textContent = '=';
+
+            // Insertar el botón al lado del input
+            // Crear un contenedor flex para el input y el botón si no existe
+            let parent = inputSuministro.parentNode;
+            if (!parent.classList.contains('d-flex')) {
+                // Crear un div con d-flex y gap-2
+                let flexDiv = document.createElement('div');
+                flexDiv.className = 'd-flex align-items-center gap-2';
+
+                // Mover el inputBulto al flexDiv
+                parent.replaceChild(flexDiv, inputSuministro);
+                flexDiv.appendChild(inputSuministro);
+
+                // Aplicar clases Bootstrap al input
+                inputSuministro.classList.add('form-control', 'w-100', 'me-2');
+            }
+
+            // Insertar el botón al lado del input
+            inputSuministro.parentNode.appendChild(btn);
+            // Aplicar clases Bootstrap al botón
+            btn.classList.add('ms-0');
+
+            btn.addEventListener('click', function() {
+                let value = inputSuministro.value.trim();
+                // Si contiene + o -
+                if (value.includes('+') || value.includes('-')) {
+                    // Reemplazar caracteres no válidos y dividir por + o -
+                    let tokens = value.match(/([+-]?\d+)/g);
+                    let total = 0;
+                    if (tokens) {
+                        tokens.forEach(function(token) {
+                            total += parseInt(token, 10) || 0;
+                        });
+                        inputSuministro.value = total;
+                        // Disparar el evento input para actualizar el total general
+                        inputSuministro.dispatchEvent(new Event('input'));
+                    }
+                }
+            });
+        }
     }
 
     // suma de total
@@ -580,9 +704,10 @@
         // Seleccionar los campos de entrada
         const undEstanteria = document.getElementById('id_cantidad_estanteria');
         const undBulto = document.getElementById('id_cantidad_bulto');
+        const undSuministro = document.getElementById('id_cantidad_suministro');
         
         // Verificar si los campos existen
-        if (!undEstanteria || !undBulto) {
+        if (!undEstanteria || !undBulto || !undSuministro) {
             console.error('No se encontraron los campos de cantidad');
             return;
         }
@@ -593,7 +718,7 @@
         // Si no existe el elemento total, crearlo
         if (!totalElement) {
             // Buscar el elemento después del cual queremos agregar el total
-            const parentElement = undBulto.closest('.mb-3') || undBulto.parentElement;
+            const parentElement = undSuministro.closest('.mb-3') || undSuministro.parentElement;
             
             // Crear contenedor para el total
             const totalContainer = document.createElement('div');
@@ -623,9 +748,10 @@
             // Obtener valores como números (o 0 si no son válidos)
             const estanteriaValue = parseInt(undEstanteria.value) || 0;
             const bultoValue = parseInt(undBulto.value) || 0;
+            const suministroValue = parseInt(undSuministro.value) || 0;
             
             // Calcular el total
-            const total = estanteriaValue + bultoValue;
+            const total = estanteriaValue + bultoValue + suministroValue;
             
             // Actualizar el elemento total
             document.getElementById('total').textContent = total;
@@ -640,6 +766,7 @@
         // Agregar event listeners a los campos
         undEstanteria.addEventListener('input', updateTotal);
         undBulto.addEventListener('input', updateTotal);
+        undSuministro.addEventListener('input', updateTotal);
         
         // Calcular el total inicial
         updateTotal();
