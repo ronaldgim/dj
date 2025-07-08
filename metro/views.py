@@ -221,6 +221,7 @@ def metro_inventario_informe_excel(request, id):
         'product__consignacion',
         'product__ubicacion',
         'cantidad_estanteria',
+        'cantidad_suministro',
         'cantidad_bulto',
         'cantidad_total',
         'observaciones',
@@ -242,6 +243,7 @@ def metro_inventario_informe_excel(request, id):
         'product__ubicacion':'Ubicación',
         'cantidad_estanteria':'Und.Estantería',
         'cantidad_bulto':'Und.Bulto',
+        'cantidad_suministro':'Und.Suministro',
         'cantidad_total':'Und.Total',
         'observaciones':'Observaciones',
         'llenado':'Llenado',
@@ -275,11 +277,12 @@ def metro_inventario_informe_excel(request, id):
             worksheet.column_dimensions['I'].width = 10 # Ubicación
             worksheet.column_dimensions['J'].width = 13 # Und.Estantería
             worksheet.column_dimensions['K'].width = 13 # Und.Bulto
-            worksheet.column_dimensions['L'].width = 13 # Und.Total
-            worksheet.column_dimensions['M'].width = 25 # Observaciones
-            worksheet.column_dimensions['N'].width = 11 # Llenado
-            worksheet.column_dimensions['O'].width = 11 # Agregado
-            worksheet.column_dimensions['P'].width = 20 # Usuario
+            worksheet.column_dimensions['L'].width = 13 # Und.Suministro
+            worksheet.column_dimensions['M'].width = 13 # Und.Total
+            worksheet.column_dimensions['N'].width = 25 # Observaciones
+            worksheet.column_dimensions['O'].width = 11 # Llenado
+            worksheet.column_dimensions['P'].width = 11 # Agregado
+            worksheet.column_dimensions['Q'].width = 20 # Usuario
             
         return response
 
@@ -327,7 +330,8 @@ def metro_toma_fisica_edit(request, id):
             user=request.user, 
             initial = {
                 'cantidad_estanteria': '' if toma_fisica.cantidad_estanteria == 0 else toma_fisica.cantidad_estanteria,
-                'cantidad_bulto': '' if toma_fisica.cantidad_bulto == 0 else toma_fisica.cantidad_bulto
+                'cantidad_bulto': '' if toma_fisica.cantidad_bulto == 0 else toma_fisica.cantidad_bulto,
+                'cantidad_suministro': '' if toma_fisica.cantidad_suministro == 0 else toma_fisica.cantidad_suministro
                 }
             )
         
