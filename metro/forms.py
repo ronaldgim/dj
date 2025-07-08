@@ -159,6 +159,7 @@ class TomaFisicaForm(forms.ModelForm):
         labels = {
             'cantidad_estanteria'  : 'Und. Estanteria (+, -)',
             'cantidad_bulto'  : 'Und. Bulto (+, -)',
+            'cantidad_suministro'  : 'Und. Suministro (+, -)',
             'observaciones':'Observaciones',
         }
         # help_texts = {
@@ -174,7 +175,7 @@ class TomaFisicaForm(forms.ModelForm):
             'cantidad_estanteria': forms.TextInput(attrs={  
                 'class': 'form-control',
                 # 'min': '0',
-                'placeholder': 'Unidades en estanteria',
+                'placeholder': 'Und.Estanteria',
                 'inputmode':'numeric',
                 #'pattern':'^\+?\d*$'
             }),
@@ -183,7 +184,15 @@ class TomaFisicaForm(forms.ModelForm):
             'cantidad_bulto': forms.TextInput(attrs={
                 'class': 'form-control',
                 # 'min': '0',
-                'placeholder': 'Unidades en bulto',
+                'placeholder': 'Uni.Bulto',
+                'inputmode':'numeric',
+            }),
+            
+            # 'cantidad_suministro': forms.NumberInput(attrs={
+            'cantidad_suministro': forms.TextInput(attrs={
+                'class': 'form-control',
+                # 'min': '0',
+                'placeholder': 'Und.Suministro',
                 'inputmode':'numeric',
             }),
             

@@ -116,6 +116,7 @@ class TomaFisica(models.Model):
     # Toma física
     cantidad_estanteria = models.IntegerField(blank=True) 
     cantidad_bulto      = models.IntegerField(blank=True) 
+    cantidad_suministro = models.IntegerField(blank=True) 
     cantidad_total      = models.IntegerField(blank=True, default=0)
     observaciones       = models.CharField(max_length=150, blank=True)
 
@@ -132,5 +133,6 @@ class TomaFisica(models.Model):
         
         self.cantidad_estanteria = 0 if not self.cantidad_estanteria else self.cantidad_estanteria
         self.cantidad_bulto      = 0 if not self.cantidad_bulto else self.cantidad_bulto
-        self.cantidad_total      = self.cantidad_estanteria + self.cantidad_bulto
+        self.cantidad_suministro = 0 if not self.cantidad_suministro else self.cantidad_suministro
+        self.cantidad_total      = self.cantidad_estanteria + self.cantidad_bulto + self.cantidad_suministro
         return super().save(*args, **kwargs)
