@@ -10,7 +10,7 @@
 
 {% block body %}
 
-<h5 class="m-4 text-center fw-bold mb-0">TOMA DE INVENTARIO HOSPITAL METROPOLITANO</h5>
+<h5 class="m-4 text-center fw-bold mb-0">TOMA DE INVENTARIO HOSPITAL METROPOLITANO...</h5>
 <h6 class="m-4 text-center fw-bold mt-0">{{inventario.enum}} - {{inventario.nombre}}</h6>
 
 <span
@@ -328,11 +328,83 @@
         let inputEstanteria = document.getElementById('id_cantidad_estanteria');
         let inputBulto = document.getElementById('id_cantidad_bulto');
 
-        // Crear el botón solo si no existe
-        if (!document.getElementById('btn-sumar-estanteria')) {
+        if (!document.getElementById('btn-estanteria-mas')) {
             let btn = document.createElement('button');
             btn.type = 'button';
-            btn.id = 'btn-sumar-estanteria';
+            btn.id = 'btn-estanteria-mas';
+            btn.className = 'btn btn-primary ms-2';
+            btn.textContent = '+';
+
+            // Insertar el botón al lado del input
+            // Crear un contenedor flex para el input y el botón si no existe
+            let parent = inputEstanteria.parentNode;
+            if (!parent.classList.contains('d-flex')) {
+                // Crear un div con d-flex y gap-2
+                let flexDiv = document.createElement('div');
+                flexDiv.className = 'd-flex align-items-center gap-2';
+
+                // Mover el inputBulto al flexDiv
+                parent.replaceChild(flexDiv, inputEstanteria);
+                flexDiv.appendChild(inputEstanteria);
+
+                // Aplicar clases Bootstrap al input
+                inputEstanteria.classList.add('form-control', 'w-100', 'me-2');
+            }
+
+            // Insertar el botón al lado del input
+            inputEstanteria.parentNode.appendChild(btn);
+            // Aplicar clases Bootstrap al botón
+            btn.classList.add('ms-0');
+
+            btn.addEventListener('click', function() {
+
+                inputEstanteria.value += '+';
+                inputEstanteria.focus();
+
+            });
+        }
+
+        if (!document.getElementById('btn-estanteria-menos')) {
+            let btn = document.createElement('button');
+            btn.type = 'button';
+            btn.id = 'btn-estanteria-menos';
+            btn.className = 'btn btn-secondary ms-2';
+            btn.textContent = '-';
+
+            // Insertar el botón al lado del input
+            // Crear un contenedor flex para el input y el botón si no existe
+            let parent = inputEstanteria.parentNode;
+            if (!parent.classList.contains('d-flex')) {
+                // Crear un div con d-flex y gap-2
+                let flexDiv = document.createElement('div');
+                flexDiv.className = 'd-flex align-items-center gap-2';
+
+                // Mover el inputBulto al flexDiv
+                parent.replaceChild(flexDiv, inputEstanteria);
+                flexDiv.appendChild(inputEstanteria);
+
+                // Aplicar clases Bootstrap al input
+                inputEstanteria.classList.add('form-control', 'w-100', 'me-2');
+            }
+
+            // Insertar el botón al lado del input
+            inputEstanteria.parentNode.appendChild(btn);
+            // Aplicar clases Bootstrap al botón
+            btn.classList.add('ms-0');
+
+            btn.addEventListener('click', function() {
+
+                inputEstanteria.value += '-';
+                inputEstanteria.focus();
+
+            });
+        }
+
+        // Crear el botón solo si no existe
+        if (!document.getElementById('btn-estanteria-igual')) {
+            let btn = document.createElement('button');
+            btn.type = 'button';
+            btn.id = 'btn-estanteria-igual';
             btn.className = 'btn btn-success ms-2';
             btn.textContent = '=';
 
@@ -375,6 +447,13 @@
                 }
             });
         }
+
+
+
+
+
+
+
 
         // Crear el botón solo si no existe
         if (!document.getElementById('btn-sumar-bulto')) {
