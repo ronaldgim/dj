@@ -12,6 +12,8 @@ from django.contrib.auth.decorators import login_required
 from django.forms.models import model_to_dict
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.db.models import Func, F, Value, IntegerField, CharField
+from django.db.models.functions import Cast
 
 # Models
 from metro.models import Product, Inventario, TomaFisica
@@ -308,38 +310,29 @@ def metro_toma_fisica_list(request):
 def metro_toma_fisica(request, inventario_id):
     
     inventario = Inventario.objects.get(id=inventario_id)
-    
-    # from django.db.models.functions import Substr, StrIndex #, Length
-    # from django.db.models import Func, F, Value
-    # # from django.db.models.functions import Locate
+    # products = TomaFisica.objects.filter(inventario=inventario_id).order_by('product__ubicacion')
 
-    # # Annotate with the substring before the first '-'
-    # products = TomaFisica.objects.filter(inventario=inventario_id).annotate(
-    #     n_order=Substr('product__ubicacion', 1, StrIndex(F('product__ubicacion'), Value('-')) - 1)
-    # ).annotate(
-    #     l_order=Substr('product__ubicacion', 3, StrIndex(F('product__ubicacion'), Value('-')) - 1)
-    # ).order_by('n_order', 'l_order')
-    # print(products.values())
-    
-    
-    from django.db.models import Func, F, Value, CharField
+    try:
+        class SubstringIndex(Func):
+            function = 'SUBSTRING_INDEX'
+            arity = 3
 
-    class SubstringIndex(Func):
-        function = 'SUBSTRING_INDEX'
-        arity = 3
+            def __init__(self, expression, delimiter, count, **extra):
+                super().__init__(expression, delimiter, count, output_field=CharField(), **extra)
 
-        def __init__(self, expression, delimiter, count, **extra):
-            super().__init__(expression, delimiter, count, output_field=CharField(), **extra)
-
-    products = TomaFisica.objects.filter(inventario=inventario_id).annotate(
-        n_order=SubstringIndex(F('product__ubicacion'), Value('-'), Value(1)),
-        l_order=SubstringIndex(
-            SubstringIndex(F('product__ubicacion'), Value('-'), Value(2)),
-            Value('-'),
-            Value(-1)
-        )
-    ).order_by('n_order', 'l_order')
-    print(products.values())
+        products = TomaFisica.objects.filter(inventario=inventario_id).annotate(
+            n_order=Cast(
+                SubstringIndex(F('product__ubicacion'), Value('-'), Value(1)),
+                output_field=IntegerField()
+            ),
+            l_order=SubstringIndex(
+                SubstringIndex(F('product__ubicacion'), Value('-'), Value(2)),
+                Value('-'),
+                Value(-1)
+            )
+        ).order_by('n_order', 'l_order')
+    except:
+        products = TomaFisica.objects.filter(inventario=inventario_id).order_by('product__ubicacion')
     
     context = {
         'inventario':inventario,

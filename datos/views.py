@@ -203,7 +203,7 @@ def pedidos_cuenca_odbc(n_pedido): #n_pedido
         #f"ON orders.id = order_products.order_id where orders.id='{n_pedido}' AND orders.status='TCR';" 
         f"ON orders.id = order_products.order_id where orders.id='{n_pedido}'" 
     )
-        
+    
     mysql_disconnect()
     close_ssh_tunnel()
     
@@ -224,8 +224,8 @@ def ventas_desde_fecha(fecha, codigo_cliente):
         ]
         
         ventas = pd.DataFrame(ventas)
-    
-    return ventas
+        
+        return ventas
 
 
 
