@@ -225,15 +225,22 @@ class TomaFisicaForm(forms.ModelForm):
         
         
     def clean_cantidad_estanteria(self):
-        """Asegurar que unidades por empaque sea un número positivo"""
+        """Asegurar que cantidad_estanteria sea un número positivo"""
         cantidad_estanteria = self.cleaned_data.get('cantidad_estanteria')
         if cantidad_estanteria is not None and cantidad_estanteria < 0:
             raise forms.ValidationError("Las unidades en estanteria no pueden ser negativas.")
         return cantidad_estanteria
     
     def clean_cantidad_bulto(self):
-        """Asegurar que unidades por empaque sea un número positivo"""
+        """Asegurar que cantidad_bulto sea un número positivo"""
         cantidad_bulto = self.cleaned_data.get('cantidad_bulto')
         if cantidad_bulto is not None and cantidad_bulto < 0:
             raise forms.ValidationError("Las unidades en bulto no pueden ser negativas.")
         return cantidad_bulto
+    
+    def clean_cantidad_suministro(self):
+        """Asegurar que cantidad_suministro sea un número positivo"""
+        cantidad_suministro = self.cleaned_data.get('cantidad_suministro')
+        if cantidad_suministro is not None and cantidad_suministro < 0:
+            raise forms.ValidationError("Las unidades en suministro no pueden ser negativas.")
+        return cantidad_suministro
