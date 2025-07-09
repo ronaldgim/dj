@@ -14,6 +14,7 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.db.models import Func, F, Value, IntegerField, CharField
 from django.db.models.functions import Cast
+from django.views.decorators.csrf import csrf_exempt
 
 # Models
 from metro.models import Product, Inventario, TomaFisica
@@ -23,7 +24,7 @@ from metro.forms import ProductForm, InventarioForm, TomaFisicaForm
 @login_required(login_url='login')
 def metro_products_list(request):
     
-    products = Product.objects.all().order_by('codigo_gim', 'marca')
+    products = Product.objects.all().order_by('orden', 'codigo_gim', 'marca')
     products_data = {
         'total':products.count(),
         'activos':products.filter(activo=True).count(),
@@ -91,6 +92,20 @@ def metro_product_edit(request, id):
         return HttpResponse(form.as_p())
 
 
+@csrf_exempt
+def metro_cambiar_orden_productos_ajax(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)["n_orden"]
+        
+        for i in data:
+            prod = Product.objects.get(id=i['id'])
+            prod.orden = i['n_orden']
+            prod.save()
+            
+        return JsonResponse({
+            'msg':'ok'
+        })
+
 # @login_required(login_url='login')
 # def metro_product_eliminar(request):
 #     pass
@@ -112,6 +127,7 @@ def metro_inventarios_list(request):
             # crear productos en toma fisica
             for i in Product.objects.filter(activo=True):
                 toma_fisica = TomaFisica(
+                    orden = i.orden,
                     inventario_id = inventario.id,
                     product_id = i.id
                 )
@@ -200,7 +216,7 @@ def metro_inventario_patch(request, id):
 def metro_inventario_informe(request, id):
     
     inventario = Inventario.objects.get(id=id)
-    products = TomaFisica.objects.filter(inventario=id)
+    products = TomaFisica.objects.filter(inventario=id).order_by('orden', 'product__codigo_gim', 'product__marca')
     
     context = {
         'inventario':inventario,
@@ -228,7 +244,8 @@ def metro_inventario_informe_excel(request, id):
         'cantidad_total',
         'observaciones',
         'llenado',
-        'agregado',
+        # 'agregado',
+        'revisado',
         'usuario__username'
     )
     
@@ -249,7 +266,8 @@ def metro_inventario_informe_excel(request, id):
         'cantidad_total':'Und.Total',
         'observaciones':'Observaciones',
         'llenado':'Llenado',
-        'agregado':'Agregado',
+        # 'agregado':'Agregado',
+        'revisado':'Revisado',
         'usuario__username':'Usuario'
     })
     
@@ -378,18 +396,11 @@ def metro_toma_fisica_edit(request, id):
             toma.usuario = request.user
             toma.llenado = True
             toma.save()
-            
             # messages.success(request, f'Toma física exitosa !!!')
             return JsonResponse({
                 'success': True,
                 'message': 'Toma física exitosa.',
-                # Datos actualizados para refrescar la tabla sin recargar
-                'toma_fisica': {
-                    'codigo_gim':toma_fisica.product.codigo_gim,
-                    'id':toma_fisica.id,
-                    'cantidad_total': toma_fisica.cantidad_total,
-                    'llenado':toma_fisica.llenado
-                }
+                'toma_fisica':model_to_dict(toma_fisica)
             })
         else:
             # Devolver errores si el formulario no es válido
@@ -398,3 +409,32 @@ def metro_toma_fisica_edit(request, id):
                 'success': False,
                 'errors': errors
             }, status=400)
+
+
+# Revisión inventario
+@login_required(login_url='login')
+def metro_inventario_revision(request, id):
+    
+    inventario = Inventario.objects.get(id=id)
+    products = TomaFisica.objects.filter(inventario=id).order_by('orden', 'product__codigo_gim', 'product__marca')
+    
+    context = {
+        'inventario':inventario,
+        'products':products
+    }
+    return render(request, 'metro/inventario-revision.html', context)
+
+
+@csrf_exempt
+def metro_cambiar_orden_revision_ajax(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)["n_orden"]
+        
+        for i in data:
+            prod = TomaFisica.objects.get(id=i['id'])
+            prod.orden = i['n_orden']
+            prod.save()
+            
+        return JsonResponse({
+            'msg':'ok'
+        })

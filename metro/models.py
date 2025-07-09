@@ -19,6 +19,7 @@ from users.models import User
 class Product(models.Model):
     
     # Inf producto
+    orden      = models.IntegerField(blank=True)
     codigo_gim   = models.CharField(max_length=30, unique=True, db_index=True)
     codigo_hm    = models.CharField(max_length=30)
     nombre_gim   = models.CharField(max_length=100)
@@ -110,6 +111,7 @@ class Inventario(models.Model):
 class TomaFisica(models.Model):
     
     # Inventario
+    orden               = models.IntegerField(blank=True)
     inventario          = models.ForeignKey(Inventario, on_delete=models.CASCADE)
     product             = models.ForeignKey(Product, on_delete=models.CASCADE)
     
@@ -125,6 +127,7 @@ class TomaFisica(models.Model):
     agregado            = models.BooleanField(default=False)
     usuario             = models.ForeignKey(User, blank=True, null=True, on_delete=models.CASCADE)
     actualizado         = models.DateTimeField(auto_now=True)
+    revisado            = models.BooleanField(default=False)
     
     def __str__(self):
         return f"Inventario: {self.product.codigo_gim} - Producto: {self.cantidad_total}"
