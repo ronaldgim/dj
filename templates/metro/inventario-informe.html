@@ -126,14 +126,14 @@
                         <th scope="col">Nombre GIM</th>
                         <th scope="col">Nombre HM</th>
                         <th scope="col">Marca</th>
-                        <th scope="col">UM</th>
+                        <!--th scope="col">UM</th-->
                         <th scope="col">Ubicación</th>
                         <th scope="col">Consignación</th>
                         <th scope="col">Und.Estanteria</th>
                         <th scope="col">Und.Bulto</th>
+                        <th scope="col">Und.Suministro</th>
                         <th scope="col">Und.Total</th>
                         <th scope="col">Llenado</th>
-                        <th scope="col">Agregado</th>
                         <th scope="col">Usuario</th>
                         <th scope="col">Observaciones</th>
                     </tr>
@@ -143,24 +143,18 @@
                     <tr>
                         <td class="codigo_gim">{{i.product.codigo_gim}}</td>
                         <td class="codigo_hm">{{i.product.codigo_hm}}</td>
-                        <td class="nombre_gim">{{i.product.nombre_gim}}</td>
-                        <td class="nombre_gim">{{i.product.nombre_hm}}</td>
-                        <td class="marca">{{i.product.marca}}</td>
-                        <td class="unidad">{{i.product.unidad}}</td>
+                        <td class="nombre_gim" style="font-size:smaller;">{{i.product.nombre_gim}}</td>
+                        <td class="nombre_hm" style="font-size:smaller;">{{i.product.nombre_hm}}</td>
+                        <td class="marca" style="font-size:smaller;">{{i.product.marca}}</td>
+                        <!--td class="unidad">{{i.product.unidad}}</td-->
                         <td class="text-end ubicacion">{{i.product.ubicacion}}</td>
                         <td class="text-end consignacion">{{i.product.consignacion|floatformat:"0g"}}</td>
                         <td class="text-end estanteria">{{i.cantidad_estanteria|floatformat:"0g"}}</td>
                         <td class="text-end bulto">{{i.cantidad_bulto|floatformat:"0g"}}</td>
+                        <td class="text-end bulto">{{i.cantidad_suministro|floatformat:"0g"}}</td>
                         <td class="text-end total">{{i.cantidad_total|floatformat:"0g"}}</td>
                         <td class="text-center lenado">
                             {% if i.llenado %} 
-                            <i class="bi bi-check-circle-fill" style="color:green"></i>
-                            {% else %}
-                            <i class="bi bi-x-circle-fill" style="color:red"></i>
-                            {% endif %}
-                        </td>
-                        <td class="text-center agregado">
-                            {% if i.agregado %} 
                             <i class="bi bi-check-circle-fill" style="color:green"></i>
                             {% else %}
                             <i class="bi bi-x-circle-fill" style="color:red"></i>
