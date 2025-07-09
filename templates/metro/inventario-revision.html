@@ -128,7 +128,7 @@
         <input id="inputbuscar" type="text" placeholder="Buscar..." class="form-control">
     </div>
         <div class="table-responsive">
-            <table class="table" style="font-size: small;">
+            <table class="table" id="revision" style="font-size: small;">
                 <thead>
                     <tr>
                         <th scope="col">Orden</th>
@@ -866,4 +866,20 @@
     }
 </script>    
 
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.css" />  
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.js"></script>
+<script>
+    $(document).ready(function(){
+        $('#revision').DataTable({
+            //"ordering":false,
+            "order":[],
+            "searching":false,
+            "paging":false,
+            "info":false,
+            columnDefs:[
+                {type:'signed-num',targets:0}
+            ]
+        })
+    })
+</script>
 {% endblock %}
