@@ -2294,7 +2294,7 @@ def wms_egreso_picking_misreservas(request, n_pedido): #OK
     
     # pedido = pedido_por_cliente(n_pedido).sort_values('PRODUCT_ID')
     contrato_id = n_pedido.split('.')[0]
-    pedido = pd.DataFrame(Reservas.objects.filter(contrato_id=contrato_id).values())
+    pedido = pd.DataFrame(Reservas.objects.filter(ware_code='BCT').filter(contrato_id=contrato_id).values())
     
     # pedido = pedido.groupby(by=['CONTRATO_ID','CODIGO_CLIENTE','NOMBRE_CLIENTE','FECHA_PEDIDO','HORA_LLEGADA','PRODUCT_ID','PRODUCT_NAME']).sum().reset_index()
     pedido = pedido.groupby(by=['contrato_id','codigo_cliente','product_id'])['quantity'].sum().reset_index()
