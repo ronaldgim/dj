@@ -71,75 +71,77 @@
 <div class="card mt-2 mb-2">
     <div class="card-body">
         <div class="table-responsive">
-            <table class="table" style="font-size: small;">
-                <thead>
-                    <tr>
-                        <th scope="col">Orden</th>
-                        <th scope="col">Código GIM</th>
-                        <th scope="col">Código HM</th>
-                        <th scope="col">Nombre GIM</th>
-                        <th scope="col">Nombre HM</th>
-                        <th scope="col">Marca</th>
-                        <th scope="col">UM</th>
-                        <th scope="col">U.Empaque</th>
-                        <th scope="col">Ubicación</th>
-                        <th scope="col">Activo</th>
-                        <th scope="col">Consignación</th>
-                        <th scope="col">Creado</th>
-                        <th scope="col">Modificado</th>
-                        <th scope="col">Usuario</th>
-                        <th scope="col">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody id="pedidosbuscar">
-                    {% for i in products %}
-                    <tr data-product-id="{{i.id}}">
-                        <td 
-                            id="n_orden" 
-                            class="border bg-info text-white fw-bold"
-                            style="cursor:grab"
-                        >
-                            <span class="d-flex align-items-center">
-                            {{i.orden}} <i class="bi bi-arrows-expand"></i>
-                            </span>
-                        </td>
-                        <td class="codigo-gim">{{i.codigo_gim}}</td>
-                        <td class="codigo-hm">{{i.codigo_hm}}</td>
-                        <td>{{i.nombre_gim}}</td>
-                        <td>{{i.nombre_hm}}</td>
-                        <td>{{i.marca}}</td>
-                        <td>{{i.unidad}}</td>
-                        <td class="text-end">{{i.u_empaque | floatformat:"0g"}}</td>
-                        <td>{{i.ubicacion}}</td>
-                        <td>
-                            {% if i.activo %}
-                                <i class="bi bi-check-circle-fill" style="color:green"></i>
-                            {% else %}
-                                <i class="bi bi-x-circle-fill" style="color:red"></i>
-                            {% endif %}
-                        </td>
-                        <td class="text-end">{{i.consignacion | floatformat:"0g"}}</td>
-                        <td>{{i.creado|date:'Y-m-d H:m'}}</td>
-                        <td>{{i.actualizado|date:'Y-m-d H:m'}}</td>
-                        <td>{{i.usuario.first_name}} {{i.usuario.last_name}}</td>
-                        <td>
-                            <div class="btn-group" role="group" aria-label="Basic example">
-                                <button 
-                                    class="btn btn-sm btn-secondary edit-product-btn" 
-                                    data-product-id="{{ i.id }}" 
-                                    data-product-name="Editar: {{ i.codigo_gim }}"
-                                    >
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                                <!--button type="button" class="btn btn-sm btn-danger">
-                                    <i class="bi bi-trash3-fill"></i>
-                                </button-->
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div style="max-height: 60vh; overflow-y: auto;">
+                <table class="table" style="font-size: small;">
+                    <thead class="table-info" style="position: sticky; top: 0; z-index: 2;">
+                        <tr>
+                            <th scope="col">Orden</th>
+                            <th scope="col">Código GIM</th>
+                            <th scope="col">Código HM</th>
+                            <th scope="col">Nombre GIM</th>
+                            <th scope="col">Nombre HM</th>
+                            <th scope="col">Marca</th>
+                            <th scope="col">UM</th>
+                            <th scope="col">U.Empaque</th>
+                            <th scope="col">Ubicación</th>
+                            <th scope="col">Activo</th>
+                            <th scope="col">Consignación</th>
+                            <th scope="col">Creado</th>
+                            <th scope="col">Modificado</th>
+                            <th scope="col">Usuario</th>
+                            <th scope="col">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pedidosbuscar">
+                        {% for i in products %}
+                        <tr data-product-id="{{i.id}}">
+                            <td 
+                                id="n_orden" 
+                                class="border bg-info text-white fw-bold"
+                                style="cursor:grab"
+                            >
+                                <span class="d-flex align-items-center">
+                                {{i.orden}} <i class="bi bi-arrows-expand"></i>
+                                </span>
+                            </td>
+                            <td class="codigo-gim">{{i.codigo_gim}}</td>
+                            <td class="codigo-hm">{{i.codigo_hm}}</td>
+                            <td>{{i.nombre_gim}}</td>
+                            <td>{{i.nombre_hm}}</td>
+                            <td>{{i.marca}}</td>
+                            <td>{{i.unidad}}</td>
+                            <td class="text-end">{{i.u_empaque | floatformat:"0g"}}</td>
+                            <td>{{i.ubicacion}}</td>
+                            <td>
+                                {% if i.activo %}
+                                    <i class="bi bi-check-circle-fill" style="color:green"></i>
+                                {% else %}
+                                    <i class="bi bi-x-circle-fill" style="color:red"></i>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">{{i.consignacion | floatformat:"0g"}}</td>
+                            <td>{{i.creado|date:'Y-m-d H:m'}}</td>
+                            <td>{{i.actualizado|date:'Y-m-d H:m'}}</td>
+                            <td>{{i.usuario.first_name}} {{i.usuario.last_name}}</td>
+                            <td>
+                                <div class="btn-group" role="group" aria-label="Basic example">
+                                    <button 
+                                        class="btn btn-sm btn-secondary edit-product-btn" 
+                                        data-product-id="{{ i.id }}" 
+                                        data-product-name="Editar: {{ i.codigo_gim }}"
+                                        >
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <!--button type="button" class="btn btn-sm btn-danger">
+                                        <i class="bi bi-trash3-fill"></i>
+                                    </button-->
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

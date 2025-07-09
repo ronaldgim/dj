@@ -125,88 +125,90 @@
     </div>
     <div class="card-body"> 
     <div class="col-4">
-        <input id="inputbuscar" type="text" placeholder="Buscar..." class="form-control">
+        <input id="inputbuscar" type="text" placeholder="Buscar..." class="form-control mb-2">
     </div>
         <div class="table-responsive">
-            <table class="table" id="revision" style="font-size: small;">
-                <thead>
-                    <tr>
-                        <th scope="col">Orden</th>
-                        <th scope="col">Código GIM</th>
-                        <th scope="col">Código HM</th>
-                        <th scope="col">Nombre GIM</th>
-                        <th scope="col">Nombre HM</th>
-                        <th scope="col">Marca</th>
-                        <!--th scope="col">UM</th-->
-                        <th scope="col">Ubicación</th>
-                        <th scope="col">Consignación</th>
-                        <th scope="col">Und.Estanteria</th>
-                        <th scope="col">Und.Bulto</th>
-                        <th scope="col">Und.Suministro</th>
-                        <th scope="col">Und.Total</th>
-                        <th scope="col">Llenado</th>
-                        <th scope="col">Usuario</th>
-                        <th scope="col">Observaciones</th>
-                        <th scope="col">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody id="pedidosbuscar">
-                    {% for i in products %}
-                    <tr
-                        id="row-{{i.id}}" 
-                        data-id="{{i.id}}" 
-                        data-llenado="{{i.revisado|yesno:'true,false'}}"
-                        {% if i.revisado %} style="background-color:#BAF690" {% endif %}
-                    >
-                        <td 
-                            id="n_orden" 
-                            class="border bg-info text-white fw-bold"
-                            style="cursor:grab"
+            <div style="max-height: 60vh; overflow-y: auto;">
+                <table class="table" id="revision" style="font-size: small;">
+                    <thead class="table-info" style="position: sticky; top: 0; z-index: 2;">
+                        <tr>
+                            <th scope="col">Orden</th>
+                            <th scope="col">Código GIM</th>
+                            <th scope="col">Código HM</th>
+                            <th scope="col">Nombre GIM</th>
+                            <th scope="col">Nombre HM</th>
+                            <th scope="col">Marca</th>
+                            <!--th scope="col">UM</th-->
+                            <th scope="col">Ubicación</th>
+                            <th scope="col">Consignación</th>
+                            <th scope="col">Und.Estanteria</th>
+                            <th scope="col">Und.Bulto</th>
+                            <th scope="col">Und.Suministro</th>
+                            <th scope="col">Und.Total</th>
+                            <th scope="col">Llenado</th>
+                            <th scope="col">Usuario</th>
+                            <th scope="col">Observaciones</th>
+                            <th scope="col">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pedidosbuscar">
+                        {% for i in products %}
+                        <tr
+                            id="row-{{i.id}}" 
+                            data-id="{{i.id}}" 
+                            data-llenado="{{i.revisado|yesno:'true,false'}}"
+                            {% if i.revisado %} style="background-color:#BAF690" {% endif %}
                         >
-                            <span class="d-flex align-items-center">
-                            {{i.orden}} <i class="bi bi-arrows-expand"></i>
-                            </span>
-                        </td>
-                        <td class="codigo_gim">{{i.product.codigo_gim}}</td>
-                        <td class="codigo_hm">{{i.product.codigo_hm}}</td>
-                        <td class="nombre_gim" style="font-size:smaller;">{{i.product.nombre_gim}}</td>
-                        <td class="nombre_hm" style="font-size:smaller;">{{i.product.nombre_hm}}</td>
-                        <td class="marca" style="font-size:smaller;">{{i.product.marca}}</td>
-                        <!--td class="unidad">{{i.product.unidad}}</td-->
-                        <td class="text-end ubicacion">{{i.product.ubicacion}}</td>
-                        <td class="text-end consignacion">{{i.product.consignacion|floatformat:"0g"}}</td>
-                        <td class="text-end estanteria">{{i.cantidad_estanteria|floatformat:"0g"}}</td>
-                        <td class="text-end bulto">{{i.cantidad_bulto|floatformat:"0g"}}</td>
-                        <td class="text-end suministro">{{i.cantidad_suministro|floatformat:"0g"}}</td>
-                        <td class="text-end total">{{i.cantidad_total|floatformat:"0g"}}</td>
-                        <td class="text-center lenado">
-                            {% if i.llenado %} 
-                            <i class="bi bi-check-circle-fill" style="color:green"></i>
-                            {% else %}
-                            <i class="bi bi-x-circle-fill" style="color:red"></i>
-                            {% endif %}
-                        </td>
-                        <!--td class="usuario">{{i.usuario.first_name}} {{i.usuario.last_name}}</td-->
-                        <td class="usuario">{{i.usuario.username}}</td>
-                        <td class="observaciones">{{i.observaciones}}</td>
-                        <td>
-                            <div class="btn-group" role="group" aria-label="Basic example">
-                                <button 
-                                    class="btn btn-sm btn-primary edit-toma-fisica-btn mt-2
-                                        {% if inventario.estado_inv == 'CERRADO' %} disabled {% endif %}
-                                    "
-                                    data-product-id="{{ i.id }}" 
-                                    data-product-name="Toma Física: GIM: {{ i.product.codigo_gim }} - HM: {{ i.product.codigo_hm }}"
-                                    onclick="get_data(this)"
-                                    >
-                                    <i class="bi bi-boxes"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                            <td 
+                                id="n_orden" 
+                                class="border bg-info text-white fw-bold"
+                                style="cursor:grab"
+                            >
+                                <span class="d-flex align-items-center">
+                                {{i.orden}} <i class="bi bi-arrows-expand"></i>
+                                </span>
+                            </td>
+                            <td class="codigo_gim">{{i.product.codigo_gim}}</td>
+                            <td class="codigo_hm">{{i.product.codigo_hm}}</td>
+                            <td class="nombre_gim" style="font-size:smaller;">{{i.product.nombre_gim}}</td>
+                            <td class="nombre_hm" style="font-size:smaller;">{{i.product.nombre_hm}}</td>
+                            <td class="marca" style="font-size:smaller;">{{i.product.marca}}</td>
+                            <!--td class="unidad">{{i.product.unidad}}</td-->
+                            <td class="text-end ubicacion">{{i.product.ubicacion}}</td>
+                            <td class="text-end consignacion">{{i.product.consignacion|floatformat:"0g"}}</td>
+                            <td class="text-end estanteria">{{i.cantidad_estanteria|floatformat:"0g"}}</td>
+                            <td class="text-end bulto">{{i.cantidad_bulto|floatformat:"0g"}}</td>
+                            <td class="text-end suministro">{{i.cantidad_suministro|floatformat:"0g"}}</td>
+                            <td class="text-end total">{{i.cantidad_total|floatformat:"0g"}}</td>
+                            <td class="text-center lenado">
+                                {% if i.llenado %} 
+                                <i class="bi bi-check-circle-fill" style="color:green"></i>
+                                {% else %}
+                                <i class="bi bi-x-circle-fill" style="color:red"></i>
+                                {% endif %}
+                            </td>
+                            <!--td class="usuario">{{i.usuario.first_name}} {{i.usuario.last_name}}</td-->
+                            <td class="usuario">{{i.usuario.username}}</td>
+                            <td class="observaciones">{{i.observaciones}}</td>
+                            <td>
+                                <div class="btn-group" role="group" aria-label="Basic example">
+                                    <button 
+                                        class="btn btn-sm btn-primary edit-toma-fisica-btn mt-2
+                                            {% if inventario.estado_inv == 'CERRADO' %} disabled {% endif %}
+                                        "
+                                        data-product-id="{{ i.id }}" 
+                                        data-product-name="Toma Física: GIM: {{ i.product.codigo_gim }} - HM: {{ i.product.codigo_hm }}"
+                                        onclick="get_data(this)"
+                                        >
+                                        <i class="bi bi-boxes"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
