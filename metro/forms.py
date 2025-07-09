@@ -9,6 +9,8 @@ class ProductForm(forms.ModelForm):
         fields = '__all__'
         exclude = ['usuario',]
         labels = {
+            'order'       : 'Orden',
+            'revisado'    : 'Revisado',
             'codigo_gim'  : 'Código GIM',
             'codigo_hm'   : 'Código HM',
             'nombre_gim'  : 'Nombre GIM',
@@ -29,6 +31,14 @@ class ProductForm(forms.ModelForm):
         #     'ubicacion'   : 'Ubicación física del producto',
         # }
         widgets = {
+            'orden': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '0',
+                'placeholder': 'Orden'
+            }),
+            'revisado': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
             'codigo_gim': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Ej. GIM-12345',

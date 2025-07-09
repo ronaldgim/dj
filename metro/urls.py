@@ -19,6 +19,12 @@ urlpatterns = [
         name = 'metro_product_edit'
     ),
     
+    path(
+        route = 'metro_cambiar_orden_productos_ajax',
+        view = views.metro_cambiar_orden_productos_ajax,
+        name = 'metro_cambiar_orden_productos_ajax'
+    ),
+    
     # inventarios
     path(
         route = 'inventarios-list',
@@ -60,5 +66,17 @@ urlpatterns = [
         route = 'toma-fisica-edit/<int:id>',
         view = views.metro_toma_fisica_edit,
         name = 'metro_toma_fisica_edit'
+    ),
+    
+    path(
+        route = 'inventario-revision/<int:id>',
+        view = views.metro_inventario_revision,
+        name = 'metro_inventario_revision'
+    ),
+    
+    path(
+        route = 'metro_cambiar_orden_revision_ajax',
+        view = views.metro_cambiar_orden_revision_ajax,
+        name = 'metro_cambiar_orden_revision_ajax'
     ),
 ]
