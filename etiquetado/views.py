@@ -2839,7 +2839,7 @@ def mermaid_chart(request):
 login_required(login_url='login')
 def control_guias_list(request):
     
-    ventas_fac = ventas_facturas_odbc()[['NOMBRE_CLIENTE', 'CODIGO_FACTURA', 'FECHA_FACTURA']]
+    ventas_fac = ventas_facturas_odbc()[['NOMBRE_CLIENTE', 'CODIGO_FACTURA', 'FECHA_FACTURA']] 
     clientes = clientes_warehouse()[['NOMBRE_CLIENTE','CIUDAD_PRINCIPAL', 'CLIENT_TYPE']]
     
     # Ventas factura
@@ -2848,6 +2848,9 @@ def control_guias_list(request):
     ventas_fac = ventas_fac.sort_values(by=['FECHA'], ascending=[False])    
     ventas_fac = ventas_fac.merge(clientes, on='NOMBRE_CLIENTE', how='left')
     ventas_fac['FECHA'] = ventas_fac['FECHA'].astype(str)
+    ventas_fac['codigo_factura_view'] = ventas_fac['CODIGO_FACTURA'].str.split('-', expand=True)[1] 
+    ventas_fac['codigo_factura_view'] = ventas_fac['codigo_factura_view'].str.slice(5) 
+    ventas_fac['codigo_factura_view'] = ventas_fac['codigo_factura_view'].astype('int')
     
     # Solca
     solca_quito = ventas_fac[ventas_fac['NOMBRE_CLIENTE']=='SOLCA QUITO']   
