@@ -132,6 +132,7 @@
                 <table class="table table-hover" id="revision" style="font-size: small;">
                     <thead class="table-info" style="position: sticky; top: 0; z-index: 2;">
                         <tr>
+                            <th scope="col" class="fw-bold text-center">::</th>
                             <th scope="col">Orden</th>
                             <th scope="col">Código GIM</th>
                             <th scope="col">Código HM</th>
@@ -164,12 +165,12 @@
                                 class="border bg-info text-white fw-bold"
                                 style="cursor:grab"
                             >
-                                
                                 <span class="d-flex align-items-center">
                                 <input type="checkbox" class="me-2" id="n_orden_{{i.id}}" value="check" />
-                                {{i.orden}} <i class="bi bi-arrows-expand"></i>
+                                <i class="bi bi-arrows-expand"></i>
                                 </span>
                             </td>
+                            <td>{{i.orden}}</td>
                             <td class="codigo_gim">{{i.product.codigo_gim}}</td>
                             <td class="codigo_hm">{{i.product.codigo_hm}}</td>
                             <td class="nombre_gim" style="font-size:smaller;">{{i.product.nombre_gim}}</td>
@@ -875,16 +876,21 @@
 <script>
     $(document).ready(function(){
         $('#revision').DataTable({
-            //"ordering":false,
-            "order":[],
-            "searching":false,
-            "paging":false,
-            "info":false,
-            columnDefs:[
-                {type:'signed-num',targets:0}
+            //"ordering":true,
+            "order": [],
+            "searching": false,
+            "paging": false,
+            "info": false,
+            "columnDefs": [
+                // Deshabilitar ordenamiento en la primera columna (::) y la última columna (Acciones)
+                { targets: [0, -1], orderable: false },
+                // Ordenar como números
+                { targets: [1, 7, 8, 9, 10, 11], type: 'num' }, // Orden, Consignación, Und.Estanteria, Und.Bulto, Und.Suministro, Und.Total
+                // Ordenar como texto
+                { targets: [2, 3, 4, 5, 6, 12, 13, 14], type: 'string' } // Códigos, Nombres, Marca, Ubicación, Llenado, Usuario, Observaciones
             ]
-        })
-    })
+        });
+    });
 </script>
 
 <script>
