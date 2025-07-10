@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}
-<title>Informe {{inventario.enum}}</title>
+<title>Revisión {{inventario.enum}}</title>
 {% endblock %}
 
 {% block navbar %}
@@ -129,7 +129,7 @@
     </div>
         <div class="table-responsive">
             <div style="max-height: 60vh; overflow-y: auto;">
-                <table class="table" id="revision" style="font-size: small;">
+                <table class="table table-hover" id="revision" style="font-size: small;">
                     <thead class="table-info" style="position: sticky; top: 0; z-index: 2;">
                         <tr>
                             <th scope="col">Orden</th>
@@ -164,7 +164,9 @@
                                 class="border bg-info text-white fw-bold"
                                 style="cursor:grab"
                             >
+                                
                                 <span class="d-flex align-items-center">
+                                <input type="checkbox" class="me-2" id="n_orden_{{i.id}}" value="check" />
                                 {{i.orden}} <i class="bi bi-arrows-expand"></i>
                                 </span>
                             </td>
@@ -883,5 +885,24 @@
             ]
         })
     })
+</script>
+
+<script>
+    function toggleRowHighlight(checkbox) {
+        var tr = checkbox.closest('tr');
+        if (checkbox.checked) {
+            tr.style.backgroundColor = '#d3d3d3'; // gris claro
+        } else {
+            tr.style.backgroundColor = '';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('input[type="checkbox"][id^="n_orden_"]').forEach(function(checkbox) {
+            checkbox.addEventListener('change', function() {
+                toggleRowHighlight(this);
+            });
+        });
+    });
 </script>
 {% endblock %}
