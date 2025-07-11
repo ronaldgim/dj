@@ -210,18 +210,18 @@
                 <tbody id="inventario">
                     {% for i in data %}
                     <tr {% if i.unidades %}style="background-color: #c5ff8b;"{% else %}{% if i.BCT > 0 %}style="background-color:#fffeca;;"{% endif %}{% endif %}>
-                        <td class="product_id">{{i.PRODUCT_ID}}</td>
+                        <td class="product_id">{{i.product_id}}</td>
                         <td>{{i.Nombre}}</td>
                         <td>{{i.Marca}}</td>
-                        <td class="lote_id">{{i.LOTE_ID}}</td>
-                        <td class="fecha_caducidad">{{i.FECHA_CADUCIDAD}}</td>
-                        <td class="bodega">{{i.LOCATION}}</td>
+                        <td class="lote_id">{{i.lote_id}}</td>
+                        <td class="fecha_caducidad">{{i.fecha_caducidad}}</td>
+                        <td class="bodega">{{i.location}}</td>
                         <td class="text-end">{{i.BAN|floatformat:"0g"}}</td>
                         <td class="text-end"
                             style="background-color:rgb(206, 255, 205);"
-                        {% if i.unidades > i.BCT %}
-                            style="background-color: #F6B690;"
-                        {% endif %}
+                            {% if i.unidades > i.BCT %}
+                                style="background-color: #F6B690;"
+                            {% endif %}
                         >
                             <span class="fw-bold">{{i.BCT|floatformat:"0g"}}</span>
                             {% if i.BCT > 0 %}
