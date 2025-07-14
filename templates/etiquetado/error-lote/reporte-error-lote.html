@@ -7,7 +7,7 @@
 {% include 'etiquetado/topnavbar.html' %}
 {% endblock %}
 
-{% block body%}
+{% block body_2 %}
 <div id="app">
 
     <div class="text-center mt-4 mb-4">
@@ -43,9 +43,12 @@
                             <th scope="col">Código</th>
                             <th scope="col">Nombre</th>
                             <th scope="col">Marca</th>
-                            <th scope="col">Total Agrupado</th>
-                            <th scope="col">Total Lotes</th>
+                            <th scope="col">Total Agrupado (OH)</th>
+                            <th scope="col">Total Lotes (OH2)</th>
+                            <!--th scope="col">Tranferencia (OH)</th-->
+                            <th scope="col">Total L+T</th>
                             <th scope="col">Diferencia</th>
+                            <th scope="col">COMMITED (-)</th>
                             <th scope="col">Lotes</th>
                         </tr>
                     </thead>
@@ -59,7 +62,10 @@
                             <td>{{i.marca}}</td>
                             <td class="text-end">{{i.unds_total.toLocaleString()}}</td>
                             <td class="text-end">{{i.unds_lotes.toLocaleString()}}</td>
+                            <!--td class="text-end">{{i.unds_transf.toLocaleString()}}</td-->
+                            <td class="text-end">{{i.unds_total_mas_transf.toLocaleString()}}</td>
                             <td class="text-end">{{i.unds_diff.toLocaleString()}}</td>
+                            <td class="text-end">{{i.commited_negativo}}</td>
                             <td>
                                 <button 
                                     class="btn btn-sm btn-primary" @click="getDetalleLote(i.product_id)"
@@ -89,7 +95,9 @@
                                 <th scope="col">Lote</th>
                                 <th scope="col">OH</th>
                                 <th scope="col">OH2</th>
+                                <th scope="col">OH_TRANSF</th>
                                 <th scope="col">DIFF</th>
+                                <th scope="col">COMMITED (-)</th>
                             </tr>
                         </thead>
                         
@@ -99,7 +107,9 @@
                                 <td>{{i.lote_id}} <i v-if="i.error" style="color:red" class="bi bi-exclamation-triangle-fill"></i></td>
                                 <td class="text-end">{{i.oh.toLocaleString()}}</td>
                                 <td class="text-end">{{i.oh2.toLocaleString()}}</td>
+                                <td class="text-end">{{i.oh_transf.toLocaleString()}}</td>
                                 <td class="text-end">{{i.diff.toLocaleString()}}</td>
+                                <td class="text-end">{{i.commited_negativo}}</td>
                             </tr> 
                             {% endverbatim %}
                         </tbody>
@@ -155,6 +165,7 @@
                         throw new Error(response.statusText);
                     }
                     const data = await response.json(); 
+                    // console.log(data);
                     this.reporte = data.data || [];
                     this.actualizado = new Date(data.actualizado).toLocaleString('es-EC');
                 } catch (error) {
