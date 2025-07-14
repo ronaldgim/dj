@@ -2595,7 +2595,8 @@ def analisis_error_lote_data():
     commited_agrupado = stock_con_lote_df.copy() 
     commited_agrupado['COMMITED_NEGATIVO'] = commited_agrupado.apply(lambda x: 'SI' if x['COMMITED'] < 0 else 'NO', axis=1)
     commited_agrupado = commited_agrupado[commited_agrupado['COMMITED_NEGATIVO']=='SI'][['PRODUCT_ID','LOTE_ID','COMMITED_NEGATIVO']] 
-    commited_agrupado = commited_agrupado.drop_duplicates(subset=['PRODUCT_ID', 'LOTE_ID'])
+    commited_agrupado_product = commited_agrupado.copy()
+    commited_agrupado_product = commited_agrupado_product.drop_duplicates(subset='PRODUCT_ID')
     
     # TRANSFERENCIA AGURPADO
     transferencia_agrupado_df = transferencia_df.copy()
@@ -2612,8 +2613,8 @@ def analisis_error_lote_data():
     reporte['diff'] = reporte['OH'] - reporte['OH2_MAS_TRANSF']  # reporte['OH2']
     
     # ADD COMMITED A REPORTE
-    if not commited_agrupado.empty:
-        reporte = reporte.merge(commited_agrupado[['PRODUCT_ID','COMMITED_NEGATIVO']], on='PRODUCT_ID', how='left')
+    if not commited_agrupado_product.empty:
+        reporte = reporte.merge(commited_agrupado_product, on='PRODUCT_ID', how='left')
         reporte['COMMITED_NEGATIVO'] = reporte['COMMITED_NEGATIVO'].fillna('NO')
     else:
         reporte['COMMITED_NEGATIVO'] = 'NO'
