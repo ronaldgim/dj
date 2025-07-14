@@ -2542,7 +2542,7 @@ def analisis_error_lote_data():
             
             stock_sin_lote_df = pd.DataFrame(stock_sin_lote['data']) 
             stock_sin_lote_df = stock_sin_lote_df.groupby('PRODUCT_ID')['OH'].sum().reset_index()
-            stock_sin_lote_df['OH'] = stock_sin_lote_df['OH'].astype('int')
+            stock_sin_lote_df['OH'] = stock_sin_lote_df['OH'].astype('float')
             
             stock_sin_lote_df = stock_sin_lote_df[stock_sin_lote_df['PRODUCT_ID']!='ETIQUE']
             stock_sin_lote_df = stock_sin_lote_df[stock_sin_lote_df['PRODUCT_ID']!='MANTEN']
@@ -2551,11 +2551,10 @@ def analisis_error_lote_data():
             return stock_sin_lote_df
         
         return pd.DataFrame()
-        
-        
+    
     def stock_con_lote():
         with connections['gimpromed_sql'].cursor() as cursor:
-            cursor.execute("SELECT PRODUCT_ID, LOTE_ID, OH, OH2 FROM warehouse.stock_lote")
+            cursor.execute("SELECT PRODUCT_ID, LOTE_ID, OH, OH2, COMMITED FROM warehouse.stock_lote")
             connections['gimpromed_sql'].close()
             columns = [col[0] for col in cursor.description]
             data = [dict(zip(columns, row)) for row in cursor.fetchall()]
@@ -2567,27 +2566,78 @@ def analisis_error_lote_data():
             data = data[data['OH2']!=0]
             return data
     
+    def transferencia_en_curso():
+        with connections['gimpromed_sql'].cursor() as cursor:
+            cursor.execute("SELECT PRODUCT_ID, LOTE_ID, OH FROM warehouse.productos_transito")
+            connections['gimpromed_sql'].close()
+            columns = [col[0] for col in cursor.description]
+            data = [dict(zip(columns, row)) for row in cursor.fetchall()]
+            
+            if data:
+                data = pd.DataFrame(data)
+                data['LOTE_ID'] = data['LOTE_ID'].str.replace('.','')
+                data = data.groupby(by=['PRODUCT_ID','LOTE_ID']).sum().reset_index()
+                data['OH'] = data['OH'].astype('int')
+                data = data.rename(columns={'OH':'OH_TRANSF'})
+                return data
+            else:
+                data = pd.DataFrame()
+                data['PRODUCT_ID'] = ['-']
+                data['LOTE_ID']    = ['-']
+                data['OH_TRANSF'] = [0]
+                return data
+    
     stock_sin_lote_df = stock_sin_lote()
     stock_con_lote_df = stock_con_lote()
+    transferencia_df  = transferencia_en_curso()
     
-    stock_con_lote_agrupado = stock_con_lote_df.groupby('PRODUCT_ID')['OH2'].sum().reset_index()
-    reporte = stock_sin_lote_df.merge(stock_con_lote_agrupado, on='PRODUCT_ID', how='left').fillna(0)
-    reporte['error'] = reporte['OH'] != reporte['OH2']
-    reporte = reporte[reporte['error']==True]
-    reporte['diff'] = reporte['OH'] - reporte['OH2']
+    # COMMITED
+    commited_agrupado = stock_con_lote_df.copy() 
+    commited_agrupado['COMMITED_NEGATIVO'] = commited_agrupado.apply(lambda x: 'SI' if x['COMMITED'] < 0 else 'NO', axis=1)
+    commited_agrupado = commited_agrupado[commited_agrupado['COMMITED_NEGATIVO']=='SI'][['PRODUCT_ID','LOTE_ID','COMMITED_NEGATIVO']] 
+    commited_agrupado = commited_agrupado.drop_duplicates(subset=['PRODUCT_ID', 'LOTE_ID'])
+    
+    # TRANSFERENCIA AGURPADO
+    transferencia_agrupado_df = transferencia_df.copy()
+    transferencia_agrupado_df = transferencia_agrupado_df.groupby('PRODUCT_ID')['OH_TRANSF'].sum().reset_index()
+    
+    stock_agrupado = stock_con_lote_df.groupby('PRODUCT_ID')['OH2'].sum().reset_index()
+    stock_agrupado = stock_agrupado.merge(transferencia_agrupado_df, on='PRODUCT_ID', how='left').fillna(0)
+    stock_agrupado['OH2_MAS_TRANSF'] = stock_agrupado['OH2'] + stock_agrupado['OH_TRANSF']
+    
+    # REPORTE
+    reporte = stock_sin_lote_df.merge(stock_agrupado, on='PRODUCT_ID', how='left').fillna(0)
+    reporte['error'] = reporte['OH'] != reporte['OH2_MAS_TRANSF']  # reporte['OH2']
+    reporte = reporte[reporte['error'] == True]
+    reporte['diff'] = reporte['OH'] - reporte['OH2_MAS_TRANSF']  # reporte['OH2']
+    
+    # ADD COMMITED A REPORTE
+    if not commited_agrupado.empty:
+        reporte = reporte.merge(commited_agrupado[['PRODUCT_ID','COMMITED_NEGATIVO']], on='PRODUCT_ID', how='left')
+        reporte['COMMITED_NEGATIVO'] = reporte['COMMITED_NEGATIVO'].fillna('NO')
+    else:
+        reporte['COMMITED_NEGATIVO'] = 'NO'
     
     if reporte.empty:
         return None
-    
+    print(reporte)
     productos = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     productos = productos.rename(columns={'product_id':'PRODUCT_ID'})
-    reporte = reporte.merge(productos, on='PRODUCT_ID',how='left')
+    reporte = reporte.merge(productos, on='PRODUCT_ID',how='left') 
     lotes_list = reporte['PRODUCT_ID'].unique()
     lotes = stock_con_lote().copy()
     lotes = lotes[lotes['PRODUCT_ID'].isin(lotes_list)]
+    lotes = lotes.merge(transferencia_df, on=['PRODUCT_ID', 'LOTE_ID'], how='left').fillna(0)
+    
+    if not commited_agrupado.empty:
+        lotes = lotes.merge(commited_agrupado, on=['PRODUCT_ID', 'LOTE_ID'], how='left')
+        lotes['COMMITED_NEGATIVO'] = lotes['COMMITED_NEGATIVO'].fillna('NO')
+    else:
+        lotes['COMMITED_NEGATIVO'] = 'NO'
+    
     lotes['diff'] = lotes['OH'] - lotes['OH2']
     lotes['error'] = lotes['OH'] != lotes['OH2']
-    
+    print(lotes)
     return {
         'reporte':de_dataframe_a_template(reporte),
         'lotes':de_dataframe_a_template(lotes)
@@ -2617,7 +2667,10 @@ def actualizar_data_error_lote():
                 marca = i.get('Marca'),
                 unds_total = i.get('OH'),
                 unds_lotes = i.get('OH2'),
-                unds_diff = i.get('diff')
+                unds_transf = i.get('OH_TRANSF'),
+                unds_total_mas_transf = i.get('OH2_MAS_TRANSF'),
+                unds_diff = i.get('diff'),
+                commited_negativo = i.get('COMMITED_NEGATIVO')
             )
             
             obj_list.append(obj)
@@ -2634,7 +2687,9 @@ def actualizar_data_error_lote():
                 lote_id = j.get('LOTE_ID'),
                 oh = j.get('OH'),
                 oh2 = j.get('OH2'),
+                oh_transf = j.get('OH_TRANSF'),
                 diff = j.get('diff'),
+                commited_negativo = j.get('COMMITED_NEGATIVO'),
                 error = j.get('error')
             )
             
