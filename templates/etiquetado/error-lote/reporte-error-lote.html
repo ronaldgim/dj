@@ -30,7 +30,11 @@
         Actualizado: {% verbatim %} {{actualizado}} {% endverbatim %}
     </h6>
 
-    <div class="card mt-4 mb-4">
+    <div class="col-4">
+        <input v-model="filtro" placeholder="Buscar..." type="text" class="form-control">
+    </div>
+
+    <div class="card mt-2 mb-4">
         <div class="card-body">
             <div class="table-responsive"> 
                 <table class="table">
@@ -48,7 +52,8 @@
                     
                     <tbody>
                         {% verbatim %}
-                        <tr v-for="i in reporte">
+                        <!--tr v-for="i in reporte"-->
+                        <tr v-for="i in reporteFiltrado">
                             <td>{{i.product_id}}</td>
                             <td>{{i.nombre}}</td>
                             <td>{{i.marca}}</td>
@@ -111,6 +116,9 @@
     new Vue({
         el:'#app',
         data:{
+            // FILTRO
+            filtro:'',
+
             actualizado:'',
 
             // reporte
@@ -128,6 +136,15 @@
         },
         mounted(){            
             this.getReporteData();
+        },
+        computed:{
+            reporteFiltrado() {
+                return this.reporte.filter(i=>
+                    i.product_id.toLowerCase().includes(this.filtro.toLowerCase()) |
+                    i.nombre.toLowerCase().includes(this.filtro.toLowerCase()) |
+                    i.marca.toLowerCase().includes(this.filtro.toLowerCase())
+                )
+            }
         },
         methods:{
             async getReporteData() {
@@ -156,7 +173,7 @@
                         throw new Error(response.statusText);
                     }
                     const data = await response.json(); 
-                    console.log(data);
+                    // console.log(data);
                     this.product_idDetalle = product_id;
                     this.detalle = data.data || [];
                 } catch (error) {

@@ -173,7 +173,10 @@ class ErrorLoteReporte(models.Model):
     marca = models.CharField(max_length=50)
     unds_total = models.IntegerField(default=0) #OH
     unds_lotes = models.IntegerField(default=0) #OH2
+    unds_transf = models.IntegerField(default=0) #OH_TRANSF
+    unds_total_mas_transf = models.IntegerField(default=0) #OH2_MAS_TRANSF
     unds_diff = models.IntegerField(default=0) 
+    commited_negativo = models.CharField(blank=True, max_length=5)
     
     def __str__(self):
         return self.product_id
@@ -184,7 +187,9 @@ class ErrorLoteDetalle(models.Model):
     lote_id = models.CharField(max_length=50)
     oh = models.IntegerField(default=0) #OH
     oh2 = models.IntegerField(default=0) #OH2
+    oh_transf = models.IntegerField(default=0) #OH_TRANSF
     diff = models.IntegerField(default=0) 
+    commited_negativo = models.CharField(blank=True, max_length=5)
     error = models.BooleanField(default=False)
     
     def __str__(self):
