@@ -2620,7 +2620,7 @@ def analisis_error_lote_data():
     
     if reporte.empty:
         return None
-    print(reporte)
+    
     productos = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     productos = productos.rename(columns={'product_id':'PRODUCT_ID'})
     reporte = reporte.merge(productos, on='PRODUCT_ID',how='left') 
@@ -2637,7 +2637,7 @@ def analisis_error_lote_data():
     
     lotes['diff'] = lotes['OH'] - lotes['OH2']
     lotes['error'] = lotes['OH'] != lotes['OH2']
-    print(lotes)
+    
     return {
         'reporte':de_dataframe_a_template(reporte),
         'lotes':de_dataframe_a_template(lotes)
