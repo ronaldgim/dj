@@ -4510,7 +4510,7 @@ def wms_andagoya_reporte_mba(request):
 
 
 def reporte_error_lote_data(request):
-    data = ErrorLoteReporte.objects.all().values()
+    data = ErrorLoteReporte.objects.all().values().order_by('product_id')
     acutalizado = AdminActualizationWarehaouse.objects.get(table_name='error_lote').datetime
     return JsonResponse({
         'data':list(data),
@@ -4519,7 +4519,7 @@ def reporte_error_lote_data(request):
 
 
 def detalle_error_lote_data(request, product_id):
-    data = ErrorLoteDetalle.objects.filter(product_id=product_id).values()
+    data = ErrorLoteDetalle.objects.filter(product_id=product_id).values().order_by('lote_id')
     return JsonResponse({'data':list(data)})
 
 
