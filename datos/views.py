@@ -2621,9 +2621,11 @@ def analisis_error_lote_data():
     else:
         reporte['COMMITED_NEGATIVO'] = 'NO'
     
+    reporte = reporte.fillna(0)
+    
     if reporte.empty:
         return None
-    # print(reporte)
+    
     productos = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     productos = productos.rename(columns={'product_id':'PRODUCT_ID'})
     reporte = reporte.merge(productos, on='PRODUCT_ID',how='left') 
@@ -2649,7 +2651,7 @@ def analisis_error_lote_data():
 
 def actualizar_data_error_lote():
     data = analisis_error_lote_data()
-    print(data)
+    # print(data)
     if data is None:
         ErrorLoteReporte.objects.all().delete()
         ErrorLoteDetalle.objects.all().delete()
