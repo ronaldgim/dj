@@ -4524,6 +4524,6 @@ def detalle_error_lote_data(request, product_id):
 
 
 def reporte_error_lote(request):
-    # from datos.views import analisis_error_lote_data
-    # analisis_error_lote_data()
+    from datos.views import analisis_error_lote_data
+    analisis_error_lote_data()
     return render(request, 'etiquetado/error-lote/reporte-error-lote.html')
