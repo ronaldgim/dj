@@ -2614,7 +2614,8 @@ def analisis_error_lote_data():
     
     # ADD COMMITED A REPORTE
     if not commited_agrupado_product.empty:
-        reporte = reporte.merge(commited_agrupado_product, on='PRODUCT_ID', how='left')
+        # reporte = reporte.merge(commited_agrupado_product, on='PRODUCT_ID', how='left')
+        reporte = reporte.merge(commited_agrupado_product, on='PRODUCT_ID', how='outer')
         reporte['COMMITED_NEGATIVO'] = reporte['COMMITED_NEGATIVO'].fillna('NO')
     else:
         reporte['COMMITED_NEGATIVO'] = 'NO'
