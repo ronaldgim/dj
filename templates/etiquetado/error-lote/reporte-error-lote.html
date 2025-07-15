@@ -60,11 +60,20 @@
                             <td>{{i.product_id}}</td>
                             <td>{{i.nombre}}</td>
                             <td>{{i.marca}}</td>
-                            <td class="text-end">{{i.unds_total.toLocaleString()}}</td>
+                            <td class="text-end">
+                                <span v-if="i.unds_total == 0">-</span>
+                                <span v-else>{{i.unds_total.toLocaleString()}}</span>
+                            </td>
                             <!--td class="text-end">{{i.unds_lotes.toLocaleString()}}</td-->
                             <!--td class="text-end">{{i.unds_transf.toLocaleString()}}</td-->
-                            <td class="text-end">{{i.unds_total_mas_transf.toLocaleString()}}</td>
-                            <td class="text-end">{{i.unds_diff.toLocaleString()}}</td>
+                            <td class="text-end">
+                                <span v-if="i.unds_total_mas_transf == 0">-</span>
+                                <span v-else>{{i.unds_total_mas_transf.toLocaleString()}}<span>
+                            </td>
+                            <td class="text-end">
+                                <span v-if="i.unds_diff == 0">-</span>
+                                <span v-else>{{i.unds_diff.toLocaleString()}}</span>
+                            </td>
                             <td class="text-end">{{i.commited_negativo}}</td>
                             <td>
                                 <button 
