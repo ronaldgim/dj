@@ -70,7 +70,7 @@
                     <tr>
                         <th scope="col">#</th>
                         <th scope="col">Nombre</th>
-                        <th scope="col">Estado Inventario</th>
+                        <!--th scope="col">Estado Inventario</th-->
                         <th scope="col">Estado T.F.</th>
                         <th scope="col">Inicio T.F.</th>
                         <th scope="col">Fin T.F.</th>
@@ -101,7 +101,7 @@
                                 {{i.estado_inv}}
                             </span>
                         </td>
-                        <td>
+                        <!--td>
                             <span
                                 class="
                                     badge 
@@ -120,7 +120,7 @@
                                 {{i.estado_tf}}
                             </span>
 
-                        </td>
+                        </td-->
                         
                         <td class="text-end">{{i.inicio_tf|date:'Y-m-d H:i'|default:'-'}}</td>
                         <td class="text-end">{{i.fin_tf|date:'Y-m-d H:i'|default:"-"}}</td>
@@ -146,8 +146,8 @@
                                 <a class="btn btn-sm btn-white border" href="{% url 'metro_inventario_revision' i.id %}">
                                     ✅
                                 </a>
-                                {% if i.estado_inv == 'CERRADO' %}
-                                <button 
+                                {#% if i.estado_inv == 'CERRADO' %#}
+                                <!--button 
                                     type="button" 
                                     class="btn btn-sm btn-primary" 
                                     data-inventario-id="{{ i.id }}" 
@@ -156,10 +156,10 @@
                                     onclick=estado_inventario_inv(this)
                                 >
                                     <i class="bi bi-check-square-fill"></i>
-                                </button>
-                                {% endif %}
-                                {% if i.estado_inv == 'ABIERTO' %}
-                                <button 
+                                </button-->
+                                {#% endif %#}
+                                {#% if i.estado_inv == 'ABIERTO' %#}
+                                <!--button 
                                     type="button" 
                                     class="btn btn-sm btn-secondary"
                                     data-inventario-id="{{ i.id }}" 
@@ -168,8 +168,8 @@
                                     onclick=estado_inventario_inv(this)
                                 >
                                     <i class="bi bi-x-square-fill"></i>
-                                </button>
-                                {% endif %}
+                                </button-->
+                                {#% endif %#}
                             </div>
                         </td>
                     </tr>
