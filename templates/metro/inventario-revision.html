@@ -132,19 +132,19 @@
                 <table class="table table-hover" id="revision" style="font-size: small;">
                     <thead class="table-info" style="position: sticky; top: 0; z-index: 2;">
                         <tr>
-                            <th scope="col" class="fw-bold text-center">::</th>
+                            <!--th scope="col" class="fw-bold text-center">::</th-->
                             <th scope="col">Orden</th>
-                            <th scope="col">Código GIM</th>
-                            <th scope="col">Código HM</th>
-                            <th scope="col">Nombre GIM</th>
-                            <th scope="col">Nombre HM</th>
+                            <th scope="col">CódigoGIM</th>
+                            <th scope="col">CódigoHM</th>
+                            <th scope="col">NombreGIM</th>
+                            <th scope="col">NombreHM</th>
                             <th scope="col">Marca</th>
                             <!--th scope="col">UM</th-->
                             <th scope="col">Ubicación</th>
                             <th scope="col">Consignación</th>
-                            <th scope="col">Und.Estanteria</th>
-                            <th scope="col">Und.Bulto</th>
-                            <th scope="col">Und.Suministro</th>
+                            <th scope="col">Und.Est</th>
+                            <th scope="col">Und.Bul</th>
+                            <th scope="col">Und.Sum</th>
                             <th scope="col">Und.Total</th>
                             <th scope="col">Llenado</th>
                             <th scope="col">Usuario</th>
@@ -160,7 +160,7 @@
                             data-llenado="{{i.revisado|yesno:'true,false'}}"
                             {% if i.revisado %} style="background-color:#BAF690" {% endif %}
                         >
-                            <td 
+                            <!--td 
                                 id="n_orden" 
                                 class="border bg-info text-white fw-bold"
                                 style="cursor:grab"
@@ -169,7 +169,7 @@
                                 <input type="checkbox" class="me-2" id="n_orden_{{i.id}}" value="check" />
                                 <i class="bi bi-arrows-expand"></i>
                                 </span>
-                            </td>
+                            </td-->
                             <td>{{i.orden}}</td>
                             <td class="codigo_gim">{{i.product.codigo_gim}}</td>
                             <td class="codigo_hm">{{i.product.codigo_hm}}</td>
@@ -819,7 +819,8 @@
 
 <!-- Ordenable -->
 <!-- jQuery y jQuery UI -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!--script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 <script>
 
@@ -850,7 +851,7 @@
         })
     })
 
-</script>
+</script-->
 
 <!--filtro buscar-->
 <script>
@@ -883,7 +884,8 @@
             "info": false,
             "columnDefs": [
                 // Deshabilitar ordenamiento en la primera columna (::) y la última columna (Acciones)
-                { targets: [0, -1], orderable: false },
+                // { targets: [0, -1], orderable: false },
+                { targets: [-1], orderable: false },
                 // Ordenar como números
                 { targets: [1, 7, 8, 9, 10, 11], type: 'num' }, // Orden, Consignación, Und.Estanteria, Und.Bulto, Und.Suministro, Und.Total
                 // Ordenar como texto
