@@ -133,7 +133,7 @@
                     <thead class="table-info" style="position: sticky; top: 0; z-index: 2;">
                         <tr>
                             <!--th scope="col" class="fw-bold text-center">::</th-->
-                            <th scope="col">Orden</th>
+                            <th scope="col">No.</th>
                             <th scope="col">CódigoGIM</th>
                             <th scope="col">CódigoHM</th>
                             <th scope="col">NombreGIM</th>
@@ -182,7 +182,7 @@
                             <td class="text-end estanteria">{{i.cantidad_estanteria|floatformat:"0g"}}</td>
                             <td class="text-end bulto">{{i.cantidad_bulto|floatformat:"0g"}}</td>
                             <td class="text-end suministro">{{i.cantidad_suministro|floatformat:"0g"}}</td>
-                            <td class="text-end total">{{i.cantidad_total|floatformat:"0g"}}</td>
+                            <td class="text-end total fw-bold">{{i.cantidad_total|floatformat:"0g"}}</td>
                             <td class="text-center lenado">
                                 {% if i.llenado %} 
                                 <i class="bi bi-check-circle-fill" style="color:green"></i>
@@ -838,7 +838,7 @@
                 console.log(nuevoOrden);
                 $.ajax({
                     type:"POST",
-                    url:"{% url 'metro_cambiar_orden_revision_ajax' %}",
+                    url:"{#% url 'metro_cambiar_orden_revision_ajax' %#}",
                     data:JSON.stringify({"n_orden":nuevoOrden}),
                     success: function(response){
                         location.reload();
