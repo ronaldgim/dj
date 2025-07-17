@@ -148,6 +148,7 @@ def metro_inventarios_list(request):
 
 
 @ensure_csrf_cookie  # Asegura que se envíe el token CSRF
+@csrf_exempt
 @require_http_methods(["PATCH"])
 def metro_inventario_patch(request, id):
     try:
@@ -359,6 +360,7 @@ def metro_toma_fisica(request, inventario_id):
     return render(request, 'metro/toma-fisica.html', context)
 
 
+@csrf_exempt
 @login_required(login_url='login')
 def metro_toma_fisica_edit(request, id):
     
