@@ -26,9 +26,7 @@ class LoginView(auth_views.LoginView):
 # @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def logout_view(request):
-    print(request)
     logout(request)
-    # return JsonResponse({'detail': 'Sesión cerrada correctamente.'}, status=200)
     return HttpResponseRedirect('/users/login')
 
 @login_required(login_url='login')
