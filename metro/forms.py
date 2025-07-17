@@ -167,9 +167,15 @@ class TomaFisicaForm(forms.ModelForm):
         fields = '__all__'
         exclude = ['usuario', 'product', 'inventario', 'llenado', 'agregado', 'cantidad_total']
         labels = {
-            'cantidad_estanteria'  : 'Und. Estanteria (+, -)',
-            'cantidad_bulto'  : 'Und. Bulto (+, -)',
-            'cantidad_suministro'  : 'Und. Suministro (+, -)',
+            # 'cantidad_estanteria'  : 'Und. Estanteria (+, -)',
+            'cantidad_estanteria'  : 'Bodega General (+, -)',
+            
+            # 'cantidad_bulto'  : 'Und. Bulto (+, -)',
+            'cantidad_bulto'  : 'Otras Bodegas (+, -)',
+            
+            # 'cantidad_suministro'  : 'Und. Suministro (+, -)',
+            'cantidad_suministro'  : 'Bodega Suministro (+, -)',
+            
             'observaciones':'Observaciones',
         }
         # help_texts = {

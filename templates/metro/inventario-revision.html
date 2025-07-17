@@ -282,9 +282,11 @@
                 // esconder orden y revisión
                 document.querySelector('label[for="id_orden"]').style.display = 'none';
                 document.getElementById('id_orden').style.display = 'none'
-                // document.querySelector('label[for="id_revisado"]').style.display = 'none';
-                // document.getElementById('id_revisado').style.display = 'none'
-                document.querySelector('label[for="id_revisado"]').classList.add('mt-2', 'fw-bold', 'fs-6');
+                
+                document.querySelector('label[for="id_revisado"]').style.display = 'none';
+                document.getElementById('id_revisado').style.display = 'none';
+                document.getElementById('id_revisado').checked = true;
+                // document.querySelector('label[for="id_revisado"]').classList.add('mt-2', 'fw-bold', 'fs-6');
                 
                 // functions
                 initSumTotal();
