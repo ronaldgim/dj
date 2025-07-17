@@ -7,16 +7,29 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from users.models import UserPerfil, Permiso
 from django.contrib.auth.decorators import login_required
 from datos.views import permisos
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth import logout
+from django.http import HttpResponseRedirect #JsonResponse
+
 
 # Login View
 class LoginView(auth_views.LoginView):
     template_name = 'users/login.html'
 
 
-# Logout View
-class LogoutView(LoginRequiredMixin, auth_views.LogoutView):
-    template_name = 'users/logout.html'
+# # Logout View
+# class LogoutView(LoginRequiredMixin, auth_views.LogoutView):
+#     template_name = 'users/logout.html'
 
+
+# @api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def logout_view(request):
+    print(request)
+    logout(request)
+    # return JsonResponse({'detail': 'Sesión cerrada correctamente.'}, status=200)
+    return HttpResponseRedirect('/users/login')
 
 @login_required(login_url='login')
 @permisos(['ADMINISTRADOR'], '/wms/home', 'ingresar a Lista de usuarios')
