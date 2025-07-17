@@ -2,7 +2,7 @@
 from django.urls import path
 
 # Object Views
-from users.views import LoginView, LogoutView
+from users.views import LoginView #, LogoutView
 
 # Functions Views
 from users import views
@@ -17,12 +17,14 @@ urlpatterns = [
         name  = 'login'
     ),
     
-    # Logout
-    path(
-        route = 'logout/',
-        view  = LogoutView.as_view(),
-        name  = 'logout'
-    ),
+    # # Logout
+    # path(
+    #     route = 'logout/',
+    #     view  = LogoutView.as_view(),
+    #     name  = 'logout'
+    # ),
+    
+    path('logout/', views.logout_view, name='logout'),
     
     path(
         route = 'list/',
