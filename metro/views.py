@@ -115,7 +115,7 @@ def metro_cambiar_orden_productos_ajax(request):
 @login_required(login_url='login')
 def metro_inventarios_list(request):
     
-    inventarios = Inventario.objects.all().order_by('-id')
+    inventarios = Inventario.objects.all().order_by('-id').exclude(id__in=[15,16,17,26])
     
     if request.method == 'POST':
         form = InventarioForm(request.POST)
