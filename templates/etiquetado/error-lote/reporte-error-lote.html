@@ -30,14 +30,14 @@
         Actualizado: {% verbatim %} {{actualizado}} {% endverbatim %}
     </h6>
 
-    <div class="col-4">
+    <!--div class="col-4">
         <input v-model="filtro" placeholder="Buscar..." type="text" class="form-control">
-    </div>
+    </div-->
 
     <div class="card mt-2 mb-4">
         <div class="card-body">
             <div class="table-responsive"> 
-                <table class="table">
+                <table class="table" id="error-lote">
                     <thead>
                         <tr>
                             <th scope="col">Código</th>
@@ -61,19 +61,21 @@
                             <td>{{i.nombre}}</td>
                             <td>{{i.marca}}</td>
                             <td class="text-end">
-                                <span v-if="i.unds_total == 0">-</span>
-                                <span v-else>{{i.unds_total.toLocaleString()}}</span>
+                                <!--span v-if="i.unds_total == 0">-</span>
+                                <span v-else>{{i.unds_total.toLocaleString()}}</span-->
+                                {{i.unds_total.toLocaleString()}}
                             </td>
-                            <!--td class="text-end">{{i.unds_lotes.toLocaleString()}}</td-->
-                            <!--td class="text-end">{{i.unds_transf.toLocaleString()}}</td-->
-                            <td class="text-end">
+                            <td class="text-end">{{i.unds_lotes.toLocaleString()}}</td>
+                            <td class="text-end">{{i.unds_transf.toLocaleString()}}</td>
+                            <!--td class="text-end">
                                 <span v-if="i.unds_total_mas_transf == 0">-</span>
                                 <span v-else>{{i.unds_total_mas_transf.toLocaleString()}}<span>
                             </td>
                             <td class="text-end">
                                 <span v-if="i.unds_diff == 0">-</span>
                                 <span v-else>{{i.unds_diff.toLocaleString()}}</span>
-                            </td>
+                                    {{i.unds_diff.toLocaleString()}}
+                            </td-->
                             <td class="text-end">{{i.commited_negativo}}</td>
                             <td>
                                 <button 
@@ -113,7 +115,10 @@
                         <tbody>
                             {% verbatim %}
                             <tr v-for="i in detalle">
-                                <td>{{i.lote_id}} <i v-if="i.error" style="color:red" class="bi bi-exclamation-triangle-fill"></i></td>
+                                <td>{{i.lote_id}} 
+                                    <i v-if="i.error" style="color:red" class="bi bi-exclamation-triangle-fill"></i>
+                                    <i v-if="i.commited_negativo == 'SI'" style="color:red" class="bi bi-exclamation-triangle-fill"></i>
+                                </td>
                                 <td class="text-end">{{i.oh.toLocaleString()}}</td>
                                 <td class="text-end">{{i.oh2.toLocaleString()}}</td>
                                 <!--td class="text-end">{{i.oh_transf.toLocaleString()}}</td-->
@@ -155,6 +160,56 @@
         },
         mounted(){            
             this.getReporteData();
+            this.$nextTick(() => {
+                $('#error-lote').DataTable({
+                    order: [],
+                    searching: true,
+                    paging: false,
+                    info: false,
+                    language: {
+                        search: "Buscar:", 
+                    },
+                    initComplete: function () {
+                        // 🔧 Modifica el input de búsqueda
+                        const input = $('div.dataTables_filter input');
+                        input.addClass('form-control form-control-sm'); 
+                        // input.attr('placeholder', 'Escribe para filtrar...');
+                    },
+                    columnDefs: [
+                        { targets: [-1], orderable: false },
+                        { targets: [3, 4, 5], type: 'num' },
+                        { targets: [1, 2, 3, 5, 6], type: 'string' },
+                    ]
+                });
+            });
+        },
+        watch: {
+            reporteFiltrado() {
+                this.$nextTick(() => {
+                    // const table = $('#error-lote').DataTable();
+                    // table.clear().destroy();
+                    $('#error-lote').DataTable({ 
+                        order: [],
+                        searching: true,
+                        paging: false,
+                        info: false,
+                        language: {
+                            search: "Buscar:", 
+                        },
+                        // initComplete: function () {
+                        //     // 🔧 Modifica el input de búsqueda
+                        //     const input = $('div.dataTables_filter input');
+                        //     input.addClass('form-control form-control-sm'); 
+                        //     // input.attr('placeholder', 'Escribe para filtrar...');
+                        // },
+                        columnDefs: [
+                            { targets: [-1], orderable: false },
+                            { targets: [3, 4, 5], type: 'num' },
+                            { targets: [1, 2, 3, 5, 6], type: 'string' },
+                        ]
+                    });
+                });
+            }
         },
         computed:{
             reporteFiltrado() {
@@ -165,6 +220,7 @@
                 )
             }
         },
+
         methods:{
             async getReporteData() {
                 this.cargandoReporte = true;
@@ -206,4 +262,31 @@
         }
     })
 </script>
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.css" />  
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.js"></script>
+
+<!--script>
+    $(document).ready(function(){
+        $('#error-lote').DataTable({
+            //"ordering":true,
+            "order": [],
+            "searching": false,
+            "paging": false,
+            "info": false,
+            "columnDefs": [
+                // Deshabilitar ordenamiento en la primera columna (::) y la última columna (Acciones)
+                // { targets: [0, -1], orderable: false },
+                { targets: [-1], orderable: false },
+                // Ordenar como números
+                { targets: [3, 4, 5], type: 'num' }, // Orden, Consignación, Und.Estanteria, Und.Bulto, Und.Suministro, Und.Total
+                // Ordenar como texto
+                { targets: [1, 2, 3, 5, 6], type: 'string' }, // Códigos, Nombres, Marca, Ubicación, Llenado, Usuario, Observaciones
+                // Ejemplo: ocultar columna "Marca" (índice 6)
+                // { targets: [6], visible: false }
+            ]
+        });
+    });
+</script-->
+
 {% endblock %}
