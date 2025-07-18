@@ -105,6 +105,11 @@ class Inventario(models.Model):
             return f"{hours:02d}:{minutes:02d}"
         else:
             return "--:--"
+    
+    @property
+    def usuario_tf(self):
+        toma = self.tomafisica_set.exclude(usuario=None).order_by('actualizado').last()
+        return toma.usuario if toma else None
 
 
 

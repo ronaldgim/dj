@@ -78,6 +78,7 @@
                         <th scope="col">Avance</th>
                         <th scope="col">Creado</th>
                         <th scope="col">Usuario</th>
+                        <th scope="col">Usuario T.F</th>
                         <th scope="col">Acciones</th>
                     </tr>
                 </thead>
@@ -103,9 +104,10 @@
                         </td-->
                         <td>
                             <span
+                                style="font-size:12px"
                                 class="
                                     badge 
-                                    fs-6
+                                    rounded-pill
                                     {% if i.estado_tf == 'CREADO' %} 
                                         bg-primary 
                                     {% elif i.estado_tf == 'EN PROCESO' %} 
@@ -127,8 +129,9 @@
                         <td class="text-end">{{i.avance}} %</td>
                         <td>{{i.creado|date:'Y-m-d H:m'}}</td>
                         <td>{{i.usuario.first_name}} {{i.usuario.last_name}}</td>
+                        <td>{{i.usuario_tf.first_name}} {{i.usuario_tf.last_name}}</td>
                         <td>
-                            <div class="btn-group" role="group" aria-label="Basic example">
+                            <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
                                 <button 
                                     class="btn btn-sm btn-white border"
                                     data-inventario-id="{{ i.id }}" 
