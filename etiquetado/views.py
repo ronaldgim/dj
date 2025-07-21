@@ -2840,7 +2840,7 @@ login_required(login_url='login')
 def control_guias_list(request):
     
     ventas_fac = ventas_facturas_odbc()[['NOMBRE_CLIENTE', 'CODIGO_FACTURA', 'FECHA_FACTURA']] 
-    clientes = clientes_warehouse()[['NOMBRE_CLIENTE','CIUDAD_PRINCIPAL', 'CLIENT_TYPE']]
+    clientes = clientes_warehouse()[['NOMBRE_CLIENTE','CIUDAD_PRINCIPAL', 'CLIENT_TYPE', 'IDENTIFICACION_FISCAL']]
     
     # Ventas factura
     ventas_fac = ventas_fac.drop_duplicates(subset=['CODIGO_FACTURA'])
@@ -2920,8 +2920,14 @@ def control_guias_list(request):
         rep_df = pd.DataFrame(rep)
         
         rep_df['Registrado por'] = rep_df['user__user__first_name'] + ' ' + rep_df['user__user__last_name']
+        
+        rep_df = rep_df.merge(clientes, left_on='cliente', right_on='NOMBRE_CLIENTE', how='left').fillna('')
+        
         rep_df = rep_df.rename(columns={
-            'cliente':'Cliente',            
+            'cliente':'Cliente',    
+            'IDENTIFICACION_FISCAL':'Ruc',
+            'CIUDAD_PRINCIPAL':'Ciudad',
+            'CLIENT_TYPE':'Tipo',
             'factura':'N°. Factura',
             'factura_c':'N°. Factura GIM',
             'fecha_factura':'Fecha Factura',
@@ -2935,6 +2941,9 @@ def control_guias_list(request):
         
         rep_df = rep_df[[
             'Cliente',
+            'Ruc',
+            'Ciudad',
+            'Tipo',
             'N°. Factura',
             'N°. Factura GIM',
             'Fecha Factura',
