@@ -4,7 +4,7 @@ import uvicorn
 if __name__ == "__main__":
     uvicorn.run(
         "gimpromed.asgi:application",
-        host="0.0.0.0",
+        host="172.16.28.17",
         port=8000,
         workers=4,
         log_level="info",
