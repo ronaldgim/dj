@@ -1611,7 +1611,7 @@ def comprobar_ajuste_egreso(codigo, lote, estado, fecha_cadu, ubicacion, und_egr
 @login_required(login_url='login')
 @permisos(['ADMINISTRADOR','OPERACIONES'], '/wms/home', 'ingresar a Ajustes')
 def wms_movimiento_ajuste(request): #OK
-    print('asdfadf')
+    
     if request.method == 'POST':
         tipo = request.POST['tipo']
 
