@@ -802,11 +802,6 @@
                 }
 
                 bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
-                
-                // setTimeout(function() {
-                //     document.getElementById('inputbuscar').value = '';
-                //     location.reload();
-                // }, 2000)
 
                 msg_alert('success', `✔ Toma física del producto ${row.querySelector('.codigo_gim').textContent} Ok !!!`);
 
@@ -830,16 +825,12 @@
         event.preventDefault();
 
         const url = `/metro/revision-check/${tf_id}`
-        // const form = document.getElementById('form-edit');
-        // const url = form.action;
-        // const formData = new FormData(form);
 
         fetch(url, {
             method: "POST",
             headers: {
                 'X-CSRFToken': obtenerCSRFToken()
             },
-            // body: formData
         })
         .then(async response => {
             const contentType = response.headers.get("content-type");
@@ -861,14 +852,11 @@
                 const toma = data.toma_fisica;
                 console.log(data.toma_fisica);
                 const row = document.querySelector(`#row-${toma.id}`);
-                // row.style.backgroundColor = '#BAF690';
                 if (row) {
                     row.querySelector('.estanteria').textContent = toma.cantidad_estanteria;
                     row.querySelector('.bulto').textContent = toma.cantidad_bulto;
                     row.querySelector('.suministro').textContent = toma.cantidad_suministro;
                     row.querySelector('.total').textContent = toma.cantidad_total;
-
-                    // Puedes actualizar más campos aquí si están disponibles en data.toma_fisica
                 }
 
                 if(toma.revisado) {
@@ -893,8 +881,6 @@
 </script>
 
 <script src="{% static 'js/metro/metro.js' %}"></script>
-<!--script src="/static/js/metro/metro.js"></script-->
-
 
 <!-- Ordenable -->
 <!-- jQuery y jQuery UI -->
