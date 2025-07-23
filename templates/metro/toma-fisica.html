@@ -823,7 +823,7 @@
 
                 bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
 
-                msg_alert('success', `✔ Toma física del producto ${data.toma_fisica.codigo_gim} datos existosa !!!`);
+                msg_alert('success', `✔ Toma física del producto ${row.querySelector('.codigo_gim').textContent} Ok !!!`);
 
             } else if (data.cerrado) {
                 bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();

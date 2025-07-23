@@ -440,3 +440,27 @@ def metro_cambiar_orden_revision_ajax(request):
         return JsonResponse({
             'msg':'ok'
         })
+
+
+@csrf_exempt
+@login_required(login_url='login')
+def revision_check(request, id):
+    
+    # Obtener el producto o devolver 404 si no existe
+    toma_fisica = get_object_or_404(TomaFisica, id=id)
+    
+    if request.method == 'POST':
+        
+        if toma_fisica.inventario.estado_inv == 'CERRADO':
+            return JsonResponse({
+                'cerrado':True,
+            })
+        
+        toma_fisica.revisado = True
+        toma_fisica.save()
+        
+        return JsonResponse({
+                'success': True,
+                'message': 'Toma física exitosa.',
+                'toma_fisica':model_to_dict(toma_fisica)
+            })
