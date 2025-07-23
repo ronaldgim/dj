@@ -7,7 +7,7 @@
 {% include 'etiquetado/topnavbar.html' %}
 {% endblock %}
 
-{% block body_2 %}
+{% block body %}
 <div id="app">
 
     <div class="text-center mt-4 mb-4">
@@ -34,60 +34,63 @@
         <input v-model="filtro" placeholder="Buscar..." type="text" class="form-control">
     </div-->
 
+    <span class="fw-bold"># Productos:</span> <span>{% verbatim %} {{ len_productos }} {% endverbatim %}</span>
     <div class="card mt-2 mb-4">
         <div class="card-body">
             <div class="table-responsive"> 
-                <table class="table" id="error-lote">
-                    <thead>
-                        <tr>
-                            <th scope="col">Código</th>
-                            <th scope="col">Nombre</th>
-                            <th scope="col">Marca</th>
-                            <th scope="col">Total Agrupado (OH)</th>
-                            <th scope="col">Total Lotes (OH2)</th>
-                            <!--th scope="col">Tranferencia (OH)</th-->
-                            <!--th scope="col">Total L+T</th-->
-                            <th scope="col">Diferencia</th>
-                            <th scope="col">Commited (-)</th>
-                            <th scope="col">Lotes</th>
-                        </tr>
-                    </thead>
-                    
-                    <tbody>
-                        {% verbatim %}
-                        <!--tr v-for="i in reporte"-->
-                        <tr v-for="i in reporteFiltrado">
-                            <td>{{i.product_id}}</td>
-                            <td>{{i.nombre}}</td>
-                            <td>{{i.marca}}</td>
-                            <td class="text-end">
-                                <!--span v-if="i.unds_total == 0">-</span>
-                                <span v-else>{{i.unds_total.toLocaleString()}}</span-->
-                                {{i.unds_total.toLocaleString()}}
-                            </td>
-                            <td class="text-end">{{i.unds_lotes.toLocaleString()}}</td>
-                            <td class="text-end">{{i.unds_transf.toLocaleString()}}</td>
-                            <!--td class="text-end">
-                                <span v-if="i.unds_total_mas_transf == 0">-</span>
-                                <span v-else>{{i.unds_total_mas_transf.toLocaleString()}}<span>
-                            </td>
-                            <td class="text-end">
-                                <span v-if="i.unds_diff == 0">-</span>
-                                <span v-else>{{i.unds_diff.toLocaleString()}}</span>
-                                    {{i.unds_diff.toLocaleString()}}
-                            </td-->
-                            <td class="text-end">{{i.commited_negativo}}</td>
-                            <td>
-                                <button 
-                                    class="btn btn-sm btn-primary" @click="getDetalleLote(i.product_id)"
-                                    data-bs-toggle="modal" data-bs-target="#exampleModal">
-                                    <i class="bi bi-box2"></i> Lotes
-                                </button>
-                            </td>
-                        </tr> 
-                        {% endverbatim %}
-                    </tbody>
-                </table>
+                <div style="max-height: 60vh; overflow-y: auto;">
+                    <table class="table table-hover" id="error-lote">
+                        <thead class="table-info" style="position: sticky; top: 0; z-index: 2;">
+                            <tr>
+                                <th scope="col">Código</th>
+                                <th scope="col">Nombre</th>
+                                <th scope="col">Marca</th>
+                                <th scope="col">Total Agrupado (OH)</th>
+                                <th scope="col">Total Lotes (OH2)</th>
+                                <!--th scope="col">Tranferencia (OH)</th-->
+                                <!--th scope="col">Total L+T</th-->
+                                <th scope="col">Diferencia</th>
+                                <th scope="col">Commited (-)</th>
+                                <th scope="col">Lotes</th>
+                            </tr>
+                        </thead>
+                        
+                        <tbody>
+                            {% verbatim %}
+                            <!--tr v-for="i in reporte"-->
+                            <tr v-for="i in reporteFiltrado">
+                                <td>{{i.product_id}}</td>
+                                <td>{{i.nombre}}</td>
+                                <td>{{i.marca}}</td>
+                                <td class="text-center">
+                                    <!--span v-if="i.unds_total == 0">-</span>
+                                    <span v-else>{{i.unds_total.toLocaleString()}}</span-->
+                                    {{i.unds_total.toLocaleString()}}
+                                </td>
+                                <td class="text-center">{{i.unds_lotes.toLocaleString()}}</td>
+                                <td class="text-center">{{i.unds_transf.toLocaleString()}}</td>
+                                <!--td class="text-end">
+                                    <span v-if="i.unds_total_mas_transf == 0">-</span>
+                                    <span v-else>{{i.unds_total_mas_transf.toLocaleString()}}<span>
+                                </td>
+                                <td class="text-end">
+                                    <span v-if="i.unds_diff == 0">-</span>
+                                    <span v-else>{{i.unds_diff.toLocaleString()}}</span>
+                                        {{i.unds_diff.toLocaleString()}}
+                                </td-->
+                                <td class="text-center">{{i.commited_negativo}}</td>
+                                <td>
+                                    <button 
+                                        class="btn btn-sm btn-primary" @click="getDetalleLote(i.product_id)"
+                                        data-bs-toggle="modal" data-bs-target="#exampleModal">
+                                        <i class="bi bi-box2"></i> Lotes
+                                    </button>
+                                </td>
+                            </tr> 
+                            {% endverbatim %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -140,11 +143,12 @@
     new Vue({
         el:'#app',
         data:{
-            // FILTRO
+            // filtro
             filtro:'',
-
+            // actualizado
             actualizado:'',
-
+            // len of data
+            len_productos:'',
             // reporte
             cargandoReporte:false,
             errorReporte:false,
@@ -172,7 +176,7 @@
                     initComplete: function () {
                         // 🔧 Modifica el input de búsqueda
                         const input = $('div.dataTables_filter input');
-                        input.addClass('form-control form-control-sm'); 
+                        input.addClass('form-control form-control-sm mb-4'); 
                         // input.attr('placeholder', 'Escribe para filtrar...');
                     },
                     columnDefs: [
@@ -233,6 +237,7 @@
                     // console.log(data);
                     this.reporte = data.data || [];
                     this.actualizado = new Date(data.actualizado).toLocaleString('es-EC');
+                    this.len_productos = data.data.length || 0;
                 } catch (error) {
                     this.errorReporte = true;
                     this.errorReporteData = error
