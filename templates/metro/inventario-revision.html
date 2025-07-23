@@ -205,10 +205,17 @@
                                         >
                                         <i class="bi bi-boxes"></i>
                                     </button>
+                                    <button 
+                                        class="btn btn-sm btn-light revisado-btn mt-2
+                                            {% if inventario.estado_inv == 'CERRADO' %} disabled {% endif %}
+                                        "
+                                        data-product-id="{{ i.id }}" 
+                                        onclick="btn_revisado('{{i.id}}')"
+                                        >
+                                        <i class="bi bi-check-circle-fill" style="color:green"></i>
+                                    </button>
                                 </div>
-                                {% if i.revisado %}
-                                <i class="bi bi-check-circle-fill" style="color:green"></i>
-                                {% endif %}
+
                             </td>
                         </tr>
                         {% endfor %}
@@ -801,10 +808,76 @@
                 //     location.reload();
                 // }, 2000)
 
-                msg_alert('success', `✔ Toma física del producto ${data.toma_fisica.codigo_gim} datos existosa !!!`);
+                msg_alert('success', `✔ Toma física del producto ${row.querySelector('.codigo_gim').textContent} Ok !!!`);
 
             } else if (data.cerrado) {
                 bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+                msg_alert('danger', `❌ El Inventario ha sido CERRADO !!!`);
+                setTimeout(function() {
+                    location.reload();
+                }, 5000)
+            } else {
+                msg_alert('danger', `❌ Error al guardar !!!`);
+            }
+        })
+        .catch(error => {
+            msg_alert('danger', `❌ Error ${error.message} !!!`);
+        });
+    }
+
+    // post revisión
+    function btn_revisado(tf_id) {
+        event.preventDefault();
+
+        const url = `/metro/revision-check/${tf_id}`
+        // const form = document.getElementById('form-edit');
+        // const url = form.action;
+        // const formData = new FormData(form);
+
+        fetch(url, {
+            method: "POST",
+            headers: {
+                'X-CSRFToken': obtenerCSRFToken()
+            },
+            // body: formData
+        })
+        .then(async response => {
+            const contentType = response.headers.get("content-type");
+
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`Error HTTP ${response.status}: ${text}`);
+            }
+
+            if (contentType && contentType.includes("application/json")) {
+                return await response.json();
+            } else {
+                const text = await response.text();
+                throw new Error("La respuesta no es JSON válida: " + text);
+            }
+        })
+        .then(data => {
+            if (data.success) {
+                const toma = data.toma_fisica;
+                console.log(data.toma_fisica);
+                const row = document.querySelector(`#row-${toma.id}`);
+                // row.style.backgroundColor = '#BAF690';
+                if (row) {
+                    row.querySelector('.estanteria').textContent = toma.cantidad_estanteria;
+                    row.querySelector('.bulto').textContent = toma.cantidad_bulto;
+                    row.querySelector('.suministro').textContent = toma.cantidad_suministro;
+                    row.querySelector('.total').textContent = toma.cantidad_total;
+
+                    // Puedes actualizar más campos aquí si están disponibles en data.toma_fisica
+                }
+
+                if(toma.revisado) {
+                    row.style.backgroundColor = '#BAF690';
+                } else {
+                    row.style.backgroundColor = '';
+                }
+                msg_alert('success', `✔ Revisión de toma física del producto ${row.querySelector('.codigo_gim').textContent} Ok !!!`);
+            } else if (data.cerrado) {
                 msg_alert('danger', `❌ El Inventario ha sido CERRADO !!!`);
                 setTimeout(function() {
                     location.reload();

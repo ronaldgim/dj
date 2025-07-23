@@ -79,4 +79,10 @@ urlpatterns = [
         view = views.metro_cambiar_orden_revision_ajax,
         name = 'metro_cambiar_orden_revision_ajax'
     ),
+    
+    path(
+        route = 'revision-check/<int:id>',
+        view = views.revision_check,
+        name = 'revision_check'
+    ),
 ]
