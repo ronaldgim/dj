@@ -151,9 +151,9 @@ from datos.views import (
     
     # Extraer número de factura
     extraer_numero_de_factura,
-    
-    inventario_transferencia_data
     )
+
+from etiquetado.transferencia_data import inventario_transferencia_data
 
 
 from api_mba.tablas_warehouse import (
