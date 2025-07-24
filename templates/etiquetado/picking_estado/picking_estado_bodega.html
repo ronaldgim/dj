@@ -105,6 +105,9 @@
                         <td scope="row">
                             
                             <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#exampleModal" name='lotes'>{{i.PRODUCT_ID}}</button>                            
+                            {% if i.error_lote %}
+                            <i class="bi bi-exclamation-triangle-fill" style="color:red"></i>
+                            {% endif %}
                             <br>
                             
                             <span id="nombre">{{i.PRODUCT_NAME}}</span><br>
@@ -154,9 +157,7 @@
                 <h5 class="modal-title" id="exampleModalLabel"></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
-                
-            </div>
+            <div class="modal-body"></div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                 <!--button type="button" class="btn btn-primary">Save changes</button-->
@@ -185,23 +186,54 @@
             },
             
             success: function(response) {
-                
-                // titulo
-                $(".modal-title").html(`Stock de bodega: ${bodega}`);
-
-                // item
+                // Update modal with response data
+                $(".modal-title").html('Stock bodega: ' + bodega);
+                // $(".modal-body").html(response);
                 $(".modal-body").html(`
                 <span class="fw-bold">Item:</span> ${product_id} - ${nombre} - ${marca} <br> 
                 <span class="fw-bold">Unds:</span> ${p_unds} <br> 
-                <span class="fw-bold">Ubicación(es):</span> ${response.ubicaciones} <br> ${response.table}`);
+                <span class="fw-bold">Ubicación(es):</span> ${response.ubicaciones} <br>
+                
+                <table class="table table-lotes">
+                    <thead>
+                        <th>Ubicación</th>
+                        <th>Lote</th>
+                        <th>Caducidad</th>
+                        <th>Unds</th>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>                
+                `);
 
-                if ($("#lotes tbody tr").length===0){
-                    $('.modal-body').append('No hay lotes registrados');
+                let lotes = response.table || [];
+                if (lotes.length > 0) {
+                    lotes.forEach(function(row) {
+                        let error_icon = '';
+                        if (row.error_lote) {
+                            error_icon = '<i class="bi bi-exclamation-triangle-fill" style="color:red"></i>';
+                        }
+                        $(".table-lotes tbody").append(`
+                            <tr>
+                                <td>${error_icon} ${row.Ubicación}</td>
+                                <td>${row.Lote}</td>
+                                <td>${row.Caducidad}</td>
+                                <td class="text-end">${row.Unds.toLocaleString()}</td>
+                            </tr>
+                        `);
+                    });
+                } else {
+                    $(".table-lotes tbody").append(`
+                        <tr class="text-center">
+                            <td colspan="4">No hay lotes registrados.</td>
+                        </tr>
+                    `);
                 }
             },
 
-            error: function() {
-                $(".modal-title").html('Error, Intenta nuevamente !!!');
+            error: function(error) {
+                console.error(error)
+                $(".modal-title").html('Error, intente nuevamente !!!');
                 $(".modal-body").html('...');
             }
         })
@@ -213,24 +245,6 @@
     $(document).ready(function() {
         $('#equipo_id').select2();
     })
-</script>
-
-<script>
-    var estado = document.getElementById('estado_id');
-    var equipo = document.getElementById('equipo_id');
-
-    estado.onchange = function(){
-        let estado_change = this.options[this.selectedIndex].text;
-        //console.log(estado_change)
-        if(estado_change == 'EN PROCESO'){
-            equipo.disabled=false;
-            equipo.required=true;
-        }
-        else{
-            equipo.disabled=true;
-            equipo.value = "";
-        }
-    }
 </script>
 
 
