@@ -1525,82 +1525,105 @@ def lista_correos(n_cliente):
     return l_mail
 
 
+def df_error_lote_picking():
+    
+    error_lote = ErrorLoteDetalle.objects.all()
+    if error_lote.exists():
+        error_lote_df = pd.DataFrame(error_lote.values('product_id', 'lote_id'))
+        error_lote_df['error_lote'] = True
+        return error_lote_df
+    
+    else:
+        error_lote_df = pd.DataFrame()
+        error_lote_df['product_id'] = ''
+        error_lote_df['lote_id'] = ''
+        error_lote_df['error_lote'] = False
+        return error_lote_df
+
+
 # From
 @login_required(login_url='login')
 @permisos(['BODEGA'], '/etiquetado/wms-andagoya/home', 'cambiar el Estado Picking')
 @csrf_exempt
 def picking_estado_bodega(request, n_pedido):
     
-    estado_picking = EstadoPicking.objects.filter(n_pedido=n_pedido).exists()
-    if estado_picking:
-        est = EstadoPicking.objects.get(n_pedido=n_pedido)
-        estado = est.estado
-        estado_id = est.id
-    else:
-        estado = 'SIN ESTADO'
-        estado_id = ''
-
-    pedido = pedido_por_cliente(n_pedido)
+    try:
     
-    ubicaciones_andagoya = productos_ubicacion_lista_template()
+        estado_picking = EstadoPicking.objects.filter(n_pedido=n_pedido).exists()
+        if estado_picking:
+            est = EstadoPicking.objects.get(n_pedido=n_pedido)
+            estado = est.estado
+            estado_id = est.id
+        else:
+            estado = 'SIN ESTADO'
+            estado_id = ''
 
-    cliente = clientes_table()[['CODIGO_CLIENTE','CLIENT_TYPE']]
-    pedido = pedido.merge(cliente, on='CODIGO_CLIENTE', how='left')
-    p_json = (pedido[['PRODUCT_ID', 'QUANTITY']]).to_dict()
-    p_str = json.dumps(p_json)
-
-    product = productos_odbc_and_django()[['product_id','Unidad_Empaque','Marca']]
-    product = product.rename(columns={'product_id':'PRODUCT_ID','Marca':'marca2'})
-
-    # Merge
-    pedido = pedido.merge(product, on='PRODUCT_ID', how='left')
-    
-    # Calculos
-    pedido['Cartones'] = pedido['QUANTITY'] / pedido['Unidad_Empaque'] 
-    f_pedido = str(pedido['FECHA_PEDIDO'].iloc[0])
-    t_cartones = pedido['Cartones'].sum()
-    t_unidades = pedido['QUANTITY'].sum()
-    
-    data = de_dataframe_a_template(pedido)
-    
-    for i in data:
-        product_id = i['PRODUCT_ID']
-        for j in ubicaciones_andagoya:
-            if j['product_id'] == product_id:
-                #i['ubicaciones'] = j['ubicaciones']
-                ubicaciones = j['ubicaciones']
-                
-                # ubi_estanteria = [ubi for ubi in ubicaciones if ubi.estanteria]
-                ubi_estanteria = sorted([ubi for ubi in ubicaciones if ubi.estanteria], key = lambda x: (x.bodega, x.pasillo, x.modulo, x.nivel))
-                #ubi_no_estanteria = [ubi for ubi in ubicaciones if not ubi.estanteria]
-                ubi_no_estanteria = sorted([ubi for ubi in ubicaciones if not ubi.estanteria], key = lambda x: (x.bodega, x.pasillo, x.modulo, x.nivel))
-                
-                if len(ubi_estanteria) >= 1:
-                    # i['ubicaciones'] = sorted(ubi_estanteria, key = lambda x: (x.bodega, x.pasillo, x.modulo, x.nivel))
-                    i['ubicaciones'] = ubi_estanteria[:1]
-                elif not ubi_estanteria and len(ubi_no_estanteria) >= 1:
-                    # i['ubicaciones'] = sorted(ubi_no_estanteria, key = lambda x: (x.bodega, x.pasillo, x.modulo, x.nivel))
-                    i['ubicaciones'] = ubi_no_estanteria[:1]
-                    
-                break
-    
-    context = {
-        'reservas':data,
-        'pedido':n_pedido,
-
-        'cabecera':data[0],
-        'fecha_pedido': pedido['FECHA_PEDIDO'].iloc[0],
+        pedido = pedido_por_cliente(n_pedido)
         
-        'f_pedido':f_pedido,
-        't_cartones':t_cartones,
-        't_unidades':t_unidades,
-        'detalle':p_str,
-        'estados':['EN PROCESO'],
-        'estado':estado,
-        'estado_id':estado_id
-    }
+        ubicaciones_andagoya = productos_ubicacion_lista_template()
 
-    return render(request, 'etiquetado/picking_estado/picking_estado_bodega.html', context)
+        cliente = clientes_table()[['CODIGO_CLIENTE','CLIENT_TYPE']]
+        pedido = pedido.merge(cliente, on='CODIGO_CLIENTE', how='left')
+        p_json = (pedido[['PRODUCT_ID', 'QUANTITY']]).to_dict()
+        p_str = json.dumps(p_json)
+
+        product = productos_odbc_and_django()[['product_id','Unidad_Empaque','Marca']]
+        product = product.rename(columns={'product_id':'PRODUCT_ID','Marca':'marca2'})
+
+        # Merge
+        pedido = pedido.merge(product, on='PRODUCT_ID', how='left').sort_values('PRODUCT_ID')
+        
+        pedido = pedido.merge(df_error_lote_picking().drop_duplicates(subset='product_id'), left_on='PRODUCT_ID', right_on='product_id', how='left')
+        
+        # Calculos
+        pedido['Cartones'] = pedido['QUANTITY'] / pedido['Unidad_Empaque'] 
+        f_pedido = str(pedido['FECHA_PEDIDO'].iloc[0])
+        t_cartones = pedido['Cartones'].sum()
+        t_unidades = pedido['QUANTITY'].sum()
+        
+        data = de_dataframe_a_template(pedido)
+        
+        for i in data:
+            product_id = i['PRODUCT_ID']
+            for j in ubicaciones_andagoya:
+                if j['product_id'] == product_id:
+                    #i['ubicaciones'] = j['ubicaciones']
+                    ubicaciones = j['ubicaciones']
+                    
+                    # ubi_estanteria = [ubi for ubi in ubicaciones if ubi.estanteria]
+                    ubi_estanteria = sorted([ubi for ubi in ubicaciones if ubi.estanteria], key = lambda x: (x.bodega, x.pasillo, x.modulo, x.nivel))
+                    #ubi_no_estanteria = [ubi for ubi in ubicaciones if not ubi.estanteria]
+                    ubi_no_estanteria = sorted([ubi for ubi in ubicaciones if not ubi.estanteria], key = lambda x: (x.bodega, x.pasillo, x.modulo, x.nivel))
+                    
+                    if len(ubi_estanteria) >= 1:
+                        # i['ubicaciones'] = sorted(ubi_estanteria, key = lambda x: (x.bodega, x.pasillo, x.modulo, x.nivel))
+                        i['ubicaciones'] = ubi_estanteria[:1]
+                    elif not ubi_estanteria and len(ubi_no_estanteria) >= 1:
+                        # i['ubicaciones'] = sorted(ubi_no_estanteria, key = lambda x: (x.bodega, x.pasillo, x.modulo, x.nivel))
+                        i['ubicaciones'] = ubi_no_estanteria[:1]
+                        
+                    break
+        
+        context = {
+            'reservas':data,
+            'pedido':n_pedido,
+
+            'cabecera':data[0],
+            'fecha_pedido': pedido['FECHA_PEDIDO'].iloc[0],
+            
+            'f_pedido':f_pedido,
+            't_cartones':t_cartones,
+            't_unidades':t_unidades,
+            'detalle':p_str,
+            'estados':['EN PROCESO'],
+            'estado':estado,
+            'estado_id':estado_id
+        }
+
+        return render(request, 'etiquetado/picking_estado/picking_estado_bodega.html', context)
+
+    except:
+        return HttpResponseRedirect('/etiquetado/picking/estado')
 
 
 # AJAX - LOTES DE PRODUCTO POR BODEGA
@@ -1610,6 +1633,8 @@ def ajax_lotes_bodega(request):
     bodega     = request.POST['bodega']
     
     lotes = lotes_bodega(bodega, product_id)
+    lotes['product_id'] = product_id
+    lotes = lotes.merge(df_error_lote_picking(), left_on=['product_id', 'Lote'], right_on=['product_id','lote_id'], how='left').fillna('').to_dict('records') 
     
     ubicaciones = ProductoUbicacion.objects.filter(product_id=product_id)
     
@@ -1624,17 +1649,6 @@ def ajax_lotes_bodega(request):
             ubis += span
     else:
         ubis = '<span class="badge bg-secondary" style="font-size:14px">Sin ubicación(es)</span>'
-    
-    if not lotes.empty:
-        lotes['Unds'] = lotes['Unds'].apply(lambda x:'{:,.0f}'.format(x))
-    
-    lotes= lotes.to_html(
-        #float_format='{:,.0f}'.format,
-        classes='table table-responsive table-bordered m-0 p-0', 
-        table_id= 'lotes',
-        index=False,
-        justify='start'
-    )
     
     return JsonResponse({
         'table':lotes,

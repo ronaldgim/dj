@@ -461,7 +461,6 @@ def inventario_transferencia_data():
             error_lote_df['lote_id'] = ''
             error_lote_df['error_lote'] = False
             return error_lote_df
-            
     
     prods = productos_odbc_and_django()[['product_id','Nombre','Marca','Unidad_Empaque','vol_m3']]    
     prods['vol_m3'] = pd.to_numeric(prods['vol_m3'], errors='coerce')
