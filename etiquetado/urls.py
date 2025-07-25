@@ -2,7 +2,7 @@
 from django.urls import path
 
 # Views functions
-from etiquetado import views
+from etiquetado import views, transferencia_data
 
 urlpatterns = [
     
@@ -588,5 +588,12 @@ urlpatterns = [
         view  = views.reporte_error_lote,
         name  = 'reporte_error_lote'
     ),
+    
+    # analisis transferencia data
+    path(
+        route = 'inventario_transferencia_data',
+        view  = transferencia_data.inventario_transferencia_data,
+        name  = 'inventario_transferencia_data'
+    )
 ]
 

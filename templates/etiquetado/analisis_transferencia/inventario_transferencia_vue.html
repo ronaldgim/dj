@@ -1,0 +1,246 @@
+{%extends 'base_vue.html' %}
+
+{% block title %}
+<title>Transferencia</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'inventario/topnavbar.html' %}
+{% endblock %}
+
+{% block body_2 %}
+
+<div id="app">
+
+    <h5 class="m-4 text-center fw-bold">INVENTARIO TRANSFERENCIA</h5>
+    
+    <div class="card">
+        <div class="card-header">STOCK PARA TRANSFERENCIA</div>
+        <div class="card-body">
+            <!--div class="col-4"><input v-model="filtro" placeholder="Buscar..." type="text" class="form-control"></div-->
+            <label class="fw-bold">Código:</label>
+            <div class="col-md-3 col-sm-6">
+                <select v-model="filtro" class="form-select">
+                    <option value="">Todos</option>
+                    <option v-for="producto in product_list" :key="producto" :value="producto">
+                        {% verbatim %}
+                            {{ producto }}
+                        {% endverbatim %}
+                    </option>
+                </select>
+            </div>
+            <div class="mt-2">
+                <button 
+                    @click="limpiarOrden()" 
+                    class="btn btn-sm btn-secondary"
+                    v-if="sortField"
+                >
+                    Limpiar Ordenamiento
+                </button>
+            </div>
+            <div class="table-responsive">
+                <table class="table" id="inv_table" style="font-size: small;">
+                    <thead>
+                        <tr class="text-smaller">
+                            <th><span style="white-space: nowrap;">Código</span></th>
+                            <th><span style="white-space: nowrap;">Nombre</span></th>
+                            <th> <span style="white-space: nowrap;">Marca</span></th>
+                            <th><span style="white-space: nowrap;">Lote</span></th>
+                            <th><span style="white-space: nowrap;">F.Cadu</span></th>
+                            <th><span style="white-space: nowrap;">Bod</span></th>
+                            <th><span style="white-space: nowrap;">BAN</span></th>
+                            <th><span style="white-space: nowrap;">CUC</span></th>
+                            <th style="background-color:#F6B690;"><span style="white-space: nowrap;">BAN-R</span></th>
+                            <th style="background-color:#F6B690;"><span style="white-space: nowrap;">BCT-R</span></th>
+                            <th style="background-color:#E1FFC9;"><span style="white-space: nowrap;">BCT</span></th>
+                            <th style="background-color:#C9FFFD;"><span style="white-space: nowrap;">BCT-D</span></th>
+                            <th><span style="white-space: nowrap;">TRANSF</span></th>
+                            <th><span style="white-space: nowrap;">D.PROD</span></th>
+                            <th><span style="white-space: nowrap;">TOTALES</span></th>
+                            <th><span style="white-space: nowrap;">ACCIONES</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% verbatim %}
+                        <tr v-for="(i, index) in stockFiltrado" :key="index">
+                            <td>{{i.product_id}}</td>
+                            <td class="text-wraped" style="width:100px">{{i.Nombre}}</td>
+                            <td>{{i.Marca}}</td>
+                            <td>
+                                <i v-if="i.error_lote == true" class="bi bi-exclamation-triangle-fill" style="color:red"></i>
+                                {{i.lote_id}}
+                            </td>
+                            <td>{{i.fecha_caducidad}}</td>
+                            <td>{{i.location}}</td>
+                            <td class="text-end">{{i.BAN.toLocaleString()}}</td>
+                            <td class="text-end">{{i.CUC.toLocaleString()}}</td>
+                            <td class="text-end" style="background-color:#F6B690;">{{i.BAN_R.toLocaleString()}}</td>
+                            <td class="text-end" style="background-color:#F6B690;">{{i.BCT_R.toLocaleString()}}</td>
+                            <td style="background-color:#E1FFC9;">
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-start fw-bold">Unds:</span>
+                                    <span class="fw-bold" v-if="i.BCT!=0">{{ i.BCT.toLocaleString() }}</span>
+                                    <span class="fw-bold" v-else>0</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-start fw-bold">Sald:</span>
+                                    <span v-if="i.BCT_S != null || i.BCT_S > 0">{{ i.BCT_S.toLocaleString() }}</span>
+                                    <span v-else>S: 0</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-start fw-bold">Cart:</span>
+                                    <span v-if="i.BCT_C != null || i.BCT_C > 0">{{ i.BCT_C.toLocaleString() }}</span>
+                                    <span v-else>C: 0</span>
+                                </div>                                
+                            </td>
+                            <td style="background-color:#C9FFFD;">
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-start fw-bold">Unds:</span>
+                                    <span class="text-end" v-if="i.BCT_D != 0">{{ i.BCT_D.toLocaleString() }}</span>
+                                    <span class="fw-bold" class="text-end" v-else>0</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-start fw-bold">Sald:</span>
+                                    <span v-if="i.BCT_D_S != null || i.BCT_D_S > 0">{{ i.BCT_D_S.toLocaleString() }}</span>
+                                    <span class="fw-bold" v-else>0</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-start fw-bold">Cart:</span>
+                                    <span v-if="i.BCT_D_C != null || i.BCT_D_C > 0">{{ i.BCT_D_C.toLocaleString() }}</span>
+                                    <span class="fw-bold" v-else>0</span>
+                                </div>
+                            </td>
+                            <td class="text-end">
+                                <!--{{ i.totalUnidades - i.BCT_D }}-->
+                                <div class="d-flex justify-content-between mt-1 pt-2">
+                                    <span class="text-start fw-bold">Sald:</span>
+                                    <input type="number" v-model.number="i.inputSaldos" min="0" style="width:80px"/>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-start fw-bold">Cart:</span>
+                                    <input type="number" v-model.number="i.inputCartones" min="0" style="width:80px">
+                                </div>
+                            </td>
+                            <td class="text-end">
+                                <span>{{ i.Unidad_Empaque }} unds</span> <br>
+                                <span>{{ i.vol_m3.toFixed(3) }} m3</span> <br>
+                                <span>{{ i.Peso.toFixed(3) }} kg</span>
+                            </td>
+                            <td class="text-end">
+                                <span class="text-end fw-bold" style="background-color:#A9FF5E">{{ i.totalUnidades.toLocaleString() }} unds</span> <br>
+                                <span class="text-end">{{ i.vol_unitario.toFixed(3) }} m3</span> <br>
+                                <span class="text-end">{{ i.peso_unitario.toFixed(3) }} kg</span>
+                            </td>
+                            <td class="text-center">
+                                <i v-if="i.llenado_estanteria" style = "color:green;" class="bi bi-check-square-fill"></i>
+                                <i v-else style = "color:red;" class="bi bi-x-square-fill"></i>
+                            </td>
+                        </tr>
+                        {% endverbatim %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            // FILTRO
+            filtro:'',
+            product_list:[],
+            // STOCK
+            actualizandoStock:false,
+            stock:[],
+            total:'',
+            procesados:'',
+            estanteria:'',
+            procesados_bod_est:'',
+            avance:'',
+            ubicaciones:[],
+            avances:[],
+
+            // DB
+            actualizandoDB: false,
+
+            sortField:null,
+            sortDirection:'asc',
+            sotockOrdenado:[],
+        },
+        mounted() {
+            this.getStock();
+            this.$nextTick(() => {
+                $(".form-select").select2();
+            })
+        },
+        computed:{
+            stockFiltrado() {
+                let resultadoFiltrado = this.stock
+                    .map(i => {
+                        // Inicializa campos si no existen
+                        if (i.inputSaldos === undefined) {
+                            // this.$set(i, 'inputSaldos', 0);
+                            this.$set(i, 'inputSaldos');
+                        }
+                        if (i.inputCartones === undefined) {
+                            // this.$set(i, 'inputCartones', 0);
+                            this.$set(i, 'inputCartones');
+                        }
+                        // Calcular totalUnidades siempre que inputCartones o inputSaldos cambien
+                        const inputCartones = Number(i.inputCartones) || 0;
+                        const unidadEmpaque = Number(i.Unidad_Empaque) || 0;
+                        const inputSaldos = Number(i.inputSaldos) || 0;
+                        i.totalUnidades = (inputCartones * unidadEmpaque) + inputSaldos;
+                        const totalUnidades = Number(i.totalUnidades) || 0;
+                        const vol_m3 = Number(i.vol_m3) || 0.025;
+                        const cartones = totalUnidades / Number(i.Unidad_Empaque);
+                        i.vol_unitario = cartones * vol_m3
+                        const peso = Number(i.Peso) || 0
+                        i.peso_unitario = cartones * peso;
+                        return i;
+                    })
+                    .filter(i => {
+                        if (!this.filtro) return true;
+                        const productId = (i.product_id || '').toString().toLowerCase();
+                        return productId === this.filtro.toLowerCase();
+                    });
+
+                this.$nextTick(() => {
+                    $(".form-select").off('change').on('change', (e) => {
+                        this.filtro = e.target.value;
+                    });
+                });
+
+                return resultadoFiltrado;
+            }
+        },
+        methods: {
+            async getStock() {
+                this.actualizandoStock = true;
+                try {
+                    const response = await fetch('/etiquetado/inventario_transferencia_data');
+                    const data = await response.json();
+                    // Actualizar datos
+                    this.stock = data.data || [];
+                    this.product_list = data.product_list || [];
+                    this.$nextTick(() => {
+                        $(".form-select").select2();
+                    })
+                } catch (error) {
+                    console.error(error);
+                } finally {
+                    this.actualizandoStock = false
+                }
+            },
+            colorDiferencia(diff) {
+                if (diff != 0){
+                    return '#F6B690'
+                }
+            },
+        },
+    })
+</script>
+{% endblock %}

@@ -11,10 +11,19 @@ import numpy as np
 from wms.models import Existencias
 
 # Data
-from datos.views import frecuancia_ventas, productos_odbc_and_django, stock_de_seguridad, clientes_warehouse
+from datos.views import (
+    frecuancia_ventas, 
+    productos_odbc_and_django, 
+    stock_de_seguridad, 
+    clientes_warehouse,
+    de_dataframe_a_template
+)
 
 # Error lote
 from datos.models import ErrorLoteDetalle
+
+# http
+from django.http import JsonResponse
 
 def stock_andagoya(): 
     
@@ -316,7 +325,7 @@ def sugerencia():
 
 
 ### DATOS PARA TRANSFERENCIA
-def inventario_transferencia_data():
+def inventario_transferencia_data(request):
     
     def df_stock_andagoya():
         with connections['gimpromed_sql'].cursor() as cursor:
@@ -462,7 +471,7 @@ def inventario_transferencia_data():
             error_lote_df['error_lote'] = False
             return error_lote_df
     
-    prods = productos_odbc_and_django()[['product_id','Nombre','Marca','Unidad_Empaque','vol_m3']]    
+    prods = productos_odbc_and_django()[['product_id','Nombre','Marca','Unidad_Empaque','vol_m3', 'Peso']]    
     prods['vol_m3'] = pd.to_numeric(prods['vol_m3'], errors='coerce')
     prods['vol_m3'] = prods['vol_m3'].fillna(0.025)
     prods['vol_m3'] = prods['vol_m3'].replace(0, 0.025)
@@ -489,6 +498,10 @@ def inventario_transferencia_data():
     data = data.sort_values(by=['product_id','fecha_caducidad','bodega'], ascending=[True,True,True])
     data = data.merge(df_error_lote(), on=['product_id','lote_id'], how='left')
     data['error_lote'] = data['error_lote'].fillna(False)
+    data.fillna(0)
     
-    return data
+    return JsonResponse({
+        'data': de_dataframe_a_template(data),
+        'product_list':list(data['product_id'].unique())
+        })
 
