@@ -4081,54 +4081,60 @@ def editar_pedido_temporal(request):
             return redirect(reverse('pedido_temporal', kwargs={'pedido_id': pedido.id}))
 
 
-### INVETARIO TRANSFERENCIA
-def inventario_transferencia(request):
+# ### INVETARIO TRANSFERENCIA
+# def inventario_transferencia(request):
     
-    transf_list = TransfCerAnd.objects.all().order_by('-id')[:5]
-    transf_activas = TransfCerAnd.objects.filter(activo=True).order_by('-id')
-    data = inventario_transferencia_data()
+#     transf_list = TransfCerAnd.objects.all().order_by('-id')[:5]
+#     transf_activas = TransfCerAnd.objects.filter(activo=True).order_by('-id')
+#     data = inventario_transferencia_data()
     
-    querysets_transf = [transferencia.productos.all() for transferencia in transf_activas]
-    if querysets_transf and len(querysets_transf) > 1:
-        todos_productos = list(chain(*querysets_transf))
-        productos_dict = [model_to_dict(producto) for producto in todos_productos]
-        data_transf = pd.DataFrame(productos_dict)
-        data_transf = data_transf.groupby(by=['product_id','lote_id','bodega'])[['cartones','saldos','unidades','reservas']].sum().reset_index()
-        data_transf = data_transf.rename(columns={'product_id':'PRODUCT_ID','lote_id':'LOTE_ID','bodega':'LOCATION'})
-        data = data.merge(data_transf, on=['PRODUCT_ID','LOTE_ID','LOCATION'], how='left').sort_values(
-            by=['PRODUCT_ID','FECHA_CADUCIDAD','BODEGA'], ascending=[True,True,True]
-        )
+#     querysets_transf = [transferencia.productos.all() for transferencia in transf_activas]
+#     if querysets_transf and len(querysets_transf) > 1:
+#         todos_productos = list(chain(*querysets_transf))
+#         productos_dict = [model_to_dict(producto) for producto in todos_productos]
+#         data_transf = pd.DataFrame(productos_dict)
+#         data_transf = data_transf.groupby(by=['product_id','lote_id','bodega'])[['cartones','saldos','unidades','reservas']].sum().reset_index()
+#         data_transf = data_transf.rename(columns={'product_id':'PRODUCT_ID','lote_id':'LOTE_ID','bodega':'LOCATION'})
+#         data = data.merge(data_transf, on=['PRODUCT_ID','LOTE_ID','LOCATION'], how='left').sort_values(
+#             by=['PRODUCT_ID','FECHA_CADUCIDAD','BODEGA'], ascending=[True,True,True]
+#         )
         
-    elif len(querysets_transf) == 1 and querysets_transf[0].exists():
-        todos_productos = list(chain(*querysets_transf))
-        productos_dict = [model_to_dict(producto) for producto in todos_productos]
-        data_transf = pd.DataFrame(productos_dict)
-        data_transf = data_transf.rename(columns={'product_id':'PRODUCT_ID','lote_id':'LOTE_ID','bodega':'LOCATION'})
-        data = data.merge(data_transf, on=['PRODUCT_ID','LOTE_ID','LOCATION'], how='left').sort_values(
-            by=['unidades','PRODUCT_ID','FECHA_CADUCIDAD','BODEGA'], ascending=[True,True,True,True]
-        )
-        data['id'] = data['id'].astype('str')
+#     elif len(querysets_transf) == 1 and querysets_transf[0].exists():
+#         todos_productos = list(chain(*querysets_transf))
+#         productos_dict = [model_to_dict(producto) for producto in todos_productos]
+#         data_transf = pd.DataFrame(productos_dict)
+#         data_transf = data_transf.rename(columns={'product_id':'PRODUCT_ID','lote_id':'LOTE_ID','bodega':'LOCATION'})
+#         data = data.merge(data_transf, on=['PRODUCT_ID','LOTE_ID','LOCATION'], how='left').sort_values(
+#             by=['unidades','PRODUCT_ID','FECHA_CADUCIDAD','BODEGA'], ascending=[True,True,True,True]
+#         )
+#         data['id'] = data['id'].astype('str')
         
-    data = de_dataframe_a_template(data)
+#     data = de_dataframe_a_template(data)
     
-    if request.method == 'POST':
-        form = TransfCerAndForm(request.POST)
-        if form.is_valid():
-            n_trans = form.save()
-            trasf = TransfCerAnd.objects.exclude(id=n_trans.id)
-            trasf.update(activo=False)
+#     if request.method == 'POST':
+#         form = TransfCerAndForm(request.POST)
+#         if form.is_valid():
+#             n_trans = form.save()
+#             trasf = TransfCerAnd.objects.exclude(id=n_trans.id)
+#             trasf.update(activo=False)
             
-            return HttpResponseRedirect('/etiquetado/inventario/transferencia')
+#             return HttpResponseRedirect('/etiquetado/inventario/transferencia')
     
-    context = {
-        'data':data,
-        'transf_list':transf_list,
-        'transf_activas':transf_activas,
-        'len_transf_activas':len(transf_activas),
-        'form':TransfCerAndForm()
-    }
+#     context = {
+#         'data':data,
+#         'transf_list':transf_list,
+#         'transf_activas':transf_activas,
+#         'len_transf_activas':len(transf_activas),
+#         'form':TransfCerAndForm()
+#     }
     
-    return render(request, 'etiquetado/analisis_transferencia/inventario_transferencia.html', context)
+#     return render(request, 'etiquetado/analisis_transferencia/inventario_transferencia.html', context)
+
+
+
+
+def inventario_transferencia(request):
+    return render(request, 'etiquetado/analisis_transferencia/inventario_transferencia_vue.html')
 
 
 def transferencia_cer_and_data(id_transf):
