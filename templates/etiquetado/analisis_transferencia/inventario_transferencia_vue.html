@@ -220,7 +220,6 @@
                         i.vol_unitario = cartones * vol_m3
                         const peso = Number(i.Peso) || 0
                         i.peso_unitario = cartones * peso;
-
                         i.calculoReserva = (Number(i.BCT_D) - Number(i.totalUnidades)).toLocaleString()
                         return i;
                     })
