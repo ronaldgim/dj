@@ -423,9 +423,7 @@ def inventario_transferencia_data(request):
             reservas_cto = reservas_cto.merge(clientes, on='codigo_cliente', how='left').sort_values(by='ware_code')
             
             reservas_cto['detalle'] = (
-                '"' + 
-                reservas_cto['nombre_cliente'].astype('str') + ' - ' + reservas_cto['contrato_id'].astype('str') + ' - ' + reservas_cto['ware_code'].astype('str') + ' - ' + 'UNDS: ' + reservas_cto['egreso_temp'].astype('str') 
-                + '"'
+                reservas_cto['nombre_cliente'].astype('str') + ' - ' + reservas_cto['contrato_id'].astype('str') + ' - ' + reservas_cto['ware_code'].astype('str') + ' - ' + reservas_cto['egreso_temp'].astype('str') 
             )
             reservas_cto = reservas_cto.pivot_table(
                 index=['product_id','lote_id'],
@@ -440,9 +438,7 @@ def inventario_transferencia_data(request):
             reservas_cto = reservas_cto[reservas_cto['ware_code']=='BCT']
             reservas_cto = reservas_cto.merge(clientes, on='codigo_cliente', how='left').sort_values(by='ware_code')
             reservas_cto['detalle'] = (
-                '"' + 
-                reservas_cto['nombre_cliente'].astype('str') + ' - ' + reservas_cto['contrato_id'].astype('str') + ' - ' + reservas_cto['ware_code'].astype('str') + ' - ' + 'UNDS: ' + reservas_cto['egreso_temp'].astype('str') 
-                + '"'
+                reservas_cto['nombre_cliente'].astype('str') + ' - ' + reservas_cto['contrato_id'].astype('str') + ' - ' + reservas_cto['ware_code'].astype('str') + ' - ' + reservas_cto['egreso_temp'].astype('str') 
             )
             reservas_cto = reservas_cto.pivot_table(
                 index=['product_id','lote_id'],
@@ -499,7 +495,6 @@ def inventario_transferencia_data(request):
     data = data.merge(df_error_lote(), on=['product_id','lote_id'], how='left')
     data['error_lote'] = data['error_lote'].fillna(False)
     data.fillna(0)
-    
     return JsonResponse({
         'data': de_dataframe_a_template(data),
         'product_list':list(data['product_id'].unique())

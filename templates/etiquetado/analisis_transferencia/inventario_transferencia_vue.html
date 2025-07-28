@@ -28,15 +28,6 @@
                     </option>
                 </select>
             </div>
-            <div class="mt-2">
-                <button 
-                    @click="limpiarOrden()" 
-                    class="btn btn-sm btn-secondary"
-                    v-if="sortField"
-                >
-                    Limpiar Ordenamiento
-                </button>
-            </div>
             <div class="table-responsive">
                 <table class="table" id="inv_table" style="font-size: small;">
                     <thead>
@@ -61,6 +52,9 @@
                     </thead>
                     <tbody>
                         {% verbatim %}
+                        <tr>
+                            <td v-if="actualizandoStock" colspan="16" class="text-center fs-1">Cargando...</td>
+                        </tr>
                         <tr v-for="(i, index) in stockFiltrado" :key="index">
                             <td>{{i.product_id}}</td>
                             <td class="text-wraped" style="width:100px">{{i.Nombre}}</td>
@@ -70,7 +64,9 @@
                                 {{i.lote_id}}
                             </td>
                             <td>{{i.fecha_caducidad}}</td>
-                            <td>{{i.location}}</td>
+                            <td>
+                                {{i.location}}
+                            </td>
                             <td class="text-end">{{i.BAN.toLocaleString()}}</td>
                             <td class="text-end">{{i.CUC.toLocaleString()}}</td>
                             <td class="text-end" style="background-color:#F6B690;">{{i.BAN_R.toLocaleString()}}</td>
@@ -95,7 +91,7 @@
                             <td style="background-color:#C9FFFD;">
                                 <div class="d-flex justify-content-between">
                                     <span class="text-start fw-bold">Unds:</span>
-                                    <span class="text-end" v-if="i.BCT_D != 0">{{ i.BCT_D.toLocaleString() }}</span>
+                                    <span class="text-end fw-bold" v-if="i.BCT_D != 0">{{ i.BCT_D.toLocaleString() }}</span>
                                     <span class="fw-bold" class="text-end" v-else>0</span>
                                 </div>
                                 <div class="d-flex justify-content-between">
@@ -109,35 +105,22 @@
                                     <span class="fw-bold" v-else>0</span>
                                 </div>
                             </td>
-                            <td class="text-end">
-
-                                
+                            <td class="text-end">                                
                                 <i v-if="i.totalUnidades == 0" class="bi bi-megaphone"></i>
-
                                 <div v-if="i.totalUnidades > 0">
                                     <i v-if="i.totalUnidades <= i.BCT_D" class="bi bi-box2-fill" style="color:green"></i>
                                     <i v-else-if="i.totalUnidades > i.BCT_D && i.totalUnidades <= i.BCT" class="bi bi-box2-fill" style="color:yellow"></i>
                                     <i v-else-if="i.totalUnidades > i.BCT" class="bi bi-box2-fill" style="color:red"></i>
-                                    {{ i.calculoReserva }}
+                                    <span v-if="i.totalUnidades > i.BCT_D">{{ i.calculoReserva.toLocaleString() }}</span>
                                 </div>
                                 
-
-                                <!-- ALERTA TOTALES -->
-                                <!--i v-if="i.totalUnidades > i.BCT && i.inputCartones > 0" class="bi bi-exclamation-triangle-fill" style="color:red"></i-->
-
-                                <!-- SALDOS OK -->
-                                <!--i v-if="i.inputSaldos <= i.BCT_D_S && i.inputSaldos > 0" class="bi bi-box" style="color:geen"></i-->
-
-                                <!-- CARTONES OK -->
-                                <!--i v-if="i.inputCartones <= i.BCT_D_C && i.inputCartones > 0" class="bi bi-boxes" style="color:geen"></i-->
-
                                 <div class="d-flex justify-content-between">
                                     <span class="text-start fw-bold">Sald:</span>
-                                    <input type="number" v-model.number="i.inputSaldos" min="0" style="width:80px"/>
+                                    <input type="number" v-model.number="i.inputSaldos" min="1" style="width:80px" :disabled="i.bodega == 'BAN' || i.BCT == 0"/>
                                 </div>
                                 <div class="d-flex justify-content-between">
                                     <span class="text-start fw-bold">Cart:</span>
-                                    <input type="number" v-model.number="i.inputCartones" min="0" style="width:80px">
+                                    <input type="number" v-model.number="i.inputCartones" min="1" style="width:80px" :disabled="i.bodega == 'BAN' || i.BCT == 0"/>
                                 </div>
                             </td>
                             <td class="text-end">
@@ -151,8 +134,20 @@
                                 <span class="text-end">{{ i.peso_unitario.toFixed(3) }} kg</span>
                             </td>
                             <td class="text-center">
-                                <i v-if="i.llenado_estanteria" style = "color:green;" class="bi bi-check-square-fill"></i>
-                                <i v-else style = "color:red;" class="bi bi-x-square-fill"></i>
+                                <div class="btn-group" role="group" aria-label="Basic example">
+                                    <button 
+                                        v-if="i.detalle" 
+                                        type="button" 
+                                        name="detail" 
+                                        class="btn btn-primary btn-sm"
+                                        @click="showDetail(i.detalle, $event)"
+                                        >
+                                        ...
+                                    </button>
+                                    <button v-else type="button" name="detail" :value="i.detalle" class="btn btn-primary btn-sm disabled">...</button>
+                                    <button type="button" name="add_transf" class="btn btn-success btn-sm {% if len_transf_activas != 1 or i.cartones >= 0 or i.BCT == 0 %} disabled {% endif %}"><i class="bi bi-plus-circle"></i></button>
+                                    <button type="button" name="delete_prod" value="{{i.id}}" class="btn btn-danger btn-sm {% if not i.id %} disabled {% endif %}"><i class="bi bi-trash-fill"></i></button>
+                                </div>
                             </td>
                         </tr>
                         {% endverbatim %}
@@ -174,21 +169,7 @@
             // STOCK
             actualizandoStock:false,
             stock:[],
-            total:'',
             
-            procesados:'',
-            estanteria:'',
-            procesados_bod_est:'',
-            avance:'',
-            ubicaciones:[],
-            avances:[],
-
-            // DB
-            actualizandoDB: false,
-
-            sortField:null,
-            sortDirection:'asc',
-            sotockOrdenado:[],
         },
         mounted() {
             this.getStock();
@@ -220,7 +201,7 @@
                         i.vol_unitario = cartones * vol_m3
                         const peso = Number(i.Peso) || 0
                         i.peso_unitario = cartones * peso;
-                        i.calculoReserva = (Number(i.BCT_D) - Number(i.totalUnidades)).toLocaleString()
+                        i.calculoReserva = (Number(i.BCT_D) - Number(i.totalUnidades))
                         return i;
                     })
                     .filter(i => {
@@ -255,6 +236,74 @@
                 } finally {
                     this.actualizandoStock = false
                 }
+            },
+            showDetail(detalle, event) {
+                this.detalleActual = detalle;
+                // Encuentra el botón presionado
+                const button = event.currentTarget;
+                // Si ya existe el popover, destrúyelo
+                if (this._popoverInstance) {
+                    this._popoverInstance.dispose();
+                }
+
+                // Verifica si el string contiene el caracter '|'
+                let rows;
+                if (typeof detalle === 'string' && detalle.includes('|')) {
+                    // detalle = detalle.replace(/"/g, '')
+                    rows = detalle.split('|')
+                } else {
+                    rows = [detalle]
+                }
+
+                let tableHtml = `
+                <table class="table table-sm mb-0" style="font-size:smaller">
+                    <thead>
+                        <th>Cliente</th>
+                        <th>Contrato</th>
+                        <th>Bodega</th>
+                        <th>Unidades</th>
+                    </thead>
+                    <tbody>`;
+
+                rows.forEach(row => {
+                    let col = row.split('-');
+                    tableHtml += '<tr>';
+                    col.forEach(td => {
+                        tableHtml += `<td>${td}</td>`;
+                    });
+                    tableHtml += '</tr>';
+                });
+                tableHtml += '</tbody></table>';
+                console.log(tableHtml);
+                this._popoverInstance = new bootstrap.Popover(button, {
+                    content: `<div>${tableHtml}</div>`,
+                    html: true,
+                    placement: 'bottom',
+                    trigger: 'manual',
+                    sanitize: false
+                });
+                // Muestra el popover
+                this._popoverInstance.show();
+                
+                // Guarda el botón activo
+                this._activePopoverButton = button;
+
+                // Agrega el listener para cerrar al hacer clic fuera
+                this._handleOutsideClick = (e) => {
+                    const isClickInside = this._activePopoverButton.contains(e.target) ||
+                        document.querySelector('.popover')?.contains(e.target);
+
+                    if (!isClickInside) {
+                        this._popoverInstance?.dispose();
+                        this._popoverInstance = null;
+                        document.removeEventListener('click', this._handleOutsideClick);
+                    }
+                };
+
+                // Agrega el listener con timeout para evitar que se dispare por el mismo clic
+                setTimeout(() => {
+                    document.addEventListener('click', this._handleOutsideClick);
+                }, 0);
             },
             colorDiferencia(diff) {
                 if (diff != 0){
