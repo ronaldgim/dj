@@ -17,7 +17,6 @@
     <div class="card">
         <div class="card-header">STOCK PARA TRANSFERENCIA</div>
         <div class="card-body">
-            <!--div class="col-4"><input v-model="filtro" placeholder="Buscar..." type="text" class="form-control"></div-->
             <label class="fw-bold">Código:</label>
             <div class="col-md-3 col-sm-6">
                 <select v-model="filtro" class="form-select">
@@ -111,8 +110,28 @@
                                 </div>
                             </td>
                             <td class="text-end">
-                                <!--{{ i.totalUnidades - i.BCT_D }}-->
-                                <div class="d-flex justify-content-between mt-1 pt-2">
+
+                                
+                                <i v-if="i.totalUnidades == 0" class="bi bi-megaphone"></i>
+
+                                <div v-if="i.totalUnidades > 0">
+                                    <i v-if="i.totalUnidades <= i.BCT_D" class="bi bi-box2-fill" style="color:green"></i>
+                                    <i v-else-if="i.totalUnidades > i.BCT_D && i.totalUnidades <= i.BCT" class="bi bi-box2-fill" style="color:yellow"></i>
+                                    <i v-else-if="i.totalUnidades > i.BCT" class="bi bi-box2-fill" style="color:red"></i>
+                                    {{ i.calculoReserva }}
+                                </div>
+                                
+
+                                <!-- ALERTA TOTALES -->
+                                <!--i v-if="i.totalUnidades > i.BCT && i.inputCartones > 0" class="bi bi-exclamation-triangle-fill" style="color:red"></i-->
+
+                                <!-- SALDOS OK -->
+                                <!--i v-if="i.inputSaldos <= i.BCT_D_S && i.inputSaldos > 0" class="bi bi-box" style="color:geen"></i-->
+
+                                <!-- CARTONES OK -->
+                                <!--i v-if="i.inputCartones <= i.BCT_D_C && i.inputCartones > 0" class="bi bi-boxes" style="color:geen"></i-->
+
+                                <div class="d-flex justify-content-between">
                                     <span class="text-start fw-bold">Sald:</span>
                                     <input type="number" v-model.number="i.inputSaldos" min="0" style="width:80px"/>
                                 </div>
@@ -156,6 +175,7 @@
             actualizandoStock:false,
             stock:[],
             total:'',
+            
             procesados:'',
             estanteria:'',
             procesados_bod_est:'',
@@ -200,6 +220,7 @@
                         i.vol_unitario = cartones * vol_m3
                         const peso = Number(i.Peso) || 0
                         i.peso_unitario = cartones * peso;
+                        i.calculoReserva = (Number(i.BCT_D) - Number(i.totalUnidades)).toLocaleString()
                         return i;
                     })
                     .filter(i => {
