@@ -28,131 +28,133 @@
                     </option>
                 </select>
             </div>
-            <div class="table-responsive">
-                <table class="table" id="inv_table" style="font-size: small;">
-                    <thead>
-                        <tr class="text-smaller">
-                            <th><span style="white-space: nowrap;">Código</span></th>
-                            <th><span style="white-space: nowrap;">Nombre</span></th>
-                            <th> <span style="white-space: nowrap;">Marca</span></th>
-                            <th><span style="white-space: nowrap;">Lote</span></th>
-                            <th><span style="white-space: nowrap;">F.Cadu</span></th>
-                            <th><span style="white-space: nowrap;">Bod</span></th>
-                            <th><span style="white-space: nowrap;">BAN</span></th>
-                            <th><span style="white-space: nowrap;">CUC</span></th>
-                            <th style="background-color:#F6B690;"><span style="white-space: nowrap;">BAN-R</span></th>
-                            <th style="background-color:#F6B690;"><span style="white-space: nowrap;">BCT-R</span></th>
-                            <th style="background-color:#E1FFC9;"><span style="white-space: nowrap;">BCT</span></th>
-                            <th style="background-color:#C9FFFD;"><span style="white-space: nowrap;">BCT-D</span></th>
-                            <th><span style="white-space: nowrap;">TRANSF</span></th>
-                            <th><span style="white-space: nowrap;">D.PROD</span></th>
-                            <th><span style="white-space: nowrap;">TOTALES</span></th>
-                            <th><span style="white-space: nowrap;">ACCIONES</span></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% verbatim %}
-                        <tr>
-                            <td v-if="actualizandoStock" colspan="16" class="text-center fs-1">Cargando...</td>
-                        </tr>
-                        <tr v-for="(i, index) in stockFiltrado" :key="index">
-                            <td>{{i.product_id}}</td>
-                            <td class="text-wraped" style="width:100px">{{i.Nombre}}</td>
-                            <td>{{i.Marca}}</td>
-                            <td>
-                                <i v-if="i.error_lote == true" class="bi bi-exclamation-triangle-fill" style="color:red"></i>
-                                {{i.lote_id}}
-                            </td>
-                            <td>{{i.fecha_caducidad}}</td>
-                            <td>
-                                {{i.location}}
-                            </td>
-                            <td class="text-end">{{i.BAN.toLocaleString()}}</td>
-                            <td class="text-end">{{i.CUC.toLocaleString()}}</td>
-                            <td class="text-end" style="background-color:#F6B690;">{{i.BAN_R.toLocaleString()}}</td>
-                            <td class="text-end" style="background-color:#F6B690;">{{i.BCT_R.toLocaleString()}}</td>
-                            <td style="background-color:#E1FFC9;">
-                                <div class="d-flex justify-content-between">
-                                    <span class="text-start fw-bold">Unds:</span>
-                                    <span class="fw-bold" v-if="i.BCT!=0">{{ i.BCT.toLocaleString() }}</span>
-                                    <span class="fw-bold" v-else>0</span>
-                                </div>
-                                <div class="d-flex justify-content-between">
-                                    <span class="text-start fw-bold">Sald:</span>
-                                    <span v-if="i.BCT_S != null || i.BCT_S > 0">{{ i.BCT_S.toLocaleString() }}</span>
-                                    <span v-else>S: 0</span>
-                                </div>
-                                <div class="d-flex justify-content-between">
-                                    <span class="text-start fw-bold">Cart:</span>
-                                    <span v-if="i.BCT_C != null || i.BCT_C > 0">{{ i.BCT_C.toLocaleString() }}</span>
-                                    <span v-else>C: 0</span>
-                                </div>                                
-                            </td>
-                            <td style="background-color:#C9FFFD;">
-                                <div class="d-flex justify-content-between">
-                                    <span class="text-start fw-bold">Unds:</span>
-                                    <span class="text-end fw-bold" v-if="i.BCT_D != 0">{{ i.BCT_D.toLocaleString() }}</span>
-                                    <span class="fw-bold" class="text-end" v-else>0</span>
-                                </div>
-                                <div class="d-flex justify-content-between">
-                                    <span class="text-start fw-bold">Sald:</span>
-                                    <span v-if="i.BCT_D_S != null || i.BCT_D_S > 0">{{ i.BCT_D_S.toLocaleString() }}</span>
-                                    <span class="fw-bold" v-else>0</span>
-                                </div>
-                                <div class="d-flex justify-content-between">
-                                    <span class="text-start fw-bold">Cart:</span>
-                                    <span v-if="i.BCT_D_C != null || i.BCT_D_C > 0">{{ i.BCT_D_C.toLocaleString() }}</span>
-                                    <span class="fw-bold" v-else>0</span>
-                                </div>
-                            </td>
-                            <td class="text-end">                                
-                                <i v-if="i.totalUnidades == 0" class="bi bi-megaphone"></i>
-                                <div v-if="i.totalUnidades > 0">
-                                    <i v-if="i.totalUnidades <= i.BCT_D" class="bi bi-box2-fill" style="color:green"></i>
-                                    <i v-else-if="i.totalUnidades > i.BCT_D && i.totalUnidades <= i.BCT" class="bi bi-box2-fill" style="color:yellow"></i>
-                                    <i v-else-if="i.totalUnidades > i.BCT" class="bi bi-box2-fill" style="color:red"></i>
-                                    <span v-if="i.totalUnidades > i.BCT_D">{{ i.calculoReserva.toLocaleString() }}</span>
-                                </div>
-                                
-                                <div class="d-flex justify-content-between">
-                                    <span class="text-start fw-bold">Sald:</span>
-                                    <input type="number" v-model.number="i.inputSaldos" min="1" style="width:80px" :disabled="i.bodega == 'BAN' || i.BCT == 0"/>
-                                </div>
-                                <div class="d-flex justify-content-between">
-                                    <span class="text-start fw-bold">Cart:</span>
-                                    <input type="number" v-model.number="i.inputCartones" min="1" style="width:80px" :disabled="i.bodega == 'BAN' || i.BCT == 0"/>
-                                </div>
-                            </td>
-                            <td class="text-end">
-                                <span>{{ i.Unidad_Empaque }} unds</span> <br>
-                                <span>{{ i.vol_m3.toFixed(3) }} m3</span> <br>
-                                <span>{{ i.Peso.toFixed(3) }} kg</span>
-                            </td>
-                            <td class="text-end">
-                                <span class="text-end fw-bold" style="background-color:#A9FF5E">{{ i.totalUnidades.toLocaleString() }} unds</span> <br>
-                                <span class="text-end">{{ i.vol_unitario.toFixed(3) }} m3</span> <br>
-                                <span class="text-end">{{ i.peso_unitario.toFixed(3) }} kg</span>
-                            </td>
-                            <td class="text-center">
-                                <div class="btn-group" role="group" aria-label="Basic example">
-                                    <button 
-                                        v-if="i.detalle" 
-                                        type="button" 
-                                        name="detail" 
-                                        class="btn btn-primary btn-sm"
-                                        @click="showDetail(i.detalle, $event)"
-                                        >
-                                        ...
-                                    </button>
-                                    <button v-else type="button" name="detail" :value="i.detalle" class="btn btn-primary btn-sm disabled">...</button>
-                                    <button type="button" name="add_transf" class="btn btn-success btn-sm {% if len_transf_activas != 1 or i.cartones >= 0 or i.BCT == 0 %} disabled {% endif %}"><i class="bi bi-plus-circle"></i></button>
-                                    <button type="button" name="delete_prod" value="{{i.id}}" class="btn btn-danger btn-sm {% if not i.id %} disabled {% endif %}"><i class="bi bi-trash-fill"></i></button>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endverbatim %}
-                    </tbody>
-                </table>
+            <div class="table-responsive mt-2">
+                <div style="max-height: 60vh; overflow-y: auto;">
+                    <table class="table table-bordered" style="font-size: small;">
+                        <thead class="table-light table-border" style="position: sticky; top: 0; z-index: 2;">
+                            <tr class="text-smaller">
+                                <th><span style="white-space: nowrap;">Código</span></th>
+                                <th><span style="white-space: nowrap;">Nombre</span></th>
+                                <th> <span style="white-space: nowrap;">Marca</span></th>
+                                <th><span style="white-space: nowrap;">Lote</span></th>
+                                <th><span style="white-space: nowrap;">F.Cadu</span></th>
+                                <th><span style="white-space: nowrap;">Bod</span></th>
+                                <th><span style="white-space: nowrap;">BAN</span></th>
+                                <th><span style="white-space: nowrap;">CUC</span></th>
+                                <th style="background-color:#F6B690;"><span style="white-space: nowrap;">BAN-R</span></th>
+                                <th style="background-color:#F6B690;"><span style="white-space: nowrap;">BCT-R</span></th>
+                                <th style="background-color:#E1FFC9;"><span style="white-space: nowrap;">BCT</span></th>
+                                <th style="background-color:#C9FFFD;"><span style="white-space: nowrap;">BCT-D</span></th>
+                                <th><span style="white-space: nowrap;">TRANSF</span></th>
+                                <th><span style="white-space: nowrap;">D.PROD</span></th>
+                                <th><span style="white-space: nowrap;">TOTALES</span></th>
+                                <th><span style="white-space: nowrap;">ACCIONES</span></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% verbatim %}
+                            <tr>
+                                <td v-if="actualizandoStock" colspan="16" class="text-center fs-1">Cargando...</td>
+                            </tr>
+                            <tr v-for="(i, index) in stockFiltrado" :key="index">
+                                <td>{{i.product_id}}</td>
+                                <td class="text-wraped" style="width:100px">{{i.Nombre}}</td>
+                                <td>{{i.Marca}}</td>
+                                <td>
+                                    <i v-if="i.error_lote == true" class="bi bi-exclamation-triangle-fill" style="color:red"></i>
+                                    {{i.lote_id}}
+                                </td>
+                                <td>{{i.fecha_caducidad}}</td>
+                                <td>
+                                    {{i.location}}
+                                </td>
+                                <td class="text-end">{{i.BAN.toLocaleString()}}</td>
+                                <td class="text-end">{{i.CUC.toLocaleString()}}</td>
+                                <td class="text-end" style="background-color:#F6B690;">{{i.BAN_R.toLocaleString()}}</td>
+                                <td class="text-end" style="background-color:#F6B690;">{{i.BCT_R.toLocaleString()}}</td>
+                                <td style="background-color:#E1FFC9;">
+                                    <div class="d-flex justify-content-between">
+                                        <span class="text-start fw-bold">Unds:</span>
+                                        <span class="fw-bold" v-if="i.BCT!=0">{{ i.BCT.toLocaleString() }}</span>
+                                        <span class="fw-bold" v-else>0</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span class="text-start fw-bold">Sald:</span>
+                                        <span v-if="i.BCT_S != null || i.BCT_S > 0">{{ i.BCT_S.toLocaleString() }}</span>
+                                        <span v-else>S: 0</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span class="text-start fw-bold">Cart:</span>
+                                        <span v-if="i.BCT_C != null || i.BCT_C > 0">{{ i.BCT_C.toLocaleString() }}</span>
+                                        <span v-else>C: 0</span>
+                                    </div>                                
+                                </td>
+                                <td style="background-color:#C9FFFD;">
+                                    <div class="d-flex justify-content-between">
+                                        <span class="text-start fw-bold">Unds:</span>
+                                        <span class="text-end fw-bold" v-if="i.BCT_D != 0">{{ i.BCT_D.toLocaleString() }}</span>
+                                        <span class="fw-bold" class="text-end" v-else>0</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span class="text-start fw-bold">Sald:</span>
+                                        <span v-if="i.BCT_D_S != null || i.BCT_D_S > 0">{{ i.BCT_D_S.toLocaleString() }}</span>
+                                        <span class="fw-bold" v-else>0</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span class="text-start fw-bold">Cart:</span>
+                                        <span v-if="i.BCT_D_C != null || i.BCT_D_C > 0">{{ i.BCT_D_C.toLocaleString() }}</span>
+                                        <span class="fw-bold" v-else>0</span>
+                                    </div>
+                                </td>
+                                <td class="text-end">                                
+                                    <i v-if="i.totalUnidades == 0" class="bi bi-megaphone"></i>
+                                    <div v-if="i.totalUnidades > 0">
+                                        <i v-if="i.totalUnidades <= i.BCT_D" class="bi bi-box2-fill" style="color:green"></i>
+                                        <i v-else-if="i.totalUnidades > i.BCT_D && i.totalUnidades <= i.BCT" class="bi bi-box2-fill" style="color:yellow"></i>
+                                        <i v-else-if="i.totalUnidades > i.BCT" class="bi bi-box2-fill" style="color:red"></i>
+                                        <span v-if="i.totalUnidades > i.BCT_D">{{ i.calculoReserva.toLocaleString() }}</span>
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-between">
+                                        <span class="text-start fw-bold">Sald:</span>
+                                        <input type="number" v-model.number="i.inputSaldos" min="1" style="width:80px" :disabled="i.bodega == 'BAN' || i.BCT == 0"/>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span class="text-start fw-bold">Cart:</span>
+                                        <input type="number" v-model.number="i.inputCartones" min="1" style="width:80px" :disabled="i.bodega == 'BAN' || i.BCT == 0"/>
+                                    </div>
+                                </td>
+                                <td class="text-end">
+                                    <span>{{ i.Unidad_Empaque }} unds</span> <br>
+                                    <span>{{ i.vol_m3.toFixed(3) }} m3</span> <br>
+                                    <span>{{ i.Peso.toFixed(3) }} kg</span>
+                                </td>
+                                <td class="text-end">
+                                    <span class="text-end fw-bold" style="background-color:#A9FF5E">{{ i.totalUnidades.toLocaleString() }} unds</span> <br>
+                                    <span class="text-end">{{ i.vol_unitario.toFixed(3) }} m3</span> <br>
+                                    <span class="text-end">{{ i.peso_unitario.toFixed(3) }} kg</span>
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group" role="group" aria-label="Basic example">
+                                        <button 
+                                            v-if="i.detalle" 
+                                            type="button" 
+                                            name="detail" 
+                                            class="btn btn-primary btn-sm"
+                                            @click="showDetail(i.detalle, $event)"
+                                            >
+                                            ...
+                                        </button>
+                                        <button v-else type="button" name="detail" :value="i.detalle" class="btn btn-primary btn-sm disabled">...</button>
+                                        <button type="button" name="add_transf" class="btn btn-success btn-sm {% if len_transf_activas != 1 or i.cartones >= 0 or i.BCT == 0 %} disabled {% endif %}"><i class="bi bi-plus-circle"></i></button>
+                                        <button type="button" name="delete_prod" value="{{i.id}}" class="btn btn-danger btn-sm {% if not i.id %} disabled {% endif %}"><i class="bi bi-trash-fill"></i></button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endverbatim %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
