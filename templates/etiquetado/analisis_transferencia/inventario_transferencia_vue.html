@@ -68,10 +68,10 @@
                                     <td class="border-end border-start pe-2 ps-2">
                                         {% verbatim %} # Prods: {{cantidadProductosUnicos}} {% endverbatim %}
                                     </td>
-                                    <td class="border-end border-start pe-2 ps-2">
+                                    <td class="border-start pe-2 ps-2">
                                         {% verbatim %} % Lleno: {{porcentajeLleno}} % {% endverbatim %}
                                     </td>
-                                    <td class="">
+                                    <td>
                                         <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#exampleModal">
                                             <i class="bi bi-list-check"></i>
                                         </button>
@@ -296,7 +296,7 @@
                     <tbody>
                         {% verbatim %}
                         <tr v-if="transferencia.length === 0">
-                        <td colspan="8" class="text-center fs-6 text-muted">No hay datos...</td>
+                        <td colspan="11" class="text-center fs-6 text-muted">No hay datos...</td>
                         </tr>
                         <tr v-for="(i, index) in transferencia" :key="index">
                         <td class="bg-warning">{{ i.product_id }}</td>
