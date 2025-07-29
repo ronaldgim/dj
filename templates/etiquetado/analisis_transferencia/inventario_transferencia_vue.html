@@ -13,27 +13,71 @@
 <div id="app">
 
     <h5 class="m-4 text-center fw-bold">INVENTARIO TRANSFERENCIA</h5>
-    
     <div class="card">
         <div class="card-header">STOCK PARA TRANSFERENCIA</div>
         <div class="card-body">
-            <div class="d-flex align-items-center mb-2">
-                <label class="fw-bold me-2 mb-0">Código:</label>
-                <div class="col-md-3 col-sm-6 mb-0">
-                    <select :value="filtro" @change="onSelectChange" class="form-select">
-                        <option value="">Todos</option>
-                        <option v-for="producto in product_list" :key="producto" :value="producto">
+            
+            <div class="row g-3 align-items-center">
+                <div class="col-4">
+                    <div class="d-flex align-items-center">
+                        <label class="fw-bold">Código:</label>
+                        <!--div class="col-auto"-->
+                        <select :value="filtro" @change="onSelectChange" class="form-select form-select-sm">
+                            <option value="">Todos</option>
                             {% verbatim %}
-                                {{ producto }}
+                            <option v-for="producto in product_list" :key="producto" :value="producto">
+                            {{ producto }}
+                            </option>
                             {% endverbatim %}
-                        </option>
-                    </select>
+                        </select>
+                    </div>
                 </div>
+                <div class="col-2"></div>
+                <!--div class="col-6">
+                    <div class="d-flex align-items-center">
+                        <table class="ms-4 ps-4">
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <select v-model="camion">
+                                            <option value="7.50">PDV4064</option>
+                                            <option value="8.00">PDN4216</option>
+                                            <option value="12.00">PFB1191</option>
+                                            <option value="4.01">PQU0171</option>
+                                            <option value="3.26">PCI4409</option>
+                                            <option value="3.54">PBK9166</option>
+                                        </select>
+                                        <i class="bi bi-truck"></i>
+                                    </td>
+                                    <td class="pe-6 ps-4 bordered">
+                                        <span v-if="camion">{% verbatim %} {{ camion }} {% endverbatim %} m³</span>
+                                        <span v-else>0.000 m³</span>
+                                    </td>
+                                    <td class="pe-6 ps-4 bordered">
+                                        <span :class="totales.vol_unitario > camion ? 'text-danger fw-bold' : 'text-success fw-bold'">
+                                            {% verbatim %} {{ totales.vol_unitario.toFixed(3) }} m³ {% endverbatim %}
+                                        </span>
+                                    </td>
+                                    <td class="pe-6 ps-4">
+                                        {% verbatim %} {{cantidadProductosUnicos}} {% endverbatim %}
+                                    </td>
+                                    <td class="pe-6 ps-4">
+                                        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                                        TRANSF
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div-->
             </div>
+
+            <!-- TABLA -->
             <div class="table-responsive mt-2">
                 <div style="max-height: 60vh; overflow-y: auto;">
                     <table class="table table-bordered" style="font-size: small;">
-                        <thead class="table-light table-border" style="position: sticky; top: 0; z-index: 2;">
+                        <thead class="table-light" style="position: sticky; top: 0; z-index: 2;">
                             <tr class="text-smaller">
                                 <th><span style="white-space: nowrap;">Código</span></th>
                                 <th><span style="white-space: nowrap;">Nombre</span></th>
@@ -50,7 +94,7 @@
                                 <th><span style="white-space: nowrap;">TRANSF</span></th>
                                 <th><span style="white-space: nowrap;">D.PROD</span></th>
                                 <th><span style="white-space: nowrap;">TOTALES</span></th>
-                                <th><span style="white-space: nowrap;">ACCIONES</span></th>
+                                <th><span style="white-space: nowrap;">...</span></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -58,7 +102,7 @@
                             <tr>
                                 <td v-if="actualizandoStock" colspan="16" class="text-center fs-1">Cargando...</td>
                             </tr>
-                            <tr v-for="(i, index) in stockFiltrado" :key="index">
+                            <tr v-for="(i, index) in stockFiltrado" :key="index" :style="i.totalUnidades > 0 ? 'background-color:#E5FFE9' : ''">
                                 <td>{{i.product_id}}</td>
                                 <td class="text-wraped" style="width:100px">{{i.Nombre}}</td>
                                 <td>{{i.Marca}}</td>
@@ -119,21 +163,21 @@
                                     
                                     <div class="d-flex justify-content-between">
                                         <span class="text-start fw-bold">Sald:</span>
-                                        <input type="number" v-model.number="i.inputSaldos" min="1" style="width:80px" :disabled="i.bodega == 'BAN' || i.BCT == 0"/>
+                                        <input type="number" v-model.number="i.inputSaldos" min="1" style="width:80px" :disabled="i.bodega == 'BAN' || i.BCT == 0" @blur="() => { addTransfer(i); limpiarTransferenciaCero(); }"/>
                                     </div>
                                     <div class="d-flex justify-content-between">
                                         <span class="text-start fw-bold">Cart:</span>
-                                        <input type="number" v-model.number="i.inputCartones" min="1" style="width:80px" :disabled="i.bodega == 'BAN' || i.BCT == 0"/>
+                                        <input type="number" v-model.number="i.inputCartones" min="1" style="width:80px" :disabled="i.bodega == 'BAN' || i.BCT == 0" @blur="() => { addTransfer(i); limpiarTransferenciaCero(); }"/>
                                     </div>
                                 </td>
                                 <td class="text-end">
                                     <span>{{ i.Unidad_Empaque }} unds</span> <br>
-                                    <span>{{ i.vol_m3.toFixed(3) }} m3</span> <br>
+                                    <span>{{ i.vol_m3.toFixed(3) }} m³</span> <br>
                                     <span>{{ i.Peso.toFixed(3) }} kg</span>
                                 </td>
                                 <td class="text-end">
                                     <span class="text-end fw-bold" style="background-color:#A9FF5E">{{ i.totalUnidades.toLocaleString() }} unds</span> <br>
-                                    <span class="text-end">{{ i.vol_unitario.toFixed(3) }} m3</span> <br>
+                                    <span class="text-end">{{ i.vol_unitario.toFixed(3) }} m³</span> <br>
                                     <span class="text-end">{{ i.peso_unitario.toFixed(3) }} kg</span>
                                 </td>
                                 <td class="text-center">
@@ -149,14 +193,13 @@
                                             ...
                                         </button>
                                         <button v-else type="button" name="detail" :value="i.detalle" class="btn btn-primary btn-sm disabled">...</button>
-                                        
-                                        <button 
+                                        <!--button 
                                             type="button"
                                             name="add_transf"
                                             :class="i.totalUnidades > 0 ? 'btn btn-sm btn-success' : 'btn btn-sm btn-success disabled'"
                                             @click="addTransfer(i)">
                                             <i class="bi bi-plus-circle"></i>
-                                        </button>
+                                        </button-->
                                         <!--button type="button" name="delete_prod" value="{{i.id}}" class="btn btn-danger btn-sm {% if not i.id %} disabled {% endif %}"><i class="bi bi-trash-fill"></i></button--->
                                     </div>
                                 </td>
@@ -165,6 +208,69 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable modal-lg">
+            <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Detalle de Transferencia</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+
+            <div class="modal-body">
+                <table class="table table-bordered table-sm" style="font-size: small;">
+                <thead class="table-light" style="position: sticky; top: 0; z-index: 2;">
+                    <tr>
+                    <th><span style="white-space: nowrap;">Código</span></th>
+                    <th><span style="white-space: nowrap;">Nombre</span></th>
+                    <th><span style="white-space: nowrap;">Marca</span></th>
+                    <th><span style="white-space: nowrap;">Lote</span></th>
+                    <th><span style="white-space: nowrap;">F.Cadu</span></th>
+                    <th><span style="white-space: nowrap;">Saldos</span></th>
+                    <th><span style="white-space: nowrap;">Cartones</span></th>
+                    <th><span style="white-space: nowrap;">T.Unidades</span></th>
+                    <th><span style="white-space: nowrap;">Volumen</span></th>
+                    <th><span style="white-space: nowrap;">Peso</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% verbatim %}
+                    <tr v-if="transferencia.length === 0">
+                    <td colspan="8" class="text-center fs-6 text-muted">No hay datos...</td>
+                    </tr>
+                    <tr v-for="(i, index) in transferencia" :key="index">
+                    <td>{{ i.product_id }}</td>
+                    <td style="width: 100px; word-break: break-word;">{{ i.Nombre }}</td>
+                    <td>{{ i.Marca }}</td>
+                    <td>{{ i.lote_id }}</td>
+                    <td>{{ i.fecha_caducidad }}</td>
+                    <td class="text-end">{{ Number(i.inputSaldos) || 0 }}</td>
+                    <td class="text-end">{{ Number(i.inputCartones) || 0 }}</td>
+                    <td class="text-end">{{ i.totalUnidades.toLocaleString() }}</td>
+                    <td class="text-end">{{ i.vol_unitario.toFixed(3) }} m³</td>
+                    <td class="text-end">{{ i.peso_unitario.toFixed(3) }} kg</td>
+                    </tr>
+                    <tr>
+                        <td colspan="7"></td>
+                        <td class="text-end">{{totales.totalUnidades.toLocaleString()}}</td>
+                        <td class="text-end">{{totales.vol_unitario.toFixed(3) }} m³</td>
+                        <td class="text-end">{{totales.peso_unitario.toFixed(3) }} kg</td>
+                    <tr>
+                    {% endverbatim %}
+
+                </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary">Guardar cambios</button>
+            </div>
+
             </div>
         </div>
     </div>
@@ -182,6 +288,7 @@
             actualizandoStock:false,
             stock:[],
             transferencia:[],
+            camion:''
         },
         mounted() {
             this.getStock();
@@ -223,6 +330,21 @@
                         return productId === this.filtro.toLowerCase();
                     });
                 return resultadoFiltrado;
+            },
+            totales() {
+                const columnas = ['totalUnidades', 'vol_unitario', 'peso_unitario'];
+                const resultado = {};
+                columnas.forEach(key => {
+                    resultado[key] = this.transferencia.reduce((acum, item) => {
+                        const valor = Number(item[key]) || 0;
+                        return acum + valor;
+                    }, 0);
+                });
+                return resultado;
+            },
+            cantidadProductosUnicos() {
+                const ids = new Set(this.transferencia.map(i => i.product_id));
+                return ids.size;
             }
         },
         methods: {
@@ -241,11 +363,16 @@
                 }
             },
             addTransfer(i) {
-                console.log(i)
-                // const fila = JSON.parse(JSON.stringify(this.stockFiltrado[id]));
-                // const copia = this.calcularValores(fila);
-                this.transferencia.push(i);
-                console.log(this.transferencia)
+                this.transferencia = this.stock.filter(item => {
+                const total = Number(item.totalUnidades) || 0;
+                return total > 0;
+                });
+            },
+            limpiarTransferenciaCero() {
+                this.transferencia = this.transferencia.filter(item => {
+                    const total = Number(item.totalUnidades) || 0;
+                    return total > 0;
+                });
             },
             showDetail(detalle, event) {
                 this.detalleActual = detalle;
