@@ -14,7 +14,12 @@
 
     <h5 class="m-4 text-center fw-bold">INVENTARIO TRANSFERENCIA</h5>
     <div class="card">
-        <div class="card-header">STOCK PARA TRANSFERENCIA</div>
+        <div class="card-header">
+            STOCK PARA TRANSFERENCIA
+            {% verbatim %}
+                <span v-if="!actualizandoStock" class="fw-bold float-end"> {{ new Date().toLocaleString('es-ec') }} </span>   
+            {% endverbatim %}
+        </div>
         <div class="card-body">
             
             <div class="row g-3 align-items-center">
@@ -34,27 +39,22 @@
                 </div>
                 <div class="col-2"></div>
                 <div class="col-6">
-                    <div class="d-flex align-items-center">
+                    <div class="d-flex align-items-center float-end">
                         <table class="ms-4 ps-4">
                             <tbody>
                                 <tr>
                                     <td>
-                                        <select v-model="camion" style="width:130px; padding:2px">
-                                            <option value="7.50">PDV4064</option>
-                                            <option value="8.00">PDN4216</option>
-                                            <option value="12.00">PFB1191</option>
-                                            <option value="4.01">PQU0171</option>
-                                            <option value="3.26">PCI4409</option>
-                                            <option value="3.54">PBK9166</option>
-                                        </select>
                                         <i class="bi bi-truck"></i>
+                                        {% verbatim %}
+                                        <select v-model="camion" style="width:180px; padding:5px">
+                                            <option v-for="c in camiones" :key="c.placa" :value="c">
+                                                {{ c.placa }} - {{ c.volumen.toFixed(3)}} m³
+                                            </option>
+                                        </select>
+                                        {% endverbatim %}
                                     </td>
                                     <td class="pe-6 ps-4 bordered">
-                                        <span v-if="camion">{% verbatim %} {{ camion }} {% endverbatim %} m³</span>
-                                        <span v-else>0.000 m³</span>
-                                    </td>
-                                    <td class="pe-6 ps-4 bordered">
-                                        <span :class="totales.vol_unitario > camion ? 'text-danger fw-bold' : 'text-success fw-bold'">
+                                        <span :class="totales.vol_unitario > (camion?.volumen || 0) ? 'text-danger fw-bold' : 'text-success fw-bold'">
                                             {% verbatim %} {{ totales.vol_unitario.toFixed(3) }} m³ {% endverbatim %}
                                         </span>
                                     </td>
@@ -62,8 +62,8 @@
                                         {% verbatim %} {{cantidadProductosUnicos}} {% endverbatim %}
                                     </td>
                                     <td class="pe-6 ps-4">
-                                        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#exampleModal">
-                                        TRANSF
+                                        <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                                            <i class="bi bi-list-check"></i>
                                         </button>
                                     </td>
                                 </tr>
@@ -100,7 +100,12 @@
                         <tbody>
                             {% verbatim %}
                             <tr>
-                                <td v-if="actualizandoStock" colspan="16" class="text-center fs-1">Cargando...</td>
+                                <td v-if="actualizandoStock" colspan="16" class="text-center fs-1">
+                                    Cargando...
+                                    <div class="spinner-border" style="width: 3rem; height: 3rem;" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                </td>
                             </tr>
                             <tr v-for="(i, index) in stockFiltrado" :key="index" :style="i.totalUnidades > 0 ? 'background-color:#E5FFE9' : ''">
                                 <td>{{i.product_id}}</td>
@@ -229,7 +234,7 @@
 
     <!-- MODAL -->
     <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-scrollable modal-lg">
+        <div class="modal-dialog modal-dialog-scrollable modal-xl">
             <div class="modal-content">
 
             <div class="modal-header">
@@ -238,45 +243,70 @@
             </div>
 
             <div class="modal-body">
-                <table class="table table-bordered table-sm" style="font-size: small;">
-                <thead class="table-light" style="position: sticky; top: 0; z-index: 2;">
-                    <th><span style="white-space: nowrap;">Código</span></th>
-                    <th><span style="white-space: nowrap;">Nombre</span></th>
-                    <th><span style="white-space: nowrap;">Marca</span></th>
-                    <th><span style="white-space: nowrap;">Lote</span></th>
-                    <th><span style="white-space: nowrap;">F.Cadu</span></th>
-                    <th><span style="white-space: nowrap;">Saldos</span></th>
-                    <th><span style="white-space: nowrap;">Cartones</span></th>
-                    <th><span style="white-space: nowrap;">T.Unidades</span></th>
-                    <th><span style="white-space: nowrap;">Volumen</span></th>
-                    <th><span style="white-space: nowrap;">Peso</span></th>
-                </thead>
-                <tbody>
-                    {% verbatim %}
-                    <tr v-if="transferencia.length === 0">
-                    <td colspan="8" class="text-center fs-6 text-muted">No hay datos...</td>
-                    </tr>
-                    <tr v-for="(i, index) in transferencia" :key="index">
-                    <td>{{ i.product_id }}</td>
-                    <td style="width: 100px; word-break: break-word;">{{ i.Nombre }}</td>
-                    <td>{{ i.Marca }}</td>
-                    <td>{{ i.lote_id }}</td>
-                    <td>{{ i.fecha_caducidad }}</td>
-                    <td class="text-end">{{ Number(i.inputSaldos) || 0 }}</td>
-                    <td class="text-end">{{ Number(i.inputCartones) || 0 }}</td>
-                    <td class="text-end">{{ i.totalUnidades.toLocaleString() }}</td>
-                    <td class="text-end">{{ i.vol_unitario.toFixed(3) }} m³</td>
-                    <td class="text-end">{{ i.peso_unitario.toFixed(3) }} kg</td>
-                    </tr>
-                    <tr>
-                        <td colspan="7"></td>
-                        <td class="text-end">{{totales.totalUnidades.toLocaleString()}}</td>
-                        <td class="text-end">{{totales.vol_unitario.toFixed(3) }} m³</td>
-                        <td class="text-end">{{totales.peso_unitario.toFixed(3) }} kg</td>
-                    <tr>
-                    {% endverbatim %}
 
-                </tbody>
+                <table>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <i class="bi bi-truck"></i>
+                                {% verbatim %}
+                                <span v-if="camion">{{ camion?.placa }} - {{camion?.volumen.toFixed(3)}} m³ </span>
+                                <!--span v-else></span-->
+                                {% endverbatim %}
+                            </td>
+                            <td class="pe-6 ps-4 bordered">
+                                <span :class="totales.vol_unitario > (camion?.volumen || 0) ? 'text-danger fw-bold' : 'text-success fw-bold'">
+                                    {% verbatim %}
+                                        {{ totales.vol_unitario.toFixed(3) }} m³
+                                    {% endverbatim %}
+                                </span>
+                            </td>
+                            <td class="pe-6 ps-4">
+                                {% verbatim %} {{cantidadProductosUnicos}} {% endverbatim %}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <table class="table table-bordered table-sm" style="font-size: small;">
+                    <thead class="table-light" style="position: sticky; top: 0; z-index: 2;">
+                        <th><span style="white-space: nowrap;">Código</span></th>
+                        <th><span style="white-space: nowrap;">Nombre</span></th>
+                        <th><span style="white-space: nowrap;">Marca</span></th>
+                        <th><span style="white-space: nowrap;">Lote</span></th>
+                        <th><span style="white-space: nowrap;">F.Cadu</span></th>
+                        <th><span style="white-space: nowrap;">Saldos</span></th>
+                        <th><span style="white-space: nowrap;">Cartones</span></th>
+                        <th><span style="white-space: nowrap;">T.Unidades</span></th>
+                        <th><span style="white-space: nowrap;">Volumen</span></th>
+                        <th><span style="white-space: nowrap;">Peso</span></th>
+                    </thead>
+                    <tbody>
+                        {% verbatim %}
+                        <tr v-if="transferencia.length === 0">
+                        <td colspan="8" class="text-center fs-6 text-muted">No hay datos...</td>
+                        </tr>
+                        <tr v-for="(i, index) in transferencia" :key="index">
+                        <td class="bg-warning">{{ i.product_id }}</td>
+                        <td>{{ i.Nombre }}</td>
+                        <td>{{ i.Marca }}</td>
+                        <td class="bg-warning">{{ i.lote_id }}</td>
+                        <td>{{ i.fecha_caducidad }}</td>
+                        <td class="text-end">{{ Number(i.inputSaldos) || 0 }}</td>
+                        <td class="text-end">{{ Number(i.inputCartones) || 0 }}</td>
+                        <td class="text-end bg-warning">{{ i.totalUnidades.toLocaleString() }}</td>
+                        <td class="text-end">{{ i.vol_unitario.toFixed(3) }} m³</td>
+                        <td class="text-end">{{ i.peso_unitario.toFixed(3) }} kg</td>
+                        </tr>
+                        <tr>
+                            <td colspan="7"></td>
+                            <td class="text-end">{{totales.totalUnidades.toLocaleString()}}</td>
+                            <td class="text-end">{{totales.vol_unitario.toFixed(3) }} m³</td>
+                            <td class="text-end">{{totales.peso_unitario.toFixed(3) }} kg</td>
+                        <tr>
+                        {% endverbatim %}
+
+                    </tbody>
                 </table>
             </div>
             <div class="modal-footer">
@@ -289,7 +319,7 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!--script src="https://cdn.jsdelivr.net/npm/chart.js"></script-->
 <script>
     new Vue({
         el: '#app',
@@ -301,7 +331,15 @@
             actualizandoStock:false,
             stock:[],
             transferencia:[],
-            camion:''
+            camion:null,
+            camiones: [
+                { placa: 'PDV4064', volumen: 7.50 },
+                { placa: 'PDN4216', volumen: 8.00 },
+                { placa: 'PFB1191', volumen: 12.00 },
+                { placa: 'PQU0171', volumen: 4.01 },
+                { placa: 'PCI4409', volumen: 3.26 },
+                { placa: 'PBK9166', volumen: 3.54 },
+            ],
         },
         mounted() {
             this.getStock();
@@ -412,6 +450,7 @@
                 }
 
                 let tableHtml = `
+                <div class="table-responsive">
                 <table class="table table-sm mb-0" style="font-size:smaller">
                     <thead>
                         <th>Cliente</th>
@@ -429,7 +468,7 @@
                     });
                     tableHtml += '</tr>';
                 });
-                tableHtml += '</tbody></table>';
+                tableHtml += '</tbody></table></div>';
                 console.log(tableHtml);
                 this._popoverInstance = new bootstrap.Popover(button, {
                     content: `<div>${tableHtml}</div>`,
@@ -468,12 +507,10 @@
                 this.$nextTick(() => {
                     const vm = this;
                     $(".form-select").select2();
-
                     // sincroniza cuando cambia
                     $(".form-select").on("change", function (e) {
                         vm.filtro = e.target.value;
                     });
-
                     // actualiza visualmente el valor en Select2
                     $(".form-select").val(this.filtro).trigger("change.select2");
                 });
