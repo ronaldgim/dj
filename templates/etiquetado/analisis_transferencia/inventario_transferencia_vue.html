@@ -17,7 +17,14 @@
         <div class="card-header">
             STOCK PARA TRANSFERENCIA
             {% verbatim %}
-                <span v-if="!actualizandoStock" class="fw-bold float-end"> {{ new Date().toLocaleString('es-ec') }} </span>   
+                <span v-if="!actualizandoStock" class="fw-bold float-end"> 
+                    {{ new Date().toLocaleString('es-ec', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour:'numeric',
+                        minute:'numeric'
+                    }) }} </span>   
             {% endverbatim %}
         </div>
         <div class="card-body">
@@ -25,7 +32,7 @@
             <div class="row g-3 align-items-center">
                 <div class="col-4">
                     <div class="d-flex align-items-center">
-                        <label class="fw-bold">Código:</label>
+                        <label class="fw-bold me-2">Código:</label>
                         <!--div class="col-auto"-->
                         <select :value="filtro" @change="onSelectChange" class="form-select form-select-sm">
                             <option value="">Todos</option>
@@ -43,7 +50,7 @@
                         <table class="ms-4 ps-4">
                             <tbody>
                                 <tr>
-                                    <td>
+                                    <td class="pe-4">
                                         <i class="bi bi-truck"></i>
                                         {% verbatim %}
                                         <select v-model="camion" style="width:180px; padding:5px">
@@ -53,15 +60,18 @@
                                         </select>
                                         {% endverbatim %}
                                     </td>
-                                    <td class="pe-6 ps-4 bordered">
+                                    <td class="border-end pe-2 ps-2">
                                         <span :class="totales.vol_unitario > (camion?.volumen || 0) ? 'text-danger fw-bold' : 'text-success fw-bold'">
-                                            {% verbatim %} {{ totales.vol_unitario.toFixed(3) }} m³ {% endverbatim %}
+                                            {% verbatim %} Vol: {{ totales.vol_unitario.toFixed(3) }} m³ {% endverbatim %}
                                         </span>
                                     </td>
-                                    <td class="pe-6 ps-4">
-                                        {% verbatim %} {{cantidadProductosUnicos}} {% endverbatim %}
+                                    <td class="border-end border-start pe-2 ps-2">
+                                        {% verbatim %} # Prods: {{cantidadProductosUnicos}} {% endverbatim %}
                                     </td>
-                                    <td class="pe-6 ps-4">
+                                    <td class="border-end border-start pe-2 ps-2">
+                                        {% verbatim %} % Lleno: {{porcentajeLleno}} % {% endverbatim %}
+                                    </td>
+                                    <td class="">
                                         <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#exampleModal">
                                             <i class="bi bi-list-check"></i>
                                         </button>
@@ -254,15 +264,16 @@
                                 <!--span v-else></span-->
                                 {% endverbatim %}
                             </td>
-                            <td class="pe-6 ps-4 bordered">
+                            <td class="border-end pe-2 ps-2">
                                 <span :class="totales.vol_unitario > (camion?.volumen || 0) ? 'text-danger fw-bold' : 'text-success fw-bold'">
-                                    {% verbatim %}
-                                        {{ totales.vol_unitario.toFixed(3) }} m³
-                                    {% endverbatim %}
+                                    {% verbatim %} Vol: {{ totales.vol_unitario.toFixed(3) }} m³ {% endverbatim %}
                                 </span>
                             </td>
-                            <td class="pe-6 ps-4">
-                                {% verbatim %} {{cantidadProductosUnicos}} {% endverbatim %}
+                            <td class="border-end border-start pe-2 ps-2">
+                                {% verbatim %} # Prods: {{cantidadProductosUnicos}} {% endverbatim %}
+                            </td>
+                            <td class="border-end border-start pe-2 ps-2">
+                                {% verbatim %} % Lleno: {{porcentajeLleno}} % {% endverbatim %}
                             </td>
                         </tr>
                     </tbody>
@@ -275,6 +286,7 @@
                         <th><span style="white-space: nowrap;">Marca</span></th>
                         <th><span style="white-space: nowrap;">Lote</span></th>
                         <th><span style="white-space: nowrap;">F.Cadu</span></th>
+                        <th><span style="white-space: nowrap;">Bodega</span></th>
                         <th><span style="white-space: nowrap;">Saldos</span></th>
                         <th><span style="white-space: nowrap;">Cartones</span></th>
                         <th><span style="white-space: nowrap;">T.Unidades</span></th>
@@ -290,8 +302,12 @@
                         <td class="bg-warning">{{ i.product_id }}</td>
                         <td>{{ i.Nombre }}</td>
                         <td>{{ i.Marca }}</td>
-                        <td class="bg-warning">{{ i.lote_id }}</td>
+                        <td class="bg-warning">
+                            <i v-if="i.error_lote == true" class="bi bi-exclamation-triangle-fill" style="color:red"></i>
+                            {{ i.lote_id }}
+                        </td>
                         <td>{{ i.fecha_caducidad }}</td>
+                        <td>{{ i.location }}</td>
                         <td class="text-end">{{ Number(i.inputSaldos) || 0 }}</td>
                         <td class="text-end">{{ Number(i.inputCartones) || 0 }}</td>
                         <td class="text-end bg-warning">{{ i.totalUnidades.toLocaleString() }}</td>
@@ -391,8 +407,17 @@
                         return acum + valor;
                     }, 0);
                 });
-                console.log(resultado);
                 return resultado;
+            },
+            porcentajeLleno() {
+                const vol = this.totales?.vol_unitario || 0;
+                const capacidad = this.camion?.volumen || 0;
+
+                if (vol > 0 && capacidad > 0) {
+                return Math.round((vol / capacidad) * 100); // Como porcentaje del 0 al 100
+                }
+
+                return 0;
             },
             cantidadProductosUnicos() {
                 const ids = new Set(this.transferencia.map(i => i.product_id));
