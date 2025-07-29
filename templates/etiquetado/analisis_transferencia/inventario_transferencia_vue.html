@@ -5,7 +5,7 @@
 {% endblock%}
 
 {% block navbar %}
-{% include 'inventario/topnavbar.html' %}
+{% include 'etiquetado/topnavbar.html' %}
 {% endblock %}
 
 {% block body_2 %}
@@ -256,7 +256,7 @@
 
                 <table>
                     <tbody>
-                        <tr>
+                        <tr class="border">
                             <td>
                                 <i class="bi bi-truck"></i>
                                 {% verbatim %}
@@ -280,7 +280,7 @@
                 </table>
 
                 <table class="table table-bordered table-sm" style="font-size: small;">
-                    <thead class="table-light" style="position: sticky; top: 0; z-index: 2;">
+                    <thead class="table-light">
                         <th><span style="white-space: nowrap;">Código</span></th>
                         <th><span style="white-space: nowrap;">Nombre</span></th>
                         <th><span style="white-space: nowrap;">Marca</span></th>
