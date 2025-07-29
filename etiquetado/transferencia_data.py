@@ -495,8 +495,6 @@ def inventario_transferencia_data(request):
     data = data.merge(df_error_lote(), on=['product_id','lote_id'], how='left')
     data['error_lote'] = data['error_lote'].fillna(False)
     data.fillna(0)
-    # data['id'] = [i+1 for i in data.index]
-    # print(data, data.keys())
     return JsonResponse({
         'data': de_dataframe_a_template(data),
         'product_list':list(data['product_id'].unique())
