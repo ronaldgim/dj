@@ -17,16 +17,18 @@
     <div class="card">
         <div class="card-header">STOCK PARA TRANSFERENCIA</div>
         <div class="card-body">
-            <label class="fw-bold">Código:</label>
-            <div class="col-md-3 col-sm-6">
-                <select v-model="filtro" class="form-select">
-                    <option value="">Todos</option>
-                    <option v-for="producto in product_list" :key="producto" :value="producto">
-                        {% verbatim %}
-                            {{ producto }}
-                        {% endverbatim %}
-                    </option>
-                </select>
+            <div class="d-flex align-items-center mb-2">
+                <label class="fw-bold me-2 mb-0">Código:</label>
+                <div class="col-md-3 col-sm-6 mb-0">
+                    <select :value="filtro" @change="onSelectChange" class="form-select">
+                        <option value="">Todos</option>
+                        <option v-for="producto in product_list" :key="producto" :value="producto">
+                            {% verbatim %}
+                                {{ producto }}
+                            {% endverbatim %}
+                        </option>
+                    </select>
+                </div>
             </div>
             <div class="table-responsive mt-2">
                 <div style="max-height: 60vh; overflow-y: auto;">
@@ -135,6 +137,7 @@
                                     <span class="text-end">{{ i.peso_unitario.toFixed(3) }} kg</span>
                                 </td>
                                 <td class="text-center">
+                                    {{i.id}}
                                     <div class="btn-group" role="group" aria-label="Basic example">
                                         <button 
                                             v-if="i.detalle" 
@@ -146,8 +149,15 @@
                                             ...
                                         </button>
                                         <button v-else type="button" name="detail" :value="i.detalle" class="btn btn-primary btn-sm disabled">...</button>
-                                        <button type="button" name="add_transf" class="btn btn-success btn-sm {% if len_transf_activas != 1 or i.cartones >= 0 or i.BCT == 0 %} disabled {% endif %}"><i class="bi bi-plus-circle"></i></button>
-                                        <button type="button" name="delete_prod" value="{{i.id}}" class="btn btn-danger btn-sm {% if not i.id %} disabled {% endif %}"><i class="bi bi-trash-fill"></i></button>
+                                        
+                                        <button 
+                                            type="button"
+                                            name="add_transf"
+                                            :class="i.totalUnidades > 0 ? 'btn btn-sm btn-success' : 'btn btn-sm btn-success disabled'"
+                                            @click="addTransfer(i)">
+                                            <i class="bi bi-plus-circle"></i>
+                                        </button>
+                                        <!--button type="button" name="delete_prod" value="{{i.id}}" class="btn btn-danger btn-sm {% if not i.id %} disabled {% endif %}"><i class="bi bi-trash-fill"></i></button--->
                                     </div>
                                 </td>
                             </tr>
@@ -171,13 +181,14 @@
             // STOCK
             actualizandoStock:false,
             stock:[],
-            
+            transferencia:[],
         },
         mounted() {
             this.getStock();
-            this.$nextTick(() => {
-                $(".form-select").select2();
-            })
+            this.initSelect2();
+        },
+        updated() {
+            this.initSelect2(); // por si product_list cambia
         },
         computed:{
             stockFiltrado() {
@@ -211,13 +222,6 @@
                         const productId = (i.product_id || '').toString().toLowerCase();
                         return productId === this.filtro.toLowerCase();
                     });
-
-                this.$nextTick(() => {
-                    $(".form-select").off('change').on('change', (e) => {
-                        this.filtro = e.target.value;
-                    });
-                });
-
                 return resultadoFiltrado;
             }
         },
@@ -230,14 +234,18 @@
                     // Actualizar datos
                     this.stock = data.data || [];
                     this.product_list = data.product_list || [];
-                    this.$nextTick(() => {
-                        $(".form-select").select2();
-                    })
                 } catch (error) {
                     console.error(error);
                 } finally {
                     this.actualizandoStock = false
                 }
+            },
+            addTransfer(i) {
+                console.log(i)
+                // const fila = JSON.parse(JSON.stringify(this.stockFiltrado[id]));
+                // const copia = this.calcularValores(fila);
+                this.transferencia.push(i);
+                console.log(this.transferencia)
             },
             showDetail(detalle, event) {
                 this.detalleActual = detalle;
@@ -247,7 +255,6 @@
                 if (this._popoverInstance) {
                     this._popoverInstance.dispose();
                 }
-
                 // Verifica si el string contiene el caracter '|'
                 let rows;
                 if (typeof detalle === 'string' && detalle.includes('|')) {
@@ -306,6 +313,23 @@
                 setTimeout(() => {
                     document.addEventListener('click', this._handleOutsideClick);
                 }, 0);
+            },
+            onSelectChange(event) {
+                this.filtro = event.target.value;
+            },
+            initSelect2() {
+                this.$nextTick(() => {
+                    const vm = this;
+                    $(".form-select").select2();
+
+                    // sincroniza cuando cambia
+                    $(".form-select").on("change", function (e) {
+                        vm.filtro = e.target.value;
+                    });
+
+                    // actualiza visualmente el valor en Select2
+                    $(".form-select").val(this.filtro).trigger("change.select2");
+                });
             },
             colorDiferencia(diff) {
                 if (diff != 0){
