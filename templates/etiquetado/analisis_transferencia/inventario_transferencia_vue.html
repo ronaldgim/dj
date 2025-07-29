@@ -169,7 +169,7 @@
                                             min="1" 
                                             style="width:80px" 
                                             :disabled="i.bodega == 'BAN' || i.BCT == 0" 
-                                            @blur="() => { addTransfer(i); limpiarTransferenciaCero(); }"
+                                            @input="onInputChanged(i)"
                                         />
                                     </div>
                                     <div class="d-flex justify-content-between">
@@ -180,7 +180,7 @@
                                             min="1" 
                                             style="width:80px" 
                                             :disabled="i.bodega == 'BAN' || i.BCT == 0" 
-                                            @blur="() => { addTransfer(i); limpiarTransferenciaCero(); }"
+                                            @input="onInputChanged(i)"
                                         /> 
                                     </div>
 
@@ -308,7 +308,7 @@
             this.initSelect2();
         },
         updated() {
-            this.initSelect2(); // por si product_list cambia
+            this.initSelect2(); 
         },
         computed:{
             stockFiltrado() {
@@ -359,7 +359,7 @@
             cantidadProductosUnicos() {
                 const ids = new Set(this.transferencia.map(i => i.product_id));
                 return ids.size;
-            }
+            },
         },
         methods: {
             async getStock() {
@@ -388,22 +388,12 @@
                     return total > 0;
                 });
             },
-            onInputChange(i) {
+            onInputChanged(i) {
+                this.$nextTick(() => {
                 this.addTransfer(i);
                 this.limpiarTransferenciaCero();
+                });
             },
-            // totales() {
-            //     const columnas = ['totalUnidades', 'vol_unitario', 'peso_unitario'];
-            //     const resultado = {};
-            //     columnas.forEach(key => {
-            //         resultado[key] = this.transferencia.reduce((acum, item) => {
-            //             const valor = Number(item[key]) || 0;
-            //             return acum + valor;
-            //         }, 0);
-            //     });
-            //     console.log(resultado);
-            //     return resultado;
-            // },
             showDetail(detalle, event) {
                 this.detalleActual = detalle;
                 // Encuentra el botón presionado
@@ -487,11 +477,6 @@
                     // actualiza visualmente el valor en Select2
                     $(".form-select").val(this.filtro).trigger("change.select2");
                 });
-            },
-            colorDiferencia(diff) {
-                if (diff != 0){
-                    return '#F6B690'
-                }
             },
         },
     })
