@@ -42,6 +42,12 @@
                             </option>
                             {% endverbatim %}
                         </select>
+                        <button class="btn btn-sm btn-primary ms-2" @click="filtroTotalUnidadesActivos = true">
+                            <i class="bi bi-check2-square"></i>
+                        </button>
+                        <button class="btn btn-sm btn-secondary ms-2" @click="{filtroTotalUnidadesActivos = false; limpiarSelect()}">
+                            <i class="bi bi-list-columns"></i>
+                        </button>
                     </div>
                 </div>
                 <div class="col-2"></div>
@@ -72,10 +78,20 @@
                                         {% verbatim %} % Lleno: {{porcentajeLleno}} % {% endverbatim %}
                                     </td>
                                     <td>
-                                        <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                                        <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#exampleModal">
                                             <i class="bi bi-list-check"></i>
                                         </button>
                                     </td>
+                                    <!--td>
+                                        <button class="btn btn-sm btn-primary ms-2" @click="filtroTotalUnidadesActivos = true">
+                                            <i class="bi bi-check2-square"></i>
+                                        </button>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-secondary" @click="filtroTotalUnidadesActivos = false">
+                                            <i class="bi bi-list-columns"></i>
+                                        </button>
+                                    </td-->
                                 </tr>
                             </tbody>
                         </table>
@@ -289,33 +305,50 @@
                         <th><span style="white-space: nowrap;">Bodega</span></th>
                         <th><span style="white-space: nowrap;">Saldos</span></th>
                         <th><span style="white-space: nowrap;">Cartones</span></th>
+                        <th><span style="white-space: nowrap;">Reservas</span></th>
                         <th><span style="white-space: nowrap;">T.Unidades</span></th>
                         <th><span style="white-space: nowrap;">Volumen</span></th>
                         <th><span style="white-space: nowrap;">Peso</span></th>
+                        <th class="text-center">...</th>
                     </thead>
                     <tbody>
                         {% verbatim %}
                         <tr v-if="transferencia.length === 0">
-                        <td colspan="11" class="text-center fs-6 text-muted">No hay datos...</td>
+                            <td colspan="13" class="text-center fs-6 text-muted">No hay datos...</td>
                         </tr>
-                        <tr v-for="(i, index) in transferencia" :key="index">
-                        <td class="bg-warning">{{ i.product_id }}</td>
-                        <td>{{ i.Nombre }}</td>
-                        <td>{{ i.Marca }}</td>
-                        <td class="bg-warning">
-                            <i v-if="i.error_lote == true" class="bi bi-exclamation-triangle-fill" style="color:red"></i>
-                            {{ i.lote_id }}
-                        </td>
-                        <td>{{ i.fecha_caducidad }}</td>
-                        <td>{{ i.location }}</td>
-                        <td class="text-end">{{ Number(i.inputSaldos) || 0 }}</td>
-                        <td class="text-end">{{ Number(i.inputCartones) || 0 }}</td>
-                        <td class="text-end bg-warning">{{ i.totalUnidades.toLocaleString() }}</td>
-                        <td class="text-end">{{ i.vol_unitario.toFixed(3) }} m³</td>
-                        <td class="text-end">{{ i.peso_unitario.toFixed(3) }} kg</td>
+                        <tr v-for="(i, index) in transferencia" :key="index" :class="{ 'text-danger': i.calculoReserva < 0 }">
+                            <td class="bg-warning">{{ i.product_id }}</td>
+                            <td>{{ i.Nombre }}</td>
+                            <td>{{ i.Marca }}</td>
+                            <td class="bg-warning">
+                                <i v-if="i.error_lote == true" class="bi bi-exclamation-triangle-fill" style="color:red"></i>
+                                {{ i.lote_id }}
+                            </td>
+                            <td>{{ i.fecha_caducidad }}</td>
+                            <td>{{ i.location }}</td>
+                            <td class="text-end">{{ Number(i.inputSaldos) || 0 }}</td>
+                            <td class="text-end">{{ Number(i.inputCartones) || 0 }}</td>
+                            <td class="text-end">
+                                <span v-if="i.calculoReserva < 0">{{ i.calculoReserva.toLocaleString() }}</span>
+                                <span v-else>0</span>
+                            </td>
+                            <td class="text-end bg-warning">{{ i.totalUnidades.toLocaleString() }}</td>
+                            <td class="text-end">{{ i.vol_unitario.toFixed(3) }} m³</td>
+                            <td class="text-end">{{ i.peso_unitario.toFixed(3) }} kg</td>
+                            <td>
+                                <button 
+                                    v-if="i.detalle && i.calculoReserva < 0" 
+                                    type="button" 
+                                    name="detail" 
+                                    class="btn btn-primary btn-sm"
+                                    @click="showDetail(i.detalle, $event)"
+                                    >
+                                    ...
+                                </button>
+                            </td>
                         </tr>
                         <tr>
-                            <td colspan="8"></td>
+                            <td colspan="10"></td>
                             <td class="text-end">{{totales.totalUnidades.toLocaleString()}}</td>
                             <td class="text-end">{{totales.vol_unitario.toFixed(3) }} m³</td>
                             <td class="text-end">{{totales.peso_unitario.toFixed(3) }} kg</td>
@@ -342,6 +375,7 @@
         data: {
             // FILTRO
             filtro:'',
+            filtroTotalUnidadesActivos:false,
             product_list:[],
             // STOCK
             actualizandoStock:false,
@@ -391,10 +425,16 @@
                         i.calculoReserva = (Number(i.BCT_D) - Number(i.totalUnidades))
                         return i;
                     })
+                    // .filter(i => {
+                    //     if (!this.filtro) return true;
+                    //     const productId = (i.product_id || '').toString().toLowerCase();
+                    //     return productId === this.filtro.toLowerCase();
+                    // });
                     .filter(i => {
-                        if (!this.filtro) return true;
                         const productId = (i.product_id || '').toString().toLowerCase();
-                        return productId === this.filtro.toLowerCase();
+                        if (this.filtro && productId !== this.filtro.toLowerCase()) return false;
+                        if (this.filtroTotalUnidadesActivos && Number(i.totalUnidades) <= 0) return false;
+                        return true;
                     });
                 return resultadoFiltrado;
             },
@@ -540,6 +580,9 @@
                     $(".form-select").val(this.filtro).trigger("change.select2");
                 });
             },
+            limpiarSelect(){
+                this.filtro = '';
+            }
         },
     })
 </script>
