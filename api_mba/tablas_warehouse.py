@@ -1034,23 +1034,54 @@ def odbc_actualizar_stock_lote():
         cnxn = pyodbc.connect('DSN=mba3;PWD=API')
         cursor = cnxn.cursor()
         
+        # stock_lote_query_mba = cursor.execute(
+        #     """
+        #     SELECT 
+        #         INVT_Ficha_Principal.PRODUCT_ID, 
+        #         INVT_Ficha_Principal.PRODUCT_NAME, 
+        #         INVT_Ficha_Principal.GROUP_CODE, 
+        #         INVT_Ficha_Principal.UM, 
+        #         INVT_Producto_Lotes.OH, 
+        #         INVT_Producto_Lotes_Bodegas.OH, 
+        #         INVT_Producto_Lotes_Bodegas.COMMITED, 
+        #         INVT_Producto_Lotes_Bodegas.QUANTITY, 
+        #         INVT_Producto_Lotes.LOTE_ID, 
+        #         INVT_Producto_Lotes.Fecha_elaboracion_lote, 
+        #         INVT_Producto_Lotes.FECHA_CADUCIDAD, 
+        #         INVT_Producto_Lotes_Bodegas.WARE_CODE, 
+        #         INVT_Producto_Lotes_Bodegas.LOCATION 
+                
+        #     FROM 
+        #         INVT_Ficha_Principal INVT_Ficha_Principal, 
+        #         INVT_Producto_Lotes INVT_Producto_Lotes, 
+        #         INVT_Producto_Lotes_Bodegas INVT_Producto_Lotes_Bodegas 
+        #     WHERE 
+        #         INVT_Ficha_Principal.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND 
+        #         INVT_Producto_Lotes_Bodegas.PRODUCT_ID_CORP = INVT_Ficha_Principal.PRODUCT_ID_CORP AND 
+        #         INVT_Producto_Lotes.LOTE_ID = INVT_Producto_Lotes_Bodegas.LOTE_ID AND 
+        #         INVT_Producto_Lotes.WARE_CODE_CORP = INVT_Producto_Lotes_Bodegas.WARE_CODE AND 
+        #         ((INVT_Producto_Lotes.OH>0) AND (INVT_Producto_Lotes_Bodegas.OH>0))
+        #     """
+        # )
+
+
         stock_lote_query_mba = cursor.execute(
             """
             SELECT 
                 INVT_Ficha_Principal.PRODUCT_ID, 
                 INVT_Ficha_Principal.PRODUCT_NAME, 
-                INVT_Ficha_Principal.GROUP_CODE, 
+                INVT_Ficha_Principal.GROUP_CODE,
                 INVT_Ficha_Principal.UM, 
                 INVT_Producto_Lotes.OH, 
                 INVT_Producto_Lotes_Bodegas.OH, 
-                INVT_Producto_Lotes_Bodegas.COMMITED, 
+                INVT_Producto_Lotes_Bodegas.COMMITED,
                 INVT_Producto_Lotes_Bodegas.QUANTITY, 
                 INVT_Producto_Lotes.LOTE_ID, 
                 INVT_Producto_Lotes.Fecha_elaboracion_lote, 
-                INVT_Producto_Lotes.FECHA_CADUCIDAD, 
+                INVT_Producto_Lotes.FECHA_CADUCIDAD,
                 INVT_Producto_Lotes_Bodegas.WARE_CODE, 
-                INVT_Producto_Lotes_Bodegas.LOCATION 
-                
+                INVT_Producto_Lotes_Bodegas.LOCATION, 
+                INVT_Producto_Lotes.AVAILABLE
             FROM 
                 INVT_Ficha_Principal INVT_Ficha_Principal, 
                 INVT_Producto_Lotes INVT_Producto_Lotes, 
@@ -1058,11 +1089,12 @@ def odbc_actualizar_stock_lote():
             WHERE 
                 INVT_Ficha_Principal.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND 
                 INVT_Producto_Lotes_Bodegas.PRODUCT_ID_CORP = INVT_Ficha_Principal.PRODUCT_ID_CORP AND 
+                INVT_Producto_Lotes_Bodegas.Confirm=true AND 
                 INVT_Producto_Lotes.LOTE_ID = INVT_Producto_Lotes_Bodegas.LOTE_ID AND 
                 INVT_Producto_Lotes.WARE_CODE_CORP = INVT_Producto_Lotes_Bodegas.WARE_CODE AND 
                 ((INVT_Producto_Lotes.OH>0) AND (INVT_Producto_Lotes_Bodegas.OH>0))
             """
-                )
+        )
 
         data = [tuple(i) for i in stock_lote_query_mba.fetchall()]
         
