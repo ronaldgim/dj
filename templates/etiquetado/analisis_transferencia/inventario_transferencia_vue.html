@@ -193,7 +193,11 @@
                                     </div>
                                     
                                     <div class="d-flex justify-content-between">
-                                        <span class="text-start fw-bold">Sald:</span>
+                                        <!--span :class="i.bodega == 'BAN' || i.BCT == 0 : text-muted text-start fw-bold">Sald:</span-->
+                                        <span :class="[
+                                        'fw-bold', 
+                                        { 'text-muted text-start': i.bodega === 'BAN' || i.BCT === 0 }
+                                        ]">Sald:</span>
                                         <input 
                                             type="number" 
                                             v-model.number="i.inputSaldos" 
@@ -204,7 +208,11 @@
                                         />
                                     </div>
                                     <div class="d-flex justify-content-between">
-                                        <span class="text-start fw-bold">Cart:</span>
+                                        <!--span class="text-start fw-bold">Cart:</span-->
+                                        <span :class="[
+                                        'fw-bold', 
+                                        { 'text-muted text-start': i.bodega === 'BAN' || i.BCT === 0 }
+                                        ]">Cart:</span>
                                         <input 
                                             type="number" 
                                             v-model.number="i.inputCartones" 
