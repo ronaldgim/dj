@@ -42,7 +42,7 @@
                             </option>
                             {% endverbatim %}
                         </select>
-                        <button class="btn btn-sm btn-primary ms-2" @click="filtroTotalUnidadesActivos = true">
+                        <button class="btn btn-sm btn-primary ms-2" @click="{filtroTotalUnidadesActivos = true; limpiarSelect()}">
                             <i class="bi bi-check2-square"></i>
                         </button>
                         <button class="btn btn-sm btn-secondary ms-2" @click="{filtroTotalUnidadesActivos = false; limpiarSelect()}">
@@ -348,10 +348,11 @@
                             </td>
                         </tr>
                         <tr>
-                            <td colspan="10"></td>
+                            <td colspan="9"></td>
                             <td class="text-end">{{totales.totalUnidades.toLocaleString()}}</td>
                             <td class="text-end">{{totales.vol_unitario.toFixed(3) }} m³</td>
                             <td class="text-end">{{totales.peso_unitario.toFixed(3) }} kg</td>
+                            <td class="text-center">...</td>
                         <tr>
                         {% endverbatim %}
 
