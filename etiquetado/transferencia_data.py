@@ -493,8 +493,9 @@ def inventario_transferencia_data(request):
     data['fecha_caducidad'] = data['fecha_caducidad'].astype('str')    
     data = data.sort_values(by=['product_id','fecha_caducidad','bodega'], ascending=[True,True,True])
     data = data.merge(df_error_lote(), on=['product_id','lote_id'], how='left')
-    data['error_lote'] = data['error_lote'].fillna(False)
-    data.fillna(0)
+    # data['error_lote'] = data['error_lote'].fillna(False).astype(bool)
+    # data = data.fillna(0)
+    # data = data.infer_objects(copy=False)
     return JsonResponse({
         'data': de_dataframe_a_template(data),
         'product_list':list(data['product_id'].unique())
