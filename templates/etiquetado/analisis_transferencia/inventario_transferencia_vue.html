@@ -18,13 +18,8 @@
             STOCK PARA TRANSFERENCIA
             {% verbatim %}
                 <span v-if="!actualizandoStock" class="fw-bold float-end"> 
-                    {{ new Date().toLocaleString('es-ec', {
-                        year: 'numeric',
-                        month: '2-digit',
-                        day: '2-digit',
-                        hour:'numeric',
-                        minute:'numeric'
-                    }) }} </span>   
+                    {{ fecha_actual }} 
+                </span>   
             {% endverbatim %}
         </div>
         <div class="card-body">
@@ -101,7 +96,7 @@
 
             <!-- TABLA -->
             <div class="table-responsive mt-2">
-                <div style="max-height: 60vh; overflow-y: auto;">
+                <div style="max-height: 70vh; overflow-y: auto;">
                     <table class="table table-bordered" style="font-size: small;">
                         <thead class="table-light" style="position: sticky; top: 0; z-index: 2;">
                             <tr class="text-smaller">
@@ -127,7 +122,7 @@
                             {% verbatim %}
                             <tr>
                                 <td v-if="actualizandoStock" colspan="16" class="text-center fs-1">
-                                    Cargando...
+                                    <span>cargando stock...</span>
                                     <div class="spinner-border" style="width: 3rem; height: 3rem;" role="status">
                                         <span class="visually-hidden">Loading...</span>
                                     </div>
@@ -386,6 +381,7 @@
             filtro:'',
             filtroTotalUnidadesActivos:false,
             product_list:[],
+            fecha_actual:'',
             // STOCK
             actualizandoStock:false,
             stock:[],
@@ -482,6 +478,13 @@
                     // Actualizar datos
                     this.stock = data.data || [];
                     this.product_list = data.product_list || [];
+                    this.fecha_actual = new Date().toLocaleString('es-ec',{
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour:'numeric',
+                        minute:'numeric'
+                    });
                 } catch (error) {
                     console.error(error);
                 } finally {
