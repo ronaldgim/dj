@@ -65,7 +65,7 @@ from etiquetado.forms import (
     UbicacionAndagoyaForm,
     ProductoUbicacionForm,
     PedidoTemporalForm,
-    # ProductosPedidoTemporalForm,
+    ProductosPedidoTemporalForm,
     # TransfCerAndForm
 )
 
