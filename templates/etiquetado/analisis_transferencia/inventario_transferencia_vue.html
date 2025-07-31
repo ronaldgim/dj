@@ -272,6 +272,17 @@
             </div>
 
             <div class="modal-body">
+                <div v-if="msg" :class="type_msg" role="alert">
+                    {% verbatim %}
+                        {{msg}}
+                    {% endverbatim %}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <label class="fw-bold">Nota:</label>
+                <div class="col-6">
+                    <textarea type="text" class="form-control col-4 mb-4" row="2" v-model="nota"></textarea>
+                </div>
 
                 <table>
                     <tbody>
@@ -364,7 +375,17 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                <button type="button" class="btn btn-primary">Guardar cambios</button>
+                <button 
+                    type="button" 
+                    class="btn btn-success" 
+                    @click="sendTransf"
+                    :disabled="transferencia.length == 0 || !camion"
+                >
+                    <span v-if="!enviandoTransferencia">Enviar</span>
+                    <span v-if="enviandoTransferencia" class="spinner-border spinner-border-sm" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                    </span>
+                </button>
             </div>
 
             </div>
@@ -395,6 +416,10 @@
                 { placa: 'PCI4409', volumen: 3.26 },
                 { placa: 'PBK9166', volumen: 3.54 },
             ],
+            enviandoTransferencia:false,
+            type_msg:'',
+            msg:'',
+            nota:''
         },
         mounted() {
             this.getStock();
@@ -492,27 +517,42 @@
                 }
             },
             async sendTransf(){
+                this.enviandoTransferencia = true;
                 try {
-                    const response = await fetch('/ruta/api/', {
+                    const response = await fetch('/etiquetado/inventario/send-transferencia', {
                         method: 'POST',
                         headers: {
-                        'Content-Type': 'application/json',
-                        // Si usas Django con CSRF, incluye esto también:
-                        // 'X-CSRFToken': this.getCookie('csrftoken')
+                            'Content-Type': 'application/json',
+                            // Si usas Django con CSRF, incluye esto también:
+                            // 'X-CSRFToken': this.getCookie('csrftoken')
                         },
                         body: JSON.stringify({
                             transferencia: this.transferencia,
-                            camion: this.camion
+                            camion: this.camion,
+                            nota:this.nota
+                            // totales: this.totales
                         })
                     });
                     if (!response.ok) {
                         throw new Error(`Error en la petición: ${response.status}`);
                     }
                     const data = await response.json();
-                    console.log('Respuesta del servidor:', data);
+                    // console.log('Respuesta del servidor:', data);
+                    if (data.success) {
+                        this.enviandoTransferencia = false;
+                        this.type_msg = 'alert alert-success alert-dismissible fade show';
+                        this.msg = 'Tranferencia enviada exitosamente !!!';
+                    } else {
+                        this.enviandoTransferencia = false;
+                        this.type_msg = 'alert alert-danger alert-dismissible fade show';
+                        this.msg = `Error: ${data.error}`
+                    }
                     // Puedes usar data para mostrar mensajes o redirigir
                 } catch (error) {
-                    console.error('Error al enviar datos:', error);
+                    // console.error('Error al enviar datos:', error);
+                    this.enviandoTransferencia = false;
+                    this.type_msg = 'alert alert-danger alert-dismissible fade show';
+                    this.msg = `Error: ${error}`
                 }
             },
             addTransfer(i) {
