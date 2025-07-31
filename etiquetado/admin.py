@@ -20,8 +20,8 @@ from etiquetado.models import (
     ProductoUbicacion,
     PedidoTemporal, 
     ProductosPedidoTemporal,
-    TransfCerAnd,
-    ProductosTransfCerAnd
+    # TransfCerAnd,
+    # ProductosTransfCerAnd
 )
 
 # Register your models here.
@@ -107,10 +107,10 @@ class PedidoTemporalAdmin(admin.ModelAdmin):
 class ProductosPedidoTemporalAdmin(admin.ModelAdmin):
     list_display = ('id', 'product_id', 'cantidad')
 
-@admin.register(TransfCerAnd)
-class TransfCerAndAdmin(admin.ModelAdmin):
-    list_display = ('id', 'nombre', 'vehiculo', 'creado')
+# @admin.register(TransfCerAnd)
+# class TransfCerAndAdmin(admin.ModelAdmin):
+#     list_display = ('id', 'nombre', 'vehiculo', 'creado')
 
-@admin.register(ProductosTransfCerAnd)
-class ProductosTransfCerAndAdmin(admin.ModelAdmin):
-    list_display = ('id', 'product_id', 'lote_id', 'bodega','unidades')
+# @admin.register(ProductosTransfCerAnd)
+# class ProductosTransfCerAndAdmin(admin.ModelAdmin):
+#     list_display = ('id', 'product_id', 'lote_id', 'bodega','unidades')

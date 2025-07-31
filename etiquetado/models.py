@@ -331,40 +331,40 @@ class PedidoTemporal(models.Model):
         enum = f'PT-{total_registros:03d}'
         return enum 
 
-class ProductosTransfCerAnd(models.Model):
+# class ProductosTransfCerAnd(models.Model):
     
-    product_id = models.CharField(max_length=50)
-    lote_id = models.CharField(max_length=50)
-    fecha_caducidad = models.DateField()
-    bodega = models.CharField(max_length=5)
-    cartones = models.IntegerField(default=0)
-    saldos = models.IntegerField(default=0)
-    unidades = models.IntegerField(default=0)
-    volumen = models.FloatField(default=0.0)
-    peso = models.FloatField(default=0.0)
-    reservas = models.IntegerField(default=0)
-    detalle = models.TextField(blank=True)
+#     product_id = models.CharField(max_length=50)
+#     lote_id = models.CharField(max_length=50)
+#     fecha_caducidad = models.DateField()
+#     bodega = models.CharField(max_length=5)
+#     cartones = models.IntegerField(default=0)
+#     saldos = models.IntegerField(default=0)
+#     unidades = models.IntegerField(default=0)
+#     volumen = models.FloatField(default=0.0)
+#     peso = models.FloatField(default=0.0)
+#     reservas = models.IntegerField(default=0)
+#     detalle = models.TextField(blank=True)
     
-    def __str__(self):
-        return self.product_id
+#     def __str__(self):
+#         return self.product_id
 
 
-class TransfCerAnd(models.Model):
+# class TransfCerAnd(models.Model):
     
-    activo = models.BooleanField(default=True)
-    nombre  = models.CharField(max_length=50, blank=True)
-    vehiculo = models.ForeignKey(Vehiculos, on_delete=models.CASCADE)
-    volumen_total = models.FloatField(null=True, default=0.0)
-    peso_total = models.FloatField(null=True, default=0.0)
-    productos = models.ManyToManyField(ProductosTransfCerAnd, blank=True)
-    email = models.BooleanField(default=False)
-    creado  = models.DateField(auto_now_add=True)
+#     activo = models.BooleanField(default=True)
+#     nombre  = models.CharField(max_length=50, blank=True)
+#     vehiculo = models.ForeignKey(Vehiculos, on_delete=models.CASCADE)
+#     volumen_total = models.FloatField(null=True, default=0.0)
+#     peso_total = models.FloatField(null=True, default=0.0)
+#     productos = models.ManyToManyField(ProductosTransfCerAnd, blank=True)
+#     email = models.BooleanField(default=False)
+#     creado  = models.DateField(auto_now_add=True)
     
-    def __str__(self):
-        return self.nombre
+#     def __str__(self):
+#         return self.nombre
     
-    @property
-    def enum(self):
-        total_registros = TransfCerAnd.objects.filter(id__lte=self.id).count()
-        enum = f'TRANSF-{total_registros:03d}'
-        return enum 
+#     @property
+#     def enum(self):
+#         total_registros = TransfCerAnd.objects.filter(id__lte=self.id).count()
+#         enum = f'TRANSF-{total_registros:03d}'
+#         return enum 
