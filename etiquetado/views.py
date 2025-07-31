@@ -9,8 +9,8 @@ from django.shortcuts import render, redirect
 
 from django.shortcuts import get_object_or_404
 
-import io
-import re
+# import io
+# import re
 
 from django.core.mail import EmailMessage
 from itertools import chain
