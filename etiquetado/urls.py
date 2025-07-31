@@ -529,6 +529,12 @@ urlpatterns = [
     ),
     
     # path(
+    #     route = 'inventario/send-transferencia',
+    #     view  = views.send_transferencia,
+    #     name  = 'inventario_send_transferencia'
+    # ),
+    
+    # path(
     #     route = 'add_producto_transf_ajax',
     #     view  = views.add_producto_transf_ajax,
     #     name  = 'add_producto_transf_ajax'
