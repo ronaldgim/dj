@@ -16,7 +16,7 @@ from etiquetado.models import (
     ProductoUbicacion,
     PedidoTemporal,
     ProductosPedidoTemporal,
-    TransfCerAnd
+    # TransfCerAnd
     )
 
 from datos.models import Vehiculos
@@ -132,15 +132,15 @@ class ProductosPedidoTemporalForm(forms.ModelForm):
         fields = '__all__'
 
 
-class TransfCerAndForm(forms.ModelForm):
+# class TransfCerAndForm(forms.ModelForm):
     
-    class Meta:
-        model = TransfCerAnd
-        fields = ['nombre','vehiculo']
-        widgets = {
-            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
-            'vehiculo': forms.Select(attrs={'class': 'form-select'}),
-        }
-    def __init__(self, *args, **kwargs):        
-        super().__init__(*args, **kwargs)
-        self.fields['vehiculo'].queryset = Vehiculos.objects.filter(transportista='GIMPROMED')
+#     class Meta:
+#         model = TransfCerAnd
+#         fields = ['nombre','vehiculo']
+#         widgets = {
+#             'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+#             'vehiculo': forms.Select(attrs={'class': 'form-select'}),
+#         }
+#     def __init__(self, *args, **kwargs):        
+#         super().__init__(*args, **kwargs)
+#         self.fields['vehiculo'].queryset = Vehiculos.objects.filter(transportista='GIMPROMED')
