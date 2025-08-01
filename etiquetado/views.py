@@ -4085,285 +4085,129 @@ def editar_pedido_temporal(request):
 def inventario_transferencia(request):
     return render(request, 'etiquetado/analisis_transferencia/inventario_transferencia_vue.html')
 
-# @csrf_exempt
-# def send_transferencia(request):
 
-#     if request.method == 'POST':
-#         try:
-#             post_data = json.loads(request.body)
-#             transferencia = post_data.get('transferencia', [])
-#             camion = post_data.get('camion', {})
-#             # totales = post_data.get('totales', {})
-#             nota = post_data.get('nota', '-')
+@csrf_exempt
+def send_transferencia(request):
+
+    if request.method == 'POST':
+        try:
+            post_data = json.loads(request.body)
+            transferencia = post_data.get('transferencia', [])
+            camion = post_data.get('camion', {})
+            # totales = post_data.get('totales', {})
+            nota = post_data.get('nota', '-')
             
-#             data = pd.DataFrame(transferencia).sort_values(by=['location', 'product_id'])
-#             data = data[[
-#                 'product_id',
-#                 'Nombre',
-#                 'Marca',
-#                 'lote_id',
-#                 'fecha_caducidad',
-#                 'location',
-#                 'totalUnidades',
-#                 'calculoReserva',
-#                 'detalle'
-#             ]]
+            data = pd.DataFrame(transferencia).sort_values(by=['location', 'product_id'])
+            data = data[[
+                'product_id',
+                'Nombre',
+                'Marca',
+                'lote_id',
+                'fecha_caducidad',
+                'location',
+                'totalUnidades',
+                'calculoReserva',
+                'detalle'
+            ]]
             
-#             data['calculoReserva'] = data.apply(lambda x: x['calculoReserva'] if x['calculoReserva'] < 0 else 0, axis=1)
-#             data['detalle'] = data.apply(lambda x: x['detalle'] if x['calculoReserva'] < 0 else '', axis=1)
+            data['calculoReserva'] = data.apply(lambda x: x['calculoReserva'] if x['calculoReserva'] < 0 else 0, axis=1)
+            data['detalle'] = data.apply(lambda x: x['detalle'] if x['calculoReserva'] < 0 else '', axis=1)
             
-#             data = data.rename(columns={
-#                 'product_id':'Código',
-#                 'lote_id':'Lote',
-#                 'fecha_caducidad':'F.Caducidad',
-#                 'location':'Bodega',
-#                 'totalUnidades':'Unidades',
-#                 'calculoReserva':'Reservas',
-#                 'detalle':'Detalle Reservas'
-#             })
+            data = data.rename(columns={
+                'product_id':'Código',
+                'lote_id':'Lote',
+                'fecha_caducidad':'F.Caducidad',
+                'location':'Bodega',
+                'totalUnidades':'Unidades',
+                'calculoReserva':'Reservas',
+                'detalle':'Detalle Reservas'
+            })
             
-#             columnas_amarillas = ['Código', 'Lote', 'Unidades']
-#             buffer = io.BytesIO()
-#             with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
-#                 data.to_excel(writer, sheet_name='Transferencia', index=False)
-#                 workbook = writer.book
-#                 worksheet = writer.sheets['Transferencia']
+            columnas_amarillas = ['Código', 'Lote', 'Unidades']
+            buffer = io.BytesIO()
+            with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+                data.to_excel(writer, sheet_name='Transferencia', index=False)
+                workbook = writer.book
+                worksheet = writer.sheets['Transferencia']
                 
-#                 # Añadir formato para encabezados
-#                 header_format = workbook.add_format({
-#                     'bold': True,
-#                     'text_wrap': True,
-#                     'valign': 'top',
-#                     'border': 1,
-#                     'fg_color': '#D7E4BC'  # Color verde claro para encabezados normales
-#                 })
+                # Añadir formato para encabezados
+                header_format = workbook.add_format({
+                    'bold': True,
+                    'text_wrap': True,
+                    'valign': 'top',
+                    'border': 1,
+                    'fg_color': '#D7E4BC'  # Color verde claro para encabezados normales
+                })
                 
-#                 # Crear formato para encabezados de columnas amarillas
-#                 yellow_header_format = workbook.add_format({
-#                     'bold': True,
-#                     'text_wrap': True,
-#                     'valign': 'top',
-#                     'border': 1,
-#                     'fg_color': '#FFEB9C'  # Color amarillo para encabezados especiales
-#                 })
+                # Crear formato para encabezados de columnas amarillas
+                yellow_header_format = workbook.add_format({
+                    'bold': True,
+                    'text_wrap': True,
+                    'valign': 'top',
+                    'border': 1,
+                    'fg_color': '#FFEB9C'  # Color amarillo para encabezados especiales
+                })
                 
-#                 # Crear formato para celdas amarillas
-#                 yellow_cell_format = workbook.add_format({
-#                     'fg_color': '#FFEB9C'  # Color amarillo para celdas
-#                 })
+                # Crear formato para celdas amarillas
+                yellow_cell_format = workbook.add_format({
+                    'fg_color': '#FFEB9C'  # Color amarillo para celdas
+                })
                 
-#                 # Aplicar formato a los encabezados y determinar índices de columnas amarillas
-#                 indices_columnas_amarillas = []
+                # Aplicar formato a los encabezados y determinar índices de columnas amarillas
+                indices_columnas_amarillas = []
                 
-#                 for col_num, column in enumerate(data.columns):
-#                     # Determinar si esta columna debe ser amarilla
-#                     if column in columnas_amarillas:
-#                         worksheet.write(0, col_num, column, yellow_header_format)
-#                         indices_columnas_amarillas.append(col_num)
-#                     else:
-#                         worksheet.write(0, col_num, column, header_format)
+                for col_num, column in enumerate(data.columns):
+                    # Determinar si esta columna debe ser amarilla
+                    if column in columnas_amarillas:
+                        worksheet.write(0, col_num, column, yellow_header_format)
+                        indices_columnas_amarillas.append(col_num)
+                    else:
+                        worksheet.write(0, col_num, column, header_format)
                     
-#                     # Ajustar el ancho de la columna
-#                     column_width = max(data[column].astype(str).map(len).max(), len(str(column)))
-#                     worksheet.set_column(col_num, col_num, column_width + 2)
+                    # Ajustar el ancho de la columna
+                    column_width = max(data[column].astype(str).map(len).max(), len(str(column)))
+                    worksheet.set_column(col_num, col_num, column_width + 2)
                 
-#                 # Aplicar formato amarillo a todas las celdas de las columnas seleccionadas
-#                 for col_index in indices_columnas_amarillas:
-#                     # Aplicar formato a todas las filas de la columna (desde la fila 1 hasta la última)
-#                     worksheet.conditional_format(1, col_index, len(data) - 1, col_index, {
-#                         'type': 'no_blanks',
-#                         'format': yellow_cell_format
-#                     })
+                # Aplicar formato amarillo a todas las celdas de las columnas seleccionadas
+                for col_index in indices_columnas_amarillas:
+                    # Aplicar formato a todas las filas de la columna (desde la fila 1 hasta la última)
+                    worksheet.conditional_format(1, col_index, len(data) - 1, col_index, {
+                        'type': 'no_blanks',
+                        'format': yellow_cell_format
+                    })
             
-#             buffer.seek(0)
-#             excel_data = buffer.getvalue()            
-#             email = EmailMessage(
-#                 subject='TRANSFERENCIA CEREZOS-ANDAGOYA',
-#                 body=f"""
-# Transferencia de Cerezos-Andagoya.
+            buffer.seek(0)
+            excel_data = buffer.getvalue()            
+            email = EmailMessage(
+                subject='TRANSFERENCIA CEREZOS-ANDAGOYA',
+                body=f"""
+Transferencia de Cerezos-Andagoya.
 
-# Camión: {camion['placa']}
-# Nota: {nota}
+Camión: {camion['placa']}
+Nota: {nota}
 
-# *** Este mensaje es automático no responder ***
-# """,
-#                 from_email=settings.EMAIL_HOST_USER,
-#                 to=[
-#                     # 'dreyes@gimpromed.com',
-#                     # 'ncastillo@gimpromed.com',
-#                     # 'jgualotuna@gimpromed.com',
-#                     # 'bcerezos@gimpromed.com',
-#                     'egarces@gimpromed.com',
-#                 ]
-#             )
-#             nombre = f'Transferencia_{str(datetime.now())}.xlsx'
-#             email.attach(nombre, excel_data, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-#             email.send(fail_silently=False)
+*** Este mensaje es automático no responder ***
+""",
+                from_email=settings.EMAIL_HOST_USER,
+                to=[
+                    # 'dreyes@gimpromed.com',
+                    # 'ncastillo@gimpromed.com',
+                    # 'jgualotuna@gimpromed.com',
+                    # 'bcerezos@gimpromed.com',
+                    'egarces@gimpromed.com',
+                ]
+            )
+            nombre = f'Transferencia_{str(datetime.now())}.xlsx'
+            email.attach(nombre, excel_data, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            email.send(fail_silently=False)
             
-#             return JsonResponse({
-#                 'success':True
-#             })
-#         except Exception as e:
-#             return JsonResponse({
-#                 'error':str(e)
-#             })
-
-
-
-
-
-# def transferencia_cer_and_data(id_transf):
-    
-#     transf = TransfCerAnd.objects.get(id=id_transf)
-#     prods = pd.DataFrame(transf.productos.all().order_by('bodega','product_id','unidades').values())
-    
-#     if not prods.empty:
-
-#         totales = {
-#             'product_id':'TOTAL',
-#             'lote_id':'',
-#             'fecha_caducidad':'',
-#             'bodega':'',
-#             'cartones' : prods['cartones'].sum(),
-#             'saldos' : prods['saldos'].sum(),
-#             'unidades' : prods['unidades'].sum(),
-#             'volumen' : round(prods['volumen'].sum(), 5),
-#             'peso' : round(prods['peso'].sum(), 5),
-#             'reservas':'',
-#             'detalle':'',
-#             'Nombre':'',
-#             'Marca':''
-#         }
-        
-#         productos = productos_odbc_and_django()[['product_id','Nombre','Marca']]
-#         prods = prods.merge(productos, on='product_id', how='left')
-#         prods.insert(0, 'No.', range(1, len(prods) + 1))
-        
-#         df_final = pd.concat([prods, pd.DataFrame([totales])], ignore_index=True).fillna('')        
-#         df_final = df_final[['No.','product_id','Nombre','Marca','bodega','lote_id','cartones','saldos','unidades','volumen','reservas','detalle']]
-        
-#         return df_final
-    
-#     else:
-#         return pd.DataFrame()
-
-
-# def get_transferencia_cer_and(request):
-    
-#     id_transf = int(request.GET.get('id_transf'))
-#     data = transferencia_cer_and_data(id_transf) 
-    
-#     if not data.empty:
-#         return JsonResponse({
-#             'data':de_dataframe_a_template(data)
-#         })
-        
-#     return JsonResponse({'msg':'ok'})
-
-
-
-
-
-# def transf_cer_and_activar_inactivar_ajax(request):
-    
-#     id_transf = request.POST.get('id_transf')
-    
-#     transf = TransfCerAnd.objects.get(id=id_transf)
-    
-#     if transf.activo:
-#         transf.activo = False
-#         transf.save()
-#     else:
-#         transf.activo = True
-#         transf.save()
-    
-#     return JsonResponse({'msg':'ok'})
-
-
-# def add_producto_transf_ajax(request):
-    
-#     productos = productos_odbc_and_django()
-    
-#     transferencia = TransfCerAnd.objects.filter(activo=True).first()
-#     vol_list_products = list(transferencia.productos.all().values_list('volumen', flat=True))
-#     vol_prods_transf =  sum(vol_list_products).__round__(5) if vol_list_products else 0
-    
-#     peso_list_products = list(transferencia.productos.all().values_list('peso', flat=True))
-#     peso_prods_transf =  sum(peso_list_products).__round__(5) if peso_list_products else 0
-    
-#     def texto_a_numero(texto):
-#     # Eliminar cualquier carácter que no sea un dígito
-#         solo_numeros = re.sub(r'\D', '', texto)
-#         return int(solo_numeros)
-    
-#     if request.method == 'POST':
-        
-#         producto_id = request.POST.get('producto_id')
-#         lote_id = request.POST.get('lote_id')
-#         fecha_caducidad = request.POST.get('fecha_caducidad')
-#         bodega = request.POST.get('bodega')
-#         und_disp = texto_a_numero(request.POST.get('und_disp'))
-#         cartones = int(request.POST.get('cartones'))
-#         saldos = int(request.POST.get('saldos'))
-#         detalle = request.POST.get('detalle')
-        
-#         prods = productos[productos['product_id']==producto_id].to_dict('records')[0]
-#         prod_ue = int(prods.get('Unidad_Empaque'))  
-#         prod_vol = int(prods.get('Volumen')) if int(prods.get('Unidad_Empaque')) == 0 else 0.025
-#         prod_peso = float(prods.get('Peso')) if float(prods.get('Peso')) > 0 else 0
-        
-#         unidades = (cartones * prod_ue) + saldos
-#         volumen = (unidades / prod_ue) * prod_vol
-#         peso = (unidades / prod_ue) * prod_peso
-#         reservas = und_disp - unidades
-        
-#         new_product = ProductosTransfCerAnd(
-#             product_id = producto_id,
-#             lote_id = lote_id,
-#             fecha_caducidad = fecha_caducidad,
-#             bodega = bodega,
-#             cartones = cartones,
-#             saldos = saldos,
-#             unidades = unidades,
-#             volumen = volumen,
-#             peso = peso,
-#             reservas = reservas,
-#             detalle = detalle
-#         )
-        
-#         new_product.save()
-#         transferencia.productos.add(new_product)
-        
-#         # volumen transf 
-#         transferencia.volumen_total = vol_prods_transf + volumen
-#         transferencia.peso_total = peso_prods_transf + peso
-#         transferencia.save()
-        
-#         return JsonResponse({'msg':'ok'})
-
-
-# def delete_producto_transf_ajax(request):
-    
-#     if request.method == 'POST':
-        
-#         id_prod = int(float(request.POST.get('id_prod')))
-#         ProductosTransfCerAnd.objects.get(id=id_prod).delete()
-        
-#         transferencia = TransfCerAnd.objects.filter(activo=True).first()
-        
-#         list_products = list(transferencia.productos.all().values_list('volumen', flat=True))
-#         vol_prods_transf =  sum(list_products).__round__(5) if list_products else 0.0
-        
-#         peso_list_products = list(transferencia.productos.all().values_list('peso', flat=True))
-#         peso_prods_transf =  sum(peso_list_products).__round__(5) if peso_list_products else 0
-        
-#         transferencia.volumen_total = vol_prods_transf
-#         transferencia.peso_total = peso_prods_transf
-        
-#         transferencia.save()
-        
-#         return JsonResponse({'msg':'ok'})
-
+            return JsonResponse({
+                'success':True
+            })
+        except Exception as e:
+            return JsonResponse({
+                'error':str(e)
+            })
 
 
 def wms_andagoya_data_home():

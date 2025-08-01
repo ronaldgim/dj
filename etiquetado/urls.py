@@ -528,42 +528,11 @@ urlpatterns = [
         name  = 'inventario_transferencia'
     ),
     
-    # path(
-    #     route = 'inventario/send-transferencia',
-    #     view  = views.send_transferencia,
-    #     name  = 'inventario_send_transferencia'
-    # ),
-    
-    # path(
-    #     route = 'add_producto_transf_ajax',
-    #     view  = views.add_producto_transf_ajax,
-    #     name  = 'add_producto_transf_ajax'
-    # ),
-    
-    # path(
-    #     route = 'delete_producto_transf_ajax',
-    #     view  = views.delete_producto_transf_ajax,
-    #     name  = 'delete_producto_transf_ajax'
-    # ),
-    
-    # path(
-    #     route = 'transf_cer_and_activar_inactivar_ajax',
-    #     view  = views.transf_cer_and_activar_inactivar_ajax,
-    #     name  = 'transf_cer_and_activar_inactivar_ajax'
-    # ),
-    
-    # path(
-    #     route = 'get_transferencia_cer_and',
-    #     view  = views.get_transferencia_cer_and,
-    #     name  = 'get_transferencia_cer_and'
-    # ),
-    
-    # path(
-    #     route = 'transferencia_cer_and_email_ajax',
-    #     view  = views.transferencia_cer_and_email_ajax,
-    #     name  = 'transferencia_cer_and_email_ajax'
-    # ),
-    
+    path(
+        route = 'inventario/send-transferencia',
+        view  = views.send_transferencia,
+        name  = 'inventario_send_transferencia'
+    ),
     
     ### WMS ANDAGOYA
     path(
