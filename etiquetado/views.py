@@ -4190,10 +4190,10 @@ Nota: {nota}
 """,
                 from_email=settings.EMAIL_HOST_USER,
                 to=[
-                    # 'dreyes@gimpromed.com',
-                    # 'ncastillo@gimpromed.com',
-                    # 'jgualotuna@gimpromed.com',
-                    # 'bcerezos@gimpromed.com',
+                    'dreyes@gimpromed.com',
+                    'ncastillo@gimpromed.com',
+                    'jgualotuna@gimpromed.com',
+                    'bcerezos@gimpromed.com',
                     'egarces@gimpromed.com',
                 ]
             )
