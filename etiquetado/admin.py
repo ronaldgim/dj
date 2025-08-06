@@ -106,11 +106,3 @@ class PedidoTemporalAdmin(admin.ModelAdmin):
 @admin.register(ProductosPedidoTemporal)
 class ProductosPedidoTemporalAdmin(admin.ModelAdmin):
     list_display = ('id', 'product_id', 'cantidad')
-
-# @admin.register(TransfCerAnd)
-# class TransfCerAndAdmin(admin.ModelAdmin):
-#     list_display = ('id', 'nombre', 'vehiculo', 'creado')
-
-# @admin.register(ProductosTransfCerAnd)
-# class ProductosTransfCerAndAdmin(admin.ModelAdmin):
-#     list_display = ('id', 'product_id', 'lote_id', 'bodega','unidades')
