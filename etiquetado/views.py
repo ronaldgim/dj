@@ -66,7 +66,6 @@ from etiquetado.forms import (
     ProductoUbicacionForm,
     PedidoTemporalForm,
     ProductosPedidoTemporalForm,
-    # TransfCerAndForm
 )
 
 # Json
