@@ -570,6 +570,12 @@ urlpatterns = [
         name  = 'reporte_error_lote_excel'
     ),
     
+    path(
+        route = 'reporte-error-lote-v2',
+        view  = views.reporte_error_lote_v2,
+        name  = 'reporte_error_lote_v2'
+    ),
+    
     # analisis transferencia data
     path(
         route = 'inventario_transferencia_data',

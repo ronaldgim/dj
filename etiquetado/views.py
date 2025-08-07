@@ -28,7 +28,8 @@ from datos.models import (
     StockConsulta, 
     AdminActualizationWarehaouse,
     ErrorLoteDetalle,
-    ErrorLoteReporte
+    ErrorLoteReporte,
+    ErrorLoteV2
     )
 from wms.models import Transferencia, OrdenEmpaque, Existencias
 from etiquetado.models import (
@@ -4398,6 +4399,14 @@ def reporte_error_lote_excel(request):
 
 
 def reporte_error_lote(request):
-    from datos.views import analisis_error_lote_data, analisis_error_lote_data_v2
-    analisis_error_lote_data_v2()
+    # from datos.views import analisis_error_lote_data, analisis_error_lote_data_v2
+    # analisis_error_lote_data_v2()
     return render(request, 'etiquetado/error-lote/reporte-error-lote.html')
+
+
+def reporte_error_lote_v2(request):
+    context = {
+        'data':ErrorLoteV2.objects.all(),
+        'actualizado':AdminActualizationWarehaouse.objects.get(table_name='error_lote_v2')
+    }
+    return render(request, 'etiquetado/error-lote/reporte-error-lote-v2.html', context)
