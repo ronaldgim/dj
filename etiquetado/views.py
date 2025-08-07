@@ -4374,7 +4374,30 @@ def detalle_error_lote_data(request, product_id):
     return JsonResponse({'data':list(data)})
 
 
+def reporte_error_lote_excel(request):
+    
+    data = ErrorLoteDetalle.objects.all().values()
+    reporte = pd.DataFrame(data)
+    
+    hoy = datetime.today().strftime('%Y-%m-%d_%H-%M-%S')
+    nombre_archivo = f'Reporte-Error-Lote_{hoy}.xlsx'
+    content_disposition = f'attachment; filename="{nombre_archivo}"'
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = content_disposition
+    
+    with pd.ExcelWriter(response, engine='openpyxl') as writer:
+        
+        reporte.to_excel(writer, sheet_name='Reporte-Reservas', index=False)
+        
+        workbook = writer.book
+        worksheet = writer.sheets['Reporte-Reservas']
+        
+        worksheet.column_dimensions['A'].width = 30 # CONTRATO
+
+        return response
+
+
 def reporte_error_lote(request):
-    # from datos.views import analisis_error_lote_data
-    # analisis_error_lote_data()
+    from datos.views import analisis_error_lote_data, analisis_error_lote_data_v2
+    analisis_error_lote_data_v2()
     return render(request, 'etiquetado/error-lote/reporte-error-lote.html')
