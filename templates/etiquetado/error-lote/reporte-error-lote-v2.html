@@ -1,0 +1,294 @@
+{% extends 'base_vue.html' %}
+{% block title %}
+<title>ERROR LOTE</title>
+{% endblock %}
+
+{% block navbar %}
+{% include 'etiquetado/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+<div id="app">
+
+    <div class="text-center mt-4 mb-4">
+        <h5 class="m-4 text-center fw-bold d-inline">
+            REPORTE DE ERROR DE LOTE
+        </h5>
+        <div v-if="cargandoReporte" class="spinner-border" role="status"></div>
+        <div v-if="errorReporte"><i style="color:red" class="bi bi-bug-fill"></i></div>
+        <span>{% verbatim %} {{errorReporteData}} {% endverbatim %}</span>
+    </div>
+
+    <button 
+        class="btn btn-sm btn-light ms-auto d-block"
+        @click="getReporteData()">
+            <i class="bi bi-arrow-clockwise"></i>
+    </button>
+    <h6 
+        v-if="actualizado" 
+        class="mt-0 pt-0 text-end fw-bold">
+        Actualizado: {% verbatim %} {{actualizado}} {% endverbatim %}
+    </h6>
+    <span class="fw-bold"># Productos:</span> <span>{% verbatim %} {{ len_productos }} {% endverbatim %}</span>
+    <br>
+    <!--a href="{% url 'reporte_error_lote_excel' %}" class="btn btn-sm btn-success"><i class="bi bi-file-earmark-spreadsheet-fill"></i> Reporte</a-->
+    <div class="card mt-2 mb-4">
+        <div class="card-body">
+            <div class="table-responsive"> 
+                <div style="max-height: 60vh; overflow-y: auto;">
+                    <table class="table table-hover" id="error-lote">
+                        <thead class="table-info" style="position: sticky; top: 0; z-index: 2;">
+                            <tr>
+                                <th scope="col">Código</th>
+                                <th scope="col">Nombre</th>
+                                <th scope="col">Marca</th>
+                                <th scope="col">Total Agrupado (OH)</th>
+                                <th scope="col">Total Lotes (OH2)</th>
+                                <!--th scope="col">Tranferencia (OH)</th-->
+                                <!--th scope="col">Total L+T</th-->
+                                <th scope="col">Diferencia</th>
+                                <th scope="col">Commited (-)</th>
+                                <th scope="col">Lotes</th>
+                            </tr>
+                        </thead>
+                        
+                        <tbody>
+                            {% verbatim %}
+                            <!--tr v-for="i in reporte"-->
+                            <tr v-for="i in reporteFiltrado">
+                                <td>{{i.product_id}}</td>
+                                <td>{{i.nombre}}</td>
+                                <td>{{i.marca}}</td>
+                                <td class="text-center">
+                                    <!--span v-if="i.unds_total == 0">-</span>
+                                    <span v-else>{{i.unds_total.toLocaleString()}}</span-->
+                                    {{i.unds_total.toLocaleString()}}
+                                </td>
+                                <td class="text-center">{{i.unds_lotes.toLocaleString()}}</td>
+                                <td class="text-center">{{i.unds_transf.toLocaleString()}}</td>
+                                <!--td class="text-end">
+                                    <span v-if="i.unds_total_mas_transf == 0">-</span>
+                                    <span v-else>{{i.unds_total_mas_transf.toLocaleString()}}<span>
+                                </td>
+                                <td class="text-end">
+                                    <span v-if="i.unds_diff == 0">-</span>
+                                    <span v-else>{{i.unds_diff.toLocaleString()}}</span>
+                                        {{i.unds_diff.toLocaleString()}}
+                                </td-->
+                                <td class="text-center">{{i.commited_negativo}}</td>
+                                <td>
+                                    <button 
+                                        class="btn btn-sm btn-primary" @click="getDetalleLote(i.product_id)"
+                                        data-bs-toggle="modal" data-bs-target="#exampleModal">
+                                        <i class="bi bi-box2"></i> Lotes
+                                    </button>
+                                </td>
+                            </tr> 
+                            {% endverbatim %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Código:{% verbatim %} {{product_idDetalle}} {% endverbatim %}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Lote</th>
+                                <th scope="col">Oh</th>
+                                <th scope="col">Oh2</th>
+                                <!--th scope="col">Oh Transf</th-->
+                                <th scope="col">Diff</th>
+                                <th scope="col">Commited (-)</th>
+                            </tr>
+                        </thead>
+                        
+                        <tbody>
+                            {% verbatim %}
+                            <tr v-for="i in detalle">
+                                <td>{{i.lote_id}} 
+                                    <i v-if="i.error" style="color:red" class="bi bi-exclamation-triangle-fill"></i>
+                                    <i v-if="i.commited_negativo == 'SI'" style="color:red" class="bi bi-exclamation-triangle-fill"></i>
+                                </td>
+                                <td class="text-end">{{i.oh.toLocaleString()}}</td>
+                                <td class="text-end">{{i.oh2.toLocaleString()}}</td>
+                                <!--td class="text-end">{{i.oh_transf.toLocaleString()}}</td-->
+                                <td class="text-end">{{i.diff.toLocaleString()}}</td>
+                                <td class="text-end">{{i.commited_negativo}}</td>
+                            </tr> 
+                            {% endverbatim %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+
+    new Vue({
+        el:'#app',
+        data:{
+            // filtro
+            filtro:'',
+            // actualizado
+            actualizado:'',
+            // len of data
+            len_productos:'',
+            // reporte
+            cargandoReporte:false,
+            errorReporte:false,
+            errorReporteData:'',
+            reporte:[],
+
+            // detalle
+            cargadoDetalle:false,
+            errorDetalle:false,
+            errorDetalleLote:'',
+            product_idDetalle:'',
+            detalle:[]
+        },
+        mounted(){            
+            this.getReporteData();
+            this.$nextTick(() => {
+                $('#error-lote').DataTable({
+                    order: [],
+                    searching: true,
+                    paging: false,
+                    info: false,
+                    language: {
+                        search: "Buscar:", 
+                    },
+                    initComplete: function () {
+                        // 🔧 Modifica el input de búsqueda
+                        const input = $('div.dataTables_filter input');
+                        input.addClass('form-control form-control-sm mb-4'); 
+                        // input.attr('placeholder', 'Escribe para filtrar...');
+                    },
+                    columnDefs: [
+                        { targets: [-1], orderable: false },
+                        { targets: [3, 4, 5], type: 'num' },
+                        { targets: [1, 2, 3, 5, 6], type: 'string' },
+                    ]
+                });
+            });
+        },
+        watch: {
+            reporteFiltrado() {
+                this.$nextTick(() => {
+                    // const table = $('#error-lote').DataTable();
+                    // table.clear().destroy();
+                    $('#error-lote').DataTable({ 
+                        order: [],
+                        searching: true,
+                        paging: false,
+                        info: false,
+                        language: {
+                            search: "Buscar:", 
+                        },
+                        // initComplete: function () {
+                        //     // 🔧 Modifica el input de búsqueda
+                        //     const input = $('div.dataTables_filter input');
+                        //     input.addClass('form-control form-control-sm'); 
+                        //     // input.attr('placeholder', 'Escribe para filtrar...');
+                        // },
+                        columnDefs: [
+                            { targets: [-1], orderable: false },
+                            { targets: [3, 4, 5], type: 'num' },
+                            { targets: [1, 2, 3, 5, 6], type: 'string' },
+                        ]
+                    });
+                });
+            }
+        },
+        computed:{
+            reporteFiltrado() {
+                return this.reporte.filter(i=>
+                    i.product_id.toLowerCase().includes(this.filtro.toLowerCase()) |
+                    i.nombre.toLowerCase().includes(this.filtro.toLowerCase()) |
+                    i.marca.toLowerCase().includes(this.filtro.toLowerCase())
+                )
+            }
+        },
+
+        methods:{
+            async getReporteData() {
+                this.cargandoReporte = true;
+                try {
+                    const response = await fetch('/etiquetado/reporte_error_lote_data');
+                    if(!response.ok) {
+                        throw new Error(response.statusText);
+                    }
+                    const data = await response.json(); 
+                    // console.log(data);
+                    this.reporte = data.data || [];
+                    this.actualizado = new Date(data.actualizado).toLocaleString('es-EC');
+                    this.len_productos = data.data.length || 0;
+                } catch (error) {
+                    this.errorReporte = true;
+                    this.errorReporteData = error
+                } finally {
+                    this.cargandoReporte = false;
+                }
+            },
+
+            async getDetalleLote(product_id) {
+                this.cargadoDetalle = true;
+                try {
+                    const response = await fetch(`/etiquetado/detalle_error_lote_data/${product_id}`);
+                    if(!response.ok) {
+                        throw new Error(response.statusText);
+                    }
+                    const data = await response.json(); 
+                    // console.log(data);
+                    this.product_idDetalle = product_id;
+                    this.detalle = data.data || [];
+                } catch (error) {
+                    this.errorDetalle = true;
+                    this.errorDetalleLote = error
+                } finally {
+                    this.cargadoDetalle = false;
+                }
+            },
+        }
+    })
+</script>
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.css" />  
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.js"></script>
+
+<!--script>
+    $(document).ready(function(){
+        $('#error-lote').DataTable({
+            //"ordering":true,
+            "order": [],
+            "searching": false,
+            "paging": false,
+            "info": false,
+            "columnDefs": [
+                // Deshabilitar ordenamiento en la primera columna (::) y la última columna (Acciones)
+                // { targets: [0, -1], orderable: false },
+                { targets: [-1], orderable: false },
+                // Ordenar como números
+                { targets: [3, 4, 5], type: 'num' }, // Orden, Consignación, Und.Estanteria, Und.Bulto, Und.Suministro, Und.Total
+                // Ordenar como texto
+                { targets: [1, 2, 3, 5, 6], type: 'string' }, // Códigos, Nombres, Marca, Ubicación, Llenado, Usuario, Observaciones
+                // Ejemplo: ocultar columna "Marca" (índice 6)
+                // { targets: [6], visible: false }
+            ]
+        });
+    });
+</script-->
+
+{% endblock %}
