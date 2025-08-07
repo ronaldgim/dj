@@ -12,7 +12,7 @@ from django.contrib import messages
 from django.views.generic import TemplateView
 
 # Models
-from datos.models import TimeStamp, Product, AdminActualizationWarehaouse, ErrorLoteReporte, ErrorLoteDetalle #Vehiculos 
+from datos.models import TimeStamp, Product, AdminActualizationWarehaouse, ErrorLoteReporte, ErrorLoteDetalle, ErrorLoteV2 #Vehiculos 
 from etiquetado.models import EstadoPicking, PedidosEstadoEtiquetado
 from etiquetado.models import EtiquetadoAvance
 from wms.models import Existencias
@@ -586,6 +586,10 @@ def stock_lote(request):
             # 15 Tabla datos_errorlotereporte, datos_errorlotedetalle
             actualizar_data_error_lote()
             
+            ### TABLA ERROR LOTE
+            # 16 Tabla datos_errorlotereporte, datos_errorlotedetalle
+            actualizar_data_error_lote_v2()
+            
         elif table_name:
             
             if table_name == "clientes":
@@ -618,6 +622,8 @@ def stock_lote(request):
                 api_actualizar_mis_reservas_etiquetado()
             elif table_name == 'error_lote':
                 actualizar_data_error_lote()
+            elif table_name == 'error_lote_v2':
+                actualizar_data_error_lote_v2()
 
     #return render(request, 'datos/stock_lote.html', {})
     return render(request, 'datos/stock_lote.html', context)
@@ -2647,7 +2653,7 @@ def analisis_error_lote_data_v2():
     
     df_grouped_product_lote['error_commited'] = df_grouped_product_lote['error'].str.contains('commited_negativo')
     df_grouped_product_lote['error_available'] = df_grouped_product_lote['error'].str.contains('diff_qty_ava')
-    df_grouped_product_lote['error_totales'] = df_grouped_product_lote['error'].str.contains('diff_total_lotes')
+    # df_grouped_product_lote['error_totales'] = df_grouped_product_lote['error'].str.contains('diff_total_lotes')
     
     # product_lote_list = df_grouped_product_lote['PRODUCT_ID'].unique()
     
@@ -2723,6 +2729,45 @@ def actualizar_data_error_lote():
         ErrorLoteDetalle.objects.bulk_create(obj_lotes)
         
         adm_table = AdminActualizationWarehaouse.objects.get(table_name='error_lote')
+        adm_table.datetime = datetime.now()
+        adm_table.mensaje = 'Actualizado correctamente'
+        adm_table.save()
+
+
+def actualizar_data_error_lote_v2():
+    data = analisis_error_lote_data_v2()
+    # print(data)
+    if data is None:
+        ErrorLoteV2.objects.all().delete()
+        adm_table = AdminActualizationWarehaouse.objects.get(table_name='error_lote_v2')
+        adm_table.datetime = datetime.now()
+        adm_table.mensaje = 'No se encuntran lotes con error'
+        adm_table.save()
+    
+    elif data is not None:
+        # reporte
+        ErrorLoteV2.objects.all().delete()
+
+        lotes = data['lotes']
+        obj_lotes = []
+        for j in lotes:
+            obj_l = ErrorLoteV2(
+                product_id = j.get('PRODUCT_ID'),
+                nombre = j.get('Nombre'),
+                marca = j.get('Marca'),
+                lote_id = j.get('LOTE_ID'),
+                quantity = j.get('QUANTITY'),
+                available = j.get('AVAILABLE'),
+                commited = j.get('COMMITED'),
+                error = j.get('error'),
+                error_commited = j.get('error_commited'),
+                error_available = j.get('error_available'),
+            )
+            
+            obj_lotes.append(obj_l)
+        ErrorLoteV2.objects.bulk_create(obj_lotes)
+        
+        adm_table = AdminActualizationWarehaouse.objects.get(table_name='error_lote_v2')
         adm_table.datetime = datetime.now()
         adm_table.mensaje = 'Actualizado correctamente'
         adm_table.save()
