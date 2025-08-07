@@ -194,3 +194,21 @@ class ErrorLoteDetalle(models.Model):
     
     def __str__(self):
         return self.product_id
+
+
+class ErrorLoteV2(models.Model):
+    
+    product_id = models.CharField(max_length=50)
+    nombre = models.CharField(max_length=100)
+    marca = models.CharField(max_length=30)
+    lote_id = models.CharField(max_length=50)
+    quantity = models.IntegerField(default=0)
+    available = models.IntegerField(default=0)
+    commited = models.IntegerField(default=0)
+    error = models.CharField(max_length=200)
+    error_commited = models.BooleanField(default=False)
+    error_available = models.BooleanField(default=False)
+    
+    def __str__(self):
+        return self.product_id
+    
