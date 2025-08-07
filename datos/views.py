@@ -2461,7 +2461,7 @@ def analisis_error_lote_data():
         reporte['COMMITED_NEGATIVO'] = 'NO'
     
     reporte = reporte.fillna(0)
-    
+    # print(reporte, len(reporte))
     if reporte.empty:
         return None
     
@@ -2486,6 +2486,188 @@ def analisis_error_lote_data():
         'reporte':de_dataframe_a_template(reporte),
         'lotes':de_dataframe_a_template(lotes)
     }
+
+
+def analisis_error_lote_data_v2():
+    
+    # def diff_sinlote_lotes():
+        
+    #     def sinlote():
+    #         stock_sin_lote = api_mba_sql(            
+    #             """
+    #                 SELECT 
+    #                     INVT_Ficha_Principal.PRODUCT_ID, 
+    #                     INVT_Ficha_Principal.OH 
+    #                 FROM 
+    #                     INVT_Ficha_Principal INVT_Ficha_Principal 
+    #                 WHERE (INVT_Ficha_Principal.INACTIVE=FALSE)
+    #             """
+    #         )
+            
+    #         if stock_sin_lote['status'] == 200:
+                
+    #             stock_sin_lote_df = pd.DataFrame(stock_sin_lote['data']) 
+    #             stock_sin_lote_df = stock_sin_lote_df.groupby('PRODUCT_ID')['OH'].sum().reset_index()
+    #             stock_sin_lote_df['OH'] = stock_sin_lote_df['OH'].astype('float')
+                
+    #             stock_sin_lote_df = stock_sin_lote_df[stock_sin_lote_df['PRODUCT_ID']!='ETIQUE']
+    #             stock_sin_lote_df = stock_sin_lote_df[stock_sin_lote_df['PRODUCT_ID']!='MANTEN']
+    #             stock_sin_lote_df = stock_sin_lote_df[stock_sin_lote_df['PRODUCT_ID']!='TRANS']
+                
+    #             return stock_sin_lote_df
+            
+    #         return pd.DataFrame()
+    
+    
+    #     def lotes():
+    #         with connections['gimpromed_sql'].cursor() as cursor:
+    #             # cursor.execute("SELECT PRODUCT_ID, LOTE_ID, OH, OH2, COMMITED FROM warehouse.stock_lote")
+    #             cursor.execute("SELECT PRODUCT_ID, LOTE_ID, OH2 FROM warehouse.stock_lote")
+    #             connections['gimpromed_sql'].close()
+    #             columns = [col[0] for col in cursor.description]
+    #             data = [dict(zip(columns, row)) for row in cursor.fetchall()]
+    #             data = pd.DataFrame(data)
+    #             data['LOTE_ID'] = data['LOTE_ID'].str.replace('.','')
+    #             data = data.groupby(by=['PRODUCT_ID','LOTE_ID']).sum().reset_index()
+    #             # data['OH'] = data['OH'].astype('int')
+    #             data['OH2'] = data['OH2'].astype('int')
+    #             data = data[data['OH2']!=0]
+    #             return data
+    
+    
+    #     def transf():
+    #         with connections['gimpromed_sql'].cursor() as cursor:
+    #             cursor.execute("SELECT PRODUCT_ID, LOTE_ID, OH FROM warehouse.productos_transito")
+    #             connections['gimpromed_sql'].close()
+    #             columns = [col[0] for col in cursor.description]
+    #             data = [dict(zip(columns, row)) for row in cursor.fetchall()]
+                
+    #             if data:
+    #                 data = pd.DataFrame(data)
+    #                 data['LOTE_ID'] = data['LOTE_ID'].str.replace('.','')
+    #                 data = data.groupby(by=['PRODUCT_ID','LOTE_ID']).sum().reset_index()
+    #                 data['OH'] = data['OH'].astype('int')
+    #                 data = data.rename(columns={'OH':'OH_TRANSF'})
+    #                 return data
+    #             else:
+    #                 data = pd.DataFrame()
+    #                 data['PRODUCT_ID'] = ['-']
+    #                 data['LOTE_ID']    = ['-']
+    #                 data['OH_TRANSF'] = [0]
+    #                 return data    
+    
+    #     stock_lotes = lotes().merge(transf(), on=['PRODUCT_ID', 'LOTE_ID'], how='left').fillna(0)
+    #     stock_lotes['OH2_MAS_TRANSF_LOTES'] = stock_lotes['OH2'] + stock_lotes['OH_TRANSF']
+    #     stock_lotes = stock_lotes.groupby('PRODUCT_ID')['OH2_MAS_TRANSF_LOTES'].sum().reset_index()
+        
+    #     df = pd.merge(left=sinlote(), right=stock_lotes, on='PRODUCT_ID', how='outer').fillna(0)
+    #     df['DIFF_SINLOTE_LOTE'] = df['OH'] - df['OH2_MAS_TRANSF_LOTES']
+    #     df = df[df['DIFF_SINLOTE_LOTE'] != 0]
+    #     df['error'] = 'diff_total_lotes'
+        
+    #     return df
+    
+    def diff_quantity_available():
+        with connections['gimpromed_sql'].cursor() as cursor:
+            cursor.execute("SELECT PRODUCT_ID, LOTE_ID, QUANTITY, AVAILABLE FROM warehouse.stock_lote")
+            connections['gimpromed_sql'].close()
+            columns = [col[0] for col in cursor.description]
+            data = [dict(zip(columns, row)) for row in cursor.fetchall()]
+            data = pd.DataFrame(data)
+            data['LOTE_ID'] = data['LOTE_ID'].str.replace('.','')
+            data = data.groupby(by=['PRODUCT_ID','LOTE_ID']).sum().reset_index()
+            data['DIFF_AVAILABLE'] = data['QUANTITY'] - data['AVAILABLE']
+            data['error_filter'] = data['QUANTITY'] != data['AVAILABLE']
+            data = data[data['error_filter'] == True]
+            data['error'] = 'diff_qty_ava'
+            data = data[['PRODUCT_ID', 'LOTE_ID', 'QUANTITY', 'AVAILABLE', 'DIFF_AVAILABLE', 'error']]
+            return data
+    
+    def commited_negativo():
+        with connections['gimpromed_sql'].cursor() as cursor:
+            cursor.execute("SELECT PRODUCT_ID, LOTE_ID, COMMITED FROM warehouse.stock_lote")
+            connections['gimpromed_sql'].close()
+            columns = [col[0] for col in cursor.description]
+            data = [dict(zip(columns, row)) for row in cursor.fetchall()]
+            data = pd.DataFrame(data)
+            data['LOTE_ID'] = data['LOTE_ID'].str.replace('.','')
+            data = data.groupby(by=['PRODUCT_ID','LOTE_ID']).sum().reset_index()
+            #data['COMMITED'] = data['COMMITED'].astype('int')
+            data = data[data['COMMITED'] < 0]
+            data['error'] = 'commited_negativo'
+            return data
+    
+    # def stock():
+    #     with connections['gimpromed_sql'].cursor() as cursor:
+    #         cursor.execute("SELECT PRODUCT_ID, LOTE_ID FROM warehouse.stock_lote")
+    #         connections['gimpromed_sql'].close()
+    #         columns = [col[0] for col in cursor.description]
+    #         data = [dict(zip(columns, row)) for row in cursor.fetchall()]
+    #         data = pd.DataFrame(data)
+    #         data['LOTE_ID'] = data['LOTE_ID'].str.replace('.','')
+    #         data = data.groupby(by=['PRODUCT_ID','LOTE_ID']).sum().reset_index()
+            
+    #         return data
+    
+    # diff_sinlote_lote_df = diff_sinlote_lotes()
+    diff_available_df = diff_quantity_available() 
+    commited_negativo_df = commited_negativo() 
+    # stock_df = stock()
+    
+    # reporte_lotes = pd.concat([diff_available_df, commited_negativo_df, diff_sinlote_lote_df]).fillna('')
+    reporte_lotes = pd.concat([diff_available_df, commited_negativo_df]).fillna('')
+    
+    
+    # cols_num = ['QUANTITY', 'AVAILABLE', 'DIFF_AVAILABLE','DIFF_SINLOTE_LOTE', 'COMMITED']
+    cols_num = ['QUANTITY', 'AVAILABLE', 'DIFF_AVAILABLE', 'COMMITED']
+    
+    reporte_lotes[cols_num] = reporte_lotes[cols_num].apply(pd.to_numeric, errors='coerce')
+    
+    # df_grouped_product = reporte_lotes.copy().groupby(['PRODUCT_ID'], as_index=False).agg({
+    #     'QUANTITY': 'sum',
+    #     'AVAILABLE': 'sum',
+    #     'DIFF_AVAILABLE': 'sum',
+    #     'DIFF_SINLOTE_LOTE': 'sum',
+    #     'COMMITED': 'sum',
+    #     'error': lambda x: ', '.join(x.dropna().astype(str).unique())
+    # }) 
+    
+    # df_grouped_product['error_commited'] = df_grouped_product['error'].str.contains('commited_negativo')
+    # df_grouped_product['error_available'] = df_grouped_product['error'].str.contains('diff_qty_ava')
+    # df_grouped_product['error_totales'] = df_grouped_product['error'].str.contains('diff_total_lotes')
+    
+    
+    df_grouped_product_lote = reporte_lotes.groupby(['PRODUCT_ID', 'LOTE_ID'], as_index=False).agg({
+        'QUANTITY': 'sum',
+        'AVAILABLE': 'sum',
+        'DIFF_AVAILABLE': 'sum',
+        'COMMITED': 'sum',
+        'error': lambda x: ', '.join(x.dropna().astype(str).unique())
+    }) 
+    
+    df_grouped_product_lote['error_commited'] = df_grouped_product_lote['error'].str.contains('commited_negativo')
+    df_grouped_product_lote['error_available'] = df_grouped_product_lote['error'].str.contains('diff_qty_ava')
+    df_grouped_product_lote['error_totales'] = df_grouped_product_lote['error'].str.contains('diff_total_lotes')
+    
+    # product_lote_list = df_grouped_product_lote['PRODUCT_ID'].unique()
+    
+    # df_grouped_product_lote.to_excel('error_lote.xlsx')
+    
+    # stock_lote = stock_df[stock_df['PRODUCT_ID'].isin(product_lote_list)]
+    # stock_lote = stock_lote.merge(df_grouped_product_lote, on=['PRODUCT_ID', 'LOTE_ID'], how='left')
+    # print(stock_lote)
+    
+    if df_grouped_product_lote.empty:
+        return None
+    
+    else:
+        prods = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+        df_grouped_product_lote = pd.merge(left=df_grouped_product_lote, right=prods, left_on='PRODUCT_ID', right_on='product_id', how='left')
+
+        return {
+            # 'reporte':de_dataframe_a_template(df_grouped_product),
+            'lotes':de_dataframe_a_template(df_grouped_product_lote)
+        }
 
 
 def actualizar_data_error_lote():
