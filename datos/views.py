@@ -2632,11 +2632,11 @@ def analisis_error_lote_data_v2():
     diff_available_df = diff_quantity_available() 
     commited_negativo_df = commited_negativo() 
     # stock_df = stock()
-    print(diff_available_df)
-    print(commited_negativo_df)
+    # print(diff_available_df)
+    # print(commited_negativo_df)
     # reporte_lotes = pd.concat([diff_available_df, commited_negativo_df, diff_sinlote_lote_df]).fillna('')
     reporte_lotes = pd.concat([diff_available_df, commited_negativo_df]).fillna('')
-    print(reporte_lotes)
+    # print(reporte_lotes)
     
     # cols_num = ['QUANTITY', 'AVAILABLE', 'DIFF_AVAILABLE','DIFF_SINLOTE_LOTE', 'COMMITED']
     cols_num = ['QUANTITY', 'AVAILABLE', 'DIFF_AVAILABLE', 'COMMITED']
@@ -2684,7 +2684,7 @@ def analisis_error_lote_data_v2():
     else:
         prods = productos_odbc_and_django()[['product_id','Nombre','Marca']]
         df_grouped_product_lote = pd.merge(left=df_grouped_product_lote, right=prods, left_on='PRODUCT_ID', right_on='product_id', how='left')
-        print(df_grouped_product_lote)
+        # print(df_grouped_product_lote)
         return {
             # 'reporte':de_dataframe_a_template(df_grouped_product),
             'lotes':de_dataframe_a_template(df_grouped_product_lote)

@@ -14,14 +14,11 @@
         <h5 class="m-4 text-center fw-bold d-inline">
             REPORTE DE ERROR DE LOTE
         </h5>
-        <!--div v-if="cargandoReporte" class="spinner-border" role="status"></div>
-        <div v-if="errorReporte"><i style="color:red" class="bi bi-bug-fill"></i></div>
-        <span>{% verbatim %} {{errorReporteData}} {% endverbatim %}</span-->
     </div>
 
     <button 
         class="btn btn-sm btn-light ms-auto d-block"
-        @click="getReporteData()">
+        onclick="location.reload()">
             <i class="bi bi-arrow-clockwise"></i>
     </button>
     <h6 
