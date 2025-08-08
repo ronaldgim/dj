@@ -202,6 +202,7 @@ class ErrorLoteV2(models.Model):
     nombre = models.CharField(max_length=100)
     marca = models.CharField(max_length=30)
     lote_id = models.CharField(max_length=50)
+    ubicacion = models.CharField(max_length=100, blank=True)
     quantity = models.IntegerField(default=0)
     available = models.IntegerField(default=0)
     commited = models.IntegerField(default=0)

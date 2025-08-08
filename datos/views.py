@@ -2575,34 +2575,47 @@ def analisis_error_lote_data_v2():
     
     def diff_quantity_available():
         with connections['gimpromed_sql'].cursor() as cursor:
-            cursor.execute("SELECT PRODUCT_ID, LOTE_ID, QUANTITY, AVAILABLE FROM warehouse.stock_lote")
+            cursor.execute("SELECT PRODUCT_ID, LOTE_ID, QUANTITY, AVAILABLE, LOCATION FROM warehouse.stock_lote")
             connections['gimpromed_sql'].close()
             columns = [col[0] for col in cursor.description]
             data = [dict(zip(columns, row)) for row in cursor.fetchall()]
             data = pd.DataFrame(data)
             data['LOTE_ID'] = data['LOTE_ID'].str.replace('.','')
-            data = data.groupby(by=['PRODUCT_ID','LOTE_ID']).sum().reset_index()
+            
+            # data = data.groupby(by=['PRODUCT_ID','LOTE_ID']).sum().reset_index()
+            data = data.groupby(by=['PRODUCT_ID','LOTE_ID']).agg({
+                'QUANTITY': 'sum',
+                'AVAILABLE': 'sum',
+                'LOCATION': lambda x: ', '.join(x.dropna().astype(str).unique()),
+            }).reset_index()
+            
             data['DIFF_AVAILABLE'] = data['QUANTITY'] - data['AVAILABLE']
             data['error_filter'] = data['QUANTITY'] != data['AVAILABLE']
             data = data[data['error_filter'] == True]
             data['error'] = 'diff_qty_ava'
-            data = data[['PRODUCT_ID', 'LOTE_ID', 'QUANTITY', 'AVAILABLE', 'DIFF_AVAILABLE', 'error']]
+            data = data[['PRODUCT_ID', 'LOTE_ID', 'QUANTITY', 'AVAILABLE', 'DIFF_AVAILABLE', 'LOCATION', 'error']]
             return data
     
     def commited_negativo():
         with connections['gimpromed_sql'].cursor() as cursor:
-            cursor.execute("SELECT PRODUCT_ID, LOTE_ID, COMMITED FROM warehouse.stock_lote")
+            cursor.execute("SELECT PRODUCT_ID, LOTE_ID, COMMITED, LOCATION FROM warehouse.stock_lote")
             connections['gimpromed_sql'].close()
             columns = [col[0] for col in cursor.description]
             data = [dict(zip(columns, row)) for row in cursor.fetchall()]
             data = pd.DataFrame(data)
             data['LOTE_ID'] = data['LOTE_ID'].str.replace('.','')
-            data = data.groupby(by=['PRODUCT_ID','LOTE_ID']).sum().reset_index()
+            
+            # data = data.groupby(by=['PRODUCT_ID','LOTE_ID']).sum().reset_index()
+            data = data.groupby(by=['PRODUCT_ID','LOTE_ID']).agg({
+                'COMMITED':'sum',
+                'LOCATION': lambda x: ', '.join(x.dropna().astype(str).unique()),
+                }).reset_index()
+            
             #data['COMMITED'] = data['COMMITED'].astype('int')
             data = data[data['COMMITED'] < 0]
             data['error'] = 'commited_negativo'
             return data
-    
+
     # def stock():
     #     with connections['gimpromed_sql'].cursor() as cursor:
     #         cursor.execute("SELECT PRODUCT_ID, LOTE_ID FROM warehouse.stock_lote")
@@ -2619,10 +2632,11 @@ def analisis_error_lote_data_v2():
     diff_available_df = diff_quantity_available() 
     commited_negativo_df = commited_negativo() 
     # stock_df = stock()
-    
+    print(diff_available_df)
+    print(commited_negativo_df)
     # reporte_lotes = pd.concat([diff_available_df, commited_negativo_df, diff_sinlote_lote_df]).fillna('')
     reporte_lotes = pd.concat([diff_available_df, commited_negativo_df]).fillna('')
-    
+    print(reporte_lotes)
     
     # cols_num = ['QUANTITY', 'AVAILABLE', 'DIFF_AVAILABLE','DIFF_SINLOTE_LOTE', 'COMMITED']
     cols_num = ['QUANTITY', 'AVAILABLE', 'DIFF_AVAILABLE', 'COMMITED']
@@ -2648,6 +2662,7 @@ def analisis_error_lote_data_v2():
         'AVAILABLE': 'sum',
         'DIFF_AVAILABLE': 'sum',
         'COMMITED': 'sum',
+        'LOCATION': lambda x: ', '.join(x.dropna().astype(str).unique()),
         'error': lambda x: ', '.join(x.dropna().astype(str).unique())
     }) 
     
@@ -2669,7 +2684,7 @@ def analisis_error_lote_data_v2():
     else:
         prods = productos_odbc_and_django()[['product_id','Nombre','Marca']]
         df_grouped_product_lote = pd.merge(left=df_grouped_product_lote, right=prods, left_on='PRODUCT_ID', right_on='product_id', how='left')
-
+        print(df_grouped_product_lote)
         return {
             # 'reporte':de_dataframe_a_template(df_grouped_product),
             'lotes':de_dataframe_a_template(df_grouped_product_lote)
@@ -2756,6 +2771,7 @@ def actualizar_data_error_lote_v2():
                 nombre = j.get('Nombre'),
                 marca = j.get('Marca'),
                 lote_id = j.get('LOTE_ID'),
+                ubicacion = j.get('LOCATION'),
                 quantity = j.get('QUANTITY'),
                 available = j.get('AVAILABLE'),
                 commited = j.get('COMMITED'),

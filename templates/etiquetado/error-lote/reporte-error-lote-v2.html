@@ -7,16 +7,16 @@
 {% include 'etiquetado/topnavbar.html' %}
 {% endblock %}
 
-{% block body %}
-<div id="app">
+{% block body_2 %}
+<!-- div id="app"-->
 
     <div class="text-center mt-4 mb-4">
         <h5 class="m-4 text-center fw-bold d-inline">
             REPORTE DE ERROR DE LOTE
         </h5>
-        <div v-if="cargandoReporte" class="spinner-border" role="status"></div>
+        <!--div v-if="cargandoReporte" class="spinner-border" role="status"></div>
         <div v-if="errorReporte"><i style="color:red" class="bi bi-bug-fill"></i></div>
-        <span>{% verbatim %} {{errorReporteData}} {% endverbatim %}</span>
+        <span>{% verbatim %} {{errorReporteData}} {% endverbatim %}</span-->
     </div>
 
     <button 
@@ -27,9 +27,9 @@
     <h6 
         v-if="actualizado" 
         class="mt-0 pt-0 text-end fw-bold">
-        Actualizado: {% verbatim %} {{actualizado}} {% endverbatim %}
+        Actualizado: {{actualizado}} 
     </h6>
-    <span class="fw-bold"># Productos:</span> <span>{% verbatim %} {{ len_productos }} {% endverbatim %}</span>
+    <span class="fw-bold"># Productos:</span> <span> {{ data.count }} </span>
     <br>
     <!--a href="{% url 'reporte_error_lote_excel' %}" class="btn btn-sm btn-success"><i class="bi bi-file-earmark-spreadsheet-fill"></i> Reporte</a-->
     <div class="card mt-2 mb-4">
@@ -42,49 +42,42 @@
                                 <th scope="col">Código</th>
                                 <th scope="col">Nombre</th>
                                 <th scope="col">Marca</th>
-                                <th scope="col">Total Agrupado (OH)</th>
-                                <th scope="col">Total Lotes (OH2)</th>
-                                <!--th scope="col">Tranferencia (OH)</th-->
-                                <!--th scope="col">Total L+T</th-->
-                                <th scope="col">Diferencia</th>
-                                <th scope="col">Commited (-)</th>
-                                <th scope="col">Lotes</th>
+                                <th scope="col">Lote</th>
+                                <th scope="col">Ubicación</th>
+                                <th scope="col">Quantity</th>
+                                <th scope="col">Available</th>
+                                <th scope="col">Commited</th>
+                                <th scope="col">Errores</th>
                             </tr>
                         </thead>
                         
                         <tbody>
-                            {% verbatim %}
-                            <!--tr v-for="i in reporte"-->
-                            <tr v-for="i in reporteFiltrado">
+                            {% for i in data %}
+                            <tr>
                                 <td>{{i.product_id}}</td>
                                 <td>{{i.nombre}}</td>
                                 <td>{{i.marca}}</td>
-                                <td class="text-center">
-                                    <!--span v-if="i.unds_total == 0">-</span>
-                                    <span v-else>{{i.unds_total.toLocaleString()}}</span-->
-                                    {{i.unds_total.toLocaleString()}}
-                                </td>
-                                <td class="text-center">{{i.unds_lotes.toLocaleString()}}</td>
-                                <td class="text-center">{{i.unds_transf.toLocaleString()}}</td>
-                                <!--td class="text-end">
-                                    <span v-if="i.unds_total_mas_transf == 0">-</span>
-                                    <span v-else>{{i.unds_total_mas_transf.toLocaleString()}}<span>
-                                </td>
+                                <td>{{i.lote_id}}</td>
+                                <td>{{i.ubicacion}}</td>
+                                <td class="text-end">{{i.quantity}}</td>
+                                <td class="text-end">{{i.available}}</td>
                                 <td class="text-end">
-                                    <span v-if="i.unds_diff == 0">-</span>
-                                    <span v-else>{{i.unds_diff.toLocaleString()}}</span>
-                                        {{i.unds_diff.toLocaleString()}}
-                                </td-->
-                                <td class="text-center">{{i.commited_negativo}}</td>
+                                    {% if i.commited == 0 %}
+                                        -
+                                    {% else %}
+                                        {{i.commited}}
+                                    {% endif %}
+                                </td>
                                 <td>
-                                    <button 
-                                        class="btn btn-sm btn-primary" @click="getDetalleLote(i.product_id)"
-                                        data-bs-toggle="modal" data-bs-target="#exampleModal">
-                                        <i class="bi bi-box2"></i> Lotes
-                                    </button>
+                                    {% if i.error_commited %}
+                                        <span class="badge bg-danger">commited negativo</span>
+                                    {% endif %}
+                                    {% if i.error_available %}
+                                        <span class="badge bg-danger">quty & available</span>
+                                    {% endif %}
                                 </td>
                             </tr> 
-                            {% endverbatim %}
+                            {% endfor %}
                         </tbody>
                     </table>
                 </div>
@@ -133,9 +126,9 @@
         </div>
     </div>
 
-</div>
+<!-- /div-->
 
-<script>
+<!-- script>
 
     new Vue({
         el:'#app',
@@ -263,7 +256,7 @@
             },
         }
     })
-</script>
+</script -->
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.css" />  
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.js"></script>
