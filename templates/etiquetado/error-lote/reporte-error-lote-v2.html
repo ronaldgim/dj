@@ -12,7 +12,7 @@
 
     <div class="text-center mt-4 mb-4">
         <h5 class="m-4 text-center fw-bold d-inline">
-            REPORTE DE ERROR DE LOTE
+            REPORTE DE ERROR DE LOTE V2
         </h5>
     </div>
 
@@ -28,7 +28,13 @@
     </h6>
     <span class="fw-bold"># Productos:</span> <span> {{ data.count }} </span>
     <br>
+
+    
+    <div class="col-4 mb-2">
+        <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+    </div>
     <!--a href="{% url 'reporte_error_lote_excel' %}" class="btn btn-sm btn-success"><i class="bi bi-file-earmark-spreadsheet-fill"></i> Reporte</a-->
+    
     <div class="card mt-2 mb-4">
         <div class="card-body">
             <div class="table-responsive"> 
@@ -48,7 +54,7 @@
                             </tr>
                         </thead>
                         
-                        <tbody>
+                        <tbody id="pedidosbuscar">
                             {% for i in data %}
                             <tr>
                                 <td>{{i.product_id}}</td>
@@ -102,7 +108,7 @@
                             </tr>
                         </thead>
                         
-                        <tbody>
+                        <tbody id="pedidosbuscar">
                             {% verbatim %}
                             <tr v-for="i in detalle">
                                 <td>{{i.lote_id}} 
@@ -124,6 +130,18 @@
     </div>
 
 <!-- /div-->
+
+<script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
 
 <!-- script>
 
