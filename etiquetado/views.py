@@ -4410,6 +4410,6 @@ def reporte_error_lote_v2(request):
     # analisis_error_lote_data_v2()
     context = {
         'data':ErrorLoteV2.objects.all(),
-        'actualizado':AdminActualizationWarehaouse.objects.get(table_name='error_lote_v2')
+        'actualizado':AdminActualizationWarehaouse.objects.get(table_name='error_lote_v2').datetime
     }
     return render(request, 'etiquetado/error-lote/reporte-error-lote-v2.html', context)
