@@ -4404,6 +4404,52 @@ def reporte_error_lote(request):
     return render(request, 'etiquetado/error-lote/reporte-error-lote.html')
 
 
+def reporte_error_lote_excel_v2(request):
+    
+    data = ErrorLoteV2.objects.all().values()
+    reporte = pd.DataFrame(data)
+    reporte = reporte[[
+        'product_id', 
+        'nombre', 
+        'marca',
+        'lote_id',
+        'ubicacion',
+        'quantity',
+        'available',
+        'commited',
+        'error',
+        'error_commited',
+        'error_available'
+    ]]
+    
+    hoy = datetime.today().strftime('%Y-%m-%d_%H-%M-%S')
+    nombre_archivo = f'Reporte-Error-Lote-V2_{hoy}.xlsx'
+    content_disposition = f'attachment; filename="{nombre_archivo}"'
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = content_disposition
+    
+    with pd.ExcelWriter(response, engine='openpyxl') as writer:
+        
+        reporte.to_excel(writer, sheet_name='Reporte-Reservas', index=False)
+        
+        workbook = writer.book
+        worksheet = writer.sheets['Reporte-Reservas']
+        
+        worksheet.column_dimensions['A'].width = 15 
+        worksheet.column_dimensions['B'].width = 30 
+        worksheet.column_dimensions['C'].width = 11 
+        worksheet.column_dimensions['D'].width = 11 
+        worksheet.column_dimensions['E'].width = 15 
+        worksheet.column_dimensions['F'].width = 10 
+        worksheet.column_dimensions['G'].width = 10 
+        worksheet.column_dimensions['H'].width = 10 
+        worksheet.column_dimensions['I'].width = 30 
+        worksheet.column_dimensions['J'].width = 15
+        worksheet.column_dimensions['K'].width = 15         
+
+        return response
+    
+
 def reporte_error_lote_v2(request):
     
     # from datos.views import analisis_error_lote_data, analisis_error_lote_data_v2
