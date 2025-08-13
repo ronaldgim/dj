@@ -1,5 +1,5 @@
 from django.contrib import admin
-from metro.models import Product, Inventario, TomaFisica
+from metro.models import Product, Inventario, TomaFisica, Kardex
 
 
 @admin.register(Product)
@@ -8,17 +8,22 @@ class ProductAdmin(admin.ModelAdmin):
         'codigo_gim',
         'codigo_hm',
         'nombre_gim',
-        'nombre_hm',
-        'marca',
-        'unidad',
-        'u_empaque',
+        # 'nombre_hm',
+        # 'marca',
+        # 'unidad',
+        # 'u_empaque',
         'consignacion',
-        'ubicacion',
-        'creado',
+        # 'ubicacion',
+        # 'creado',
         'actualizado',
         'usuario',
-        'activo'
+        'activo',
+        'saldo',
+        # 'precio_total'
+        'precio_unitario_hm'
     )
+    
+    search_fields = ('codigo_gim', 'codigo_hm')
 
 
 @admin.register(Inventario)
@@ -49,4 +54,23 @@ class TomaFisicaAdmin(admin.ModelAdmin):
         'agregado',
         'usuario',
         'actualizado',
+    )
+
+
+@admin.register(Kardex)
+class KardexAdmin(admin.ModelAdmin):
+    list_display = (
+    'product',
+    'tipo',
+    'description',
+    'nota_entrega',
+    'fecha_nota',
+    'movimiento_mba',
+    'fecha_mba',
+    'cantidad',
+    # 'observaciones',
+    # 'documento',
+    # 'creado',
+    # 'actualizado',
+    'saldo'
     )

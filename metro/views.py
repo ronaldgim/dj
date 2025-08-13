@@ -17,7 +17,7 @@ from django.db.models.functions import Cast
 from django.views.decorators.csrf import csrf_exempt
 
 # Models
-from metro.models import Product, Inventario, TomaFisica
+from metro.models import Product, Inventario, TomaFisica, Kardex
 from metro.forms import ProductForm, InventarioForm, TomaFisicaForm
 
 ### PRODUCTOS
@@ -464,3 +464,29 @@ def revision_check(request, id):
                 'message': 'Toma física exitosa.',
                 'toma_fisica':model_to_dict(toma_fisica)
             })
+
+
+
+def metro_consignacion(request):
+    
+    products = Product.objects.filter(activo=True).order_by('orden')
+    
+    context = {
+        'products':products
+    }
+    
+    return render(request, 'metro/consignacion.html', context)
+
+
+def metro_kardex(request, product_id):
+    
+    product = Product.objects.get(id=product_id)
+    kardex = Kardex.objects.filter(product__id=product_id)
+    
+    context = {
+        'product':product,
+        'kardex':kardex,
+        'saldo_final':kardex.last().saldo
+    }
+    
+    return render(request, 'metro/kardex.html', context)
