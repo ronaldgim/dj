@@ -483,10 +483,15 @@ def metro_kardex(request, product_id):
     product = Product.objects.get(id=product_id)
     kardex = Kardex.objects.filter(product__id=product_id)
     
+    if kardex.exists():
+        saldo_final = kardex.last().saldo
+    else:
+        saldo_final = 0
+    
     context = {
         'product':product,
         'kardex':kardex,
-        'saldo_final':kardex.last().saldo
+        'saldo_final':saldo_final
     }
     
     return render(request, 'metro/kardex.html', context)
