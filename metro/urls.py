@@ -85,4 +85,16 @@ urlpatterns = [
         view = views.revision_check,
         name = 'revision_check'
     ),
+    
+    path(
+        route = 'consignacion',
+        view = views.metro_consignacion,
+        name = 'metro_consignacion'
+    ),
+    
+    path(
+        route = 'kardex/<int:product_id>',
+        view = views.metro_kardex,
+        name = 'metro_kardex'
+    ),
 ]

@@ -15,6 +15,18 @@ from users.models import User
 # ]
 
 
+TIPO_MOVIMIENTO = [
+    ('Ingreso', 'Ingreso'),
+    ('Egreso', 'Egreso'),
+]
+
+DESCRIPCION_MOVIMIENTO = [
+    ('Saldo inicial', 'Saldo inicial'),
+    ('Ajuste por acuerdo', 'Ajuste por acuerdo'),
+    ('Incremento', 'Incremento'),
+    ('Decremento', 'Decremento')
+]
+
 # Create your models here.
 class Product(models.Model):
     
@@ -29,8 +41,19 @@ class Product(models.Model):
     # Inf logistica
     unidad       = models.CharField(max_length=10, blank=True)
     u_empaque    = models.IntegerField(blank=True, null=True, default=0)
+    
+    ####
     consignacion = models.IntegerField(blank=True, null=True, default=0)
     ubicacion    = models.CharField(max_length=30)
+    precio_unitario = models.FloatField(blank=True, null=True, default=0)
+    factor       = models.IntegerField(blank=True, null=True, default=0)
+    
+    # nota_entrega   = models.CharField(max_length=20, blank=True)  ### KATY LLENO --AMARILLO
+    # fecha_nota     = models.DateField(blank=True, null=True)      ### KATY LLENO --AMARILLO
+    
+    # movimiento_mba = models.CharField(max_length=20, blank=True)  ### CARLITOS --LLENO FALSO
+    # fecha_mba      = models.DateField(blank=True, null=True)      ### CARLITOS -- LENO FALSO
+    # documento     = models.FileField(upload_to='metro_kardex', null=True, blank=True)
     
     # Auditoria
     creado       = models.DateTimeField(auto_now_add=True)
@@ -40,6 +63,65 @@ class Product(models.Model):
     
     def __str__(self):
         return f'Código GIM: {self.codigo_gim} - Código HM: {self.codigo_hm}'
+    
+    @property
+    def saldo(self, *args, **kwargs):
+        
+        try:
+            if self.kardex_records:
+                return self.kardex_records.order_by('-id').first().saldo
+            return 0
+        except:
+            return 0
+        
+    @property
+    def ultimo_movimiento_kardex(self, *args, **kwargs):
+        try:
+            if self.kardex_records:
+                return self.kardex_records.order_by('id').last().actualizado
+            return '-'
+        except:
+            return '-'
+    
+    @property
+    def ultimo_usurio_kardex(self, *args, **kwargs):
+        try:
+            if self.kardex_records:
+                return self.kardex_records.order_by('id').last().usuario
+            return '-'
+        except:
+            return '-'
+    
+    @property
+    def precio_unitario_hm(self, *args, **kwargs):
+        
+        if self.factor == 0 or self.precio_unitario ==0:
+            return '$ 0.00'
+        
+        precio_unitario = round(self.factor * self.precio_unitario, 2)
+        return f'$ {precio_unitario:.2f}'
+    
+    @property
+    def precio_total(self, *args, **kwargs):
+        if self.precio_unitario == 0 or self.saldo == 0:
+            return '$ 0.00'
+        precio_total = round(self.precio_unitario * self.saldo, 2)
+        return f'$ {precio_total}'
+    
+    
+    @property
+    def alerta(self):
+        last_mov = self.kardex_records.order_by('id').last()
+        if not last_mov:
+            return False
+        
+        if (last_mov.nota_entrega and last_mov.fecha_nota) and (not last_mov.movimiento_mba and not last_mov.fecha_mba):
+            return True
+        
+        if (not last_mov.nota_entrega and not last_mov.fecha_nota) and (not last_mov.movimiento_mba and not last_mov.fecha_mba):
+            return True
+
+        return False
 
 
 class Inventario(models.Model):
@@ -144,3 +226,66 @@ class TomaFisica(models.Model):
         self.cantidad_suministro = 0 if not self.cantidad_suministro else self.cantidad_suministro
         self.cantidad_total      = self.cantidad_estanteria + self.cantidad_bulto + self.cantidad_suministro
         return super().save(*args, **kwargs)
+
+
+class Kardex(models.Model):
+    
+    product       = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='kardex_records')
+    tipo          = models.CharField(max_length=10, choices=TIPO_MOVIMIENTO)
+    description   = models.CharField(max_length=20, choices=DESCRIPCION_MOVIMIENTO)
+    
+    nota_entrega  = models.CharField(max_length=20)
+    fecha_nota    = models.DateField()
+    
+    movimiento_mba = models.CharField(max_length=20)
+    fecha_mba     = models.DateField()
+    
+    cantidad      = models.IntegerField()
+    
+    nota_entrega   = models.CharField(max_length=20, blank=True)  ### KATY LLENO --AMARILLO
+    fecha_nota     = models.DateField(blank=True, null=True)      ### KATY LLENO --AMARILLO
+    
+    movimiento_mba = models.CharField(max_length=20, blank=True)  ### CARLITOS --LLENO FALSO
+    fecha_mba      = models.DateField(blank=True, null=True)      ### CARLITOS -- LENO FALSO
+    documento     = models.FileField(upload_to='metro_kardex', null=True, blank=True)
+    observaciones = models.TextField(blank=True)
+    
+    usuario      = models.ForeignKey(User, related_name='kardex_app_metro', on_delete=models.PROTECT)
+    creado        = models.DateTimeField(auto_now_add=True)
+    actualizado   = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.product.codigo_gim
+    
+    @property
+    def saldo(self):
+        """
+        Calcula el saldo acumulado de este producto hasta este movimiento.
+        """
+        movimientos_previos = Kardex.objects.filter(
+            product=self.product,
+            creado__lte=self.creado
+        ).order_by('creado')
+
+        saldo = 0        
+        if self.description == 'Saldo inicial':
+            return self.product.consignacion
+        
+        for i in movimientos_previos:
+            if i.tipo == 'Ingreso':
+                saldo += i.cantidad
+            
+            if i.tipo == 'Egreso':
+                saldo -= i.cantidad
+                
+        return saldo
+    
+    
+    def save(self, *args, **kwargs):
+        if self.cantidad < 0:
+            self.tipo  = 'Egreso'
+        
+        if self.cantidad > 0:
+            self.tipo = 'Ingreso'
+        
+        super().save(*args, **kwargs)
