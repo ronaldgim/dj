@@ -86,6 +86,11 @@
                         </tr>
                     </thead>
                     <tbody id="pedidosbuscar">
+                        {% if not kardex %}
+                        <tr>
+                            <td colspan="11" class="fw-bold text-center">No hay movimientos registrados</td>
+                        </tr>
+                        {% endif %}
                         {% for i in kardex %}
                         <tr>
                             <td>{{i.fecha_nota}}</td>
@@ -121,7 +126,7 @@
                             <td colspan="4"></td>
                             <td class="fw-bold" colspan="2">Saldo final</td>
                             <td class="text-end">{{product.saldo | floatformat:"0g"}}</td>
-                            <td colspan="3"></td>
+                            <td colspan="4"></td>
                         </tr>
                     </tbody>
                 </table>

@@ -64,16 +64,24 @@ class Product(models.Model):
     def __str__(self):
         return f'Código GIM: {self.codigo_gim} - Código HM: {self.codigo_hm}'
     
+    # @property
+    # def saldo(self, *args, **kwargs):
+        
+    #     try:
+    #         if self.kardex_records:
+    #             return self.kardex_records.order_by('-id').first().saldo
+    #         return 0
+    #     except:
+    #         return 0
+    
     @property
-    def saldo(self, *args, **kwargs):
-        
-        try:
-            if self.kardex_records:
-                return self.kardex_records.order_by('-id').first().saldo
-            return 0
-        except:
-            return 0
-        
+    def saldo(self):
+        last_kardex = self.kardex_records.order_by('-id').first()
+        if last_kardex and hasattr(last_kardex, 'saldo'):
+            return last_kardex.saldo
+        return 0
+        # return self.consignacion
+    
     @property
     def ultimo_movimiento_kardex(self, *args, **kwargs):
         try:
@@ -192,7 +200,6 @@ class Inventario(models.Model):
     def usuario_tf(self):
         toma = self.tomafisica_set.exclude(usuario=None).order_by('actualizado').last()
         return toma.usuario if toma else None
-
 
 
 class TomaFisica(models.Model):
