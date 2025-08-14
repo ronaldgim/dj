@@ -120,7 +120,7 @@ class Product(models.Model):
     def alerta(self):
         # Retorna True si existe al menos un movimiento con algún campo faltante
         return any(
-            not (mov.nota_entrega and mov.fecha_nota and mov.movimiento_mba and mov.fecha_mba)
+            not (mov.nota_entrega and mov.fecha_nota and mov.movimiento_mba and mov.fecha_mba and mov.documento)
             for mov in self.kardex_records.all()
         )
 

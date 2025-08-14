@@ -469,7 +469,7 @@ def revision_check(request, id):
 
 def metro_consignacion(request):
     
-    products = Product.objects.filter(activo=True).order_by('orden') #.filter(saldo=14)
+    products = Product.objects.filter(activo=True, codigo_gim='162015').order_by('orden') #.filter(saldo=14)
     # products = [ i for i in Product.objects.filter(activo=True) if i.saldo > 0]
     
     # # Kardex.objects.all().delete()
