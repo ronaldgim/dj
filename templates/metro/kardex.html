@@ -108,11 +108,11 @@
                             </td>
                             <td class="text-end">{{i.saldo | floatformat:"0g"}}</td>
                             <td>{{i.observaciones}}</td>
-                            <td>{{i.documento}}</td>
                             <td>
-                                {{i.ultimo_usurio_kardex.first_name}} {{i.ultimo_usurio_kardex.last_name}}
-                                {{i.ultimo_movimiento_kardex | date:"d/m/Y"}} <br>
+                                {{i.usuario.first_name}} {{i.usuario.last_name}}
+                                {{i.actualizado | date:"d/m/Y"}} <br>
                             </td>
+                            <td>{{i.documento}}</td>
                             <td>
                                 <div class="btn-group" role="group" aria-label="Basic example">
                                     <a class="btn btn-sm btn-success">
