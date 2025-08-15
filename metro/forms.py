@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
-from metro.models import Product, Inventario, TomaFisica
+from metro.models import Product, Inventario, TomaFisica, Kardex
 
 
 class ProductForm(forms.ModelForm):
@@ -270,3 +270,90 @@ class TomaFisicaForm(forms.ModelForm):
         if cantidad_suministro is not None and cantidad_suministro < 0:
             raise forms.ValidationError("Las unidades en suministro no pueden ser negativas.")
         return cantidad_suministro
+
+
+class KardexForm(forms.ModelForm):
+    class Meta:
+        model = Kardex
+        fields = '__all__'
+        exclude = ['creado', 'actualizado']
+        labels = {
+            'tipo': 'Tipo de Movimiento',
+            'description': 'Descripción del Movimiento',
+            'nota_entrega': 'Nota de Entrega',
+            'fecha_nota': 'Fecha Nota de Entrega',
+            'movimiento_mba': 'Movimiento MBA',
+            'fecha_mba': 'Fecha Movimiento MBA',
+            'cantidad': 'Cantidad (+ / -)',
+            'documento': 'Documento adjunto',
+            'observaciones': 'Observaciones',
+        }
+        widgets = {
+            'tipo': forms.Select(attrs={
+                'class': 'form-select',
+            }),
+            'description': forms.Select(attrs={
+                'class': 'form-select',
+            }),
+            'nota_entrega': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Número de nota de entrega',
+            }),
+            'fecha_nota': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date',
+            },
+                format='%Y-%m-%d'
+            ),
+            'movimiento_mba': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Movimiento MBA',
+            }),
+            'fecha_mba': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date',
+            },
+                format='%Y-%m-%d'
+            ),
+            'cantidad': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'inputmode': 'numeric',
+            }),
+            'documento': forms.ClearableFileInput(attrs={
+                'class': 'form-control',
+            }),
+            'observaciones': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 2,
+                'placeholder': 'Observaciones adicionales',
+            }),
+            'usuario': forms.HiddenInput(),
+            'product': forms.HiddenInput(),
+            
+        }
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super(KardexForm, self).__init__(*args, **kwargs)
+
+        # Marcar campos requeridos para Bootstrap
+        for field_name, field in self.fields.items():
+            if field.required:
+                self.fields[field_name].widget.attrs['required'] = 'required'
+                if isinstance(field.widget, (forms.TextInput, forms.NumberInput)):
+                    self.fields[field_name].widget.attrs['class'] += ' is-required'
+
+        # Mensajes de error personalizados
+        for field_name, field in self.fields.items():
+            self.fields[field_name].error_messages = {
+                'required': f'{field.label} es requerido.',
+                'invalid': f'{field.label} tiene un formato inválido.',
+            }
+
+    def clean_cantidad(self):
+        """Asegurar que la cantidad no sea cero"""
+        cantidad = self.cleaned_data.get('cantidad')
+        if cantidad == 0:
+            raise forms.ValidationError("La cantidad no puede ser cero.")
+        return cantidad
+

@@ -54,7 +54,7 @@
 <hr>
 
 <button type="button" class="btn btn-primary mb-2" data-bs-toggle="modal" data-bs-target="#exampleModal">
-    Nuevo Producto
+    + Nuevo Movimiento
 </button>
 
 
@@ -71,6 +71,7 @@
                 <table class="table table-bordered" style="font-size: small;">
                     <thead class="table-info" style="position: sticky; top: 0; z-index: 2;">
                         <tr>
+                            <th>#</th>
                             <th scope="col">Fecha de nota de entrega</th>
                             <th scope="col"># Nota de entrega</th>
                             <th scope="col">Fecha movimiento MBA</th>
@@ -93,6 +94,7 @@
                         {% endif %}
                         {% for i in kardex %}
                         <tr>
+                            <td>{{forloop.counter}}</td>
                             <td>{{i.fecha_nota}}</td>
                             <td>{{i.nota_entrega}}</td>
                             <td>{{i.fecha_mba}}</td>
@@ -108,22 +110,43 @@
                             </td>
                             <td class="text-end">{{i.saldo | floatformat:"0g"}}</td>
                             <td>{{i.observaciones}}</td>
-                            <td>
-                                {{i.usuario.first_name}} {{i.usuario.last_name}}
-                                {{i.actualizado | date:"d/m/Y"}} <br>
+                            <td class="text-center">
+                                {{i.usuario.first_name}} {{i.usuario.last_name}} <br>
+                                {{i.actualizado | date:"d/m/Y"}} 
                             </td>
-                            <td>{{i.documento}}</td>
+                            <td>
+                                {% if i.documento %}
+                                    <a class="btn btn-sm btn-info text-white" href="{{ i.documento.url }}" target="_blank">
+                                        <i class="bi bi-filetype-pdf"></i>
+                                    </a>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
                             <td>
                                 <div class="btn-group" role="group" aria-label="Basic example">
-                                    <a class="btn btn-sm btn-success">
-                                        K
-                                    </a>
+                                    <button 
+                                        class="btn btn-sm btn-secondary edit-product-btn" 
+                                        data-product-id="{{ i.id }}" 
+                                        data-product-name="Editar: {{ i.product.codigo_gim }}"
+                                    >
+                                        <i class="bi bi-pencil-fill"></i>
+                                    </button>
+                                    <button 
+                                        class="btn btn-sm btn-danger delete-product-btn" 
+                                        value="{{i.id}}"
+                                        data-codigo-gim="{{i.product.codigo_gim}}"
+                                        data-nombre-gim="{{i.product.nombre_gim}}"
+                                        data-nota-entrega="{{i.nota_entrega}}"
+                                    >
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
                         {% endfor %}
                         <tr>
-                            <td colspan="4"></td>
+                            <td colspan="5"></td>
                             <td class="fw-bold" colspan="2">Saldo final</td>
                             <td class="text-end">{{product.saldo | floatformat:"0g"}}</td>
                             <td colspan="4"></td>
@@ -135,28 +158,32 @@
     </div>
 </div>
 
-
-<!-- Nuevo Producto -->
+<!-- Nuevo Mivimiento -->
 <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
         <div class="modal-header">
-            <h5 class="modal-title" id="exampleModalLabel">Nuevo Producto</h5>
+            <h5 class="modal-title" id="exampleModalLabel">Nuevo Movimiento</h5>
             <button type="reset" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-            
-            <div class="container mt-2">
+            <div class="container">
+                <label class="fw-bold">Código:</label> {{product.codigo_gim}} <br>
+                <label class="fw-bold">Nombre:</label> {{product.nombre_gim}} <br>
+                <label class="fw-bold">Marca:</label> {{product.marca}} <br>
                 <div class="card shadow-sm">
                     <div class="card-body">
                         <form method="post">
                             {% csrf_token %}
                             
-                            <!--input name="usuario" value="{{request.user}}"/-->
+                            <input name="usuario" type="hidden" value="{{request.user.id}}">
+                            <input name="product" type="hidden" value="{{product.id}}">
                             <!-- Campos ocultos -->
+                            <!--
                             {% for hidden_field in form.hidden_fields %}
                                 {{ hidden_field }}
                             {% endfor %}
+                            -->
 
                             <!-- Campos visibles con estructura responsiva -->
                             {% for field in form.visible_fields %}
@@ -216,8 +243,7 @@
     </div>
 </div>
 
-
-<!-- Editar Producto -->
+<!-- Editar Mivimiento -->
 <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -253,6 +279,7 @@
     });
 </script>
 
+<!-- Editar movimiento -->
 <script>
     $(document).ready(function() {
         // Abrir el modal de edición al hacer clic en un botón de editar
@@ -269,10 +296,10 @@
             
             // Cargar el formulario mediante AJAX
             $.ajax({
-                url: `/metro/products-edit/${productId}`,
+                url: `/metro/movimiento-edit/${productId}`,
                 type: 'GET',
                 success: function(response) {
-                    $("#form-edit").attr("action", `/metro/products-edit/${productId}`);
+                    $("#form-edit").attr("action", `/metro/movimiento-edit/${productId}`);
                     $("#editModalBody").html(response);
                     $("#editModalBody label").addClass("fw-bold");
                     $("#editModalBody .row").addClass("mb-3");
@@ -325,7 +352,6 @@
             });
         });
         
-        
         // Función para mostrar alertas
         function showAlert(type, message) {
             const alertHtml = `
@@ -338,6 +364,24 @@
             $("#alertsContainer").html(alertHtml);
         }
     });
+</script>
+
+<!-- Eliminar movimiento -->
+<script>
+    $(document).ready(function() {
+        $('.delete-product-btn').click(function() {
+            const id = $(this).val();
+            const codigo = $(this).data('codigo-gim');
+            const nombre = $(this).data('nombre-gim');
+            const notaEntrega = $(this).data('nota-entrega');
+            const conf = confirm(`Esta seguro de eliminar la nota de entrega ${notaEntrega} del producto ${codigo}`)
+            if (conf) {
+                console.log('sii')
+            } else {
+                console.log('noo')
+            }
+        })
+    })
 </script>
 
 <!-- Ordenable -->

@@ -18,7 +18,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 # Models
 from metro.models import Product, Inventario, TomaFisica, Kardex
-from metro.forms import ProductForm, InventarioForm, TomaFisicaForm
+from metro.forms import ProductForm, InventarioForm, TomaFisicaForm, KardexForm
 
 ### PRODUCTOS
 @login_required(login_url='login')
@@ -499,10 +499,60 @@ def metro_kardex(request, product_id):
     
     product = Product.objects.get(id=product_id)
     kardex = Kardex.objects.filter(product__id=product_id)
+    form = KardexForm()
+    
+    if request.method == 'POST':
+        form = KardexForm(request.POST)
+        if form.is_valid():
+            form.save()
+        else:
+            print(form.errors)
     
     context = {
         'product':product,
         'kardex':kardex,
+        'form':form
     }
     
     return render(request, 'metro/kardex.html', context)
+
+
+@login_required(login_url='login')
+def metro_movimiento_edit(request, id):
+    """
+    Vista para manejar la edición de productos en un modal.
+    GET: Devuelve el formulario HTML para mostrar en el modal
+    POST: Procesa el formulario enviado y devuelve respuesta JSON
+    """
+    # Obtener el producto o devolver 404 si no existe
+    product = get_object_or_404(Kardex, id=id)
+    
+    if request.method == 'POST':
+        # Procesar el formulario enviado
+        form = KardexForm(request.POST, instance=product, user=request.user) 
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Movimiento editado correctamente !!!')
+            return JsonResponse({
+                'success': True,
+                'message': f'Movimiento editado correctamente !!!',
+                # Datos actualizados para refrescar la tabla sin recargar
+                # 'product': {
+                #     'id': product.id,
+                #     'codigo_gim': product.codigo_gim,
+                #     'nombre_gim': product.nombre_gim,
+                #     'marca': product.marca,
+                #     # Incluir otros campos necesarios para actualizar la UI
+                # }
+            })
+        else:
+            # Devolver errores si el formulario no es válido
+            errors = form.get_formatted_errors() if hasattr(form, 'get_formatted_errors') else str(form.errors)
+            return JsonResponse({
+                'success': False,
+                'errors': errors
+            }, status=400)
+    else:
+        # Para solicitudes GET, crear el formulario con el producto existente
+        form = KardexForm(instance=product, user=request.user)
+        return HttpResponse(form.as_p())
