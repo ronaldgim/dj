@@ -103,4 +103,10 @@ urlpatterns = [
         view = views.metro_movimiento_edit,
         name = 'metro_movimiento_edit'
     ),
+    
+    path(
+        route = 'movimiento-delete/<int:id>',
+        view = views.metro_movimiento_delete,
+        name = 'metro_movimiento_delete'
+    ),
 ]

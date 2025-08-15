@@ -370,13 +370,23 @@
 <script>
     $(document).ready(function() {
         $('.delete-product-btn').click(function() {
+            let btn = this;
             const id = $(this).val();
             const codigo = $(this).data('codigo-gim');
             const nombre = $(this).data('nombre-gim');
             const notaEntrega = $(this).data('nota-entrega');
             const conf = confirm(`Esta seguro de eliminar la nota de entrega ${notaEntrega} del producto ${codigo}`)
             if (conf) {
-                console.log('sii')
+                $.ajax({
+                    url: `/metro/movimiento-delete/${id}`,
+                    type: 'POST',
+                    success: function(response) {
+                        $(btn).closest('tr').remove();
+                    },
+                    error: function() {
+                        alert('Error al eliminar movimiento')
+                    }
+                });
             } else {
                 console.log('noo')
             }

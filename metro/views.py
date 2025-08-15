@@ -466,7 +466,8 @@ def revision_check(request, id):
             })
 
 
-
+@csrf_exempt
+@login_required(login_url='login')
 def metro_consignacion(request):
     
     products = Product.objects.filter(activo=True).order_by('orden') #.filter(saldo=14)
@@ -486,8 +487,6 @@ def metro_consignacion(request):
     #     )
     #     k.save()
     
-    
-    
     context = {
         'products':products
     }
@@ -495,6 +494,8 @@ def metro_consignacion(request):
     return render(request, 'metro/consignacion.html', context)
 
 
+@csrf_exempt
+@login_required(login_url='login')
 def metro_kardex(request, product_id):
     
     product = Product.objects.get(id=product_id)
@@ -517,6 +518,7 @@ def metro_kardex(request, product_id):
     return render(request, 'metro/kardex.html', context)
 
 
+@csrf_exempt
 @login_required(login_url='login')
 def metro_movimiento_edit(request, id):
     """
@@ -536,14 +538,6 @@ def metro_movimiento_edit(request, id):
             return JsonResponse({
                 'success': True,
                 'message': f'Movimiento editado correctamente !!!',
-                # Datos actualizados para refrescar la tabla sin recargar
-                # 'product': {
-                #     'id': product.id,
-                #     'codigo_gim': product.codigo_gim,
-                #     'nombre_gim': product.nombre_gim,
-                #     'marca': product.marca,
-                #     # Incluir otros campos necesarios para actualizar la UI
-                # }
             })
         else:
             # Devolver errores si el formulario no es válido
@@ -556,3 +550,13 @@ def metro_movimiento_edit(request, id):
         # Para solicitudes GET, crear el formulario con el producto existente
         form = KardexForm(instance=product, user=request.user)
         return HttpResponse(form.as_p())
+
+@csrf_exempt
+@login_required(login_url='login')
+def metro_movimiento_delete(request, id):
+    try:
+        mov = Kardex.objects.get(id=id)
+        mov.delete()
+        return JsonResponse({'success':True})
+    except:
+        return JsonResponse({'success':False})
