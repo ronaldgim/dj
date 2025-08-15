@@ -97,4 +97,10 @@ urlpatterns = [
         view = views.metro_kardex,
         name = 'metro_kardex'
     ),
+    
+    path(
+        route = 'movimiento-edit/<int:id>',
+        view = views.metro_movimiento_edit,
+        name = 'metro_movimiento_edit'
+    ),
 ]
