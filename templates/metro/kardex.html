@@ -381,7 +381,9 @@
                     url: `/metro/movimiento-delete/${id}`,
                     type: 'POST',
                     success: function(response) {
-                        $(btn).closest('tr').remove();
+                        if (response.success) {
+                            $(btn).closest('tr').remove();
+                        }
                     },
                     error: function() {
                         alert('Error al eliminar movimiento')
