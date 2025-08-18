@@ -205,6 +205,7 @@ class ErrorLoteV2(models.Model):
     ubicacion = models.CharField(max_length=100, blank=True)
     quantity = models.IntegerField(default=0)
     available = models.IntegerField(default=0)
+    diff_available = models.IntegerField(default=0)
     commited = models.IntegerField(default=0)
     error = models.CharField(max_length=200)
     error_commited = models.BooleanField(default=False)

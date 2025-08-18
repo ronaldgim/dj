@@ -4452,8 +4452,8 @@ def reporte_error_lote_excel_v2(request):
 
 def reporte_error_lote_v2(request):
     
-    # from datos.views import analisis_error_lote_data, analisis_error_lote_data_v2
-    # analisis_error_lote_data_v2()
+    from datos.views import analisis_error_lote_data, analisis_error_lote_data_v2
+    analisis_error_lote_data_v2()
     context = {
         'data':ErrorLoteV2.objects.all(),
         'actualizado':AdminActualizationWarehaouse.objects.get(table_name='error_lote_v2').datetime
