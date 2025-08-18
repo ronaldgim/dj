@@ -50,6 +50,7 @@
                                 <th scope="col">Ubicación</th>
                                 <th scope="col">Quantity</th>
                                 <th scope="col">Available</th>
+                                <th scope="col">Diferencia</th>
                                 <th scope="col">Commited</th>
                                 <th scope="col">Errores</th>
                             </tr>
@@ -65,6 +66,7 @@
                                 <td>{{i.ubicacion}}</td>
                                 <td class="text-end">{{i.quantity}}</td>
                                 <td class="text-end">{{i.available}}</td>
+                                <td class="text-end">{{i.diff_available}}</td>
                                 <td class="text-end">
                                     {% if i.commited == 0 %}
                                         -

@@ -4416,6 +4416,7 @@ def reporte_error_lote_excel_v2(request):
         'ubicacion',
         'quantity',
         'available',
+        'diff_available',
         'commited',
         'error',
         'error_commited',
@@ -4442,10 +4443,11 @@ def reporte_error_lote_excel_v2(request):
         worksheet.column_dimensions['E'].width = 15 
         worksheet.column_dimensions['F'].width = 10 
         worksheet.column_dimensions['G'].width = 10 
-        worksheet.column_dimensions['H'].width = 10 
-        worksheet.column_dimensions['I'].width = 30 
-        worksheet.column_dimensions['J'].width = 15
-        worksheet.column_dimensions['K'].width = 15         
+        worksheet.column_dimensions['H'].width = 12 
+        worksheet.column_dimensions['I'].width = 10 
+        worksheet.column_dimensions['J'].width = 30 
+        worksheet.column_dimensions['K'].width = 15
+        worksheet.column_dimensions['L'].width = 15         
 
         return response
     
