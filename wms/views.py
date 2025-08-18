@@ -2427,14 +2427,15 @@ def wms_egreso_picking_misreservas(request, n_pedido): #OK
 @permisos(['BODEGA'], '/wms/picking/list', 'cambio de estado de picking')
 def wms_estado_picking_ajax(request):
 
-    contrato_id = request.POST['n_ped']
+    contrato_id = request.POST['n_ped'] #; print(contrato_id)
+    # contrato = contrato_id.split(',')[0]
     estado = request.POST['estado']
     user_id = int(request.POST['user_id'])
     user_perfil_id   = UserPerfil.objects.get(user__id=user_id).id
 
-    reserva = wms_reserva_por_contratoid(contrato_id)
-    cli     = clientes_warehouse()[['CODIGO_CLIENTE','CLIENT_TYPE']]
-    reserva = reserva.merge(cli, on='CODIGO_CLIENTE', how='left')
+    reserva = wms_reserva_por_contratoid(contrato_id) #; print(reserva)
+    cli     = clientes_warehouse()[['CODIGO_CLIENTE','CLIENT_TYPE']] #; print(cli)
+    reserva = reserva.merge(cli, on='CODIGO_CLIENTE', how='left') #; print(reserva)
     
     cliente        = reserva['NOMBRE_CLIENTE'].iloc[0]
     fecha_pedido   = reserva['FECHA_PEDIDO'].iloc[0]
