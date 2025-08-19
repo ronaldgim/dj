@@ -463,8 +463,18 @@ def etiquetado_pedidos(request, n_pedido):
             pedido = pedido.merge(avance, on='PRODUCT_ID', how='left').fillna(0) 
             pedido = pedido.drop_duplicates(subset=['PRODUCT_ID','QUANTITY'])
         
-        pedido = pedido.merge(df_error_lote_picking_v2(), left_on='PRODUCT_ID', right_on='product_id', how='left')
-        
+        # pedido = pedido.merge(df_error_lote_picking_v2(), left_on='PRODUCT_ID', right_on='product_id', how='left')
+        if cabecera['WARE_CODE'] == 'BAN':
+            error_lote = df_error_lote_picking_v2()
+            error_lote = error_lote[error_lote['andagoya']=='BAN']
+            if not error_lote.empty:
+                pedido = pedido.merge(df_error_lote_picking_v2().drop_duplicates(subset='product_id'), left_on='PRODUCT_ID', right_on='product_id', how='left')
+        elif cabecera['WARE_CODE'] == 'BCT':
+            error_lote = df_error_lote_picking_v2()
+            error_lote = error_lote[error_lote['cerezos']=='BCT']
+            if not error_lote.empty:
+                pedido = pedido.merge(df_error_lote_picking_v2().drop_duplicates(subset='product_id'), left_on='PRODUCT_ID', right_on='product_id', how='left')
+                
         # Transformar Datos para presentar en template
         data = de_dataframe_a_template(pedido)
         
@@ -1545,9 +1555,18 @@ def df_error_lote_picking():
 
 def df_error_lote_picking_v2():
     error_lote = ErrorLoteV2.objects.all()
+    andagoya = ['AN1', 'AN4', 'BN1', 'BN2', 'BN3', 'BN4', 'CUA']
+    cerezos  = ['CN4', 'CN5', 'CN6', 'CN7', 'CUC']
+    
     if error_lote.exists():
-        error_lote_df = pd.DataFrame(error_lote.values('product_id','lote_id',))
-        error_lote_df['error_lote'] = True
+        error_lote_df = pd.DataFrame(error_lote.values('product_id','lote_id', 'ubicacion'))
+        error_lote_df['andagoya'] = error_lote_df.apply(
+            lambda x: 'BAN' if any(item in x['ubicacion'] for item in andagoya) else 'BCT', axis=1
+        )
+        error_lote_df['cerezos'] = error_lote_df.apply(
+            lambda x: 'BCT' if any(item in x['ubicacion'] for item in cerezos) else 'BAN', axis=1
+        )
+        error_lote_df['error_lote'] = True        
         return error_lote_df
     else:
         error_lote_df = pd.DataFrmae()
@@ -1590,7 +1609,10 @@ def picking_estado_bodega(request, n_pedido):
         pedido = pedido.merge(product, on='PRODUCT_ID', how='left').sort_values('PRODUCT_ID')
         
         # pedido = pedido.merge(df_error_lote_picking().drop_duplicates(subset='product_id'), left_on='PRODUCT_ID', right_on='product_id', how='left')
-        pedido = pedido.merge(df_error_lote_picking_v2().drop_duplicates(subset='product_id'), left_on='PRODUCT_ID', right_on='product_id', how='left')
+        error_lote = df_error_lote_picking_v2()
+        error_lote = error_lote[error_lote['andagoya']=='BAN']
+        if not error_lote.empty:
+            pedido = pedido.merge(df_error_lote_picking_v2().drop_duplicates(subset='product_id'), left_on='PRODUCT_ID', right_on='product_id', how='left')
         
         # Calculos
         pedido['Cartones'] = pedido['QUANTITY'] / pedido['Unidad_Empaque'] 
@@ -1651,6 +1673,8 @@ def ajax_lotes_bodega(request):
     
     lotes = lotes_bodega(bodega, product_id)
     lotes['product_id'] = product_id
+    lotes['Lote'] = lotes['Lote'].str.replace('.', '')
+    
     #lotes = lotes.merge(df_error_lote_picking(), left_on=['product_id', 'Lote'], right_on=['product_id','lote_id'], how='left').fillna('').to_dict('records') 
     lotes = lotes.merge(df_error_lote_picking_v2(), left_on=['product_id', 'Lote'], right_on=['product_id','lote_id'], how='left').fillna('').to_dict('records') 
     
