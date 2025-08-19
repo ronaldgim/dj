@@ -463,9 +463,11 @@ def etiquetado_pedidos(request, n_pedido):
             pedido = pedido.merge(avance, on='PRODUCT_ID', how='left').fillna(0) 
             pedido = pedido.drop_duplicates(subset=['PRODUCT_ID','QUANTITY'])
         
+        pedido = pedido.merge(df_error_lote_picking_v2(), left_on='PRODUCT_ID', right_on='product_id', how='left')
+        
         # Transformar Datos para presentar en template
         data = de_dataframe_a_template(pedido)
-
+        
         if FechaEntrega.objects.filter(pedido=n_pedido).exists():
             fecha_entrega = FechaEntrega.objects.get(pedido=n_pedido)
         else:
