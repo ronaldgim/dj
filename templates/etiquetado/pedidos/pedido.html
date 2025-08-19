@@ -477,25 +477,61 @@
             },
             
             success: function(response) {
-                
-                $(".modal-title").html(`Stock de bodega: ${bodega}`);
+                // Update modal with response data
+                $(".modal-title").html('Stock bodega: ' + bodega);
+                // $(".modal-body").html(response);
                 $(".modal-body").html(`
                 <span class="fw-bold">Item:</span> ${product_id} - ${nombre} - ${marca} <br> 
-                <span class="fw-bold">Unds:</span> ${p_unds} <br> <span class="fw-bold">Ubicaciones:</span>${response.ubicaciones} <br> ${response.table}`);
+                <span class="fw-bold">Unds:</span> ${p_unds} <br> 
+                <span class="fw-bold">Ubicación(es):</span> ${response.ubicaciones} <br>
+                
+                <table class="table table-lotes">
+                    <thead>
+                        <th>Ubicación</th>
+                        <th>Lote</th>
+                        <th>Caducidad</th>
+                        <th>Unds</th>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>                
+                `);
 
-                if ($("#lotes tbody tr").length===0){
-                    $('.modal-body').append('No hay lotes registrados');
+                let lotes = response.table || [];
+                if (lotes.length > 0) {
+                    lotes.forEach(function(row) {
+                        let error_icon = '';
+                        if (row.error_lote) {
+                            error_icon = '<i class="bi bi-exclamation-triangle-fill" style="color:red"></i>';
+                        }
+                        $(".table-lotes tbody").append(`
+                            <tr>
+                                <td>${row.Ubicación}</td>
+                                <td>${error_icon} ${row.Lote}</td>
+                                <td>${row.Caducidad}</td>
+                                <td class="text-end">${row.Unds.toLocaleString()}</td>
+                            </tr>
+                        `);
+                    });
+                } else {
+                    $(".table-lotes tbody").append(`
+                        <tr class="text-center">
+                            <td colspan="4">No hay lotes registrados.</td>
+                        </tr>
+                    `);
                 }
             },
 
-            error: function() {
-                $(".modal-title").html('Error, Intenta nuevamente !!!');
+            error: function(error) {
+                console.error(error)
+                $(".modal-title").html('Error, intente nuevamente !!!');
                 $(".modal-body").html('...');
             }
         })
 
     })
 </script>
+
 
 <!-- Imprimir -->
 <script>
