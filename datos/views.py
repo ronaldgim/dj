@@ -2677,7 +2677,7 @@ def analisis_error_lote_data_v2():
     # stock_lote = stock_df[stock_df['PRODUCT_ID'].isin(product_lote_list)]
     # stock_lote = stock_lote.merge(df_grouped_product_lote, on=['PRODUCT_ID', 'LOTE_ID'], how='left')
     # print(stock_lote)
-    print(df_grouped_product_lote)
+
     if df_grouped_product_lote.empty:
         return None
     
