@@ -1541,6 +1541,20 @@ def df_error_lote_picking():
         return error_lote_df
 
 
+def df_error_lote_picking_v2():
+    error_lote = ErrorLoteV2.objects.all()
+    if error_lote.exists():
+        error_lote_df = pd.DataFrame(error_lote.values('product_id','lote_id',))
+        error_lote_df['error_lote'] = True
+        return error_lote_df
+    else:
+        error_lote_df = pd.DataFrmae()
+        error_lote_df['product_id'] = ''
+        error_lote_df['lote_id'] = ''
+        error_lote_df['error_lote'] = False
+        return error_lote
+
+
 # From
 @login_required(login_url='login')
 @permisos(['BODEGA'], '/etiquetado/wms-andagoya/home', 'cambiar el Estado Picking')
@@ -1573,7 +1587,8 @@ def picking_estado_bodega(request, n_pedido):
         # Merge
         pedido = pedido.merge(product, on='PRODUCT_ID', how='left').sort_values('PRODUCT_ID')
         
-        pedido = pedido.merge(df_error_lote_picking().drop_duplicates(subset='product_id'), left_on='PRODUCT_ID', right_on='product_id', how='left')
+        # pedido = pedido.merge(df_error_lote_picking().drop_duplicates(subset='product_id'), left_on='PRODUCT_ID', right_on='product_id', how='left')
+        pedido = pedido.merge(df_error_lote_picking_v2().drop_duplicates(subset='product_id'), left_on='PRODUCT_ID', right_on='product_id', how='left')
         
         # Calculos
         pedido['Cartones'] = pedido['QUANTITY'] / pedido['Unidad_Empaque'] 
@@ -1634,7 +1649,8 @@ def ajax_lotes_bodega(request):
     
     lotes = lotes_bodega(bodega, product_id)
     lotes['product_id'] = product_id
-    lotes = lotes.merge(df_error_lote_picking(), left_on=['product_id', 'Lote'], right_on=['product_id','lote_id'], how='left').fillna('').to_dict('records') 
+    #lotes = lotes.merge(df_error_lote_picking(), left_on=['product_id', 'Lote'], right_on=['product_id','lote_id'], how='left').fillna('').to_dict('records') 
+    lotes = lotes.merge(df_error_lote_picking_v2(), left_on=['product_id', 'Lote'], right_on=['product_id','lote_id'], how='left').fillna('').to_dict('records') 
     
     ubicaciones = ProductoUbicacion.objects.filter(product_id=product_id)
     
