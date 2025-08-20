@@ -4448,7 +4448,6 @@ def reporte_error_lote(request):
 
 def reporte_error_lote_excel_v2(request):
     
-    
     def mba_data():
         with connections['gimpromed_sql'].cursor() as cursor:
             cursor.execute("SELECT PRODUCT_ID, LOTE_ID, UM, QUANTITY, COMMITED, AVAILABLE FROM warehouse.stock_lote")
