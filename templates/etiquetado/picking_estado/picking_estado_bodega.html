@@ -166,6 +166,7 @@
     </div>
 </div>
 
+<!-- Lotes -->
 <script>
     $("button[name='lotes']").click(function() {
         
@@ -200,6 +201,7 @@
                         <th>Lote</th>
                         <th>Caducidad</th>
                         <th>Unds</th>
+                        <!--th>Notificar</th-->
                     </thead>
                     <tbody>
                     </tbody>
@@ -209,16 +211,25 @@
                 let lotes = response.table || [];
                 if (lotes.length > 0) {
                     lotes.forEach(function(row) {
-                        let error_icon = '';
+                        let errorIcon = '';
+                        let btnNotification = '';
                         if (row.error_lote) {
-                            error_icon = '<i class="bi bi-exclamation-triangle-fill" style="color:red"></i>';
+                            errorIcon = '<i class="bi bi-exclamation-triangle-fill" style="color:red"></i>';
+                        };
+                        if (row.error_lote) {
+                            btnNotification = `<button class="btn btn-sm btn-primary" name="loteNotification" onclick='notification(${JSON.stringify(row)})'>N</button>`;
+                        } else {
+                            btnNotification = '-';
                         }
                         $(".table-lotes tbody").append(`
                             <tr>
                                 <td>${row.Ubicación}</td>
-                                <td>${error_icon} ${row.Lote}</td>
+                                <td>${errorIcon} ${row.Lote}</td>
                                 <td>${row.Caducidad}</td>
                                 <td class="text-end">${row.Unds.toLocaleString()}</td>
+                                <!--td class="text-center">
+                                    ${btnNotification}
+                                </td-->
                             </tr>
                         `);
                     });
@@ -241,12 +252,22 @@
     })
 </script>
 
+<!-- lote notification -->
 <script>
-    $(document).ready(function() {
-        $('#equipo_id').select2();
-    })
+    // function notification(product_id, lote_id) {
+    //     console.log(product_id, lote_id)
+    // }
+    function notification(row) {
+        $.ajax({
+            url : "{% url 'ajax_error_lote_email' %}",
+            type: "POST",
+            data: {
+                'csrfmiddlewaretoken': '{{csrf_token}}',
+                'data':row,
+            },
+        })
+    }
 </script>
-
 
 <!-- Estado Picking -->
 <script>

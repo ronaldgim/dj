@@ -1559,7 +1559,7 @@ def df_error_lote_picking_v2():
     cerezos  = ['CN4', 'CN5', 'CN6', 'CN7', 'CUC']
     
     if error_lote.exists():
-        error_lote_df = pd.DataFrame(error_lote.values('product_id','lote_id', 'ubicacion'))
+        error_lote_df = pd.DataFrame(error_lote.values('product_id','lote_id', 'ubicacion', 'error'))
         error_lote_df['andagoya'] = error_lote_df.apply(
             lambda x: 'BAN' if any(item in x['ubicacion'] for item in andagoya) else 'BCT', axis=1
         )
@@ -1696,6 +1696,20 @@ def ajax_lotes_bodega(request):
         'table':lotes,
         'ubicaciones':ubis
     })
+
+
+# enviar correo error de lote
+def ajax_error_lote_email(request):
+    # data = request['data']
+    if request.method == 'POST':
+        data = request.POST
+        # print(data, type(data))
+        # print(data.get('product_id'))
+        # print(data.get('lote_id'))
+        # print(data.get('error'))
+        
+        
+        return HttpResponse('ok')
 
 
 
