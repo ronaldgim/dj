@@ -1699,11 +1699,12 @@ def ajax_lotes_bodega(request):
 
 
 # enviar correo error de lote
+@csrf_exempt
 def ajax_error_lote_email(request):
     # data = request['data']
     if request.method == 'POST':
         data = request.POST
-        # print(data, type(data))
+        print(data, type(data))
         # print(data.get('product_id'))
         # print(data.get('lote_id'))
         # print(data.get('error'))
