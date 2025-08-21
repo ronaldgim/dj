@@ -76,9 +76,10 @@ def carta_general(request):
         'form':form,
     }
     if request.user.has_perm('carta.add_cartageneral'):
-        try:
-            if request.method == 'GET':
-                
+        # try:
+        if request.method == 'GET':
+            try:
+            
                 ruc = request.GET['buscar_cliente']
                 ruc = str(ruc)
                 
@@ -96,9 +97,12 @@ def carta_general(request):
                         'nombre_cliente':nombre_cliente, 
                         'form':form,
                     }
+            except Exception as e:
+                messages.error(request, f"Error {e}")
 
-            elif request.method == 'POST':
-                    
+        elif request.method == 'POST':
+            
+            try: 
                 form = CartaGeneralForm(request.POST)
                 
                 if form.is_valid():
@@ -106,12 +110,12 @@ def carta_general(request):
                     return redirect('general_list')
                 else:
                     messages.error(request, f"Error {form.errors}")
-                
-            else:
-                context = {'form':form}
+            
+                # else:
+                #     context = {'form':form}
         
-        except Exception as e:
-            messages.error(request, f"Error {e}")
+            except Exception as e:
+                messages.error(request, f"Error {e}")
 
     else:
         messages.error(request, 'No tienes los permisos necesarios !!!')
