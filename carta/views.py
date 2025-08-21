@@ -69,57 +69,49 @@ def tabla_clientes(ruc):
 @login_required(login_url='login')
 def carta_general(request):
 
+    if not request.user.has_perm('carta.add_cartageneral'):
+        messages.error(request, 'No tienes los permisos necesarios !!!')
+        return HttpResponseRedirect('list')
+
     ''' Llenar campos de carga general y crear objeto '''
     form = CartaGeneralForm()
     
     context = {
         'form':form,
     }
-    if request.user.has_perm('carta.add_cartageneral'):
-        # try:
-        if request.method == 'GET':
-            try:
+    
+    cliente = request.GET.get('buscar_cliente')
+    if cliente:        
+        ruc = str(cliente)                
+        cliente_dict = tabla_clientes(ruc) 
+        if cliente_dict:
+            identificacion_fiscal = cliente_dict[0].get('IDENTIFICACION_FISCAL')
+            nombre_cliente = cliente_dict[0].get('NOMBRE_CLIENTE')
             
-                ruc = request.GET['buscar_cliente']
-                ruc = str(ruc)
-                
-                cliente_dict = tabla_clientes(ruc)[0]
-                identificacion_fiscal = cliente_dict.get('IDENTIFICACION_FISCAL')
-                nombre_cliente = cliente_dict.get('NOMBRE_CLIENTE')
-                
-                if identificacion_fiscal == '':
-                    context = {
-                        'error':'El Ruc no coincide con ningun cliente, por favor intente nuevamente!!!'
-                    }
-                else:
-                    context = {
-                        'ruc':identificacion_fiscal, 
-                        'nombre_cliente':nombre_cliente, 
-                        'form':form,
-                    }
-            except Exception as e:
-                messages.error(request, f"Error {e}")
+            context = {
+                'ruc':identificacion_fiscal, 
+                'nombre_cliente':nombre_cliente, 
+                'form':form,
+            }
+        else:
+            context = {
+                'form':form,
+                'error':'El Ruc no coincide con ningun cliente, por favor intente nuevamente!!!'
+            }
 
-        elif request.method == 'POST':
-            
-            try: 
-                form = CartaGeneralForm(request.POST)
-                
-                if form.is_valid():
-                    form.save()
-                    return redirect('general_list')
-                else:
-                    messages.error(request, f"Error {form.errors}")
-            
-                # else:
-                #     context = {'form':form}
+    if request.method == 'POST':
         
-            except Exception as e:
-                messages.error(request, f"Error {e}")
-
-    else:
-        messages.error(request, 'No tienes los permisos necesarios !!!')
-        return HttpResponseRedirect('list')
+        try: 
+            form = CartaGeneralForm(request.POST)
+            
+            if form.is_valid():
+                # form.save()
+                return redirect('general_list')
+            else:
+                messages.error(request, f"Error {form.errors}")
+    
+        except Exception as e:
+            messages.error(request, f"Error {e}")
 
     return render(request, 'cartas/carta_general/new.html', context)
 
