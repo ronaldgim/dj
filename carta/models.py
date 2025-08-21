@@ -96,7 +96,8 @@ class CartaGeneral(models.Model):
         
         self.oficio = f'GIM-GF-CD-CG-{y}-{n_of_f}'
         
-        qr_text = f'{self.oficio}{self.cliente}{self.ruc}{self.f}{self.valido_hasta_mes}{self.valido_hasta_anio}\n{self.slug}'
+        # qr_text = f'{self.oficio}{self.cliente}{self.ruc}{self.f}{self.valido_hasta_mes}{self.valido_hasta_anio}\n{self.slug}'
+        qr_text = f'{self.oficio}{self.cliente}{self.ruc}{f}{self.valido_hasta_mes}{self.valido_hasta_anio}\n{self.slug}'
         
         qr = qrcode.QRCode(
             version=1,  # Controla el tamaño del QR (1 es el más pequeño)
