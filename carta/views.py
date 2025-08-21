@@ -105,7 +105,7 @@ def carta_general(request):
             form = CartaGeneralForm(request.POST)
             
             if form.is_valid():
-                # form.save()
+                form.save()
                 return redirect('general_list')
             else:
                 messages.error(request, f"Error {form.errors}")
