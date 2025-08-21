@@ -71,7 +71,7 @@ def carta_general(request):
 
     ''' Llenar campos de carga general y crear objeto '''
     form = CartaGeneralForm()
-        
+    
     context = {
         'form':form,
     }
