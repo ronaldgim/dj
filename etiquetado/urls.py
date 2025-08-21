@@ -134,6 +134,12 @@ urlpatterns = [
     ),
     
     path(
+        route = 'picking/ajax_error_lote_email',
+        view  = views.ajax_error_lote_email,
+        name  = 'ajax_error_lote_email'
+    ),
+    
+    path(
         route = 'picking/historial',
         view  = views.picking_historial,
         name  = 'picking_historial'
