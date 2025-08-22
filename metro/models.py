@@ -48,13 +48,6 @@ class Product(models.Model):
     precio_unitario = models.FloatField(blank=True, null=True, default=0)
     factor       = models.IntegerField(blank=True, null=True, default=0)
     
-    # nota_entrega   = models.CharField(max_length=20, blank=True)  ### KATY LLENO --AMARILLO
-    # fecha_nota     = models.DateField(blank=True, null=True)      ### KATY LLENO --AMARILLO
-    
-    # movimiento_mba = models.CharField(max_length=20, blank=True)  ### CARLITOS --LLENO FALSO
-    # fecha_mba      = models.DateField(blank=True, null=True)      ### CARLITOS -- LENO FALSO
-    # documento     = models.FileField(upload_to='metro_kardex', null=True, blank=True)
-    
     # Auditoria
     creado       = models.DateTimeField(auto_now_add=True)
     actualizado  = models.DateTimeField(auto_now=True)
@@ -103,11 +96,18 @@ class Product(models.Model):
     @property
     def precio_unitario_hm(self, *args, **kwargs):
         
-        if self.factor == 0 or self.precio_unitario ==0:
+        if self.factor == 0 or self.precio_unitario == 0:
             return '$ 0.00'
         
         precio_unitario = round(self.factor * self.precio_unitario, 2)
         return f'$ {precio_unitario:.2f}'
+    
+    @property
+    def precio_unitario_gim(self, *args, **kwargs):
+        
+        if self.precio_unitario == 0:
+            return '$ 0.00'
+        return f'$ {self.precio_unitario:.2f}'
     
     @property
     def precio_total(self, *args, **kwargs):

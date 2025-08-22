@@ -44,10 +44,7 @@
 
 <!-- Contenedor para alertas -->
 <div id="alertsContainer"></div>
-
-<span class="fw-bold">Total productos:</span>: {{products_data.total}} <br>
-<span class="fw-bold">Productos activo:</span>: {{products_data.activos}} <br>
-<span class="fw-bold">Productos inactivos:</span>: {{products_data.inactivos}} <br>
+<span class="fw-bold">Total productos:</span>: {{products.count}} <br>
 <hr>
 
 <button type="button" class="btn btn-primary mb-2" data-bs-toggle="modal" data-bs-target="#exampleModal">
@@ -55,8 +52,8 @@
 </button>
 
 
-<div class="col-12">
-    <input id="inputbuscar" type="text" placeholder="Filtro" class="form-control">
+<div class="col-4">
+    <input id="inputbuscar" type="text" placeholder="Buscar..." class="form-control">
 </div>
 
 <div id="msg"></div>
@@ -81,15 +78,11 @@
                             <th scope="col">Nombre GIM</th>
                             <th scope="col">Nombre HM</th>
                             <th scope="col">Marca</th>
-
                             <th scope="col">Consignación</th>
-
                             <th scope="col">P.U.GIM</th>
                             <th scope="col">P.Total</th>
                             <th scope="col">Factor</th>
                             <th scope="col">P.U.HM</th>
-
-                            <!-- th scope="col">Creado</th -->
                             <th scope="col">Actualizado</th>
                             <th scope="col">Usuario</th>
                             <th scope="col">Acciones</th>
