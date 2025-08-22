@@ -463,18 +463,6 @@ def etiquetado_pedidos(request, n_pedido):
             pedido = pedido.merge(avance, on='PRODUCT_ID', how='left').fillna(0) 
             pedido = pedido.drop_duplicates(subset=['PRODUCT_ID','QUANTITY'])
         
-        # pedido = pedido.merge(df_error_lote_picking_v2(), left_on='PRODUCT_ID', right_on='product_id', how='left')
-        if cabecera['WARE_CODE'] == 'BAN':
-            error_lote = df_error_lote_picking_v2()
-            error_lote = error_lote[error_lote['andagoya']=='BAN']
-            if not error_lote.empty:
-                pedido = pedido.merge(df_error_lote_picking_v2().drop_duplicates(subset='product_id'), left_on='PRODUCT_ID', right_on='product_id', how='left')
-        elif cabecera['WARE_CODE'] == 'BCT':
-            error_lote = df_error_lote_picking_v2()
-            error_lote = error_lote[error_lote['cerezos']=='BCT']
-            if not error_lote.empty:
-                pedido = pedido.merge(df_error_lote_picking_v2().drop_duplicates(subset='product_id'), left_on='PRODUCT_ID', right_on='product_id', how='left')
-                
         # Transformar Datos para presentar en template
         data = de_dataframe_a_template(pedido)
         

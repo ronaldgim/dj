@@ -238,10 +238,6 @@
                                 {% endif %}
                             ></i>
                             {% endif %}
-
-                            {% if i.error_lote %}
-                            <i class="bi bi-exclamation-triangle-fill" style="color:red"></i>
-                            {% endif %}
                         </th>
                         <td id="nombre" class="text-start">{{i.PRODUCT_NAME}}</td>
                         <td id="marca" class="text-start">{{i.Marca}}</td>
@@ -502,14 +498,10 @@
                 let lotes = response.table || [];
                 if (lotes.length > 0) {
                     lotes.forEach(function(row) {
-                        let error_icon = '';
-                        if (row.error_lote) {
-                            error_icon = '<i class="bi bi-exclamation-triangle-fill" style="color:red"></i>';
-                        }
                         $(".table-lotes tbody").append(`
                             <tr>
                                 <td>${row.Ubicación}</td>
-                                <td>${error_icon} ${row.Lote}</td>
+                                <td>${row.Lote}</td>
                                 <td>${row.Caducidad}</td>
                                 <td class="text-end">${row.Unds.toLocaleString()}</td>
                             </tr>
