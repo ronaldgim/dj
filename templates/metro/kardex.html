@@ -95,10 +95,10 @@
                         {% for i in kardex %}
                         <tr>
                             <td>{{forloop.counter}}</td>
-                            <td>{{i.fecha_nota}}</td>
-                            <td>{{i.nota_entrega}}</td>
-                            <td>{{i.fecha_mba}}</td>
-                            <td>{{i.movimiento_mba}}</td>
+                            <td>{{i.fecha_nota|default:"-"}}</td>
+                            <td>{{i.nota_entrega|default:"-"}}</td>
+                            <td>{{i.fecha_mba|default:"-"}}</td>
+                            <td>{{i.movimiento_mba|default:"-"}}</td>
                             <!-- td>{{i.tipo}}</td-->
                             <td>{{i.description}}</td>
                             <td class="text-end">
@@ -109,7 +109,7 @@
                                 {% endif %}
                             </td>
                             <td class="text-end">{{i.saldo | floatformat:"0g"}}</td>
-                            <td>{{i.observaciones}}</td>
+                            <td>{{i.observaciones|default:"-"}}</td>
                             <td class="text-center">
                                 {{i.usuario.first_name}} {{i.usuario.last_name}} <br>
                                 {{i.actualizado | date:"d/m/Y"}} 
