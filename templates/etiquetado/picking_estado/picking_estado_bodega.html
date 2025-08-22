@@ -157,6 +157,7 @@
                 <h5 class="modal-title" id="exampleModalLabel"></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
+            <div id="notificationMsg"></div>
             <div class="modal-body"></div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
@@ -201,7 +202,7 @@
                         <th>Lote</th>
                         <th>Caducidad</th>
                         <th>Unds</th>
-                        <!--th>Notificar</th-->
+                        <th>Notificar</th>
                     </thead>
                     <tbody>
                     </tbody>
@@ -227,9 +228,9 @@
                                 <td>${errorIcon} ${row.Lote}</td>
                                 <td>${row.Caducidad}</td>
                                 <td class="text-end">${row.Unds.toLocaleString()}</td>
-                                <!--td class="text-center">
+                                <td class="text-center">
                                     ${btnNotification}
-                                </td-->
+                                </td>
                             </tr>
                         `);
                     });
@@ -241,7 +242,6 @@
                     `);
                 }
             },
-
             error: function(error) {
                 console.error(error)
                 $(".modal-title").html('Error, intente nuevamente !!!');
@@ -254,18 +254,30 @@
 
 <!-- lote notification -->
 <script>
-    // function notification(product_id, lote_id) {
-    //     console.log(product_id, lote_id)
-    // }
     function notification(row) {
         $.ajax({
             url : "{% url 'ajax_error_lote_email' %}",
             type: "POST",
-            // data: {
-            //     'csrfmiddlewaretoken': '{{csrf_token}}',
-            //     'data':row,
-            // },
-            data: row
+            data: row,
+            success: function(response) {
+                if (response.success) {
+                    $("#notificationMsg").html(`
+                    <div class="alert alert-success" role="alert">
+                    ${response.msg}
+                    </div>`)
+                } else {
+                    $("#notificationMsg").html(`
+                    <div class="alert alert-danger" role="alert">
+                        ${response.msg}
+                    </div>`)
+                }
+            },
+            error: function(error){
+                $("#notificationMsg").html(`
+                <div class="alert alert-danger" role="alert">
+                    ${error}
+                </div>`)
+            }
         })
     }
 </script>

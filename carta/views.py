@@ -101,17 +101,16 @@ def carta_general(request):
 
     if request.method == 'POST':
         
-        # try: 
-        form = CartaGeneralForm(request.POST)
-        
-        if form.is_valid():
-            form.save()
-            return redirect('general_list')
-        else:
-            messages.error(request, f"Error {form.errors}")
-    
-        # except Exception as e:
-        #     messages.error(request, f"Error {e}")
+        try: 
+            form = CartaGeneralForm(request.POST)
+            
+            if form.is_valid():
+                form.save()
+                return redirect('general_list')
+            else:
+                messages.error(request, f"Error {form.errors}")
+        except Exception as e:
+            messages.error(request, f"Error {e}")
 
     return render(request, 'cartas/carta_general/new.html', context)
 
