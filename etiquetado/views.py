@@ -378,8 +378,6 @@ def fecha_entrega_ajax(request):
         return HttpResponse(respuesta, content_type='appliation/json')
 
 
-
-
 # Lista de pickings
 @login_required(login_url='login')
 def etiquetado_pedidos(request, n_pedido):
@@ -1734,7 +1732,7 @@ Notificado por: {usuario}
             subject='Notificación Pedido FACTURADO',
             message= mensaje,
             from_email=settings.EMAIL_HOST_USER,
-            recipient_list= ['egarces@gimpromed.com'],
+            recipient_list= ['carcosh@gimpromed.com', 'dreyes@gimpromed.com', 'jgualotuna@gimpromed.com','egarces@gimpromed.com'],
             fail_silently=True,
         )
             return JsonResponse({
