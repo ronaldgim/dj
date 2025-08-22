@@ -1559,7 +1559,8 @@ def df_error_lote_picking_v2():
     cerezos  = ['CN4', 'CN5', 'CN6', 'CN7', 'CUC']
     
     if error_lote.exists():
-        error_lote_df = pd.DataFrame(error_lote.values('product_id','lote_id', 'ubicacion', 'error'))
+        # error_lote_df = pd.DataFrame(error_lote.values('product_id','lote_id', 'ubicacion', 'error'))
+        error_lote_df = pd.DataFrame(error_lote.values())
         error_lote_df['andagoya'] = error_lote_df.apply(
             lambda x: 'BAN' if any(item in x['ubicacion'] for item in andagoya) else 'BCT', axis=1
         )
@@ -1701,17 +1702,62 @@ def ajax_lotes_bodega(request):
 # enviar correo error de lote
 @csrf_exempt
 def ajax_error_lote_email(request):
-    # data = request['data']
+    
     if request.method == 'POST':
-        data = request.POST
-        print(data, type(data))
-        # print(data.get('product_id'))
-        # print(data.get('lote_id'))
-        # print(data.get('error'))
-        
-        
-        return HttpResponse('ok')
+        try:
+            data = request.POST
+            unidad_medida = productos_odbc_and_django()[['product_id','Unidad']]
+            unidad_medida = unidad_medida[unidad_medida['product_id']==data['product_id']].to_dict('records')
+            if unidad_medida:
+                und = unidad_medida[0]
+                und = und.get('Unidad', '-')
+            else:
+                und = '-'                        
+            usuario = f'{request.user.first_name} {request.user.last_name}'
+            errores_list = []
+            for i in data['error'].split(','):
+                errores_list.append(i.strip())
+            
+            if len(errores_list) == 2:
+                error_str = 'Diferencia entre Disponible y Existencia, Asignado negativo'
+            else:
+                if errores_list[0] == 'diff_qty_ava':
+                    error_str = 'Diferencia entre Disponible y Existencia'
+                elif errores_list[0] == 'commited_negativo':
+                    error_str = 'Asignado negativo'                
 
+            mensaje = f"""
+Estimados señores
+Contabilidad \n
+Existe novedades de lote en el producto:  \n
+Código: {data['product_id']}  
+Nombre: {data['nombre']} 
+Unidad de medida: {und}
+Lote:{data['lote_id']}  
+Ubicación: {data['ubicacion']}  
+Existencia: {data['quantity']} unds
+Asignado:  {data['commited']} unds
+Disponible  {data['available']} unds
+Tipo de error: {error_str} \n
+Notificado por: {usuario}
+****Esta notificación ha sido enviada automáticamente - No responder****
+    """
+            send_mail(
+            subject='Notificación Pedido FACTURADO',
+            message= mensaje,
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list= ['egarces@gimpromed.com'],
+            fail_silently=True,
+        )
+            return JsonResponse({
+                'success':True,
+                'msg':'Notificación enviada corretamente!!!'
+            })
+        except Exception as e:
+            return JsonResponse({
+                'success':False,
+                'msg':f'Error, {e}!!!'
+            })
 
 
 # Picking Historial
