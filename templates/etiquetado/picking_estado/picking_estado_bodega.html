@@ -196,11 +196,12 @@
                 <span class="fw-bold">Unds:</span> ${p_unds} <br> 
                 <span class="fw-bold">Ubicación(es):</span> ${response.ubicaciones} <br>
                 
-                <table class="table table-lotes">
+                <div class="table-responsive">
+                <table class="table table-lotes" style="font-size:smaller">
                     <thead>
                         <th>Ubicación</th>
                         <th>Lote</th>
-                        <th>Caducidad</th>
+                        <!--th>Caducidad</th-->
                         <th>Unds</th>
                         <th>Notificar</th>
                     </thead>
@@ -212,10 +213,10 @@
                 let lotes = response.table || [];
                 if (lotes.length > 0) {
                     lotes.forEach(function(row) {
-                        let errorIcon = '';
                         let btnNotification = '';
+                        let classErrorLote = '';
                         if (row.error_lote) {
-                            errorIcon = '<i class="bi bi-exclamation-triangle-fill" style="color:red"></i>';
+                            classErrorLote = 'text-danger'
                         };
                         if (row.error_lote) {
                             btnNotification = `<button class="btn btn-sm btn-primary" name="loteNotification" onclick='notification(${JSON.stringify(row)})'>N</button>`;
@@ -223,15 +224,16 @@
                             btnNotification = '-';
                         }
                         $(".table-lotes tbody").append(`
-                            <tr>
+                            <tr class="${classErrorLote}">
                                 <td>${row.Ubicación}</td>
-                                <td>${errorIcon} ${row.Lote}</td>
-                                <td>${row.Caducidad}</td>
+                                <td>${row.Lote} <br> ${row.Caducidad}</td>
+                                <!--td>${row.Caducidad}</td-->
                                 <td class="text-end">${row.Unds.toLocaleString()}</td>
                                 <td class="text-center">
                                     ${btnNotification}
                                 </td>
                             </tr>
+                            </div>
                         `);
                     });
                 } else {
@@ -239,6 +241,7 @@
                         <tr class="text-center">
                             <td colspan="4">No hay lotes registrados.</td>
                         </tr>
+                        </div>
                     `);
                 }
             },

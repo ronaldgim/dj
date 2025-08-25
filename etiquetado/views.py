@@ -1729,10 +1729,11 @@ Notificado por: {usuario}
 ****Esta notificación ha sido enviada automáticamente - No responder****
     """
             send_mail(
-            subject='Notificación Pedido FACTURADO',
+            subject='Notificación de error de MBA',
             message= mensaje,
             from_email=settings.EMAIL_HOST_USER,
-            recipient_list= ['carcosh@gimpromed.com', 'dreyes@gimpromed.com', 'jgualotuna@gimpromed.com','egarces@gimpromed.com'],
+            # recipient_list= ['carcosh@gimpromed.com', 'dreyes@gimpromed.com', 'jgualotuna@gimpromed.com','egarces@gimpromed.com'],
+            recipient_list= ['egarces@gimpromed.com'],
             fail_silently=True,
         )
             return JsonResponse({
