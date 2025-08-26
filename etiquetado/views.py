@@ -1719,7 +1719,7 @@ Existe novedades de lote en el producto:  \n
 Código: {data['product_id']}  
 Nombre: {data['nombre']} 
 Unidad de medida: {und}
-Lote:{data['lote_id']}  
+Lote: {data['lote_id']}  
 Ubicación: {data['ubicacion']}  
 Existencia: {data['quantity']} unds
 Asignado:  {data['commited']} unds
