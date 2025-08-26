@@ -93,7 +93,7 @@ urlpatterns = [
     ),
     
     path(
-        route = 'kardex/<int:product_id>',
+        route = 'kardex/<str:product_id>',
         view = views.metro_kardex,
         name = 'metro_kardex'
     ),
@@ -108,5 +108,11 @@ urlpatterns = [
         route = 'movimiento-delete/<int:id>',
         view = views.metro_movimiento_delete,
         name = 'metro_movimiento_delete'
+    ),
+    
+    path(
+        route = 'descargar-kardex/<str:product_id>',
+        view = views.descargar_kardex,
+        name = 'descargar_kardex'
     ),
 ]

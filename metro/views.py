@@ -560,3 +560,50 @@ def metro_movimiento_delete(request, id):
         return JsonResponse({'success':True})
     except:
         return JsonResponse({'success':False})
+
+
+def descargar_kardex(request, product_id):
+    
+    product = Product.objects.get(id=product_id)
+    kardex = Kardex.objects.filter(product__id=product_id)
+    
+    data = []
+    for i in kardex:
+        data_row = {
+            'Código HM': i.product.codigo_hm,
+            'Código GIM': i.product.codigo_gim,
+            'Nombre HM': i.product.nombre_hm,
+            'Nombre GIM' : i.product.nombre_gim,
+            'Marca': i.product.marca,
+            'Cantidad en consig.': i.cantidad,
+            'Precio unitario': i.product.precio_unitario_gim,
+            'Factor': i.product.factor,
+            'Precio unitario HM': i.product.precio_unitario_hm
+        }
+        
+        data.append(data_row)
+    reporte = pd.DataFrame(data)
+    
+    nombre_archivo = f'Kardex-{product.codigo_gim}_{datetime.datetime.now()}.xlsx'
+    content_disposition = f'attachment; filename="{nombre_archivo}"'
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = content_disposition
+
+    with pd.ExcelWriter(response, engine='openpyxl') as writer:
+        
+        reporte.to_excel(writer, sheet_name='Reporte-Reservas', index=False)
+        workbook = writer.book
+        worksheet = writer.sheets['Reporte-Reservas']
+        
+        worksheet.column_dimensions['A'].width = 12 # Código GIM
+        worksheet.column_dimensions['B'].width = 12 # Código HM
+        worksheet.column_dimensions['C'].width = 37 # Nombre GIM
+        worksheet.column_dimensions['D'].width = 37 # Nombre HM
+        worksheet.column_dimensions['E'].width = 10 # Marca
+        worksheet.column_dimensions['F'].width = 17 # Consiganción
+        worksheet.column_dimensions['G'].width = 17 # Precio unitario
+        worksheet.column_dimensions['H'].width = 10 # Factor
+        worksheet.column_dimensions['I'].width = 17 # Precio unitario hm
+        
+    return response

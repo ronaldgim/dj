@@ -201,7 +201,6 @@ class Inventario(models.Model):
         toma = self.tomafisica_set.exclude(usuario=None).order_by('actualizado').last()
         return toma.usuario if toma else None
 
-
 class TomaFisica(models.Model):
     
     # Inventario
