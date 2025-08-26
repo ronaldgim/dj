@@ -592,7 +592,7 @@ def descargar_kardex(request, product_id):
 
     with pd.ExcelWriter(response, engine='openpyxl') as writer:
         
-        reporte.to_excel(writer, sheet_name='Reporte-Reservas', index=False)
+        reporte.to_excel(writer, sheet_name=f'Reporte-Kardex-{product.codigo_gim}', index=False)
         workbook = writer.book
         worksheet = writer.sheets['Reporte-Reservas']
         
