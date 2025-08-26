@@ -592,9 +592,11 @@ def descargar_kardex(request, product_id):
 
     with pd.ExcelWriter(response, engine='openpyxl') as writer:
         
-        reporte.to_excel(writer, sheet_name=f'Reporte-Kardex-{product.codigo_gim}', index=False)
+        sheet_name = f'Kardex-{product.codigo_gim}'
+        
+        reporte.to_excel(writer, sheet_name=sheet_name, index=False)
         workbook = writer.book
-        worksheet = writer.sheets['Reporte-Reservas']
+        worksheet = writer.sheets[sheet_name]
         
         worksheet.column_dimensions['A'].width = 12 # Código GIM
         worksheet.column_dimensions['B'].width = 12 # Código HM
