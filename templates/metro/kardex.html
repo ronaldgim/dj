@@ -103,7 +103,7 @@
                             <td>{{i.movimiento_mba|default:"-"}}</td>
                             <td>{{i.description}}</td>
                             <td class="text-end">
-                                {% if i.cantidad < 0 %}
+                                {% if i.cantidad < 0 or i.description == 'Decremento' %}
                                 <span class="text-danger"> ({{i.cantidad_absoluto}}) </span>
                                 {% else %}
                                     {{i.cantidad_absoluto}}
