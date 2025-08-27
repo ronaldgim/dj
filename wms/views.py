@@ -2433,7 +2433,7 @@ def wms_estado_picking_ajax(request):
     user_id = int(request.POST['user_id'])
     user_perfil_id   = UserPerfil.objects.get(user__id=user_id).id
 
-    reserva = wms_reserva_por_contratoid(contrato_id) #; print(reserva)
+    reserva = wms_reserva_por_contratoid(contrato_id) #;print(reserva)
     cli     = clientes_warehouse()[['CODIGO_CLIENTE','CLIENT_TYPE']] #; print(cli)
     reserva = reserva.merge(cli, on='CODIGO_CLIENTE', how='left') #; print(reserva)
     

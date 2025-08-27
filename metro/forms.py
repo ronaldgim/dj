@@ -278,7 +278,7 @@ class KardexForm(forms.ModelForm):
         fields = '__all__'
         exclude = ['creado', 'actualizado']
         labels = {
-            'tipo': 'Tipo de Movimiento',
+            # 'tipo': 'Tipo de Movimiento',
             'description': 'Descripción del Movimiento',
             'nota_entrega': 'Nota de Entrega',
             'fecha_nota': 'Fecha Nota de Entrega',
@@ -289,9 +289,9 @@ class KardexForm(forms.ModelForm):
             'observaciones': 'Observaciones',
         }
         widgets = {
-            'tipo': forms.Select(attrs={
-                'class': 'form-select',
-            }),
+            # 'tipo': forms.Select(attrs={
+            #     'class': 'form-select',
+            # }),
             'description': forms.Select(attrs={
                 'class': 'form-select',
             }),

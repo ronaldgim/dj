@@ -101,13 +101,12 @@
                             <td>{{i.nota_entrega|default:"-"}}</td>
                             <td>{{i.fecha_mba|default:"-"}}</td>
                             <td>{{i.movimiento_mba|default:"-"}}</td>
-                            <!-- td>{{i.tipo}}</td-->
                             <td>{{i.description}}</td>
                             <td class="text-end">
-                                {% if i.tipo == 'Egreso' %}
-                                <span class="text-danger"> ({{i.cantidad}}) </span>
+                                {% if i.cantidad < 0 %}
+                                <span class="text-danger"> ({{i.cantidad_absoluto}}) </span>
                                 {% else %}
-                                    {{i.cantidad}}
+                                    {{i.cantidad_absoluto}}
                                 {% endif %}
                             </td>
                             <td class="text-end">{{i.saldo | floatformat:"0g"}}</td>
@@ -391,9 +390,7 @@
                         alert('Error al eliminar movimiento')
                     }
                 });
-            } else {
-                console.log('noo')
-            }
+            } 
         })
     })
 </script>
