@@ -61,7 +61,7 @@ class TomaFisicaAdmin(admin.ModelAdmin):
 class KardexAdmin(admin.ModelAdmin):
     list_display = (
     'product',
-    'tipo',
+    # 'tipo',
     'description',
     'nota_entrega',
     'fecha_nota',

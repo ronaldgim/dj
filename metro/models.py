@@ -15,10 +15,10 @@ from users.models import User
 # ]
 
 
-TIPO_MOVIMIENTO = [
-    ('Ingreso', 'Ingreso'),
-    ('Egreso', 'Egreso'),
-]
+# TIPO_MOVIMIENTO = [
+#     ('Ingreso', 'Ingreso'),
+#     ('Egreso', 'Egreso'),
+# ]
 
 DESCRIPCION_MOVIMIENTO = [
     ('Saldo inicial', 'Saldo inicial'),
@@ -237,7 +237,7 @@ class TomaFisica(models.Model):
 class Kardex(models.Model):
     
     product       = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='kardex_records')
-    tipo          = models.CharField(max_length=10, choices=TIPO_MOVIMIENTO)
+    # tipo          = models.CharField(max_length=10, choices=TIPO_MOVIMIENTO)
     description   = models.CharField(max_length=20, choices=DESCRIPCION_MOVIMIENTO)
     
     nota_entrega  = models.CharField(max_length=20)
@@ -278,20 +278,19 @@ class Kardex(models.Model):
             return self.product.consignacion
         
         for i in movimientos_previos:
-            if i.tipo == 'Ingreso':
+        
+            if i.description == 'Ajuste por acuerdo' or i.description == 'Incremento' or i.description == 'Saldo inicial':
                 saldo += i.cantidad
             
-            if i.tipo == 'Egreso':
+            elif i.description == 'Decremento':
                 saldo -= i.cantidad
-                
+        
         return saldo
     
-    
-    def save(self, *args, **kwargs):
-        if self.cantidad < 0:
-            self.tipo  = 'Egreso'
-        
+    @property
+    def cantidad_absoluto(self):
         if self.cantidad > 0:
-            self.tipo = 'Ingreso'
+            return self.cantidad
         
-        super().save(*args, **kwargs)
+        if self.cantidad < 0:
+            return self.cantidad * -1
