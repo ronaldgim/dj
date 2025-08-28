@@ -508,6 +508,9 @@ def metro_kardex(request, product_id):
         form = KardexForm(data)
         if form.is_valid():
             form.save()
+            if product.saldo < 0:
+                Kardex.objects.filter(product__id=product_id).last().delete()
+                messages.error(request, 'El movimiento no se puede registrar ya que el saldo seria negativo !!!')
             return HttpResponseRedirect(f'/metro/kardex/{product_id}')
         else:
             messages.error(request, form.errors)
@@ -536,12 +539,19 @@ def metro_movimiento_edit(request, id):
         # Procesar el formulario enviado        
         form = KardexForm(request.POST, instance=product, user=request.user) 
         if form.is_valid():
-            form.save()
-            messages.success(request, f'Movimiento editado correctamente !!!')
-            return JsonResponse({
-                'success': True,
-                'message': f'Movimiento editado correctamente !!!',
-            })
+            tipo = request.POST.get('tipo', '')
+            cantidad_val = int(request.POST.get('cantidad', 0))
+            cantidad = -cantidad_val if tipo == 'Decremento' else cantidad_val
+            if product.saldo + cantidad < 0:
+                messages.error(request, 'El movimiento no se puede registrar ya que el saldo seria negativo !!!')
+                return HttpResponseRedirect(f'/metro/kardex/{product.product.id}')
+            else:
+                form.save()
+                messages.success(request, 'Movimiento editado correctamente !!!')
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Movimiento editado correctamente !!!',
+                })
         else:
             # Devolver errores si el formulario no es válido
             errors = form.get_formatted_errors() if hasattr(form, 'get_formatted_errors') else str(form.errors)
