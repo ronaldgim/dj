@@ -16,6 +16,12 @@ from django.db.models import Func, F, Value, IntegerField, CharField
 from django.db.models.functions import Cast
 from django.views.decorators.csrf import csrf_exempt
 
+# Email
+from django.core.mail import EmailMultiAlternatives
+from django.utils.html import strip_tags
+from django.template.loader import render_to_string
+from django.conf import settings
+
 # Models
 from metro.models import Product, Inventario, TomaFisica, Kardex
 from metro.forms import ProductForm, InventarioForm, TomaFisicaForm, KardexForm
@@ -494,6 +500,32 @@ def metro_consignacion(request):
     return render(request, 'metro/consignacion.html', context)
 
 
+def enviar_correo_kardex(kardex):
+    
+    ultimo_movimiento = kardex.last()    
+    movs = []
+    for i in kardex:
+        movs.append(i)
+    movimiento_anterior = movs[-2]
+    
+    context = {
+        'movimiento':ultimo_movimiento,
+        'movimiento_anterior':movimiento_anterior
+    }
+    html_message = render_to_string('emails/metro_kardex.html', context)
+    plain_message = strip_tags(html_message)
+    email = EmailMultiAlternatives(
+        subject    = f'{ultimo_movimiento.description} de Consignación - Hospital Metropolitano  ',
+        from_email = settings.EMAIL_HOST_USER,
+        body       = plain_message,
+        to         = ['egarces@gimpromed.com']
+    )
+    email.attach_alternative(html_message, 'text/html')
+    if ultimo_movimiento.documento.path:
+        email.attach_file(ultimo_movimiento.documento.path)
+    email.send()
+
+
 @csrf_exempt
 @login_required(login_url='login')
 def metro_kardex(request, product_id):
@@ -505,9 +537,11 @@ def metro_kardex(request, product_id):
     if request.method == 'POST':
         data = request.POST.copy() 
         data['confirmado'] = True if request.POST.get('action') == 'confirmado' else False
-        form = KardexForm(data)
+        form = KardexForm(data, request.FILES)
         if form.is_valid():
             form.save()
+            enviar_correo_kardex(kardex)
+            
             if product.saldo < 0:
                 Kardex.objects.filter(product__id=product_id).last().delete()
                 messages.error(request, 'El movimiento no se puede registrar ya que el saldo seria negativo !!!')
@@ -534,10 +568,11 @@ def metro_movimiento_edit(request, id):
     """
     # Obtener el producto o devolver 404 si no existe
     product = get_object_or_404(Kardex, id=id)
+    kardex = Kardex.objects.filter(product__id=product.product.id)
     
     if request.method == 'POST':
         # Procesar el formulario enviado        
-        form = KardexForm(request.POST, instance=product, user=request.user) 
+        form = KardexForm(request.POST, request.FILES, instance=product, user=request.user) 
         if form.is_valid():
             tipo = request.POST.get('tipo', '')
             cantidad_val = int(request.POST.get('cantidad', 0))
@@ -547,6 +582,7 @@ def metro_movimiento_edit(request, id):
                 return HttpResponseRedirect(f'/metro/kardex/{product.product.id}')
             else:
                 form.save()
+                enviar_correo_kardex(kardex)
                 messages.success(request, 'Movimiento editado correctamente !!!')
                 return JsonResponse({
                     'success': True,
@@ -563,6 +599,7 @@ def metro_movimiento_edit(request, id):
         # Para solicitudes GET, crear el formulario con el producto existente
         form = KardexForm(instance=product, user=request.user)
         return HttpResponse(form.as_p())
+
 
 @csrf_exempt
 @login_required(login_url='login')
