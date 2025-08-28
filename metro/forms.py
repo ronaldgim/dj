@@ -276,7 +276,7 @@ class KardexForm(forms.ModelForm):
     class Meta:
         model = Kardex
         fields = '__all__'
-        exclude = ['creado', 'actualizado']
+        exclude = ['creado', 'actualizado'] #,'confirmado']
         labels = {
             # 'tipo': 'Tipo de Movimiento',
             'description': 'Descripción del Movimiento',

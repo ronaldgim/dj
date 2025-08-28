@@ -127,14 +127,14 @@
                             <td>
                                 <div class="btn-group" role="group" aria-label="Basic example">
                                     <button 
-                                        class="btn btn-sm btn-secondary edit-product-btn" 
+                                        class="btn btn-sm btn-secondary edit-product-btn {#% if i.confirmado %} disabled {% endif %#}"
                                         data-product-id="{{ i.id }}" 
                                         data-product-name="Editar: {{ i.product.codigo_gim }}"
                                     >
                                         <i class="bi bi-pencil-fill"></i>
                                     </button>
                                     <button 
-                                        class="btn btn-sm btn-danger delete-product-btn" 
+                                        class="btn btn-sm btn-danger delete-product-btn {#% if i.confirmado %} disabled {% endif %#}"
                                         value="{{i.id}}"
                                         data-codigo-gim="{{i.product.codigo_gim}}"
                                         data-nombre-gim="{{i.product.nombre_gim}}"
@@ -165,7 +165,7 @@
         <div class="modal-content">
         <div class="modal-header">
             <h5 class="modal-title" id="exampleModalLabel">Nuevo Movimiento</h5>
-            <button type="reset" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <button type="reset" class="btn-close" onclick="resetForm()" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
             <div class="container">
@@ -174,18 +174,11 @@
                 <label class="fw-bold">Marca:</label> {{product.marca}} <br>
                 <div class="card shadow-sm">
                     <div class="card-body">
-                        <form method="post">
+                        <form method="post" id="newMovForm">
                             {% csrf_token %}
                             
                             <input name="usuario" type="hidden" value="{{request.user.id}}">
                             <input name="product" type="hidden" value="{{product.id}}">
-                            <!-- Campos ocultos -->
-                            <!--
-                            {% for hidden_field in form.hidden_fields %}
-                                {{ hidden_field }}
-                            {% endfor %}
-                            -->
-
                             <!-- Campos visibles con estructura responsiva -->
                             {% for field in form.visible_fields %}
                                 <div class="row mb-3 align-items-center">
@@ -227,11 +220,14 @@
                             {% endfor %}
                             <hr>
                             <!-- Botones de acción -->
-                            <div class="col-12 col-md-8">
-                                <button type="submit" class="btn btn-primary">
+                            <div class="col-12 col-md-8 btn-group" role="group">
+                                <button type="submit" name="action" value="guardar" class="btn btn-primary">
                                     Guardar
                                 </button>
-                                <button type="reset" class="btn btn-secondary ms-2" data-bs-dismiss="modal">
+                                <button type="submit" name="action" value="confirmado" class="btn btn-success">
+                                    Confirmar
+                                </button>
+                                <button type="reset" onclick="resetForm()" class="btn btn-secondary" data-bs-dismiss="modal">
                                     Cancelar
                                 </button>
                             </div>
@@ -258,9 +254,16 @@
                 <div class="modal-body" id="editModalBody">
                     <!-- El contenido del formulario se cargará aquí vía AJAX -->
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                <div class="mb-4 ms-4 col-12 col-md-8 btn-group" role="group">
+                    <button type="submit" name="action" value="guardar" class="btn btn-primary">
+                        Guardar
+                    </button>
+                    <button type="submit" name="action" value="confirmado" class="btn btn-success">
+                        Confirmar
+                    </button>
+                    <button type="reset" onclick="resetForm()" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Cancelar
+                    </button>
                 </div>
             </form>
         </div>
@@ -273,10 +276,11 @@
         $("#inputbuscar").on("keyup", function() {
             var value = $(this).val().toLowerCase();
             $("#pedidosbuscar tr").filter(function() {
-                $(this).toggle($(this).text()
-                .toLowerCase().indexOf(value) > -1)
+                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
             });
         });
+        $("label[for='id_confirmado']").hide();
+        $("#id_confirmado").hide();
     });
 </script>
 
@@ -304,18 +308,34 @@
                     $("#editModalBody").html(response);
                     $("#editModalBody label").addClass("fw-bold");
                     $("#editModalBody .row").addClass("mb-3");
+                    $("#editModalBody label[for='id_confirmado']").hide();
+                    $("#editModalBody input[id='id_confirmado']").hide();
                 },
                 error: function() {
                     $("#editModalBody").html('<div class="alert alert-danger">Error al cargar el formulario.</div>');
                 }
             });
         });
-        
+
+        let submitBtnValue = '';
+        let confirmado = '';
+        $("#form-edit button[type=submit]").on("click", function() {
+            submitBtnValue = $(this).val();  
+            console.log(submitBtnValue);
+            if (submitBtnValue === 'confirmado') {
+                confirmado = true;
+            } else {
+                confirmado = false;
+            }
+        });
+
         // Manejar el envío del formulario mediante AJAX
         $("#editModal").on('submit', 'form', function(e) {
             e.preventDefault();
             
             const form = $(this);
+            // form.append(`<input type="hidden" name="confirmado" value="${submitBtnValue}">`);
+            form.append(`<input type="hidden" name="confirmado" value="${confirmado}">`);
             const url = form.attr('action'); // || form.data('url');
             // console.log(url);
             $.ajax({
@@ -393,5 +413,12 @@
             } 
         })
     })
+</script>
+
+<script>
+    function resetForm() {
+        const form = document.getElementById('newMovForm')
+        form.reset()
+    }
 </script>
 {% endblock %}

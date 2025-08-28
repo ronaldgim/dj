@@ -256,9 +256,10 @@ class Kardex(models.Model):
     documento     = models.FileField(upload_to='metro_kardex', null=True, blank=True)
     observaciones = models.TextField(blank=True)
     
-    usuario      = models.ForeignKey(User, related_name='kardex_app_metro', on_delete=models.PROTECT)
+    usuario       = models.ForeignKey(User, related_name='kardex_app_metro', on_delete=models.PROTECT)
     creado        = models.DateTimeField(auto_now_add=True)
     actualizado   = models.DateTimeField(auto_now=True)
+    confirmado    = models.BooleanField(default=False)
 
     def __str__(self):
         return self.product.codigo_gim
@@ -275,7 +276,7 @@ class Kardex(models.Model):
 
         saldo = 0        
         if self.description == 'Saldo inicial':
-            return self.product.consignacion
+            return self.cantidad 
         
         for i in movimientos_previos:
         
