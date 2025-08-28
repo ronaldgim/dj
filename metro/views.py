@@ -518,7 +518,7 @@ def enviar_correo_kardex(kardex):
         subject    = f'{ultimo_movimiento.description} de Consignación - Hospital Metropolitano  ',
         from_email = settings.EMAIL_HOST_USER,
         body       = plain_message,
-        to         = ['egarces@gimpromed.com']
+        to         = ['egarces@gimpromed.com', 'jgualotuna@gimpromed.com']
     )
     email.attach_alternative(html_message, 'text/html')
     if ultimo_movimiento.documento.path:
