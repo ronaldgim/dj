@@ -503,9 +503,12 @@ def metro_kardex(request, product_id):
     form = KardexForm()
     
     if request.method == 'POST':
-        form = KardexForm(request.POST)
+        data = request.POST.copy() 
+        data['confirmado'] = True if request.POST.get('action') == 'confirmado' else False
+        form = KardexForm(data)
         if form.is_valid():
             form.save()
+            return HttpResponseRedirect(f'/metro/kardex/{product_id}')
         else:
             print(form.errors)
     
