@@ -510,7 +510,7 @@ def metro_kardex(request, product_id):
             form.save()
             return HttpResponseRedirect(f'/metro/kardex/{product_id}')
         else:
-            print(form.errors)
+            messages.error(request, form.errors)
     
     context = {
         'product':product,
@@ -533,7 +533,7 @@ def metro_movimiento_edit(request, id):
     product = get_object_or_404(Kardex, id=id)
     
     if request.method == 'POST':
-        # Procesar el formulario enviado
+        # Procesar el formulario enviado        
         form = KardexForm(request.POST, instance=product, user=request.user) 
         if form.is_valid():
             form.save()
