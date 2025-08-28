@@ -1,0 +1,37 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kardex - H.Metro</title>
+</head>
+<body>
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        };
+        td, th {
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+        td.n {
+            text-align: right;
+        }
+    </style>
+    
+    <h4>Estimados Compañeros:</h4>
+
+    <p>Se notifica {{movimiento.description}} de consignación - Hopital Metropolitano</p>
+
+    <p><strong>Código:</strong> {{movimiento.product.codigo_gim}}</p>
+    <p><strong>Nombre:</strong> {{movimiento.product.nombre_gim}}</p>
+    <p><strong>Marca:</strong> {{movimiento.product.marca}}</p>
+    <p><strong>Cantidad de consignación anterior:</strong> {{movimiento_anterior.saldo}}</p>
+    <p><strong>Cantidad modificada:</strong> {{movimiento.cantidad}}</p>
+    <p><strong>Nueva cantidad de consignación:</strong> {{movimiento.saldo}}</p>
+
+    <p>**** Esta notificación ha sido enviada automáticamente - No responder ****</p>
+</body>
+</html>

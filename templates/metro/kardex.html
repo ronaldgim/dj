@@ -174,7 +174,7 @@
                 <label class="fw-bold">Marca:</label> {{product.marca}} <br>
                 <div class="card shadow-sm">
                     <div class="card-body">
-                        <form method="post" id="newMovForm">
+                        <form method="post" id="newMovForm" enctype="multipart/form-data">
                             {% csrf_token %}
                             
                             <input name="usuario" type="hidden" value="{{request.user.id}}">
@@ -249,7 +249,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div id="editModalErrors"></div>
-            <form method="post" id="form-edit">
+            <form method="post" id="form-edit" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="modal-body" id="editModalBody">
                     <!-- El contenido del formulario se cargará aquí vía AJAX -->
@@ -404,6 +404,7 @@
                     success: function(response) {
                         if (response.success) {
                             $(btn).closest('tr').remove();
+                            location.reload();
                         }
                     },
                     error: function() {
