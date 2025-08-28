@@ -74,3 +74,5 @@ class KardexAdmin(admin.ModelAdmin):
     # 'actualizado',
     'saldo'
     )
+    
+    search_fields = ('product__codigo_gim', 'product__codigo_hm')
