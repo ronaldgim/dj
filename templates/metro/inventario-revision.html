@@ -127,133 +127,189 @@
     <div class="col-4">
         <input id="inputbuscar" type="text" placeholder="Buscar..." class="form-control mb-2">
     </div>
-        <div class="table-responsive">
-            <div style="max-height: 60vh; overflow-y: auto;">
-                <table class="table table-hover" id="revision" style="font-size: small;">
-                    <thead class="table-info" style="position: sticky; top: 0; z-index: 2;">
-                        <tr>
-                            <!--th scope="col" class="fw-bold text-center">::</th-->
-                            <th scope="col">No.</th>
-                            <th scope="col">CódigoGIM</th>
-                            <th scope="col">CódigoHM</th>
-                            <th scope="col">NombreGIM</th>
-                            <th scope="col">NombreHM</th>
-                            <th scope="col">Marca</th>
-                            <!--th scope="col">UM</th-->
-                            <th scope="col">Ubicación</th>
-                            <th scope="col">Consignación</th>
-                            <th scope="col">Und.Est</th>
-                            <th scope="col">Und.Bul</th>
-                            <th scope="col">Und.Sum</th>
-                            <th scope="col">Und.Total</th>
-                            <th scope="col">Llenado</th>
-                            <th scope="col">Usuario</th>
-                            <th scope="col">Obs</th>
-                            <th scope="col">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="pedidosbuscar">
-                        {% for i in products %}
-                        <tr
-                            id="row-{{i.id}}" 
-                            data-id="{{i.id}}" 
-                            data-llenado="{{i.revisado|yesno:'true,false'}}"
-                            {% if i.revisado %} style="background-color:#BAF690" {% endif %}
-                        >
-                            <!--td 
-                                id="n_orden" 
-                                class="border bg-info text-white fw-bold"
-                                style="cursor:grab"
-                            >
-                                <span class="d-flex align-items-center">
-                                <input type="checkbox" class="me-2" id="n_orden_{{i.id}}" value="check" />
-                                <i class="bi bi-arrows-expand"></i>
-                                </span>
-                            </td-->
-                            <td>{{i.orden}}</td>
-                            <td class="codigo_gim">{{i.product.codigo_gim}}</td>
-                            <td class="codigo_hm">{{i.product.codigo_hm}}</td>
-                            <td class="nombre_gim" style="font-size:smaller;">{{i.product.nombre_gim}}</td>
-                            <td class="nombre_hm" style="font-size:smaller;">{{i.product.nombre_hm}}</td>
-                            <td class="marca" style="font-size:smaller;">{{i.product.marca}}</td>
-                            <!--td class="unidad">{{i.product.unidad}}</td-->
-                            <td class="text-end ubicacion">{{i.product.ubicacion}}</td>
-                            <td class="text-end consignacion">{{i.product.consignacion|floatformat:"0g"}}</td>
-                            <td class="text-end estanteria">{{i.cantidad_estanteria|floatformat:"0g"}}</td>
-                            <td class="text-end bulto">{{i.cantidad_bulto|floatformat:"0g"}}</td>
-                            <td class="text-end suministro">{{i.cantidad_suministro|floatformat:"0g"}}</td>
-                            <td class="text-end total fw-bold">{{i.cantidad_total|floatformat:"0g"}}</td>
-                            <td class="text-center lenado">
-                                {% if i.llenado %} 
-                                <i class="bi bi-check-circle-fill" style="color:green"></i>
-                                {% else %}
-                                <i class="bi bi-x-circle-fill" style="color:red"></i>
-                                {% endif %}
-                            </td>
-                            <!--td class="usuario">{{i.usuario.first_name}} {{i.usuario.last_name}}</td-->
-                            <td class="usuario">{{i.usuario.username}}</td>
-                            <td class="observaciones">{{i.observaciones}}</td>
-                            <td>
-                                <div class="btn-group" role="group" aria-label="Basic example">
-                                    <button 
-                                        class="btn btn-sm btn-primary edit-toma-fisica-btn mt-2
-                                            {% if inventario.estado_inv == 'CERRADO' %} disabled {% endif %}
-                                        "
-                                        data-product-id="{{ i.id }}" 
-                                        data-product-name="Toma Física: GIM: {{ i.product.codigo_gim }} - HM: {{ i.product.codigo_hm }}"
-                                        onclick="get_data(this)"
-                                        >
-                                        <i class="bi bi-boxes"></i>
-                                    </button>
-                                    <button 
-                                        class="btn btn-sm btn-light revisado-btn mt-2
-                                            {% if inventario.estado_inv == 'CERRADO' %} disabled {% endif %}
-                                        "
-                                        data-product-id="{{ i.id }}" 
-                                        onclick="btn_revisado('{{i.id}}')"
-                                        >
-                                        <i class="bi bi-check-circle-fill" style="color:green"></i>
-                                    </button>
-                                </div>
+    
+    <button type="button" class="btn btn-sm mb-2 btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+        Columnas
+    </button>
 
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+    <div class="table-responsive">
+        <div style="max-height: 60vh; overflow-y: auto;">
+            <table class="table table-hover" id="revision" style="font-size: small;">
+                <thead class="table-info" style="position: sticky; top: 0; z-index: 2;">
+                    <tr>
+                        <!--th scope="col" class="fw-bold text-center">::</th-->
+                        <th scope="col">No.</th>
+                        <!-- th scope="col" id="th-codigogim">CódigoGIM</th-->
+                        <th scope="col" class="codigo_gim">CódigoGIM</th>
+                        <th scope="col" class="codigo_hm">CódigoHM</th>
+                        <th scope="col" class="nombre_gim">NombreGIM</th>
+                        <th scope="col" class="nombre_hm">NombreHM</th>
+                        <th scope="col" class="marca">Marca</th>
+                        <!--th scope="col">UM</th-->
+                        <th scope="col" class="ubicacion">Ubicación</th>
+                        <th scope="col" class="consignacion">Consignación</th>
+                        <th scope="col" class="estanteria">Und.Est</th>
+                        <th scope="col" class="bulto">Und.Bul</th>
+                        <th scope="col" class="suministro">Und.Sum</th>
+                        <th scope="col" class="total">Und.Total</th>
+                        <th scope="col" class="lenado">Llenado</th>
+                        <th scope="col" class="usuario">Usuario</th>
+                        <th scope="col" class="observaciones">Obs</th>
+                        <th scope="col">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in products %}
+                    <tr
+                        id="row-{{i.id}}" 
+                        data-id="{{i.id}}" 
+                        data-llenado="{{i.revisado|yesno:'true,false'}}"
+                        {% if i.revisado %} style="background-color:#BAF690" {% endif %}
+                    >
+                        <!--td 
+                            id="n_orden" 
+                            class="border bg-info text-white fw-bold"
+                            style="cursor:grab"
+                        >
+                            <span class="d-flex align-items-center">
+                            <input type="checkbox" class="me-2" id="n_orden_{{i.id}}" value="check" />
+                            <i class="bi bi-arrows-expand"></i>
+                            </span>
+                        </td-->
+                        <td>{{i.orden}}</td>
+                        <td class="codigo_gim">{{i.product.codigo_gim}}</td>
+                        <td class="codigo_hm">{{i.product.codigo_hm}}</td>
+                        <td class="nombre_gim" style="font-size:smaller;">{{i.product.nombre_gim}}</td>
+                        <td class="nombre_hm" style="font-size:smaller;">{{i.product.nombre_hm}}</td>
+                        <td class="marca" style="font-size:smaller;">{{i.product.marca}}</td>
+                        <!--td class="unidad">{{i.product.unidad}}</td-->
+                        <td class="text-end ubicacion">{{i.product.ubicacion}}</td>
+                        <td class="text-end consignacion">{{i.product.consignacion|floatformat:"0g"}}</td>
+                        <td class="text-end estanteria">{{i.cantidad_estanteria|floatformat:"0g"}}</td>
+                        <td class="text-end bulto">{{i.cantidad_bulto|floatformat:"0g"}}</td>
+                        <td class="text-end suministro">{{i.cantidad_suministro|floatformat:"0g"}}</td>
+                        <td class="text-end total fw-bold">{{i.cantidad_total|floatformat:"0g"}}</td>
+                        <td class="text-center lenado">
+                            {% if i.llenado %} 
+                            <i class="bi bi-check-circle-fill" style="color:green"></i>
+                            {% else %}
+                            <i class="bi bi-x-circle-fill" style="color:red"></i>
+                            {% endif %}
+                        </td>
+                        <!--td class="usuario">{{i.usuario.first_name}} {{i.usuario.last_name}}</td-->
+                        <td class="usuario">{{i.usuario.username}}</td>
+                        <td class="observaciones">{{i.observaciones}}</td>
+                        <td>
+                            <div class="btn-group" role="group" aria-label="Basic example">
+                                <button 
+                                    class="btn btn-sm btn-primary edit-toma-fisica-btn mt-2
+                                        {% if inventario.estado_inv == 'CERRADO' %} disabled {% endif %}
+                                    "
+                                    data-product-id="{{ i.id }}" 
+                                    data-product-name="Toma Física: GIM: {{ i.product.codigo_gim }} - HM: {{ i.product.codigo_hm }}"
+                                    onclick="get_data(this)"
+                                    >
+                                    <i class="bi bi-boxes"></i>
+                                </button>
+                                <button 
+                                    class="btn btn-sm btn-light revisado-btn mt-2
+                                        {% if inventario.estado_inv == 'CERRADO' %} disabled {% endif %}
+                                    "
+                                    data-product-id="{{ i.id }}" 
+                                    onclick="btn_revisado('{{i.id}}')"
+                                    >
+                                    <i class="bi bi-check-circle-fill" style="color:green"></i>
+                                </button>
+                            </div>
+
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
+    
 </div>
 
-<!-- TOMA FISICA -->
-<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+<!-- Columnas de tabla -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="editModalLabel">Toma física de inventario</h5>
-                <!--button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button-->
-            </div>
-
-            <div class="modal-body">
-                <label class="fw-bold">Código GIM:</label> <span id="codigo_gim"></span><br>
-                <label class="fw-bold">Código HM:</label> <span id="codigo_hm"></span><br>
-                <label class="fw-bold">Nombre:</label> <span id="nombre_gim"></span><br>
-                <label class="fw-bold">Marca:</label> <span id="marca"></span><br>
-                <label class="fw-bold">Ubicación:</label> <span id="ubicacion"></span><br>
-
-                <form method="post" id="form-edit" onsubmit="post_data(event)">
-                    {% csrf_token %}
-                    
-                    <hr>
-                    <div id="form-body-edit"></div>
-                    
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-success">Guardar</button>
-                    </div>
-                </form>
-            </div>
+        <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Columnas de tabla revisión</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <table class="table">
+                <thead>
+                    <th>Columna</th>
+                    <th>Visible</th>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>CódigoGIM</td>
+                        <td><input type="checkbox" id="input-codigo_gim" onclick="columns('input-codigo_gim', 'codigo_gim')" checked></td>
+                    </tr>
+                    <tr>
+                        <td>CódigoHM</td>
+                        <td><input type="checkbox" id="input-codigo_hm" onclick="columns('input-codigo_hm', 'codigo_hm')" checked></td>
+                    </tr>
+                    <tr>
+                        <td>NombreGIM</td>
+                        <td><input type="checkbox" id="input-nombre_gim" onclick="columns('input-nombre_gim', 'nombre_gim')" checked></td>
+                    </tr>
+                    <tr>
+                        <td>NombreHM</td>
+                        <td><input type="checkbox" id="input-nombre_hm" onclick="columns('input-nombre_hm', 'nombre_hm')" checked></td>
+                    </tr>
+                    <tr>
+                        <td>Marca</td>
+                        <td><input type="checkbox" id="input-marca" onclick="columns('input-marca', 'marca')" checked></td>
+                    </tr>
+                    <tr>
+                        <td>Ubicación</td>
+                        <td><input type="checkbox" id="input-ubicacion" onclick="columns('input-ubicacion', 'ubicacion')" checked></td>
+                    </tr>
+                    <tr>
+                        <td>Consignación</td>
+                        <td><input type="checkbox" id="input-consignacion" onclick="columns('input-consignacion', 'consignacion')" checked></td>
+                    </tr>
+                    <tr>
+                        <td>Und.Est</td>
+                        <td><input type="checkbox" id="input-estanteria" onclick="columns('input-estanteria', 'estanteria')" checked></td>
+                    </tr>
+                    <tr>
+                        <td>Und.Bul</td>
+                        <td><input type="checkbox" id="input-bulto" onclick="columns('input-bulto', 'bulto')" checked></td>
+                    </tr>
+                    <tr>
+                        <td>Und.Sum</td>
+                        <td><input type="checkbox" id="input-suministro" onclick="columns('input-suministro', 'suministro')" checked></td>
+                    </tr>
+                    <tr>
+                        <td>Und.Total</td>
+                        <td><input type="checkbox" id="input-total" onclick="columns('input-total', 'total')" checked></td>
+                    </tr>
+                    <tr>
+                        <td>Llenado</td>
+                        <td><input type="checkbox" id="input-lenado" onclick="columns('input-lenado', 'lenado')" checked></td>
+                    </tr>
+                    <tr>
+                        <td>Usuario</td>
+                        <td><input type="checkbox" id="input-usuario" onclick="columns('input-usuario', 'usuario')" checked></td>
+                    </tr>
+                    <tr>
+                        <td>Obs</td>
+                        <td><input type="checkbox" id="input-observaciones" onclick="columns('input-observaciones', 'observaciones')" checked></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary">Save changes</button>
+        </div>
         </div>
     </div>
 </div>
@@ -882,42 +938,6 @@
 
 <script src="{% static 'js/metro/metro.js' %}"></script>
 
-<!-- Ordenable -->
-<!-- jQuery y jQuery UI -->
-
-<!--script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-<script>
-
-    $(document).ready(function() {
-        $("#pedidosbuscar").sortable({
-            update: function(event, ui) {
-                let nuevoOrden = [];
-                $("#pedidosbuscar tr").each(function(index) {
-                    let id = $(this).attr("data-id");
-                    let n_orden = index + 1
-                    let data_orden ={"id":id, "n_orden":n_orden}
-                    nuevoOrden.push(data_orden)
-                });
-                $('#ordenandoAlert').show();
-                console.log(nuevoOrden);
-                $.ajax({
-                    type:"POST",
-                    url:"{#% url 'metro_cambiar_orden_revision_ajax' %#}",
-                    data:JSON.stringify({"n_orden":nuevoOrden}),
-                    success: function(response){
-                        location.reload();
-                    },
-                    error: function(error){
-                        console.log(error)
-                    }
-                })
-            }
-        })
-    })
-
-</script-->
-
 <!--filtro buscar-->
 <script>
     $(document).ready(function() {
@@ -979,5 +999,25 @@
             });
         });
     });
+</script>
+
+
+<!-- Columnas -->
+<script>
+    $(document).on('click', '[data-column-toggle]', function(){
+    const inputId = $(this).attr('id');
+    const thClass = $(this).data('column-toggle');
+    
+    if ($(this).is(':checked')) {
+            $(`.${thClass}`).show();
+        } else {
+            $(`.${thClass}`).hide();
+        }
+    });
+
+    // Función simplificada para configurar los checkboxes
+    function columns(input, th) {
+        $(`#${input}`).attr('data-column-toggle', th);
+    }
 </script>
 {% endblock %}
