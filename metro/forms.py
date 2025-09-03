@@ -7,7 +7,7 @@ class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
         fields = '__all__'
-        exclude = ['usuario', 'unidad', 'u_empaque']
+        exclude = ['usuario', 'unidad', 'u_empaque', 'consignacion']
         labels = {
             'order'       : 'Orden',
             'revisado'    : 'Revisado',
@@ -72,11 +72,11 @@ class ProductForm(forms.ModelForm):
                 'min': '0',
                 'placeholder': 'Cantidad por empaque'
             }),
-            'consignacion': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'min': '0',
-                'placeholder': 'Cantidad en consignación'
-            }),
+            # 'consignacion': forms.NumberInput(attrs={
+            #     'class': 'form-control',
+            #     'min': '0',
+            #     'placeholder': 'Cantidad en consignación'
+            # }),
             'ubicacion': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Ej. Bodega A, Estante 5, etc.'

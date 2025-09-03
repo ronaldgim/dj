@@ -68,7 +68,7 @@
     <div class="card-body">
         <div class="table-responsive">
             <div style="max-height: 60vh; overflow-y: auto;">
-                <table class="table" style="font-size: small;">
+                <table class="table" id="consignacion" style="font-size: small;">
                     <thead class="table-info" style="position: sticky; top: 0; z-index: 2;">
                         <tr>
                             <!--th scope="col">Orden</th-->
@@ -77,13 +77,13 @@
                             <th scope="col">Nombre GIM</th>
                             <th scope="col">Nombre HM</th>
                             <th scope="col">Marca</th>
-                            <th scope="col">Consignación</th>
-                            <th scope="col">P.U.GIM</th>
+                            <th scope="col">Cantidad en Consig</th>
+                            <th scope="col">Precio Unitario</th>
                             <th scope="col">P.Total</th>
                             <th scope="col">Factor</th>
                             <th scope="col">P.U.HM</th>
                             <th scope="col">Actualizado</th>
-                            <th scope="col">Usuario</th>
+                            <!--th scope="col">Usuario</th-->
                             <th scope="col">Acciones</th>
                         </tr>
                     </thead>
@@ -108,10 +108,10 @@
                             <td class="text-end">{{i.factor | floatformat:"0g"}}</td>
                             <td class="text-end">{{i.precio_unitario_hm}}</td>
 
-                            <td>{{i.ultimo_movimiento_kardex | date:"d/m/Y"}}</td>
+                            <td>{{i.ultimo_movimiento_kardex | date:"d/m/Y"}} <br> {{i.ultimo_usurio_kardex.first_name}} {{i.ultimo_usurio_kardex.last_name}}</td>
 
                             <!--td>{{i.usuario.first_name}} {{i.usuario.last_name}}</td-->
-                            <td>{{i.ultimo_usurio_kardex.first_name}} {{i.ultimo_usurio_kardex.last_name}}</td>
+                            <!--td>{{i.ultimo_usurio_kardex.first_name}} {{i.ultimo_usurio_kardex.last_name}}</td-->
 
                             <td>
                                 <div class="btn-group" role="group" aria-label="Basic example">
@@ -331,6 +331,28 @@
             
             $("#alertsContainer").html(alertHtml);
         }
+    });
+</script>
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.css" />  
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.js"></script>
+<script>
+    $(document).ready(function(){
+        $('#consignacion').DataTable({
+            //"ordering": true,
+            "order": [],
+            "searching": false,
+            "paging": false,
+            "info": false,
+            "columnDefs": [
+                // Deshabilitar ordenamiento en la primera y última columna (Orden y Acciones)
+                { targets: [11], orderable: false },
+                // Columnas numéricas (Consignación, P.U.GIM, Factor, P.U.HM)
+                { targets: [5,6,7,8,9], type: 'num' },
+                // Columnas de texto (Código GIM, Código HM, Nombre GIM, Nombre HM, Marca, Ubicación, Activo, Actualizado, Usuario)
+                { targets: [0,1,2,3,4,10], type: 'string' }
+            ]
+        });
     });
 </script>
 
