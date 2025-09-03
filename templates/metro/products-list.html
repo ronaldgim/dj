@@ -85,7 +85,7 @@
                             <th scope="col">U.Empaque</th-->
                             <th scope="col">Ubicación</th>
                             <th scope="col">Activo</th>
-                            <th scope="col">Consignación</th>
+                            <!--th scope="col">Consignación</th-->
 
                             <th scope="col">P.U.GIM</th>
                             <th scope="col">Factor</th>
@@ -100,7 +100,7 @@
                     <tbody id="pedidosbuscar">
                         {% for i in products %}
                         <tr data-product-id="{{i.id}}">
-                            <td 
+                            <!--td 
                                 id="n_orden" 
                                 class="border bg-info text-white fw-bold"
                                 style="cursor:grab"
@@ -108,7 +108,8 @@
                                 <span class="d-flex align-items-center">
                                 {{i.orden}} <i class="bi bi-arrows-expand"></i>
                                 </span>
-                            </td>
+                            </td-->
+                            <td>{{i.orden}}</td>
                             <td class="codigo-gim">{{i.codigo_gim}}</td>
                             <td class="codigo-hm">{{i.codigo_hm}}</td>
                             <td>{{i.nombre_gim}}</td>
@@ -124,7 +125,7 @@
                                     <i class="bi bi-x-circle-fill" style="color:red"></i>
                                 {% endif %}
                             </td>
-                            <td class="text-end">{{i.consignacion | floatformat:"0g"}}</td>
+                            <!--td class="text-end">{{i.consignacion | floatformat:"0g"}}</td-->
 
                             <td class="text-end">{{i.precio_unitario_gim}}</td>
                             <td class="text-end">{{i.factor | floatformat:"0g"}}</td>
@@ -237,7 +238,6 @@
         </div>
     </div>
 </div>
-
 
 <!-- Editar Producto -->
 <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
@@ -362,12 +362,12 @@
     });
 </script>
 
+
 <!-- Ordenable -->
 <!-- jQuery y jQuery UI -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!--script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 <script>
-
     $(document).ready(function() {
         $("#pedidosbuscar").sortable({
             update: function(event, ui) {
@@ -393,7 +393,6 @@
             }
         })
     })
-
-</script>
+</script-->
 
 {% endblock %}

@@ -44,8 +44,8 @@ class Product(models.Model):
     
     ####
     consignacion = models.IntegerField(blank=True, null=True, default=0)
-    ubicacion    = models.CharField(max_length=30)
-    precio_unitario = models.FloatField(blank=True, null=True, default=0)
+    ubicacion    = models.CharField(max_length=30, null=True, blank=True)
+    precio_unitario = models.FloatField(default=0)
     factor       = models.IntegerField(blank=True, null=True, default=0)
     
     # Auditoria
