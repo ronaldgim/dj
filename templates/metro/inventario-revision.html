@@ -137,15 +137,12 @@
             <table class="table table-hover" id="revision" style="font-size: small;">
                 <thead class="table-info" style="position: sticky; top: 0; z-index: 2;">
                     <tr>
-                        <!--th scope="col" class="fw-bold text-center">::</th-->
                         <th scope="col">No.</th>
-                        <!-- th scope="col" id="th-codigogim">CódigoGIM</th-->
                         <th scope="col" class="codigo_gim">CódigoGIM</th>
                         <th scope="col" class="codigo_hm">CódigoHM</th>
                         <th scope="col" class="nombre_gim">NombreGIM</th>
                         <th scope="col" class="nombre_hm">NombreHM</th>
                         <th scope="col" class="marca">Marca</th>
-                        <!--th scope="col">UM</th-->
                         <th scope="col" class="ubicacion">Ubicación</th>
                         <th scope="col" class="consignacion">Consig</th>
                         <th scope="col" class="estanteria">Und.Bodega General</th>
@@ -166,16 +163,6 @@
                         data-llenado="{{i.revisado|yesno:'true,false'}}"
                         {% if i.revisado %} style="background-color:#BAF690" {% endif %}
                     >
-                        <!--td 
-                            id="n_orden" 
-                            class="border bg-info text-white fw-bold"
-                            style="cursor:grab"
-                        >
-                            <span class="d-flex align-items-center">
-                            <input type="checkbox" class="me-2" id="n_orden_{{i.id}}" value="check" />
-                            <i class="bi bi-arrows-expand"></i>
-                            </span>
-                        </td-->
                         <td>{{i.orden}}</td>
                         <td class="codigo_gim">{{i.product.codigo_gim}}</td>
                         <td class="codigo_hm">{{i.product.codigo_hm}}</td>
@@ -238,7 +225,6 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="editModalLabel">Toma física de inventario</h5>
-                <!--button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button-->
             </div>
             <div class="modal-body">
                 <label class="fw-bold">Código GIM:</label> <span id="codigo_gim"></span><br>
