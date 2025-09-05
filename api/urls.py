@@ -89,9 +89,9 @@ urlpatterns = [
         view  = warehouse_data.api_productos_list,
         name  = 'warehouse-productos-list'
     ),
-    # path(
-    #     route = 'warehouse-cliente/<str:column_name>/<str:column_value>',
-    #     view  = warehouse_data.api_get_cliente,
-    #     name  = 'warehouse-cliente'
-    # ),
+    path(
+        route = 'warehouse-producto/<str:codigo>',
+        view  = warehouse_data.api_get_producto,
+        name  = 'warehouse-producto'
+    ),
 ]
