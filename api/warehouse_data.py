@@ -112,6 +112,9 @@ def api_get_cliente(_request, column_name: str, column_value: str):
 
 
 # APIS WHAREHOUSE PRODUCTS
+"""
+    No incluye datos de tiempo de django db
+"""
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def api_productos_list(_request):

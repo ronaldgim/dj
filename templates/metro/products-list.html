@@ -186,6 +186,10 @@
                                 <div class="row mb-3 align-items-center">
                                     <!-- En dispositivos pequeños, la etiqueta está arriba del campo -->
                                     <!-- En dispositivos medianos y grandes, la etiqueta está a la izquierda -->
+
+                                    {#{field.name}#}
+                                    {#% if field.name == 'codigi' %#}
+
                                     <div class="col-12 col-md-4 text-md-end mb-2 mb-md-0">
                                         <label for="{{ field.id_for_label }}" class="form-label fw-bold">
                                             {{ field.label }}
@@ -195,14 +199,22 @@
                                         </label>
                                     </div>
                                     
+
                                     <div class="col-12 col-md-8">
                                         {% if field.name == 'activo' %}
                                             <div class="form-check form-switch">
                                                 {{ field }}
                                             </div>
+                                        {% elif field.name == 'codigo_gim' %}
+                                            <div class="input-group">
+                                                {{ field }}
+                                                <button class="btn btn-secondary" type="button" onclick="buscarProducto()">🔎</button>
+                                            </div>
                                         {% else %}
                                             {{ field }}
                                         {% endif %}
+
+                                        
                                         
                                         {% if field.errors %}
                                             <div class="invalid-feedback d-block">
@@ -261,6 +273,24 @@
         </div>
     </div>
 </div>
+
+<!-- Buscar producto -->
+<script>
+    async function buscarProducto() {
+        const product_id = document.getElementById('id_codigo_gim').value;
+        try {
+            const response = await fetch(`/api/warehouse-producto/${product_id}`);
+            const data = await response.json();
+            if (data.success){
+                document.getElementById('id_nombre_gim').value = data.data.Nombre;
+                document.getElementById('id_marca').value = data.data.Marca;
+            }
+
+        } catch (error) {
+            console.error(error);
+        }
+    }
+</script>
 
 <!--filtro buscar-->
 <script>
