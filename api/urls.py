@@ -10,6 +10,7 @@ from rest_framework.authtoken.views import obtain_auth_token
 
 # Views
 from api import views
+from api import warehouse_data
 
 urlpatterns = [
     
@@ -61,4 +62,36 @@ urlpatterns = [
             view = views.infimas_general, 
             name = 'infimas_general'
         ),
+    
+    
+    ### WHAREHOUSE DATA
+    path(
+        route = 'warehouse-query',
+        view  = warehouse_data.api_warehouse_query,
+        name  = 'warehouse-query'
+    ),
+    
+    # clientes wharehouse
+    path(
+        route = 'warehouse-clientes-list',
+        view  = warehouse_data.api_clientes_list,
+        name  = 'warehouse-clientes-list'
+    ),
+    path(
+        route = 'warehouse-cliente/<str:column_name>/<str:column_value>',
+        view  = warehouse_data.api_get_cliente,
+        name  = 'warehouse-cliente'
+    ),
+    
+    # productos wharehouse
+        path(
+        route = 'warehouse-productos-list',
+        view  = warehouse_data.api_productos_list,
+        name  = 'warehouse-productos-list'
+    ),
+    # path(
+    #     route = 'warehouse-cliente/<str:column_name>/<str:column_value>',
+    #     view  = warehouse_data.api_get_cliente,
+    #     name  = 'warehouse-cliente'
+    # ),
 ]
