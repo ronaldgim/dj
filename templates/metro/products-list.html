@@ -198,8 +198,6 @@
                                             {% endif %}
                                         </label>
                                     </div>
-                                    
-
                                     <div class="col-12 col-md-8">
                                         {% if field.name == 'activo' %}
                                             <div class="form-check form-switch">
@@ -213,9 +211,6 @@
                                         {% else %}
                                             {{ field }}
                                         {% endif %}
-
-                                        
-                                        
                                         {% if field.errors %}
                                             <div class="invalid-feedback d-block">
                                                 {% for error in field.errors %}
@@ -391,38 +386,4 @@
         }
     });
 </script>
-
-
-<!-- Ordenable -->
-<!-- jQuery y jQuery UI -->
-<!--script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-<script>
-    $(document).ready(function() {
-        $("#pedidosbuscar").sortable({
-            update: function(event, ui) {
-                let nuevoOrden = [];
-                $("#pedidosbuscar tr").each(function(index) {
-                    let id = $(this).attr("data-product-id");
-                    let n_orden = index + 1
-                    let data_orden ={"id":id, "n_orden":n_orden}
-                    nuevoOrden.push(data_orden)
-                });
-                $('#ordenandoAlert').show();
-                $.ajax({
-                    type:"POST",
-                    url:"{% url 'metro_cambiar_orden_productos_ajax' %}",
-                    data:JSON.stringify({"n_orden":nuevoOrden}),
-                    success: function(response){
-                        location.reload();
-                    },
-                    error: function(error){
-                        console.log(error)
-                    }
-                })
-            }
-        })
-    })
-</script-->
-
 {% endblock %}
