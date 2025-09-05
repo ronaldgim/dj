@@ -1394,7 +1394,9 @@ GIMPROMED Cia. Ltda.\n
 
         # si se envia whatsapp set value
         if response.status_code == 200: 
-            picking_estado.whatsapp = True
+            json_response = response.json()
+            if json_response.get('success', None):
+                picking_estado.whatsapp = True
     
         # si no hay número o el numero el incorrecto
     elif not n_whatsapp or not n_whatsapp.startswith('+593'):
