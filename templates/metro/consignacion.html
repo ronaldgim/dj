@@ -91,7 +91,7 @@
                         {% for i in products %}
                         <tr data-product-id="{{i.id}}">
                             <td class="codigo-gim">{{i.codigo_gim}} 
-                                {% if i.alerta %}
+                                {% if not i.alerta %}
                                 <div class="spinner-grow spinner-grow-sm text-warning" role="status">
                                     <span class="visually-hidden">Loading...</span>
                                 </div>

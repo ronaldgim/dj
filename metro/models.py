@@ -116,21 +116,21 @@ class Product(models.Model):
         precio_total = round(self.precio_unitario * self.saldo, 2)
         return f'$ {precio_total}'
     
-    @property
-    def alerta(self):
-        # Retorna True si existe al menos un movimiento con algún campo faltante
-        return any(
-            not (mov.nota_entrega and mov.fecha_nota and mov.movimiento_mba and mov.fecha_mba and mov.documento)
-            for mov in self.kardex_records.all()
-        )
-
     # @property
     # def alerta(self):
-    #     return self.kardex_records.filter(
-    #         models.Q(nota_entrega__isnull=True) | models.Q(fecha_nota__isnull=True) |
-    #         models.Q(movimiento_mba__isnull=True) | models.Q(fecha_mba__isnull=True) |
-    #         models.Q(nota_entrega='') | models.Q(movimiento_mba='')
-    #     ).exists()
+    #     # Retorna True si existe al menos un movimiento con algún campo faltante
+    #     return any(
+    #         not (mov.nota_entrega and mov.fecha_nota and mov.movimiento_mba and mov.fecha_mba and mov.documento)
+    #         for mov in self.kardex_records.all()
+    #     )
+    
+    @property
+    def alerta(self):
+        # Retorna True si todos los movimientos están confirmados, False si alguno no está confirmado
+        # return all(record['confirmado'] for record in self.kardex_records.all().values('confirmado'))
+        return all(record['confirmado'] for record in self.kardex_records.all().values('confirmado'))
+    
+
 
 class Inventario(models.Model):
     
