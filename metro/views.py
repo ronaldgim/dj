@@ -502,7 +502,10 @@ def metro_consignacion(request):
 
 def enviar_correo_kardex(kardex):
     
-    ultimo_movimiento = kardex.last()    
+    ultimo_movimiento = kardex.last()
+    asunto = 'Ingreso de Nuevo Producto a Consignación' if ultimo_movimiento.description == 'Saldo inicial' else f'{ultimo_movimiento.description} de Consiganción'
+    correos = ['egarces@gimpromed.com', 'jgualotuna@gimpromed.com']
+    
     movs = []
     for i in kardex:
         movs.append(i)
@@ -515,10 +518,10 @@ def enviar_correo_kardex(kardex):
     html_message = render_to_string('emails/metro_kardex.html', context)
     plain_message = strip_tags(html_message)
     email = EmailMultiAlternatives(
-        subject    = f'{ultimo_movimiento.description} de Consignación - Hospital Metropolitano  ',
+        subject    = f'{asunto} - Hospital Metropolitano  ',
         from_email = settings.EMAIL_HOST_USER,
         body       = plain_message,
-        to         = ['egarces@gimpromed.com', 'jgualotuna@gimpromed.com']
+        to         = correos
     )
     email.attach_alternative(html_message, 'text/html')
     if ultimo_movimiento.documento.path:
@@ -612,7 +615,8 @@ def metro_movimiento_delete(request, id):
         return JsonResponse({'success':False})
 
 
-def descargar_kardex(request, product_id):
+@login_required(login_url='login')
+def metro_descargar_kardex(request, product_id):
     
     product = Product.objects.get(id=product_id)
     kardex = Kardex.objects.filter(product__id=product_id)
@@ -657,5 +661,57 @@ def descargar_kardex(request, product_id):
         worksheet.column_dimensions['G'].width = 17 # Precio unitario
         worksheet.column_dimensions['H'].width = 10 # Factor
         worksheet.column_dimensions['I'].width = 17 # Precio unitario hm
+        
+    return response
+
+
+@login_required(login_url='login')
+def metro_reporte_consignacion(request):
+    
+    products = Product.objects.filter(activo=True).order_by('orden')
+    
+    data = []
+    for i in products:
+        data_row = {
+            'Código HM': i.codigo_hm,
+            'Código GIM': i.codigo_gim,
+            'Nombre HM': i.nombre_hm,
+            'Nombre GIM' : i.nombre_gim,
+            'Marca': i.marca,
+            'Cantidad en consig.': i.saldo,
+            'Precio unitario': i.precio_unitario_gim,
+            'Precio total': i.precio_total,
+            'Factor': i.factor,
+            'Precio unitario HM': i.precio_unitario_hm
+        }
+        
+        data.append(data_row)
+        
+    reporte = pd.DataFrame(data)
+    
+    nombre_archivo = f'Consignación_{datetime.datetime.now()}.xlsx'
+    content_disposition = f'attachment; filename="{nombre_archivo}"'
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = content_disposition
+
+    with pd.ExcelWriter(response, engine='openpyxl') as writer:
+        
+        sheet_name = f'Consignación'
+        
+        reporte.to_excel(writer, sheet_name=sheet_name, index=False)
+        workbook = writer.book
+        worksheet = writer.sheets[sheet_name]
+        
+        worksheet.column_dimensions['A'].width = 12 # Código GIM
+        worksheet.column_dimensions['B'].width = 12 # Código HM
+        worksheet.column_dimensions['C'].width = 37 # Nombre GIM
+        worksheet.column_dimensions['D'].width = 37 # Nombre HM
+        worksheet.column_dimensions['E'].width = 10 # Marca
+        worksheet.column_dimensions['F'].width = 17 # Consiganción
+        worksheet.column_dimensions['G'].width = 17 # Precio unitario
+        worksheet.column_dimensions['H'].width = 17 # Precio total
+        worksheet.column_dimensions['I'].width = 10 # Factor
+        worksheet.column_dimensions['J'].width = 17 # Precio unitario hm
         
     return response

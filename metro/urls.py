@@ -112,7 +112,13 @@ urlpatterns = [
     
     path(
         route = 'descargar-kardex/<str:product_id>',
-        view = views.descargar_kardex,
+        view = views.metro_descargar_kardex,
         name = 'descargar_kardex'
+    ),
+    
+    path(
+        route = 'descargar-consignacion',
+        view = views.metro_reporte_consignacion,
+        name = 'reporte_consignacion'
     ),
 ]
