@@ -22,9 +22,9 @@ from users.models import User
 
 DESCRIPCION_MOVIMIENTO = [
     ('Saldo inicial', 'Saldo inicial'),
-    ('Ajuste por acuerdo', 'Ajuste por acuerdo'),
+    ('Ajuste', 'Ajuste'),
     ('Incremento', 'Incremento'),
-    ('Decremento', 'Decremento')
+    ('Disminución', 'Disminución')
 ]
 
 # Create your models here.
@@ -114,7 +114,7 @@ class Product(models.Model):
         if self.precio_unitario == 0 or self.saldo == 0:
             return '$ 0.00'
         precio_total = round(self.precio_unitario * self.saldo, 2)
-        return f'$ {precio_total}'
+        return f'$ {precio_total:,.2f}'
     
     # @property
     # def alerta(self):
@@ -281,10 +281,10 @@ class Kardex(models.Model):
         
         for i in movimientos_previos:
         
-            if i.description == 'Ajuste por acuerdo' or i.description == 'Incremento' or i.description == 'Saldo inicial':
+            if i.description == 'Ajuste' or i.description == 'Incremento' or i.description == 'Saldo inicial':
                 saldo += i.cantidad
             
-            elif i.description == 'Decremento':
+            elif i.description == 'Disminución':
                 saldo -= i.cantidad
         
         return saldo
