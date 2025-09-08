@@ -279,7 +279,7 @@ class KardexForm(forms.ModelForm):
         exclude = ['creado', 'actualizado'] #,'confirmado']
         labels = {
             # 'tipo': 'Tipo de Movimiento',
-            'description': 'Descripción del Movimiento',
+            'description': 'Tipo de Movimiento', #'Descripción del Movimiento',
             'nota_entrega': 'Nota de Entrega',
             'fecha_nota': 'Fecha Nota de Entrega',
             'movimiento_mba': 'Movimiento MBA',
