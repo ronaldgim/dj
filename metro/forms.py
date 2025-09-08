@@ -280,9 +280,9 @@ class KardexForm(forms.ModelForm):
         labels = {
             # 'tipo': 'Tipo de Movimiento',
             'description': 'Tipo de Movimiento', #'Descripción del Movimiento',
-            'nota_entrega': 'Nota de Entrega',
+            'nota_entrega': 'Nota de Entrega No.',
             'fecha_nota': 'Fecha Nota de Entrega',
-            'movimiento_mba': 'Movimiento MBA',
+            'movimiento_mba': 'Movimiento MBA No.',
             'fecha_mba': 'Fecha Movimiento MBA',
             'cantidad': 'Cantidad (+ / -)',
             'documento': 'Documento adjunto',
