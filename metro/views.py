@@ -514,13 +514,13 @@ def enviar_correo_kardex(kardex):
     html_message = render_to_string('emails/metro_kardex.html', context)
     plain_message = strip_tags(html_message)
     email = EmailMultiAlternatives(
-        subject    = f'{asunto} - Hospital Metropolitano  ',
+        subject    = f'{asunto} - Hospital Metropolitano',
         from_email = settings.EMAIL_HOST_USER,
         body       = plain_message,
         to         = correos
     )
     email.attach_alternative(html_message, 'text/html')
-    if ultimo_movimiento.documento.path:
+    if ultimo_movimiento.documento and ultimo_movimiento.documento.path:
         email.attach_file(ultimo_movimiento.documento.path)
     email.send()
 
@@ -539,11 +539,13 @@ def metro_kardex(request, product_id):
         form = KardexForm(data, request.FILES)
         if form.is_valid():
             form.save()
-            enviar_correo_kardex(kardex)
+            # enviar_correo_kardex(kardex)
             
             if product.saldo < 0:
                 Kardex.objects.filter(product__id=product_id).last().delete()
                 messages.error(request, 'El movimiento no se puede registrar ya que el saldo seria negativo !!!')
+            else:
+                enviar_correo_kardex(kardex)
             return HttpResponseRedirect(f'/metro/kardex/{product_id}')
         else:
             messages.error(request, form.errors)
