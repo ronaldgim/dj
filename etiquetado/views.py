@@ -1421,6 +1421,9 @@ GIMPROMED Cia. Ltda.\n
 @login_required(login_url='login')
 def picking(request):
     
+    from api_mba.tablas_warehouse import notificaciones_email_whastapp
+    notificaciones_email_whastapp()
+    
     hoy = datetime.now()
     un_mes = hoy - timedelta(days=10)
 

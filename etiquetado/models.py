@@ -128,6 +128,15 @@ class EstadoPicking(models.Model):
     
     def __str__(self):
         return self.n_pedido
+    
+    @property
+    def bodega_str(self):
+        if self.bodega == 'BAN':
+            return 'Andagoya'
+        elif self.bodega  == 'BCT':
+            return 'Cerezos'
+        else:
+            return ''
 
 
 class RegistoGuia(models.Model):
