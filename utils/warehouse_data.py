@@ -2,6 +2,7 @@ from django.db import connections, DatabaseError
 from django.http import JsonResponse
 import pandas as pd
 import numpy as np
+import math
 from datos.models import Product
 # from datos.views import productos_odbc_and_django
 
@@ -145,15 +146,19 @@ def productos_mba_django():
         ]
         products = pd.DataFrame(products)
         products = products.rename(columns={'codigo':'product_id'})
-        p = pd.DataFrame(Product.objects.filter(activo=True).values())
-        products = products.merge(p, on='product_id', how='left')
-        products['vol_m3'] = products['Volumen'] / 1000000
+        p = pd.DataFrame(Product.objects.filter(activo=True).values(
+            'product_id', 't_etiq_1p', 't_etiq_2p', 't_etiq_3p', 
+            'emp_primario', 'emp_secundario', 'emp_terciario',
+            'unidad_empaque_box', 't_armado', 'n_personas'
+        ))
+        products = products.merge(p, on='product_id', how='left') 
+        products['vol_m3'] = products['volumen'] / 1000000
         products['vol_m3'] = products['vol_m3'].replace(np.inf, 0)
         
         return products
 
 
-def cartones_volumen_factura(contrato: str) -> dict[str, float]:
+def cartones_volumen_factura(contrato: str) -> dict[str, float | int]:
     with connections['gimpromed_sql'].cursor() as cursor:
         cursor.execute("""
             SELECT PRODUCT_ID, QUANTITY
@@ -179,8 +184,13 @@ def cartones_volumen_factura(contrato: str) -> dict[str, float]:
 
     df['cartones'] = df['quantity'] / df['unidad_empaque']
     df['volumen'] = df['quantity'] * df['vol_m3']
-
+    df = df.replace(np.inf, 0)
+    df = df.replace(-np.inf, 0)
+    
+    vol = round(df['volumen'].sum(), 1)
+    car = math.ceil(df['cartones'].sum())
+    
     return {
-        'volumen': round(df['volumen'].sum(), 1),
-        'cartones': round(df['cartones'].sum(), 1),
+        'volumen': vol,
+        'cartones': car,
     }
