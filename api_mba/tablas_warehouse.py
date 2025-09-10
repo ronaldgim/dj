@@ -852,7 +852,8 @@ def api_actualizar_reservas_warehouse():
                     elif s_n_c.startswith('R'):
                         sec_name_cliente = 'RESERVA'
                     else:
-                        sec_name_cliente = ''
+                        #sec_name_cliente = ''
+                        sec_name_cliente = i['MEMO']
                     
                     unique_id = i['UNIQUE_ID']
                     
