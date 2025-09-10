@@ -764,33 +764,60 @@ def api_actualizar_proformas_warehouse():
 ### 9 ACTUALIZAR RESERVAS WAREHOUSE
 def api_actualizar_reservas_warehouse():
     
-    try:
-    
+    try:    
         reservas_mba = api_mba_sql(
+        # """
+        # SELECT 
+        #     CLNT_Pedidos_Principal.FECHA_PEDIDO, 
+        #     CLNT_Pedidos_Principal.CONTRATO_ID, 
+        #     CLNT_Ficha_Principal.CODIGO_CLIENTE, 
+        #     CLNT_Ficha_Principal.NOMBRE_CLIENTE,
+        #     CLNT_Pedidos_Detalle.PRODUCT_ID, 
+        #     CLNT_Pedidos_Detalle.PRODUCT_NAME, 
+        #     CLNT_Pedidos_Detalle.QUANTITY, 
+        #     CLNT_Pedidos_Detalle.Despachados, 
+        #     CLNT_Pedidos_Principal.WARE_CODE, 
+        #     CLNT_Pedidos_Principal.CONFIRMED,
+        #     CLNT_Pedidos_Principal.HORA_LLEGADA, 
+        #     CLNT_Pedidos_Principal.SEC_NAME_CLIENTE, 
+        #     CLNT_Pedidos_Detalle.UNIQUE_ID
+        # FROM 
+        #     CLNT_Ficha_Principal CLNT_Ficha_Principal, 
+        #     CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, 
+        #     CLNT_Pedidos_Principal CLNT_Pedidos_Principal
+        # WHERE 
+        #     CLNT_Pedidos_Principal.CONTRATO_ID_CORP = CLNT_Pedidos_Detalle.CONTRATO_ID_CORP AND 
+        #     CLNT_Ficha_Principal.CODIGO_CLIENTE = CLNT_Pedidos_Principal.CLIENT_ID AND 
+        #     CLNT_Pedidos_Detalle.Despachados=0 AND 
+        #     ((CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND (CLNT_Pedidos_Detalle.TIPO_DOCUMENTO='PE') AND 
+        #     (CLNT_Pedidos_Detalle.PRODUCT_ID<>'MANTEN')) ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID DESC
+        # """
+        
         """
         SELECT 
             CLNT_Pedidos_Principal.FECHA_PEDIDO, 
             CLNT_Pedidos_Principal.CONTRATO_ID, 
             CLNT_Ficha_Principal.CODIGO_CLIENTE, 
-            CLNT_Ficha_Principal.NOMBRE_CLIENTE,
+            CLNT_Ficha_Principal.NOMBRE_CLIENTE, 
             CLNT_Pedidos_Detalle.PRODUCT_ID, 
             CLNT_Pedidos_Detalle.PRODUCT_NAME, 
             CLNT_Pedidos_Detalle.QUANTITY, 
             CLNT_Pedidos_Detalle.Despachados, 
             CLNT_Pedidos_Principal.WARE_CODE, 
-            CLNT_Pedidos_Principal.CONFIRMED,
+            CLNT_Pedidos_Principal.CONFIRMED, 
             CLNT_Pedidos_Principal.HORA_LLEGADA, 
-            CLNT_Pedidos_Principal.SEC_NAME_CLIENTE, 
-            CLNT_Pedidos_Detalle.UNIQUE_ID
+            CLNT_Pedidos_Principal.MEMO, 
+            CLNT_Pedidos_Detalle.UNIQUE_ID 
         FROM 
             CLNT_Ficha_Principal CLNT_Ficha_Principal, 
             CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, 
-            CLNT_Pedidos_Principal CLNT_Pedidos_Principal
+            CLNT_Pedidos_Principal CLNT_Pedidos_Principal 
         WHERE 
             CLNT_Pedidos_Principal.CONTRATO_ID_CORP = CLNT_Pedidos_Detalle.CONTRATO_ID_CORP AND 
             CLNT_Ficha_Principal.CODIGO_CLIENTE = CLNT_Pedidos_Principal.CLIENT_ID AND 
             CLNT_Pedidos_Detalle.Despachados=0 AND 
-            ((CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND (CLNT_Pedidos_Detalle.TIPO_DOCUMENTO='PE') AND 
+            ((CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND 
+            (CLNT_Pedidos_Detalle.TIPO_DOCUMENTO='PE') AND 
             (CLNT_Pedidos_Detalle.PRODUCT_ID<>'MANTEN')) ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID DESC
         """
         )
@@ -818,8 +845,8 @@ def api_actualizar_reservas_warehouse():
                     confirmed = 0 if i['CONFIRMED'] == 'false' else 1
                     hora_llegada = i['HORA_LLEGADA'] # time
                     
-                    #sec_name_cliente = i['SEC_NAME_CLIENTE']
-                    s_n_c = i['SEC_NAME_CLIENTE']
+                    # s_n_c = i['SEC_NAME_CLIENTE']
+                    s_n_c = i['MEMO']
                     if s_n_c.startswith('P'):
                         sec_name_cliente = 'PUBLICO'
                     elif s_n_c.startswith('R'):
@@ -1141,33 +1168,59 @@ def odbc_actualizar_stock_lote():
 ### 14 ACTUALIZAR RESERVAS MODELO DE ETIQUETADO
 def api_actualizar_mis_reservas_etiquetado():
     
-    try:
-    
+    try:    
         reservas_mba = api_mba_sql(
+        # """
+        # SELECT
+        #     CLNT_Pedidos_Principal.FECHA_PEDIDO,
+        #     CLNT_Pedidos_Principal.CONTRATO_ID,
+        #     CLNT_Ficha_Principal.CODIGO_CLIENTE,
+        #     CLNT_Ficha_Principal.NOMBRE_CLIENTE,
+        #     CLNT_Pedidos_Detalle.PRODUCT_ID,
+        #     CLNT_Pedidos_Detalle.PRODUCT_NAME,
+        #     CLNT_Pedidos_Detalle.QUANTITY,
+        #     CLNT_Pedidos_Detalle.Despachados,
+        #     CLNT_Pedidos_Principal.WARE_CODE,
+        #     CLNT_Pedidos_Principal.CONFIRMED,
+        #     CLNT_Pedidos_Principal.HORA_LLEGADA,
+        #     CLNT_Pedidos_Principal.SEC_NAME_CLIENTE,
+        #     CLNT_Pedidos_Detalle.UNIQUE_ID
+        # FROM
+        #     CLNT_Ficha_Principal CLNT_Ficha_Principal,
+        #     CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle,
+        #     CLNT_Pedidos_Principal CLNT_Pedidos_Principal
+        # WHERE
+        #     CLNT_Pedidos_Principal.CONTRATO_ID_CORP = CLNT_Pedidos_Detalle.CONTRATO_ID_CORP AND
+        #     CLNT_Ficha_Principal.CODIGO_CLIENTE = CLNT_Pedidos_Principal.CLIENT_ID AND
+        #     CLNT_Pedidos_Detalle.Despachados=0 AND
+        #     ((CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND (CLNT_Pedidos_Detalle.TIPO_DOCUMENTO='PE') AND
+        #     (CLNT_Pedidos_Detalle.PRODUCT_ID<>'MANTEN')) ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID DESC
+        # """
         """
-        SELECT
-            CLNT_Pedidos_Principal.FECHA_PEDIDO,
-            CLNT_Pedidos_Principal.CONTRATO_ID,
-            CLNT_Ficha_Principal.CODIGO_CLIENTE,
-            CLNT_Ficha_Principal.NOMBRE_CLIENTE,
-            CLNT_Pedidos_Detalle.PRODUCT_ID,
-            CLNT_Pedidos_Detalle.PRODUCT_NAME,
-            CLNT_Pedidos_Detalle.QUANTITY,
-            CLNT_Pedidos_Detalle.Despachados,
-            CLNT_Pedidos_Principal.WARE_CODE,
-            CLNT_Pedidos_Principal.CONFIRMED,
-            CLNT_Pedidos_Principal.HORA_LLEGADA,
-            CLNT_Pedidos_Principal.SEC_NAME_CLIENTE,
-            CLNT_Pedidos_Detalle.UNIQUE_ID
-        FROM
-            CLNT_Ficha_Principal CLNT_Ficha_Principal,
-            CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle,
-            CLNT_Pedidos_Principal CLNT_Pedidos_Principal
-        WHERE
-            CLNT_Pedidos_Principal.CONTRATO_ID_CORP = CLNT_Pedidos_Detalle.CONTRATO_ID_CORP AND
-            CLNT_Ficha_Principal.CODIGO_CLIENTE = CLNT_Pedidos_Principal.CLIENT_ID AND
-            CLNT_Pedidos_Detalle.Despachados=0 AND
-            ((CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND (CLNT_Pedidos_Detalle.TIPO_DOCUMENTO='PE') AND
+        SELECT 
+            CLNT_Pedidos_Principal.FECHA_PEDIDO, 
+            CLNT_Pedidos_Principal.CONTRATO_ID, 
+            CLNT_Ficha_Principal.CODIGO_CLIENTE, 
+            CLNT_Ficha_Principal.NOMBRE_CLIENTE, 
+            CLNT_Pedidos_Detalle.PRODUCT_ID, 
+            CLNT_Pedidos_Detalle.PRODUCT_NAME, 
+            CLNT_Pedidos_Detalle.QUANTITY, 
+            CLNT_Pedidos_Detalle.Despachados, 
+            CLNT_Pedidos_Principal.WARE_CODE, 
+            CLNT_Pedidos_Principal.CONFIRMED, 
+            CLNT_Pedidos_Principal.HORA_LLEGADA, 
+            CLNT_Pedidos_Principal.MEMO, 
+            CLNT_Pedidos_Detalle.UNIQUE_ID 
+        FROM 
+            CLNT_Ficha_Principal CLNT_Ficha_Principal, 
+            CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, 
+            CLNT_Pedidos_Principal CLNT_Pedidos_Principal 
+        WHERE 
+            CLNT_Pedidos_Principal.CONTRATO_ID_CORP = CLNT_Pedidos_Detalle.CONTRATO_ID_CORP AND 
+            CLNT_Ficha_Principal.CODIGO_CLIENTE = CLNT_Pedidos_Principal.CLIENT_ID AND 
+            CLNT_Pedidos_Detalle.Despachados=0 AND 
+            ((CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND 
+            (CLNT_Pedidos_Detalle.TIPO_DOCUMENTO='PE') AND 
             (CLNT_Pedidos_Detalle.PRODUCT_ID<>'MANTEN')) ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID DESC
         """
         )
@@ -1188,13 +1241,17 @@ def api_actualizar_mis_reservas_etiquetado():
                     fecha_pedido = datetime.strptime(i['FECHA_PEDIDO'][:10], '%d/%m/%Y').date()
                     hora_llegada = datetime.strptime(i['HORA_LLEGADA'], '%H:%M:%S').time()
 
-                    s_n_c = i['SEC_NAME_CLIENTE']
+                    # s_n_c = i['SEC_NAME_CLIENTE']
+                    s_n_c = i['MEMO']
+                    
                     if s_n_c.startswith('P'):
                         sec_name_cliente = 'PUBLICO'
                     elif s_n_c.startswith('R'):
                         sec_name_cliente = 'RESERVA'
                     else:
-                        sec_name_cliente = i['SEC_NAME_CLIENTE']
+                        # sec_name_cliente = i['SEC_NAME_CLIENTE']
+                        sec_name_cliente = i['MEMO']
+                        
 
                     unique_id = i['UNIQUE_ID']
 
