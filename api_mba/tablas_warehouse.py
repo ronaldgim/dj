@@ -31,12 +31,17 @@ from datos.models import Reservas
 # models de etiqutados
 from etiquetado.models import EstadoPicking
 
+from users.models import User
+
+import requests
+
 # Utils
 from utils.warehouse_data import (
     get_cliente, 
     get_numero_factura_by_numero_pedido, 
     email_cliente_by_codigo,
-    get_vendedor_email_by_contrato
+    get_vendedor_email_by_contrato,
+    cartones_volumen_factura
 )
 
 
@@ -1280,84 +1285,96 @@ def api_actualizar_mis_reservas_etiquetado():
         return False
 
 
-
 ### 15 NOTIFICACIONES DE EMAIL Y WHATSAAP
-def notificaciones_email_whastapp():
-    
+def notificaciones_email_whatsapp():
     hoy = datetime.now()
-    un_mes = hoy - timedelta(days=10)
+    rango_dias = hoy - timedelta(days=10)  # antes se llamaba "un_mes"
     ciudades_list = ['QUITO', 'SANGOLQUI']
-    
-    estados_picking = EstadoPicking.objects.filter(
-        Q(estado='FINALIZADO') &
-        (Q(tipo_cliente='DISTR') | Q(tipo_cliente='CONSU')) &
-        Q(fecha_creado__gte=un_mes) &
-        Q(facturado=False) &
-        Q(whatsapp=False)
+
+    pedidos = EstadoPicking.objects.filter(
+        Q(estado='FINALIZADO'),
+        Q(tipo_cliente__in=['DISTR', 'CONSU']),
+        Q(fecha_creado__gte=rango_dias),
+        facturado=False,
+        whatsapp=False
     ).order_by('n_pedido')
-    
-    print(len(estados_picking))
 
-    lista_de_notificacion = []
-    for i in estados_picking:
-        
-        cliente = get_cliente('codigo_cliente', i.codigo_cliente)
-        ciudad_cliente = cliente.get('ciudad_principal', None)
-        whatsapp_number = cliente.get('wp', None)
-        
-        n_pedido = i.n_pedido.split('.')[0]
-        n_factura = get_numero_factura_by_numero_pedido(n_pedido)
-        
-        # vendedor_mail = get_vendedor_email_by_contrato(n_pedido)
-        # emails = email_cliente_by_codigo(i.codigo_cliente)
-        emails_list = email_cliente_by_codigo(i.codigo_cliente) + get_vendedor_email_by_contrato(n_pedido)
-        
-#         if ciudad_cliente is not None and ciudad_cliente in ciudades_list and n_factura is not None:
-#             lista_de_notificacion.append(i)
-            
-            
-# #             # Mensaje email
-# #             mensaje = f"""
-# # Señores {picking_estado.cliente} \n
-# # Su pedido con factura # {n_factura}, se encuentra listo para ser retirado en:
-# # Bodega: {b}. \n
-# # {vol_car} \n
-# # Nuestro horario de atención es: Lunes a Viernes de 8:00 am a 13:30 pm y de 14:00 pm a 16:30 pm.
-# # Estamos para servirle.\n
-# # GIMPROMED Cia. Ltda.\n
-# # ****Esta notificación ha sido enviada automáticamente - No responder****
-# # """
+    for pedido in pedidos:
+        try:
+            cliente = get_cliente('codigo_cliente', pedido.codigo_cliente)
+            ciudad_cliente = cliente.get('ciudad_principal')
+            whatsapp_number = cliente.get('wp')
 
-# #             # Send mail
-# #             send_mail(
-# #                 subject='Notificación Pedido FACTURADO',
-# #                 message= mensaje,
-# #                 from_email=settings.EMAIL_HOST_USER,
-# #                 recipient_list= emails,
-# #                 fail_silently=True,
-# #             )
-            
-#             # whatsapp 
-#             if whatsapp_number is not None and whatsapp_number.startswith('+593') and len(whatsapp_number) == 13:
-#                 print(i.n_pedido, 'W ok', whatsapp_number)
-                
-#                 # # Send whatsapp
-#                 # whatsapp_json = {
-#                 #     'senores': i.cliente,
-#                 #     'recipient': whatsapp_number,
-#                 #     'factura':n_factura,
-#                 #     'bodega':i.bodega_str,
-#                 #     #'n_cartones':str(car)
-#                 # }
-                
-#                 # # response = requests.post(
-#                 #     url='http://gimpromed.com/app/api/send-whatsapp',
-#                 #     data= whatsapp_json
-#                 # )
-#             else:
-#                 # i.wh_fail_number = True
-#                 print(i.n_pedido, 'W fail', whatsapp_number)
-            
+            n_pedido = pedido.n_pedido.split('.')[0]
+            n_factura = get_numero_factura_by_numero_pedido(n_pedido)
+
+            email_vendedor = get_vendedor_email_by_contrato(n_pedido) or []
+            if isinstance(email_vendedor, str):
+                email_vendedor = [email_vendedor]
+
+            emails_list = (email_cliente_by_codigo(pedido.codigo_cliente) or []) + email_vendedor
+
+            vol_cart = cartones_volumen_factura(n_pedido)
+            volumen_pedido = vol_cart.get('volumen', 0)
+            cartones_pedido = vol_cart.get('cartones', 0)
+
+            if ciudad_cliente in ciudades_list and n_factura:
+                email_msg = f"""
+Señores {pedido.cliente} \n
+Su pedido con factura # {n_factura}, se encuentra listo para ser retirado en:
+Bodega: {pedido.bodega_str}. \n
+Volumen: {volumen_pedido} m3 / Cartones: {cartones_pedido}\n
+Nuestro horario de atención es: Lunes a Viernes de 8:00 am a 13:30 pm y de 14:00 pm a 16:30 pm.
+Estamos para servirle.\n
+GIMPROMED Cia. Ltda.\n
+****Esta notificación ha sido enviada automáticamente - No responder****
+"""
+
+                # Envío de email
+                correo_enviado = send_mail(
+                    subject='Notificación Pedido FACTURADO',
+                    message=email_msg,
+                    from_email=settings.EMAIL_HOST_USER,
+                    recipient_list= ['egarces@gimpromed.com'], #emails_list,
+                    fail_silently= True  #False,  # Mejor lanzar error
+                )
+
+                if correo_enviado == 1:
+                    pedido.facturado = True
+                    if email_vendedor:
+                        user = User.objects.filter(email=email_vendedor[0]).first()
+                        if user:
+                            pedido.facturado_por = user
+
+                # Envío de whatsapp
+                if whatsapp_number and whatsapp_number.startswith('+593') and len(whatsapp_number) == 13:
+                    try:
+                        response = requests.post(
+                            url='http://gimpromed.com/app/api/send-whatsapp',
+                            data={
+                                'senores': pedido.cliente,
+                                'recipient': '+593999922603', #whatsapp_number,
+                                'factura': n_factura,
+                                'bodega': pedido.bodega_str,
+                            },
+                            timeout=10
+                        )
+                        if response.ok and response.json().get('success'):
+                            pedido.whatsapp = True
+                    except requests.RequestException as e:
+                        print(f"Error enviando WhatsApp: {e}")
+                        pedido.wh_fail_number = True
+                else:
+                    pedido.wh_fail_number = True
+
+                pedido.hora_facturado = datetime.now()
+                # pedido.save()
+
+        except Exception as e:
+            # print(f"Error procesando pedido {pedido.n_pedido}: {e}")
+            pedido.noti_errors = str(e)
+            # pedido.save()
+
 
 
 
