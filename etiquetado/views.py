@@ -1441,7 +1441,6 @@ def notifications_dashboard_data(request):
     email = pedidos_rango_dias.filter(facturado=True).count()
     wh    = pedidos_rango_dias.filter(whatsapp=True).count()
 
-
     pedidos = []
     for i in pedidos_rango_dias:
         data_pedido = {
