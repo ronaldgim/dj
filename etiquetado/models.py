@@ -126,6 +126,7 @@ class EstadoPicking(models.Model):
     foto_picking   = models.ImageField(upload_to='picking', null=True, blank=True)
     foto_picking_2 = models.ImageField(upload_to='picking', null=True, blank=True)
     noti_errors    = models.TextField(blank=True)
+    noti_detalles  = models.TextField(blank=True)
     
     def __str__(self):
         return self.n_pedido

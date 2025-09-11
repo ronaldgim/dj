@@ -1402,11 +1402,12 @@ def notificaciones_email_whatsapp():
 
             emails_list = (email_cliente_by_codigo(pedido.codigo_cliente) or []) + email_vendedor
 
-            vol_cart = cartones_volumen_factura(n_pedido)
-            volumen_pedido = vol_cart.get('volumen', 0)
-            cartones_pedido = vol_cart.get('cartones', 0)
-
             if ciudad_cliente in ciudades_list and n_factura:
+                
+                vol_cart = cartones_volumen_factura(n_pedido)
+                volumen_pedido = vol_cart.get('volumen', 0)
+                cartones_pedido = vol_cart.get('cartones', 0)
+            
                 email_msg = f"""
 Señores {pedido.cliente} \n
 Su pedido con factura # {n_factura}, se encuentra listo para ser retirado en:
@@ -1417,7 +1418,6 @@ Estamos para servirle.\n
 GIMPROMED Cia. Ltda.\n
 ****Esta notificación ha sido enviada automáticamente - No responder****
 """
-
                 # Envío de email
                 correo_enviado = send_mail(
                     subject='Notificación Pedido FACTURADO',
@@ -1444,25 +1444,30 @@ GIMPROMED Cia. Ltda.\n
                                 'recipient': '+593999922603', #whatsapp_number,
                                 'factura': n_factura,
                                 'bodega': pedido.bodega_str,
+                                'n_cartones':str(cartones_pedido)
                             },
-                            timeout=10
+                            timeout=5
                         )
                         if response.ok and response.json().get('success'):
                             pedido.whatsapp = True
                     except requests.RequestException as e:
-                        print(f"Error enviando WhatsApp: {e}")
+                        # print(f"Error enviando WhatsApp: {e}")
                         pedido.wh_fail_number = True
+                        wh_error = f'Wh Error: {str(e)}'
                 else:
                     pedido.wh_fail_number = True
 
+                emails_list_str = ", ".join(str(x) for x in emails_list)
                 pedido.hora_facturado = datetime.now()
+                pedido.noti_detalles = f'Emails: {emails_list_str} - Wh: {whatsapp_number}'
+                pedido.noti_errors = wh_error
                 # pedido.save()
-
+                print(emails_list_str, '-', whatsapp_number)
+                
         except Exception as e:
             # print(f"Error procesando pedido {pedido.n_pedido}: {e}")
             pedido.noti_errors = str(e)
             # pedido.save()
-
 
 
 
