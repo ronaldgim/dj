@@ -1413,15 +1413,15 @@ def notificaciones_email_whatsapp():
                     cartones_pedido = vol_cart.get('cartones', 1)
                 
                     email_msg = f"""
-    Señores {pedido.cliente} \n
-    Su pedido con factura # {n_factura}, se encuentra listo para ser retirado en:
-    Bodega: {pedido.bodega_str}. \n
-    Volumen: {volumen_pedido} m3 / Cartones: {cartones_pedido}\n
-    Nuestro horario de atención es: Lunes a Viernes de 8:00 am a 13:30 pm y de 14:00 pm a 16:30 pm.
-    Estamos para servirle.\n
-    GIMPROMED Cia. Ltda.\n
-    ****Esta notificación ha sido enviada automáticamente - No responder****
-    """
+Señores {pedido.cliente} \n
+Su pedido con factura # {n_factura}, se encuentra listo para ser retirado en:
+Bodega: {pedido.bodega_str}. \n
+Volumen: {volumen_pedido} m3 / Cartones: {cartones_pedido}\n
+Nuestro horario de atención es: Lunes a Viernes de 8:00 am a 13:30 pm y de 14:00 pm a 16:30 pm.
+Estamos para servirle.\n
+GIMPROMED Cia. Ltda.\n
+****Esta notificación ha sido enviada automáticamente - No responder****
+"""
                     # Envío de email
                     correo_enviado = send_mail(
                         subject='Notificación Pedido FACTURADO',
