@@ -1459,14 +1459,14 @@ GIMPROMED Cia. Ltda.\n
                         except requests.RequestException as e:
                             # print(f"Error enviando WhatsApp: {e}")
                             pedido.wh_fail_number = True
-                            wh_error = f'Wh Error: {str(e)}'
+                            #wh_error = f'Wh Error: {str(e)}'
                     else:
                         pedido.wh_fail_number = True
 
                     emails_list_str = ", ".join(str(x) for x in emails_list)
                     pedido.hora_facturado = datetime.now()
                     pedido.noti_detalles = f'Emails: {emails_list_str} - Wh: {whatsapp_number}'
-                    pedido.noti_errors = wh_error
+                    #pedido.noti_errors = wh_error
                     pedido.n_factura = n_factura
                     pedido.save()
                     
