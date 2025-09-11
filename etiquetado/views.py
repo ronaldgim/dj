@@ -1449,7 +1449,6 @@ def notifications_dashboard_data(request):
             'pedido':i.n_pedido.split('.')[0],
             'factura':i.n_factura,
             'vendedor':i.facturado_por_str,
-            # 'fecha':i.hora_facturado,
             'fecha':i.fecha_notificado,
             'email': '<i class="bi bi-check-circle-fill" style="color:green"></i>' if i.facturado else '<i class="bi bi-x-circle-fill" style="color:red"></i>',
             'wh':'<i class="bi bi-check-circle-fill" style="color:green"></i>' if i.whatsapp else '<i class="bi bi-x-circle-fill" style="color:red"></i>',
@@ -1462,9 +1461,7 @@ def notifications_dashboard_data(request):
     return JsonResponse({
         'email':email,
         'wh':wh,
-        'pedidos':pedidos,  #list(pedidos_rango_dias.values()),
-        # 'desde':rango_dias.strftime('%Y-%m-%d'),
-        # 'hasta':hoy.strftime('%Y-%m-%d')
+        'pedidos':pedidos,
     })
 
 
