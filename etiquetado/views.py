@@ -1424,11 +1424,12 @@ GIMPROMED Cia. Ltda.\n
         })
 
 
-def notifications_dashboard_data(request):
+# def notifications_dashboard_data(request):
+def notifications_dashboard_data():
 
     hoy = datetime.now()
     rango_dias = hoy - timedelta(days=10)
-    
+    print(hoy, rango_dias)
     pedidos_rango_dias = EstadoPicking.objects.filter(
         # Q(estado='FINALIZADO'),
         # Q(tipo_cliente__in=['DISTR', 'CONSU']),
@@ -1439,11 +1440,14 @@ def notifications_dashboard_data(request):
 
     email = pedidos_rango_dias.filter(facturado=True).count()
     wh    = pedidos_rango_dias.filter(whatsapp=True).count()
-
+    print(pedidos_rango_dias, len(pedidos_rango_dias))
+    print(email, wh)
     return JsonResponse({
         'email':email,
         'wh':wh,
-        'pedidos':pedidos_rango_dias
+        'pedidos':list(pedidos_rango_dias.values()),
+        'desde':rango_dias,
+        'hasta':hoy
     })
 
 
@@ -1455,7 +1459,7 @@ def picking(request):
     # from api_mba.tablas_warehouse import notificaciones_email_whatsapp
     # notificaciones_email_whatsapp()
     
-    # notifications_dashboard_data()
+    notifications_dashboard_data()
     
     hoy = datetime.now()
     un_mes = hoy - timedelta(days=10)
@@ -1483,7 +1487,9 @@ def picking(request):
     reservas = de_dataframe_a_template(estados)
     
     context = {
-        'reservas':reservas
+        'reservas':reservas,
+        'desde':un_mes,
+        'hasta':hoy
     }
     return render(request, 'etiquetado/picking_estado/picking.html', context)
 
