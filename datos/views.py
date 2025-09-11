@@ -4,6 +4,7 @@ from django.db.models import Q
 
 # Shortcuts
 from django.shortcuts import render, redirect
+from django.views.decorators.csrf import csrf_exempt
 
 # Messages
 from django.contrib import messages
@@ -77,7 +78,8 @@ from api_mba.tablas_warehouse import (
     api_actualizar_reservas_lotes_2_warehouse,
     
     odbc_actualizar_stock_lote,
-    api_actualizar_mis_reservas_etiquetado
+    api_actualizar_mis_reservas_etiquetado,
+    notificaciones_email_whatsapp
     )
 
 
@@ -509,7 +511,6 @@ def actualizar_datos_etiquetado_fun():
 
 
 ## Carga la tabla de stock lote automaticamente
-from django.views.decorators.csrf import csrf_exempt
 @csrf_exempt
 def stock_lote(request):
     
@@ -590,6 +591,9 @@ def stock_lote(request):
             # 16 Tabla datos_errorlotereporte, datos_errorlotedetalle
             actualizar_data_error_lote_v2()
             
+            # 17 NOTIFICACIONES DE EMAIL Y WHATSAAP
+            notificaciones_email_whatsapp()
+            
         elif table_name:
             
             if table_name == "clientes":
@@ -623,7 +627,9 @@ def stock_lote(request):
             elif table_name == 'error_lote':
                 actualizar_data_error_lote()
             elif table_name == 'error_lote_v2':
-                actualizar_data_error_lote_v2()
+                actualizar_data_error_lote_v2()    
+            elif table_name == 'notificaciones':
+                notificaciones_email_whatsapp()
 
     #return render(request, 'datos/stock_lote.html', {})
     return render(request, 'datos/stock_lote.html', context)
