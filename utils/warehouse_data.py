@@ -180,16 +180,16 @@ def cartones_volumen_factura(contrato: str) -> dict[str, float | int]:
 
     # Calcular volumen y cartones (manejar nulos con fillna)
     df['unidad_empaque'] = df['unidad_empaque'].fillna(1)
-    df['vol_m3'] = df['vol_m3'].fillna(0)
+    df['vol_m3'] = df['vol_m3'].fillna(0.0025)
 
     df['cartones'] = df['quantity'] / df['unidad_empaque']
-    df['volumen'] = df['quantity'] * df['vol_m3']
+    df['volumen'] = df['cartones'] * df['vol_m3']
     df = df.replace(np.inf, 0)
     df = df.replace(-np.inf, 0)
     
-    vol = round(df['volumen'].sum(), 1)
+    volumen = round(df['volumen'].sum(), 1)
     car = math.ceil(df['cartones'].sum())
-    
+    vol = 0.1 if volumen < 0.1 else volumen
     return {
         'volumen': vol,
         'cartones': car,

@@ -1323,6 +1323,12 @@ def correo_facturado(request):
     picking_estado.facturado_por_id = User.objects.get(id=request.user.id).id
     picking_estado.hora_facturado = datetime.now()
     
+    if picking_estado.whatsapp or picking_estado.facturado:
+        return JsonResponse({
+            'tipo':'succes',
+            'msg':f'El pedido # {picking_estado.n_pedido} de {picking_estado.cliente} ya fue notificado !!!'
+        })
+    
     # Volumen Carton    
     vol, car = n_factura_volumen_cartones(n_pedido)
     if vol > 0 and car > 0:
@@ -1389,7 +1395,8 @@ GIMPROMED Cia. Ltda.\n
         
         response = requests.post(
             url='http://gimpromed.com/app/api/send-whatsapp',
-            data= whatsapp_json
+            data= whatsapp_json,
+            timeout=5
         )
 
         # si se envia whatsapp set value
