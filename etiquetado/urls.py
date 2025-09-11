@@ -115,6 +115,13 @@ urlpatterns = [
         name  = 'picking'
     ),
     
+    # notifications_dashboard_data
+        path(
+        route = 'notifications_dashboard_data',
+        view  = views.notifications_dashboard_data,
+        name  = 'notifications_dashboard_data'
+    ),
+        
     path(
         route = 'picking/estado',
         view  = views.picking_estado,
