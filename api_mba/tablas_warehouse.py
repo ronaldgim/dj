@@ -1391,7 +1391,7 @@ def notificaciones_email_whatsapp():
         ).order_by('n_pedido')
 
         for pedido in pedidos:
-            time.sleep(0.3)
+            time.sleep(0.5)
             try:
                 cliente = get_cliente('codigo_cliente', pedido.codigo_cliente)
                 ciudad_cliente = cliente.get('ciudad_principal')
