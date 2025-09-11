@@ -140,6 +140,19 @@ class EstadoPicking(models.Model):
             return 'Cerezos'
         else:
             return ''
+    
+    @property
+    def facturado_por_str(self):
+        if self.facturado_por:
+            return f'{self.facturado_por.first_name} {self.facturado_por.last_name}'
+        return ''
+    
+    @property
+    def fecha_notificado(self):
+        if self.hora_facturado:
+            return self.hora_facturado.strftime('%Y-%m-%d %H:%M')
+        else:
+            return '-'
 
 
 class RegistoGuia(models.Model):

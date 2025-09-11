@@ -1424,30 +1424,44 @@ GIMPROMED Cia. Ltda.\n
         })
 
 
-# def notifications_dashboard_data(request):
-def notifications_dashboard_data():
+def notifications_dashboard_data(request):
+# def notifications_dashboard_data():
 
     hoy = datetime.now()
     rango_dias = hoy - timedelta(days=10)
-    print(hoy, rango_dias)
+
     pedidos_rango_dias = EstadoPicking.objects.filter(
         # Q(estado='FINALIZADO'),
         # Q(tipo_cliente__in=['DISTR', 'CONSU']),
         # Q(fecha_creado__range=[lunes, viernes]),
         Q(fecha_creado__gte=rango_dias),
         (Q(facturado=True) | Q(whatsapp=True))
-    ).order_by('n_pedido')
+    ).order_by('-hora_facturado')  #.order_by('-n_pedido')
 
     email = pedidos_rango_dias.filter(facturado=True).count()
     wh    = pedidos_rango_dias.filter(whatsapp=True).count()
-    print(pedidos_rango_dias, len(pedidos_rango_dias))
-    print(email, wh)
+
+
+    pedidos = []
+    for i in pedidos_rango_dias:
+        data_pedido = {
+            'cliente':i.cliente,
+            'pedido':i.n_pedido.split('.')[0],
+            'factura':i.n_factura,
+            'vendedor':i.facturado_por_str,
+            'fecha':i.fecha_notificado,
+            'email': '<i class="bi bi-check-circle-fill" style="color:green"></i>' if i.facturado else '<i class="bi bi-x-circle-fill" style="color:red"></i>',
+            'wh':'<i class="bi bi-check-circle-fill" style="color:green"></i>' if i.whatsapp else '<i class="bi bi-x-circle-fill" style="color:red"></i>',
+            'wh_fail': '<i class="bi bi-whatsapp" style="color:red"></i>' if i.wh_fail_number else '',
+            'detalle':i.noti_detalles if i.noti_detalles else '-',
+            'errores':i.noti_errors if i.noti_errors else '-'
+        }
+        pedidos.append(data_pedido)
+    
     return JsonResponse({
         'email':email,
         'wh':wh,
-        'pedidos':list(pedidos_rango_dias.values()),
-        'desde':rango_dias,
-        'hasta':hoy
+        'pedidos':pedidos,
     })
 
 
@@ -1459,7 +1473,7 @@ def picking(request):
     # from api_mba.tablas_warehouse import notificaciones_email_whatsapp
     # notificaciones_email_whatsapp()
     
-    notifications_dashboard_data()
+    # notifications_dashboard_data()
     
     hoy = datetime.now()
     un_mes = hoy - timedelta(days=10)

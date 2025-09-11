@@ -52,7 +52,7 @@
     }
 </style>
 
-<h5 class="m-4 text-center fw-bold">LISTADO DE PICKING</h5>
+<h5 class="m-4 text-center fw-bold">LISTADO DE PICKING DESDE: {{desde|date:'Y-m-d'}} - HASTA: {{hasta|date:'Y-m-d'}}</h5>
 
 {% if messages %}
     {% for message in messages %}
@@ -70,21 +70,24 @@
 
 <div id="msg"></div>
 
-<button class="btn btn-primary mb-2" name="actualizar">
+<button class="btn btn-primary mb-2" onclick="window.location.reload()">
     <i class="bi bi-arrow-clockwise"></i> Actualizar
 </button>
 
+<button onclick="notificacionesData()" type="button" class="btn btn-secondary mb-2" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+    Notificaciones
+</button>
 
 <div class="col-4">
     <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
 </div>
 
-<div class="text-center" id="spinner">
+<!--div class="text-center" id="spinner">
     <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Loading...</span>
     </div><br>
     <span class="text-center text-primary">Actualizando... </span>
-</div>
+</div-->
 
 <div class="growl-notice-succes"></div>
 <div class="growl-notice-error"></div>
@@ -210,6 +213,30 @@
     </div>
 </div>
 
+
+<!-- Modal -->
+<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title fw-bold" id="staticBackdropLabel">Notificaciones de email y whatsapp, desde {{desde|date:'Y-m-d'}} - hasta: {{hasta|date:'Y-m-d'}}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <label class="fw-bold">Emails enviados:</label> <span id="email_n"></span> <br>
+            <label class="fw-bold">Whatsapp enviados:</label> <span id="wh_n"></span>
+            
+            <div id="noti_table"><div>
+        </div>
+        <!--div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary">Understood</button>
+        </div-->
+        </div>
+    </div>
+</div>
+
+
 <!-- Ajax Facturado -->
 <script>
     //$("facturado").click(function() {
@@ -255,6 +282,73 @@
     })
 </script>
 
+<!-- Notificaciones -->
+<script>
+    async function notificacionesData() {
+        try{
+            const response = await fetch('/etiquetado/notifications_dashboard_data');
+            const data = await response.json(); // Convertir a JSON
+            
+            document.getElementById('email_n').textContent  = data.email;
+            document.getElementById('wh_n').textContent  = data.wh;
+
+            const table = data.pedidos || [];
+            console.log(table)
+            if (table.length > 0) {
+                const columnas = Object.keys(table[0]);
+                
+                const tablaHTML = `
+                    <div class="table-responsive">
+                        <table class="table" style="font-size: small;">
+                            <thead>
+                                <!--tr>${columnas.map(col => `<th>${col}</th>`).join('')}</tr-->
+                                <tr>
+                                    <th>CLIENTE</th>
+                                    <th>PEDIDO</th>
+                                    <th>FACTURA</th>
+                                    <th>FACTURADO POR</th>
+                                    <th>ENVIO DE NOTIFICACIÓN</th>
+                                    <th>EMAIL</th>
+                                    <th>WHATSAPP</th>
+                                    <th>DETALLES</th>
+                                    <th>ERRORES</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${table.map(fila => `
+                                    <tr>
+                                        <td>${fila.cliente}</td>
+                                        <td>${fila.pedido}</td>
+                                        <td>${fila.factura}</td>
+                                        <td>${fila.vendedor}</td>
+                                        <td>${fila.fecha}</td>
+                                        <td>${fila.email}</td>
+                                        <td>${fila.wh} ${fila.wh_fail}</td>
+                                        <td>${fila.detalle}</td>
+                                        <td>${fila.errores}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                
+                document.getElementById('noti_table').innerHTML = tablaHTML;
+            } else {
+                document.getElementById('noti_table').innerHTML = `
+                    <div class="no-data">
+                        <p>📭 No hay pedidos para mostrar</p>
+                    </div>
+                `;
+            }
+
+        } catch (error){
+            console.error(error)
+        }
+        
+    }
+</script>
+
 <!-- Buscador texto -->
 <script>
     // Buscador
@@ -268,37 +362,6 @@
         });
     });
 </script>
-
-
-<script>
-    var sp = document.getElementById("spinner").style.display = "none";
-
-    $("button[name='actualizar']").click(function () {
-        var sp = document.getElementById("spinner").style.display = "block";
-        $.ajax({
-            type: "POST",
-            url:  "{% url 'actualizar_facturas_ajax' %}",
-            data: {'csrfmiddlewaretoken': '{{ csrf_token }}'},
-
-            success: function(response) {
-                var sp = document.getElementById("spinner").style.display = "none";
-                $('#msg').html(`<div class="text-center alert alert-${response.tipo}" role="alert">${response.msg}</div>`);
-                
-                if (response.tipo === 'success') {
-                    setTimeout(function () {
-                        window.location.reload();
-                    }, 3000)
-                }
-
-            },
-
-            error: function() {
-                $('#msg').html('<div class="text-center alert alert-danger" role="alert"> Error !!! </div>')
-            }
-        })
-    })
-</script>
-
 
 <script>
     // Facturados
@@ -328,7 +391,6 @@
     });
 
 </script>
-
 
 <script>
     $('.filter').change(function(){
@@ -361,7 +423,6 @@
         });
     }
 </script>
-
 
 <script>
     $('.filter-est').change(function(){
