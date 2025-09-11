@@ -1391,7 +1391,7 @@ def notificaciones_email_whatsapp():
         ).order_by('n_pedido')
 
         for pedido in pedidos:
-            time.sleep(0.5)
+            # time.sleep(0.5)
             try:
                 cliente = get_cliente('codigo_cliente', pedido.codigo_cliente)
                 ciudad_cliente = cliente.get('ciudad_principal')
@@ -1438,7 +1438,7 @@ GIMPROMED Cia. Ltda.\n
                             user = User.objects.filter(email=email_vendedor[0]).first()
                             if user:
                                 pedido.facturado_por = user
-
+                    time.sleep(0.5)
                     # Envío de whatsapp
                     if whatsapp_number and whatsapp_number.startswith('+593') and len(whatsapp_number) == 13:
                         try:
