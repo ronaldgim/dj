@@ -1391,11 +1391,11 @@ def notificaciones_email_whatsapp():
         ).order_by('n_pedido')
 
         for pedido in pedidos:
-            time.sleep(0.3)
+            # time.sleep(0.5)
             try:
                 cliente = get_cliente('codigo_cliente', pedido.codigo_cliente)
                 ciudad_cliente = cliente.get('ciudad_principal')
-                whatsapp_number = cliente.get('wp')
+                whatsapp_number = cliente.get('wp').strip()
 
                 n_pedido = pedido.n_pedido.split('.')[0]
                 n_factura = get_numero_factura_by_numero_pedido(n_pedido)
@@ -1438,7 +1438,7 @@ GIMPROMED Cia. Ltda.\n
                             user = User.objects.filter(email=email_vendedor[0]).first()
                             if user:
                                 pedido.facturado_por = user
-
+                    time.sleep(0.5)
                     # Envío de whatsapp
                     if whatsapp_number and whatsapp_number.startswith('+593') and len(whatsapp_number) == 13:
                         try:
@@ -1454,12 +1454,14 @@ GIMPROMED Cia. Ltda.\n
                                 },
                                 timeout=5
                             )
-                            if response.ok and response.json().get('success'):
-                                pedido.whatsapp = True
+                            if response.status_code == 200:
+                                if response.json().get('success', False):
+                                    pedido.whatsapp = True
                         except requests.RequestException as e:
                             # print(f"Error enviando WhatsApp: {e}")
                             pedido.wh_fail_number = True
                             #wh_error = f'Wh Error: {str(e)}'
+                            pedido.noti_errors = f'Wh Error: {str(e)}'
                     else:
                         pedido.wh_fail_number = True
 
