@@ -13,6 +13,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 
 # datetime
+import time
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 
@@ -1390,6 +1391,7 @@ def notificaciones_email_whatsapp():
         ).order_by('n_pedido')
 
         for pedido in pedidos:
+            time.sleep(0.3)
             try:
                 cliente = get_cliente('codigo_cliente', pedido.codigo_cliente)
                 ciudad_cliente = cliente.get('ciudad_principal')
@@ -1425,7 +1427,8 @@ def notificaciones_email_whatsapp():
                         subject='Notificación Pedido FACTURADO',
                         message=email_msg,
                         from_email=settings.EMAIL_HOST_USER,
-                        recipient_list= ['egarces@gimpromed.com'], #emails_list,
+                        # recipient_list= ['egarces@gimpromed.com'], #emails_list,
+                        recipient_list= emails_list,
                         fail_silently= True  #False,  # Mejor lanzar error
                     )
 
@@ -1443,7 +1446,8 @@ def notificaciones_email_whatsapp():
                                 url='http://gimpromed.com/app/api/send-whatsapp',
                                 data={
                                     'senores': pedido.cliente,
-                                    'recipient': '+593999922603', #whatsapp_number,
+                                    # 'recipient': '+593999922603', #whatsapp_number,
+                                    'recipient': whatsapp_number,
                                     'factura': n_factura,
                                     'bodega': pedido.bodega_str,
                                     'n_cartones':str(cartones_pedido)
@@ -1464,13 +1468,12 @@ def notificaciones_email_whatsapp():
                     pedido.noti_detalles = f'Emails: {emails_list_str} - Wh: {whatsapp_number}'
                     pedido.noti_errors = wh_error
                     pedido.n_factura = n_factura
-                    # pedido.save()
-                    print(emails_list_str, '-', whatsapp_number)
+                    pedido.save()
                     
             except Exception as e:
                 # print(f"Error procesando pedido {pedido.n_pedido}: {e}")
                 pedido.noti_errors = str(e)
-                # pedido.save()
+                pedido.save()
         admin_warehouse_timestamp(tabla='notificaciones', actualizar_datetime=True, mensaje='Enviados correctamente')
     except Exception as e:
         admin_warehouse_timestamp(tabla='notificaciones', actualizar_datetime=False, mensaje=f'Error exception: {e}')
