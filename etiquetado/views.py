@@ -1423,31 +1423,28 @@ GIMPROMED Cia. Ltda.\n
             'msg':'Error intente nuevamente !!!'
         })
 
-def notifications_dashboard_data():
-    
-    from django.utils import timezone
-    
-    hoy = timezone.now().date()
-    lunes = hoy - timedelta(days=hoy.weekday())
-    viernes = lunes + timedelta(days=4)
-    
-    pedidos_esta_semana = EstadoPicking.objects.filter(
-        Q(estado='FINALIZADO'),
-        Q(tipo_cliente__in=['DISTR', 'CONSU']),
-        Q(fecha_creado__range=[lunes, viernes]),
-        (Q(facturado=True) | Q(whatsapp=True))
-    ).order_by('n_pedido')
-    
-    pedidos_anteriores = EstadoPicking.objects.filter(
-        Q(estado='FINALIZADO'),
-        Q(tipo_cliente__in=['DISTR', 'CONSU']),
-        Q(fecha_creado__range=[lunes, viernes]),
-        (Q(facturado=True) | Q(whatsapp=True))
-    ).order_by('n_pedido')
-    
 
-def notificaciones_dashboard(request):
-    return()
+def notifications_dashboard_data(request):
+
+    hoy = datetime.now()
+    rango_dias = hoy - timedelta(days=10)
+    
+    pedidos_rango_dias = EstadoPicking.objects.filter(
+        # Q(estado='FINALIZADO'),
+        # Q(tipo_cliente__in=['DISTR', 'CONSU']),
+        # Q(fecha_creado__range=[lunes, viernes]),
+        Q(fecha_creado__gte=rango_dias),
+        (Q(facturado=True) | Q(whatsapp=True))
+    ).order_by('n_pedido')
+
+    email = pedidos_rango_dias.filter(facturado=True).count()
+    wh    = pedidos_rango_dias.filter(whatsapp=True).count()
+
+    return JsonResponse({
+        'email':email,
+        'wh':wh,
+        'pedidos':pedidos_rango_dias
+    })
 
 
 # PICKING AJAX
@@ -1458,7 +1455,7 @@ def picking(request):
     # from api_mba.tablas_warehouse import notificaciones_email_whatsapp
     # notificaciones_email_whatsapp()
     
-    notifications_dashboard_data()
+    # notifications_dashboard_data()
     
     hoy = datetime.now()
     un_mes = hoy - timedelta(days=10)
