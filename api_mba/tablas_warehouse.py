@@ -1405,8 +1405,8 @@ def notificaciones_email_whatsapp():
             if ciudad_cliente in ciudades_list and n_factura:
                 
                 vol_cart = cartones_volumen_factura(n_pedido)
-                volumen_pedido = vol_cart.get('volumen', 0)
-                cartones_pedido = vol_cart.get('cartones', 0)
+                volumen_pedido = vol_cart.get('volumen', 0.0)
+                cartones_pedido = vol_cart.get('cartones', 1)
             
                 email_msg = f"""
 Señores {pedido.cliente} \n
@@ -1461,6 +1461,7 @@ GIMPROMED Cia. Ltda.\n
                 pedido.hora_facturado = datetime.now()
                 pedido.noti_detalles = f'Emails: {emails_list_str} - Wh: {whatsapp_number}'
                 pedido.noti_errors = wh_error
+                pedido.n_factura = n_factura
                 # pedido.save()
                 print(emails_list_str, '-', whatsapp_number)
                 

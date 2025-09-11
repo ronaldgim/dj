@@ -1409,6 +1409,7 @@ GIMPROMED Cia. Ltda.\n
     elif not n_whatsapp or not n_whatsapp.startswith('+593'):
         picking_estado.wh_fail_number = True
     
+    picking_estado.n_factura = n_factura
     picking_estado.save()
     
     if picking_estado.facturado == True or picking_estado.whatsapp == True:
@@ -1423,6 +1424,33 @@ GIMPROMED Cia. Ltda.\n
         })
 
 
+# def notifications_dashboard_data(request):
+def notifications_dashboard_data():
+
+    hoy = datetime.now()
+    rango_dias = hoy - timedelta(days=10)
+    print(hoy, rango_dias)
+    pedidos_rango_dias = EstadoPicking.objects.filter(
+        # Q(estado='FINALIZADO'),
+        # Q(tipo_cliente__in=['DISTR', 'CONSU']),
+        # Q(fecha_creado__range=[lunes, viernes]),
+        Q(fecha_creado__gte=rango_dias),
+        (Q(facturado=True) | Q(whatsapp=True))
+    ).order_by('n_pedido')
+
+    email = pedidos_rango_dias.filter(facturado=True).count()
+    wh    = pedidos_rango_dias.filter(whatsapp=True).count()
+    print(pedidos_rango_dias, len(pedidos_rango_dias))
+    print(email, wh)
+    return JsonResponse({
+        'email':email,
+        'wh':wh,
+        'pedidos':list(pedidos_rango_dias.values()),
+        'desde':rango_dias,
+        'hasta':hoy
+    })
+
+
 # PICKING AJAX
 # Vista Todos (lista)
 @login_required(login_url='login')
@@ -1430,6 +1458,8 @@ def picking(request):
     
     # from api_mba.tablas_warehouse import notificaciones_email_whatsapp
     # notificaciones_email_whatsapp()
+    
+    notifications_dashboard_data()
     
     hoy = datetime.now()
     un_mes = hoy - timedelta(days=10)
@@ -1457,9 +1487,10 @@ def picking(request):
     reservas = de_dataframe_a_template(estados)
     
     context = {
-        'reservas':reservas
+        'reservas':reservas,
+        'desde':un_mes,
+        'hasta':hoy
     }
-
     return render(request, 'etiquetado/picking_estado/picking.html', context)
 
 
