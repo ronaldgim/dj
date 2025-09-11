@@ -1409,6 +1409,7 @@ GIMPROMED Cia. Ltda.\n
     elif not n_whatsapp or not n_whatsapp.startswith('+593'):
         picking_estado.wh_fail_number = True
     
+    picking_estado.n_factura = n_factura
     picking_estado.save()
     
     if picking_estado.facturado == True or picking_estado.whatsapp == True:
@@ -1422,6 +1423,32 @@ GIMPROMED Cia. Ltda.\n
             'msg':'Error intente nuevamente !!!'
         })
 
+def notifications_dashboard_data():
+    
+    from django.utils import timezone
+    
+    hoy = timezone.now().date()
+    lunes = hoy - timedelta(days=hoy.weekday())
+    viernes = lunes + timedelta(days=4)
+    
+    pedidos_esta_semana = EstadoPicking.objects.filter(
+        Q(estado='FINALIZADO'),
+        Q(tipo_cliente__in=['DISTR', 'CONSU']),
+        Q(fecha_creado__range=[lunes, viernes]),
+        (Q(facturado=True) | Q(whatsapp=True))
+    ).order_by('n_pedido')
+    
+    pedidos_anteriores = EstadoPicking.objects.filter(
+        Q(estado='FINALIZADO'),
+        Q(tipo_cliente__in=['DISTR', 'CONSU']),
+        Q(fecha_creado__range=[lunes, viernes]),
+        (Q(facturado=True) | Q(whatsapp=True))
+    ).order_by('n_pedido')
+    
+
+def notificaciones_dashboard(request):
+    return()
+
 
 # PICKING AJAX
 # Vista Todos (lista)
@@ -1430,6 +1457,8 @@ def picking(request):
     
     # from api_mba.tablas_warehouse import notificaciones_email_whatsapp
     # notificaciones_email_whatsapp()
+    
+    notifications_dashboard_data()
     
     hoy = datetime.now()
     un_mes = hoy - timedelta(days=10)
@@ -1459,7 +1488,6 @@ def picking(request):
     context = {
         'reservas':reservas
     }
-
     return render(request, 'etiquetado/picking_estado/picking.html', context)
 
 

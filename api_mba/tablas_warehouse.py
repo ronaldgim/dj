@@ -1461,6 +1461,7 @@ GIMPROMED Cia. Ltda.\n
                 pedido.hora_facturado = datetime.now()
                 pedido.noti_detalles = f'Emails: {emails_list_str} - Wh: {whatsapp_number}'
                 pedido.noti_errors = wh_error
+                pedido.n_factura = n_factura
                 # pedido.save()
                 print(emails_list_str, '-', whatsapp_number)
                 
