@@ -1461,7 +1461,7 @@ GIMPROMED Cia. Ltda.\n
                                     pedido.whatsapp = True
                         except requests.RequestException as e:
                             # print(f"Error enviando WhatsApp: {e}")
-                            pedido.wh_fail_number = True
+                            # pedido.wh_fail_number = True
                             #wh_error = f'Wh Error: {str(e)}'
                             pedido.noti_errors = f'Wh Error: {str(e)}'
                     else:
