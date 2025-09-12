@@ -1445,7 +1445,8 @@ GIMPROMED Cia. Ltda.\n
                             response = requests.post(
                                 # url='http://gimpromed.com/app/api/send-whatsapp',
                                 url='https://gimpromed.com/app/api/send-whatsapp',
-                                data={
+                                #data={
+                                json={
                                     'senores': pedido.cliente,
                                     # 'recipient': '+593999922603', #whatsapp_number,
                                     'recipient': whatsapp_number,

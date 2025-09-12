@@ -1396,7 +1396,8 @@ GIMPROMED Cia. Ltda.\n
         response = requests.post(
             # url='http://gimpromed.com/app/api/send-whatsapp',
             url='https://gimpromed.com/app/api/send-whatsapp',
-            data= whatsapp_json,
+            # data= whatsapp_json,
+            json= whatsapp_json,
             timeout=5
         )
 
