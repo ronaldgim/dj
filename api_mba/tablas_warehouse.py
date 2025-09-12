@@ -1429,15 +1429,20 @@ GIMPROMED Cia. Ltda.\n
                         from_email=settings.EMAIL_HOST_USER,
                         # recipient_list= ['egarces@gimpromed.com'], #emails_list,
                         recipient_list= emails_list,
+                        # recipient_list= emails_list if emails_list else email_cliente_by_codigo(pedido.codigo_cliente) or email_vendedor,
                         fail_silently= True  #False,  # Mejor lanzar error
                     )
 
-                    if correo_enviado == 1:
-                        pedido.facturado = True
-                        if email_vendedor:
-                            user = User.objects.filter(email=email_vendedor[0]).first()
-                            if user:
-                                pedido.facturado_por = user
+                    # if correo_enviado == 1:
+                    #     pedido.facturado = True
+                    
+                    pedido.facturado = True if correo_enviado == 1 else False
+                    
+                    if email_vendedor:
+                        user = User.objects.filter(email=email_vendedor[0]).first()
+                        if user:
+                            pedido.facturado_por = user
+                            
                     time.sleep(0.7)
                     # Envío de whatsapp
                     if whatsapp_number and whatsapp_number.startswith('+593') and len(whatsapp_number) == 13:
