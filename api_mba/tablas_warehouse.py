@@ -1438,12 +1438,13 @@ GIMPROMED Cia. Ltda.\n
                             user = User.objects.filter(email=email_vendedor[0]).first()
                             if user:
                                 pedido.facturado_por = user
-                    time.sleep(0.5)
+                    time.sleep(0.7)
                     # Envío de whatsapp
                     if whatsapp_number and whatsapp_number.startswith('+593') and len(whatsapp_number) == 13:
                         try:
                             response = requests.post(
-                                url='http://gimpromed.com/app/api/send-whatsapp',
+                                # url='http://gimpromed.com/app/api/send-whatsapp',
+                                url='https://gimpromed.com/app/api/send-whatsapp',
                                 data={
                                     'senores': pedido.cliente,
                                     # 'recipient': '+593999922603', #whatsapp_number,
@@ -1452,7 +1453,7 @@ GIMPROMED Cia. Ltda.\n
                                     'bodega': pedido.bodega_str,
                                     'n_cartones':str(cartones_pedido)
                                 },
-                                timeout=5
+                                timeout=15
                             )
                             if response.status_code == 200:
                                 if response.json().get('success', False):
