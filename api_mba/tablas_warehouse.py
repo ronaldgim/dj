@@ -1445,7 +1445,8 @@ GIMPROMED Cia. Ltda.\n
                             response = requests.post(
                                 # url='http://gimpromed.com/app/api/send-whatsapp',
                                 url='https://gimpromed.com/app/api/send-whatsapp',
-                                data={
+                                #data={
+                                json={
                                     'senores': pedido.cliente,
                                     # 'recipient': '+593999922603', #whatsapp_number,
                                     'recipient': whatsapp_number,
@@ -1460,7 +1461,7 @@ GIMPROMED Cia. Ltda.\n
                                     pedido.whatsapp = True
                         except requests.RequestException as e:
                             # print(f"Error enviando WhatsApp: {e}")
-                            pedido.wh_fail_number = True
+                            # pedido.wh_fail_number = True
                             #wh_error = f'Wh Error: {str(e)}'
                             pedido.noti_errors = f'Wh Error: {str(e)}'
                     else:
