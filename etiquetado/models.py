@@ -150,7 +150,7 @@ class EstadoPicking(models.Model):
     @property
     def fecha_notificado(self):
         if self.hora_facturado:
-            return self.hora_facturado.strftime('%Y-%m-%d %H:%M')
+            return self.hora_facturado.strftime('%Y-%m-%d %H:%M:%S')
         else:
             return '-'
 
