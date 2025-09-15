@@ -1455,7 +1455,9 @@ def notifications_dashboard_data(request):
             'wh':'<i class="bi bi-check-circle-fill" style="color:green"></i>' if i.whatsapp else '<i class="bi bi-x-circle-fill" style="color:red"></i>',
             'wh_fail': '<i class="bi bi-whatsapp" style="color:red"></i>' if i.wh_fail_number else '',
             'detalle':i.noti_detalles if i.noti_detalles else '-',
-            'errores':i.noti_errors if i.noti_errors else '-'
+            # 'errores':i.noti_errors if i.noti_errors else '-'
+            'errores':i.errores
+            
         }
         pedidos.append(data_pedido)
     
