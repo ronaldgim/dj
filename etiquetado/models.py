@@ -128,6 +128,7 @@ class EstadoPicking(models.Model):
     noti_errors    = models.TextField(blank=True)
     noti_detalles  = models.TextField(blank=True)
     n_factura      = models.CharField(max_length=10, blank=True)
+    noti_email     = models.TextField(blank=True)
     
     def __str__(self):
         return self.n_pedido
@@ -151,6 +152,13 @@ class EstadoPicking(models.Model):
     def fecha_notificado(self):
         if self.hora_facturado:
             return self.hora_facturado.strftime('%Y-%m-%d %H:%M:%S')
+        else:
+            return '-'
+    
+    @property
+    def errores(self):
+        if self.noti_errors or self.noti_email:
+            return f'{self.noti_errors} - {self.noti_email}'
         else:
             return '-'
 

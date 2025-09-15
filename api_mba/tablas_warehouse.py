@@ -1422,26 +1422,29 @@ Estamos para servirle.\n
 GIMPROMED Cia. Ltda.\n
 ****Esta notificación ha sido enviada automáticamente - No responder****
 """
-                    # Envío de email
-                    correo_enviado = send_mail(
-                        subject='Notificación Pedido FACTURADO',
-                        message=email_msg,
-                        from_email=settings.EMAIL_HOST_USER,
-                        # recipient_list= ['egarces@gimpromed.com'], #emails_list,
-                        recipient_list= emails_list,
-                        # recipient_list= emails_list if emails_list else email_cliente_by_codigo(pedido.codigo_cliente) or email_vendedor,
-                        fail_silently= True  #False,  # Mejor lanzar error
-                    )
+                    try:
+                        # Envío de email
+                        correo_enviado = send_mail(
+                            subject='Notificación Pedido FACTURADO',
+                            message=email_msg,
+                            from_email=settings.EMAIL_HOST_USER,
+                            # recipient_list= ['egarces@gimpromed.com'], #emails_list,
+                            recipient_list= emails_list,
+                            # recipient_list= emails_list if emails_list else email_cliente_by_codigo(pedido.codigo_cliente) or email_vendedor,
+                            fail_silently= True  #False,  # Mejor lanzar error
+                        )
 
-                    # if correo_enviado == 1:
-                    #     pedido.facturado = True
-                    
-                    pedido.facturado = True if correo_enviado == 1 else False
-                    
-                    if email_vendedor:
-                        user = User.objects.filter(email=email_vendedor[0]).first()
-                        if user:
-                            pedido.facturado_por = user
+                        # if correo_enviado == 1:
+                        #     pedido.facturado = True
+                        
+                        pedido.facturado = True if correo_enviado == 1 else False
+                        
+                        if email_vendedor:
+                            user = User.objects.filter(email=email_vendedor[0]).first()
+                            if user:
+                                pedido.facturado_por = user
+                    except Exception as e:
+                        pedido.noti_email = f'Email Error: {str(e)}'
                             
                     time.sleep(0.7)
                     # Envío de whatsapp
