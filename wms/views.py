@@ -36,6 +36,8 @@ from datos.views import (
     transferencias_mba
     )
 
+from utils.warehouse_data import get_vendedor_email_by_contrato
+
 # PDF
 from django_xhtml2pdf.utils import pdf_decorator
 
@@ -2582,7 +2584,8 @@ def wms_correo_picking(n_pedido):
         'bcerezos@gimpromed.com',
         'ncastillo@gimpromed.com',
         'jgualotuna@gimpromed.com',
-        correo_vendedor_n_pedido(n_pedido)
+        # correo_vendedor_n_pedido(n_pedido)
+        get_vendedor_email_by_contrato(n_pedido)[0]
     ]
     
     picking = EstadoPicking.objects.get(n_pedido=n_pedido)
