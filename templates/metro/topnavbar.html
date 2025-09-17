@@ -13,15 +13,6 @@
 
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-              Productos 
-            </a>
-            <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-              <li><a class="dropdown-item" href="{% url 'metro_products_list' %}">Lista de productos</a></li>
-            </ul>
-          </li>
-
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
               Inventarios 
             </a>
             <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
@@ -39,12 +30,13 @@
           </li>
 
           <li class="nav-item dropdown">
-            <a class="nav-link" href="{% url 'metro_consignacion' %}">
-              Consignación
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Consignación 
             </a>
-            <!--ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-              <li><a class="dropdown-item" href="{% url 'metro_toma_fisica_list' %}">Lista</a></li>
-            </ul-->
+            <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+              <li><a class="dropdown-item" href="{% url 'metro_products_list' %}">Lista de productos</a></li>
+              <li><a class="dropdown-item" href="{% url 'metro_consignacion' %}">Consignación</a></li>
+            </ul>
           </li>
 
         </ul>
