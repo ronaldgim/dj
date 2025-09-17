@@ -4954,7 +4954,7 @@ def wms_reporte_bodegas457(request):
 def wms_reporte_reposicion_alertas(request):    
     
     """Crear un reporte que muestre los productos con mayor frecuencia de ventas para mover al nivel 1 con alertas segun demanda"""
-    ventas = frecuancia_ventas() ;print(ventas)
+    ventas = frecuancia_ventas() #;print(ventas)
     productos_ventas = set(ventas['PRODUCT_ID'].unique())    
     productos_existencias = set(Existencias.objects.values_list('product_id', flat=True))
     productos_analisis = productos_ventas.intersection(productos_existencias)
