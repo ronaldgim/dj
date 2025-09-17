@@ -161,6 +161,16 @@ class EstadoPicking(models.Model):
             return f'{self.noti_errors} - {self.noti_email}'
         else:
             return '-'
+    
+    @property
+    def wh_notification(self):
+        if self.whatsapp:
+            return '<i class="bi bi-check-circle-fill" style="color:green"></i>' #True
+        elif not self.whatsapp and self.wh_fail_number:
+            return '-'
+        elif not self.whatsapp:
+            return '<i class="bi bi-x-circle-fill" style="color:red"></i>' #False
+
 
 
 class RegistoGuia(models.Model):

@@ -188,11 +188,21 @@
                                         <i class="bi bi-envelope icon-size-medium btn btn-sm disabled mt-0 pt-0 mb-0 pb-0" style="color:#a85700"></i>
                                         {% endif %}
 
+                                        {% comment %}
                                         {% if i.whatsapp and not i.wh_fail_number %}
                                         <i class="bi bi-whatsapp icon-size-medium btn btn-sm disabled mt-0 pt-0 mb-0 pb-0" style="color:green"></i>
                                         {% endif %}
                                         
                                         {% if i.wh_fail_number and not i.whatsapp %}
+                                        <i class="bi bi-whatsapp icon-size-medium btn btn-sm disabled mt-0 pt-0 mb-0 pb-0" style="color:red"></i>
+                                        {% endif %}
+                                        {% endcomment %}
+                                        
+                                        {% if i.whatsapp %}
+                                        <i class="bi bi-whatsapp icon-size-medium btn btn-sm disabled mt-0 pt-0 mb-0 pb-0" style="color:green"></i>
+                                        {% elif not i.whatsapp and i.wh_fail_number %}
+                                        -
+                                        {% elif not i.whatsapp %}
                                         <i class="bi bi-whatsapp icon-size-medium btn btn-sm disabled mt-0 pt-0 mb-0 pb-0" style="color:red"></i>
                                         {% endif %}
 
@@ -323,7 +333,8 @@
                                         <td>${fila.vendedor}</td>
                                         <td>${fila.fecha}</td>
                                         <td>${fila.email}</td>
-                                        <td>${fila.wh} ${fila.wh_fail}</td>
+                                        <!--td>${fila.wh} ${fila.wh_fail}</td-->
+                                        <td>${fila.wh_notification}</td>
                                         <td>${fila.detalle}</td>
                                         <td>${fila.errores}</td>
                                     </tr>
