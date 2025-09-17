@@ -127,6 +127,7 @@
                             <td>
                                 <div class="btn-group" role="group" aria-label="Basic example">
                                     <button 
+                                        name="edit-form-btn"
                                         class="btn btn-sm btn-secondary edit-product-btn {#% if i.confirmado %} disabled {% endif %#}"
                                         data-product-id="{{ i.id }}" 
                                         data-product-name="Editar: {{ i.product.codigo_gim }}"
@@ -418,7 +419,7 @@
 </script>
 
 <!-- Confirmar booton -->
-<script>
+<!--script>
     // Función simple para habilitar botón cuando los campos estén llenos
     function habilitarBotonCuandoCamposLlenos(formId, btnId, camposIds) {
         const formulario = document.getElementById(formId);
@@ -446,11 +447,66 @@
     document.addEventListener('DOMContentLoaded', function() {
         habilitarBotonCuandoCamposLlenos('form-edit', 'btn-confirmar', [
             'id_description', 'id_cantidad', 'id_nota_entrega', 
-            'id_fecha_nota', 'id_movimiento_mba', 'id_fecha_mba', 
+            // 'id_fecha_nota', 'id_movimiento_mba', 'id_fecha_mba', 
             // 'id_documento'
         ]);
     });
+</script-->
+
+<script>
+    // Función para habilitar botón cuando los campos estén llenos
+    function habilitarBotonCuandoCamposLlenos(formId, btnId, camposIds, modalId=null) {
+        const formulario = document.getElementById(formId);
+        const boton = document.getElementById(btnId);
+        const campos = camposIds
+            .map(id => document.getElementById(id))
+            .filter(campo => campo !== null); // Ignorar ids que no existan
+
+        function verificarCampos() {
+            const todosLlenos = campos.every(campo => {
+                if (campo.type === "checkbox" || campo.type === "radio") {
+                    return campo.checked;
+                }
+                return campo.value.trim() !== "";
+            });
+            boton.disabled = !todosLlenos;
+        }
+
+        // Agregar event listeners a cada campo
+        campos.forEach(campo => {
+            campo.addEventListener('input', verificarCampos);
+            campo.addEventListener('change', verificarCampos);
+        });
+
+        // Validación inicial
+        verificarCampos();
+
+        // Si el formulario está dentro de un modal Bootstrap, validar al abrirlo
+        if (modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.addEventListener('shown.bs.modal', function () {
+                    verificarCampos(); // Revalida cuando el modal ya cargó datos
+                });
+            }
+        }
+    };
+
+    // $("button[name='edit-form-btn']").on('click', function() {
+    //     habilitarBotonCuandoCamposLlenos(
+    //         'form-edit', 
+    //         'btn-confirmar', 
+    //         [
+    //             'id_description', 'id_cantidad', 'id_nota_entrega', 
+    //             'id_fecha_nota', 'id_movimiento_mba', 'id_fecha_mba', 
+    //             // 'id_documento'
+    //         ],
+    //         'editModal' 
+    //     );
+    // })
 </script>
+
+
 
 <!-- Reset form -->
 <script>
