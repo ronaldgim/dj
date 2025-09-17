@@ -502,10 +502,13 @@ def enviar_correo_kardex(kardex):
     asunto = 'Ingreso de Nuevo Producto a Consignación' if ultimo_movimiento.description == 'Saldo inicial' else f'{ultimo_movimiento.description} de Consiganción'
     correos = ['egarces@gimpromed.com'] # , 'jgualotuna@gimpromed.com']
     
-    movs = []
-    for i in kardex:
-        movs.append(i)
-    movimiento_anterior = movs[-2]
+    if ultimo_movimiento.description != 'Saldo inicial':
+        movs = []
+        for i in kardex:
+            movs.append(i)
+        movimiento_anterior = movs[-2]
+    else:
+        movimiento_anterior = None
     
     context = {
         'movimiento':ultimo_movimiento,

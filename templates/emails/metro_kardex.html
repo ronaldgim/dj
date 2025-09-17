@@ -21,8 +21,8 @@
     <p><strong>Código:</strong> {{movimiento.product.codigo_gim}}</p>
     <p><strong>Nombre:</strong> {{movimiento.product.nombre_gim}}</p>
     <p><strong>Marca:</strong> {{movimiento.product.marca}}</p>
-    {% if movimiento.producto.description == 'Saldo inicial' %}
-    <p><strong>Cantidad ingresada:</strong> {{movimiento.product.cantidad}}</p>
+    {% if movimiento.description == 'Saldo inicial' %}
+    <p><strong>Cantidad ingresada:</strong> {{movimiento.cantidad}}</p>
     {% else %}
     <p><strong>Cantidad de consignación anterior:</strong> {{movimiento_anterior.saldo}}</p>
     <p><strong>Cantidad modificada:</strong> {{movimiento.cantidad}}</p>
