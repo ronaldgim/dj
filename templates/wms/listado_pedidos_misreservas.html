@@ -62,27 +62,33 @@
 <h5 class="m-4 text-center fw-bold">LISTADO DE PICKING CEREZOS (WMS)</h5>
 <h6 class="text-start"><strong>Actulizado: </strong>{{actualizado}}</h6>
 
-<form method="post">
+<!--form method="post">
     {% csrf_token %}
     <button class="btn btn-primary btn-sm mt-2 mb-2" type="submit"> 
         <i class="bi bi-arrow-clockwise"></i> Actualizar
     </button>
-</form>
+</form-->
+
+<button class="btn btn-primary btn-sm mt-2 mb-2" onclick="window.location.reload()"> 
+    <i class="bi bi-arrow-clockwise"></i> Actualizar
+</button> <br>
+
 
 <button class="btn btn-info btn-sm mb-2" id="mispedidos"> 
     <i class="bi bi-person-lines-fill"></i> Mis pedidos
 </button>
 
-<button class="btn btn-info btn-sm mb-2" id="refresh"> 
+<button class="btn btn-info btn-sm mb-2" onclick="window.location.reload()"> 
     <i class="bi bi-list-ccolumns-reverse"></i> Todos los pedidos
 </button>
 
-
+<!--button class="btn btn-sm btn-secondary mb-2" onclick="notificacionesData()" type="button" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+    Notificaciones
+</button-->
 
 <div class="col-12 mt-2">
     <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
 </div>
-
 
 <div class="card mt-2 mb-2">
     <div class="card-body m-0 p-0">
@@ -91,7 +97,8 @@
                 <thead>
                     <tr>
                         <th scope="col">Cliente</th>
-                        <th scope="col">
+                        <th scope="col">Estado</th>
+                        <!--th scope="col">
                             <select class="form-select filter-est" id="filter-estado">
                                 <option value="ESTADO">ESTADO</option>
                                 <option value="EN PAUSA">EN PAUSA</option>
@@ -99,7 +106,7 @@
                                 <option value="INCOMPLETO">INCOMPLETO</option>
                                 <option value="FINALIZADO">FINALIZADO</option>
                             </select>
-                        </th>
+                        </th-->
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
@@ -148,6 +155,97 @@
     </div>
 </div>
 
+<!-- Modal -->
+<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title fw-bold" id="staticBackdropLabel">Notificaciones de email y whatsapp, desde {{desde|date:'Y-m-d'}} - hasta: {{hasta|date:'Y-m-d'}}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <label class="fw-bold">Emails enviados:</label> <span id="email_n"></span> <br>
+            <label class="fw-bold">Whatsapp enviados:</label> <span id="wh_n"></span>
+            
+            <div id="noti_table"><div>
+        </div>
+        <!--div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary">Understood</button>
+        </div-->
+        </div>
+    </div>
+</div>
+
+<!-- Notificaciones -->
+<script>
+    async function notificacionesData() {
+        try{
+            const response = await fetch('/etiquetado/notifications_dashboard_data');
+            const data = await response.json(); // Convertir a JSON
+            
+            document.getElementById('email_n').textContent  = data.email;
+            document.getElementById('wh_n').textContent  = data.wh;
+
+            const table = data.pedidos || [];
+            console.log(table)
+            if (table.length > 0) {
+                const columnas = Object.keys(table[0]);
+                
+                const tablaHTML = `
+                    <div class="table-responsive">
+                        <table class="table" style="font-size: small;">
+                            <thead>
+                                <!--tr>${columnas.map(col => `<th>${col}</th>`).join('')}</tr-->
+                                <tr>
+                                    <th>CLIENTE</th>
+                                    <th>PEDIDO</th>
+                                    <th>FACTURA</th>
+                                    <th>FACTURADO POR</th>
+                                    <th>ENVIO DE NOTIFICACIÓN</th>
+                                    <th>EMAIL</th>
+                                    <th>WHATSAPP</th>
+                                    <th>DETALLES DE NOTIFICACIÓN</th>
+                                    <th>ERRORES DE NOTIFICACIÓN</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${table.map(fila => `
+                                    <tr>
+                                        <td>${fila.cliente}</td>
+                                        <td>${fila.pedido}</td>
+                                        <td>${fila.factura}</td>
+                                        <td>${fila.vendedor}</td>
+                                        <td>${fila.fecha}</td>
+                                        <td>${fila.email}</td>
+                                        <!--td>${fila.wh} ${fila.wh_fail}</td-->
+                                        <td>${fila.wh_notification}</td>
+                                        <td>${fila.detalle}</td>
+                                        <td>${fila.errores}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                
+                document.getElementById('noti_table').innerHTML = tablaHTML;
+            } else {
+                document.getElementById('noti_table').innerHTML = `
+                    <div class="no-data">
+                        <p>📭 No hay pedidos para mostrar</p>
+                    </div>
+                `;
+            }
+
+        } catch (error){
+            console.error(error)
+        }
+        
+    }
+</script>
+
+<!-- Busqueda -->
 <script>
     // Buscador
     $(document).ready(function() {
@@ -161,7 +259,7 @@
     });
 </script>
 
-
+<!-- Busqueda por usuario -->
 <script>
     // Mis pedidos
     $(document).ready(function() {
@@ -178,18 +276,7 @@
     });
 </script>
 
-<script>
-    // Refresh para ver todos los pedidos
-    $(document).ready(function() {
-        $("#refresh").on("click", function() {
-            setTimeout(function() {
-                location.reload();
-            },1)
-        })
-    })
-</script>
-
-<script>
+<!--script>
     // Switch bodega filter
     $(document).ready(function() {
         $("input[name='bod_select']").click(function() {
@@ -202,9 +289,9 @@
             );
         })
     })
-</script>
+</script-->
 
-<script>
+<!--script>
     // Filtro por estado
     $('.filter-est').change(function(){
         filter_function_estado(); //calling filter function each select box value change
@@ -236,6 +323,6 @@
       
       });
     }
-</script>
+</script-->
 
 {% endblock %}
