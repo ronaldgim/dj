@@ -129,6 +129,9 @@ class EstadoPicking(models.Model):
     noti_detalles  = models.TextField(blank=True)
     n_factura      = models.CharField(max_length=10, blank=True)
     noti_email     = models.TextField(blank=True)
+    email_picking_send = models.BooleanField(default=False)
+    email_picking_fecha_hora = models.DateTimeField(blank=True, null=True)
+    email_picking_errors = models.TextField(blank=True)
     
     def __str__(self):
         return self.n_pedido

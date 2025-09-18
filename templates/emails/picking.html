@@ -45,15 +45,14 @@
         <tbody>
             {% for i in data %}
             <tr>
-                <td>{{i.PRODUCT_ID}}</td>
+                <td>{{i.product_id}}</td>
                 <td>{{i.Nombre}}</td>
                 <td>{{i.Marca}}</td>
-                <td>{{i.EGRESO_TEMP}}</td>
-                <td>{{i.LOTE_MBA}}</td>
-
-                <td>{{i.UNIDADES_WMS}}</td>
-                <td>{{i.LOTE_WMS}}
-                <td>{% if i.REVISION %}
+                <td>{{i.egreso_temp}}</td>
+                <td>{{i.lote_mba}}</td>
+                <td>{{i.unidades_wms}}</td>
+                <td>{{i.lote_wms}}
+                <td>{% if i.revision %}
                     ✔
                     {% else %}
                     ❌

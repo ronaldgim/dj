@@ -1175,7 +1175,7 @@ def wms_inventario(request): #OK
     """ Inventario
         Suma de ingresos y egresos que dan el total de todo el inventario
     """
-    # wms_existencias_query_product_lote("2014","476790")      
+    # wms_existencias_query_product_lote("2014","476790")          
     
     prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     productos = pd.DataFrame(Existencias.objects.all().values('product_id'))
@@ -2424,7 +2424,6 @@ def wms_egreso_picking_misreservas(request, n_pedido): #OK
     return render(request, 'wms/picking_misreservas.html', context)
 
 
-
 # Estado Picking AJAX
 @permisos(['BODEGA'], '/wms/picking/list', 'cambio de estado de picking')
 def wms_estado_picking_ajax(request):
@@ -2500,18 +2499,26 @@ def wms_agregar_foto_picking_ajax(request):
 def reservas_lote_n_picking(n_picking): #request
     ''' Colusta de clientes por ruc a la base de datos '''
     
-    pk = n_picking.split('.')[0]
-    with connections['gimpromed_sql'].cursor() as cursor:
-        cursor.execute(f"SELECT PRODUCT_ID, LOTE_ID, EGRESO_TEMP FROM reservas_lote_2 WHERE CONTRATO_ID = '{pk}'")        
-        columns = [col[0] for col in cursor.description]
-        reservas_lote = [
-            dict(zip(columns, row))
-            for row in cursor.fetchall()
-        ]
-        reservas_lote = pd.DataFrame(reservas_lote)  
-        reservas_lote = reservas_lote.groupby(by=['PRODUCT_ID','LOTE_ID'])['EGRESO_TEMP'].sum().reset_index()
-        
-    return reservas_lote
+    try:
+        # pk = n_picking.split('.')[0]
+        with connections['gimpromed_sql'].cursor() as cursor:
+            cursor.execute(f"SELECT PRODUCT_ID, LOTE_ID, EGRESO_TEMP FROM reservas_lote_2 WHERE CONTRATO_ID = '{n_picking}'")        
+            columns = [col[0].lower() for col in cursor.description]
+            reservas_lote = [
+                dict(zip(columns, row))
+                for row in cursor.fetchall()
+            ]
+            reservas_lote = pd.DataFrame(reservas_lote)  
+            reservas_lote['lote_id'] = reservas_lote['lote_id'].str.replace('.', '')
+            reservas_lote = reservas_lote.groupby(by=['product_id','lote_id'])['egreso_temp'].sum().reset_index()
+            
+            return reservas_lote
+    except:
+        reservas_lote = pd.DataFrame()
+        reservas_lote['product_id'] = ''
+        reservas_lote['lote_id'] = ''
+        reservas_lote['egreso_temp'] = 0
+        return reservas_lote
 
 
 def correo_vendedor_n_pedido(n_picking): 
@@ -2548,80 +2555,80 @@ def ciudad_principal_cliente(codigo_cliente):
 
 def wms_correo_picking(n_pedido):
     
+    n_pedido_int = n_pedido.split('.')[0]
     try:
         data_wms = pd.DataFrame(Movimiento.objects.filter(n_referencia=n_pedido).values('product_id', 'lote_id', 'unidades'))  
         data_wms['lote_id'] = data_wms['lote_id'].str.replace('.', '')
-        data_wms['unidades'] = data_wms['unidades'] *-1
-        data_wms['LOTE_ID'] = data_wms['lote_id']
-        data_wms = data_wms.rename(columns={
-            'product_id':'PRODUCT_ID',
-            'lote_id':'LOTE_WMS',
-            'unidades':'UNIDADES_WMS'
-        })
-        data_wms = data_wms.groupby(by=['PRODUCT_ID','LOTE_ID','LOTE_WMS'])['UNIDADES_WMS'].sum().reset_index()
+        data_wms['unidades_wms'] = data_wms['unidades'] *-1
+        data_wms['lote_wms'] = data_wms['lote_id']
+        data_wms = data_wms.groupby(by=['product_id','lote_id','lote_wms'])['unidades_wms'].sum().reset_index()
         
-        data_mba = reservas_lote_n_picking(n_pedido)
-        data_mba['LOTE_ID'] = data_mba['LOTE_ID'].astype('str')
-        data_mba['LOTE_ID'] = data_mba['LOTE_ID'].str.replace('.', '')
-        data_mba['LOTE_MBA'] = data_mba['LOTE_ID']
-        data_mba = data_mba.groupby(by=['PRODUCT_ID','LOTE_ID','LOTE_MBA'])['EGRESO_TEMP'].sum().reset_index()
+        data_mba = reservas_lote_n_picking(n_pedido_int)
+        data_mba['lote_mba'] = data_mba['lote_id']
         
-        data = data_wms.merge(data_mba, on=['PRODUCT_ID','LOTE_ID'], how='left')
-        data['LOTES'] = data['LOTE_WMS'] == data['LOTE_MBA']
-        data['UNIDADES'] = data['UNIDADES_WMS'] == data['EGRESO_TEMP']
-        data['REVISION'] = data['LOTES'] == data['UNIDADES']
+        data = data_wms.merge(data_mba, on=['product_id','lote_id'], how='outer')
+        data['lotes'] = data['lote_wms'] == data['lote_mba']
+        data['unidades'] = data['unidades_wms'] == data['egreso_temp']
+        data['revision'] = data['lotes'] == data['unidades']
         
         prods = productos_odbc_and_django()[['product_id', 'Nombre', 'Marca']]
-        prods = prods.rename(columns={'product_id':'PRODUCT_ID'})
-        
-        data = data.merge(prods, on='PRODUCT_ID', how='left')
+        data = data.merge(prods, on='product_id', how='left') 
         data = de_dataframe_a_template(data)
-    except:
+    except Exception as e:
         data = {}
-    
-    lista_correos = [
-        #'egarces@gimpromed.com',
-        'bcerezos@gimpromed.com',
-        'ncastillo@gimpromed.com',
-        'jgualotuna@gimpromed.com',
-        # correo_vendedor_n_pedido(n_pedido)
-        get_vendedor_email_by_contrato(n_pedido)[0]
-    ]
-    
-    picking = EstadoPicking.objects.get(n_pedido=n_pedido)
-    ciudad = ciudad_principal_cliente(picking.codigo_cliente)
-    
-    hostipitales = [
-        'CLI00015',  # CLI00015   HOSPITAL EUGENIO ESPEJO
-        'CLI00125',  # CLI00125   HOSPITAL JOSE CARRASCO ARETEAGA
-        'CLI01205'   # CLI01205   HOSPITAL PROVINCIAL GENERAL DOCENTE RIOBAMBA
-    ]
-    
-    if picking.codigo_cliente in hostipitales:
-        lista_correos += ['Dtrujillo@gimpromed.com']
-    
-    context = {
-        'picking': picking,
-        'data': data,
-        'ciudad':ciudad
-    }
-    
-    html_message = render_to_string('emails/picking.html', context)
-    plain_message = strip_tags(html_message)
-    
-    email = EmailMultiAlternatives(
-        subject=f'Cerezos-Picking Finalizado - {picking.cliente}',
-        from_email=settings.EMAIL_HOST_USER,
-        body=plain_message,
-        to=lista_correos
-    )
-    email.attach_alternative(html_message, 'text/html')
-    email.attach_file(picking.foto_picking.path)
-    
-    if picking.foto_picking_2:
-        email.attach_file(picking.foto_picking_2.path)
-    
-    email.send()
+
+    try:
+        lista_correos = [
+            # 'egarces@gimpromed.com',
+            'bcerezos@gimpromed.com',
+            'ncastillo@gimpromed.com',
+            'jgualotuna@gimpromed.com',
+            # correo_vendedor_n_pedido(n_pedido)
+            get_vendedor_email_by_contrato(n_pedido_int)[0]
+        ]
+        
+        picking = EstadoPicking.objects.get(n_pedido=n_pedido)
+        ciudad = ciudad_principal_cliente(picking.codigo_cliente)
+        
+        hostipitales = [
+            'CLI00015',  # CLI00015   HOSPITAL EUGENIO ESPEJO
+            'CLI00125',  # CLI00125   HOSPITAL JOSE CARRASCO ARETEAGA
+            'CLI01205'   # CLI01205   HOSPITAL PROVINCIAL GENERAL DOCENTE RIOBAMBA
+        ]
+        
+        if picking.codigo_cliente in hostipitales:
+            lista_correos += ['Dtrujillo@gimpromed.com']
+        
+        context = {
+            'picking': picking,
+            'data': data,
+            'ciudad':ciudad
+        }
+        
+        html_message = render_to_string('emails/picking.html', context)
+        plain_message = strip_tags(html_message)
+        
+        email = EmailMultiAlternatives(
+            subject=f'Cerezos-Picking Finalizado - {picking.cliente}',
+            from_email=settings.EMAIL_HOST_USER,
+            body=plain_message,
+            to=lista_correos
+        )
+        email.attach_alternative(html_message, 'text/html')
+        email.attach_file(picking.foto_picking.path)
+        
+        if picking.foto_picking_2:
+            email.attach_file(picking.foto_picking_2.path)
+        email.send()
+        
+        picking.email_picking_send = True
+        picking.email_picking_fecha_hora = datetime.now()
+        picking.email_picking_errors = 'Data error !!!' if not data else ''
+        picking.save()
+    except Exception as e:
+        picking.email_picking_fecha_hora = datetime.now()
+        picking.email_picking_errors = f'Data error !!! ; {str(e)}'  if not data else str(e)
+        picking.save()
 
 
 # Actualizar Estado Picking AJAX
