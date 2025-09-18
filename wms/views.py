@@ -2017,7 +2017,6 @@ def wms_movimientos_list(request): #OK
 def wms_listado_pedidos(request): #OK
     """ Listado de pedidos (picking) """
     
-    
     clientes = clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE']]
     clientes = clientes.rename(columns={'CODIGO_CLIENTE':'codigo_cliente'})
     
