@@ -171,6 +171,12 @@ urlpatterns = [
     ),
     
     path(
+        route='picking/wms_picking_notificaciones',  
+        view = views.wms_picking_notificaciones, #OK
+        name = 'wms_picking_notificaciones'
+    ),
+    
+    path(
         route='picking/misreservas/<str:contrato_id>',  
         view = views.wms_detalle_misreservas, #OK
         name = 'wms_detalle_misreservas'
