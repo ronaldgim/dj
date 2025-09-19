@@ -2043,6 +2043,30 @@ def wms_listado_pedidos(request): #OK
     return render(request, 'wms/listado_pedidos_misreservas.html', context)
 
 
+def wms_picking_notificaciones(request):
+    
+    pickings = EstadoPicking.objects.filter(
+        Q(bodega='BCT') &
+        Q(estado='FINALIZADO')
+    ).order_by('-id', 'n_pedido')[:100] #.values()
+    
+    pedidos = []
+    for i in pickings:
+        data = {
+            'cliente':i.cliente,
+            'estado':i.estado,
+            'pedido':i.n_pedido.split('.')[0],
+            'send_email':'<i class="bi bi-check-circle-fill" style="color:green"></i>' if i.email_picking_send else '<i class="bi bi-x-circle-fill" style="color:red"></i>',
+            'fecha_email':i.email_picking_fecha_hora.strftime('%Y-%m-%d %H:%M:%S') if i.email_picking_fecha_hora else '-',
+            'error_email':i.email_picking_errors if i.email_picking_errors else '-',
+        }
+        pedidos.append(data)
+    
+    return JsonResponse({
+        'pedidos':pedidos
+    })
+
+
 @login_required(login_url='login')
 @permisos(['ADMINISTRADOR','OPERACIONES'], '/picking/list', 'ingresar a Detalle de Pedido')
 def wms_detalle_misreservas(request, contrato_id):

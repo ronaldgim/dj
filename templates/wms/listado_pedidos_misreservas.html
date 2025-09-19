@@ -73,7 +73,6 @@
     <i class="bi bi-arrow-clockwise"></i> Actualizar
 </button> <br>
 
-
 <button class="btn btn-info btn-sm mb-2" id="mispedidos"> 
     <i class="bi bi-person-lines-fill"></i> Mis pedidos
 </button>
@@ -82,9 +81,9 @@
     <i class="bi bi-list-ccolumns-reverse"></i> Todos los pedidos
 </button>
 
-<!--button class="btn btn-sm btn-secondary mb-2" onclick="notificacionesData()" type="button" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+<button class="btn btn-sm btn-secondary mb-2" onclick="notificacionesData()" type="button" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
     Notificaciones
-</button-->
+</button>
 
 <div class="col-12 mt-2">
     <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
@@ -160,13 +159,10 @@
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
         <div class="modal-content">
         <div class="modal-header">
-            <h5 class="modal-title fw-bold" id="staticBackdropLabel">Notificaciones de email y whatsapp, desde {{desde|date:'Y-m-d'}} - hasta: {{hasta|date:'Y-m-d'}}</h5>
+            <h5 class="modal-title fw-bold" id="staticBackdropLabel">Notificaciones de los ultimos 100 picking finalizados de Cerezos</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="modal-body">
-            <label class="fw-bold">Emails enviados:</label> <span id="email_n"></span> <br>
-            <label class="fw-bold">Whatsapp enviados:</label> <span id="wh_n"></span>
-            
+        <div class="modal-body">            
             <div id="noti_table"><div>
         </div>
         <!--div class="modal-footer">
@@ -181,14 +177,10 @@
 <script>
     async function notificacionesData() {
         try{
-            const response = await fetch('/etiquetado/notifications_dashboard_data');
+            const response = await fetch('/wms/picking/wms_picking_notificaciones');
             const data = await response.json(); // Convertir a JSON
-            
-            document.getElementById('email_n').textContent  = data.email;
-            document.getElementById('wh_n').textContent  = data.wh;
-
             const table = data.pedidos || [];
-            console.log(table)
+            
             if (table.length > 0) {
                 const columnas = Object.keys(table[0]);
                 
@@ -199,13 +191,10 @@
                                 <!--tr>${columnas.map(col => `<th>${col}</th>`).join('')}</tr-->
                                 <tr>
                                     <th>CLIENTE</th>
+                                    <th>ESTADO</th>
                                     <th>PEDIDO</th>
-                                    <th>FACTURA</th>
-                                    <th>FACTURADO POR</th>
-                                    <th>ENVIO DE NOTIFICACIÓN</th>
                                     <th>EMAIL</th>
-                                    <th>WHATSAPP</th>
-                                    <th>DETALLES DE NOTIFICACIÓN</th>
+                                    <th>ENVIO DE MAIL</th>
                                     <th>ERRORES DE NOTIFICACIÓN</th>
                                 </tr>
                             </thead>
@@ -213,15 +202,11 @@
                                 ${table.map(fila => `
                                     <tr>
                                         <td>${fila.cliente}</td>
+                                        <td>${fila.estado}</td>
                                         <td>${fila.pedido}</td>
-                                        <td>${fila.factura}</td>
-                                        <td>${fila.vendedor}</td>
-                                        <td>${fila.fecha}</td>
-                                        <td>${fila.email}</td>
-                                        <!--td>${fila.wh} ${fila.wh_fail}</td-->
-                                        <td>${fila.wh_notification}</td>
-                                        <td>${fila.detalle}</td>
-                                        <td>${fila.errores}</td>
+                                        <td>${fila.send_email}</td>
+                                        <td>${fila.fecha_email}</td>
+                                        <td>${fila.error_email}</td>
                                     </tr>
                                 `).join('')}
                             </tbody>
