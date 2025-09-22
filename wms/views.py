@@ -2589,7 +2589,8 @@ def wms_correo_picking(n_pedido):
         data_mba = reservas_lote_n_picking(n_pedido_int)
         data_mba['lote_mba'] = data_mba['lote_id']
         
-        data = data_wms.merge(data_mba, on=['product_id','lote_id'], how='outer')
+        # data = data_wms.merge(data_mba, on=['product_id','lote_id'], how='outer')
+        data =  pd.merge(left=data_wms, right=data_mba, on=['product_id','lote_id'], how='outer')
         data['lotes'] = data['lote_wms'] == data['lote_mba']
         data['unidades'] = data['unidades_wms'] == data['egreso_temp']
         data['revision'] = data['lotes'] == data['unidades']
