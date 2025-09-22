@@ -2544,24 +2544,6 @@ def reservas_lote_n_picking(n_picking): #request
         return reservas_lote
 
 
-# def correo_vendedor_n_pedido(n_picking): 
-    
-#     n_picking = n_picking.split('.')[0]
-
-#     try:
-#         with connections['gimpromed_sql'].cursor() as cursor:
-#             cursor.execute(f"SELECT MAIL FROM warehouse.pedidos LEFT JOIN warehouse.user_mba ON warehouse.pedidos.Entry_by = warehouse.user_mba.CODIGO_USUARIO WHERE CONTRATO_ID = '{n_picking}'")
-#             columns = [col[0] for col in cursor.description]
-#             correo = [
-#                 dict(zip(columns, row))
-#                 for row in cursor.fetchall()
-#             ][0]       
-#         return correo['MAIL']
-#     except: # Exception as e:
-#         # print(e)
-#         return 'egarces@gimpromed.com'
-
-
 def ciudad_principal_cliente(codigo_cliente):
     try:
         with connections['gimpromed_sql'].cursor() as cursor:
@@ -2607,7 +2589,6 @@ def wms_correo_picking(n_pedido):
             'bcerezos@gimpromed.com',
             'ncastillo@gimpromed.com',
             'jgualotuna@gimpromed.com',
-            # correo_vendedor_n_pedido(n_pedido)
             get_vendedor_email_by_contrato(n_pedido_int)[0]
         ]
         
