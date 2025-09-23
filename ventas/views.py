@@ -40,9 +40,7 @@ def reporte_tipo_mba(request):
 
     desde = datetime.strptime('2023-01-01', '%Y-%m-%d')
     hasta = date.today()
-
     h = str(date.today())
-
     clientes = clientes_warehouse()[['CODIGO_CLIENTE', 'NOMBRE_CLIENTE']]
     clientes = clientes.sort_values('NOMBRE_CLIENTE')
 
@@ -54,8 +52,8 @@ def reporte_tipo_mba(request):
         d=datetime.strptime(desde, '%Y-%m-%d')
         h=datetime.strptime(hasta, '%Y-%m-%d')
         
-        vent = ventas_odbc_facturas(desde, hasta, cli).sort_values(by='FECHA', ascending=False)
-        vent['FECHA'] = vent['FECHA'].astype('str')
+        vent = ventas_odbc_facturas(desde, hasta, cli) #.sort_values(by='FECHA', ascending=False)
+        #vent['FECHA'] = vent['FECHA'].astype('str')
         
         if not vent.empty:
             
@@ -67,11 +65,11 @@ def reporte_tipo_mba(request):
             vent = vent.merge(cliente_list, on='CODIGO_CLIENTE', how='left')
             
             vent['UNIT_PRICE'] = vent['UNIT_PRICE'].round(2)
-            vent['COST_TOTAL'] = vent['COST_TOTAL'].round(2)
+            vent['PRECIO_TOTAL'] = vent['PRECIO_TOTAL'].round(2)
 
             total_cantidad =  vent['QUANTITY'].sum()
             total_unitario = vent['UNIT_PRICE'].sum()
-            total_ventas = vent['COST_TOTAL'].sum()
+            total_ventas = vent['PRECIO_TOTAL'].sum()
             
             vent = de_dataframe_a_template(vent)
 
