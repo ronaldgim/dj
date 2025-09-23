@@ -23,6 +23,7 @@
 
 <div class="mb-4">
     <form method="POST">
+    <!-- form method="GET" -->
         {% csrf_token %}
         <div class="row">
             <div class="col-6">
@@ -114,7 +115,7 @@
                         </td>
                         <td class="text-end">{{i.QUANTITY|floatformat:"0g"}}</td> 
                         <td class="text-end">$ {{i.UNIT_PRICE|floatformat:"2g"}}</td> 
-                        <td class="text-end">$ {{i.COST_TOTAL|floatformat:"2g"}}</td> 
+                        <td class="text-end">$ {{i.PRECIO_TOTAL|floatformat:"2g"}}</td> 
                     </tr>
                     {% endfor %}
                 </tbody>
