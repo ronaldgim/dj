@@ -2570,6 +2570,7 @@ def wms_correo_picking(n_pedido):
         
         data_mba = reservas_lote_n_picking(n_pedido_int)
         data_mba['lote_mba'] = data_mba['lote_id']
+        data_mba = data_mba.fillna('-')
         
         # data = data_wms.merge(data_mba, on=['product_id','lote_id'], how='outer')
         data =  pd.merge(left=data_wms, right=data_mba, on=['product_id','lote_id'], how='outer')
