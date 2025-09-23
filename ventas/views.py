@@ -52,8 +52,8 @@ def reporte_tipo_mba(request):
         d=datetime.strptime(desde, '%Y-%m-%d')
         h=datetime.strptime(hasta, '%Y-%m-%d')
         
-        vent = ventas_odbc_facturas(desde, hasta, cli) #.sort_values(by='FECHA', ascending=False)
-        #vent['FECHA'] = vent['FECHA'].astype('str')
+        vent = ventas_odbc_facturas(desde, hasta, cli) # .sort_values(by='FECHA', ascending=False)
+        # vent['FECHA'] = vent['FECHA'].astype('str')
         
         if not vent.empty:
             
@@ -61,6 +61,8 @@ def reporte_tipo_mba(request):
             prod = prod.rename(columns={'product_id':'PRODUCT_ID'})
             cliente_list = clientes_warehouse()[['CODIGO_CLIENTE', 'NOMBRE_CLIENTE']]
             
+            vent['FECHA'] = vent['FECHA'].astype('str')
+            vent = vent.sort_values(by='FECHA', ascending=False)
             vent = vent.merge(prod, on='PRODUCT_ID', how='left')
             vent = vent.merge(cliente_list, on='CODIGO_CLIENTE', how='left')
             
