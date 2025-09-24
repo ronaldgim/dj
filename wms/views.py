@@ -772,6 +772,10 @@ def wms_importaciones_transito_list(request):
     imp_transito = imp_transito.drop_duplicates(subset='CONTRATO_ID')
     imp_transito = imp_transito.merge(imp_total_pallets, on='CONTRATO_ID', how='left')
     
+    fotos_importacion = pd.DataFrame(ImportacionFotos.objects.all().values('importacion'))
+    if not fotos_importacion.empty:
+        imp_transito = imp_transito.merge(fotos_importacion, left_on='MEMO', right_on='importacion', how='left')
+    
     imp_transito = de_dataframe_a_template(imp_transito)
     
     if request.method == 'POST':

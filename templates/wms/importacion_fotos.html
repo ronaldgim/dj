@@ -4,7 +4,7 @@
 {% endblock %}
 
 {% block navbar %}
-{% include 'etiquetado/topnavbar.html' %}
+{% include 'wms/topnavbar.html' %}
 {% endblock %}
 
 {% block body_2 %}
@@ -124,7 +124,7 @@
 
     function deleteFoto(id) {
         // Ask for confirmation before deleting the photo
-        const isConfirmed = confirm('¿Está seguro de eliminar esta foto?');
+        const isConfirmed = confirm('¿Está seguro de eliminar la fotografía?');
         if (isConfirmed) {
             // console.log(`Deleting photo with id: ${id}`);
             // You can add an AJAX call here to perform deletion

@@ -81,7 +81,7 @@
                             </a>
                         </td>
                         <td class="text-center">
-                            <a class="btn btn-secondary btn-sm" href="{% url 'wms_importacion_fotos' i.MEMO %}">
+                            <a class="btn btn-sm {% if i.importacion %} btn-success {% else %} btn-secondary {% endif %}" href="{% url 'wms_importacion_fotos' i.MEMO %}">
                                 <i class="bi bi-camera-fill"></i>
                             </a>
                         </td>
