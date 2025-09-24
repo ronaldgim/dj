@@ -53,6 +53,7 @@
                         <th scope="col">Número de pallets</th>
                         <th scope="col">Detalle</th>
                         <th scope="col">Excel</th>
+                        <th scope="col">Fotos</th>
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
@@ -77,6 +78,11 @@
                         <td class="text-center">
                             <a class="btn btn-success btn-sm" href="{% url 'wms_excel_importacion_transito' i.CONTRATO_ID %}">
                                 <i class="bi bi-file-earmark-spreadsheet"></i>
+                            </a>
+                        </td>
+                        <td class="text-center">
+                            <a class="btn btn-secondary btn-sm" href="{% url 'wms_importacion_fotos' i.MEMO %}">
+                                <i class="bi bi-camera-fill"></i>
                             </a>
                         </td>
                     </tr>

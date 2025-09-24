@@ -16,6 +16,7 @@ from wms.models import (
     OrdenEmpaque,
     Existencias,
     FacturaAnulada,
+    ImportacionFotos
     )
 
 # EXISTENCIAS
@@ -214,3 +215,12 @@ class FacturaAnuladaAdmin(admin.ModelAdmin):
         'actualizado',
         'usuario',
         )
+
+@admin.register(ImportacionFotos)
+class ImportacionFotosAdmin(admin.ModelAdmin):
+    list_display = (
+        'importacion',
+        'foto',
+        'creado',
+        'usuario',
+    )

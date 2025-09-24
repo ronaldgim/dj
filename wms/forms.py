@@ -8,7 +8,8 @@ from wms.models import (
     DespachoCarton,
     ProductoArmado,
     OrdenEmpaque,
-    FacturaAnulada
+    FacturaAnulada,
+    ImportacionFotos
     )
 
 # MyForms
@@ -154,4 +155,10 @@ class FacturaAnuladaForm(forms.ModelForm):
     
     class Meta:
         model = FacturaAnulada
+        fields = '__all__'
+
+
+class ImportacionFotosForm(forms.ModelForm):
+    class Meta:
+        model = ImportacionFotos
         fields = '__all__'

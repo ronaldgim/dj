@@ -1,0 +1,257 @@
+{% extends 'base_vue.html' %}
+{% block title %}
+<title>IMPORTACIÓN - {{importacion}}</title>
+{% endblock %}
+
+{% block navbar %}
+{% include 'etiquetado/topnavbar.html' %}
+{% endblock %}
+
+{% block body_2 %}
+<!-- div id="app"-->
+
+    <div class="text-center mt-4 mb-4">
+        <h5 class="m-4 text-center fw-bold d-inline">
+            IMPORTACIÓN - <span id="importacion">{{importacion}}</span>
+        </h5>
+    </div>  
+
+    {% if messages %}
+        {% for message in messages %}
+        {% if message.tags == 'success'%}
+        <div class="alert text-center alert-success" role="alert">
+            {{message}}
+        </div>
+        {% elif message.tags == 'error'%}
+        <div class="alert text-center alert-danger" role="alert">
+            {{message}}
+        </div>
+        {%endif%}
+        {% endfor %}
+    {% endif %}
+
+    <button class="btn btn-success float-end" type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+        <i class="bi bi-camera-fill"></i>
+    </button>
+
+    <!-- Contenedor responsivo con grid de Bootstrap -->
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3">
+        {% for i in fotos %}
+        <div class="card m-4" style="width: 18rem;">
+            <img src="{{ i.foto.url }}" class="card-img-top p-2" alt="...">
+            <div class="card-body">
+                <label class="fw-bold">Creado por: </label>{{i.usuario.first_name}} {{i.usuario.last_name}} <br>
+                <label class="fw-bold">Fecha: </label>{{i.creado | date:"Y-m-d i:H"}}
+                <!--a href="#" class="btn btn-primary">Go somewhere</a-->
+                <br>
+                <button class="btn btn-sm btn-danger mt-2">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Agregar foto a la importación {{importacion}}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" id="photoForm" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <input name="importacion" type="hidden" value="{{ importacion }}" />
+                        <input name="usuario" type="hidden" value="{{ request.user.id }}" />
+                        
+                        <!-- Input de archivo -->
+                        <input type="file" 
+                            id="photoInput" 
+                            name="foto"
+                            class="custom-file-input" 
+                            accept="image/*" 
+                            capture="environment">
+                        
+                        <label for="photoInput" class="file-label">
+                            📷 Haz clic aquí para abrir la cámara o seleccionar una imagen
+                        </label>
+                        
+                        <div class="preview-container" id="previewContainer" style="display: none;">
+                            <label>Vista previa:</label><br>
+                            <img id="imagePreview" src="" alt="..." style="max-width: 300px; max-height: 400px;">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn-submit btn-sm btn-success mt-4">Enviar Foto</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+<script>
+    document.getElementById('photoInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        const previewContainer = document.getElementById('previewContainer');
+        const imagePreview = document.getElementById('imagePreview');
+        
+        if (file) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                imagePreview.src = e.target.result;
+                previewContainer.style.display = 'block';
+            };
+            
+            reader.readAsDataURL(file);
+        } else {
+            previewContainer.style.display = 'none';
+        }
+    });
+    
+    document.getElementById('photoForm').addEventListener('submit', function(e) {
+        const fileInput = document.getElementById('photoInput');
+        
+        if (fileInput.files.length === 0) {
+            alert('Por favor, selecciona o toma una foto primero.');
+            e.preventDefault(); // SOLO prevenir si no hay archivo
+            return;
+        }
+        
+        // Si hay archivo, el formulario se envía normalmente
+    });
+</script>
+
+
+<!-- script>
+
+    new Vue({
+        el:'#app',
+        data:{
+            // filtro
+            filtro:'',
+            // actualizado
+            actualizado:'',
+            // len of data
+            len_productos:'',
+            // reporte
+            cargandoReporte:false,
+            errorReporte:false,
+            errorReporteData:'',
+            reporte:[],
+
+            // detalle
+            cargadoDetalle:false,
+            errorDetalle:false,
+            errorDetalleLote:'',
+            product_idDetalle:'',
+            detalle:[]
+        },
+        mounted(){            
+            this.getReporteData();
+            this.$nextTick(() => {
+                $('#error-lote').DataTable({
+                    order: [],
+                    searching: true,
+                    paging: false,
+                    info: false,
+                    language: {
+                        search: "Buscar:", 
+                    },
+                    initComplete: function () {
+                        // 🔧 Modifica el input de búsqueda
+                        const input = $('div.dataTables_filter input');
+                        input.addClass('form-control form-control-sm mb-4'); 
+                        // input.attr('placeholder', 'Escribe para filtrar...');
+                    },
+                    columnDefs: [
+                        { targets: [-1], orderable: false },
+                        { targets: [3, 4, 5], type: 'num' },
+                        { targets: [1, 2, 3, 5, 6], type: 'string' },
+                    ]
+                });
+            });
+        },
+        watch: {
+            reporteFiltrado() {
+                this.$nextTick(() => {
+                    // const table = $('#error-lote').DataTable();
+                    // table.clear().destroy();
+                    $('#error-lote').DataTable({ 
+                        order: [],
+                        searching: true,
+                        paging: false,
+                        info: false,
+                        language: {
+                            search: "Buscar:", 
+                        },
+                        // initComplete: function () {
+                        //     // 🔧 Modifica el input de búsqueda
+                        //     const input = $('div.dataTables_filter input');
+                        //     input.addClass('form-control form-control-sm'); 
+                        //     // input.attr('placeholder', 'Escribe para filtrar...');
+                        // },
+                        columnDefs: [
+                            { targets: [-1], orderable: false },
+                            { targets: [3, 4, 5], type: 'num' },
+                            { targets: [1, 2, 3, 5, 6], type: 'string' },
+                        ]
+                    });
+                });
+            }
+        },
+        computed:{
+            reporteFiltrado() {
+                return this.reporte.filter(i=>
+                    i.product_id.toLowerCase().includes(this.filtro.toLowerCase()) |
+                    i.nombre.toLowerCase().includes(this.filtro.toLowerCase()) |
+                    i.marca.toLowerCase().includes(this.filtro.toLowerCase())
+                )
+            }
+        },
+
+        methods:{
+            async getReporteData() {
+                this.cargandoReporte = true;
+                try {
+                    const response = await fetch('/etiquetado/reporte_error_lote_data');
+                    if(!response.ok) {
+                        throw new Error(response.statusText);
+                    }
+                    const data = await response.json(); 
+                    // console.log(data);
+                    this.reporte = data.data || [];
+                    this.actualizado = new Date(data.actualizado).toLocaleString('es-EC');
+                    this.len_productos = data.data.length || 0;
+                } catch (error) {
+                    this.errorReporte = true;
+                    this.errorReporteData = error
+                } finally {
+                    this.cargandoReporte = false;
+                }
+            },
+
+            async getDetalleLote(product_id) {
+                this.cargadoDetalle = true;
+                try {
+                    const response = await fetch(`/etiquetado/detalle_error_lote_data/${product_id}`);
+                    if(!response.ok) {
+                        throw new Error(response.statusText);
+                    }
+                    const data = await response.json(); 
+                    // console.log(data);
+                    this.product_idDetalle = product_id;
+                    this.detalle = data.data || [];
+                } catch (error) {
+                    this.errorDetalle = true;
+                    this.errorDetalleLote = error
+                } finally {
+                    this.cargadoDetalle = false;
+                }
+            },
+        }
+    })
+</script -->
+
+{% endblock %}
