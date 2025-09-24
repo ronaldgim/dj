@@ -742,19 +742,20 @@ def wms_detalle_imp(request, o_compra): #OK
 @permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'], '/wms/home', 'Importaciones en tránsito')
 def wms_importaciones_transito_list(request):
     
-    prod = productos_odbc_and_django()[['product_id','UnidadesPorPallet']]
+    prod = productos_odbc_and_django()[['product_id', 'Marca','UnidadesPorPallet']]
     prod = prod.rename(columns={'product_id':'PRODUCT_ID'}) 
     
     imp_transito = importaciones_en_transito_odbc() 
     imp_transito['FECHA_ENTREGA'] = pd.to_datetime(imp_transito['FECHA_ENTREGA']).dt.strftime('%Y-%m-%d')
     imp_transito = imp_transito.sort_values(by='FECHA_ENTREGA', ascending=True)
+    imp_transito = imp_transito.merge(prod, on='PRODUCT_ID',how='left')
     
     imps_contratos = []
     imps_total_pallets = []
     imps_incompleto = []
     for i in imp_transito['CONTRATO_ID'].unique():
         imp_contrato = imp_transito[imp_transito['CONTRATO_ID']==i]
-        imp_contrato = imp_contrato.merge(prod, on='PRODUCT_ID',how='left')
+        # imp_contrato = imp_contrato.merge(prod, on='PRODUCT_ID',how='left')
         imp_contrato['pallets'] = imp_contrato['QUANTITY'] / imp_contrato['UnidadesPorPallet']
         imp_contrato = imp_contrato.replace(np.inf, 0)
         
@@ -775,7 +776,6 @@ def wms_importaciones_transito_list(request):
     fotos_importacion = pd.DataFrame(ImportacionFotos.objects.all().values('importacion'))
     if not fotos_importacion.empty:
         imp_transito = imp_transito.merge(fotos_importacion, left_on='MEMO', right_on='importacion', how='left')
-    
     imp_transito = de_dataframe_a_template(imp_transito)
     
     if request.method == 'POST':
@@ -908,8 +908,7 @@ def wms_excel_importacion_transito(request, contrato_id):
 
 
 @login_required(login_url='login')
-
-def wms_importacion_fotos(request, importacion:str):
+def wms_importacion_fotos(request, importacion:str, proveedor:str, marca:str):
     fotos = ImportacionFotos.objects.filter(importacion=importacion).order_by('-id')
     
     if request.method == 'POST':
@@ -917,12 +916,14 @@ def wms_importacion_fotos(request, importacion:str):
         if form.is_valid():
             form.save()
             messages.success(request, 'Foto agregada exitosamente !!!')
-            return HttpResponseRedirect(f'/wms/importaciones/fotos/{importacion}')
+            return HttpResponseRedirect(f'/wms/importaciones/fotos/{importacion}/{proveedor}/{marca}')
         else:
             messages.error(request, form.errors)
         
     context = {
         'importacion': importacion,
+        'proveedor':proveedor,
+        'marca':marca,
         'fotos':fotos
         }
     return render(request, 'wms/importacion_fotos.html', context)
