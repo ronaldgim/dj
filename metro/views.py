@@ -577,7 +577,6 @@ def metro_movimiento_edit(request, id):
     if request.method == 'POST':
         # Procesar el formulario enviado        
         form = KardexForm(request.POST, request.FILES, instance=product, user=request.user) 
-
         if request.POST.get('confirmado', False) == 'true':
             campos_requeridos = ['description', 'cantidad', 'nota_entrega', 'fecha_nota', 'movimiento_mba', 'fecha_mba']
             
