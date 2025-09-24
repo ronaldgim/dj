@@ -373,6 +373,8 @@ class FacturaAnulada(models.Model):
 class ImportacionFotos(models.Model):
     
     importacion = models.CharField(max_length=30)
+    proveedor = models.CharField(max_length=30, blank=True)
+    marca = models.CharField(max_length=30, blank=True)
     foto = models.ImageField(upload_to='importaciones')
     creado = models.DateTimeField(auto_now_add=True)
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)

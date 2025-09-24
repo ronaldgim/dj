@@ -59,7 +59,7 @@ urlpatterns = [
     ),
     
     path(
-        route='importaciones/fotos/<str:importacion>',
+        route='importaciones/fotos/<str:importacion>/<str:proveedor>/<str:marca>',
         view = views.wms_importacion_fotos, #OK
         name = 'wms_importacion_fotos'
     ),
