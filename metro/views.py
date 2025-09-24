@@ -622,7 +622,16 @@ def metro_movimiento_edit(request, id):
     else:
         # Para solicitudes GET, crear el formulario con el producto existente
         form = KardexForm(instance=product, user=request.user)
-        return HttpResponse(form.as_p())
+        if request.user.id == 1:
+            return JsonResponse({
+                'success':True,
+                'form':form.as_p()
+            })
+        else:
+            return JsonResponse({
+                    'success': False,
+                    'message': 'Solo el usuario Carlos Arcos puede editar esta información !!!',
+                })
 
 
 @csrf_exempt

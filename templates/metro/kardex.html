@@ -128,7 +128,7 @@
                                 <div class="btn-group" role="group" aria-label="Basic example">
                                     <button 
                                         name="edit-form-btn"
-                                        class="btn btn-sm btn-secondary edit-product-btn {% if i.confirmado or request.user.id != 12 %} disabled {% endif %}"
+                                        class="btn btn-sm btn-secondary edit-product-btn {#% if i.confirmado or request.user.id != 12 %} disabled {% endif %#}"
                                         data-product-id="{{ i.id }}" 
                                         data-product-name="Editar: {{ i.product.codigo_gim }}"
                                     >
@@ -309,12 +309,22 @@
                 url: `/metro/movimiento-edit/${productId}`,
                 type: 'GET',
                 success: function(response) {
-                    $("#form-edit").attr("action", `/metro/movimiento-edit/${productId}`);
-                    $("#editModalBody").html(response);
-                    $("#editModalBody label").addClass("fw-bold");
-                    $("#editModalBody .row").addClass("mb-3");
-                    $("#editModalBody label[for='id_confirmado']").hide();
-                    $("#editModalBody input[id='id_confirmado']").hide();
+
+                    if (response.success) {
+                        $("#form-edit").attr("action", `/metro/movimiento-edit/${productId}`);
+                        $("#editModalBody").html(response.form);
+                        $("#editModalBody label").addClass("fw-bold");
+                        $("#editModalBody .row").addClass("mb-3");
+                        $("#editModalBody label[for='id_confirmado']").hide();
+                        $("#editModalBody input[id='id_confirmado']").hide();
+                    } else {
+                    $("#editModalErrors").html(`
+                        <div class="alert alert-danger">
+                            ${response.message}
+                        </div>
+                    `).show();
+                    $("#editModalBody").html('');
+                    }
                 },
                 error: function() {
                     $("#editModalBody").html('<div class="alert alert-danger">Error al cargar el formulario.</div>');
