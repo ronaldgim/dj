@@ -75,7 +75,8 @@ from wms.models import (
     DespachoCarton,
     ProductoArmado,
     OrdenEmpaque,
-    FacturaAnulada
+    FacturaAnulada,
+    ImportacionFotos
     )
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -97,7 +98,8 @@ from wms.forms import (
     OrdenEmpaqueUpdateForm,
     ComponenteArmadoForm,
     ProductoNuevoArmadoUpdateForm,
-    FacturaAnuladaForm
+    FacturaAnuladaForm,
+    ImportacionFotosForm
     )
 
 # Messages
@@ -735,7 +737,6 @@ def wms_detalle_imp(request, o_compra): #OK
     return render(request, 'wms/detalle_importacion.html', context)
 
 
-
 # Lista de importaciones en transito
 @login_required(login_url='login')
 @permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'], '/wms/home', 'Importaciones en tránsito')
@@ -901,6 +902,25 @@ def wms_excel_importacion_transito(request, contrato_id):
     
     return response
 
+
+
+def wms_importacion_fotos(request, importacion:str):
+    fotos = ImportacionFotos.objects.filter(importacion=importacion)
+    
+    if request.method == 'POST':
+        form = ImportacionFotosForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Foto agregada exitosamente !!!')
+            return HttpResponseRedirect(f'/wms/importaciones/fotos/{importacion}')
+        else:
+            messages.error(request, form.errors)
+        
+    context = {
+        'importacion': importacion,
+        'fotos':fotos
+        }
+    return render(request, 'wms/importacion_fotos.html', context)
 
 
 # Lista de productos de importación

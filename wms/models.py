@@ -368,3 +368,11 @@ class FacturaAnulada(models.Model):
     
     def __str__(self):
         return self.n_factura
+
+
+class ImportacionFotos(models.Model):
+    
+    importacion = models.CharField(max_length=30)
+    foto = models.ImageField(upload_to='importaciones')
+    creado = models.DateTimeField(auto_now_add=True)
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
