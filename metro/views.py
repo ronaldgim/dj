@@ -500,7 +500,7 @@ def enviar_correo_kardex(kardex):
     
     ultimo_movimiento = kardex.last()
     asunto = 'Ingreso de Nuevo Producto a Consignación' if ultimo_movimiento.description == 'Saldo inicial' else f'{ultimo_movimiento.description} de Consiganción'
-    correos = ['egarces@gimpromed.com'] # , 'jgualotuna@gimpromed.com']
+    correos = ['egarces@gimpromed.com', 'jgualotuna@gimpromed.com']
     
     if ultimo_movimiento.description != 'Saldo inicial':
         movs = []
