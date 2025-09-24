@@ -2574,9 +2574,9 @@ def wms_correo_picking(n_pedido):
         
         # data = data_wms.merge(data_mba, on=['product_id','lote_id'], how='outer')
         data =  pd.merge(left=data_wms, right=data_mba, on=['product_id','lote_id'], how='outer').fillna('-')
-        data['lotes'] = data['lote_wms'] == data['lote_mba']
-        data['unidades'] = data['unidades_wms'] == data['egreso_temp']
-        data['revision'] = data['lotes'] == data['unidades']
+        data['revision_lotes'] = data['lote_wms'] == data['lote_mba']
+        data['revision_unidades'] = data['unidades_wms'] == data['egreso_temp']
+        data['revision'] = data['revision_lotes'] == data['revision_unidades']
         
         prods = productos_odbc_and_django()[['product_id', 'Nombre', 'Marca']]
         data = data.merge(prods, on='product_id', how='left') 
