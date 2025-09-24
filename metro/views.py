@@ -577,6 +577,26 @@ def metro_movimiento_edit(request, id):
     if request.method == 'POST':
         # Procesar el formulario enviado        
         form = KardexForm(request.POST, request.FILES, instance=product, user=request.user) 
+
+        if request.POST.get('confirmado', False) == 'true':
+            campos_requeridos = ['description', 'cantidad', 'nota_entrega', 'fecha_nota', 'movimiento_mba', 'fecha_mba']
+            
+            campos_llenos = []
+            for i in campos_requeridos:
+                valor = request.POST.get(i, '').strip()
+                if valor:
+                    campos_llenos.append(True)
+                else:
+                    campos_llenos.append(False)
+            
+            doc = True if product.documento or request.POST.get('documento', '') else False 
+            campos_llenos.append(doc)
+            if not all(campos_llenos):
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Para confirmar llene todos los campos !!!',
+                })
+        
         if form.is_valid():
             tipo = request.POST.get('tipo', '')
             cantidad_val = int(request.POST.get('cantidad', 0))
@@ -602,7 +622,16 @@ def metro_movimiento_edit(request, id):
     else:
         # Para solicitudes GET, crear el formulario con el producto existente
         form = KardexForm(instance=product, user=request.user)
-        return HttpResponse(form.as_p())
+        if request.user.id == 1:
+            return JsonResponse({
+                'success':True,
+                'form':form.as_p()
+            })
+        else:
+            return JsonResponse({
+                    'success': False,
+                    'message': 'Solo el usuario Carlos Arcos puede editar esta información !!!',
+                })
 
 
 @csrf_exempt
