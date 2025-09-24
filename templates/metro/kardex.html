@@ -358,6 +358,12 @@
                         // Actualizar la fila en la tabla sin recargar
                         // updateProductRow(response.product);
                         // console.log(response.product);
+                    } else {
+                        $("#editModalErrors").html(`
+                        <div class="alert alert-danger">
+                            ${response.message}
+                        </div>
+                    `).show();
                     }
                 },
                 error: function(xhr) {
@@ -422,41 +428,16 @@
 </script>
 
 <!-- Confirmar booton -->
-<!--script>
-    // Función simple para habilitar botón cuando los campos estén llenos
-    function habilitarBotonCuandoCamposLlenos(formId, btnId, camposIds) {
-        const formulario = document.getElementById(formId);
-        const boton = document.getElementById(btnId);
-        const campos = camposIds.map(id => document.getElementById(id));
-
-        function verificarCampos() {
-            const todosLlenos = campos.every(campo => 
-                campo.value.trim() !== ''
-            );
-            boton.disabled = !todosLlenos;
-        }
-
-        // Agregar event listeners
-        campos.forEach(campo => {
-            campo.addEventListener('input', verificarCampos);
-            campo.addEventListener('change', verificarCampos);
-        });
-
-        // Validación inicial
-        verificarCampos();
-    }
-
-    // Uso:
-    document.addEventListener('DOMContentLoaded', function() {
-        habilitarBotonCuandoCamposLlenos('form-edit', 'btn-confirmar', [
-            'id_description', 'id_cantidad', 'id_nota_entrega', 
-            // 'id_fecha_nota', 'id_movimiento_mba', 'id_fecha_mba', 
-            // 'id_documento'
-        ]);
-    });
-</script-->
-
 <script>
+    // const tipo_movimiento = $("#id_description").on('change', function() {console.log(tipo_movimiento.val())});
+    // console.log(tipo_movimiento);
+    $("#id_description").on('change', function() {
+        console.log(this.val())
+    })
+</script>
+
+
+<!--script>
     // Función para habilitar botón cuando los campos estén llenos
     function habilitarBotonCuandoCamposLlenos(formId, btnId, camposIds, modalId=null) {
         const formulario = document.getElementById(formId);
@@ -507,9 +488,7 @@
             'editModal' 
         );
     })
-</script>
-
-
+</script-->
 
 <!-- Reset form -->
 <script>
