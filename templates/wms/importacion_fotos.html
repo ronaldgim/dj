@@ -35,16 +35,16 @@
     </button>
 
     <!-- Contenedor responsivo con grid de Bootstrap -->
-    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3">
+    <div class="mt-4 row row-cols-1 row-cols-sm-2 row-cols-md-3">
         {% for i in fotos %}
-        <div class="card m-4" style="width: 18rem;">
+        <div class="card m-2" style="width: 18rem;">
             <img src="{{ i.foto.url }}" class="card-img-top p-2" alt="...">
             <div class="card-body">
                 <label class="fw-bold">Creado por: </label>{{i.usuario.first_name}} {{i.usuario.last_name}} <br>
                 <label class="fw-bold">Fecha: </label>{{i.creado | date:"Y-m-d i:H"}}
                 <!--a href="#" class="btn btn-primary">Go somewhere</a-->
                 <br>
-                <button class="btn btn-sm btn-danger mt-2">
+                <button class="btn btn-sm btn-danger mt-2" onclick="deleteFoto({{i.id}})">
                     <i class="bi bi-trash"></i>
                 </button>
             </div>
@@ -121,6 +121,49 @@
         
         // Si hay archivo, el formulario se envía normalmente
     });
+
+    function deleteFoto(id) {
+        // Ask for confirmation before deleting the photo
+        const isConfirmed = confirm('¿Está seguro de eliminar esta foto?');
+        if (isConfirmed) {
+            // console.log(`Deleting photo with id: ${id}`);
+            // You can add an AJAX call here to perform deletion
+            // fetch('/wms/importaciones/fotos/delete', {
+            fetch( `/wms/importaciones/fotos/delete/${id}`, {
+
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                // body: JSON.stringify({ id: id })
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    alert('Error al eliminar la foto.');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+        }
+    }
+
 </script>
 
 

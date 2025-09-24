@@ -64,6 +64,12 @@ urlpatterns = [
         name = 'wms_importacion_fotos'
     ),
     
+    path(
+        route='importaciones/fotos/delete/<int:id>',
+        view = views.wms_importacion_foto_delete, #OK
+        name = 'wms_importacion_foto_delete'
+    ),
+        
     # Ver detalle ya en tabla local y pedir ubicaciones
     path(
         route='importacion/bodega/<str:o_compra>',

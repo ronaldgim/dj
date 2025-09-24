@@ -903,9 +903,10 @@ def wms_excel_importacion_transito(request, contrato_id):
     return response
 
 
+@login_required(login_url='login')
 
 def wms_importacion_fotos(request, importacion:str):
-    fotos = ImportacionFotos.objects.filter(importacion=importacion)
+    fotos = ImportacionFotos.objects.filter(importacion=importacion).order_by('-id')
     
     if request.method == 'POST':
         form = ImportacionFotosForm(request.POST, request.FILES)
@@ -922,6 +923,23 @@ def wms_importacion_fotos(request, importacion:str):
         }
     return render(request, 'wms/importacion_fotos.html', context)
 
+
+@login_required(login_url='login')
+def wms_importacion_foto_delete(request, id):
+    
+    try:
+        if request.method == 'POST':
+            ImportacionFotos.objects.filter(id=id).delete()
+            return JsonResponse({
+                'success':True,
+                'msg':'Foto eliminada correctamente !!!'
+            })
+    except Exception as e:
+        return JsonResponse({
+                'success':False,
+                'msg':f'Error: {e}'
+            })
+        
 
 # Lista de productos de importación
 # url: importacion/bodega/<str:o_compra>
