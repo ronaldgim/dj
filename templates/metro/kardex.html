@@ -128,14 +128,14 @@
                                 <div class="btn-group" role="group" aria-label="Basic example">
                                     <button 
                                         name="edit-form-btn"
-                                        class="btn btn-sm btn-secondary edit-product-btn {#% if i.confirmado %} disabled {% endif %#}"
+                                        class="btn btn-sm btn-secondary edit-product-btn {% if i.confirmado or request.user.id != 12 %} disabled {% endif %}"
                                         data-product-id="{{ i.id }}" 
                                         data-product-name="Editar: {{ i.product.codigo_gim }}"
                                     >
                                         <i class="bi bi-pencil-fill"></i>
                                     </button>
                                     <button 
-                                        class="btn btn-sm btn-danger delete-product-btn {#% if i.confirmado %#} disabled {#% endif %#}"
+                                        class="btn btn-sm btn-danger delete-product-btn {% if i.confirmado %} disabled {% endif %}"
                                         value="{{i.id}}"
                                         data-codigo-gim="{{i.product.codigo_gim}}"
                                         data-nombre-gim="{{i.product.nombre_gim}}"
