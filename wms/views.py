@@ -2677,6 +2677,7 @@ def wms_correo_picking(n_pedido):
 
     except Exception as e:
         # logger.error(f"Error procesando pedido {n_pedido}: {e}", exc_info=True)
+        data_error_str = str(e)
         data = {}
 
     try:
@@ -2724,7 +2725,7 @@ def wms_correo_picking(n_pedido):
         
         picking.email_picking_send = True
         picking.email_picking_fecha_hora = datetime.now()
-        picking.email_picking_errors = 'Data error !!!' if not data else ''
+        picking.email_picking_errors = f'Data error: {data_error_str}' if not data else ''
         picking.save()
     except Exception as e:
         picking.email_picking_fecha_hora = datetime.now()
