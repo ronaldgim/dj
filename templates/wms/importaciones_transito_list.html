@@ -53,7 +53,7 @@
                         <th scope="col">Número de pallets</th>
                         <th scope="col">Detalle</th>
                         <th scope="col">Excel</th>
-                        <!--th scope="col">Fotos</th-->
+                        <th scope="col">Fotos</th>
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
@@ -80,11 +80,11 @@
                                 <i class="bi bi-file-earmark-spreadsheet"></i>
                             </a>
                         </td>
-                        <!--td class="text-center">
+                        <td class="text-center">
                             <a class="btn btn-sm {% if i.importacion %} btn-success {% else %} btn-secondary {% endif %}" href="{% url 'wms_importacion_fotos' i.MEMO i.VENDOR_NAME i.Marca %}">
                                 <i class="bi bi-camera-fill"></i>
                             </a>
-                        </td-->
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
