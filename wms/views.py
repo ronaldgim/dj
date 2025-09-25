@@ -2604,29 +2604,79 @@ def ciudad_principal_cliente(codigo_cliente):
 def wms_correo_picking(n_pedido):
     
     n_pedido_int = n_pedido.split('.')[0]
+    # try:
+    #     data_wms = pd.DataFrame(Movimiento.objects.filter(n_referencia=n_pedido).values('product_id', 'lote_id', 'unidades'))  
+    #     data_wms['lote_id'] = data_wms['lote_id'].str.replace('.', '')
+    #     data_wms['unidades_wms'] = data_wms['unidades'] *-1
+    #     data_wms['lote_wms'] = data_wms['lote_id']
+    #     data_wms = data_wms.groupby(by=['product_id','lote_id','lote_wms'])['unidades_wms'].sum().reset_index()
+        
+    #     data_mba = reservas_lote_n_picking(n_pedido_int)
+    #     data_mba['lote_mba'] = data_mba['lote_id']
+    #     data_mba = data_mba.fillna('-')
+        
+    #     # data = data_wms.merge(data_mba, on=['product_id','lote_id'], how='outer')
+    #     data =  pd.merge(left=data_wms, right=data_mba, on=['product_id','lote_id'], how='outer').fillna('-')
+    #     data['unidades_wms'] = data['unidades_wms'].astype('int')
+    #     data['egreso_temp'] = data['egreso_temp'].astype('int')
+    #     data['revision_lotes'] = data['lote_wms'] == data['lote_mba']
+    #     data['revision_unidades'] = data['unidades_wms'] == data['egreso_temp']
+    #     data['revision'] = data['revision_lotes'] == data['revision_unidades']
+        
+    #     prods = productos_odbc_and_django()[['product_id', 'Nombre', 'Marca']]
+    #     data = data.merge(prods, on='product_id', how='left') 
+    #     data = de_dataframe_a_template(data)
+    # except Exception as e:
+    #     data = {}
+    
     try:
-        data_wms = pd.DataFrame(Movimiento.objects.filter(n_referencia=n_pedido).values('product_id', 'lote_id', 'unidades'))  
-        data_wms['lote_id'] = data_wms['lote_id'].str.replace('.', '')
-        data_wms['unidades_wms'] = data_wms['unidades'] *-1
-        data_wms['lote_wms'] = data_wms['lote_id']
-        data_wms = data_wms.groupby(by=['product_id','lote_id','lote_wms'])['unidades_wms'].sum().reset_index()
-        
-        data_mba = reservas_lote_n_picking(n_pedido_int)
-        data_mba['lote_mba'] = data_mba['lote_id']
-        data_mba = data_mba.fillna('-')
-        
-        # data = data_wms.merge(data_mba, on=['product_id','lote_id'], how='outer')
-        data =  pd.merge(left=data_wms, right=data_mba, on=['product_id','lote_id'], how='outer').fillna('-')
-        data['unidades_wms'] = data['unidades_wms'].astype('int')
-        data['egreso_temp'] = data['egreso_temp'].astype('int')
-        data['revision_lotes'] = data['lote_wms'] == data['lote_mba']
-        data['revision_unidades'] = data['unidades_wms'] == data['egreso_temp']
-        data['revision'] = data['revision_lotes'] == data['revision_unidades']
-        
-        prods = productos_odbc_and_django()[['product_id', 'Nombre', 'Marca']]
-        data = data.merge(prods, on='product_id', how='left') 
+        # --- Cargar datos desde WMS ---
+        data_wms = pd.DataFrame(
+            Movimiento.objects.filter(n_referencia=n_pedido)
+            .values("product_id", "lote_id", "unidades")
+        )
+
+        if not data_wms.empty:
+            data_wms["lote_id"] = data_wms["lote_id"].astype(str).str.replace(".", "", regex=False)
+            data_wms["unidades_wms"] = data_wms["unidades"] * -1
+            # Agrupación por producto y lote
+            data_wms = (
+                data_wms.groupby(["product_id", "lote_id"], as_index=False)["unidades_wms"]
+                .sum()
+            )
+            data_wms["lote_wms"] = data_wms["lote_id"]
+
+        # --- Cargar datos desde MBA ---
+        data_mba = reservas_lote_n_picking(n_pedido_int).copy()
+        data_mba["lote_mba"] = data_mba["lote_id"]
+        data_mba = data_mba.fillna("-")
+
+        # --- Merge de WMS y MBA ---
+        data = pd.merge(
+            left=data_wms,
+            right=data_mba,
+            on=["product_id", "lote_id"],
+            how="outer"
+        ).fillna("-")
+
+        # Conversión segura de tipos
+        data["unidades_wms"] = pd.to_numeric(data["unidades_wms"], errors="coerce").fillna(0).astype(int)
+        data["egreso_temp"] = pd.to_numeric(data["egreso_temp"], errors="coerce").fillna(0).astype(int)
+
+        # --- Validaciones ---
+        data["revision_lotes"] = data["lote_wms"] == data["lote_mba"]
+        data["revision_unidades"] = data["unidades_wms"] == data["egreso_temp"]
+        data["revision"] = data["revision_lotes"] & data["revision_unidades"]
+
+        # --- Enriquecer con datos de productos ---
+        prods = productos_odbc_and_django()[["product_id", "Nombre", "Marca"]]
+        data = data.merge(prods, on="product_id", how="left")
+
+        # --- Convertir para template ---
         data = de_dataframe_a_template(data)
+
     except Exception as e:
+        # logger.error(f"Error procesando pedido {n_pedido}: {e}", exc_info=True)
         data = {}
 
     try:
