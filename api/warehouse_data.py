@@ -121,7 +121,7 @@ def api_productos_list(_request):
     try:
         with connections['gimpromed_sql'].cursor() as cursor:
             cursor.execute("SELECT * FROM warehouse.productos")
-            columns = [col[0] for col in cursor.description]
+            columns = [col[0].lower() for col in cursor.description]
             productos = [dict(zip(columns, row)) for row in cursor.fetchall()]            
             
             return Response(data={
