@@ -2410,7 +2410,7 @@ def wms_egreso_picking_misreservas(request, n_pedido): #OK
         'ubicacion__distancia_puerta',
         'unidades',
         'estado'
-    )
+    )#.order_by('ubicacion__nivel')
 
     mov_bodega_df = pd.DataFrame(movimientos.order_by('fecha_caducidad').values('product_id', 'ubicacion__bodega'))
     mov_bodega_df = mov_bodega_df.rename(columns={'ubicacion__bodega':'bodega_mov'})
@@ -2441,7 +2441,7 @@ def wms_egreso_picking_misreservas(request, n_pedido): #OK
     # bodega_df = bodega_df[['product_id','primera_bodega']]
     
     if inv.exists():
-        inv = pd.DataFrame(inv).sort_values(by=['lote_id','fecha_caducidad','ubicacion__distancia_puerta'], ascending=[True,True,True])
+        inv = pd.DataFrame(inv).sort_values(by=['lote_id','fecha_caducidad','ubicacion__nivel'], ascending=[True,True,True])
         inv['fecha_caducidad'] = inv['fecha_caducidad'].astype(str)
 
         r_lote = wms_reservas_lotes_datos()
