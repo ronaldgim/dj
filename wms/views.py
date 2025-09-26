@@ -2383,7 +2383,7 @@ def wms_egreso_picking_misreservas(request, n_pedido): #OK
     prod_list = list(pedido['product_id'].unique())
     
     movimientos = Movimiento.objects.filter(referencia='Picking').filter(n_referencia=n_pedido)
-
+    
     if movimientos.exists():
         mov = pd.DataFrame(movimientos.values(
             'id','product_id','lote_id','fecha_caducidad','tipo','unidades',
@@ -2397,7 +2397,6 @@ def wms_egreso_picking_misreservas(request, n_pedido): #OK
         # unds_pickeadas = unds_pickeadas.rename(columns={'product_id':'PRODUCT_ID'})
         # pedido = pedido.merge(unds_pickeadas, on='PRODUCT_ID', how='left')
         pedido = pedido.merge(unds_pickeadas, on='product_id', how='left')
-        
         mov = de_dataframe_a_template(mov)
 
     else:
@@ -2408,7 +2407,7 @@ def wms_egreso_picking_misreservas(request, n_pedido): #OK
         'product_id','lote_id','fecha_caducidad','unidades',
         'ubicacion_id','ubicacion__bodega','ubicacion__pasillo','ubicacion__modulo','ubicacion__nivel',
         'ubicacion__distancia_puerta',
-        'unidades',
+        #'unidades',
         'estado'
     )#.order_by('ubicacion__nivel')
 
