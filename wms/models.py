@@ -378,3 +378,18 @@ class ImportacionFotos(models.Model):
     foto = models.ImageField(upload_to='importaciones')
     creado = models.DateTimeField(auto_now_add=True)
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+
+
+class CostoImportacion(models.Model):
+    
+    product_id      = models.CharField(max_length=30)
+    nombre          = models.CharField(max_length=100, blank=True)
+    marca           = models.CharField(max_length=30, blank=True)
+    costo_unitario  = models.FloatField()
+    dolar_importado = models.FloatField(blank=True, null=True)
+    importacion     = models.CharField(max_length=30)
+    gim             = models.CharField(max_length=30)
+    fecha_llegada   = models.DateField()
+    
+    def __str__(self):
+        return f'{self.product_id} - {self.costo_unitario} - {self.dolar_importado}'

@@ -1,0 +1,606 @@
+{%extends 'base_vue.html' %}
+
+{% block title %}
+<title>COSTOS IMPORTACIÓN</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'wms/topnavbar.html' %}
+{% endblock %}
+
+{% block body_2 %}
+
+<div id="app">
+
+    <h5 class="m-4 text-center fw-bold">COSTOS DE IMPORTACIÓN</h5>
+
+    <div class="col-4">
+        <div class="d-flex align-items-center">
+            <label class="fw-bold me-2">Código:</label>
+            <!--div class="col-auto"-->
+            <select :value="filtro" @change="onSelectChange" class="form-select form-select-sm">
+                <option value="">------</option>
+                {% verbatim %}
+                <option v-for="producto in product_list" :key="producto.codigo" :value="producto.codigo">
+                {{ producto.codigo }}
+                </option>
+                {% endverbatim %}
+            </select>
+            <button class="btn btn-sm btn-primary ms-2" @click="getDataProduct(filtro)" :disabled="!filtro">
+                <i class="bi bi-search"></i>
+            </button>
+            <button class="btn btn-sm btn-danger ms-2" @click="{limpiarSelect()}">
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>
+    </div>
+    
+    <br><br><br><br>
+
+    <div class="card">
+        <div class="card-header">
+            STOCK PARA TRANSFERENCIA
+            {% verbatim %}
+                <span v-if="!actualizandoStock" class="fw-bold float-end"> 
+                    {{ fecha_actual }} 
+                </span>   
+            {% endverbatim %}
+        </div>
+        <div class="card-body">
+            
+            <!--div class="row g-3 align-items-center">
+                <div class="col-4">
+                    <div class="d-flex align-items-center">
+                        <label class="fw-bold me-2">Código:</label>
+                        <select :value="filtro" @change="onSelectChange" class="form-select form-select-sm">
+                            <option value="">Todos</option>
+                            {% verbatim %}
+                            <option v-for="producto in product_list" :key="producto" :value="producto">
+                            {{ producto }}
+                            </option>
+                            {% endverbatim %}
+                        </select>
+                        <button class="btn btn-sm btn-primary ms-2" @click="{filtroTotalUnidadesActivos = true; limpiarSelect()}">
+                            <i class="bi bi-check2-square"></i>
+                        </button>
+                        <button class="btn btn-sm btn-secondary ms-2" @click="{filtroTotalUnidadesActivos = false; limpiarSelect()}">
+                            <i class="bi bi-list-columns"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-2"></div>
+                <div class="col-6">
+                    <div class="d-flex align-items-center float-end">
+                        <table class="ms-4 ps-4">
+                            <tbody>
+                                <tr>
+                                    <td class="pe-4">
+                                        <i class="bi bi-truck"></i>
+                                        {% verbatim %}
+                                        <select v-model="camion" style="width:180px; padding:5px">
+                                            <option v-for="c in camiones" :key="c.placa" :value="c">
+                                                {{ c.placa }} - {{ c.volumen.toFixed(3)}} m³
+                                            </option>
+                                        </select>
+                                        {% endverbatim %}
+                                    </td>
+                                    <td class="border-end pe-2 ps-2">
+                                        <span :class="totales.vol_unitario > (camion?.volumen || 0) ? 'text-danger fw-bold' : 'text-success fw-bold'">
+                                            {% verbatim %} Vol: {{ totales.vol_unitario.toFixed(3) }} m³ {% endverbatim %}
+                                        </span>
+                                    </td>
+                                    <td class="border-end border-start pe-2 ps-2">
+                                        {% verbatim %} # Prods: {{cantidadProductosUnicos}} {% endverbatim %}
+                                    </td>
+                                    <td class="border-start pe-2 ps-2">
+                                        {% verbatim %} % Lleno: {{porcentajeLleno}} % {% endverbatim %}
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                                            <i class="bi bi-list-check"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div-->
+
+            <!-- TABLA -->
+            <div class="table-responsive mt-2">
+                <div style="max-height: 70vh; overflow-y: auto;">
+                    <table class="table table-bordered" style="font-size: small;">
+                        <thead class="table-light" style="position: sticky; top: 0; z-index: 2;">
+                            <tr class="text-smaller">
+                                <th><span style="white-space: nowrap;">Código</span></th>
+                                <th><span style="white-space: nowrap;">Nombre</span></th>
+                                <th> <span style="white-space: nowrap;">Marca</span></th>
+                                <th><span style="white-space: nowrap;">Costo Unitario</span></th>
+                                <th><span style="white-space: nowrap;">Dólar Importado</span></th>
+                                <th><span style="white-space: nowrap;">IMP</span></th>
+                                <th><span style="white-space: nowrap;">GIM</span></th>
+                                <th><span style="white-space: nowrap;">F.Llegada</span></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% verbatim %}
+                            <tr>
+                                <td v-if="actualizandoStock" colspan="16" class="text-center fs-1">
+                                    <span>cargando stock...</span>
+                                    <div class="spinner-border" style="width: 3rem; height: 3rem;" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr v-for="(i, index) in dataProduct" :key="i.product_id" :style="i.totalUnidades > 0 ? 'background-color:#E5FFE9' : ''">
+                                <td>{{i.product_id}}</td>
+                                <td>{{i.nombre}}</td>
+                                <td>{{i.marca}}</td>
+                                <td class="text-end">{{ formatNumber(i.costo_unitario, decimales) }}</td>
+                                <td class="text-end">{{ formatNumber(i.dolar_importado, decimales) }}</td>
+                                <td>{{i.importacion}}</td>
+                                <td>{{i.gim}}</td>
+                                <td>{{i.fecha_llegada}}</td>
+                            </tr>
+                            {% endverbatim %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable modal-xl">
+            <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Detalle de Transferencia</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+
+            <div class="modal-body">
+                <div v-if="msg" :class="type_msg" role="alert">
+                    {% verbatim %}
+                        {{msg}}
+                    {% endverbatim %}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <label class="fw-bold">Nota:</label>
+                <div class="col-6">
+                    <textarea type="text" class="form-control col-4 mb-4" row="2" v-model="nota"></textarea>
+                </div>
+
+                <table>
+                    <tbody>
+                        <tr class="border">
+                            <td>
+                                <i class="bi bi-truck"></i>
+                                {% verbatim %}
+                                <span v-if="camion">{{ camion?.placa }} - {{camion?.volumen.toFixed(3)}} m³ </span>
+                                <!--span v-else></span-->
+                                {% endverbatim %}
+                            </td>
+                            <td class="border-end pe-2 ps-2">
+                                <span :class="totales.vol_unitario > (camion?.volumen || 0) ? 'text-danger fw-bold' : 'text-success fw-bold'">
+                                    {% verbatim %} Vol: {{ totales.vol_unitario.toFixed(3) }} m³ {% endverbatim %}
+                                </span>
+                            </td>
+                            <td class="border-end border-start pe-2 ps-2">
+                                {% verbatim %} # Prods: {{cantidadProductosUnicos}} {% endverbatim %}
+                            </td>
+                            <td class="border-end border-start pe-2 ps-2">
+                                {% verbatim %} % Lleno: {{porcentajeLleno}} % {% endverbatim %}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <table class="table table-bordered table-sm" style="font-size: small;">
+                    <thead class="table-light">
+                        <th><span style="white-space: nowrap;">Código</span></th>
+                        <th><span style="white-space: nowrap;">Nombre</span></th>
+                        <th><span style="white-space: nowrap;">Marca</span></th>
+                        <th><span style="white-space: nowrap;">Lote</span></th>
+                        <th><span style="white-space: nowrap;">F.Cadu</span></th>
+                        <th><span style="white-space: nowrap;">Bodega</span></th>
+                        <th><span style="white-space: nowrap;">Saldos</span></th>
+                        <th><span style="white-space: nowrap;">Cartones</span></th>
+                        <th><span style="white-space: nowrap;">Reservas</span></th>
+                        <th><span style="white-space: nowrap;">T.Unidades</span></th>
+                        <th><span style="white-space: nowrap;">Volumen</span></th>
+                        <th><span style="white-space: nowrap;">Peso</span></th>
+                        <th class="text-center">...</th>
+                    </thead>
+                    <tbody>
+                        {% verbatim %}
+                        <tr v-if="transferencia.length === 0">
+                            <td colspan="13" class="text-center fs-6 text-muted">No hay datos...</td>
+                        </tr>
+                        <tr v-for="(i, index) in transferencia" :key="index" :class="{ 'text-danger': i.calculoReserva < 0 }">
+                            <td class="bg-warning">{{ i.product_id }}</td>
+                            <td>{{ i.Nombre }}</td>
+                            <td>{{ i.Marca }}</td>
+                            <td class="bg-warning">
+                                <i v-if="i.error_lote == true" class="bi bi-exclamation-triangle-fill" style="color:red"></i>
+                                {{ i.lote_id }}
+                            </td>
+                            <td>{{ i.fecha_caducidad }}</td>
+                            <td>{{ i.location }}</td>
+                            <td class="text-end">{{ Number(i.inputSaldos) || 0 }}</td>
+                            <td class="text-end">{{ Number(i.inputCartones) || 0 }}</td>
+                            <td class="text-end">
+                                <span v-if="i.calculoReserva < 0">{{ i.calculoReserva.toLocaleString() }}</span>
+                                <span v-else>0</span>
+                            </td>
+                            <td class="text-end bg-warning">{{ i.totalUnidades.toLocaleString() }}</td>
+                            <td class="text-end">{{ i.vol_unitario.toFixed(3) }} m³</td>
+                            <td class="text-end">{{ i.peso_unitario.toFixed(3) }} kg</td>
+                            <td>
+                                <button 
+                                    v-if="i.detalle && i.calculoReserva < 0" 
+                                    type="button" 
+                                    name="detail" 
+                                    class="btn btn-primary btn-sm"
+                                    @click="showDetail(i.detalle, $event)"
+                                    >
+                                    ...
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="9"></td>
+                            <td class="text-end">{{totales.totalUnidades.toLocaleString()}}</td>
+                            <td class="text-end">{{totales.vol_unitario.toFixed(3) }} m³</td>
+                            <td class="text-end">{{totales.peso_unitario.toFixed(3) }} kg</td>
+                            <td class="text-center">...</td>
+                        <tr>
+                        {% endverbatim %}
+
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button 
+                    type="button" 
+                    class="btn btn-success" 
+                    @click="sendTransf"
+                    :disabled="transferencia.length == 0 || !camion"
+                >
+                    <span v-if="!enviandoTransferencia">Enviar</span>
+                    <span v-if="enviandoTransferencia" class="spinner-border spinner-border-sm" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                    </span>
+                </button>
+            </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--script src="https://cdn.jsdelivr.net/npm/chart.js"></script-->
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            // FILTRO
+            filtro:'',
+            decimales:6,
+            dataProduct:[],
+
+
+
+
+            filtroTotalUnidadesActivos:false,
+            product_list:[],
+            fecha_actual:'',
+            // STOCK
+            actualizandoStock:false,
+            stock:[],
+            transferencia:[],
+            camion:null,
+            camiones: [
+                { placa: 'PDV4064', volumen: 7.50 },
+                { placa: 'PDN4216', volumen: 8.00 },
+                { placa: 'PFB1191', volumen: 12.00 },
+                { placa: 'PQU0171', volumen: 4.01 },
+                { placa: 'PCI4409', volumen: 3.26 },
+                { placa: 'PBK9166', volumen: 3.54 },
+            ],
+            enviandoTransferencia:false,
+            type_msg:'',
+            msg:'',
+            nota:''
+        },
+        mounted() {
+            this.getProductList();
+            //this.getStock();
+            this.initSelect2();
+        },
+        updated() {
+            this.initSelect2(); 
+        },
+        computed:{
+            stockFiltrado() {
+                let resultadoFiltrado = this.stock
+                    .map(i => {
+                        // Inicializa campos si no existen
+                        if (i.inputSaldos === undefined) {
+                            // this.$set(i, 'inputSaldos', 0);
+                            this.$set(i, 'inputSaldos');
+                        }
+                        if (i.inputCartones === undefined) {
+                            // this.$set(i, 'inputCartones', 0);
+                            this.$set(i, 'inputCartones');
+                        }
+                        // Calcular totalUnidades siempre que inputCartones o inputSaldos cambien
+                        const inputCartones = Number(i.inputCartones) || 0;
+                        const unidadEmpaque = Number(i.Unidad_Empaque) || 0;
+                        const inputSaldos = Number(i.inputSaldos) || 0;
+                        i.totalUnidades = (inputCartones * unidadEmpaque) + inputSaldos;
+                        const totalUnidades = Number(i.totalUnidades) || 0;
+                        const vol_m3 = Number(i.vol_m3) || 0.025;
+                        const cartones = totalUnidades / Number(i.Unidad_Empaque);
+                        i.vol_unitario = cartones * vol_m3
+                        const peso = Number(i.Peso) || 0
+                        i.peso_unitario = cartones * peso;
+                        i.calculoReserva = (Number(i.BCT_D) - Number(i.totalUnidades))
+                        return i;
+                    })
+                    // .filter(i => {
+                    //     if (!this.filtro) return true;
+                    //     const productId = (i.product_id || '').toString().toLowerCase();
+                    //     return productId === this.filtro.toLowerCase();
+                    // });
+                    .filter(i => {
+                        const productId = (i.product_id || '').toString().toLowerCase();
+                        if (this.filtro && productId !== this.filtro.toLowerCase()) return false;
+                        if (this.filtroTotalUnidadesActivos && Number(i.totalUnidades) <= 0) return false;
+                        return true;
+                    });
+                return resultadoFiltrado;
+            },
+            totales() {
+                const columnas = ['totalUnidades', 'vol_unitario', 'peso_unitario'];
+                const resultado = {};
+                columnas.forEach(key => {
+                    resultado[key] = this.transferencia.reduce((acum, item) => {
+                        const valor = Number(item[key]) || 0;
+                        return acum + valor;
+                    }, 0);
+                });
+                return resultado;
+            },
+            porcentajeLleno() {
+                const vol = this.totales?.vol_unitario || 0;
+                const capacidad = this.camion?.volumen || 0;
+
+                if (vol > 0 && capacidad > 0) {
+                return Math.round((vol / capacidad) * 100); // Como porcentaje del 0 al 100
+                }
+
+                return 0;
+            },
+            cantidadProductosUnicos() {
+                const ids = new Set(this.transferencia.map(i => i.product_id));
+                return ids.size;
+            },
+        },
+        methods: {
+
+            // Api products list
+            async getProductList() {
+                try {
+                    const response = await fetch('/api/warehouse-productos-list');
+                    const data = await response.json();
+                    if (data.success) {
+                        this.product_list = data.data || []
+                    }
+                } catch (error) {
+                    console.log(error)
+                } // finally {
+                // }
+            },
+
+            // Data de producto
+            async getDataProduct(product_id){
+                try {
+                    const response = await fetch(`/wms/costo-importacion-data/${product_id}`);
+                    const data = await response.json();
+                    console.log(data)
+                    if (data.success) {
+                        this.dataProduct = data.data || []
+                        console.log(data)
+                    }
+                } catch (error) {
+                    console.log(error)
+                } // finally {
+                // }
+            },
+
+            async getStock() {
+                this.actualizandoStock = true;
+                try {
+                    const response = await fetch('/etiquetado/inventario_transferencia_data');
+                    const data = await response.json();
+                    // Actualizar datos
+                    this.stock = data.data || [];
+                    this.product_list = data.product_list || [];
+                    this.fecha_actual = new Date().toLocaleString('es-ec',{
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour:'numeric',
+                        minute:'numeric'
+                    });
+                } catch (error) {
+                    console.error(error);
+                } finally {
+                    this.actualizandoStock = false
+                }
+            },
+            async sendTransf(){
+                this.enviandoTransferencia = true;
+                try {
+                    const response = await fetch('/etiquetado/inventario/send-transferencia', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            // Si usas Django con CSRF, incluye esto también:
+                            // 'X-CSRFToken': this.getCookie('csrftoken')
+                        },
+                        body: JSON.stringify({
+                            transferencia: this.transferencia,
+                            camion: this.camion,
+                            nota:this.nota
+                            // totales: this.totales
+                        })
+                    });
+                    if (!response.ok) {
+                        throw new Error(`Error en la petición: ${response.status}`);
+                    }
+                    const data = await response.json();
+                    // console.log('Respuesta del servidor:', data);
+                    if (data.success) {
+                        this.enviandoTransferencia = false;
+                        this.type_msg = 'alert alert-success alert-dismissible fade show';
+                        this.msg = 'Tranferencia enviada exitosamente !!!';
+                    } else {
+                        this.enviandoTransferencia = false;
+                        this.type_msg = 'alert alert-danger alert-dismissible fade show';
+                        this.msg = `Error: ${data.error}`
+                    }
+                    // Puedes usar data para mostrar mensajes o redirigir
+                } catch (error) {
+                    // console.error('Error al enviar datos:', error);
+                    this.enviandoTransferencia = false;
+                    this.type_msg = 'alert alert-danger alert-dismissible fade show';
+                    this.msg = `Error: ${error}`
+                }
+            },
+            addTransfer(i) {
+                this.transferencia = this.stock.filter(item => {
+                const total = Number(item.totalUnidades) || 0;
+                return total > 0;
+                });
+            },
+            limpiarTransferenciaCero() {
+                this.transferencia = this.transferencia.filter(item => {
+                    const total = Number(item.totalUnidades) || 0;
+                    return total > 0;
+                });
+            },
+            onInputChanged(i) {
+                this.$nextTick(() => {
+                this.addTransfer(i);
+                this.limpiarTransferenciaCero();
+                });
+            },
+            showDetail(detalle, event) {
+                this.detalleActual = detalle;
+                // Encuentra el botón presionado
+                const button = event.currentTarget;
+                // Si ya existe el popover, destrúyelo
+                if (this._popoverInstance) {
+                    this._popoverInstance.dispose();
+                }
+                // Verifica si el string contiene el caracter '|'
+                let rows;
+                if (typeof detalle === 'string' && detalle.includes('|')) {
+                    // detalle = detalle.replace(/"/g, '')
+                    rows = detalle.split('|')
+                } else {
+                    rows = [detalle]
+                }
+
+                let tableHtml = `
+                <div class="table-responsive">
+                <table class="table table-sm mb-0" style="font-size:smaller">
+                    <thead>
+                        <th>Cliente</th>
+                        <th>Contrato</th>
+                        <th>Bodega</th>
+                        <th>Unidades</th>
+                    </thead>
+                    <tbody>`;
+
+                rows.forEach(row => {
+                    let col = row.split('-');
+                    tableHtml += '<tr>';
+                    col.forEach(td => {
+                        tableHtml += `<td>${td}</td>`;
+                    });
+                    tableHtml += '</tr>';
+                });
+                tableHtml += '</tbody></table></div>';
+                console.log(tableHtml);
+                this._popoverInstance = new bootstrap.Popover(button, {
+                    content: `<div>${tableHtml}</div>`,
+                    html: true,
+                    placement: 'bottom',
+                    trigger: 'manual',
+                    sanitize: false
+                });
+                // Muestra el popover
+                this._popoverInstance.show();
+                
+                // Guarda el botón activo
+                this._activePopoverButton = button;
+
+                // Agrega el listener para cerrar al hacer clic fuera
+                this._handleOutsideClick = (e) => {
+                    const isClickInside = this._activePopoverButton.contains(e.target) ||
+                        document.querySelector('.popover')?.contains(e.target);
+
+                    if (!isClickInside) {
+                        this._popoverInstance?.dispose();
+                        this._popoverInstance = null;
+                        document.removeEventListener('click', this._handleOutsideClick);
+                    }
+                };
+
+                // Agrega el listener con timeout para evitar que se dispare por el mismo clic
+                setTimeout(() => {
+                    document.addEventListener('click', this._handleOutsideClick);
+                }, 0);
+            },
+
+
+
+            onSelectChange(event) {
+                this.filtro = event.target.value;
+            },
+            initSelect2() {
+                this.$nextTick(() => {
+                    const vm = this;
+                    $(".form-select").select2();
+                    // sincroniza cuando cambia
+                    $(".form-select").on("change", function (e) {
+                        vm.filtro = e.target.value;
+                    });
+                    // actualiza visualmente el valor en Select2
+                    $(".form-select").val(this.filtro).trigger("change.select2");
+                });
+            },
+            limpiarSelect(){
+                this.filtro = '';
+            },
+            formatNumber(value, decimales) {
+                return value != null ? Number(value).toLocaleString("en-US", {
+                    style: "currency",
+                    currency: "USD",
+                    // minimumFractionDigits: 6,
+                    // maximumFractionDigits: 6,
+                    minimumFractionDigits: decimales,
+                    maximumFractionDigits: decimales,
+                }) : '-';
+            }
+        },
+    })
+</script>
+{% endblock %}

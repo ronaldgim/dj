@@ -694,4 +694,19 @@ urlpatterns = [
         view = views.wms_reporte_diferencia_mba_wms,
         name = 'wms_reporte_diferencia_mba_wms'
     ),
+    
+    # COSTOS IMPORTACIÓN
+    path(
+        route='costo-importacion-data/<str:product_id>', 
+        view = views.costo_importacion_product_id,
+        name = 'costo_importacion_product_id'
+    ),
+    
+    path(
+        route='costo-importacion', 
+        view = views.wms_costo_importacion,
+        name = 'wms_costo_importacion'
+    ),
+    
+
 ]

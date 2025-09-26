@@ -76,7 +76,8 @@ from wms.models import (
     ProductoArmado,
     OrdenEmpaque,
     FacturaAnulada,
-    ImportacionFotos
+    ImportacionFotos,
+    CostoImportacion
     )
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -6297,3 +6298,70 @@ def wms_reporte_diferencia_mba_wms(request):
     else:
         messages.success(request, 'Reservas actualizadas, no hay items que mover !!!')
         return HttpResponseRedirect('/etiquetado/revision/imp/llegadas/list')
+
+
+
+### COSTOS IMPORTACIÓN
+def importar_datos_costo():
+    
+    path = 'C:\Erik\Egares Gimpromed\Desktop/importaciones.xlsx'
+    excel = pd.read_excel(path)
+    excel['COSTO UNIT'] = pd.to_numeric(excel['COSTO UNIT'], errors='coerce')
+    excel['DÓLAR IMPORTADO'] = pd.to_numeric(excel['DÓLAR IMPORTADO'], errors='coerce')
+    excel['ITEM'] = excel['ITEM'].astype('str')
+    excel['ITEM'] = excel['ITEM'].str.strip()
+    excel = excel.fillna('')
+    
+    for i in excel.to_dict('records'):
+        
+        row = CostoImportacion(
+            product_id = i['ITEM'],
+            # nombre = '', i['Nombre'],
+            # marca = '', # i['MarcaDet'],
+            costo_unitario = float(i['COSTO UNIT']),
+            dolar_importado = None if not i['DÓLAR IMPORTADO'] else float(i['DÓLAR IMPORTADO']),
+            importacion = i['IMP'],
+            gim = i['GIM'],
+            fecha_llegada = i['FECHA LLEGADA']
+        )
+        
+        # row.save()
+        # print(row)
+
+
+def completar_data_products():
+    costos_imp = CostoImportacion.objects.filter(Q(nombre='') | Q(marca=''))
+    
+    def mba_data(product_id: str) -> dict:
+        with connections['gimpromed_sql'].cursor() as cursor:
+            cursor.execute("""
+                SELECT Nombre, MarcaDet 
+                FROM warehouse.productos 
+                WHERE Codigo = %s
+            """, [product_id])  # ✅ evita inyección SQL
+
+            row = cursor.fetchone()
+            if not row:
+                return {}  # si no hay producto, devolver dict vacío
+
+            columns = [col[0].lower() for col in cursor.description]
+            return dict(zip(columns, row))
+
+    
+    for i in costos_imp:
+        prod = mba_data(i.product_id)
+        i.nombre = prod['nombre']
+        i.marca  = prod['marcadet']
+        i.save()
+
+
+def costo_importacion_product_id(request, product_id):
+    data = CostoImportacion.objects.filter(product_id=product_id).values()
+    return JsonResponse({
+        'success':True,
+        'data':list(data)
+    })
+
+
+def wms_costo_importacion(request):
+    return render(request, 'wms/costo_importacion.html')
