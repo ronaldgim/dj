@@ -76,7 +76,8 @@ from wms.models import (
     ProductoArmado,
     OrdenEmpaque,
     FacturaAnulada,
-    ImportacionFotos
+    ImportacionFotos,
+    CostoImportacion
     )
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -2383,7 +2384,7 @@ def wms_egreso_picking_misreservas(request, n_pedido): #OK
     prod_list = list(pedido['product_id'].unique())
     
     movimientos = Movimiento.objects.filter(referencia='Picking').filter(n_referencia=n_pedido)
-
+    
     if movimientos.exists():
         mov = pd.DataFrame(movimientos.values(
             'id','product_id','lote_id','fecha_caducidad','tipo','unidades',
@@ -2397,7 +2398,6 @@ def wms_egreso_picking_misreservas(request, n_pedido): #OK
         # unds_pickeadas = unds_pickeadas.rename(columns={'product_id':'PRODUCT_ID'})
         # pedido = pedido.merge(unds_pickeadas, on='PRODUCT_ID', how='left')
         pedido = pedido.merge(unds_pickeadas, on='product_id', how='left')
-        
         mov = de_dataframe_a_template(mov)
 
     else:
@@ -2408,7 +2408,7 @@ def wms_egreso_picking_misreservas(request, n_pedido): #OK
         'product_id','lote_id','fecha_caducidad','unidades',
         'ubicacion_id','ubicacion__bodega','ubicacion__pasillo','ubicacion__modulo','ubicacion__nivel',
         'ubicacion__distancia_puerta',
-        'unidades',
+        #'unidades',
         'estado'
     )#.order_by('ubicacion__nivel')
 
@@ -2766,7 +2766,7 @@ def wms_estado_picking_actualizar_ajax(request):
 
         movs_total_unidades = sum(movs) * -1 
         data_reservas_total_unidades = sum(data_reservas) 
-            
+
         if estado_picking.bodega == 'BCT':
             
             if movs_total_unidades < data_reservas_total_unidades: #pick_total_unidades:
@@ -6298,3 +6298,77 @@ def wms_reporte_diferencia_mba_wms(request):
     else:
         messages.success(request, 'Reservas actualizadas, no hay items que mover !!!')
         return HttpResponseRedirect('/etiquetado/revision/imp/llegadas/list')
+
+
+
+### COSTOS IMPORTACIÓN
+def importar_datos_costo():
+    
+    path = 'C:\Erik\Egares Gimpromed\Desktop/importaciones.xlsx'
+    excel = pd.read_excel(path)
+    excel['COSTO UNIT'] = pd.to_numeric(excel['COSTO UNIT'], errors='coerce')
+    excel['DÓLAR IMPORTADO'] = pd.to_numeric(excel['DÓLAR IMPORTADO'], errors='coerce')
+    excel['ITEM'] = excel['ITEM'].astype('str')
+    excel['ITEM'] = excel['ITEM'].str.strip()
+    excel = excel.fillna('')
+    
+    for i in excel.to_dict('records'):
+        
+        row = CostoImportacion(
+            product_id = i['ITEM'],
+            # nombre = '', i['Nombre'],
+            # marca = '', # i['MarcaDet'],
+            costo_unitario = float(i['COSTO UNIT']),
+            dolar_importado = None if not i['DÓLAR IMPORTADO'] else float(i['DÓLAR IMPORTADO']),
+            importacion = i['IMP'],
+            gim = i['GIM'],
+            fecha_llegada = i['FECHA LLEGADA']
+        )
+        
+        # row.save()
+        # print(row)
+
+
+def completar_data_products():
+    costos_imp = CostoImportacion.objects.filter(Q(nombre='') | Q(marca=''))
+    
+    def mba_data(product_id: str) -> dict:
+        with connections['gimpromed_sql'].cursor() as cursor:
+            cursor.execute("""
+                SELECT Nombre, MarcaDet 
+                FROM warehouse.productos 
+                WHERE Codigo = %s
+            """, [product_id])  # ✅ evita inyección SQL
+
+            row = cursor.fetchone()
+            if not row:
+                return {}  # si no hay producto, devolver dict vacío
+
+            columns = [col[0].lower() for col in cursor.description]
+            return dict(zip(columns, row))
+
+    
+    for i in costos_imp:
+        prod = mba_data(i.product_id)
+        i.nombre = prod['nombre']
+        i.marca  = prod['marcadet']
+        i.save()
+
+
+def lista_productos_costo_importacion(_request):
+    product_list = CostoImportacion.objects.values('product_id').distinct() 
+    return JsonResponse({
+        'success': True,
+        'data': list(product_list)
+    })
+
+def costo_importacion_product_id(request, product_id):
+    data = CostoImportacion.objects.filter(product_id=product_id).order_by('fecha_llegada', 'gim').values()
+    return JsonResponse({
+        'success':True,
+        'data':list(data)
+    })
+
+
+def wms_costo_importacion(request):
+    return render(request, 'wms/costo_importacion.html')
