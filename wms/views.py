@@ -644,19 +644,23 @@ def wms_importaciones_list(request): #OK
 def wms_imp_ingresadas(request): #OK
     """ Lista de importaciones ingresadas """
 
-    prod = productos_odbc_and_django()[['product_id','Marca']]
+    prod = productos_odbc_and_django()[['product_id','Marca', 'MarcaDet']]
     imps = pd.DataFrame(InventarioIngresoBodega.objects.filter(referencia='Ingreso Importación').values()).sort_values(by='fecha_hora',ascending=False)
 
-    imps_llegadas = importaciones_llegadas_odbc()[['DOC_ID_CORP','MEMO']]
+    imps_llegadas = importaciones_llegadas_odbc()[['DOC_ID_CORP','MEMO']] 
     imps_llegadas = imps_llegadas.rename(columns={'DOC_ID_CORP':'n_referencia'}).drop_duplicates(subset='n_referencia')
 
     imps = imps.merge(imps_llegadas, on='n_referencia', how='left')
+    
+    imp_fotos = pd.DataFrame(ImportacionFotos.objects.all().values()).drop_duplicates(subset='importacion')
+    if not imp_fotos.empty:
+        imps = pd.merge(left=imps, right=imp_fotos, left_on='MEMO', right_on='importacion')
 
     if not imps.empty:
         imps = imps.merge(prod, on='product_id', how='left')
         imps = imps.drop_duplicates(subset='n_referencia')
         imps = de_dataframe_a_template(imps)
-
+    
     context = {
         'imp':imps
     }
@@ -909,7 +913,7 @@ def wms_excel_importacion_transito(request, contrato_id):
 
 
 @login_required(login_url='login')
-def wms_importacion_fotos(request, importacion:str, proveedor:str, marca:str):
+def wms_importacion_fotos(request, importacion:str, proveedor:str= None, marca:str= None):
     fotos = ImportacionFotos.objects.filter(importacion=importacion).order_by('-id')
     
     if request.method == 'POST':
@@ -6301,31 +6305,31 @@ def wms_reporte_diferencia_mba_wms(request):
 
 
 ### COSTOS IMPORTACIÓN
-def importar_datos_costo():
+# def importar_datos_costo():
     
-    path = 'C:\Erik\Egares Gimpromed\Desktop/importaciones.xlsx'
-    excel = pd.read_excel(path)
-    excel['COSTO UNIT'] = pd.to_numeric(excel['COSTO UNIT'], errors='coerce')
-    excel['DÓLAR IMPORTADO'] = pd.to_numeric(excel['DÓLAR IMPORTADO'], errors='coerce')
-    excel['ITEM'] = excel['ITEM'].astype('str')
-    excel['ITEM'] = excel['ITEM'].str.strip()
-    excel = excel.fillna('')
+#     path = 'C:\Erik\Egares Gimpromed\Desktop/importaciones.xlsx'
+#     excel = pd.read_excel(path)
+#     excel['COSTO UNIT'] = pd.to_numeric(excel['COSTO UNIT'], errors='coerce')
+#     excel['DÓLAR IMPORTADO'] = pd.to_numeric(excel['DÓLAR IMPORTADO'], errors='coerce')
+#     excel['ITEM'] = excel['ITEM'].astype('str')
+#     excel['ITEM'] = excel['ITEM'].str.strip()
+#     excel = excel.fillna('')
     
-    for i in excel.to_dict('records'):
+#     for i in excel.to_dict('records'):
         
-        row = CostoImportacion(
-            product_id = i['ITEM'],
-            # nombre = '', i['Nombre'],
-            # marca = '', # i['MarcaDet'],
-            costo_unitario = float(i['COSTO UNIT']),
-            dolar_importado = None if not i['DÓLAR IMPORTADO'] else float(i['DÓLAR IMPORTADO']),
-            importacion = i['IMP'],
-            gim = i['GIM'],
-            fecha_llegada = i['FECHA LLEGADA']
-        )
+#         row = CostoImportacion(
+#             product_id = i['ITEM'],
+#             # nombre = '', i['Nombre'],
+#             # marca = '', # i['MarcaDet'],
+#             costo_unitario = float(i['COSTO UNIT']),
+#             dolar_importado = None if not i['DÓLAR IMPORTADO'] else float(i['DÓLAR IMPORTADO']),
+#             importacion = i['IMP'],
+#             gim = i['GIM'],
+#             fecha_llegada = i['FECHA LLEGADA']
+#         )
         
-        # row.save()
-        # print(row)
+#         # row.save()
+#         # print(row)
 
 
 def completar_data_products():
