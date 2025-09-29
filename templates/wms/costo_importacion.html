@@ -149,7 +149,8 @@
                     if (data.success) {
                         this.dataProduct = data.data || [];
                         // console.log(data)
-                        this.xLabels = data.data.map(item => item.gim);
+                        // this.xLabels = data.data.map(item => item.gim);
+                        this.xLabels = data.data.map(item => `${item.gim}/${item.fecha_llegada}`);
                         this.costoUnitario = data.data.map(item => item.costo_unitario);
                         this.dolarImportado = data.data.map(item => item.dolar_importado);
                         this.grafico('idCostoUnitario', 'Evolución de costo unitario por importaicón', this.xLabels, this.costoUnitario);
@@ -200,7 +201,7 @@
                             formatter: function(value) {
                             return value.toUpperCase(); // Formato: mayúsculas
                             },
-                            rotate: 90                // Rotar etiquetas si son largas
+                            rotate: 45 //90                // Rotar etiquetas si son largas
                         }
                     },
                     yAxis: { 
