@@ -393,3 +393,6 @@ class CostoImportacion(models.Model):
     
     def __str__(self):
         return f'{self.product_id} - {self.costo_unitario} - {self.dolar_importado}'
+    
+    # class Meta:
+    #     unique_together = ['product_id', 'importacion']
