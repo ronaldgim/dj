@@ -6300,7 +6300,6 @@ def wms_reporte_diferencia_mba_wms(request):
         return HttpResponseRedirect('/etiquetado/revision/imp/llegadas/list')
 
 
-
 ### COSTOS IMPORTACIÓN
 def importar_datos_costo():
     
@@ -6362,6 +6361,7 @@ def lista_productos_costo_importacion(_request):
         'data': list(product_list)
     })
 
+
 def costo_importacion_product_id(request, product_id):
     data = CostoImportacion.objects.filter(product_id=product_id).order_by('fecha_llegada', 'gim').values()
     return JsonResponse({
@@ -6370,5 +6370,7 @@ def costo_importacion_product_id(request, product_id):
     })
 
 
+@login_required(login_url='login')
+@permisos(['COSTO IMPORTACION'],'/wms/home', 'ingresar a costos de importación')
 def wms_costo_importacion(request):
     return render(request, 'wms/costo_importacion.html')
