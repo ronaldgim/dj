@@ -2766,7 +2766,7 @@ def wms_estado_picking_actualizar_ajax(request):
 
         movs_total_unidades = sum(movs) * -1 
         data_reservas_total_unidades = sum(data_reservas) 
-            
+
         if estado_picking.bodega == 'BCT':
             
             if movs_total_unidades < data_reservas_total_unidades: #pick_total_unidades:
@@ -6355,8 +6355,15 @@ def completar_data_products():
         i.save()
 
 
+def lista_productos_costo_importacion(_request):
+    product_list = CostoImportacion.objects.values('product_id').distinct() 
+    return JsonResponse({
+        'success': True,
+        'data': list(product_list)
+    })
+
 def costo_importacion_product_id(request, product_id):
-    data = CostoImportacion.objects.filter(product_id=product_id).values()
+    data = CostoImportacion.objects.filter(product_id=product_id).order_by('fecha_llegada', 'gim').values()
     return JsonResponse({
         'success':True,
         'data':list(data)
