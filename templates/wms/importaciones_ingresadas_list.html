@@ -51,6 +51,7 @@
                         <th scope="col">Orden GIM</th>
                         <th scope="col">Bodega</th>
                         <th scope="col">Acciones</th>
+                        <th scope="col">Fotos</th>
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
@@ -60,11 +61,19 @@
                         <td>{{i.n_referencia}}</td>
                         <td>{{i.MEMO}}</td>
                         <td>{{i.bodega}}</td>
-
                         <td>
                             <a class="btn btn-primary btn-sm" href="{% url 'wms_bodega_imp' i.n_referencia %}">
                                 <i class="bi bi-binoculars-fill"></i>  Ver
                             </a>
+                        </td>
+                        <td>
+                            {% if i.MEMO %}
+                            <a class="btn btn-sm {% if i.importacion %} btn-success {% else %} btn-secondary {% endif %}" href="{% url 'wms_importacion_fotos' i.MEMO i.MarcaDet i.Marca %}">
+                                <i class="bi bi-camera-fill"></i>
+                            </a>
+                            {% else %}
+                            -
+                            {% endif %}
                         </td>
                     </tr>
                     {% endfor %}
