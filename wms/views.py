@@ -6373,7 +6373,7 @@ def costo_importacion_cargar_excel(request):
         df['DÓLAR IMPORTADO'] = pd.to_numeric(df['DÓLAR IMPORTADO'], errors='coerce')
         df['ITEM'] = df['ITEM'].astype('str')
         df['ITEM'] = df['ITEM'].str.strip()
-        df = df.fillna('') ; print(df)
+        df = df.fillna('') 
 
         for i in df.to_dict('records'):
             
