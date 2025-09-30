@@ -40,7 +40,11 @@
             <label for="formFile" class="form-label fw-bold">Cargar datos:</label>
             <input class="form-control" type="file" id="formFile" accept=".xlsx,.xls" @change="onFileChange">
             <button class="btn btn-success ms-2" id="btnEnviarExcel" :disabled="!fileInput" @click="sendExcelData()">
-                <i class="bi bi-send"></i>
+                <i v-if="!enviandoArchivo" class="bi bi-send"></i>
+                <div v-if="enviandoArchivo">
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    <span class="visually-hidden">Loading...</span>
+                </div>
             </button>
         </div>
     </div>
