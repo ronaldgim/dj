@@ -697,6 +697,12 @@ urlpatterns = [
     
     # COSTOS IMPORTACIÓN
     path(
+        route='costo-importacion-cargar-excel', 
+        view = views.costo_importacion_cargar_excel,
+        name = 'costo_importacion_cargar_excel'
+    ),
+        
+    path(
         route='costo-importacion-products-list', 
         view = views.lista_productos_costo_importacion,
         name = 'lista_productos_costo_importacion'

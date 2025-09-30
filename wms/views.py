@@ -36,6 +36,10 @@ from datos.views import (
     transferencias_mba
     )
 
+
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+
 from utils.warehouse_data import get_vendedor_email_by_contrato
 
 # PDF
@@ -660,7 +664,7 @@ def wms_imp_ingresadas(request): #OK
         imps = imps.merge(prod, on='product_id', how='left')
         imps = imps.drop_duplicates(subset='n_referencia')
         imps = de_dataframe_a_template(imps)
-    
+
     context = {
         'imp':imps
     }
@@ -6332,30 +6336,102 @@ def wms_reporte_diferencia_mba_wms(request):
 #         # print(row)
 
 
+@require_POST
+@csrf_exempt
+def costo_importacion_cargar_excel(request):
+    
+    try:
+        if 'archivo_excel' not in request.FILES:
+            return JsonResponse({'success': False, 'error': 'No se encontró archivo'})
+        
+        archivo = request.FILES['archivo_excel']
+        
+        # Validar extensión
+        if not archivo.name.endswith(('.xlsx', '.xls')):
+            return JsonResponse({'success': False, 'error': 'Formato de archivo no válido'})
+        
+        excel_file = io.BytesIO(archivo.read())        
+        df = pd.read_excel(excel_file, engine='openpyxl')
+        
+        if df.empty:
+            return JsonResponse({
+                'success':False,
+                'msg':'El archivo excel esta vacio'
+        })
+        
+        df.columns = df.columns.str.strip()
+        required_columns = ['ITEM', 'COSTO UNIT', 'DÓLAR IMPORTADO', 'IMP', 'GIM', 'FECHA LLEGADA']
+        missing = [col for col in required_columns if col not in df.columns]
+        
+        if missing:
+            return JsonResponse({
+                'success': False,
+                'msg': 'Faltan estas columnas dentro del excel' + ', '.join(missing)
+            })
+        
+        df['COSTO UNIT'] = pd.to_numeric(df['COSTO UNIT'], errors='coerce')
+        df['DÓLAR IMPORTADO'] = pd.to_numeric(df['DÓLAR IMPORTADO'], errors='coerce')
+        df['ITEM'] = df['ITEM'].astype('str')
+        df['ITEM'] = df['ITEM'].str.strip()
+        df = df.fillna('') ; print(df)
+
+        for i in df.to_dict('records'):
+            
+            row_exist = CostoImportacion.objects.filter(Q(product_id=i['ITEM']) & Q(importacion=i['IMP']))
+            if row_exist.exists():
+                continue
+            else:
+                row = CostoImportacion(
+                    product_id = i['ITEM'],
+                    costo_unitario = float(i['COSTO UNIT']),
+                    dolar_importado = None if not i['DÓLAR IMPORTADO'] else float(i['DÓLAR IMPORTADO']),
+                    importacion = i['IMP'],
+                    gim = i['GIM'],
+                    fecha_llegada = i['FECHA LLEGADA']
+                )
+                row.save()
+            
+        completar_data_products()
+        
+        return JsonResponse({
+            'success':True
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success':False,
+            'msg':str(e)
+        })
+
+
 def completar_data_products():
-    costos_imp = CostoImportacion.objects.filter(Q(nombre='') | Q(marca=''))
     
-    def mba_data(product_id: str) -> dict:
-        with connections['gimpromed_sql'].cursor() as cursor:
-            cursor.execute("""
-                SELECT Nombre, MarcaDet 
-                FROM warehouse.productos 
-                WHERE Codigo = %s
-            """, [product_id])  # ✅ evita inyección SQL
+    try:
+        costos_imp = CostoImportacion.objects.filter(Q(nombre='') | Q(marca=''))
+        
+        def mba_data(product_id: str) -> dict:
+            with connections['gimpromed_sql'].cursor() as cursor:
+                cursor.execute("""
+                    SELECT Nombre, MarcaDet 
+                    FROM warehouse.productos 
+                    WHERE Codigo = %s
+                """, [product_id])  # ✅ evita inyección SQL
 
-            row = cursor.fetchone()
-            if not row:
-                return {}  # si no hay producto, devolver dict vacío
+                row = cursor.fetchone()
+                if not row:
+                    return {}  # si no hay producto, devolver dict vacío
 
-            columns = [col[0].lower() for col in cursor.description]
-            return dict(zip(columns, row))
+                columns = [col[0].lower() for col in cursor.description]
+                return dict(zip(columns, row))
 
-    
-    for i in costos_imp:
-        prod = mba_data(i.product_id)
-        i.nombre = prod['nombre']
-        i.marca  = prod['marcadet']
-        i.save()
+        
+        for i in costos_imp:
+            prod = mba_data(i.product_id)
+            i.nombre = prod['nombre']
+            i.marca  = prod['marcadet']
+            i.save()
+    except:
+        pass
 
 
 def lista_productos_costo_importacion(_request):

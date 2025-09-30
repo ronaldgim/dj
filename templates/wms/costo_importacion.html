@@ -35,11 +35,20 @@
         </div>
     </div>
 
+    <div class="col-4">
+        <div class="d-flex align-items-center">
+            <label for="formFile" class="form-label fw-bold">Cargar datos:</label>
+            <input class="form-control" type="file" id="formFile" accept=".xlsx,.xls" @change="onFileChange">
+            <button class="btn btn-success ms-2" id="btnEnviarExcel" :disabled="!fileInput" @click="sendExcelData()">
+                <i class="bi bi-send"></i>
+            </button>
+        </div>
+    </div>
+
     {% verbatim %}
     <div v-if="product" class="mt-4 text-center fw-bold">
         {{product.Codigo}} - {{product.Nombre}} - {{product.MarcaDet}}
     </div>
-    
     <div class="row">
         <div class="col-12 col-lg-6 mt-4 mb-4">
             <div class="card">
@@ -58,7 +67,6 @@
             </div>
         </div>
     </div>
-    
     {% endverbatim %}
 
     <!-- TABLA -->
@@ -114,6 +122,8 @@
             product_list:[],
             product:null,
             dataProduct:[] | null,
+            fileInput:null,
+            enviandoArchivo:false
         },
         mounted() {
             this.getProductList();
@@ -270,6 +280,53 @@
                     minimumFractionDigits: decimales,
                     maximumFractionDigits: decimales,
                 }) : '-';
+            },
+
+            onFileChange(event) {
+                const input = event.target;
+                console.log(input);
+                if (input && input.files.length > 0) {
+                    this.fileInput = input.files[0];
+                }
+            },
+
+            async sendExcelData(){
+                this.enviandoArchivo = true;
+                try {
+                    const formData = new FormData();
+                    formData.append('archivo_excel', this.fileInput);
+                    const response = await fetch('/wms/costo-importacion-cargar-excel', { // Ajusta la URL
+                        method: 'POST',
+                        body: formData,
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Error ${response.status}: ${response.statusText}`);
+                    }
+
+                    const resultado = await response.json();
+                    
+                    if (resultado.success) {
+                        alert('Archivo subido exitosamente');
+                        console.log('Datos procesados:', resultado.data);
+                        
+                        // Limpiar el formulario después del éxito
+                        this.fileInput = null;
+                        document.getElementById('formFile').value = '';
+                        
+                        // Opcional: recargar datos o actualizar interfaz
+                        window.location.reload();
+                        
+                    } else {
+                        alert(`Error al procesar el archivo: ${resultado.error}`);
+                    }
+
+                } catch (error) {
+                    console.error('Error al subir el archivo:', error);
+                    alert('Error al subir el archivo. Por favor, intenta nuevamente.');
+                } finally {
+                    this.enviandoArchivo = false;
+                }
             }
         },
     })
