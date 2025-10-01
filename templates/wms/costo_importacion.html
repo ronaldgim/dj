@@ -205,11 +205,16 @@
                     title:{text:title},
                     tooltip: { 
                         trigger: 'axis',
-                        // formatter: function(params) {
-                        //     return params.map(function(item) {
-                        //         return self.formatNumber(item.value, self.decimales);
-                        //     }).join('<br/>');
-                        // }
+                        formatter: function (params) {
+                            // params es un array de puntos en esa posición del eje X
+                            let tooltipText = `<span class="fw-bold">GIM:</span> ${params[0].axisValue} <br/>`; // valor del eje X (label)
+                            
+                            params.forEach(item => {
+                                tooltipText += `<span class="fw-bold">Valor:</span> $ ${Number(item.value).toFixed(self.decimales)} <br/>`;
+                            });
+                            
+                            return tooltipText;
+                        }
                     },
                     xAxis: {
                         type: 'category',
@@ -217,20 +222,26 @@
                         nameLocation: 'middle',
                         nameGap: 60, 
                         data: labels,
-                        // axisLabel: {// 
-                        //     show : true,
-                        //     formatter: function(value) {
-                        //     return value.toUpperCase(); // Formato: mayúsculas
-                        //     },
-                        //     rotate: 45 //90                // Rotar etiquetas si son largas
-                        // }
+                        axisLabel: {// 
+                            show : true,
+                            formatter: function(value) {
+                            return value.toUpperCase(); // Formato: mayúsculas
+                            },
+                            rotate: 90                // Rotar etiquetas si son largas
+                        }
                     },
                     yAxis: { 
                         type: 'value',
                         nameLocation: 'middle',
                         nameGap: 50,
+                        min: function () {
+                            return Math.min(...data) * 0.95; // 5% menos que el mínimo
+                        },
+                        max: function () {
+                            return Math.max(...data) * 1.05; // 5% más que el máximo (opcional)
+                        },
                         axisLabel: {
-                            formatter: '${value}'  // Formato con signo $
+                            formatter: function(value) { return "$" + Number(value).toFixed(self.decimales); }  // Formato con signo $
                         }
                     },
                     dataZoom: [
