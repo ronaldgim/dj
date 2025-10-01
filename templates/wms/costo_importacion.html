@@ -241,7 +241,7 @@
                             return Math.max(...data) * 1.05; // 5% más que el máximo (opcional)
                         },
                         axisLabel: {
-                            formatter: function(value) { return "$" + Number(value).toFixed(self.decimales); }  // Formato con signo $
+                            formatter: function(value) { return "$" + Number(value).toFixed(2); }  // Formato con signo $
                         }
                     },
                     dataZoom: [
