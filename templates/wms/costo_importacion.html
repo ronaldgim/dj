@@ -162,13 +162,20 @@
                     // console.log(data)
                     if (data.success) {
                         this.dataProduct = data.data || [];
-                        // console.log(data)
-                        // this.xLabels = data.data.map(item => item.gim);
-                        this.xLabels = data.data.map(item => `${item.gim}/${item.fecha_llegada}`);
-                        this.costoUnitario = data.data.map(item => item.costo_unitario);
-                        this.dolarImportado = data.data.map(item => item.dolar_importado);
-                        this.grafico('idCostoUnitario', 'Evolución de costo unitario por importaicón', this.xLabels, this.costoUnitario);
-                        this.grafico('idDolarImportado', 'Costo dolar importado', this.xLabels, this.dolarImportado)
+                        const costoUnitarioData = data.data.filter(item => item.costo_unitario !== null)
+                        const dolarImportadoData = data.data.filter(item => item.dolar_importado !== null)
+                        this.grafico(
+                            'idCostoUnitario', 
+                            'Evolución de costo unitario por importaicón', 
+                            costoUnitarioData.map(item => `${item.gim}/${item.fecha_llegada}`),
+                            costoUnitarioData.map(item => item.costo_unitario)
+                            );
+                        this.grafico(
+                            'idDolarImportado', 
+                            'Costo dolar importado', 
+                            dolarImportadoData.map(item => `${item.gim}/${item.fecha_llegada}`), 
+                            dolarImportadoData.map(item => item.dolar_importado)
+                            )
                     }
                 } catch (error) {
                     console.log(error)
@@ -177,7 +184,7 @@
                 try {
                     const response = await fetch(`/api/warehouse-producto/${product_id}`);
                     const data = await response.json();
-                    console.log(data.data);
+                    // console.log(data.data);
                     if (data.success) {
                         this.product = data.data;
                     }
@@ -198,11 +205,11 @@
                     title:{text:title},
                     tooltip: { 
                         trigger: 'axis',
-                        formatter: function(params) {
-                            return params.map(function(item) {
-                                return self.formatNumber(item.value, self.decimales);
-                            }).join('<br/>');
-                        }
+                        // formatter: function(params) {
+                        //     return params.map(function(item) {
+                        //         return self.formatNumber(item.value, self.decimales);
+                        //     }).join('<br/>');
+                        // }
                     },
                     xAxis: {
                         type: 'category',
@@ -210,13 +217,13 @@
                         nameLocation: 'middle',
                         nameGap: 60, 
                         data: labels,
-                        axisLabel: {
-                            show : true,
-                            formatter: function(value) {
-                            return value.toUpperCase(); // Formato: mayúsculas
-                            },
-                            rotate: 45 //90                // Rotar etiquetas si son largas
-                        }
+                        // axisLabel: {// 
+                        //     show : true,
+                        //     formatter: function(value) {
+                        //     return value.toUpperCase(); // Formato: mayúsculas
+                        //     },
+                        //     rotate: 45 //90                // Rotar etiquetas si son largas
+                        // }
                     },
                     yAxis: { 
                         type: 'value',
