@@ -253,13 +253,12 @@
                     ],
                     series: [
                         {
-                            // name: 'Costo Unitario',
+                            name: title,
                             type: 'line',
                             smooth: true,
                             data: data,
                             label: {
-                                show: false,          // Mostrar valor en cada punto
-                                // formatter: '${@value}', // Formato de valor
+                                show: false,
                                 formatter: function(params) {
                                     return self.formatNumber(params.value, self.decimales);
                                 },
