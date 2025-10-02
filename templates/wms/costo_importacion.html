@@ -14,28 +14,7 @@
 
     <h5 class="m-4 text-center fw-bold">COSTOS DE IMPORTACIÓN</h5>
 
-    <div class="col-4">
-        <div class="d-flex align-items-center">
-            <label class="fw-bold me-2">Código:</label>
-            <!--div class="col-auto"-->
-            <select :value="filtro" @change="onSelectChange" class="form-select">
-                <option value="">------</option>
-                {% verbatim %}
-                <option v-for="producto in product_list" :key="producto.product_id" :value="producto.product_id">
-                {{ producto.product_id }}
-                </option>
-                {% endverbatim %}
-            </select>
-            <button class="btn btn-primary ms-2" @click="getDataProduct(filtro)" :disabled="!filtro">
-                <i class="bi bi-search"></i>
-            </button>
-            <!--button class="btn btn-sm btn-danger ms-2" @click="limpiarSelect()">
-                <i class="bi bi-trash"></i>
-            </button-->
-        </div>
-    </div>
-
-    <div class="col-4">
+    <div class="col-5">
         <div class="d-flex align-items-center">
             <label for="formFile" class="form-label fw-bold">Cargar datos:</label>
             <input class="form-control" type="file" id="formFile" accept=".xlsx,.xls" @change="onFileChange">
@@ -49,8 +28,29 @@
         </div>
     </div>
 
+    <div class="col-5">
+        <div class="d-flex align-items-center">
+            <label class="fw-bold me-2">Código:</label>
+            <!--div class="col-auto"-->
+            <select :value="filtro" @change="onSelectChange" class="form-select">
+                <option value="">------</option>
+                {% verbatim %}
+                <option v-for="producto in product_list" :key="producto.product_id" :value="producto.product_id">
+                {{ producto.product_id }} - {{ producto.nombre }} - {{ producto.marca }}
+                </option>
+                {% endverbatim %}
+            </select>
+            <button class="btn btn-primary ms-2" @click="getDataProduct(filtro)" :disabled="!filtro">
+                <i class="bi bi-search"></i>
+            </button>
+            <!--button class="btn btn-sm btn-danger ms-2" @click="limpiarSelect()">
+                <i class="bi bi-trash"></i>
+            </button-->
+        </div>
+    </div>
+
     {% verbatim %}
-    <div v-if="product" class="mt-4 text-center fw-bold">
+    <div v-if="product" class="mt-4 fw-bold">
         {{product.Codigo}} - {{product.Nombre}} - {{product.MarcaDet}}
     </div>
     <div class="row">
@@ -165,17 +165,25 @@
                         const costoUnitarioData = data.data.filter(item => item.costo_unitario !== null)
                         const dolarImportadoData = data.data.filter(item => item.dolar_importado !== null)
                         this.grafico(
-                            'idCostoUnitario', 
-                            'Evolución de costo unitario por importaicón', 
-                            costoUnitarioData.map(item => `${item.gim}/${item.fecha_llegada}`),
-                            costoUnitarioData.map(item => item.costo_unitario)
-                            );
+                            'idCostoUnitario',
+                            'Evolución de costo unitario por importaicón',
+                            costoUnitarioData.map(item => item.gim),
+                            costoUnitarioData.map(item => ({
+                                value: item.costo_unitario,
+                                imp: item.gim,
+                                fecha: item.fecha_llegada
+                            }))
+                        );
                         this.grafico(
                             'idDolarImportado', 
                             'Costo dolar importado', 
-                            dolarImportadoData.map(item => `${item.gim}/${item.fecha_llegada}`), 
-                            dolarImportadoData.map(item => item.dolar_importado)
-                            )
+                            dolarImportadoData.map(item => item.gim), 
+                            dolarImportadoData.map(item => ({
+                                value: item.dolar_importado,
+                                imp: item.gim,
+                                fecha: item.fecha_llegada
+                            })),
+                        )
                     }
                 } catch (error) {
                     console.log(error)
@@ -195,7 +203,9 @@
             
             grafico(idGrafico, title, labels, data) {
                 let chartDom = document.getElementById(idGrafico);
-                let chart = echarts.getInstanceByDom(chartDom)
+                let chart = echarts.getInstanceByDom(chartDom);
+                let values = data.map(item => item.value);
+                
                 if (chart) {
                     chart.dispose();
                 }
@@ -206,15 +216,18 @@
                     tooltip: { 
                         trigger: 'axis',
                         formatter: function (params) {
-                            // params es un array de puntos en esa posición del eje X
-                            let tooltipText = `<span class="fw-bold">GIM:</span> ${params[0].axisValue} <br/>`; // valor del eje X (label)
-                            
+                            let tooltipText = '';
                             params.forEach(item => {
-                                tooltipText += `<span class="fw-bold">Valor:</span> $ ${Number(item.value).toFixed(self.decimales)} <br/>`;
+                                let value = Number(item.value).toFixed(self.decimales);
+                                let imp   = item.data.imp || '';
+                                let fecha = item.data.fecha || ''; 
+                                tooltipText += `<span class="fw-bold">Costo:</span> $ ${value} <br/>`;
+                                tooltipText += `<span class="fw-bold">Importación:</span> ${imp} <br/>`;
+                                tooltipText += `<span class="fw-bold">Fecha de llegada:</span> ${fecha} <br/>`;
                             });
                             
                             return tooltipText;
-                        }
+                        },
                     },
                     xAxis: {
                         type: 'category',
@@ -225,9 +238,9 @@
                         axisLabel: {// 
                             show : true,
                             formatter: function(value) {
-                            return value.toUpperCase(); // Formato: mayúsculas
+                            return value.toUpperCase(); 
                             },
-                            rotate: 90                // Rotar etiquetas si son largas
+                            rotate: 45                
                         }
                     },
                     yAxis: { 
@@ -235,10 +248,10 @@
                         nameLocation: 'middle',
                         nameGap: 50,
                         min: function () {
-                            return Math.min(...data) * 0.95; // 5% menos que el mínimo
+                            return Math.min(...values) * 0.95; // 5% menos que el mínimo
                         },
                         max: function () {
-                            return Math.max(...data) * 1.05; // 5% más que el máximo (opcional)
+                            return Math.max(...values) * 1.05; // 5% más que el máximo (opcional)
                         },
                         axisLabel: {
                             formatter: function(value) { return "$" + Number(value).toFixed(2); }  // Formato con signo $
@@ -273,9 +286,25 @@
                                     { type: 'max', name: 'Máx', itemStyle:{color:'blue'} },
                                     { type: 'min', name: 'Mín', itemStyle:{color:'blue'} }
                                 ],
-                            }
+                            },
                         },
-                    ]
+                        {
+                            name:'Promedio',
+                            type:'line',
+                            symbol:'none',
+                            data:new Array(values.length).fill(values.reduce((a, b) => a + b, 0) / values.length),
+                            color:'grey',
+                            tooltip:{ show:false }
+                        },
+                    ],
+                    legend:{
+                        show:true,
+                        data:['Costo', 'Promedio'],
+                        selected:{
+                            'Costo':false,
+                            'Promedio':false
+                        },
+                    }
                 };
 
                 chart.setOption(option);
@@ -314,7 +343,7 @@
 
             onFileChange(event) {
                 const input = event.target;
-                console.log(input);
+                // console.log(input);
                 if (input && input.files.length > 0) {
                     this.fileInput = input.files[0];
                 }
