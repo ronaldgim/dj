@@ -74,41 +74,45 @@
     {% endverbatim %}
 
     <!-- TABLA -->
-    <div class="table-responsive mt-2 mb-4">
-        <div style="max-height: 70vh; overflow-y: auto;">
-            <table class="table table-bordered bg-white" style="font-size: small;">
-                <thead class="table-light" style="position: sticky; top: 0; z-index: 2;">
-                    <tr class="text-smaller">
-                        <th><span style="white-space: nowrap;">Código</span></th>
-                        <th><span style="white-space: nowrap;">Nombre</span></th>
-                        <th><span style="white-space: nowrap;">Marca</span></th>
-                        <th><span style="white-space: nowrap;">Costo Unitario</span></th>
-                        <th><span style="white-space: nowrap;">Dólar Importado</span></th>
-                        <th><span style="white-space: nowrap;">IMP</span></th>
-                        <th><span style="white-space: nowrap;">GIM</span></th>
-                        <th><span style="white-space: nowrap;">F.Llegada</span></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% verbatim %}
-                    <tr>
-                        <td v-if="!dataProduct" colspan="8" class="text-center fs-6">
-                            <span>Seleccione un producto para cargar los datos...</span>
-                        </td>
-                    </tr>
-                    <tr v-for="(i, index) in dataProduct" :key="i.product_id" :style="i.totalUnidades > 0 ? 'background-color:#E5FFE9' : ''">
-                        <td>{{i.product_id}}</td>
-                        <td>{{i.nombre}}</td>
-                        <td>{{i.marca}}</td>
-                        <td class="text-end">{{ formatNumber(i.costo_unitario, decimales) }}</td>
-                        <td class="text-end">{{ formatNumber(i.dolar_importado, decimales) }}</td>
-                        <td>{{i.importacion}}</td>
-                        <td>{{i.gim}}</td>
-                        <td>{{i.fecha_llegada}}</td>
-                    </tr>
-                    {% endverbatim %}
-                </tbody>
-            </table>
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="table-responsive">
+                <div style="max-height: 70vh; overflow-y: auto;">
+                    <table class="table table-bordered bg-white" style="font-size: small;">
+                        <thead class="table-light" style="position: sticky; top: 0; z-index: 2;">
+                            <tr class="text-smaller">
+                                <th><span style="white-space: nowrap;">Código</span></th>
+                                <th><span style="white-space: nowrap;">Nombre</span></th>
+                                <th><span style="white-space: nowrap;">Marca</span></th>
+                                <th><span style="white-space: nowrap;">Costo Unitario</span></th>
+                                <th><span style="white-space: nowrap;">Dólar Importado</span></th>
+                                <th><span style="white-space: nowrap;">IMP</span></th>
+                                <th><span style="white-space: nowrap;">GIM</span></th>
+                                <th><span style="white-space: nowrap;">F.Llegada</span></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% verbatim %}
+                            <tr>
+                                <td v-if="!dataProduct" colspan="8" class="text-center fs-6">
+                                    <span>Seleccione un producto para cargar los datos...</span>
+                                </td>
+                            </tr>
+                            <tr v-for="(i, index) in dataProduct" :key="i.product_id" :style="i.totalUnidades > 0 ? 'background-color:#E5FFE9' : ''">
+                                <td>{{i.product_id}}</td>
+                                <td>{{i.nombre}}</td>
+                                <td>{{i.marca}}</td>
+                                <td class="text-end">{{ formatNumber(i.costo_unitario, decimales) }}</td>
+                                <td class="text-end">{{ formatNumber(i.dolar_importado, decimales) }}</td>
+                                <td>{{i.importacion}}</td>
+                                <td>{{i.gim}}</td>
+                                <td>{{i.fecha_llegada}}</td>
+                            </tr>
+                            {% endverbatim %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 </div>
