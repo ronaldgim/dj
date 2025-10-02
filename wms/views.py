@@ -145,6 +145,10 @@ from django_xhtml2pdf.utils import pisa #pdf_decorator
 # datos api_mba
 from api_mba.tablas_warehouse import api_actualizar_imp_transito_warehouse
 
+# Utils
+from utils.warehouse_data import productos_mba_django
+
+
 # BYTES
 import io
 
@@ -6435,10 +6439,14 @@ def completar_data_products():
 
 
 def lista_productos_costo_importacion(_request):
-    product_list = CostoImportacion.objects.values('product_id').distinct() 
+    
+    prods = productos_mba_django()[['product_id', 'nombre', 'marca']]
+    product_list = pd.DataFrame(CostoImportacion.objects.values('product_id').distinct())
+    product_list = product_list.merge(prods, on='product_id', how='left').sort_values(by=['marca', 'product_id']).fillna('')
+    
     return JsonResponse({
         'success': True,
-        'data': list(product_list)
+        'data': de_dataframe_a_template(product_list)
     })
 
 
