@@ -639,7 +639,12 @@ def metro_movimiento_edit(request, id):
 def metro_movimiento_delete(request, id):
     
     try:
-        #if request.user != 'CARCOSH'
+        if request.user.username != 'CARCOSH' and request.user.username != 'admin':
+        # if request.user.username != 'egarces' and request.user.username != 'admin':  
+            return JsonResponse({
+                'success': False,
+                'message': 'Solo el usuario Carlos Arcos puede eliminar esta información !!!',
+            })
         mov = Kardex.objects.get(id=id)
         mov.delete()
         return JsonResponse({'success':True})
