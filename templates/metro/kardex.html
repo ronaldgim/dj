@@ -427,6 +427,9 @@
                             $(btn).closest('tr').remove();
                             location.reload();
                         }
+                        else {
+                            alert(response.message)
+                        }
                     },
                     error: function() {
                         alert('Error al eliminar movimiento')

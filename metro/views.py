@@ -500,7 +500,8 @@ def enviar_correo_kardex(kardex):
     
     ultimo_movimiento = kardex.last()
     asunto = 'Ingreso de Nuevo Producto a Consignación' if ultimo_movimiento.description == 'Saldo inicial' else f'{ultimo_movimiento.description} de Consiganción'
-    correos = ['egarces@gimpromed.com', 'jgualotuna@gimpromed.com']
+    # correos = ['egarces@gimpromed.com', 'jgualotuna@gimpromed.com']
+    correos = ['jcguevara@gimpromed.com', 'kenriquez@gimpromed.com', 'gmoreno@gimpromed.com', 'ronaldm@gimpromed.com']
     
     if ultimo_movimiento.description != 'Saldo inicial':
         movs = []
@@ -573,8 +574,16 @@ def metro_movimiento_edit(request, id):
     # Obtener el producto o devolver 404 si no existe
     product = get_object_or_404(Kardex, id=id)
     kardex = Kardex.objects.filter(product__id=product.product.id)
+    form = KardexForm(instance=product, user=request.user)
     
     if request.method == 'POST':
+        if request.user.username != 'CARCOSH' and request.user.username != 'admin':
+        # if request.user.username != 'egarces' and request.user.username != 'admin':  
+            return JsonResponse({
+                'success': False,
+                'message': 'Solo el usuario Carlos Arcos puede editar esta información !!!',
+            })
+        
         # Procesar el formulario enviado        
         form = KardexForm(request.POST, request.FILES, instance=product, user=request.user) 
         if request.POST.get('confirmado', False) == 'true':
@@ -618,25 +627,24 @@ def metro_movimiento_edit(request, id):
                 'success': False,
                 'errors': errors
             }, status=400)
-    else:
-        # Para solicitudes GET, crear el formulario con el producto existente
-        form = KardexForm(instance=product, user=request.user)
-        if request.user.id == 1:
-            return JsonResponse({
-                'success':True,
-                'form':form.as_p()
-            })
-        else:
-            return JsonResponse({
-                    'success': False,
-                    'message': 'Solo el usuario Carlos Arcos puede editar esta información !!!',
-                })
+    
+    return JsonResponse({
+        'success':True,
+        'form':form.as_p()
+    })
 
 
 @csrf_exempt
 @login_required(login_url='login')
 def metro_movimiento_delete(request, id):
+    
     try:
+        if request.user.username != 'CARCOSH' and request.user.username != 'admin':
+        # if request.user.username != 'egarces' and request.user.username != 'admin':  
+            return JsonResponse({
+                'success': False,
+                'message': 'Solo el usuario Carlos Arcos puede eliminar esta información !!!',
+            })
         mov = Kardex.objects.get(id=id)
         mov.delete()
         return JsonResponse({'success':True})
