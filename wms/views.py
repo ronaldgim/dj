@@ -648,7 +648,7 @@ def wms_importaciones_list(request): #OK
 # Lista de importaciones ingresadas
 # url: importaciones/ingresadas
 @login_required(login_url='login')
-@permisos(['ADMINISTRADOR','OPERACIONES'], '/wms/home', 'Importaciones ingresadas')
+@permisos(['ADMINISTRADOR','OPERACIONES', 'BODEGA'], '/wms/home', 'Importaciones ingresadas')
 def wms_imp_ingresadas(request): #OK
     """ Lista de importaciones ingresadas """
 
