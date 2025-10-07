@@ -329,7 +329,7 @@ def inventario_andagoya_get_stock(request):
     inventario_df['fecha_cadu_lote'] = inventario_df['fecha_cadu_lote'].astype('str')
     inventario_df['llenado_ok'] = inventario_df['llenado'] | inventario_df['llenado_estanteria']
     
-    total      = len(inventario) ; print('total:', total)
+    total      = len(inventario) 
     procesados = len(inventario.filter(llenado=True)) 
     estanteria = len(inventario.filter(llenado_estanteria=True)) 
     procesados_bod_est = len(inventario_df[inventario_df['llenado_ok']==True]) 

@@ -108,8 +108,8 @@
                             <form @submit.prevent="actualizarCrearTotal()">
                                 <label>Unidades por cartón:</label>
                                 <input class="form-control form-control-sm" v-model="formTotales.unidades_caja_t" type="number" required>
-                                <label>Número de cartones totales:</label><br>
-                                <small style="color: gray; font-size:smaller">Este campo puede hacer calulos (+, -)</small> <small style="color: red; font-size:smaller">solo dos números</small><br>
+                                <label>Número total de cartones (cerrados):</label><br>
+                                <!--small style="color: gray; font-size:smaller">Este campo puede hacer calulos (+, -)</small> <small style="color: red; font-size:smaller">solo dos números</small><br-->
                                 <!--input class="form-control form-control-sm" v-model="formTotales.numero_cajas_t" @input="sumarInput(formTotales.numero_cajas_t, 'numero_cajas_t')" required-->
                                 
                                 <div class="row g-2">
@@ -122,9 +122,10 @@
                                         </button>
                                     </div>
                                 </div>                              
-                                
-                                <label>Unidades sueltas totales:</label><br>
-                                <small style="color: gray; font-size:smaller">Este campo puede hacer calulos (+, -)</small> <small style="color: red; font-size:smaller">solo dos números</small> <br>
+                                <small style="color: gray; font-size:smaller">Este campo puede hacer calulos (+, -)</small> <small style="color: red; font-size:smaller">solo dos números</small><br>
+
+                                <label>Unidades sueltas totales:</label>
+                                <!--small style="color: gray; font-size:smaller">Este campo puede hacer calulos (+, -)</small> <small style="color: red; font-size:smaller">solo dos números</small> <br-->
                                 <!--input class="form-control form-control-sm" v-model="formTotales.unidades_sueltas_t" @input="sumarInput(formTotales.unidades_sueltas_t, 'unidades_sueltas_t')" required-->
                                 
                                 <div class="row g-2">
@@ -137,7 +138,8 @@
                                         </button>
                                     </div>
                                 </div>
-
+                                <small style="color: gray; font-size:smaller">Este campo puede hacer calulos (+, -)</small> <small style="color: red; font-size:smaller">solo dos números</small><br>
+                                
                                 <!--label class="fw-bold">Total Unidades:</label> {{ total_agrupado.toLocaleString() }}<br-->
                                 <label class="fw-bold">Total Unidades:</label> {{ total_agrupado_function.toLocaleString() }}<br>
                                 <button type="submit" class="btn btn-sm btn-primary float-sm-end mt-2">GUARDAR</button>
@@ -264,6 +266,28 @@
 
                     <hr>
 
+                    <!--div class="card" style="background-color: #e5f9fd;">
+                        <div class="card-body">
+                            <h6 class="text-center fw-bold">BUSCAR PRODUCTO</h6>
+                            <div v-if="msg_product" :class="`alert alert-${type_msg_product} text-center p-2 m-0`" role="alert" style="font-size: smaller;">
+                                {{msg_product}}
+                            </div>
+                            <form @submit.prevent="buscarProducto()">
+                                <label>Código de producto:</label>
+                                <div class="input-group input-group-sm mb-3">
+                                    <select @change="buscarProducto()" v-model="formBuscar.product_id" class="form-select form-select-sm">
+                                        <option value="">--------</option>
+                                        <option v-for="producto in productList" :key="producto.codigo" :value="producto.codigo">
+                                            {{producto.codigo}}
+                                        </option>
+                                    </select>
+                                    <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button>
+                                </div>
+                            </form>
+                        </div>
+                    </div-->
+
+                    <hr>
                     <!-- AGREGAR ITEM -->
                     <div class="card">
                         <div class="card-body">
@@ -395,6 +419,7 @@
                 product_id:'',
             },
             listaLotesAgregar:[],
+            productList:[],
 
             // input date
             rawDate:'',
@@ -438,6 +463,8 @@
         },
         mounted() {
             this.getStock();
+            this.initSelect2();
+            this.getProductoList();
         },
         computed: {
             total_agrupado_function() {
@@ -486,6 +513,15 @@
                 )
             }
         },
+        // watch:{
+        //     'formBuscar.product_id':{
+        //         handler(newVal, oldVal) {
+        //             if (newVal && newVal !== ''){
+        //                 this.buscarProducto(newVal)
+        //             }
+        //         }
+        //     }
+        // },
         methods: {
             llenadoColor(llenado) {
                 switch (llenado) {
@@ -715,6 +751,8 @@
             },
 
             async buscarProducto() {
+                console.log(this.formBuscar.product_id);
+                console.log('buscarProducto');
                 try {
                     const response = await fetch('/inventario/toma-fisica/buscar-producto', {
                         method: 'POST',
@@ -813,6 +851,40 @@
                     this.type_msg_agregar_lote = 'danger';
                     this.msg_agregar_lote = error;
                 }
+            },
+
+            async getProductoList(){
+                try {
+                    const res = await fetch('/api/warehouse-productos-list');
+                    const data = await res.json();
+                    this.productList = data.data || [];
+                } catch (error) {
+                    console.log(error)
+                }
+            },
+
+            // onSelectChangeGetProduct(){
+            //     console.log()
+            // },
+
+            onSelectChange(event) {
+                this.filtro = event.target.value;
+            },
+
+            initSelect2() {
+                this.$nextTick(() => {
+                    const vm = this;
+                    $(".form-select").select2({
+                        width:'100%',
+                        dropdownParent:$('#agregarItemForm')
+                    });
+                    // sincroniza cuando cambia
+                    $(".form-select").on("change", function (e) {
+                        vm.filtro = e.target.value;
+                    });
+                    // actualiza visualmente el valor en Select2
+                    $(".form-select").val(this.filtro).trigger("change.select2");
+                });
             },
         }
     })
