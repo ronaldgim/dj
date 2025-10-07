@@ -75,7 +75,7 @@
         </div>  
     <!--/div-->
 
-    <div class="card">
+    <div class="card mb-4">
         <div class="card-header">TOMA FISICA ANDAGOYA</div>
         <div class="card-body">
             <div class="col-4"><input v-model="filtro" placeholder="Buscar..." type="text" class="form-control"></div>
@@ -308,11 +308,9 @@
                             <td>{{i.location}}</td>
                             <td class="text-end">{{i.unidades_caja.toLocaleString()}}</td>
                             <td class="text-center">{{i.doble_ubicacion}}</td>
-
                             <td class="text-end">{{i.numero_cajas.toLocaleString()}}</td>
                             <td class="text-end">{{i.unidades_sueltas.toLocaleString()}}</td>
                             <td class="text-end">{{i.unidades_estanteria.toLocaleString()}}</td>
-
                             <td class="text-end">{{i.total_unidades.toLocaleString()}}</td>
                             <td class="text-end">{{i.oh2.toLocaleString()}}</td>
                             <td class="text-end" :style="{backgroundColor:colorDiferencia(i.diferencia)}">{{i.diferencia.toLocaleString()}}</td>
@@ -329,6 +327,18 @@
                                 <i v-else style = "color:red;" class="bi bi-x-square-fill"></i>
                             </td>
                             <td>{{i.user__username}}</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold">Totales:<td>
+                            <td colspan="7"><td>
+                            <!--td class="fw-bold">Totales:<td-->
+                            <td class="text-end">{{ totalCajas.toLocaleString() }}</td>
+                            <td class="text-end">{{ totalUndSueltas.toLocaleString() }}</td>
+                            <td class="text-end">{{ totalUndEstanteria.toLocaleString() }}</td>
+                            <td class="text-end">{{ totalUnidades.toLocaleString() }}</td>
+                            <td class="text-end">{{ totalUnidadesMBA.toLocaleString() }}</td>
+                            <td class="text-end">{{ totalDiferencia.toLocaleString() }}</td>
+                            <td colspan="4"></td>
                         </tr>
                         {% endverbatim %}
                     </tbody>
@@ -384,17 +394,6 @@
             this.getStock();
         },
         computed:{
-            // stockFiltrado() {
-            //     return this.stock.filter(i => 
-            //         i.product_id.toLowerCase().includes(this.filtro.toLowerCase()) |
-            //         i.product_name.toLowerCase().includes(this.filtro.toLowerCase()) |
-            //         i.group_code.toLowerCase().includes(this.filtro.toLowerCase()) |
-            //         i.lote_id.toLowerCase().includes(this.filtro.toLowerCase()) |
-            //         i.ware_code.toLowerCase().includes(this.filtro.toLowerCase()) |
-            //         i.location.toLowerCase().includes(this.filtro.toLowerCase())
-            //     )
-            // }
-
             stockFiltrado() {
                 // Paso 1: Aplicar filtro de búsqueda
                 let resultadoFiltrado = this.stock.filter(i => {
@@ -460,9 +459,31 @@
                     // Aplicar dirección del ordenamiento
                     return this.sortDirection === 'asc' ? resultado : -resultado;
                 });
+            },
+            totalCajas() {
+                let totalCajas = this.stockFiltrado.map(item => item.numero_cajas);
+                return totalCajas.reduce((acumulador, valorActual) => acumulador + valorActual, 0);
+            },
+            totalUndSueltas() {
+                let totalUndSueltas = this.stockFiltrado.map(item => item.unidades_sueltas);
+                return totalUndSueltas.reduce((acumulador, valorActual) => acumulador + valorActual, 0);
+            },
+            totalUndEstanteria() {
+                let totalUndEstanteria = this.stockFiltrado.map(item => item.unidades_estanteria);
+                return totalUndEstanteria.reduce((acumulador, valorActual) => acumulador + valorActual, 0);
+            },
+            totalUnidades() {
+                let totalUnidades = this.stockFiltrado.map(item => item.total_unidades);
+                return totalUnidades.reduce((acumulador, valorActual) => acumulador + valorActual, 0);
+            },
+            totalUnidadesMBA() {
+                let totalUnidadesMBA = this.stockFiltrado.map(item => item.oh2);
+                return totalUnidadesMBA.reduce((acumulador, valorActual) => acumulador + valorActual, 0);
+            },
+            totalDiferencia() {
+                let totalDiferencia = this.stockFiltrado.map(item => item.diferencia);
+                return totalDiferencia.reduce((acumulador, valorActual) => acumulador + valorActual, 0);
             }
-
-
         },
         methods: {
 
@@ -524,6 +545,7 @@
                     this.actualizandoStock = false
                 }
             },
+
             updateCharts() {
                 if (this.chart) {
                     this.chart.data = this.chartData;
@@ -589,7 +611,7 @@
                 this.sortDirection = 'asc';
                 }
             },
-            
+
             // Función auxiliar para obtener el ícono de ordenamiento
             getIconoOrden(campo) {
                 if (this.sortField !== campo) {
