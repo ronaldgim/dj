@@ -320,6 +320,7 @@
 
                     if (response.success) {
                         $("#form-edit").attr("action", `/metro/movimiento-edit/${productId}`);
+                        $("#form-edit").attr("enctype", "multipart/form-data");
                         $("#editModalBody").html(response.form);
                         $("#editModalBody label").addClass("fw-bold");
                         $("#editModalBody .row").addClass("mb-3");
@@ -357,15 +358,17 @@
         $("#editModal").on('submit', 'form', function(e) {
             e.preventDefault();
             
-            const form = $(this);
-            // form.append(`<input type="hidden" name="confirmado" value="${submitBtnValue}">`);
-            form.append(`<input type="hidden" name="confirmado" value="${confirmado}">`);
-            const url = form.attr('action'); // || form.data('url');
+            // Using FormData for handling file uploads
+            const formData = new FormData(this);
+            formData.append('confirmado', confirmado);
+            const url = $(this).attr('action'); // || $(this).data('url');
             // console.log(url);
             $.ajax({
                 url: url,
                 type: 'POST',
-                data: form.serialize(),
+                data: formData,
+                processData: false,
+                contentType: false,
                 success: function(response) {
                     if (response.success) {
                         // Cerrar el modal
