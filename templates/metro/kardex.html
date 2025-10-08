@@ -128,11 +128,15 @@
                                 <div class="btn-group" role="group" aria-label="Basic example">
                                     <button 
                                         name="edit-form-btn"
-                                        class="btn btn-sm btn-secondary edit-product-btn {#% if i.confirmado or request.user.id != 12 %} disabled {% endif %#}"
+                                        class="btn btn-sm {% if i.confirmado %} btn-primary {% else %} btn-secondary {% endif %} edit-product-btn {#% if i.confirmado or request.user.id != 12 %} disabled {% endif %#}"
                                         data-product-id="{{ i.id }}" 
                                         data-product-name="Editar: {{ i.product.codigo_gim }}"
                                     >
+                                        {% if i.confirmado %}
+                                        <i class="bi bi-search"></i>
+                                        {% else %}
                                         <i class="bi bi-pencil-fill"></i>
+                                        {% endif %}
                                     </button>
                                     <button 
                                         class="btn btn-sm btn-danger delete-product-btn {% if i.confirmado %} disabled {% endif %}"
@@ -173,7 +177,7 @@
         </div>
         <div class="modal-body">
             <div class="container">
-                <label class="fw-bold">Código:</label> {{product.codigo_gim}} <br>
+                <label class="fw-bold">Código:</label> {{product.codigo_gim}}<br>
                 <label class="fw-bold">Nombre:</label> {{product.nombre_gim}} <br>
                 <label class="fw-bold">Marca:</label> {{product.marca}} <br>
                 <label class="fw-bold">Cantidad en consignación:</label> {{product.saldo}} <br>
@@ -206,6 +210,10 @@
                                         {% else %}
                                             {{ field }}
                                         {% endif %}
+
+                                        {% if field.name == 'cantidad' %}
+                                        <small class="text-danger">Cuando es AJUSTE debe colocarse el signo respectivo</small>
+                                        {% endif %}
                                         
                                         {% if field.errors %}
                                             <div class="invalid-feedback d-block">
@@ -229,9 +237,9 @@
                                 <button type="submit" name="action" value="guardar" class="btn btn-primary">
                                     Guardar
                                 </button>
-                                <button type="submit" name="action" value="confirmado" class="btn btn-success">
+                                <!--button type="submit" name="action" value="confirmado" class="btn btn-success">
                                     Confirmar
-                                </button>
+                                </button-->
                                 <button type="reset" onclick="resetForm()" class="btn btn-secondary" data-bs-dismiss="modal">
                                     Cancelar
                                 </button>
@@ -317,6 +325,7 @@
                         $("#editModalBody .row").addClass("mb-3");
                         $("#editModalBody label[for='id_confirmado']").hide();
                         $("#editModalBody input[id='id_confirmado']").hide();
+                        $("#editModalBody input[id='id_cantidad']").after('<small class="text-danger">Cuando es AJUSTE debe colocarse el signo respectivo</small>');
                     } else {
                     $("#editModalErrors").html(`
                         <div class="alert alert-danger">
