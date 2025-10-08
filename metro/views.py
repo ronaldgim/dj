@@ -584,8 +584,6 @@ def metro_movimiento_edit(request, id):
     kardex = Kardex.objects.filter(product__id=product.product.id)
     form = KardexForm(instance=product, user=request.user)
     
-    already_confirmed = product.confirmado
-    
     if request.method == 'POST':
         
         if product.confirmado:
