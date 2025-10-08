@@ -26,11 +26,19 @@ from django.conf import settings
 from metro.models import Product, Inventario, TomaFisica, Kardex
 from metro.forms import ProductForm, InventarioForm, TomaFisicaForm, KardexForm
 
+from datos.views import productos_odbc_and_django, de_dataframe_a_template
+
 ### PRODUCTOS
 @login_required(login_url='login')
 def metro_products_list(request):
     
     products = Product.objects.all().order_by('orden', 'codigo_gim', 'marca')
+    prods = productos_odbc_and_django()[['product_id', 'Nombre', 'Marca']]
+    
+    products_df = pd.DataFrame(products.values())
+    products_df = pd.merge(left=products_df, right=prods, left_on='codigo_gim', right_on='product_id', how='left')
+    products_df = de_dataframe_a_template(products_df)
+    
     products_data = {
         'total':products.count(),
         'activos':products.filter(activo=True).count(),
@@ -49,7 +57,7 @@ def metro_products_list(request):
         form = ProductForm()
     
     context = {
-        'products':products,
+        'products':products_df,
         'products_data':products_data,
         'form':form
     }
@@ -500,8 +508,8 @@ def enviar_correo_kardex(kardex):
     
     ultimo_movimiento = kardex.last()
     asunto = 'Ingreso de Nuevo Producto a Consignación' if ultimo_movimiento.description == 'Saldo inicial' else f'{ultimo_movimiento.description} de Consiganción'
-    # correos = ['egarces@gimpromed.com', 'jgualotuna@gimpromed.com']
-    correos = ['jcguevara@gimpromed.com', 'kenriquez@gimpromed.com', 'gmoreno@gimpromed.com', 'ronaldm@gimpromed.com']
+    correos = ['egarces@gimpromed.com', 'jgualotuna@gimpromed.com']
+    # correos = ['jcguevara@gimpromed.com', 'kenriquez@gimpromed.com', 'gmoreno@gimpromed.com', 'ronaldm@gimpromed.com']
     
     if ultimo_movimiento.description != 'Saldo inicial':
         movs = []
