@@ -16,7 +16,11 @@
     
     <h4>Estimados Compañeros:</h4>
 
+    {% if movimiento.description == 'Saldo inicial' %}
+    <p>Se notifica Ingreso de Nuevo Producto a consignación - Hopital Metropolitano</p>
+    {% else %}
     <p>Se notifica {{movimiento.description}} de consignación - Hopital Metropolitano</p>
+    {% endif %}
 
     <p><strong>Código:</strong> {{movimiento.product.codigo_gim}}</p>
     <p><strong>Nombre:</strong> {{movimiento.product.nombre_gim}}</p>

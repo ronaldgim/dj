@@ -112,9 +112,11 @@
                             <td>{{i.orden}}</td>
                             <td class="codigo-gim">{{i.codigo_gim}}</td>
                             <td class="codigo-hm">{{i.codigo_hm}}</td>
-                            <td>{{i.nombre_gim}}</td>
+                            <!-- td>{{i.nombre_gim}}</td -->
+                            <td>{{i.Nombre | default:"-"}}</td>
                             <td>{{i.nombre_hm}}</td>
-                            <td>{{i.marca}}</td>
+                            <!--td>{{i.marca}}</td-->
+                            <td>{{i.Marca}}</td>
                             <!--td>{{i.unidad}}</td>
                             <td class="text-end">{{i.u_empaque | floatformat:"0g"}}</td-->
                             <td>{{i.ubicacion}}</td>
