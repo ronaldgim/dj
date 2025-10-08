@@ -585,16 +585,18 @@ def metro_movimiento_edit(request, id):
     form = KardexForm(instance=product, user=request.user)
     
     if request.method == 'POST':
-        if request.user.username != 'CARCOSH' and request.user.username != 'admin':
-        # if request.user.username != 'egarces' and request.user.username != 'admin':  
-            return JsonResponse({
-                'success': False,
-                'message': 'Solo el usuario Carlos Arcos puede editar esta información !!!',
-            })
         
         # Procesar el formulario enviado        
         form = KardexForm(request.POST, request.FILES, instance=product, user=request.user) 
         if request.POST.get('confirmado', False) == 'true':
+            
+            if request.user.username != 'CARCOSH' and request.user.username != 'admin':
+            # if request.user.username != 'egarces' and request.user.username != 'admin':  
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Solo el usuario Carlos Arcos puede editar esta información !!!',
+                })
+        
             campos_requeridos = ['description', 'cantidad', 'nota_entrega', 'fecha_nota', 'movimiento_mba', 'fecha_mba']
             
             campos_llenos = []
