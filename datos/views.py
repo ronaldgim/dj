@@ -1398,7 +1398,9 @@ def nueva_tramaco_function(pesototal, producto, trayecto):
             factor = factores_multiplicacion.get(trayecto, 0)
             costototal = round(costo_base + (peso_adicional * factor), 2)
     
-    return costototal
+    # return costototal
+    costo_nuevo = round(costototal*1.06, 2) if costototal > 0 else 0  # (costototal*1.06)
+    return f'{costototal} - ($ {costo_nuevo})'
 
 
 def tramaco_function_ajax(request):
