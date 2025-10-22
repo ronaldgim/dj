@@ -43,7 +43,7 @@
             <img src="{{ i.foto.url }}" class="card-img-top p-2" alt="...">
             <div class="card-body">
                 <label class="fw-bold">Creado por: </label>{{i.usuario.first_name}} {{i.usuario.last_name}} <br>
-                <label class="fw-bold">Fecha: </label>{{i.creado | date:"Y-m-d i:H"}}
+                <label class="fw-bold">Fecha: </label>{{i.creado | date:"Y-m-d H:i"}}
                 <!--a href="#" class="btn btn-primary">Go somewhere</a-->
                 <br>
                 <button class="btn btn-sm btn-danger mt-2" onclick="deleteFoto({{i.id}})">
