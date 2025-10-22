@@ -134,4 +134,10 @@ urlpatterns = [
         view  = views.enviar_documentos_procesados_ajax,
         name = 'enviar_documentos_procesados_ajax'
     ),
+
+    path(
+        route = 'documentos_varios_list',
+        view  = views.documentos_varios_list,
+        name = 'documentos_varios_list'
+    ),
 ]

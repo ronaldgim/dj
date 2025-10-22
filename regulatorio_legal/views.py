@@ -1016,7 +1016,6 @@ def facturas_proformas_detalle(request, id):
             })
 
 
-
 def eliminar_documento_procesado_ajax(request):
     if request.method == 'POST':
         id_documento = int(request.POST.get('id_documento'))
@@ -1077,3 +1076,7 @@ GIMPROMED Cia. Ltda.\n
             'alert':'danger',
             'msg': f'Error !!!'
         })
+
+
+def documentos_varios_list(request):
+    return render(request, 'regulatorio_legal/documentos_varios_list.html')
