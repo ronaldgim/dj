@@ -132,6 +132,8 @@ class CartaGeneral(models.Model):
 
         # Llamar al método `save` del modelo base
         return super().save(*args, **kwargs)
+
+
 class CartaProcesos(models.Model):
     
     n_ofocio            = models.IntegerField(verbose_name='N° Oficio', null=True)
@@ -218,7 +220,6 @@ class CartaProcesos(models.Model):
         # Llamar al método `save` del modelo base
         return super().save(*args, **kwargs)
 
-
 class CartaItem(models.Model):
     n_ofocio            = models.IntegerField(verbose_name='N° Oficio', null=True)
     oficio              = models.CharField(verbose_name='Oficio', max_length=30)
@@ -227,7 +228,7 @@ class CartaItem(models.Model):
     items               = models.ManyToManyField(Product, verbose_name='Productos', blank=True)
     items_mba           = models.TextField()
     hospital            = models.CharField(verbose_name='Hospital', max_length=100)
-    proceso             = models.CharField(verbose_name='N° Proceso', max_length=50)
+    proceso             = models.CharField(verbose_name='N° Proceso', max_length=250)
     fecha_emision       = models.DateField(verbose_name='Fecha', auto_now_add=True)
     slug                = models.SlugField(unique=True)
     qr_code             = models.ImageField(verbose_name='QR', upload_to='qr_carta_procesos', blank=True)
