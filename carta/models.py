@@ -228,7 +228,7 @@ class CartaItem(models.Model):
     items               = models.ManyToManyField(Product, verbose_name='Productos', blank=True)
     items_mba           = models.TextField()
     hospital            = models.CharField(verbose_name='Hospital', max_length=100)
-    proceso             = models.CharField(verbose_name='N° Proceso', max_length=250)
+    proceso             = models.CharField(verbose_name='N° Proceso', max_length=400)
     fecha_emision       = models.DateField(verbose_name='Fecha', auto_now_add=True)
     slug                = models.SlugField(unique=True)
     qr_code             = models.ImageField(verbose_name='QR', upload_to='qr_carta_procesos', blank=True)
