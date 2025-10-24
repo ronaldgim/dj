@@ -26,8 +26,6 @@ from django.conf import settings
 from metro.models import Product, Inventario, TomaFisica, Kardex
 from metro.forms import ProductForm, InventarioForm, TomaFisicaForm, KardexForm
 
-from datos.views import productos_odbc_and_django, de_dataframe_a_template
-
 ### PRODUCTOS
 @login_required(login_url='login')
 def metro_products_list(request):
