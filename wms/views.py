@@ -627,7 +627,8 @@ def wms_importaciones_list(request): #OK
     # print(imp)
     imp_wms = pd.DataFrame(InventarioIngresoBodega.objects.filter(referencia='Ingreso Importación').values(
         'product_id','lote_id','unidades_ingresadas','n_referencia'
-    ))
+    ) #.exclude(n_referencia='2234-GIMPR-OC')
+    )
     
     imp_wms = imp_wms.rename(columns={'n_referencia':'DOC_ID_CORP'})
     imp_wms['ingresado'] = 'si'
@@ -651,24 +652,26 @@ def wms_importaciones_list(request): #OK
 @permisos(['ADMINISTRADOR','OPERACIONES', 'BODEGA'], '/wms/home', 'Importaciones ingresadas')
 def wms_imp_ingresadas(request): #OK
     """ Lista de importaciones ingresadas """
-
+    
     prod = productos_odbc_and_django()[['product_id','Marca', 'MarcaDet']]
-    imps = pd.DataFrame(InventarioIngresoBodega.objects.filter(referencia='Ingreso Importación').values()).sort_values(by='fecha_hora',ascending=False)
-
+    imps = pd.DataFrame(
+        InventarioIngresoBodega.objects
+        .filter(referencia='Ingreso Importación')
+        .values()).sort_values(by='fecha_hora',ascending=False)
     imps_llegadas = importaciones_llegadas_odbc()[['DOC_ID_CORP','MEMO']] 
     imps_llegadas = imps_llegadas.rename(columns={'DOC_ID_CORP':'n_referencia'}).drop_duplicates(subset='n_referencia')
 
-    imps = imps.merge(imps_llegadas, on='n_referencia', how='left')
+    imps = imps.merge(imps_llegadas, on='n_referencia', how='left') 
     
     imp_fotos = pd.DataFrame(ImportacionFotos.objects.all().values()).drop_duplicates(subset='importacion')
     if not imp_fotos.empty:
-        imps = pd.merge(left=imps, right=imp_fotos, left_on='MEMO', right_on='importacion')
+        imps = pd.merge(left=imps, right=imp_fotos, left_on='MEMO', right_on='importacion', how='left')
 
     if not imps.empty:
         imps = imps.merge(prod, on='product_id', how='left')
-        imps = imps.drop_duplicates(subset='n_referencia')
+        imps = imps.drop_duplicates(subset='n_referencia') 
         imps = de_dataframe_a_template(imps)
-
+    
     context = {
         'imp':imps
     }
