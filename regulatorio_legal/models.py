@@ -103,3 +103,24 @@ class FacturaProforma(models.Model):
     email            = models.BooleanField(default=False)
     procesar_docs    = models.BooleanField(default=False)
     opacidad         = models.CharField(max_length=2, default='3')
+    
+
+
+class DocumentoVario(models.Model):
+    descripcion = models.CharField(max_length=200)
+    codigo_cliente = models.CharField(max_length=50)
+    cliente    = models.CharField(max_length=100)
+    creado      = models.DateTimeField(auto_now_add=True)
+    usuario     = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.PROTECT)
+    
+    def __str__(self):
+        return self.descripcion
+
+
+class Documento(models.Model):
+    documento_vario = models.ForeignKey(DocumentoVario, verbose_name='Documento Vario', on_delete=models.CASCADE)
+    documento       = models.FileField(upload_to='documentos_varios')
+    usuario         = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.PROTECT)
+    
+    def __str__(self):
+        return self.documento_vario.descripcion
