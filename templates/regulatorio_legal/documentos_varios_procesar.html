@@ -34,11 +34,31 @@
 
 <div id="msg"></div>
 
-<label class="fw-bold">Decripción:</label> {{doc.descripcion}} <br>
-<label class="fw-bold">Marca de agua:</label> {{doc.marca_agua}} <br>
-<label class="fw-bold">Opacidad:</label> {{doc.opacidad}} <br>
-<label class="fw-bold">Email Cliente:</label> {{doc.email_envio}} <br>
+<label class="fw-bold">Decripción:</label> {{doc.descripcion}} <br><br>
 
+<div class="row">
+    <div class="col-auto">
+        <h6 class="fw-bold">Marca de agua:<h6>
+        <button class="btn text-white {% if not doc.marca_de_agua %} btn-danger {% else %} btn-warning {% endif %}" type="button" data-bs-toggle="modal" data-bs-target="#marcaAgua">
+            Marca de agua
+        </button>
+    </div>
+    <div class="col-auto">
+        <h6><span class="fw-bold">Opacidad: </span> <span id="opacidad_value">{{doc.opacidad}} </span><h6>
+        <input type="range" class="mt-2 bg-primary" name="opacidad" min="1" max="10" step="1" value="{{doc.opacidad}}" id="id_opacidad">
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-success mt-4 {% if not doc.marca_agua %} disabled {% endif %}" name="procesar_documentos">
+            Procesar documentos
+            <!--div id="spinner-documentos" class="spinner-border spinner-border-sm" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div-->
+            {#% if doc.procesar_docs %#}
+            <i class="bi bi-check-lg"></i>
+            {#% endif %#}
+        </button>
+    </div>
+</div>
 <br>
 
 <!-- Button trigger modal -->
@@ -77,31 +97,55 @@
     </div>
 </div>
 
-
 <!-- Modal -->
 <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-        <div class="modal-header">
-            <h5 class="modal-title fw-bold" id="staticBackdropLabel">Nuevo grupo de documentos</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-            <form action="" method="POST" id="iso-form" enctype="multipart/form-data">
-                {% csrf_token %}
-                <input type="hidden" name="usuario" value="{{request.user.id}}">
-                <input type="hidden" name="documento_vario" value="{{doc.id}}">
-                <div class="row g-2">
-                    <input type="file" name="documento" >
-                </div>
-            </form>
-        </div>
-        <div class="modal-footer">
-            <button type="submit" form="iso-form" class="btn btn-primary">Guardar</button>
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="staticBackdropLabel">Nuevo grupo de documentos</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="" method="POST" id="iso-form" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="usuario" value="{{request.user.id}}">
+                    <input type="hidden" name="documento_vario" value="{{doc.id}}">
+                    <div class="row g-2">
+                        <input type="file" name="documento" >
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" form="iso-form" class="btn btn-primary">Guardar</button>
+            </div>
         </div>
     </div>
 </div>
 
+<!-- Modal Marca de agua-->
+<div class="modal fade" id="marcaAgua" tabindex="-1" aria-labelledby="marcaAguaLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="marcaAguaLabel">Texto de marca de agua</h5><br>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <div class="alert alert-warning" style="text-align:center;"  role="alert">
+                Maximo 12 lineas y 25 caracteres por línea tomando en cuenta los espacios.<br>
+                <span style="display:none;" id="alertaTexto" class="text-danger m-2 text-center"></span>
+            </div>
+            <!-- style="text-align:justify;" -->
+            <textarea id="id_texto_marca_agua" name="texto_marca_agua" class="form-control" rows="12" cols="25">
+                {{factura_proforma.marca_de_agua}}
+            </textarea>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-primary" name="marca_agua">Guardar</button>
+        </div>
+        </div>
+    </div>
+</div>
 
 <!-- Select2 -->
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
@@ -117,20 +161,92 @@
 </script>
 
 <script>
-$('#id_cliente_codigo_nombre').on('change', function() {
-    const selectedValue = $(this).val();
-    const selectedText = $(this).find('option:selected').text();
-    
-    $('#id_cliente').val(selectedText)
-    $('#id_codigo_cliente').val(selectedValue)
-});
+    $('#id_cliente_codigo_nombre').on('change', function() {
+        const selectedValue = $(this).val();
+        const selectedText = $(this).find('option:selected').text();
+        
+        $('#id_cliente').val(selectedText)
+        $('#id_codigo_cliente').val(selectedValue)
+    });
 
-$('#id_opacidad').on('change', function() {
-    const opacidadValue = $(this).val();
-    $('#id_opacidad_val').html(opacidadValue)
-});
+    $('#id_opacidad').on('change', function() {
+        const opacidadValue = $(this).val();
+        $('#id_opacidad_val').html(opacidadValue)
+    });
 </script>
 
+<!-- Add marca de agua -->
+<script>
+        // Aseguramos que el script se ejecute después de que el DOM esté cargado.
+        document.addEventListener('DOMContentLoaded', function () {
+            let textarea = document.getElementById('id_texto_marca_agua');
+            //const alertaTexto = documento.getElementById('alerta-texto');
+
+            // Llamar a la validación cada vez que el usuario escriba.
+            textarea.addEventListener('input', validarTextarea);
+
+            const MAX_LINES = 12;   // Número máximo de líneas permitidas
+            const MAX_CHARACTERS_PER_LINE = 25;  // Máximo de caracteres por línea
+
+            function validarTextarea() {
+                const lineas = textarea.value.toUpperCase().split('\n');  // Convertimos a mayúsculas y dividimos
+                
+                // Limitar número de líneas
+                if (lineas.length > MAX_LINES) {
+                    textarea.value = lineas.slice(0, MAX_LINES).join('\n');
+                    document.getElementById('alertaTexto').style.display = 'inline';
+                    document.getElementById('alertaTexto').innerHTML = `Máximo permitido: ${MAX_LINES} líneas.`;
+                    return;
+                } else {
+                    document.getElementById('alertaTexto').style.display = 'none';
+                    document.getElementById('alertaTexto').innerHTML = '';
+                }
+
+                // Limitar caracteres por línea
+                for (let i = 0; i < lineas.length; i++) {
+                    if (lineas[i].length > MAX_CHARACTERS_PER_LINE) {
+                        lineas[i] = lineas[i].slice(0, MAX_CHARACTERS_PER_LINE);
+                        document.getElementById('alertaTexto').style.display = 'inline';
+                        document.getElementById('alertaTexto').innerHTML = `Límite de ${MAX_CHARACTERS_PER_LINE} caracteres por línea alcanzado.`
+                    } else {
+                        document.getElementById('alertaTexto').style.display = 'none';
+                        document.getElementById('alertaTexto').innerHTML = '';
+                    }
+                    
+                }
+                
+                // Actualizamos el contenido del textarea
+                textarea.value = lineas.join('\n');
+            }
+            
+        });
+
+        $('button[name="marca_agua"]').on('click', function() {
+            var marca_agua = $('#id_texto_marca_agua').val();
+            
+            if (!marca_agua) {
+                alert('Por favor, ingrese el texto de la marca de agua.');
+            } else {
+                $.ajax({
+                    type: "POST",
+                    url: "{#% url 'factura_proforma_marca_de_agua_ajax' %#}",
+                    data: {
+                        'csrfmiddlewaretoken': '{{ csrf_token }}',
+                        'id_factura_proforma':{{factura_proforma.id}},
+                        'texto_marca_agua': marca_agua 
+                    },
+                    success: function(response) {
+                        setTimeout(function(){
+                            window.location.reload();
+                        }, 1000)
+                    },
+                    error: function(xhr, status, error) {
+                        $('#msg').html(`<div class="text-center alert alert-danger" role="alert"> ${xhr.statusText} !!! </div>`)
+                    }
+                })
+            }
+        })
+</script>
 
 <!--filtro buscar-->
 <script>
