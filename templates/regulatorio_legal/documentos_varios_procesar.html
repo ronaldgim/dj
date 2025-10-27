@@ -9,13 +9,8 @@
 {% endblock %}
 
 {% block body %}
-<!--style>
-    .select2-dropdown-custom {
-        z-index: 9999 !important; /* Asegura que el dropdown tenga el z-index más alto */
-    }
-</style-->
 
-<h5 class="m-4 text-center fw-bold">CLIENTE</h5>
+<h5 class="m-4 text-center fw-bold">{{doc.cliente}}</h5>
 
 {% if messages %}
 {% for message in messages %}
@@ -33,17 +28,22 @@
 
 
 
-<div class="col-4 mt-4 mb-2">
+<!--div class="col-4 mt-4 mb-2">
     <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
-</div>
-
+</div-->
 
 <div id="msg"></div>
 
+<label class="fw-bold">Decripción:</label> {{doc.descripcion}} <br>
+<label class="fw-bold">Marca de agua:</label> {{doc.marca_agua}} <br>
+<label class="fw-bold">Opacidad:</label> {{doc.opacidad}} <br>
+<label class="fw-bold">Email Cliente:</label> {{doc.email_envio}} <br>
+
+<br>
 
 <!-- Button trigger modal -->
 <button type="button" class="btn btn-primary mb-2" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
-    Crear nuevo grupo
+    Agregar Documento
 </button>
 
 <div class="card mb-2">
@@ -52,24 +52,18 @@
             <table class="table" style="font-size:small">
                 <thead>
                     <tr>
-                        <th scope="col">Cliente</th>
-                        <th scope="col">Descripción</th>
-                        <th scope="col">Marca de agua</th>
-                        <th scope="col">Email</th>
-                        <th scope="col">Documentos</th>
+                        <th scope="col">Documento</th>
+                        <th scope="col">Procesado</th>
                         <th scope="col">Creado por</th>
                         <th scope="col">Creado en</th>
-                        <th scope="col">Ver</th>
+                        <th scope="col">Descargar</th>
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
-                    {% for i in documentos_varios_list %}
+                    {% for i in docs %}
                     <tr>
-                        <td>{{i.cliente}}</td>
-                        <td>{{i.descripcion}}</td>
-                        <td>{{i.marca_agua}}</td>
-                        <td>{{i.email_envio}}</td>
-                        <td>{{i.n_documentos}}</td>
+                        <td>{{i.nombre_documento}}</td>
+                        <td>{{i.procesado}}</td>
                         <td>{{i.creado}}</td>
                         <td>{{i.usuario}}</td>
                         <td>
@@ -96,51 +90,9 @@
             <form action="" method="POST" id="iso-form" enctype="multipart/form-data">
                 {% csrf_token %}
                 <input type="hidden" name="usuario" value="{{request.user.id}}">
-                <input type="hidden" name="cliente" id="id_cliente">
-                <input type="hidden" name="codigo_cliente" id="id_codigo_cliente">
+                <input type="hidden" name="documento_vario" value="{{doc.id}}">
                 <div class="row g-2">
-                    <!-- Cliente -->
-                    <div class="col-4">
-                        <label class="fw-bold" for="cliente">Cliente:</label>
-                    </div>
-                    <div class="col-8">
-                        <!-- select name="cliente" id="id_cliente" class="form-select" required-->
-                        <select id="id_cliente_codigo_nombre" class="form-select" required>
-                            <option value="">--------</option>
-                            {% for i in clientes %}
-                            <option value="{{i.CODIGO_CLIENTE}}">{{i.NOMBRE_CLIENTE}}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <!-- Descripción -->
-                    <div class="col-4">
-                        <label class="fw-bold" for="descripcion">Descripción:</label>
-                    </div>
-                    <div class="col-8">
-                        <input type="text" name="descripcion" id="id_descripcion" class="form-control">
-                    </div>
-                    <!-- Marca de agua -->
-                    <div class="col-4">
-                        <label class="fw-bold" for="marca_agua">Marca de agua:</label>
-                    </div>
-                    <div class="col-8">
-                        <textarea type="text" name="marca_agua" id="id_marca_agua" class="form-control"></textarea>
-                    </div>
-                    <!-- Opacidad -->
-                    <div class="col-4">
-                        <label class="fw-bold" for="opacidad">Opacidad: <span id="id_opacidad_val">3<span></label>
-                    </div>
-                    <div class="col-8">
-                        <input type="range" class="mt-2 bg-primary" name="opacidad" min="1" max="10" step="1" value="3" id="id_opacidad">
-                    </div>
-
-                    <!-- Email -->
-                    <div class="col-4">
-                        <label class="fw-bold" for="email_envio">Email:</label>
-                    </div>
-                    <div class="col-8">
-                        <input type="email" name="email_envio" id="id_email_envio" class="form-control">
-                    </div>
+                    <input type="file" name="documento" >
                 </div>
             </form>
         </div>

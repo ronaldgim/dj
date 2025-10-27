@@ -1110,9 +1110,22 @@ def documentos_varios_list(request):
 def documentos_varios_procesar(request, id):
     
     documento_vario = DocumentoVario.objects.get(id=id)
+    docs = Documento.objects.filter(documento_vario=documento_vario)
+    
+    if request.POST:
+        form = DocumentoForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Documento varios actualizado exitosamente !!!')
+            return HttpResponseRedirect(f'/regulatorio-legal/documentos-varios/{documento_vario.id}')
+        else:
+            messages.error(request, form.errors)
+            return HttpResponseRedirect(f'/regulatorio-legal/documentos-varios/{documento_vario.id}')
     
     context = {
-        'documento_vario': documento_vario,
+        'doc': documento_vario,
+        'docs': docs,
+        'form': DocumentoForm()
     }
 
     return render(request, 'regulatorio_legal/documentos_varios_procesar.html', context)
