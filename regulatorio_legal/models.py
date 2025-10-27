@@ -121,6 +121,9 @@ class DocumentoVario(models.Model):
 
     def enum(self):
         return f'{self.id:03d}'
+    
+    def n_docs(self):
+        return Documento.objects.filter(documento_vario=self).count()
 
 
 class Documento(models.Model):
