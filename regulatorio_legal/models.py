@@ -131,3 +131,8 @@ class Documento(models.Model):
     
     def __str__(self):
         return self.documento_vario.descripcion
+    
+    @property
+    def nombre_documento(self):
+        return self.documento.name.split('/')[-1]
+    
