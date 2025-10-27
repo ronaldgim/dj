@@ -69,8 +69,8 @@
                         <td>{{i.enum}}</td>
                         <td>{{i.cliente}}</td>
                         <td>{{i.descripcion}}</td>
-                        <td>{{i.marca_agua}}</td>
-                        <td>{{i.email_envio}}</td>
+                        <td>{{i.marca_agua | default:'-' | truncatechars:20}}</td>
+                        <td>{{i.email_envio | default:'-'}}</td>
                         <td>{{i.n_docs}}</td>
                         <td>{{i.creado}}</td>
                         <td>{{i.usuario}}</td>
