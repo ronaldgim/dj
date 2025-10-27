@@ -39,7 +39,7 @@
 <div class="row">
     <div class="col-auto">
         <h6 class="fw-bold">Marca de agua:<h6>
-        <button class="btn text-white {% if not doc.marca_de_agua %} btn-danger {% else %} btn-warning {% endif %}" type="button" data-bs-toggle="modal" data-bs-target="#marcaAgua">
+        <button class="btn text-white {% if not doc.marca_agua %} btn-danger {% else %} btn-warning {% endif %}" type="button" data-bs-toggle="modal" data-bs-target="#marcaAgua">
             Marca de agua
         </button>
     </div>
@@ -48,7 +48,7 @@
         <input type="range" class="mt-2 bg-primary" name="opacidad" min="1" max="10" step="1" value="{{doc.opacidad}}" id="id_opacidad">
     </div>
     <div class="col-auto">
-        <button class="btn btn-success mt-4 {% if not doc.marca_agua %} disabled {% endif %}" name="procesar_documentos">
+        <button class="btn btn-success mt-4 {% if not doc.marca_agua or not doc.n_docs > 0 %} disabled {% endif %}" name="procesar_documentos">
             Procesar documentos
             <!--div id="spinner-documentos" class="spinner-border spinner-border-sm" role="status">
                 <span class="visually-hidden">Loading...</span>
@@ -137,7 +137,7 @@
             </div>
             <!-- style="text-align:justify;" -->
             <textarea id="id_texto_marca_agua" name="texto_marca_agua" class="form-control" rows="12" cols="25">
-                {{factura_proforma.marca_de_agua}}
+                {{doc.marca_agua}}
             </textarea>
         </div>
         <div class="modal-footer">
@@ -177,76 +177,100 @@
 
 <!-- Add marca de agua -->
 <script>
-        // Aseguramos que el script se ejecute después de que el DOM esté cargado.
-        document.addEventListener('DOMContentLoaded', function () {
-            let textarea = document.getElementById('id_texto_marca_agua');
-            //const alertaTexto = documento.getElementById('alerta-texto');
+    // Aseguramos que el script se ejecute después de que el DOM esté cargado.
+    document.addEventListener('DOMContentLoaded', function () {
+        let textarea = document.getElementById('id_texto_marca_agua');
+        //const alertaTexto = documento.getElementById('alerta-texto');
 
-            // Llamar a la validación cada vez que el usuario escriba.
-            textarea.addEventListener('input', validarTextarea);
+        // Llamar a la validación cada vez que el usuario escriba.
+        textarea.addEventListener('input', validarTextarea);
 
-            const MAX_LINES = 12;   // Número máximo de líneas permitidas
-            const MAX_CHARACTERS_PER_LINE = 25;  // Máximo de caracteres por línea
+        const MAX_LINES = 12;   // Número máximo de líneas permitidas
+        const MAX_CHARACTERS_PER_LINE = 25;  // Máximo de caracteres por línea
 
-            function validarTextarea() {
-                const lineas = textarea.value.toUpperCase().split('\n');  // Convertimos a mayúsculas y dividimos
-                
-                // Limitar número de líneas
-                if (lineas.length > MAX_LINES) {
-                    textarea.value = lineas.slice(0, MAX_LINES).join('\n');
+        function validarTextarea() {
+            const lineas = textarea.value.toUpperCase().split('\n');  // Convertimos a mayúsculas y dividimos
+            
+            // Limitar número de líneas
+            if (lineas.length > MAX_LINES) {
+                textarea.value = lineas.slice(0, MAX_LINES).join('\n');
+                document.getElementById('alertaTexto').style.display = 'inline';
+                document.getElementById('alertaTexto').innerHTML = `Máximo permitido: ${MAX_LINES} líneas.`;
+                return;
+            } else {
+                document.getElementById('alertaTexto').style.display = 'none';
+                document.getElementById('alertaTexto').innerHTML = '';
+            }
+
+            // Limitar caracteres por línea
+            for (let i = 0; i < lineas.length; i++) {
+                if (lineas[i].length > MAX_CHARACTERS_PER_LINE) {
+                    lineas[i] = lineas[i].slice(0, MAX_CHARACTERS_PER_LINE);
                     document.getElementById('alertaTexto').style.display = 'inline';
-                    document.getElementById('alertaTexto').innerHTML = `Máximo permitido: ${MAX_LINES} líneas.`;
-                    return;
+                    document.getElementById('alertaTexto').innerHTML = `Límite de ${MAX_CHARACTERS_PER_LINE} caracteres por línea alcanzado.`
                 } else {
                     document.getElementById('alertaTexto').style.display = 'none';
                     document.getElementById('alertaTexto').innerHTML = '';
                 }
-
-                // Limitar caracteres por línea
-                for (let i = 0; i < lineas.length; i++) {
-                    if (lineas[i].length > MAX_CHARACTERS_PER_LINE) {
-                        lineas[i] = lineas[i].slice(0, MAX_CHARACTERS_PER_LINE);
-                        document.getElementById('alertaTexto').style.display = 'inline';
-                        document.getElementById('alertaTexto').innerHTML = `Límite de ${MAX_CHARACTERS_PER_LINE} caracteres por línea alcanzado.`
-                    } else {
-                        document.getElementById('alertaTexto').style.display = 'none';
-                        document.getElementById('alertaTexto').innerHTML = '';
-                    }
-                    
-                }
                 
-                // Actualizamos el contenido del textarea
-                textarea.value = lineas.join('\n');
             }
             
-        });
+            // Actualizamos el contenido del textarea
+            textarea.value = lineas.join('\n');
+        }
+        
+    });
 
-        $('button[name="marca_agua"]').on('click', function() {
-            var marca_agua = $('#id_texto_marca_agua').val();
-            
-            if (!marca_agua) {
-                alert('Por favor, ingrese el texto de la marca de agua.');
-            } else {
-                $.ajax({
-                    type: "POST",
-                    url: "{#% url 'factura_proforma_marca_de_agua_ajax' %#}",
-                    data: {
-                        'csrfmiddlewaretoken': '{{ csrf_token }}',
-                        'id_factura_proforma':{{factura_proforma.id}},
-                        'texto_marca_agua': marca_agua 
-                    },
-                    success: function(response) {
-                        setTimeout(function(){
-                            window.location.reload();
-                        }, 1000)
-                    },
-                    error: function(xhr, status, error) {
-                        $('#msg').html(`<div class="text-center alert alert-danger" role="alert"> ${xhr.statusText} !!! </div>`)
-                    }
-                })
-            }
-        })
+    $('button[name="marca_agua"]').on('click', function() {
+        var marca_agua = $('#id_texto_marca_agua').val();
+        
+        if (!marca_agua) {
+            alert('Por favor, ingrese el texto de la marca de agua.');
+        } else {
+            $.ajax({
+                type: "POST",
+                url: "{% url 'actualizar_marca_agua_ajax' doc.id %}",
+                data: {
+                    'csrfmiddlewaretoken': '{{ csrf_token }}',
+                    'texto_marca_agua': marca_agua 
+                },
+                success: function(response) {
+                    setTimeout(function(){
+                        window.location.reload();
+                    }, 1000)
+                },
+                error: function(xhr, status, error) {
+                    $('#msg').html(`<div class="text-center alert alert-danger" role="alert"> ${xhr.statusText} !!! </div>`)
+                }
+            })
+        }
+    })
 </script>
+
+<!-- Editar opacidad -->
+<script>
+    $(document).ready(function() {
+        $("#id_opacidad").on('input', function() {
+            var opacidad = $(this).val();
+            $.ajax({
+                type: "POST",
+                url: "{% url 'actualizar_opacidad_ajax' doc.id %}",
+                data: {
+                    'csrfmiddlewaretoken': '{{ csrf_token }}',
+                    'opacidad': opacidad 
+                },
+                success: function(response) {
+                    // $('#msg').html(`<div class="text-center alert alert-${response.alert}" role="alert"> ${response.msg} !!! </div>`)
+                    $("#opacidad_value").text(opacidad);
+                },
+                error: function(xhr, status, error) {
+                    $('#msg').html(`<div class="text-center alert alert-danger" role="alert"> ${xhr.statusText} !!! </div>`)
+                }
+            })
+        })
+    })
+</script>
+
 
 <!--filtro buscar-->
 <script>

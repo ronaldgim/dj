@@ -1129,3 +1129,24 @@ def documentos_varios_procesar(request, id):
     }
 
     return render(request, 'regulatorio_legal/documentos_varios_procesar.html', context)
+
+
+def actualizar_marca_agua_ajax(request, id):
+    if request.method == 'POST':
+        m_agua = request.POST.get('texto_marca_agua') ; print(m_agua)
+        DocumentoVario.objects.filter(id=id).update(marca_agua=m_agua)
+        messages.success(request, 'Marca de agua actualizados exitosamente !!!')
+        return JsonResponse({
+            'alert':'success',
+            'msg': 'Marca de agua actualizada exitosamente !!!'
+        })
+
+def actualizar_opacidad_ajax(request, id):
+    if request.method == 'POST':
+        opacidad = request.POST.get('opacidad')
+        DocumentoVario.objects.filter(id=id).update(opacidad=opacidad)
+        # messages.success(request, 'Opacidad actualizada exitosamente !!!')
+        return JsonResponse({
+            'alert':'success',
+            'msg': 'Opacidad actualizada exitosamente !!!'
+        })

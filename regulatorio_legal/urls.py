@@ -145,4 +145,14 @@ urlpatterns = [
         view  = views.documentos_varios_procesar,
         name = 'documentos_varios_procesar'
     ),
+    path(
+        route = 'documentos-varios-marcaagua/<int:id>',
+        view  = views.actualizar_marca_agua_ajax,
+        name = 'actualizar_marca_agua_ajax'
+    ),
+    path(
+        route = 'documentos-varios-opacidad/<int:id>',
+        view  = views.actualizar_opacidad_ajax,
+        name = 'actualizar_opacidad_ajax'
+    ),
 ]

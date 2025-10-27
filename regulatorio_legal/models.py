@@ -119,11 +119,13 @@ class DocumentoVario(models.Model):
     def __str__(self):
         return self.descripcion
 
+    @property
     def enum(self):
         return f'{self.id:03d}'
     
+    @property
     def n_docs(self):
-        return Documento.objects.filter(documento_vario=self).count()
+        return self.documento_set.count()    
 
 
 class Documento(models.Model):
