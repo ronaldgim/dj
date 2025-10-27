@@ -107,11 +107,14 @@ class FacturaProforma(models.Model):
 
 
 class DocumentoVario(models.Model):
-    descripcion = models.CharField(max_length=200)
+    descripcion    = models.CharField(max_length=200)
     codigo_cliente = models.CharField(max_length=50)
-    cliente    = models.CharField(max_length=100)
-    creado      = models.DateTimeField(auto_now_add=True)
-    usuario     = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.PROTECT)
+    cliente        = models.CharField(max_length=100)
+    marca_agua     = models.TextField(blank=True)
+    opacidad       = models.CharField(max_length=2, default='3')
+    email_envio    = models.EmailField(verbose_name='Correo de envío', blank=True, null=True)
+    creado         = models.DateTimeField(auto_now_add=True)
+    usuario        = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.PROTECT)
     
     def __str__(self):
         return self.descripcion
@@ -120,7 +123,11 @@ class DocumentoVario(models.Model):
 class Documento(models.Model):
     documento_vario = models.ForeignKey(DocumentoVario, verbose_name='Documento Vario', on_delete=models.CASCADE)
     documento       = models.FileField(upload_to='documentos_varios')
+    procesado       = models.BooleanField(default=False)
+    url_descarga    = models.CharField(max_length=300, blank=True) # url de descarga del documento
+    creado          = models.DateTimeField(auto_now_add=True)
     usuario         = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.PROTECT)
+    
     
     def __str__(self):
         return self.documento_vario.descripcion

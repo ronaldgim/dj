@@ -1,4 +1,4 @@
-{%extends 'base.html' %}
+{%extends 'base_vue.html' %}
 
 {% block title %}
 <title>Doc Varios</title>
@@ -15,7 +15,7 @@
     }
 </style-->
 
-<h5 class="m-4 text-center fw-bold">LISTADO DE DOCUMENTOS VARIOS</h5>
+<h5 class="m-4 text-center fw-bold">CLIENTE</h5>
 
 {% if messages %}
 {% for message in messages %}
@@ -57,8 +57,8 @@
                         <th scope="col">Marca de agua</th>
                         <th scope="col">Email</th>
                         <th scope="col">Documentos</th>
-                        <th scope="col">Creado en</th>
                         <th scope="col">Creado por</th>
+                        <th scope="col">Creado en</th>
                         <th scope="col">Ver</th>
                     </tr>
                 </thead>
