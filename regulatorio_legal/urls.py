@@ -136,8 +136,13 @@ urlpatterns = [
     ),
 
     path(
-        route = 'documentos_varios_list',
+        route = 'documentos-varios-list',
         view  = views.documentos_varios_list,
         name = 'documentos_varios_list'
+    ),
+    path(
+        route = 'documentos-varios/<int:id>',
+        view  = views.documentos_varios_procesar,
+        name = 'documentos_varios_procesar'
     ),
 ]

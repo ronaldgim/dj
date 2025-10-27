@@ -26,7 +26,9 @@ from regulatorio_legal.models import (
     DocumentosLegales, 
     ProductosRegistroSanitario,
     IsosRegEnviados,
-    FacturaProforma
+    FacturaProforma,
+    DocumentoVario,
+    Documento
     )
 
 # Pandas
@@ -38,7 +40,9 @@ from regulatorio_legal.forms import (
     NewDocumentoLoteForm, 
     DocumentoEnviadoForm,
     DocumentosLegalesForm,
-    RegistroSanitarioForm
+    RegistroSanitarioForm,
+    DocumentoVarioForm,
+    DocumentoForm
     )
 
 # Utilities
@@ -1079,4 +1083,36 @@ GIMPROMED Cia. Ltda.\n
 
 
 def documentos_varios_list(request):
-    return render(request, 'regulatorio_legal/documentos_varios_list.html')
+    
+    documentos_varios_list = DocumentoVario.objects.all()
+    clientes = clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE']].sort_values(by='NOMBRE_CLIENTE')
+    
+    if request.method == 'POST':
+        
+        form = DocumentoVarioForm(request.POST)
+        if form.is_valid():
+            doc = form.save()
+            messages.success(request, 'Documento varios agregado exitosamente !!!')
+            return HttpResponseRedirect(f'/regulatorio-legal/documentos-varios/{doc.id}')
+        else:
+            messages.error(request, form.errors)
+            return HttpResponseRedirect('/regulatorio-legal/documentos-varios-list')    
+    
+    context = {
+        'documentos_varios_list': documentos_varios_list,
+        'form': DocumentoVarioForm(),
+        'clientes': de_dataframe_a_template(clientes)
+    }
+
+    return render(request, 'regulatorio_legal/documentos_varios_list.html', context)
+
+
+def documentos_varios_procesar(request, id):
+    
+    documento_vario = DocumentoVario.objects.get(id=id)
+    
+    context = {
+        'documento_vario': documento_vario,
+    }
+
+    return render(request, 'regulatorio_legal/documentos_varios_procesar.html', context)

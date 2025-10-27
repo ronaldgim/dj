@@ -1,11 +1,20 @@
+# date
+import datetime 
 # Forms 
 from django import forms 
 
 # Models
-from regulatorio_legal.models import DocumentoLote, DocumentoEnviado, DocumentosLegales, RegistroSanitario
+from regulatorio_legal.models import (
+    DocumentoLote, 
+    DocumentoEnviado, 
+    DocumentosLegales, 
+    RegistroSanitario,
+    DocumentoVario,
+    Documento
+    )
+    
 
-# date
-import datetime 
+
 
 # MyForms
 class DocumentoLoteForm(forms.ModelForm):
@@ -86,5 +95,57 @@ class RegistroSanitarioForm(forms.ModelForm):
             'fecha_caducidad': forms.DateInput(
                 format='%Y-%m-%d',
                 attrs={'class': 'form-control','type': 'date'}),
+            'usuario':forms.TextInput(attrs={'type':'hidden'}),
+        }
+
+
+class DocumentoVarioForm(forms.ModelForm):
+    
+    class Meta:
+        model = DocumentoVario
+        fields = '__all__'
+        # fields = [
+        #     'codigo_cliente',
+        #     'cliente',
+        #     'descripcion',
+        #     'marca_agua',
+        #     'opacidad',
+        #     'email_envio',
+        # ]
+        
+        # labels = {
+        #     'cliente': 'Cliente',
+        #     'descripcion': 'Descripción',
+        #     'marca_agua': 'Marca de agua',
+        #     'email_envio': 'Email de Envío',
+        # }
+        
+        # widgets = {
+        #     'cliente': forms.TextInput(attrs={'class': 'form-control'}),
+        #     'descripcion': forms.TextInput(attrs={'class': 'form-control'}),
+        #     'marca_agua': forms.TextInput(attrs={'class': 'form-control'}),
+        #     'email_envio': forms.EmailInput(attrs={'class': 'form-control'}),
+        #     'usuario':forms.TextInput(attrs={'type':'hidden'}),
+        # }
+        
+class DocumentoForm(forms.ModelForm):
+    
+    class Meta:
+        model = Documento
+        
+        fields = [
+            'documento_vario',
+            'documento',
+            'usuario',
+        ]
+        
+        labels = {
+            'documento_vario': 'Documento Vario',
+            'documento': 'Documento',
+        }
+        
+        widgets = {
+            'documento_vario': forms.Select(attrs={'class': 'form-control'}),
+            'documento': forms.ClearableFileInput(attrs={'class': 'form-control', 'accept':'application/pdf,application'}),
             'usuario':forms.TextInput(attrs={'type':'hidden'}),
         }
