@@ -1084,7 +1084,7 @@ GIMPROMED Cia. Ltda.\n
 
 def documentos_varios_list(request):
     
-    documentos_varios_list = DocumentoVario.objects.all()
+    documentos_varios_list = DocumentoVario.objects.all().order_by('-id')
     clientes = clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE']].sort_values(by='NOMBRE_CLIENTE')
     
     if request.method == 'POST':

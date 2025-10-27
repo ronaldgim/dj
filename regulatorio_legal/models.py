@@ -111,13 +111,16 @@ class DocumentoVario(models.Model):
     codigo_cliente = models.CharField(max_length=50)
     cliente        = models.CharField(max_length=100)
     marca_agua     = models.TextField(blank=True)
-    opacidad       = models.CharField(max_length=2, default='3')
+    opacidad       = models.CharField(max_length=2, default='3', blank=True)
     email_envio    = models.EmailField(verbose_name='Correo de envío', blank=True, null=True)
     creado         = models.DateTimeField(auto_now_add=True)
     usuario        = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.PROTECT)
     
     def __str__(self):
         return self.descripcion
+
+    def enum(self):
+        return f'{self.id:03d}'
 
 
 class Documento(models.Model):
