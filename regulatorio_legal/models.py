@@ -137,6 +137,7 @@ class Documento(models.Model):
     documento_vario = models.ForeignKey(DocumentoVario, verbose_name='Documento Vario', on_delete=models.CASCADE)
     documento       = models.FileField(upload_to='documentos_varios')
     tipo            = models.CharField(max_length=50, blank=True) # pdf, jpg, png, etc
+    tipo_otro       = models.CharField(max_length=100, blank=True) # descripcion si tipo es otro
     descripcion     = models.CharField(max_length=200, blank=True)
     procesado       = models.BooleanField(default=False)
     url_descarga    = models.CharField(max_length=300, blank=True) # url de descarga del documento

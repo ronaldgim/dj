@@ -1111,7 +1111,7 @@ def documentos_varios_list(request):
 
 @login_required(login_url='login')
 def documentos_varios_procesar(request, id):
-    
+    marcas = productos_odbc_and_django()[['MarcaDet']].drop_duplicates().sort_values(by='MarcaDet')
     documento_vario = DocumentoVario.objects.get(id=id)
     docs = Documento.objects.filter(documento_vario=documento_vario)
     
@@ -1128,7 +1128,8 @@ def documentos_varios_procesar(request, id):
     context = {
         'doc': documento_vario,
         'docs': docs,
-        'form': DocumentoForm()
+        'form': DocumentoForm(),
+        'marcas': de_dataframe_a_template(marcas)
     }
 
     return render(request, 'regulatorio_legal/documentos_varios_procesar.html', context)
