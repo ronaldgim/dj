@@ -126,6 +126,13 @@ class DocumentoVario(models.Model):
     @property
     def n_docs(self):
         return self.documento_set.count()    
+    
+    @property
+    def docs_procesados(self):
+        # return any(self.documento_set.filter(procesado=True))
+        return all(self.documento_set.values_list('procesado', flat=True))
+    
+    
 
 
 class Documento(models.Model):

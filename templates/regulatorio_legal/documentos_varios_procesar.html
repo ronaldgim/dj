@@ -50,12 +50,12 @@
     <div class="col-auto">
         <button class="btn btn-success mt-4 {% if not doc.marca_agua or not doc.n_docs > 0 %} disabled {% endif %}" name="procesar_documentos">
             Procesar documentos
-            <!--div id="spinner-documentos" class="spinner-border spinner-border-sm" role="status">
+            <div id="spinner-documentos" class="spinner-border spinner-border-sm" role="status" style="display:none;">
                 <span class="visually-hidden">Loading...</span>
-            </div-->
-            {#% if doc.procesar_docs %#}
+            </div>
+            {% if doc.docs_procesados %}
             <i class="bi bi-check-lg"></i>
-            {#% endif %#}
+            {% endif %}
         </button>
     </div>
 </div>
@@ -83,11 +83,22 @@
                     {% for i in docs %}
                     <tr>
                         <td>{{i.nombre_documento}}</td>
-                        <td>{{i.procesado}}</td>
+                        <td>
+                            {% if i.procesado %}
+                            <i class="bi bi-check-circle-fill" style="color:green;"></i>
+                            {% else %}
+                            <i class="bi bi-x-circle-fill" style="color:red;"></i>
+                            {% endif %}
+                        </td>
                         <td>{{i.creado}}</td>
                         <td>{{i.usuario}}</td>
                         <td>
-                            <a href="{% url 'documentos_varios_procesar' i.id %}" class="btn btn-sm btn-primary ms-2"> Ver</a>
+                            <a class="btn btn-sm btn-info" href="{{i.documento.url}}" target="_blank">
+                                <i class="bi bi-filetype-doc"></i>
+                            </a>
+                            <button class="btn btn-sm btn-danger" name="eliminar-documento" id={{i.id}}>
+                                <i class="bi bi-trash"></i>
+                            </button>
                         </td>
                     </tr>
                     {% endfor %}
@@ -271,6 +282,50 @@
     })
 </script>
 
+<!-- Procesar documentos -->
+<script>
+    $('button[name="procesar_documentos"]').on('click', function() {
+        $('#spinner-documentos').show();
+        $.ajax({
+            type: "POST",
+            url: "{% url 'documento_marca_agua_ajax' doc.id %}",
+            data: {
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+            },
+            success: function(response) {
+                $('#msg').html(`<div class="text-center alert alert-${response.alert}" role="alert"> ${response.msg} !!! </div>`)
+                setTimeout(function(){
+                    window.location.reload();
+                }, 2000)
+
+            },
+            error: function(xhr, status, error) {
+                $('#msg').html(`<div class="text-center alert alert-danger" role="alert"> ${xhr.statusText} !!! </div>`)
+            }
+        })
+    })
+</script>
+
+<!-- Eliminar documento procesado-->
+<script>
+    $("button[name='eliminar-documento']").on('click', function() {
+        var id_documento = $(this).attr('id');
+        var row = $(this).closest("tr");
+        
+        $.ajax({
+            type:'POST',
+            url:'{% url "documento_eliiminar_ajax" %}',
+            data:{
+                'csrfmiddlewaretoken':'{{csrf_token}}',
+                "id_documento":id_documento
+            },
+
+            success: function(){
+                row.remove();
+            }
+        })
+    })
+</script>
 
 <!--filtro buscar-->
 <script>
