@@ -1205,3 +1205,107 @@ def documento_eliiminar_ajax(request):
             'alert':'success',
             'msg': 'Documento eliminado exitosamente !!!'
         })
+
+
+def documento_enviar_ajax(request):
+    
+    email_envio = request.POST.get('email')
+    id_documento = int(request.POST.get('id'))
+    doc = DocumentoVario.objects.get(id=id_documento)
+    doc.email_envio = email_envio
+    doc.save()
+    
+    documentos = Documento.objects.filter(documento_vario=doc).filter(procesado=True)
+    if not documentos.exists():
+        return JsonResponse({
+            'alert':'danger',
+            'msg': 'No hay documentos procesados para enviar !!!'
+        })
+    
+    try:
+        email = EmailMessage(
+            subject=f"Documentos varios",
+            body=f"""
+Señores {doc.cliente}, \n
+Su pedido de documentos es enviado de acuerdo a lo solicitado.\n
+GIMPROMED Cia. Ltda.\n
+****Esta notificación ha sido enviada automáticamente - No responder****
+            """
+            ,
+            from_email=settings.EMAIL_HOST_USER,
+            to=[doc.email_envio, request.user.email],
+            #bcc=['jgualotuna@gimpromed.com','ncaisapanta@gimpromed.com','dtrujillo@gimpromed.com'],
+            bcc=['jgualotuna@gimpromed.com'],
+            headers={'Message-ID':'Documentos'}
+        )
+        
+        for i in documentos:
+            email.attach_file(i.documento.path)
+        
+        email.send()
+        
+        # campo boleando de confirmación
+        doc.docs_enviados = True
+        doc.save()
+        
+        return JsonResponse({
+            'alert':'success',
+            'msg': f'Documentos enviados exitosamente !!!'
+        })
+        
+    except SMTPException as e:
+        return JsonResponse({
+            'alert':'danger',
+            'msg': f'Error al enviar documentos: {e}'
+        })
+
+
+def unir_pdfs_ajax(request):
+    
+    from PyPDF2 import PdfMerger 
+    from django.http import FileResponse
+    import io
+    
+    if request.method == 'POST':
+        id_documento_vario = int(request.POST.get('id_documento_vario'))
+        documento_vario = DocumentoVario.objects.get(id=id_documento_vario)
+        documentos = Documento.objects.filter(documento_vario=documento_vario).filter(procesado=True)
+        
+        if documentos.count() < 2:
+            return JsonResponse({
+                'alert':'danger',
+                'msg': 'Se necesitan al menos 2 documentos procesados para unir !!!'
+            })
+        
+        merger = PdfMerger()
+        
+        for doc in documentos:
+            merger.append(doc.documento.path)
+            
+        buffer = io.BytesIO()
+        merger.write(buffer)
+        merger.close()
+        buffer.seek(0)
+
+        # Retornar el archivo como descarga
+        return FileResponse(
+            buffer,
+            as_attachment=True,
+            filename="documentos_unificados.pdf",
+            content_type='application/pdf'
+        )
+        
+        # output_path = f'media/documentos_varios/unido/documento_vario_unido_{documento_vario.id}.pdf'
+        # merger.write(output_path)
+        # merger.close()
+        
+        # documento_vario.documento_unido.save(
+        #     f'documento_vario_unido_{documento_vario.id}.pdf',
+        #     ContentFile(open(output_path, 'rb').read())
+        # )
+        # documento_vario.save()
+        
+        # return JsonResponse({
+        #     'alert':'success',
+        #     'msg': 'Documentos unidos exitosamente !!!'
+        # })

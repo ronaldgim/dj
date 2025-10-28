@@ -113,6 +113,7 @@ class DocumentoVario(models.Model):
     marca_agua     = models.TextField(blank=True)
     opacidad       = models.CharField(max_length=2, default='3', blank=True)
     email_envio    = models.EmailField(verbose_name='Correo de envío', blank=True, null=True)
+    docs_enviados  = models.BooleanField(default=False)
     creado         = models.DateTimeField(auto_now_add=True)
     usuario        = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.PROTECT)
     
@@ -129,7 +130,6 @@ class DocumentoVario(models.Model):
     
     @property
     def docs_procesados(self):
-        # return any(self.documento_set.filter(procesado=True))
         return all(self.documento_set.values_list('procesado', flat=True))
     
     
