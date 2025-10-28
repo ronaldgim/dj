@@ -122,7 +122,8 @@ class DocumentoVario(models.Model):
 
     @property
     def enum(self):
-        return f'{self.id:03d}'
+        total_docs = DocumentoVario.objects.filter(id__lte=self.id).count()
+        return f'{total_docs:03d}'
     
     @property
     def n_docs(self):

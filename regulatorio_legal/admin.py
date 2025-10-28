@@ -8,7 +8,9 @@ from regulatorio_legal.models import (
     RegistroSanitario, 
     ProductosRegistroSanitario,
     IsosRegEnviados,
-    FacturaProforma
+    FacturaProforma,
+    DocumentoVario,
+    Documento,
     )
 
 # Register your models here.
@@ -33,7 +35,6 @@ class DocumentosLegalesAdmin(admin.ModelAdmin):
         'actualizado',
         'usuario'
     )
-    
 
 @admin.register(RegistroSanitario)
 class RegistroSanitarioAdmin(admin.ModelAdmin):
@@ -77,4 +78,20 @@ class IsosRegEnviadosAdmin(admin.ModelAdmin):
         'descripcion',
         'documento',
         'creado',
+    )
+
+@admin.register(DocumentoVario)
+class DocumentoVarioAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'cliente',
+        'descripcion',
+    )
+@admin.register(Documento)
+class DocumentoAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'documento',
+        'tipo',
+        'procesado',
     )
