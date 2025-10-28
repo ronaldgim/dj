@@ -26,12 +26,6 @@
 {% endfor %}
 {% endif %}
 
-
-
-<!--div class="col-4 mt-4 mb-2">
-    <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
-</div-->
-
 <div id="msg"></div>
 
 <label class="fw-bold">Decripción:</label> {{doc.descripcion}} <br><br>
@@ -85,6 +79,13 @@
         </div>
     </div>
 </div>
+
+{% if doc.n_docs > 1 and doc.docs_procesados %}
+<a href="{% url 'unir_pdfs_ajax' doc.id %}" class="btn btn-info mb-2 text-white">
+    <i class="bi bi-file-earmark-arrow-down"></i> Descargar PDFs unidos
+</a>
+{% endif %}
+
 {% endif %}
 
 <div class="card mb-2">
@@ -94,6 +95,8 @@
                 <thead>
                     <tr>
                         <th scope="col">Documento</th>
+                        <th scope="col">Tipo</th>
+                        <th scope="col">Descripción</th>
                         <th scope="col">Procesado</th>
                         <th scope="col">Creado por</th>
                         <th scope="col">Creado en</th>
@@ -104,6 +107,8 @@
                     {% for i in docs %}
                     <tr>
                         <td>{{i.nombre_documento}}</td>
+                        <td>{{i.tipo}}</td>
+                        <td>{{i.descripcion}}</td>
                         <td>
                             {% if i.procesado %}
                             <i class="bi bi-check-circle-fill" style="color:green;"></i>
@@ -131,7 +136,7 @@
 
 <!-- Modal -->
 <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title fw-bold" id="staticBackdropLabel">Nuevo grupo de documentos</h5>
@@ -142,8 +147,29 @@
                     {% csrf_token %}
                     <input type="hidden" name="usuario" value="{{request.user.id}}">
                     <input type="hidden" name="documento_vario" value="{{doc.id}}">
-                    <div class="row g-2">
-                        <input type="file" name="documento" >
+
+                    <!-- Tipo -->
+                    <div class="col-4">
+                        <label class="fw-bold" for="tipo">Tipo:</label>
+                    </div>
+                    <div class="col-8">
+                        <input type="text" name="tipo" id="id_tipo" class="form-control">
+                    </div>
+
+                    <!-- Descripción -->
+                    <div class="col-4">
+                        <label class="fw-bold" for="descripcion">Descripción:</label>
+                    </div>
+                    <div class="col-8">
+                        <input type="text" name="descripcion" id="id_descripcion" class="form-control">
+                    </div>
+
+                    <!-- Descripción -->
+                    <div class="col-4">
+                        <label class="fw-bold" for="descripcion">Archivo:</label>
+                    </div>
+                    <div class="col-8">
+                        <input type="file" name="documento" id="id_documento" class="form-control">
                     </div>
                 </form>
             </div>

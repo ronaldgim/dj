@@ -133,11 +133,11 @@ class DocumentoVario(models.Model):
         return all(self.documento_set.values_list('procesado', flat=True))
     
     
-
-
 class Documento(models.Model):
     documento_vario = models.ForeignKey(DocumentoVario, verbose_name='Documento Vario', on_delete=models.CASCADE)
     documento       = models.FileField(upload_to='documentos_varios')
+    tipo            = models.CharField(max_length=50, blank=True) # pdf, jpg, png, etc
+    descripcion     = models.CharField(max_length=200, blank=True)
     procesado       = models.BooleanField(default=False)
     url_descarga    = models.CharField(max_length=300, blank=True) # url de descarga del documento
     creado          = models.DateTimeField(auto_now_add=True)

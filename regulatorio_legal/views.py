@@ -1,5 +1,8 @@
 from django.shortcuts import render
 
+from PyPDF2 import PdfMerger 
+import io
+
 # DB
 from django.db import connections
 
@@ -1260,52 +1263,27 @@ GIMPROMED Cia. Ltda.\n
         })
 
 
-def unir_pdfs_ajax(request):
+def unir_pdfs_ajax(request, id):
     
-    from PyPDF2 import PdfMerger 
-    from django.http import FileResponse
-    import io
+    documento_vario = DocumentoVario.objects.get(id=id)
+    documentos = Documento.objects.filter(documento_vario=documento_vario).filter(procesado=True)
     
-    if request.method == 'POST':
-        id_documento_vario = int(request.POST.get('id_documento_vario'))
-        documento_vario = DocumentoVario.objects.get(id=id_documento_vario)
-        documentos = Documento.objects.filter(documento_vario=documento_vario).filter(procesado=True)
+    if documentos.count() < 2:
+        return JsonResponse({
+            'alert':'danger',
+            'msg': 'Se necesitan al menos 2 documentos procesados para unir !!!'
+        })
+    
+    merger = PdfMerger()
+    
+    for doc in documentos:
+        merger.append(doc.documento.path)
         
-        if documentos.count() < 2:
-            return JsonResponse({
-                'alert':'danger',
-                'msg': 'Se necesitan al menos 2 documentos procesados para unir !!!'
-            })
-        
-        merger = PdfMerger()
-        
-        for doc in documentos:
-            merger.append(doc.documento.path)
-            
-        buffer = io.BytesIO()
-        merger.write(buffer)
-        merger.close()
-        buffer.seek(0)
-
-        # Retornar el archivo como descarga
-        return FileResponse(
-            buffer,
-            as_attachment=True,
-            filename="documentos_unificados.pdf",
-            content_type='application/pdf'
-        )
-        
-        # output_path = f'media/documentos_varios/unido/documento_vario_unido_{documento_vario.id}.pdf'
-        # merger.write(output_path)
-        # merger.close()
-        
-        # documento_vario.documento_unido.save(
-        #     f'documento_vario_unido_{documento_vario.id}.pdf',
-        #     ContentFile(open(output_path, 'rb').read())
-        # )
-        # documento_vario.save()
-        
-        # return JsonResponse({
-        #     'alert':'success',
-        #     'msg': 'Documentos unidos exitosamente !!!'
-        # })
+    buffer = io.BytesIO()
+    merger.write(buffer)
+    merger.close()
+    buffer.seek(0)
+    
+    response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="documentos_unificados.pdf"'
+    return response
