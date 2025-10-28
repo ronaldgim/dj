@@ -155,4 +155,14 @@ urlpatterns = [
         view  = views.actualizar_opacidad_ajax,
         name = 'actualizar_opacidad_ajax'
     ),
+    path(
+        route = 'documento-marca-agua-ajax/<int:id>',
+        view  = views.documento_marca_agua_ajax,
+        name = 'documento_marca_agua_ajax'
+    ),
+    path(
+        route = 'documento-eliminar-ajax',
+        view  = views.documento_eliiminar_ajax,
+        name = 'documento_eliiminar_ajax'
+    ),
 ]

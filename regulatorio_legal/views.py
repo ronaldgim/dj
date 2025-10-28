@@ -1081,7 +1081,7 @@ GIMPROMED Cia. Ltda.\n
             'msg': f'Error !!!'
         })
 
-
+@login_required(login_url='login')
 def documentos_varios_list(request):
     
     documentos_varios_list = DocumentoVario.objects.all().order_by('-id')
@@ -1106,7 +1106,7 @@ def documentos_varios_list(request):
 
     return render(request, 'regulatorio_legal/documentos_varios_list.html', context)
 
-
+@login_required(login_url='login')
 def documentos_varios_procesar(request, id):
     
     documento_vario = DocumentoVario.objects.get(id=id)
@@ -1130,7 +1130,7 @@ def documentos_varios_procesar(request, id):
 
     return render(request, 'regulatorio_legal/documentos_varios_procesar.html', context)
 
-
+@login_required(login_url='login')
 def actualizar_marca_agua_ajax(request, id):
     if request.method == 'POST':
         m_agua = request.POST.get('texto_marca_agua') ; print(m_agua)
@@ -1141,6 +1141,7 @@ def actualizar_marca_agua_ajax(request, id):
             'msg': 'Marca de agua actualizada exitosamente !!!'
         })
 
+@login_required(login_url='login')
 def actualizar_opacidad_ajax(request, id):
     if request.method == 'POST':
         opacidad = request.POST.get('opacidad')
@@ -1149,4 +1150,58 @@ def actualizar_opacidad_ajax(request, id):
         return JsonResponse({
             'alert':'success',
             'msg': 'Opacidad actualizada exitosamente !!!'
+        })
+
+@login_required(login_url='login')
+def documento_marca_agua_ajax(request, id):
+    
+    documentos = Documento.objects.filter(documento_vario_id=id).filter(procesado=False)
+    if not documentos.exists():
+        return JsonResponse({
+            'alert':'success',
+            'msg': 'No hay documentos para procesar con marca de agua !!!'
+        })
+    
+    for doc in documentos:
+        
+        procesar_pdf = api_marca_agua(
+            texto = doc.documento_vario.marca_agua,
+            opacidad = doc.documento_vario.opacidad,
+            file_path = doc.documento.path
+        )
+        
+        if procesar_pdf.status_code == 200:
+            url_descarga = procesar_pdf.json().get('url_descarga').replace('"','').replace(' ','')
+            pdf_response = requests.get(url_descarga)
+            
+            if url_descarga:
+                doc.documento.save(
+                    f'GIM-{doc.id}-{doc.documento.name.split("/")[-1]}',
+                    ContentFile(pdf_response.content)
+                )
+
+                doc.url_descarga = url_descarga
+                doc.procesado = True
+                doc.save()
+                
+            else:
+                return JsonResponse({'alert':'danger', 'msg':'Error al descargar el archivo'})
+        else:
+            return JsonResponse({
+                'alert':'danger', 
+                'msg':f'Error procesando documento {doc.documento.name}'
+            })
+        time.sleep(2)
+    
+    return JsonResponse({'alert':'success', 'msg':'Documentos procesados con marca de agua exitosamente !!!'})
+
+@login_required(login_url='login')
+def documento_eliiminar_ajax(request):
+    if request.method == 'POST':
+        id_documento = int(request.POST.get('id_documento'))
+        documento = Documento.objects.get(id=id_documento)
+        documento.delete()
+        return JsonResponse({
+            'alert':'success',
+            'msg': 'Documento eliminado exitosamente !!!'
         })
