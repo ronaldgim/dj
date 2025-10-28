@@ -165,4 +165,9 @@ urlpatterns = [
         view  = views.documento_eliiminar_ajax,
         name = 'documento_eliiminar_ajax'
     ),
+    path(
+        route = 'documento-enviar-ajax',
+        view  = views.documento_enviar_ajax,
+        name = 'documento_enviar_ajax'
+    ),
 ]

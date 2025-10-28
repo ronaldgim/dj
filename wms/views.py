@@ -2777,7 +2777,9 @@ def wms_estado_picking_actualizar_ajax(request):
     if estado_post == 'FINALIZADO':
         
         data_reservas = Reservas.objects.filter(contrato_id=contrato_id).values_list('quantity', flat=True)
-        movs = Movimiento.objects.filter(n_referencia=estado_picking.n_pedido, estado_picking='En Despacho').values_list('unidades', flat=True)
+        # movs = Movimiento.objects.filter(n_referencia=estado_picking.n_pedido, estado_picking='En Despacho').values_list('unidades', flat=True)
+        movs = Movimiento.objects.filter(n_referencia=estado_picking.n_pedido).values_list('unidades', flat=True)
+        
 
         movs_total_unidades = sum(movs) * -1 
         data_reservas_total_unidades = sum(data_reservas) 

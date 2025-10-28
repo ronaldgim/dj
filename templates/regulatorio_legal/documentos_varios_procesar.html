@@ -66,6 +66,27 @@
     Agregar Documento
 </button>
 
+{% if doc.docs_procesados %}
+<div class="row">
+    <div class="col-md-5 mt-2 mb-2">
+        <div class="input-group">
+            <span class="input-group-text" for="buscar_cliente_id">Email:</span>
+            <input class="form-control" id="email" type="email" > <!--value="{{correo}}"-->
+            <button class="btn btn-success" type="submit" name="enviar-email">
+                <i class="bi bi-send"></i>
+
+                <div id="spinner-email" class="spinner-border spinner-border-sm" role="status" style="display:none;">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                {% if doc.docs_enviados %}
+                <i class="bi bi-check-lg"></i>
+                {% endif %}
+            </button>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <div class="card mb-2">
     <div class="card-body m-0 p-0">
         <div class="container table-responsive">
@@ -323,6 +344,39 @@
             success: function(){
                 row.remove();
             }
+        })
+    })
+</script>
+
+<!-- Enviar email con documentos procesados-->
+<script>
+    $(document).ready(function() {
+        // $("#spinner-email").hide();
+
+        $("button[name='enviar-email']").on('click', function() {
+            $("#spinner-email").show();
+
+            var email = $("#email").val();
+            
+            $.ajax({
+                type:'POST',
+                url:'{% url "documento_enviar_ajax" %}',
+                data:{
+                    "csrfmiddlewaretoken":"{{csrf_token}}",
+                    "id":"{{doc.id}}",
+                    "email":email,
+                },
+    
+                success: function(response){
+                    $('#msg-email').html(`<div class="text-center alert alert-${response.alert}" role="alert"> ${response.msg} !!! </div>`);
+                    $("#spinner-email").hide();
+                    window.location.reload();
+                },
+                error: function(response) {
+                    $('#msg-email').html(`<div class="text-center alert alert-${response.alert}" role="alert"> ${response.msg} !!! </div>`);
+                    $("#spinner-email").hide();
+                }
+            })
         })
     })
 </script>
