@@ -107,7 +107,12 @@
                     {% for i in docs %}
                     <tr>
                         <td>{{i.nombre_documento}}</td>
-                        <td>{{i.tipo}}</td>
+                        <td>
+                            {{i.tipo}}
+                            {% if i.tipo == 'Otro' %}
+                                - {{i.tipo_otro}}
+                            {% endif %}
+                        </td>
                         <td>{{i.descripcion}}</td>
                         <td>
                             {% if i.procesado %}
@@ -153,7 +158,13 @@
                         <label class="fw-bold" for="tipo">Tipo:</label>
                     </div>
                     <div class="col-auto">
-                        <input type="text" name="tipo" id="id_tipo" class="form-control">
+                        <select name="tipo" id="id_tipo" class="form-control" redquired>
+                            <option value="" selected>--------</option>
+                            <option value="Análisis de Lote">Análisis de Lote</option>
+                            <option value="Carta Proveedor">Carta Proveedor</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+                        <input type="text" name="tipo_otro" id="id_tipo_otro" class="form-control" style="display:none;" placeholder="Especifique otro tipo">
                     </div>
 
                     <!-- Descripción -->
@@ -161,7 +172,13 @@
                         <label class="fw-bold" for="descripcion">Descripción:</label>
                     </div>
                     <div class="col-auto">
-                        <input type="text" name="descripcion" id="id_descripcion" class="form-control">
+                        <!--input type="text" name="descripcion" id="id_descripcion" class="form-control"-->
+                        <select name="descripcion" id="id_descripcion" class="form-control" redquired>
+                            <option value="" selected>--------</option>
+                            {% for i in marcas %}
+                            <option value="{{i.MarcaDet}}">{{i.MarcaDet}}</option>
+                            {% endfor %}
+                        </select>
                     </div>
 
                     <!-- Descripción -->
@@ -230,6 +247,16 @@
     $('#id_opacidad').on('change', function() {
         const opacidadValue = $(this).val();
         $('#id_opacidad_val').html(opacidadValue)
+    });
+
+    $('#id_tipo').on('change', function() {
+        const tipoValue = $(this).val();
+        if (tipoValue === 'Otro') {
+            $('#id_tipo_otro').show();
+        } else {
+            $('#id_tipo_otro').hide();
+            $('#id_tipo_otro').val('');
+        }
     });
 </script>
 
