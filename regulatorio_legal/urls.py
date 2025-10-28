@@ -170,4 +170,9 @@ urlpatterns = [
         view  = views.documento_enviar_ajax,
         name = 'documento_enviar_ajax'
     ),
+    path(
+        route = 'unir_pdfs_ajax/<int:id>',
+        view  = views.unir_pdfs_ajax,
+        name = 'unir_pdfs_ajax'
+    ),
 ]
