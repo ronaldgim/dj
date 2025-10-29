@@ -3121,6 +3121,20 @@ def wms_armar_codigo_factura(n_factura):
         return JsonResponse({'msg':'Factura no encontrada !!!'})
 
 
+def facturas_df():
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute("SELECT NOMBRE_CLIENTE, NUMERO_PEDIDO_SISTEMA FROM warehouse.facturas")
+        columns = [col[0] for col in cursor.description]
+        facturas = [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+        facturas_df = pd.DataFrame( facturas )
+        facturas_df['NUMERO_PEDIDO_SISTEMA'] = facturas_df['NUMERO_PEDIDO_SISTEMA'].astype('str')
+        facturas_df = facturas_df.drop_duplicates(subset='NUMERO_PEDIDO_SISTEMA')
+        return facturas_df
+
+
 # Cruce de picking y factura
 # url: 'wms/cruce/picking/facturas'
 @login_required(login_url='login')
@@ -3145,6 +3159,13 @@ def wms_cruce_picking_factura(request):
     picking_factura_df['picking'] = picking_factura_df['n_referencia'].str.slice(0,-2)
     picking_factura_df['factura'] = picking_factura_df['n_factura'].apply(split_factura_movimiento)
     picking_factura_df['actualizado'] = picking_factura_df['actualizado'].astype('str').str.slice(0,16)
+
+    picking_factura_df = picking_factura_df.merge(
+        facturas_df(),
+        left_on='picking',
+        right_on='NUMERO_PEDIDO_SISTEMA',
+        how='left'
+    )[:100]
 
     if request.method=="POST":
         n_factura = request.POST['n_factura']
