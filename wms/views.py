@@ -3186,6 +3186,49 @@ def wms_cruce_picking_factura(request):
     return render(request, 'wms/cruce_picking_factura.html', context)
 
 
+def nueva_orden_salida(request, n_factura):
+    
+    n_factura_mba = f'FCSRI-1001{int(n_factura):09d}-GIMPR'
+    mov = Movimiento.objects.filter(n_factura=n_factura)
+    prods = productos_odbc_and_django()[['product_id','Nombre','Unidad']]
+    movimientos = pd.DataFrame(mov.values())
+    movimientos = movimientos.merge(prods, on='product_id', how='left')
+    movimientos['unidades'] = movimientos['unidades'].abs()
+    
+    def data_cliente_fun(n_factura_mba):
+        try:
+            with connections['gimpromed_sql'].cursor() as cursor:
+                cursor.execute(f"""
+                    SELECT 
+                        vf.NOMBRE_CLIENTE,
+                        vf.CODIGO_FACTURA,
+                        vf.NUMERO_PEDIDO_SISTEMA,
+                        c.IDENTIFICACION_FISCAL,
+                        c.NOMBRE_CLIENTE
+                    FROM warehouse.clientes c
+                    LEFT JOIN warehouse.facturas vf 
+                    ON c.NOMBRE_CLIENTE = vf.NOMBRE_CLIENTE
+                    WHERE CODIGO_FACTURA = '{n_factura_mba}'""")
+                columns = [col[0] for col in cursor.description]
+                cliente = [
+                    dict(zip(columns, row))
+                    for row in cursor.fetchall()
+                ][0]       
+            return cliente
+        except:
+            return None
+    
+    data_cliente = data_cliente_fun(n_factura_mba)
+    context = {
+        'n_factura': n_factura,
+        'data_cliente': data_cliente,
+        'picking':mov.first().n_referencia if mov.exists() else '',
+        'movimientos': de_dataframe_a_template(movimientos)
+    }
+    return render(request, 'wms/orden_salida.html', context)
+    
+
+
 # Cartones despacho
 def wms_despacho_cartones(request):
     if request.method == "POST":

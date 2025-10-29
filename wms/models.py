@@ -396,3 +396,17 @@ class CostoImportacion(models.Model):
     
     class Meta:
         unique_together = ['product_id', 'importacion']
+
+
+class OrdenSalida(models.Model):
+    
+    n_factura    = models.CharField(max_length=30, unique=True)
+    codigo_cliente = models.CharField(max_length=30)
+    ruc_cliente  = models.CharField(max_length=13)
+    cliente      = models.CharField(max_length=100)
+    fecha_salida = models.DateField(blank=True, null=True)
+    creado       = models.DateTimeField(auto_now_add=True)
+    usuario      = models.ForeignKey(User, on_delete=models.CASCADE)
+    
+    def __str__(self):
+        return self.n_factura
