@@ -190,6 +190,7 @@
                     <tr>
                         <th scope="col"># Picking</th>
                         <th scope="col"># Factura</th>
+                        <th scope="col">Cliente</th>
                         <th scope="col">Fecha de cruce</th>
                         <th scope="col">Usuario</th>
                         <th scope="col">Enviado a despacho el</th>
@@ -200,6 +201,7 @@
                         <tr>
                             <td>{{i.picking}}</td>
                             <td>{{i.factura}}</td>
+                            <td>{{i.NOMBRE_CLIENTE | default:"-"}}</td>
                             <td>{{i.actualizado}}</td>
                             <td>{{i.usuario__first_name}} {{i.usuario__last_name}}</td>
                             <td>
