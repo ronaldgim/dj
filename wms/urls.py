@@ -302,6 +302,11 @@ urlpatterns = [
         view = views.wms_cruce_picking_factura,
         name = 'wms_cruce_picking_factura'
     ),
+    path(
+        route='orden-salida/<str:n_factura>', 
+        view = views.nueva_orden_salida,
+        name = 'nueva_orden_salida'
+    ),
     
     # wms_despacho_cartones
     path(
