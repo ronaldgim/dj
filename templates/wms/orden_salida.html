@@ -67,7 +67,7 @@
     <form method="post">
         {% csrf_token %}
         <input type="date" class="col-2 form-control form-control-sm mt-2" value="{% now 'Y-m-d' %}">
-        <button type="submit" class="btn btn-primary btn-sm mt-2">GENERAR</button>
+        <button type="submit" class="btn btn-primary btn-sm mt-2" disabled>GENERAR</button>
     </form>
 </div>
 
