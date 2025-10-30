@@ -1,0 +1,177 @@
+{% load static %}
+<title>Orden Salida # {{orden_salida.enum}}</title>
+
+<style>
+    @page{
+        size: A4;
+        /*size: letter landscape;*/
+        margin-top:1cm;
+        margin-left:0.5cm;
+        margin-right:0.5cm;
+        margin-bottom:1cm;
+
+        /* HEADER Static frame */
+        /*@frame header_frame {           
+            -pdf-frame-content: header_content;
+            left: 0pt; width: 595pt; top: 0pt; height: 140pt;
+        }*/
+        /* FOOTER Static frame */
+        /*@frame footer_frame {
+            -pdf-frame-content: footer_content;
+            left:0pt; width:595pt; top:727pt; height:150pt;
+        }*/
+        /* BODY */
+        /*@frame body_frame {}*/
+            
+    }
+    #gim {
+        background-size:100%;
+        background-repeat:no-repeat;
+    }
+
+    .t_b {
+        padding-top: 4px;
+        padding-left: 4px;
+        padding-right: 4px;
+        padding-bottom: 0px;
+
+        font-size: large;
+    } 
+
+    .t_codigo {
+        width: 120px;
+        font-size: large;
+    }
+
+    .t_nombre {
+        width: 230px;
+        font-size: large;
+    }
+
+    .t_u_c {
+        width: 90px;
+        font-size: large;
+    }
+
+    .t_row_title {
+        padding-top: 4px;
+        padding-left: 4px;
+        padding-right: 4px;
+        padding-bottom: 0px;
+        font-size: medium;
+    }
+
+    .t_row {
+        padding-top: 4px;
+        padding-left: 4px;
+        padding-right: 4px;
+        padding-bottom: 0px;
+        font-size: medium;
+    }
+
+    .t_row_cal {
+        padding-top: 4px;
+        padding-left: 4px;
+        padding-right: 4px;
+        padding-bottom: 0px;
+        text-align: right;
+        font-size: large;
+    }
+</style>
+
+<meta charset="UTF-8">
+
+
+<div class="gim" style="text-align:justify;"> <!--font-size:14px-->
+
+    <div class="body_frame">
+
+        <!-- Encabezado -->
+        <table style="width: 100%;"> 
+            <tr>
+                <th>
+                    <img src="https://gimpromed.com/themes/gimpromed-theme/assets/img/blue/logo.png" width="300px" height="70px" alt="Imagen"><br />
+                    <!--span style="font-size: 15px; font-weight: bold; text-align:left;">GIMPROMED CIA. LTDA.</span> <br /-->
+                    <span style="font-size: 10px; text-align:left; margin-top: 15px;">Dir. Matriz: PASCUAL DE ANDAGOYA OE3-293 Y AV.AMERICA</span>
+                </th> 
+                <th class="t_b" style="border:1px solid black; text-align:left;">
+                    <span style="font-size: 25px">RUC:{{orden_salida.ruc_cliente}}</span> 
+                    <br /> <br />
+                    <span style="font-size: 15px">ORDEN DE SALIDA No: {{orden_salida.enum}}</span> 
+                    <br /> <br /> <br /> <br />
+                </th>
+            </tr>
+        </table>
+        
+        <!-- Prioridad -->
+        <table style="border:1px solid black; border-collapse: separate; border-spacing: 0; width:100%;">
+            <tr>
+                <th width="300px" style="border:none; padding:6px 8px; text-align:left;">
+                    Factura No.:<span style="font-weight: light;"> {{orden_salida.n_factura}}</span>  <br/>
+                    Fecha de desapacho No.:<span style="font-weight: light;"> {{orden_salida.fecha_salida|date:"Y-m-d"}}</span>
+                </th> 
+                <th width="300px" style="border:none; text-align:left;">
+                    Fecha de factura: <span style="font-weight: light;"> {{orden_salida.fecha_factura|date:"Y-m-d"}}</span>
+                </th>
+                <th width="300px" style="border:none; text-align:left;">
+                    Cliente: <span style="font-weight: light;"> {{orden_salida.cliente}}</span>
+                </th>
+            </tr>
+        </table>
+
+        <br>
+
+        <table style="border:1px solid black; table-layout: fixed; width: 100%;">
+            <thead>
+                <tr>
+                    <th class="t_row_title">CANTIDAD</th>
+                    <th class="t_row_title">DESCRIPCIÓN</th>
+                    <th class="t_row_title">CÓDIGO</th>
+                    <th class="t_row_title">UNIDAD</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in movimientos %}
+                <tr>
+                    <td style="width: 100px;" class="t_row">{{i.unidades}}</td>      
+                    <td style="width: auto;" class="t_row">{{i.Nombre}} - Lote: {{i.lote_id}}</td>         
+                    <td style="width: 150;" class="t_row">{{i.product_id}}</td>           
+                    <td style="width: 100px;" class="t_row">{{i.Unidad}}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        
+        <!--label><strong>OBSERVACIONES:</strong></label>
+        <table style="border:1px solid black;">
+            <tr>
+                <td>
+                    <p style="padding: 4px; font-size: medium;">
+                        {{orden.observaciones|upper}}
+                        
+                        <br>
+                        <br>
+                    </p>
+                </td>
+            </tr>
+        </table>
+
+        <br><br><br><br>
+
+        <table style="font-size:medium; text-align:center; font-weight:bold">
+            <tr>
+                <td>---------------------------------------------------</td>
+                <td>---------------------------------------------------</td>
+                <td>---------------------------------------------------</td>
+                <td>---------------------------------------------------</td>
+            </tr>
+            <tr>
+                <td>ELABORADO POR</td>
+                <td>AUTORIZADO POR</td>
+                <td>RESPONS.BODEGA/ARMADO</td>
+                <td>RESPONSE BOD/LIBERACIÓN KIT</td>
+            </tr>
+        </table-->
+    </div>
+</div>

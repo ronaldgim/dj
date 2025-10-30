@@ -59,26 +59,47 @@
 <label class="fw-bold">Cliente: </label> {{data_cliente.NOMBRE_CLIENTE}}<br>
 <label class="fw-bold">Ruc: </label> {{data_cliente.IDENTIFICACION_FISCAL}}<br>
 <label class="fw-bold">Factura: </label> <span id="n_factura">{{n_factura}}</span> <br>
+<label class="fw-bold">Fecha Factura: </label> <span id="n_factura">{{data_cliente.FECHA_FACTURA|date:"Y-m-d"}}</span> <br>
 <label class="fw-bold">Picking:</mark></label> {{picking | slice:"-2"}}</mark> <br>
-<label class="fw-bold">Fecha de despacho: </label>  {{fecha_salida}}
+<label class="fw-bold">Fecha de despacho: </label>  {{orden_salida.fecha_salida|date:'Y-m-d'}}
 <br>
 
 <div class="col-2 mb-2">
     <form method="post">
         {% csrf_token %}
-        <input type="text" name="usuario" value="{{picking}}" hidden>
+        <input type="text" name="usuario" value="{{request.user.id}}" hidden>
         <input type="text" name="n_factura" value="{{n_factura}}" hidden>
         <input type="text" name="codigo_cliente" value="{{data_cliente.CODIGO_CLIENTE}}" hidden>
         <input type="text" name="ruc_cliente" value="{{data_cliente.IDENTIFICACION_FISCAL}}" hidden>
         <input type="text" name="cliente" value="{{data_cliente.NOMBRE_CLIENTE}}" hidden>
-        <input type="date" name="fecha_salida" class="col-2 form-control form-control-sm mt-2" value="{% now 'Y-m-d' %}">
-        <button type="submit" class="btn btn-primary btn-sm mt-2">GENERAR</button>
+        <input type="text" name="fecha_factura" value="{{data_cliente.FECHA_FACTURA|date:'Y-m-d'}}" hidden>
+        <input 
+            type="date" 
+            name="fecha_salida" 
+            class="col-2 form-control form-control-sm mt-2" 
+            value="{% now 'Y-m-d' %}"
+            required
+        >
+        {% if not data_cliente %}
+            <button class="btn btn-primary btn-sm mt-2" onclick="location.reload();">Recargar</button>
+        {% else %}
+        <button type="submit" class="btn btn-primary btn-sm mt-2">
+            {% if orden_salida %}
+                ACTUALIZAR
+            {% else %}
+                GENERAR
+            {% endif %}
+        </button>
+        {% endif %}
     </form>
 </div>
 
-<!--div class="col-12 mt-2 mb-2">
-    <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
-</div-->
+{% if orden_salida %}
+<a class="btn btn-danger btn-sm mb-2" href="{% url 'orden_salida_pdf' orden_salida.n_factura %}" target="_blank">
+    <i class="bi bi-file-earmark-pdf"></i> Descargar PDF
+</a>
+{% endif %}
+
 <div class="card mb-2">
     <div class="card-body m-0 p-0">
         <div class="container table-responsive">
@@ -95,7 +116,7 @@
                     {% for i in movimientos %}
                         <tr>
                             <td class="text-center">{{i.unidades}}</td>
-                            <td>{{i.Nombre}}</td>
+                            <td>{{i.Nombre}} - Lote: {{i.lote_id}}</td>
                             <td>{{i.product_id}}</td>
                             <td>{{i.Unidad}}</td>
                         </tr>
@@ -105,122 +126,4 @@
         </div>
     </div>
 </div>
-
-<!--filtro buscar-->
-<script>
-    $(document).ready(function() {
-        $("#inputbuscar").on("keyup", function() {
-            var value = $(this).val().toLowerCase();
-            $("#pedidosbuscar tr").filter(function() {
-                $(this).toggle($(this).text()
-                .toLowerCase().indexOf(value) > -1)
-            });
-        });
-    });
-</script>
-
-
-<script>
-    // Función para mostrar un mensaje temporal
-    function mostrarMensajeTemporal(mensaje, boton) {
-        var mensajeTemporal = $("button[name='cruce']");
-        var botonOffset = boton.offset();
-
-        // Colocar el mensaje al lado del botón
-        mensajeTemporal.css({
-            top: botonOffset.top + boton.outerHeight(),
-            left: botonOffset.left
-        });
-
-        // Establecer el contenido del mensaje
-        mensajeTemporal.text(mensaje);
-
-        // Mostrar el mensaje
-        mensajeTemporal.fadeIn();
-
-        // Ocultar el mensaje después de 3 segundos
-        setTimeout(function() {
-            mensajeTemporal.fadeOut();
-        }, 3000)}
-</script>    
-
-<script>
-
-    $("button[name='cruce']").click(function(){
-        var btn       = $(this);
-        var prod_id   = btn.closest("tr").find("#prod_id").html();
-        var lote_id   = btn.closest("tr").find("#lote_id").val();
-        var n_pick    = $("#n_picking").val();
-        var n_factura = $("#n_factura").html();
-        
-        $.ajax({
-            type:"POST",
-            url:"{% url 'wms_cruce_check_despacho' %}",
-            data:{
-                'csrfmiddlewaretoken': '{{ csrf_token }}',
-                'n_picking':n_pick,
-                'prod_id':prod_id,
-                'lote_id':lote_id,
-                'n_factura':n_factura
-            },
-
-            success: function(response) {
-                
-                if(response.msg === 'OK') {
-                    var div_msg = $("#msg_ss")
-                    div_msg.fadeIn().html('<div class="text-center alert alert-success" role="alert"> Despachado !!! </div>');
-                    div_msg.fadeOut(4000);
-                    btn.removeClass();
-                    btn.addClass("btn btn-sm btn-success disabled")
-                } else if(response.msg === 'FAIL') {
-                    var div_msg = $("#msg_ss")
-                    div_msg.fadeIn().html('<div class="text-center alert alert-danger" role="alert"> Error intente nuevamente !!! </div>');
-                    div_msg.fadeOut(4000);
-                    //btn.removeClass();
-                    //btn.addClass("btn btn-sm btn-success disabled")
-                }
-            },
-
-            error: function() {
-                
-                $('#msg').fadeIn().html('<div class="text-center alert alert-danger" role="alert"> Error hacer el check !!! </div>').fadeOut(4000)
-            }
-            
-        })
-    })
-</script>
-
-<!-- Cartones -->
-<script>
-    $("button[name='cartones']").click(function(){
-        var picking = $("#cc_picking").val();
-        var factura = $("#cc_factura").val();
-        var c_calcu = $("#cc_cartones_calculados").val();
-        var c_fisic = $("#cc_cartones_fisicos").val();
-        var usuario = "{{request.user.id}}"
-        console.log(picking, factura,c_calcu, c_fisic)
-
-        $.ajax({
-            type:"POST",
-            url:"{% url 'wms_despacho_cartones' %}",
-            data:{
-                'csrfmiddlewaretoken': '{{ csrf_token }}',
-                'picking':picking,
-                'factura':factura,
-                'cartones_calculados':parseFloat(c_calcu),
-                'cartones_fisicos':parseFloat(c_fisic),
-                'usuario':usuario
-                },
-                success: function(response) {
-                    $("#msg").html(`<div class="text-center alert alert-${response.tipo}" role="alert">${response.msg} !!! </div>`);
-                    $("#cartones_fisicos_save").html(c_fisic);
-                },
-                error: function(){
-                    $("#msg").html(`<div class="text-center alert alert-danger" role="alert"> Error !!!</div>`)
-                }
-        })
-
-    })
-</script>
-
 {% endblock %}

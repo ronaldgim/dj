@@ -405,8 +405,15 @@ class OrdenSalida(models.Model):
     ruc_cliente  = models.CharField(max_length=13)
     cliente      = models.CharField(max_length=100)
     fecha_salida = models.DateField(blank=True, null=True)
+    fecha_factura = models.DateField(blank=True, null=True)
     creado       = models.DateTimeField(auto_now_add=True)
     usuario      = models.ForeignKey(User, on_delete=models.CASCADE)
     
     def __str__(self):
         return self.n_factura
+
+    @property
+    def enum(self):
+        total_registros = OrdenSalida.objects.filter(id__lte=self.id).count()
+        enum = f'{total_registros:06d}'
+        return enum 

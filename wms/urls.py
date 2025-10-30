@@ -307,7 +307,11 @@ urlpatterns = [
         view = views.nueva_orden_salida,
         name = 'nueva_orden_salida'
     ),
-    
+    path(
+        route='orden-salida-pdf/<str:n_factura>', 
+        view = views.orden_salida_pdf,
+        name = 'orden_salida_pdf'
+    ),
     # wms_despacho_cartones
     path(
         route='wms_despacho_cartones', 

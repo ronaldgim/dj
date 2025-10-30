@@ -3187,7 +3187,7 @@ def wms_cruce_picking_factura(request):
     }
     return render(request, 'wms/cruce_picking_factura.html', context)
 
-
+@login_required(login_url='login')
 def nueva_orden_salida(request, n_factura):
     
     n_factura_mba = f'FCSRI-1001{int(n_factura):09d}-GIMPR'
@@ -3205,6 +3205,7 @@ def nueva_orden_salida(request, n_factura):
                         vf.NOMBRE_CLIENTE,
                         vf.CODIGO_FACTURA,
                         vf.NUMERO_PEDIDO_SISTEMA,
+                        vf.FECHA_FACTURA,
                         c.IDENTIFICACION_FISCAL,
                         c.CODIGO_CLIENTE,
                         c.NOMBRE_CLIENTE
@@ -3230,23 +3231,47 @@ def nueva_orden_salida(request, n_factura):
                 form.save()
                 messages.success(request, 'Orden de salida actualizada correctamente !!!')
                 return HttpResponseRedirect(f'/wms/orden-salida/{n_factura}')
+            messages.error(request, f'Error {form.errors} !!!')
         else:
             form = OrdenSalidaForm(request.POST)
             if form.is_valid():
                 form.save()
                 messages.success(request, 'Orden de salida creada correctamente !!!')
                 return HttpResponseRedirect(f'/wms/orden-salida/{n_factura}')
+            messages.error(request, 'Error al crear la orden de salida !!!')
     
     data_cliente = data_cliente_fun(n_factura_mba) 
     context = {
         'n_factura': n_factura,
         'data_cliente': data_cliente,
         'picking':mov.first().n_referencia if mov.exists() else '',
-        'fecha_salida': OrdenSalida.objects.get(n_factura=n_factura).fecha_salida if OrdenSalida.objects.filter(n_factura=n_factura).exists() else '',
+        'orden_salida': OrdenSalida.objects.get(n_factura=n_factura) if OrdenSalida.objects.filter(n_factura=n_factura).exists() else '',
         'movimientos': de_dataframe_a_template(movimientos)
     }
     return render(request, 'wms/orden_salida.html', context)
+
+
+def orden_salida_pdf(request, n_factura):
     
+    orden_salida = OrdenSalida.objects.get(n_factura=n_factura)
+    movimientos = pd.DataFrame(Movimiento.objects.filter(n_factura=n_factura).values())
+    prods = productos_odbc_and_django()[['product_id','Nombre','Unidad']]
+    movimientos = movimientos.merge(prods, on='product_id', how='left')
+    movimientos['unidades'] = movimientos['unidades'].abs()
+    
+    context = {
+        'orden_salida': orden_salida,
+        'movimientos': de_dataframe_a_template(movimientos)
+    }
+    
+    output = io.BytesIO()
+    html_string = render_to_string('wms/orden_salida_pdf.html', context)
+    pdf_statur = pisa.CreatePDF(html_string, dest=output)
+    if pdf_statur.err:
+        return HttpResponse('We had some errors <pre>' + html_string + '</pre>')
+    response = HttpResponse(output.getvalue(), content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="orden_salida_{n_factura}.pdf"'
+    return response
 
 
 # Cartones despacho
