@@ -242,11 +242,8 @@ class CostoImportacionAdmin(admin.ModelAdmin):
 class OrdenSalidaAdmin(admin.ModelAdmin):
     list_display = (
         'n_factura',
+        'codigo_cliente',
+        'ruc_cliente',
         'cliente',
-        'bodega',
-        'prioridad',
-        'estado',
-        'usuario',
-        'fecha_salida',
-        'observaciones'
+        'fecha_salida'
     )
