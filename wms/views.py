@@ -3238,7 +3238,7 @@ def nueva_orden_salida(request, n_factura):
                 form.save()
                 messages.success(request, 'Orden de salida creada correctamente !!!')
                 return HttpResponseRedirect(f'/wms/orden-salida/{n_factura}')
-            messages.error(request, 'Error al crear la orden de salida !!!')
+            # messages.error(request, 'Error al crear la orden de salida !!!')
     
     data_cliente = data_cliente_fun(n_factura_mba) 
     context = {
