@@ -81,7 +81,8 @@ from wms.models import (
     OrdenEmpaque,
     FacturaAnulada,
     ImportacionFotos,
-    CostoImportacion
+    CostoImportacion,
+    OrdenSalida
     )
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -104,7 +105,8 @@ from wms.forms import (
     ComponenteArmadoForm,
     ProductoNuevoArmadoUpdateForm,
     FacturaAnuladaForm,
-    ImportacionFotosForm
+    ImportacionFotosForm,
+    OrdenSalidaForm
     )
 
 # Messages
@@ -3204,6 +3206,7 @@ def nueva_orden_salida(request, n_factura):
                         vf.CODIGO_FACTURA,
                         vf.NUMERO_PEDIDO_SISTEMA,
                         c.IDENTIFICACION_FISCAL,
+                        c.CODIGO_CLIENTE,
                         c.NOMBRE_CLIENTE
                     FROM warehouse.clientes c
                     LEFT JOIN warehouse.facturas vf 
@@ -3218,11 +3221,28 @@ def nueva_orden_salida(request, n_factura):
         except:
             return None
     
-    data_cliente = data_cliente_fun(n_factura_mba)
+    if request.method == "POST":
+        
+        orden_salida = OrdenSalida.objects.filter(n_factura=n_factura)
+        if orden_salida.exists():
+            form = OrdenSalidaForm(request.POST, instance=orden_salida.first())
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'Orden de salida actualizada correctamente !!!')
+                return HttpResponseRedirect(f'/wms/orden-salida/{n_factura}')
+        else:
+            form = OrdenSalidaForm(request.POST)
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'Orden de salida creada correctamente !!!')
+                return HttpResponseRedirect(f'/wms/orden-salida/{n_factura}')
+    
+    data_cliente = data_cliente_fun(n_factura_mba) 
     context = {
         'n_factura': n_factura,
         'data_cliente': data_cliente,
         'picking':mov.first().n_referencia if mov.exists() else '',
+        'fecha_salida': OrdenSalida.objects.get(n_factura=n_factura).fecha_salida if OrdenSalida.objects.filter(n_factura=n_factura).exists() else '',
         'movimientos': de_dataframe_a_template(movimientos)
     }
     return render(request, 'wms/orden_salida.html', context)

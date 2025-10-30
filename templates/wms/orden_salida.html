@@ -60,14 +60,19 @@
 <label class="fw-bold">Ruc: </label> {{data_cliente.IDENTIFICACION_FISCAL}}<br>
 <label class="fw-bold">Factura: </label> <span id="n_factura">{{n_factura}}</span> <br>
 <label class="fw-bold">Picking:</mark></label> {{picking | slice:"-2"}}</mark> <br>
-<label class="fw-bold">Fecha de despacho: </label> 
+<label class="fw-bold">Fecha de despacho: </label>  {{fecha_salida}}
 <br>
 
 <div class="col-2 mb-2">
     <form method="post">
         {% csrf_token %}
-        <input type="date" class="col-2 form-control form-control-sm mt-2" value="{% now 'Y-m-d' %}">
-        <button type="submit" class="btn btn-primary btn-sm mt-2" disabled>GENERAR</button>
+        <input type="text" name="usuario" value="{{picking}}" hidden>
+        <input type="text" name="n_factura" value="{{n_factura}}" hidden>
+        <input type="text" name="codigo_cliente" value="{{data_cliente.CODIGO_CLIENTE}}" hidden>
+        <input type="text" name="ruc_cliente" value="{{data_cliente.IDENTIFICACION_FISCAL}}" hidden>
+        <input type="text" name="cliente" value="{{data_cliente.NOMBRE_CLIENTE}}" hidden>
+        <input type="date" name="fecha_salida" class="col-2 form-control form-control-sm mt-2" value="{% now 'Y-m-d' %}">
+        <button type="submit" class="btn btn-primary btn-sm mt-2">GENERAR</button>
     </form>
 </div>
 
