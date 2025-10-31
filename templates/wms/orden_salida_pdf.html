@@ -10,7 +10,7 @@
         margin-right:0.5cm;
         margin-bottom:1cm;
     }
-    #gim {
+    .gim {
         background-size:100%;
         background-repeat:no-repeat;
     }
@@ -73,91 +73,73 @@
     <div class="body_frame">
 
         <!-- Encabezado -->
-        <table style="width: 100%;"> 
-            <tr>
-                <th>
+        <table> 
+            <tr style="padding-right:20px;">
+                <td class="t_b" style="text-align:center;">
                     <img src="https://gimpromed.com/themes/gimpromed-theme/assets/img/blue/logo.png" width="300px" height="70px" alt="Imagen"><br />
                     <!--span style="font-size: 15px; font-weight: bold; text-align:left;">GIMPROMED CIA. LTDA.</span> <br /-->
-                    <span style="font-size: 10px; text-align:left; margin-top: 15px;">Dir. Matriz: PASCUAL DE ANDAGOYA OE3-293 Y AV.AMERICA</span>
-                </th> 
-                <th class="t_b" style="border:1px solid black; text-align:left;">
-                    <span style="font-size: 25px">RUC:{{orden_salida.ruc_cliente}}</span> 
-                    <br /> <br />
-                    <span style="font-size: 15px">ORDEN DE SALIDA No: {{orden_salida.enum}}</span> 
-                    <br /> <br /> <br /> <br />
+                    <span style="font-size: 10px; margin-top: 15px;">PASCUAL DE ANDAGOYA OE3-293 Y AV.AMERICA</span><br />
+                    <span style="font-size: 10px; margin-top: 15px;">PBX: 2526-526 / 2564-740 - Fax: 2508-228 - Casilla: 17o1403</span><br />
+                    <span style="font-size: 10px; margin-top: 15px;">Email: info@gimpromed.com - Quito-Ecuador</span>
+                </td> 
+                <th>
+                    <div style="border:1px solid black; border-collapse: separate; border-spacing: 0; border-radius: 10px; padding: 10px; text-align:center; font-size:medium;">
+                        <span style="font-size: 25px">RUC:{{orden_salida.ruc_cliente}}</span> 
+                        <br /> <br />
+                        <span style="font-size: 15px">ORDEN DE SALIDA</span> <br />
+                        <span style="font-size: 25px; margin-top: 15px; color: red;">No: {{orden_salida.enum}}</span> 
+                    </div>
                 </th>
             </tr>
         </table>
         
-        <!-- Prioridad -->
-        <table style="border:1px solid black; border-collapse: separate; border-spacing: 0; width:100%;">
+        <table style="border:1px solid black; border-collapse: separate; border-spacing: 0; border-radius: 10px; margin-top:10px;">
             <tr>
                 <th width="300px" style="border:none; padding:6px 8px; text-align:left;">
-                    Factura No.:<span style="font-weight: light;"> {{orden_salida.n_factura}}</span>  <br/>
-                    Fecha de desapacho No.:<span style="font-weight: light;"> {{orden_salida.fecha_salida|date:"Y-m-d"}}</span>
+                    Factura No.:<span style="font-weight: normal;"> {{orden_salida.n_factura}}</span>  <br/>
+                    Fecha de desapacho No.:<span style="font-weight: normal;"> {{orden_salida.fecha_salida|date:"Y-m-d"}}</span> <br />
+                    Cliente: <span style="font-weight: normal;"> {{orden_salida.cliente}}</span>
                 </th> 
-                <th width="300px" style="border:none; text-align:left;">
-                    Fecha de factura: <span style="font-weight: light;"> {{orden_salida.fecha_factura|date:"Y-m-d"}}</span>
+                <th width="150px" style="border:none;">
                 </th>
-                <th width="300px" style="border:none; text-align:left;">
-                    Cliente: <span style="font-weight: light;"> {{orden_salida.cliente}}</span>
+                <th width="300px" style="border:none; padding:6px 8px; text-align:left; vertical-align:top;">
+                    Fecha de factura: <span style="font-weight: normal;"> {{orden_salida.fecha_factura|date:"Y-m-d"}}</span>
                 </th>
             </tr>
         </table>
 
         <br>
-
-        <table style="border:1px solid black; table-layout: fixed; width: 100%;">
+        
+        <table style="border:1px solid black; padding-right:20px;">
             <thead>
                 <tr>
-                    <th class="t_row_title">CANTIDAD</th>
-                    <th class="t_row_title">DESCRIPCIÓN</th>
                     <th class="t_row_title">CÓDIGO</th>
+                    <th class="t_row_title">DESCRIPCIÓN</th>
+                    <th class="t_row_title">CANTIDAD</th>
                     <th class="t_row_title">UNIDAD</th>
                 </tr>
             </thead>
             <tbody>
                 {% for i in movimientos %}
                 <tr>
+                    <td style="width: 135px;" class="t_row">{{i.product_id}}</td>           
+                    <td style="width: auto;" class="t_row">{{i.Nombre}}</td>         
                     <td style="width: 100px;" class="t_row">{{i.unidades}}</td>      
-                    <td style="width: auto;" class="t_row">{{i.Nombre}} - Lote: {{i.lote_id}}</td>         
-                    <td style="width: 150;" class="t_row">{{i.product_id}}</td>           
                     <td style="width: 100px;" class="t_row">{{i.Unidad}}</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
 
-        
-        <!--label><strong>OBSERVACIONES:</strong></label>
-        <table style="border:1px solid black;">
+
+        <table style="margin-top:50px;">
             <tr>
-                <td>
-                    <p style="padding: 4px; font-size: medium;">
-                        {{orden.observaciones|upper}}
-                        
-                        <br>
-                        <br>
-                    </p>
+                <td style="width:200px; font-weight:bold;">
+                    _________________________<br>
+                        Firma Responsable
                 </td>
             </tr>
         </table>
 
-        <br><br><br><br>
-
-        <table style="font-size:medium; text-align:center; font-weight:bold">
-            <tr>
-                <td>---------------------------------------------------</td>
-                <td>---------------------------------------------------</td>
-                <td>---------------------------------------------------</td>
-                <td>---------------------------------------------------</td>
-            </tr>
-            <tr>
-                <td>ELABORADO POR</td>
-                <td>AUTORIZADO POR</td>
-                <td>RESPONS.BODEGA/ARMADO</td>
-                <td>RESPONSE BOD/LIBERACIÓN KIT</td>
-            </tr>
-        </table-->
     </div>
 </div>
