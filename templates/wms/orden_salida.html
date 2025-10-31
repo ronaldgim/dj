@@ -10,36 +10,7 @@
 
 {% block body %}
 
-<style>
-    .btn.btn-warning.btn-sm.active {
-    background-color: blue;}
-
-    .mensaje-temporal {
-        display: none;
-        position: absolute;
-        background-color: #4CAF50;
-        color: white;
-        padding: 10px;
-        border-radius: 5px;
-    }
-
-    #msg_ss {
-        display: none;
-        position: fixed; /* Cambiado a fixed para que sea relativo a la ventana */
-        /*bottom: 10px; */ /* Distancia desde la parte inferior */
-        top:40%;
-        right: 10px; /* Distancia desde la derecha */
-        /*background-color: #4CAF50;*/
-        color: white;
-        padding: 10px;
-        border-radius: 5px;
-        width:auto;
-        z-index: 3;
-        }
-</style>
-
 <h5 class="m-4 text-center fw-bold">ORDEN DE SALIDA</h5>
-
 
 {% if messages %}
 {% for message in messages %}
@@ -54,7 +25,6 @@
 {%endif%}
 {% endfor %}
 {% endif %}
-
 
 <label class="fw-bold">Cliente: </label> {{data_cliente.NOMBRE_CLIENTE}}<br>
 <label class="fw-bold">Ruc: </label> {{data_cliente.IDENTIFICACION_FISCAL}}<br>

@@ -3238,7 +3238,7 @@ def nueva_orden_salida(request, n_factura):
                 form.save()
                 messages.success(request, 'Orden de salida creada correctamente !!!')
                 return HttpResponseRedirect(f'/wms/orden-salida/{n_factura}')
-            messages.error(request, 'Error al crear la orden de salida !!!')
+            # messages.error(request, 'Error al crear la orden de salida !!!')
     
     data_cliente = data_cliente_fun(n_factura_mba) 
     context = {
@@ -3256,6 +3256,7 @@ def orden_salida_pdf(request, n_factura):
     orden_salida = OrdenSalida.objects.get(n_factura=n_factura)
     movimientos = pd.DataFrame(Movimiento.objects.filter(n_factura=n_factura).values())
     prods = productos_odbc_and_django()[['product_id','Nombre','Unidad']]
+    movimientos = movimientos.groupby(by='product_id')['unidades'].sum().reset_index().sort_values(by='product_id')
     movimientos = movimientos.merge(prods, on='product_id', how='left')
     movimientos['unidades'] = movimientos['unidades'].abs()
     
