@@ -221,7 +221,7 @@
                                 :class="{ 'sorted': sortField === 'agregado' }"
                             >
                             <span style="white-space: nowrap;">
-                                Llenado.Bod {% verbatim %} {{ getIconoOrden('agregado') }} {% endverbatim %}
+                                Agregado {% verbatim %} {{ getIconoOrden('agregado') }} {% endverbatim %}
                             </span>
                             </th>
                             <!--th scope="col">Usuario</th-->
@@ -268,9 +268,6 @@
                             <td class="text-end">{{ totalDeUnidades.toLocaleString() }}</td>
                             <td class="text-end">{{ totalWms.toLocaleString() }}</td>
                             <td class="text-end">{{ totalDiferencia.toLocaleString() }}</td>
-                            <!--td class="text-end">{{ totalUnidades.toLocaleString() }}</td>
-                            <td class="text-end">{{ totalUnidadesMBA.toLocaleString() }}</td>
-                            <td class="text-end">{{ totalDiferencia.toLocaleString() }}</td-->
                             <td colspan="3"></td>
                         </tr>
                         {% endverbatim %}
