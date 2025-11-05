@@ -142,6 +142,10 @@ class InventarioCerezos(models.Model):
         
         return super().save(*args, **kwargs)
 
+    @property
+    def ubicacion_full_name(self):
+        return f'{self.ubicacion.bodega}-{self.ubicacion.pasillo}-{self.ubicacion.modulo}-{self.ubicacion.nivel}'
+
 
 
 class InventarioCerezosTotale(models.Model):
