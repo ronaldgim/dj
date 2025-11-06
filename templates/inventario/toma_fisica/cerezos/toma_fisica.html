@@ -151,8 +151,8 @@
                             <form @submit.prevent="actualizarCrearTotal()">
                                 <label>Unidades por cartón:</label>
                                 <input class="form-control form-control-sm" v-model="formTotales.unidades_caja_t" type="number" required>
-                                <label>Número de cartones totales:</label><br>
-                                <small style="color: gray; font-size:smaller">Este campo puede hacer calulos (+, -)</small> <small style="color: red; font-size:smaller">solo dos números</small><br>
+                                <label>Número total de cartones (cerrados):</label><br>
+                                <!--small style="color: gray; font-size:smaller">Este campo puede hacer calulos (+, -)</small> <small style="color: red; font-size:smaller">solo dos números</small><br-->
                                 <!--input class="form-control form-control-sm" v-model="formTotales.numero_cajas_t" @input="sumarInput(formTotales.numero_cajas_t, 'numero_cajas_t')" required-->
                                 
                                 <div class="row g-2">
@@ -165,9 +165,9 @@
                                         </button>
                                     </div>
                                 </div>                              
-                                
+                                <small style="color: gray; font-size:smaller">Este campo puede hacer calulos (+, -)</small> <small style="color: red; font-size:smaller">solo dos números</small><br>
                                 <label>Unidades sueltas totales:</label><br>
-                                <small style="color: gray; font-size:smaller">Este campo puede hacer calulos (+, -)</small> <small style="color: red; font-size:smaller">solo dos números</small> <br>
+                                <!--small style="color: gray; font-size:smaller">Este campo puede hacer calulos (+, -)</small> <small style="color: red; font-size:smaller">solo dos números</small> <br-->
                                 <!--input class="form-control form-control-sm" v-model="formTotales.unidades_sueltas_t" @input="sumarInput(formTotales.unidades_sueltas_t, 'unidades_sueltas_t')" required-->
                                 
                                 <div class="row g-2">
@@ -180,7 +180,7 @@
                                         </button>
                                     </div>
                                 </div>
-
+                                <small style="color: gray; font-size:smaller">Este campo puede hacer calulos (+, -)</small> <small style="color: red; font-size:smaller">solo dos números</small> <br>
                                 <label class="fw-bold">Total Unidades:</label> {{ total_agrupado.toLocaleString() }}<br>
                                 <button type="submit" class="btn btn-sm btn-primary float-sm-end mt-2">GUARDAR</button>
                             </form>
