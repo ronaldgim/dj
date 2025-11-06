@@ -257,8 +257,13 @@
                             <form @submit.prevent="buscarProducto()">
                                 <label>Código de producto:</label>
                                 <div class="input-group input-group-sm mb-3">
-                                    <input type="text" class="form-control form-control-sm" v-model="formBuscar.product_id" required>
-                                    <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button>
+                                    <input type="text" class="form-control form-control-sm" list="product-options" @input="onSearchInput" v-model="formBuscar.product_id" required>
+                                    <datalist id="product-options">
+                                        <option v-for="producto in productList" :value="producto.codigo">
+                                            {{ producto.codigo }} - {{ producto.nombre }} - {{producto.marca}}
+                                        </option>
+                                    </datalist>
+                                    <!--button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button-->
                                 </div>
                             </form>
                         </div>
@@ -275,7 +280,8 @@
                             <form @submit.prevent="buscarProducto()">
                                 <label>Código de producto:</label>
                                 <div class="input-group input-group-sm mb-3">
-                                    <select @change="buscarProducto()" v-model="formBuscar.product_id" class="form-select form-select-sm">
+                                    <select @change="onProductChange()" v-model="formBuscar.product_id"--> <!--class="form-select form-select-sm">
+                                        <select v-model="formBuscar.product_id" class="form-select form-select-sm">
                                         <option value="">--------</option>
                                         <option v-for="producto in productList" :key="producto.codigo" :value="producto.codigo">
                                             {{producto.codigo}}
@@ -751,8 +757,7 @@
             },
 
             async buscarProducto() {
-                console.log(this.formBuscar.product_id);
-                console.log('buscarProducto');
+                
                 try {
                     const response = await fetch('/inventario/toma-fisica/buscar-producto', {
                         method: 'POST',
@@ -885,6 +890,24 @@
                     // actualiza visualmente el valor en Select2
                     $(".form-select").val(this.filtro).trigger("change.select2");
                 });
+            },
+            // async onProductChange() {
+            //     // Si se selecciona una opción vacía, limpiar mensajes
+            //     if (!this.formBuscar.product_id) {
+            //         this.msg_product = '';
+            //         return;
+            //     }
+            //     console.log('asdfasdf');
+            //     // Ejecutar búsqueda automáticamente al cambiar
+            //     await this.buscarProducto();
+            // },
+            onSearchInput() {
+                clearTimeout(this.searchTimeout);
+                this.searchTimeout = setTimeout(() => {
+                    if (this.formBuscar.product_id.length >= 2) {
+                        this.buscarProducto();
+                    }
+                }, 500);
             },
         }
     })

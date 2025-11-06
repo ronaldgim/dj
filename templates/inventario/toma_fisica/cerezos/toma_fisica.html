@@ -277,7 +277,7 @@
                 
                 <div class="modal-body">                    
                     <!-- BUSCAR PRODUCTO -->
-                    <div class="card" style="background-color: #e5f9fd;">
+                    <!--div class="card" style="background-color: #e5f9fd;">
                         <div class="card-body">
                             <h6 class="text-center fw-bold">BUSCAR PRODUCTO</h6>
                             <div v-if="msg_product" :class="`alert alert-${type_msg_product} text-center p-2 m-0`" role="alert" style="font-size: smaller;">
@@ -288,6 +288,26 @@
                                 <div class="input-group input-group-sm mb-3">
                                     <input type="text" class="form-control form-control-sm" v-model="formBuscar.product_id" required>
                                     <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button>
+                                </div>
+                            </form>
+                        </div>
+                    </div-->
+                    <div class="card" style="background-color: #e5f9fd;">
+                        <div class="card-body">
+                            <h6 class="text-center fw-bold">BUSCAR PRODUCTO</h6>
+                            <div v-if="msg_product" :class="`alert alert-${type_msg_product} text-center p-2 m-0`" role="alert" style="font-size: smaller;">
+                                {{msg_product}}
+                            </div>
+                            <form @submit.prevent="buscarProducto()">
+                                <label>Código de producto:</label>
+                                <div class="input-group input-group-sm mb-3">
+                                    <input type="text" class="form-control form-control-sm" list="product-options" @input="onSearchInput" v-model="formBuscar.product_id" required>
+                                    <datalist id="product-options">
+                                        <option v-for="producto in productList" :value="producto.codigo">
+                                            {{ producto.codigo }} - {{ producto.nombre }} - {{producto.marca}}
+                                        </option>
+                                    </datalist>
+                                    <!--button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button-->
                                 </div>
                             </form>
                         </div>
@@ -430,6 +450,7 @@
                 product_id:'',
             },
             listaLotesAgregar:[],
+            productList:[],
 
             // input date
             rawDate:'',
@@ -470,6 +491,7 @@
         },
         mounted() {
             this.getStock();
+            this.getProductoList();
         },
         computed: {
             total_agrupado() {
@@ -765,6 +787,16 @@
                 }
             },
 
+            async getProductoList(){
+                try {
+                    const res = await fetch('/api/warehouse-productos-list');
+                    const data = await res.json();
+                    this.productList = data.data || [];
+                } catch (error) {
+                    console.log(error)
+                }
+            },
+
             async buscarProducto() {
                 try {
                     const response = await fetch('/inventario/cerezos/toma-fisica/buscar-producto', {
@@ -880,6 +912,14 @@
                 } catch(error) {
                     console.log(error);
                 }
+            },
+            onSearchInput() {
+                clearTimeout(this.searchTimeout);
+                this.searchTimeout = setTimeout(() => {
+                    if (this.formBuscar.product_id.length >= 4) {
+                        this.buscarProducto();
+                    }
+                }, 500);
             },
         }
     })
