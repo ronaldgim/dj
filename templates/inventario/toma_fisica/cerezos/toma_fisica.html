@@ -415,7 +415,14 @@
                                 <textarea class="form-control form-control-sm" v-model="formAgregar.observaciones"></textarea>
 
                                 <label class="fw-bold">Total Unidades:</label> {{ conteo_fisico_agregar_lote.toLocaleString() }}<br>
-                                <button type="submit" class="btn btn-sm btn-primary float-sm-end mt-2">GUARDAR</button>
+                                <button type="reset" class="btn btn-sm btn-secondary float-sm-end mt-2 ms-2 me-2">BOORAR</button>
+                                <button
+                                    type="submit"
+                                    class="btn btn-sm btn-primary float-sm-end mt-2"
+                                    :disabled="agregando"
+                                    >
+                                    {{ agregando ? 'GUARDANDO...' : 'GUARDAR' }}
+                                </button>
                             </form>                      
                         </div>
                     </div>
@@ -497,6 +504,7 @@
 
             lote_input:true,
             // form agregar
+            agregando: false,
             formAgregar:{
                 product_id:'',
                 product_name:'',
@@ -951,6 +959,7 @@
             },
 
             async agregarProducto() {
+                this.agregando = true;
                 try {
                     const response = await fetch('/inventario/cerezos/toma-fisica/agregar-producto', {
                         method: 'POST',
@@ -991,7 +1000,7 @@
                     this.mes_anio_felab_msg = "",
                     this.mes_anio_fcadu = false,
                     this.mes_anio_fcadu_msg = "",
-                    
+                    this.agregando = false
                     await this.getStock();
 
                     setTimeout(
@@ -1002,7 +1011,9 @@
                 } catch (error) {
                     this.type_msg_agregar_lote = 'danger';
                     this.msg_agregar_lote = error;
-                }
+                } //finally {
+                    //this.agregando = false
+                //}
             },
 
             async getUbicaciones(mi_bodega, mi_ubicacion) {
