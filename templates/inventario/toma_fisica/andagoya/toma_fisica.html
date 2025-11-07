@@ -321,7 +321,7 @@
                                         <select @change="getFechas" v-show="lote_input" class="form-select form-select-sm" v-model="formAgregar.lote_id">
                                             <option v-for="i in listaLotesAgregar" :key="listaLotesAgregar.id">{{ i.lote_id }}</option>
                                         </select>
-                                        <input v-show="!lote_input" class="form-control form-control-sm" v-model="formAgregar.lote_id" type="text"required>
+                                        <input v-show="!lote_input" class="form-control form-control-sm" v-model="formAgregar.lote_id" type="text">
                                     </div>
                                     <div class="col-1">
                                         <button @click="lote_input_toggle" class="btn btn-sm btn-secondary" type="button">
@@ -329,15 +329,48 @@
                                         </button>
                                     </div>
                                 </div>
-
+                                
+                                <!-- Fecha elaboración -->
                                 <label>Fecha elaboración:</label>
-                                <input class="form-control form-control-sm" v-model="formAgregar.fecha_elab_lote" type="text" @input="formatoFecha('fecha_elab_lote')" pattern="\d{2}/\d{2}/\d{4}" maxlength="10" placeholder="dd/mm/aaaa" required>
-                                <p v-if="!validDateInputs.fecha_elab_lote" style="color: red; font-size:smaller">Formato inválido (dd/mm/aaaa)</p>
-                                
+                                <input type="checkbox" v-model="mes_anio_felab"> Mes/Año
+                                <input
+                                    class="form-control form-control-sm"
+                                    v-model="formAgregar.fecha_elab_lote"
+                                    type="text"
+                                    @input="formatoFecha('fecha_elab_lote', mes_anio_felab)"
+                                    pattern="\d{2}/\d{2}/\d{4}"
+                                    maxlength="10"
+                                    :placeholder="mes_anio_felab ? 'mm/aaaa' : 'dd/mm/aaaa'"
+                                    required
+                                >
+                                <p v-if="mes_anio_felab_msg" style="color:red; font-size:smaller;">
+                                    {{ mes_anio_felab_msg }}
+                                </p>
+                                <p v-else-if="!validDateInputs.fecha_elab_lote" style="color:red; font-size:smaller;">
+                                    Formato inválido ({{ mes_anio_felab ? 'mm/aaaa' : 'dd/mm/aaaa' }})
+                                </p>
+
+                                <!-- Fecha caducidad -->
                                 <label>Fecha caducidad:</label>
-                                <input class="form-control form-control-sm" v-model="formAgregar.fecha_cadu_lote" type="text" @input="formatoFecha('fecha_cadu_lote')" pattern="\d{2}/\d{2}/\d{4}" maxlength="10" placeholder="dd/mm/aaaa" required>
-                                <p v-if="!validDateInputs.fecha_cadu_lote" style="color: red; font-size:smaller">Formato inválido (dd/mm/aaaa)</p>
-                                
+                                <input type="checkbox" v-model="mes_anio_fcadu"> Mes/Año
+                                <input
+                                    class="form-control form-control-sm"
+                                    v-model="formAgregar.fecha_cadu_lote"
+                                    type="text"
+                                    @input="formatoFecha('fecha_cadu_lote', mes_anio_fcadu)"
+                                    pattern="\d{2}/\d{2}/\d{4}"
+                                    maxlength="10"
+                                    :placeholder="mes_anio_fcadu ? 'mm/aaaa' : 'dd/mm/aaaa'"
+                                    required
+                                >
+                                <p v-if="mes_anio_fcadu_msg" style="color:red; font-size:smaller;">
+                                    {{ mes_anio_fcadu_msg }}
+                                </p>
+                                <p v-else-if="!validDateInputs.fecha_cadu_lote" style="color:red; font-size:smaller;">
+                                    Formato inválido ({{ mes_anio_fcadu ? 'mm/aaaa' : 'dd/mm/aaaa' }})
+                                </p>
+
+
                                 <label>Unidades por cartón:</label>
                                 <input class="form-control form-control-sm" v-model="formAgregar.unidades_caja" type="number" required>
 
@@ -465,7 +498,12 @@
                 llenado_estanteria:false,
                 agregado:true,
                 user_id: Number(document.getElementById("user-id").value)
-            }
+            },
+            
+            mes_anio_felab:false,
+            mes_anio_fcadu:false,
+            mes_anio_felab_msg:"",
+            mes_anio_fcadu_msg:"",
         },
         mounted() {
             this.getStock();
@@ -586,25 +624,102 @@
                 }
             },
 
-            formatoFecha(name){
-
-                let rawDate = this.formAgregar[name].replace(/\D/g, "");
+            formatoFecha(name, esMesAnio = false) {
+                let valor = this.formAgregar[name] || "";
+                let rawDate = valor.replace(/\D/g, ""); // solo números
                 let formatted = "";
-                
-                // Formatear la fecha con '/'
-                if (rawDate.length > 0) {
-                    formatted += rawDate.substring(0, 2);
+
+                // Reiniciar mensajes si se escribe o borra
+                if (name === "fecha_elab_lote") this.mes_anio_felab_msg = "";
+                if (name === "fecha_cadu_lote") this.mes_anio_fcadu_msg = "";
+
+                // 👉 Si el usuario está borrando todo, limpiamos y salimos
+                if (valor === "" || rawDate.length === 0) {
+                    this.formAgregar[name] = "";
+                    this.validDateInputs[name] = false;
+                    return;
                 }
-                if (rawDate.length >= 2) {
+
+                if (esMesAnio) {
+                    // ---- FORMATO MES/AÑO ----
+                    if (rawDate.length >= 1) {
+                    formatted = rawDate.substring(0, 2);
+                    }
+                    if (rawDate.length >= 3) {
+                    formatted += "/" + rawDate.substring(2, 6);
+                    }
+
+                    // Validar mes (01–12)
+                    if (rawDate.length >= 2) {
+                    const month = parseInt(rawDate.substring(0, 2), 10);
+                    if (!isNaN(month) && (month < 1 || month > 12)) {
+                        const msg = "❌ El mes ingresado no es válido. Debe ser entre 01 y 12.";
+                        if (name === "fecha_elab_lote") this.mes_anio_felab_msg = msg;
+                        if (name === "fecha_cadu_lote") this.mes_anio_fcadu_msg = msg;
+                        this.formAgregar[name] = "";
+                        this.validDateInputs[name] = false;
+                        return;
+                    }
+                    }
+
+                    // Completar fecha solo cuando ya se escribió mm/yyyy
+                    if (rawDate.length >= 6) {
+                    const mes = rawDate.substring(0, 2);
+                    const anio = rawDate.substring(2, 6);
+                    const month = parseInt(mes, 10);
+                    const year = parseInt(anio, 10);
+
+                    if (!isNaN(month) && !isNaN(year) && month >= 1 && month <= 12) {
+                        if (name === "fecha_elab_lote") {
+                        // Día 01 del mes
+                        this.formAgregar[name] = `01/${mes}/${anio}`;
+                        } else if (name === "fecha_cadu_lote") {
+                        // Último día del mes
+                        const lastDay = new Date(year, month, 0).getDate();
+                        this.formAgregar[name] = `${String(lastDay).padStart(2, "0")}/${mes}/${anio}`;
+                        }
+                        this.validDateInputs[name] = true;
+                    } else {
+                        this.validDateInputs[name] = false;
+                    }
+                    } else {
+                    this.formAgregar[name] = formatted;
+                    this.validDateInputs[name] = false;
+                    }
+                    
+                } else {
+                    // ---- FORMATO DÍA/MES/AÑO ----
+                    if (rawDate.length > 0) {
+                    formatted = rawDate.substring(0, 2);
+                    }
+
+                    if (rawDate.length >= 3) {
                     formatted += "/" + rawDate.substring(2, 4);
-                }
-                if (rawDate.length >= 4) {
+                    }
+
+                    if (rawDate.length >= 5) {
+                    const month = parseInt(rawDate.substring(2, 4), 10);
+                    if (isNaN(month) || month < 1 || month > 12) {
+                        const msg = "❌ El mes ingresado no es válido. Debe ser entre 01 y 12.";
+                        if (name === "fecha_elab_lote") this.mes_anio_felab_msg = msg;
+                        if (name === "fecha_cadu_lote") this.mes_anio_fcadu_msg = msg;
+                        this.formAgregar[name] = rawDate.substring(0, 2);
+                        this.validDateInputs[name] = false;
+                        return;
+                    }
                     formatted += "/" + rawDate.substring(4, 8);
+                    }
+
+                    if (formatted.endsWith("/")) {
+                    formatted = formatted.slice(0, -1);
+                    }
+
+                    this.formAgregar[name] = formatted;
+
+                    const regex = /^\d{2}\/\d{2}\/\d{4}$/;
+                    this.validDateInputs[name] = regex.test(formatted);
+                    
                 }
-                // Actualiza el valor del input
-                this.formAgregar[name] = formatted;
-                const regex = /^\d{2}\/\d{2}\/\d{4}$/; // dd/mm/yyyy
-                this.validDateInputs[name] = regex.test(formatted);
             },
 
             esFormularioValido() {
@@ -757,7 +872,7 @@
             },
 
             async buscarProducto() {
-                
+
                 try {
                     const response = await fetch('/inventario/toma-fisica/buscar-producto', {
                         method: 'POST',
@@ -835,6 +950,11 @@
                     this.formAgregar.observaciones = '';
                     
                     this.formAgregar.lotes = [];
+
+                    this.mes_anio_felab = false,
+                    this.mes_anio_felab_msg = "",
+                    this.mes_anio_fcadu = false,
+                    this.mes_anio_fcadu_msg = "",
 
                     await this.getStock();
 
