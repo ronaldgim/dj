@@ -358,7 +358,7 @@
                                 <label>Lote:</label>
                                 <div class="row g-2">
                                     <div class="col-11">
-                                        <select @change="getFechas" v-show="lote_input" class="form-select form-select-sm" v-model="formAgregar.lote_id">
+                                        <select @change="getFechas" v-show="lote_input" class="form-select-sm" v-model="formAgregar.lote_id" style="width:100%;">
                                             <option v-for="i in listaLotesAgregar" :key="listaLotesAgregar.id">{{ i.lote_id }}</option>
                                         </select>
                                         <input v-show="!lote_input" class="form-control form-control-sm" v-model="formAgregar.lote_id" type="text">
@@ -418,7 +418,7 @@
                                 <v-select :options="ubicaciones" label="full_name" v-model="formAgregar.ubicacion_id" required></v-select>
 
                                 <label>Estado:</label>
-                                <select class="form-select form-select-sm" v-model="formAgregar.estado" required>
+                                <select class="form-select-sm" v-model="formAgregar.estado" style="width: 100%;" required>
                                     <option></option>
                                     <option value="Disponible">Disponible</option>
                                     <option value="Cuarentena" class="text-danger">Cuarentena</option>
