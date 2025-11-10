@@ -56,6 +56,9 @@
                                 <button @click="getItem(i.id)" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#tomaFisicaForm">
                                     <i class="bi bi-boxes"></i>
                                 </button>
+                                <button @click="addItemLote(i.product_id)" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#agregarItemForm">
+                                    <i class="bi bi-plus-circle"></i>
+                                </button>
                             </td>
                         </tr>
                         {% endverbatim %}
@@ -248,6 +251,29 @@
             
                 <div class="modal-body">                    
                     <!-- BUSCAR PRODUCTO -->
+                    <!-- div class="card" style="background-color: #e5f9fd;">
+                        <div class="card-body">
+                            <h6 class="text-center fw-bold">BUSCAR PRODUCTO</h6>
+                            <div v-if="msg_product" :class="`alert alert-${type_msg_product} text-center p-2 m-0`" role="alert" style="font-size: smaller;">
+                                {{msg_product}}
+                            </div>
+                            <form @submit.prevent="buscarProducto()">
+                                <label>Código de producto:</label>
+                                <div class="input-group input-group-sm mb-3">
+                                    <input type="text" class="form-control form-control-sm" list="product-options" v-model="formBuscar.product_id" required>
+                                    <datalist id="product-options">
+                                        <option v-for="producto in productList" :value="producto.codigo">
+                                            {{ producto.codigo }} - {{ producto.nombre }} - {{producto.marca}}
+                                        </option>
+                                    </datalist>
+                                    <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button>
+                                </div>
+                            </form>
+                        </div>
+                    </div-->
+
+                    <hr>
+
                     <div class="card" style="background-color: #e5f9fd;">
                         <div class="card-body">
                             <h6 class="text-center fw-bold">BUSCAR PRODUCTO</h6>
@@ -257,41 +283,18 @@
                             <form @submit.prevent="buscarProducto()">
                                 <label>Código de producto:</label>
                                 <div class="input-group input-group-sm mb-3">
-                                    <input type="text" class="form-control form-control-sm" list="product-options" @input="onSearchInput" v-model="formBuscar.product_id" required>
-                                    <datalist id="product-options">
-                                        <option v-for="producto in productList" :value="producto.codigo">
-                                            {{ producto.codigo }} - {{ producto.nombre }} - {{producto.marca}}
-                                        </option>
-                                    </datalist>
-                                    <!--button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button-->
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-
-                    <hr>
-
-                    <!--div class="card" style="background-color: #e5f9fd;">
-                        <div class="card-body">
-                            <h6 class="text-center fw-bold">BUSCAR PRODUCTO</h6>
-                            <div v-if="msg_product" :class="`alert alert-${type_msg_product} text-center p-2 m-0`" role="alert" style="font-size: smaller;">
-                                {{msg_product}}
-                            </div>
-                            <form @submit.prevent="buscarProducto()">
-                                <label>Código de producto:</label>
-                                <div class="input-group input-group-sm mb-3">
-                                    <select @change="onProductChange()" v-model="formBuscar.product_id"--> <!--class="form-select form-select-sm">
-                                        <select v-model="formBuscar.product_id" class="form-select form-select-sm">
+                                    <!--select @change="onProductChange()" v-model="formBuscar.product_id"--> <!--class="form-select form-select-sm"-->
+                                    <select v-model="formBuscar.product_id" class="form-select form-select-sm">
                                         <option value="">--------</option>
                                         <option v-for="producto in productList" :key="producto.codigo" :value="producto.codigo">
                                             {{producto.codigo}}
                                         </option>
                                     </select>
-                                    <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button>
+                                    <!--button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button-->
                                 </div>
                             </form>
                         </div>
-                    </div-->
+                    </div>
 
                     <hr>
                     <!-- AGREGAR ITEM -->
@@ -565,15 +568,6 @@
                 )
             }
         },
-        // watch:{
-        //     'formBuscar.product_id':{
-        //         handler(newVal, oldVal) {
-        //             if (newVal && newVal !== ''){
-        //                 this.buscarProducto(newVal)
-        //             }
-        //         }
-        //     }
-        // },
         methods: {
             llenadoColor(llenado) {
                 switch (llenado) {
@@ -880,7 +874,6 @@
             },
 
             async buscarProducto() {
-
                 try {
                     const response = await fetch('/inventario/toma-fisica/buscar-producto', {
                         method: 'POST',
@@ -1000,47 +993,44 @@
                 }
             },
 
-            // onSelectChangeGetProduct(){
-            //     console.log()
-            // },
-
             onSelectChange(event) {
-                this.filtro = event.target.value;
+                this.formBuscar.product_id = event.target.value;
             },
 
             initSelect2() {
                 this.$nextTick(() => {
                     const vm = this;
+                    
                     $(".form-select").select2({
-                        width:'100%',
-                        dropdownParent:$('#agregarItemForm')
+                        width: '100%',
+                        dropdownParent: $('#agregarItemForm')
                     });
-                    // sincroniza cuando cambia
+                    
                     $(".form-select").on("change", function (e) {
-                        vm.filtro = e.target.value;
+                        // Actualizar v-model
+                        vm.formBuscar.product_id = $(this).val();
+                        
+                        // Ejecutar búsqueda inmediatamente
+                        if (vm.formBuscar.product_id) {
+                            vm.buscarProducto();
+                        }
                     });
-                    // actualiza visualmente el valor en Select2
-                    $(".form-select").val(this.filtro).trigger("change.select2");
+                    
+                    // Inicializar con valor actual
+                    $(".form-select").val(this.formBuscar.product_id).trigger("change.select2");
                 });
             },
+
             // async onProductChange() {
-            //     // Si se selecciona una opción vacía, limpiar mensajes
-            //     if (!this.formBuscar.product_id) {
-            //         this.msg_product = '';
-            //         return;
-            //     }
-            //     console.log('asdfasdf');
-            //     // Ejecutar búsqueda automáticamente al cambiar
+            //     this.formBuscar.product_id = event.target.value;
             //     await this.buscarProducto();
             // },
-            onSearchInput() {
-                clearTimeout(this.searchTimeout);
-                this.searchTimeout = setTimeout(() => {
-                    if (this.formBuscar.product_id.length >= 2) {
-                        this.buscarProducto();
-                    }
-                }, 500);
-            },
+
+            addItemLote(product_id) {
+                // console.log(product_id);
+                this.formBuscar.product_id = product_id;
+                this.buscarProducto();
+            }
         }
     })
 </script>
