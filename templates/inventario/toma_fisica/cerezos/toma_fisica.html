@@ -320,19 +320,20 @@
                             <div v-if="msg_product" :class="`alert alert-${type_msg_product} text-center p-2 m-0`" role="alert" style="font-size: smaller;">
                                 {{msg_product}}
                             </div>
-                            <form @submit.prevent="buscarProducto()">
+                            <!--form @submit.prevent="buscarProducto()"-->
                                 <label>Código de producto:</label>
-                                <div class="input-group input-group-sm mb-3">
+                                <!--div class="input-group input-group-sm mb-3"-->
                                     <!--select @change="onProductChange()" v-model="formBuscar.product_id"--> <!--class="form-select form-select-sm"-->
-                                    <select v-model="formBuscar.product_id" class="form-select form-select-sm">
+                                    <!--select v-model="formBuscar.product_id" class="form-select form-select-sm">
                                         <option value="">--------</option>
                                         <option v-for="producto in productList" :key="producto.codigo" :value="producto.codigo">
                                             {{producto.codigo}}
                                         </option>
-                                    </select>
+                                    </select-->
                                     <!--button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button-->
-                                </div>
-                            </form>
+                                <!--/div-->
+                                <v-select @input="buscarProducto()" :options="productList" label="codigo" v-model="formBuscar.product_id" required></v-select>
+                            <!--/form-->
                         </div>
                     </div>
                     <hr>
@@ -559,7 +560,7 @@
         },
         mounted() {
             this.getStock();
-            this.initSelect2();
+            // this.initSelect2();
             this.getProductoList();
         },
         computed: {
@@ -943,7 +944,12 @@
                 }
             },
 
+            buscarProductoPrueba(){
+                console.log('buscando producto...')
+            },
+
             async buscarProducto() {
+                console.log(this.formBuscar.product_id);
                 try {
                     const response = await fetch('/inventario/cerezos/toma-fisica/buscar-producto', {
                         method: 'POST',
@@ -951,19 +957,27 @@
                         body: JSON.stringify(this.formBuscar)
                     });
                     const data = await response.json();
-                    
                     // Msg product
                     this.type_msg_product = data.type;
                     this.msg_product = data.msg;
                     
                     // Form Agregar
-                    if (data.product) {
-                        this.formAgregar.product_id = data.product.product_id;
-                        this.formAgregar.product_name = data.product.Nombre;
-                        this.formAgregar.group_code = data.product.Marca;
-                        this.formAgregar.um = data.product.Unidad;
-                        this.formAgregar.unidades_caja = data.product.Unidad_Empaque;
-
+                    // if (data.product) {
+                    //     this.formAgregar.product_id = data.product.product_id;
+                    //     this.formAgregar.product_name = data.product.Nombre;
+                    //     this.formAgregar.group_code = data.product.Marca;
+                    //     this.formAgregar.um = data.product.Unidad;
+                    //     this.formAgregar.unidades_caja = data.product.Unidad_Empaque;
+                    //     // agregar lista de lotes
+                    //     this.listaLotesAgregar = data.data_lotes || [];
+                    
+                    if (this.formBuscar) {
+                        this.formAgregar.product_id = this.formBuscar.product_id.codigo;
+                        this.formAgregar.product_name = this.formBuscar.product_id.nombre; //data.product.Nombre;
+                        this.formAgregar.group_code = this.formBuscar.product_id.marca; //data.product.Marca;
+                        this.formAgregar.um = this.formBuscar.product_id.unidad; //data.product.Unidad;
+                        this.formAgregar.unidades_caja = this.formBuscar.product_id.unidad_empaque;//data.product.Unidad_Empaque;
+                        
                         // agregar lista de lotes
                         this.listaLotesAgregar = data.data_lotes || [];
                     } 
@@ -978,7 +992,9 @@
                 } catch (error) {
                     this.type_msg_product = 'danger';
                     this.msg_product = error;
-                }
+                } finally {
+                    this.formBuscar.product_id = "";
+                } 
             },
 
             async agregarProducto() {
@@ -1034,9 +1050,10 @@
                 } catch (error) {
                     this.type_msg_agregar_lote = 'danger';
                     this.msg_agregar_lote = error;
-                } //finally {
-                    //this.agregando = false
-                //}
+                } finally {
+                    this.agregando = false;
+                    this.formBuscar.product_id = '';
+                }
             },
 
             async getUbicaciones(mi_bodega, mi_ubicacion) {
@@ -1067,29 +1084,26 @@
                     console.log(error);
                 }
             },
-            initSelect2() {
-                this.$nextTick(() => {
-                    const vm = this;
-                    
-                    $(".form-select").select2({
-                        width: '100%',
-                        dropdownParent: $('#agregarItemForm')
-                    });
-                    
-                    $(".form-select").on("change", function (e) {
-                        // Actualizar v-model
-                        vm.formBuscar.product_id = $(this).val();
-                        
-                        // Ejecutar búsqueda inmediatamente
-                        if (vm.formBuscar.product_id) {
-                            vm.buscarProducto();
-                        }
-                    });
-                    
-                    // Inicializar con valor actual
-                    $(".form-select").val(this.formBuscar.product_id).trigger("change.select2");
-                });
-            },
+            // initSelect2() {
+            //     this.$nextTick(() => {
+            //         const vm = this;
+            //         $(".form-select").select2({
+            //             width: '100%',
+            //             dropdownParent: $('#agregarItemForm')
+            //         });
+            //         $(".form-select").on("change", function (e) {
+            //             // Actualizar v-model
+            //             vm.formBuscar.product_id = $(this).val();
+            //             
+            //             // Ejecutar búsqueda inmediatamente
+            //             if (vm.formBuscar.product_id) {
+            //                 vm.buscarProducto();
+            //             }
+            //         });
+            //         // Inicializar con valor actual
+            //         $(".form-select").val(this.formBuscar.product_id).trigger("change.select2");
+            //     });
+            // },
             addItemLote(product_id) {
                 // console.log(product_id);
                 this.formBuscar.product_id = product_id;
