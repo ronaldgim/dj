@@ -1185,21 +1185,19 @@ def inventario_cerezos_toma_fisica_total_agrupado(request):
 def inventario_cerezos_toma_fisica_buscar_producto(request):
     
     if request.method == 'POST':
-        data = json.loads(request.body) #;print(request.body)
+        data = json.loads(request.body) 
         product_id = data.get('product_id').get('codigo') 
-        # product = productos_odbc_and_django()
-        # product = product[product['product_id']==product_id][[
-        #     'product_id','Nombre','Marca','Unidad','Unidad_Empaque'
-        # ]]
+        product = productos_odbc_and_django()
+        product = product[product['product_id']==product_id][[
+            'product_id','Nombre','Marca','Unidad','Unidad_Empaque'
+        ]]
         
         data_lotes = InventarioCerezos.objects.filter(product_id=product_id).values('lote_id','fecha_elab_lote','fecha_cadu_lote').distinct()
-        # print(data_lotes)
-        # if not product.empty:
-        if data_lotes:
+        if not product.empty:
             return JsonResponse({
                 'type':'success', 
                 'msg':'Producto encontrado !!!', 
-                # 'product':product.to_dict(orient='records')[0],
+                'product':product.to_dict(orient='records')[0],
                 'data_lotes':list(data_lotes)
                 })
         else:
