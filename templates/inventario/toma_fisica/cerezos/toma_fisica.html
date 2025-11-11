@@ -944,12 +944,8 @@
                 }
             },
 
-            buscarProductoPrueba(){
-                console.log('buscando producto...')
-            },
-
             async buscarProducto() {
-                console.log(this.formBuscar.product_id);
+                
                 try {
                     const response = await fetch('/inventario/cerezos/toma-fisica/buscar-producto', {
                         method: 'POST',
@@ -962,24 +958,23 @@
                     this.msg_product = data.msg;
                     
                     // Form Agregar
-                    // if (data.product) {
-                    //     this.formAgregar.product_id = data.product.product_id;
-                    //     this.formAgregar.product_name = data.product.Nombre;
-                    //     this.formAgregar.group_code = data.product.Marca;
-                    //     this.formAgregar.um = data.product.Unidad;
-                    //     this.formAgregar.unidades_caja = data.product.Unidad_Empaque;
-                    //     // agregar lista de lotes
-                    //     this.listaLotesAgregar = data.data_lotes || [];
-                    
-                    if (this.formBuscar) {
-                        this.formAgregar.product_id = this.formBuscar.product_id.codigo;
-                        this.formAgregar.product_name = this.formBuscar.product_id.nombre; //data.product.Nombre;
-                        this.formAgregar.group_code = this.formBuscar.product_id.marca; //data.product.Marca;
-                        this.formAgregar.um = this.formBuscar.product_id.unidad; //data.product.Unidad;
-                        this.formAgregar.unidades_caja = this.formBuscar.product_id.unidad_empaque;//data.product.Unidad_Empaque;
-                        
+                    if (data.product) {
+                        this.formAgregar.product_id = data.product.product_id;
+                        this.formAgregar.product_name = data.product.Nombre;
+                        this.formAgregar.group_code = data.product.Marca;
+                        this.formAgregar.um = data.product.Unidad;
+                        this.formAgregar.unidades_caja = data.product.Unidad_Empaque;
                         // agregar lista de lotes
                         this.listaLotesAgregar = data.data_lotes || [];
+                    
+                    // if (this.formBuscar) {
+                    //     this.formAgregar.product_id = this.formBuscar.product_id.codigo;
+                    //     this.formAgregar.product_name = this.formBuscar.product_id.nombre; //data.product.Nombre;
+                    //     this.formAgregar.group_code = this.formBuscar.product_id.marca; //data.product.Marca;
+                    //     this.formAgregar.um = this.formBuscar.product_id.unidad; //data.product.Unidad;
+                    //     this.formAgregar.unidades_caja = this.formBuscar.product_id.unidad_empaque;//data.product.Unidad_Empaque;
+                    //     // agregar lista de lotes
+                    //     this.listaLotesAgregar = data.data_lotes || [];
                     } 
                     else {
                         this.formAgregar.product_id = '';
@@ -1105,8 +1100,7 @@
             //     });
             // },
             addItemLote(product_id) {
-                // console.log(product_id);
-                this.formBuscar.product_id = product_id;
+                this.formBuscar.product_id = {codigo: product_id};
                 this.buscarProducto();
                 this.getUbicaciones(this.mi_bodega, this.mi_ubicacion);
             }
