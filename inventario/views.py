@@ -611,8 +611,8 @@ def inventario_toma_fisica_total_agrupado(request):
 def inventario_toma_fisica_buscar_producto(request):
     
     if request.method == 'POST':
-        data = json.loads(request.body)
-        product_id = data.get('product_id')
+        data = json.loads(request.body) 
+        product_id = data.get('product_id').get('codigo')
         product = productos_odbc_and_django()
         product = product[product['product_id']==product_id][[
             'product_id','Nombre','Marca','Unidad','Unidad_Empaque'
@@ -1185,7 +1185,7 @@ def inventario_cerezos_toma_fisica_total_agrupado(request):
 def inventario_cerezos_toma_fisica_buscar_producto(request):
     
     if request.method == 'POST':
-        data = json.loads(request.body) 
+        data = json.loads(request.body)
         product_id = data.get('product_id').get('codigo') 
         product = productos_odbc_and_django()
         product = product[product['product_id']==product_id][[

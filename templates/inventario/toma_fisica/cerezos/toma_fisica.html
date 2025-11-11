@@ -944,12 +944,8 @@
                 }
             },
 
-            buscarProductoPrueba(){
-                console.log('buscando producto...')
-            },
-
             async buscarProducto() {
-                console.log(this.formBuscar.product_id);
+                
                 try {
                     const response = await fetch('/inventario/cerezos/toma-fisica/buscar-producto', {
                         method: 'POST',
