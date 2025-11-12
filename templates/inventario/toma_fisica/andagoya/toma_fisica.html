@@ -519,7 +519,6 @@
         },
         mounted() {
             this.getStock();
-            // this.initSelect2();
             this.getProductoList();
         },
         computed: {
@@ -993,36 +992,9 @@
                     console.log(error)
                 }
             },
-
             onSelectChange(event) {
                 this.formBuscar.product_id = event.target.value;
             },
-
-            // initSelect2() {
-            //     this.$nextTick(() => {
-            //         const vm = this;
-            //         $(".form-select").select2({
-            //             width: '100%',
-            //             dropdownParent: $('#agregarItemForm')
-            //         });
-            //         $(".form-select").on("change", function (e) {
-            //             // Actualizar v-model
-            //             vm.formBuscar.product_id = $(this).val();
-            //             // Ejecutar búsqueda inmediatamente
-            //             if (vm.formBuscar.product_id) {
-            //                 vm.buscarProducto();
-            //             }
-            //         });
-            //         // Inicializar con valor actual
-            //         $(".form-select").val(this.formBuscar.product_id).trigger("change.select2");
-            //     });
-            // },
-
-            // async onProductChange() {
-            //     this.formBuscar.product_id = event.target.value;
-            //     await this.buscarProducto();
-            // },
-
             addItemLote(product_id) {
                 // console.log(product_id);
                 this.formBuscar.product_id = {codigo: product_id};
