@@ -876,6 +876,83 @@ def stock_lote_inventario_cerezos(): #request
     return stock_lote 
 
 
+# def inventario_cerezos_actualizar_db(request):
+    
+#     productos = productos_odbc_and_django()[['product_id','Nombre','Marca','Unidad','Unidad_Empaque']]
+#     productos = productos.drop_duplicates(subset=['product_id','Nombre','Marca','Unidad','Unidad_Empaque'], keep='first')
+    
+#     stock_bct = stock_lote()[['PRODUCT_ID','LOTE_ID','Fecha_elaboracion_lote']]
+#     stock_bct['LOTE_ID'] = stock_bct['LOTE_ID'].str.replace('.','',regex=False)
+#     stock_bct['LOTE_ID'] = stock_bct['LOTE_ID'].str.strip()
+#     stock_bct = stock_bct.drop_duplicates(subset=['PRODUCT_ID','LOTE_ID','Fecha_elaboracion_lote'], keep='first')
+#     stock_bct['Fecha_elaboracion_lote'] = pd.to_datetime(stock_bct['Fecha_elaboracion_lote'])
+#     stock_bct = stock_bct.rename(columns={'PRODUCT_ID':'product_id','LOTE_ID':'lote_id', 'Fecha_elaboracion_lote':'fecha_elab_lote'})
+    
+#     existencias = Existencias.objects.all().values()
+#     existencias_df = pd.DataFrame(existencias)
+#     existencias_df['lote_id'] = existencias_df['lote_id'].str.replace('.','', regex=False)
+#     existencias_df['lote_id'] = existencias_df['lote_id'].str.strip()
+    
+#     existencias_df_agrupado = existencias_df.copy()
+#     existencias_df_agrupado = existencias_df_agrupado.groupby(by=[
+#         'product_id',
+#         'lote_id',
+#         'fecha_caducidad',
+#         'ubicacion_id',
+#         'estado'
+#     ])[['unidades']].sum().reset_index() #.fillna(0)
+    
+#     existencias_df_agrupado = existencias_df_agrupado.merge(stock_bct, on=[
+#         'product_id',
+#         'lote_id'
+#     ], how='left')
+    
+#     existencias_df_agrupado = existencias_df_agrupado.merge(productos, on='product_id', how='left')    
+    
+#     existencias_df_agrupado['id'] = range(1, len(existencias_df_agrupado) + 1)
+#     existencias_df_agrupado['numero_cajas'] = 0
+#     existencias_df_agrupado['unidades_sueltas'] = 0
+#     existencias_df_agrupado['total_unidades'] = 0
+#     existencias_df_agrupado['diferencia'] = 0
+#     existencias_df_agrupado['observaciones'] = ''
+#     existencias_df_agrupado['llenado'] = False
+#     existencias_df_agrupado['agregado'] = False
+#     existencias_df_agrupado['user_id'] = None
+    
+#     existencias_df_agrupado = existencias_df_agrupado[[
+#         'id',
+#         'product_id','Nombre','Marca','Unidad','estado','unidades','lote_id',
+#         #'Fecha_elaboracion_lote'
+#         'fecha_elab_lote','fecha_caducidad','Unidad_Empaque',
+#         'numero_cajas','unidades_sueltas','total_unidades','diferencia',
+#         'observaciones','llenado','agregado','ubicacion_id','user_id',
+#     ]]
+
+#     existencias_df_agrupado = existencias_df_agrupado.where(pd.notna(existencias_df_agrupado), None)
+#     # print(existencias_df_agrupado)
+#     print(existencias_df_agrupado['fecha_elab_lote'].to_list())
+    
+#     data = list(existencias_df_agrupado.itertuples(index=False, name=None)) 
+#     # print(data)
+#     with connections['default'].cursor() as cursor:
+#         cursor.execute("TRUNCATE TABLE inventario_inventariocerezos")
+        
+#     with connections['default'].cursor() as cursor:
+#         cursor.execute("TRUNCATE TABLE inventario_inventariocerezostotale")
+
+#     with connections['default'].cursor() as cursor:
+#         cursor.executemany("""
+#             INSERT INTO inventario_inventariocerezos
+#             (id, product_id, product_name, group_code, um, estado, oh2, lote_id, 
+#             fecha_elab_lote, fecha_cadu_lote, unidades_caja, 
+#             numero_cajas, unidades_sueltas, total_unidades, diferencia, 
+#             observaciones, llenado, agregado, ubicacion_id, user_id) 
+#             VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""", 
+#             data)
+
+#     return JsonResponse({'msg':'ok'})
+
+
 def inventario_cerezos_actualizar_db(request):
     
     productos = productos_odbc_and_django()[['product_id','Nombre','Marca','Unidad','Unidad_Empaque']]
@@ -885,11 +962,12 @@ def inventario_cerezos_actualizar_db(request):
     stock_bct['LOTE_ID'] = stock_bct['LOTE_ID'].str.replace('.','',regex=False)
     stock_bct['LOTE_ID'] = stock_bct['LOTE_ID'].str.strip()
     stock_bct = stock_bct.drop_duplicates(subset=['PRODUCT_ID','LOTE_ID','Fecha_elaboracion_lote'], keep='first')
-    stock_bct = stock_bct.rename(columns={'PRODUCT_ID':'product_id','LOTE_ID':'lote_id'})
+    stock_bct['Fecha_elaboracion_lote'] = pd.to_datetime(stock_bct['Fecha_elaboracion_lote'], errors='coerce')
+    stock_bct = stock_bct.rename(columns={'PRODUCT_ID':'product_id','LOTE_ID':'lote_id', 'Fecha_elaboracion_lote':'fecha_elab_lote'})
     
     existencias = Existencias.objects.all().values()
     existencias_df = pd.DataFrame(existencias)
-    existencias_df['lote_id'] = existencias_df['lote_id'].str.replace('.','', regex=False)
+    existencias_df['lote_id'] = existencias_df['lote_id'].astype(str).str.replace('.','', regex=False)
     existencias_df['lote_id'] = existencias_df['lote_id'].str.strip()
     
     existencias_df_agrupado = existencias_df.copy()
@@ -899,7 +977,7 @@ def inventario_cerezos_actualizar_db(request):
         'fecha_caducidad',
         'ubicacion_id',
         'estado'
-    ])[['unidades']].sum().reset_index() #.fillna(0)
+    ])[['unidades']].sum().reset_index()
     
     existencias_df_agrupado = existencias_df_agrupado.merge(stock_bct, on=[
         'product_id',
@@ -907,6 +985,19 @@ def inventario_cerezos_actualizar_db(request):
     ], how='left')
     
     existencias_df_agrupado = existencias_df_agrupado.merge(productos, on='product_id', how='left')    
+    
+    # Filtrar registros sin fecha de elaboración (ya que la columna no acepta NULL)
+    existencias_df_error_fecha_elab_lote = existencias_df_agrupado[~existencias_df_agrupado['fecha_elab_lote'].notna()]
+    print(len(existencias_df_error_fecha_elab_lote))
+    print(existencias_df_error_fecha_elab_lote)
+    print(f"Registros antes de filtrar: {len(existencias_df_agrupado)}")
+    existencias_df_agrupado = existencias_df_agrupado[existencias_df_agrupado['fecha_elab_lote'].notna()]
+    print(f"Registros después de filtrar: {len(existencias_df_agrupado)}")
+    existencias_df_error_fecha_elab_lote = existencias_df_agrupado[existencias_df_agrupado['fecha_elab_lote'].notna()]
+    
+    # Si no hay registros válidos, retornar
+    if len(existencias_df_agrupado) == 0:
+        return JsonResponse({'msg':'No hay registros con fecha de elaboración válida', 'status': 'warning'})
     
     existencias_df_agrupado['id'] = range(1, len(existencias_df_agrupado) + 1)
     existencias_df_agrupado['numero_cajas'] = 0
@@ -921,11 +1012,20 @@ def inventario_cerezos_actualizar_db(request):
     existencias_df_agrupado = existencias_df_agrupado[[
         'id',
         'product_id','Nombre','Marca','Unidad','estado','unidades','lote_id',
-        'Fecha_elaboracion_lote','fecha_caducidad','Unidad_Empaque',
+        'fecha_elab_lote','fecha_caducidad','Unidad_Empaque',
         'numero_cajas','unidades_sueltas','total_unidades','diferencia',
         'observaciones','llenado','agregado','ubicacion_id','user_id',
     ]]
-
+    
+    # Convertir fechas a formato compatible con la base de datos
+    existencias_df_agrupado['fecha_elab_lote'] = existencias_df_agrupado['fecha_elab_lote'].apply(
+        lambda x: x.date() if pd.notna(x) and hasattr(x, 'date') else None
+    )
+    existencias_df_agrupado['fecha_caducidad'] = pd.to_datetime(existencias_df_agrupado['fecha_caducidad'], errors='coerce').apply(
+        lambda x: x.date() if pd.notna(x) and hasattr(x, 'date') else None
+    )
+    
+    existencias_df_agrupado = existencias_df_agrupado.where(pd.notna(existencias_df_agrupado), None)    
     data = list(existencias_df_agrupado.itertuples(index=False, name=None)) 
     
     with connections['default'].cursor() as cursor:
@@ -933,7 +1033,7 @@ def inventario_cerezos_actualizar_db(request):
         
     with connections['default'].cursor() as cursor:
         cursor.execute("TRUNCATE TABLE inventario_inventariocerezostotale")
-
+        
     with connections['default'].cursor() as cursor:
         cursor.executemany("""
             INSERT INTO inventario_inventariocerezos
@@ -943,7 +1043,7 @@ def inventario_cerezos_actualizar_db(request):
             observaciones, llenado, agregado, ubicacion_id, user_id) 
             VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""", 
             data)
-
+    
     return JsonResponse({'msg':'ok'})
 
 
