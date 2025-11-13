@@ -275,13 +275,14 @@
                                 <label>Lote:</label>
                                 <div class="row g-2">
                                     <div class="col-11">
-                                        <select @change="getFechas" v-show="lote_input" class="form-select-sm" v-model="formAgregar.lote_id" style="width: 95%;">
+                                        <select @change="getFechas" v-show="lote_input" class="form-select form-select-sm" v-model="formAgregar.lote_id" style="width: 100%;">
                                             <option v-for="i in listaLotesAgregar" :key="listaLotesAgregar.id">{{ i.lote_id }}</option>
                                         </select>
-                                        <input v-show="!lote_input" class="form-control form-control-sm" v-model="formAgregar.lote_id" type="text">
+                                        <input v-show="!lote_input" class="form-control form-control-sm" v-model="formAgregar.lote_id" type="text" required>
                                     </div>
                                     <div class="col-1">
-                                        <button @click="lote_input_toggle" class="btn btn-sm btn-secondary" type="button">
+                                        <!--button @click="lote_input_toggle" class="btn btn-sm btn-secondary" type="button"-->
+                                        <button @click="lote_input_toggle" :class="lote_input ? 'btn btn-sm btn-secondary' : 'btn btn-sm btn-info'" type="button">
                                             <i class="bi bi-pencil-square"></i>
                                         </button>
                                     </div>
@@ -347,11 +348,11 @@
 
                                 <label class="fw-bold">Total Unidades:</label> {{ conteo_fisico_agregar_lote.toLocaleString() }}<br>
                                 <button type="reset" class="btn btn-sm btn-secondary float-sm-end mt-2 ms-2 me-2">BOORAR</button>
-                                <!--button type="submit" class="btn btn-sm btn-primary float-sm-end mt-2">GUARDAR</button-->
+                                <!--button type="submit" class="btn btn-sm btn-primary float-sm-end mt-2">GUARDAR</button  :disabled="agregando" -->
                                 <button
                                     type="submit"
                                     class="btn btn-sm btn-primary float-sm-end mt-2"
-                                    :disabled="agregando"
+                                    :disabled="(conteo_fisico_agregar_lote === 0) | agregando"
                                     >
                                     {{ agregando ? 'GUARDANDO...' : 'GUARDAR' }}
                                 </button>
