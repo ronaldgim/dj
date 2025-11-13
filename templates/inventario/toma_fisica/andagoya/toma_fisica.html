@@ -251,52 +251,16 @@
             
                 <div class="modal-body">                    
                     <!-- BUSCAR PRODUCTO -->
-                    <!-- div class="card" style="background-color: #e5f9fd;">
-                        <div class="card-body">
-                            <h6 class="text-center fw-bold">BUSCAR PRODUCTO</h6>
-                            <div v-if="msg_product" :class="`alert alert-${type_msg_product} text-center p-2 m-0`" role="alert" style="font-size: smaller;">
-                                {{msg_product}}
-                            </div>
-                            <form @submit.prevent="buscarProducto()">
-                                <label>Código de producto:</label>
-                                <div class="input-group input-group-sm mb-3">
-                                    <input type="text" class="form-control form-control-sm" list="product-options" v-model="formBuscar.product_id" required>
-                                    <datalist id="product-options">
-                                        <option v-for="producto in productList" :value="producto.codigo">
-                                            {{ producto.codigo }} - {{ producto.nombre }} - {{producto.marca}}
-                                        </option>
-                                    </datalist>
-                                    <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button>
-                                </div>
-                            </form>
-                        </div>
-                    </div-->
-
-                    <hr>
-
                     <div class="card" style="background-color: #e5f9fd;">
                         <div class="card-body">
                             <h6 class="text-center fw-bold">BUSCAR PRODUCTO</h6>
                             <div v-if="msg_product" :class="`alert alert-${type_msg_product} text-center p-2 m-0`" role="alert" style="font-size: smaller;">
                                 {{msg_product}}
                             </div>
-                            <!--form @submit.prevent="buscarProducto()"-->
-                                <label>Código de producto:</label>
-                                <!--div class="input-group input-group-sm mb-3"-->
-                                    <!--select @change="onProductChange()" v-model="formBuscar.product_id"--> <!--class="form-select form-select-sm"-->
-                                    <!--select v-model="formBuscar.product_id" class="form-select form-select-sm">
-                                        <option value="">--------</option>
-                                        <option v-for="producto in productList" :key="producto.codigo" :value="producto.codigo">
-                                            {{producto.codigo}}
-                                        </option>
-                                    </select-->
-                                    <!--button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button-->
-                                <!--/div-->
-                                <v-select @input="buscarProducto()" :options="productList" label="codigo" v-model="formBuscar.product_id" required></v-select>
-                            <!--/form-->
+                            <label>Código de producto:</label>
+                            <v-select @input="buscarProducto()" :options="productList" label="codigo" v-model="formBuscar.product_id" required></v-select>
                         </div>
                     </div>
-
                     <hr>
                     <!-- AGREGAR ITEM -->
                     <div class="card">
@@ -576,14 +540,6 @@
                 }
             },
 
-            // diferenciaColor(diferencia){
-            //     if (diferencia === 0) {
-            //         return '#BAF690';
-            //     } else {
-            //         return '#F6B690';
-            //     }
-            // },
-
             // diferencia_calculo(){
             //     const t_lotes = this.total_lotes ? this.total_lotes : 0;
             //     const t_agrupado = this.total_agrupado ? this.total_agrupado : 0;
@@ -861,6 +817,11 @@
             },
 
             async buscarProducto() {
+
+                if (!this.formBuscar.product_id) {
+                    return
+                }
+
                 try {
                     const response = await fetch('/inventario/toma-fisica/buscar-producto', {
                         method: 'POST',
