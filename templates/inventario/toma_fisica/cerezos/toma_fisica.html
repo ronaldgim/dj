@@ -343,10 +343,6 @@
                                 </p>
 
                                 <label>Ubicación:</label>
-                                <!--select id="ubi" class="form-select form-select-sm" v-model="formAgregar.ubicacion_id" >
-                                    <option v-for="i in ubicaciones" :key="i.id">{{ i.bodega }}-{{ i.pasillo }}-{{ i.modulo }}-{{ i.nivel }}</option>
-                                </select-->
-                                
                                 <v-select :options="ubicaciones" label="full_name" v-model="formAgregar.ubicacion_id" required></v-select>
 
                                 <label>Estado:</label>
