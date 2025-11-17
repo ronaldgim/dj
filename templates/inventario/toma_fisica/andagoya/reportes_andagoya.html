@@ -313,7 +313,8 @@
                             <td class="text-end">{{i.unidades_estanteria.toLocaleString()}}</td>
                             <td class="text-end">{{i.total_unidades.toLocaleString()}}</td>
                             <td class="text-end">{{i.oh2.toLocaleString()}}</td>
-                            <td class="text-end" :style="{backgroundColor:colorDiferencia(i.diferencia)}">{{i.diferencia.toLocaleString()}}</td>
+                            <!--td class="text-end" :style="{backgroundColor:colorDiferencia(i.diferencia)}">{{i.diferencia.toLocaleString()}}</td-->
+                            <td :class="['text-end', i.diferencia < 0 ? 'text-danger' : '']">{{ i.diferencia < 0 ? `(${Math.abs(i.diferencia).toLocaleString()})` : i.diferencia.toLocaleString()}}</td>
                             <td class="text-center">
                                 <i v-if="i.llenado" style = "color:green;" class="bi bi-check-square-fill"></i>
                                 <i v-else style = "color:red;" class="bi bi-x-square-fill"></i>
