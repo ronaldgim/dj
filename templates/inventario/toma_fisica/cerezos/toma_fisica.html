@@ -142,13 +142,10 @@
                             <form @submit.prevent="actualizarCrearTotal()">
                                 <label>Unidades por cartón:</label>
                                 <input class="form-control form-control-sm" v-model="formTotales.unidades_caja_t" type="number" required>
-                                <label>Número total de cartones (cerrados):</label><br>
-                                <!--small style="color: gray; font-size:smaller">Este campo puede hacer calulos (+, -)</small> <small style="color: red; font-size:smaller">solo dos números</small><br-->
-                                <!--input class="form-control form-control-sm" v-model="formTotales.numero_cajas_t" @input="sumarInput(formTotales.numero_cajas_t, 'numero_cajas_t')" required-->
-                                
+                                <label class="mt-4">Número total de cartones (cerrados):</label><br>
                                 <div class="row g-2">
                                     <div class="col-11">
-                                        <input class="form-control form-control-sm" v-model="formTotales.numero_cajas_t">
+                                        <input class="form-control form-control-sm" v-model="formTotales.numero_cajas_t" type="number">
                                     </div>
                                     <div class="col-1">
                                         <button @click="sumarInput(formTotales.numero_cajas_t, 'numero_cajas_t')" class="btn btn-sm btn-success" type="button">
@@ -157,13 +154,10 @@
                                     </div>
                                 </div>                              
                                 <small style="color: gray; font-size:smaller">Este campo puede hacer calulos (+, -)</small> <small style="color: red; font-size:smaller">solo dos números</small><br>
-                                <label>Unidades sueltas totales:</label><br>
-                                <!--small style="color: gray; font-size:smaller">Este campo puede hacer calulos (+, -)</small> <small style="color: red; font-size:smaller">solo dos números</small> <br-->
-                                <!--input class="form-control form-control-sm" v-model="formTotales.unidades_sueltas_t" @input="sumarInput(formTotales.unidades_sueltas_t, 'unidades_sueltas_t')" required-->
-                                
+                                <label class="mt-4">Unidades sueltas totales:</label><br>
                                 <div class="row g-2">
                                     <div class="col-11">
-                                        <input class="form-control form-control-sm" v-model="formTotales.unidades_sueltas_t">
+                                        <input class="form-control form-control-sm" v-model="formTotales.unidades_sueltas_t" type="number">
                                     </div>
                                     <div class="col-1">
                                         <button @click="sumarInput(formTotales.unidades_sueltas_t, 'unidades_sueltas_t')" class="btn btn-sm btn-success" type="button">
@@ -172,7 +166,7 @@
                                     </div>
                                 </div>
                                 <small style="color: gray; font-size:smaller">Este campo puede hacer calulos (+, -)</small> <small style="color: red; font-size:smaller">solo dos números</small> <br>
-                                <label class="fw-bold">Total Unidades:</label> {{ total_agrupado.toLocaleString() }}<br>
+                                <label class="fw-bold mt-4">Total Unidades:</label> {{ total_agrupado.toLocaleString() }}<br>
                                 <button type="submit" class="btn btn-sm btn-primary float-sm-end mt-2">GUARDAR</button>
                             </form>
                         </div>
@@ -221,7 +215,7 @@
                             <form @submit.prevent="actualizarItem(formLote.id)">
                                 <label>Unidades por cartón:</label>
                                 <input class="form-control form-control-sm" v-model="formLote.unidades_caja" type="number" required>
-                                <label>Número total de cartones:</label>
+                                <label>Número total de cartones (cerrados):</label>
                                 <input class="form-control form-control-sm" v-model="formLote.numero_cajas" type="number">
                                 <label>Unidades sueltas:</label>
                                 <input class="form-control form-control-sm" v-model="formLote.unidades_sueltas" type="number">
