@@ -29,7 +29,7 @@
             Inventario Cerezos 
           </a>
           <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-            {% if request.user.is_superuser or request.user.id == 12 %}
+            {% if request.user.is_superuser or request.user.id == 12 or request.user.id == 16 or request.user.id == 19 %}
             <li><a class="dropdown-item" href="{% url 'inventario_cerezos_reportes' %}">Reporte Cerezos</a></li>
             {% endif %}
             <li><a class="dropdown-item" href="{% url 'inventario_cerezos_home' %}">Lista de bodegas</a></li>
