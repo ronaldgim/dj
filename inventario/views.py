@@ -805,10 +805,10 @@ def reporte_andagoya_bpa(request):
     )
 
     inv_df = pd.DataFrame(inv).sort_values(by=['ware_code','location','product_id','lote_id','fecha_elab_lote'])
-    inv_df['fecha_elab_lote'] = inv_df['fecha_elab_lote'].astype('str')
-    inv_df['fecha_cadu_lote'] = inv_df['fecha_cadu_lote'].astype('str')
-    inv_df['unidades_caja'] = inv_df['unidades_caja'].astype('str')
+    inv_df['fecha_elab_lote']   = inv_df['fecha_elab_lote'].astype('str')
+    inv_df['fecha_cadu_lote']   = inv_df['fecha_cadu_lote'].astype('str')
     inv_df['subtotal_unidades'] = inv_df['numero_cajas'] * inv_df['unidades_caja'].astype(int) + inv_df['unidades_sueltas']
+    inv_df['unidades_caja']     = inv_df['unidades_caja'].astype('str')
     
     df_list = []
     for i in inv_df['product_id'].unique():
@@ -1503,8 +1503,6 @@ def reporte_cerezos_bpa(request):
         'diferencia',
         'observaciones',
         'user__username',
-        # 'user__first_name',
-        # 'user__last_name'
     )
     
     inv_df = pd.DataFrame(inv)
@@ -1518,6 +1516,7 @@ def reporte_cerezos_bpa(request):
             'group_code',
             'um',
             'ware_code',
+            'unidades_caja',
             'lote_id',
             'fecha_elab_lote',
             'fecha_cadu_lote',
@@ -1621,6 +1620,7 @@ def reporte_cerezos_bpa(request):
                 'group_code',
                 'um',
                 'ware_code',
+                'unidades_caja',
                 'lote_id',
                 'fecha_elab_lote',
                 'fecha_cadu_lote',
@@ -1640,21 +1640,29 @@ def reporte_cerezos_bpa(request):
             margins_name = f'Total: {i}',
             ).reset_index()
         
-        df_by_product['fecha_elab_lote'] = df_by_product['fecha_elab_lote'].astype('str')
-        df_by_product['fecha_cadu_lote'] = df_by_product['fecha_cadu_lote'].astype('str')
+        df_by_product['fecha_elab_lote']   = df_by_product['fecha_elab_lote'].astype('str')
+        df_by_product['fecha_cadu_lote']   = df_by_product['fecha_cadu_lote'].astype('str')
+        df_by_product['subtotal_unidades'] = (
+            df_by_product['numero_cajas'].replace('', '0').astype('int') * 
+            df_by_product['unidades_caja'].replace('', '0').astype('int') + 
+            df_by_product['unidades_sueltas'].replace('', '0').astype('int')
+        )
+
         df_by_product = df_by_product[[
                 'product_id',
                 'product_name',
                 'group_code',
                 'um',
+                'oh2',
                 'lote_id',
                 'fecha_elab_lote',
                 'fecha_cadu_lote',
                 'ware_code',
                 'ubicacion__bodega',
-                'oh2',
+                'unidades_caja',
                 'numero_cajas',
                 'unidades_sueltas',
+                'subtotal_unidades',
                 'total_unidades',
                 'diferencia',
                 'observaciones',
