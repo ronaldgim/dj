@@ -807,7 +807,8 @@ def reporte_andagoya_bpa(request):
     inv_df = pd.DataFrame(inv).sort_values(by=['ware_code','location','product_id','lote_id','fecha_elab_lote'])
     inv_df['fecha_elab_lote'] = inv_df['fecha_elab_lote'].astype('str')
     inv_df['fecha_cadu_lote'] = inv_df['fecha_cadu_lote'].astype('str')
-    
+    inv_df['unidades_caja'] = inv_df['unidades_caja'].astype('str')
+    inv_df['subtotal_unidades'] = inv_df['numero_cajas'] * inv_df['unidades_caja'].astype(int) + inv_df['unidades_sueltas']
     
     df_list = []
     for i in inv_df['product_id'].unique():
@@ -818,15 +819,17 @@ def reporte_andagoya_bpa(request):
             'product_name',
             'group_code',
             'um',
+            'oh2',
             'lote_id',
             'fecha_elab_lote',
             'fecha_cadu_lote',
             'ware_code',
             'location',
-            'oh2',
+            'unidades_caja',
             'numero_cajas',
             'unidades_sueltas',
             'unidades_estanteria',
+            'subtotal_unidades',
             'total_unidades',
             'diferencia',
             'observaciones',
