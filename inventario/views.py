@@ -454,18 +454,46 @@ def inventario_toma_fisica_andagoya_vue(request, bodega, location):
     return render(request, 'inventario/toma_fisica/andagoya/toma_fisica.html')
 
 
+# from etiquetado.views import productos_ubicacion_lista_template
+from etiquetado.models import ProductoUbicacion
+
 @login_required(login_url='login')
 def inventario_general(request): 
-    
-    inventario = pd.DataFrame(Inventario.objects.all().order_by('ware_code','location','group_code', 'product_id').values())    
-    inventario = de_dataframe_a_template(inventario)
 
-    n_inventario =len(inventario)
+    n_inventario = Inventario.objects.all().count()
     n_inventario_llenado = Inventario.objects.filter(llenado_estanteria=True).count()  # Inventario.objects.filter(llenado=True).count()
     n_inventario_nollenado = Inventario.objects.filter(llenado_estanteria=False).count()  # Inventario.objects.filter(llenado=False).count()
 
+    producto_ubicacion = ProductoUbicacion.objects.all() 
+    ubicaciones = []
+    for i in producto_ubicacion:
+        data = {
+            'id':i.id,
+            'product_id': i.product_id,
+            # 'ware_code':i.ubicaciones.bodega if i.ubicaciones.exists() else '',
+            'ubicaciones': list([{'estanteria': j.estanteria ,'nombre': j.nombre} for j in i.ubicaciones.all()])
+        }
+        ubicaciones.append(data)
+
+    inventario_data = []
+    for i in Inventario.objects.all():
+        for j in ubicaciones:
+            if i.product_id == j['product_id']:
+                data = {
+                    'id':i.id,
+                    'product_id': i.product_id,
+                    'product_name':i.product_name,
+                    'group_code':i.group_code,
+                    'um':i.um,
+                    'lote_id':i.lote_id,
+                    'unidades_estanteria':i.unidades_estanteria,
+                    'ware_code':i.ware_code,
+                    'location':j['ubicaciones'],
+                }
+                inventario_data.append(data)
+
     context = {
-        'inventario':inventario,
+        'inventario':inventario_data,
         'n_inventario':n_inventario,
         'n_inventario_llenado':n_inventario_llenado,
         'n_inventario_nollenado':n_inventario_nollenado,
