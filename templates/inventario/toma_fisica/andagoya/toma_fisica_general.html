@@ -26,6 +26,13 @@
         <i class="bi bi-plus-circle"></i> Añadir
     </button-->
 
+    <div v-if="cargando_stock" class="text-center my-3">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p>Cargando inventario...</p>
+    </div>
+
     <div class="col-12 mt-2">
         <input v-model="filtro" placeholder="Buscar..." type="text" class="form-control">
     </div>
@@ -56,7 +63,9 @@
                             </td>
                             <td>
                                 <label class="fw-bold">Bodega:</label> {{i.ware_code}}<br>
-                                <label class="fw-bold">Ubicaición:</label> {{i.location}}<br>
+                                <label class="fw-bold">Ubicaición(es):</label>
+                                <span class="m-2" v-html="ubicacionesString(i.location)"></span>
+                                <br>
                                 <button @click="getItem(i.id)" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#tomaFisicaForm">
                                     <i class="bi bi-boxes"></i>
                                 </button>
@@ -352,6 +361,7 @@
             n_inventario_nollenado:'',
             n_inventario_llenado:'',
             filtro:'',
+            cargando_stock:false,
             stock:[],
 
             // ITEM
@@ -479,6 +489,14 @@
             }
         },
         methods: {
+            ubicacionesString(locations) {
+                return locations.map(ubi => 
+                    ubi.estanteria 
+                    ? `<span class="bg-warning text-white p-1 fw-bold">${ubi.nombre}</span>`
+                    : `<span class="bg-info text-white p-1 fw-bold">${ubi.nombre}</span>`
+                ).join(' ');
+            },
+
             llenadoColor(llenado) {
                 switch (llenado) {
                     case true:
@@ -562,6 +580,7 @@
                 // const my_location = params[6];
                 try {
                     // const response = await fetch(`/inventario/inv/${bodega}/${my_location}`);
+                    this.cargando_stock = true;
                     const response = await fetch('/inventario/inv/general');
                     const data = await response.json();
                     this.mi_bodega = data.mi_bodega;
@@ -572,6 +591,8 @@
                     this.stock = data.inventario || [];
                 } catch (error) {
                     console.log(error);
+                } finally {
+                    this.cargando_stock = false;
                 }
             },
 
