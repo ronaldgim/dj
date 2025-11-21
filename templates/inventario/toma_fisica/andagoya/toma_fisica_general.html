@@ -492,8 +492,8 @@
             ubicacionesString(locations) {
                 return locations.map(ubi => 
                     ubi.estanteria 
-                    ? `<span class="btn btn-sm btn-warning disabled text-white p-1 fw-bold">${ubi.nombre}</span>`
-                    : `<span class="btn btn-sm btn-info disabled text-white p-1 fw-bold">${ubi.nombre}</span>`
+                    ? `<span class="badge fs-6 bg-warning fw-bold">${ubi.nombre}</span>`
+                    : `<span class="badge fs-6 bg-info fw-bold">${ubi.nombre}</span>`
                 ).join(' ');
             },
 
