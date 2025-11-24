@@ -41,6 +41,9 @@
                     <h5 class="text-center">
                         Cantidad de items: {{i.items}}
                     </h5>
+                    <h5 class="text-center">
+                        Avance de toma física: {{i.avance}}%
+                    </h5>
                     </div>
                     <div class="card-footer bg-transparent border-primary">
                         <a class="btn btn-primary" href="{% url 'inventario_toma_fisica_cerezos_vue' i.bodega i.pasillo %}">

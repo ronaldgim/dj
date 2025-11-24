@@ -1077,7 +1077,7 @@ def inventario_cerezos_reportes(request):
 
 @login_required(login_url='login')
 def inventario_cerezos_home(request):
-    
+
     bodegas = InventarioCerezos.objects.values_list('ubicacion__bodega', flat=True).distinct()
     
     lista_por_bodega = []
@@ -1087,11 +1087,16 @@ def inventario_cerezos_home(request):
             items = InventarioCerezos.objects.filter(
                 ubicacion__bodega=bodega, ubicacion__pasillo=pasillo
             ).count()
+            
+            llenados = InventarioCerezos.objects.filter(
+                ubicacion__bodega=bodega, ubicacion__pasillo=pasillo, llenado=True
+            ).count()
         
             d = {
                 'bodega': bodega,
                 'pasillo': pasillo,
-                'items': items
+                'items': items,
+                'avance': 0 if items == 0 else round((llenados / items) * 100, 2)
             }
             
             lista_por_bodega.append(d)
