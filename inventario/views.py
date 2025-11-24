@@ -394,10 +394,19 @@ def inventario_andagoya_reportes(request):
 def inventario_andagoya_home(request):
     
     inv = pd.DataFrame(Inventario.objects.all().values())
-    bodega = inv[['ware_code', 'location', 'product_id']]
-    bodega = bodega.groupby(['ware_code', 'location'])['product_id'].count() 
-    bodega = bodega.reset_index() 
-    
+    bodega = inv[['ware_code', 'location', 'product_id', 'llenado']] 
+
+    # Calcular todo en una sola agrupación
+    bodega = bodega.groupby(['ware_code', 'location']).agg(
+        total_productos=('product_id', 'count'),
+        productos_llenos=('llenado', 'sum'),
+        productos_no_llenos=('llenado', lambda x: (~x).sum())
+    ).reset_index()
+
+    # Calcular porcentaje de llenado
+    bodega['porcentaje_llenado'] = (bodega['productos_llenos'] / bodega['total_productos'] * 100).round(2)
+
+    # Agregar nombre de bodega
     bodega['Bodega'] = bodega.apply(lambda x: 
         'Andagoya' if x['ware_code'] == 'BAN' else 
         'Cerezos' if x['ware_code'] == 'BCT' else 
@@ -405,12 +414,18 @@ def inventario_andagoya_home(request):
         'Cuarentena Cerezos' if x['ware_code'] == 'CUC' else 'Otras',
     axis=1)
     
+    items_general = Inventario.objects.all().count()
+    items_general_llenado = Inventario.objects.filter(llenado=True).count()
+    porcentaje_general = 0 if items_general == 0 else round((items_general_llenado / items_general) * 100, 2)
+    
+    
     bodega = bodega.sort_values(['Bodega', 'location'])
     bodega = de_dataframe_a_template(bodega)
     
     context = {
         'bodega':bodega,
-        'general':Inventario.objects.all().count()
+        'general':items_general,
+        'general_porcentaje': porcentaje_general,
     }
 
     return render(request, 'inventario/toma_fisica/andagoya/home.html', context)
@@ -1062,7 +1077,7 @@ def inventario_cerezos_reportes(request):
 
 @login_required(login_url='login')
 def inventario_cerezos_home(request):
-    
+
     bodegas = InventarioCerezos.objects.values_list('ubicacion__bodega', flat=True).distinct()
     
     lista_por_bodega = []
@@ -1072,11 +1087,16 @@ def inventario_cerezos_home(request):
             items = InventarioCerezos.objects.filter(
                 ubicacion__bodega=bodega, ubicacion__pasillo=pasillo
             ).count()
+            
+            llenados = InventarioCerezos.objects.filter(
+                ubicacion__bodega=bodega, ubicacion__pasillo=pasillo, llenado=True
+            ).count()
         
             d = {
                 'bodega': bodega,
                 'pasillo': pasillo,
-                'items': items
+                'items': items,
+                'avance': 0 if items == 0 else round((llenados / items) * 100, 2)
             }
             
             lista_por_bodega.append(d)
