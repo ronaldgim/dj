@@ -37,6 +37,9 @@
                 <h5 class="text-center">
                     Cantidad de items: {{general}}
                 </h5>
+                <h5 class="text-center">
+                    Avance de toma física: {{general_porcentaje}}%
+                </h5>
                 </div>
                 <div class="card-footer bg-transparent border-primary">
                     <a class="btn btn-primary" href="{% url 'inventario_general_toma_fisica_andagoya_vue' %}">
@@ -59,6 +62,9 @@
                     </h3>
                     <h5 class="text-center">
                         Cantidad de items: {{i.product_id}}
+                    </h5>
+                    <h5 class="text-center">
+                        Avance de toma física: {{i.porcentaje_llenado}}%
                     </h5>
                     </div>
                     <div class="card-footer bg-transparent border-primary">
