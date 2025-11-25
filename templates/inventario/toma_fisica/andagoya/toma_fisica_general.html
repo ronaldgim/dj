@@ -22,9 +22,9 @@
         <i class="bi bi-arrow-bar-left"></i> Lista de bodegas
     </a>
     
-    <!--button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#agregarItemForm">
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#agregarItemForm">
         <i class="bi bi-plus-circle"></i> Añadir
-    </button-->
+    </button>
 
     <div v-if="cargando_stock" class="text-center my-3">
         <div class="spinner-border text-primary" role="status">
@@ -240,7 +240,7 @@
     </div>
 
     <!-- AGREGAR ITEM -->
-    <!--div class="modal fade" id="agregarItemForm" tabindex="-1" aria-labelledby="agregarItemFormLabel" aria-hidden="true">
+    <div class="modal fade" id="agregarItemForm" tabindex="-1" aria-labelledby="agregarItemFormLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-scrollable">
             <div class="modal-content">
                 <input type="hidden" id="user-id" value="{{ request.user.id }}">
@@ -263,13 +263,8 @@
                             <div v-if="msg_product" :class="`alert alert-${type_msg_product} text-center p-2 m-0`" role="alert" style="font-size: smaller;">
                                 {{msg_product}}
                             </div>
-                            <form @submit.prevent="buscarProducto()">
-                                <label>Código de producto:</label>
-                                <div class="input-group input-group-sm mb-3">
-                                    <input type="text" class="form-control form-control-sm" v-model="formBuscar.product_id" required>
-                                    <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button>
-                                </div>
-                            </form>
+                            <label>Código de producto:</label>
+                            <v-select @input="buscarProducto()" :options="productList" label="codigo" v-model="formBuscar.product_id" required></v-select>
                         </div>
                     </div>
 
@@ -336,8 +331,8 @@
                                 <textarea class="form-control form-control-sm" v-model="formAgregar.observaciones"></textarea>
 
                                 <label class="fw-bold">Total Unidades:</label> {{ conteo_fisico_agregar_lote.toLocaleString() }}<br>
-                                <button type="submit" class="btn btn-sm btn-primary float-sm-end mt-2">GUARDAR</button>
                                 <button type="reset" class="btn btn-sm btn-secondary float-sm-end mt-2">BOORAR</button>
+                                <button type="submit" class="btn btn-sm btn-primary float-sm-end mt-2">{{ agregando ? 'GUARDANDO...' : 'GUARDAR' }}</button>
                             </form>                      
                         </div>
                     </div>
@@ -346,11 +341,11 @@
                 {% endverbatim %}
             </div>
         </div>
-    </div-->
+    </div>
 </div>
 
 <script>
-
+    Vue.component("v-select", VueSelect.VueSelect);
     new Vue({
         el: '#app',
         data: {
@@ -406,7 +401,7 @@
                 product_id:'',
             },
             listaLotesAgregar:[],
-
+            productList:[],
             // input date
             rawDate:'',
             //formattedDate: '',
@@ -420,34 +415,36 @@
 
             lote_input:true,
             // form agregar
-            // formAgregar:{
-            //     product_id:'',
-            //     product_name:'',
-            //     group_code:'',
-            //     um:'',
+            agregado:false,
+            formAgregar:{
+                product_id:'',
+                product_name:'',
+                group_code:'',
+                um:'',
 
-            //     oh:0,
-            //     oh2:0,
-            //     commited:0,
-            //     quantity:0,
+                oh:0,
+                oh2:0,
+                commited:0,
+                quantity:0,
 
-            //     lote_id:'',
-            //     fecha_elab_lote:'',
-            //     fecha_cadu_lote:'',
-            //     ware_code:'',
-            //     location:'',
-            //     unidades_caja:'',
-            //     numero_cajas:'',
-            //     unidades_sueltas:'',
-            //     unidades_estanteria:'',
-            //     observaciones:'',
-            //     llenado:true,
-            //     agregado:true,
-            //     user_id: Number(document.getElementById("user-id").value)
-            // }
+                lote_id:'',
+                fecha_elab_lote:'',
+                fecha_cadu_lote:'',
+                ware_code:'',
+                location:'',
+                unidades_caja:'',
+                numero_cajas:'',
+                unidades_sueltas:'',
+                unidades_estanteria:'',
+                observaciones:'',
+                llenado:true,
+                agregado:true,
+                user_id: Number(document.getElementById("user-id").value)
+            }
         },
         mounted() {
             this.getStock();
+            this.getProductoList();
         },
         computed: {
             total_agrupado() {
@@ -742,46 +739,47 @@
                 }
             },
 
-            // async agregarProducto() {
-            //     try {
-            //         const response = await fetch('/inventario/toma-fisica/agregar-producto', {
-            //             method: 'POST',
-            //             headers: {'Content-Type': 'application/json'},
-            //             body: JSON.stringify(this.formAgregar)
-            //         }); 
-            //         const data = await response.json();
-            //         this.type_msg_agregar_lote = data.type;
-            //         this.msg_agregar_lote = data.msg;
+            async agregarProducto() {
+                try {
+                    this.agregando = true;
+                    const response = await fetch('/inventario/toma-fisica/agregar-producto', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify(this.formAgregar)
+                    }); 
+                    const data = await response.json();
+                    this.type_msg_agregar_lote = data.type;
+                    this.msg_agregar_lote = data.msg;
 
-            //         // set form buscarProducto
-            //         this.formBuscar.product_id = '';
-            //         this.type_msg_product='',
-            //         this.msg_product='';
+                    // set form buscarProducto
+                    this.formBuscar.product_id = '';
+                    this.type_msg_product='',
+                    this.msg_product='';
 
-            //         // reset form
-            //         this.formAgregar.product_id = '';
-            //         this.formAgregar.product_name = '';
-            //         this.formAgregar.group_code = '';
-            //         this.formAgregar.um = '';
+                    // reset form
+                    this.formAgregar.product_id = '';
+                    this.formAgregar.product_name = '';
+                    this.formAgregar.group_code = '';
+                    this.formAgregar.um = '';
 
-            //         this.formAgregar.oh = 0;
-            //         this.formAgregar.oh2 = 0;
-            //         this.formAgregar.commited = 0;
-            //         this.formAgregar.quantity = 0;
+                    this.formAgregar.oh = 0;
+                    this.formAgregar.oh2 = 0;
+                    this.formAgregar.commited = 0;
+                    this.formAgregar.quantity = 0;
 
-            //         this.formAgregar.lote_id = '';
-            //         this.formAgregar.fecha_elab_lote = '';
-            //         this.formAgregar.fecha_cadu_lote = '';
-            //         this.formAgregar.ware_code = '';
-            //         this.formAgregar.location = '';
-            //         this.formAgregar.unidades_caja = '';
-            //         this.formAgregar.numero_cajas = '';
-            //         this.formAgregar.unidades_sueltas = '';
-            //         this.formAgregar.observaciones = '';
+                    this.formAgregar.lote_id = '';
+                    this.formAgregar.fecha_elab_lote = '';
+                    this.formAgregar.fecha_cadu_lote = '';
+                    this.formAgregar.ware_code = '';
+                    this.formAgregar.location = '';
+                    this.formAgregar.unidades_caja = '';
+                    this.formAgregar.numero_cajas = '';
+                    this.formAgregar.unidades_sueltas = '';
+                    this.formAgregar.observaciones = '';
                     
-            //         this.formAgregar.lotes = [];
+                    this.formAgregar.lotes = [];
 
-            //         await this.getStock();
+                    await this.getStock();
 
                     // var modal = bootstrap.Modal.getInstance(document.getElementById('agregarItemForm'));
                     // if (modal) {
@@ -792,16 +790,28 @@
                     //     document.body.classList.remove('modal-open');
                     // }
 
-            //         setTimeout(
-            //             () => {
-            //                 this.msg_agregar_lote = '';
-            //             }, 2000)
+                    setTimeout(
+                        () => {
+                            this.msg_agregar_lote = '';
+                        }, 2000)
                         
-            //     } catch (error) {
-            //         this.type_msg_agregar_lote = 'danger';
-            //         this.msg_agregar_lote = error;
-            //     }
-            // },
+                } catch (error) {
+                    this.type_msg_agregar_lote = 'danger';
+                    this.msg_agregar_lote = error;
+                } finally {
+                    this.agregando = false;
+                }
+            },
+
+            async getProductoList(){
+                try {
+                    const res = await fetch('/api/warehouse-productos-list');
+                    const data = await res.json();
+                    this.productList = data.data || [];
+                } catch (error) {
+                    console.log(error)
+                }
+            },
         }
     })
 </script>
