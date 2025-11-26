@@ -61,14 +61,15 @@
                         {{i.ware_code}} - {{i.location}}           
                     </h3>
                     <h5 class="text-center">
-                        Cantidad de items: {{i.product_id}}
+                        Cantidad de items: {{i.total_productos}}
                     </h5>
                     <h5 class="text-center">
                         Avance de toma física: {{i.porcentaje_llenado}}%
                     </h5>
                     </div>
                     <div class="card-footer bg-transparent border-primary">
-                        <a class="btn btn-primary" href="{% url 'inventario_toma_fisica_andagoya_vue' i.ware_code i.location %}">
+                        <a class="btn btn-primary" 
+                        href="{% url 'inventario_toma_fisica_andagoya_vue' i.ware_code i.location %}">
                             Ingresar <i class="bi bi-box-arrow-in-up-right"></i>
                         </a>
                     </div>
