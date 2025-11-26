@@ -498,7 +498,10 @@ def inventario_general(request):
     )
     
     producto_ubicacion_list = producto_ubicacion.values_list('product_id', flat=True)
-    inventario = Inventario.objects.filter(product_id__in=producto_ubicacion_list)
+    inventario = Inventario.objects.filter(
+        Q(product_id__in=producto_ubicacion_list) |
+        Q(llenado_estanteria=True)
+        )
     
     n_inventario = inventario.count()
     n_inventario_llenado = inventario.filter(llenado_estanteria=True).count()
