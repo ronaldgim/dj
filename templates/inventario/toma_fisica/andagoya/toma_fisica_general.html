@@ -702,6 +702,9 @@
                     this.n_inventario_nollenado = data.n_inventario_nollenado;
                     this.n_inventario_llenado = data.n_inventario_llenado;
                     this.stock = data.inventario || [];
+
+                    // Lista de productos para v-select
+                    // this.productList = data.productos_lista || [];console.log(this.productList);
                 } catch (error) {
                     console.log(error);
                 } finally {
