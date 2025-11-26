@@ -53,7 +53,7 @@
                         <!--tr v-for="(i, index) in stockFiltrado" :key="index" :style="{backgroundColor:llenadoColor(i.llenado)}"-->
                         <tr v-for="(i, index) in stockFiltrado" :key="index" :style="{backgroundColor:llenadoColor(i.llenado_estanteria)}">
                             <td>
-                                <label class="fw-bold">Código:</label> {{i.product_id}} <br>
+                                <label class="fw-bold">Código:</label> {{i.product_id}} {{i.llenado_estanteria}}<br>
                                 <label class="fw-bold">Nombre:</label> {{i.product_name}}<br>
                                 <label class="fw-bold">Marca: </label> {{i.group_code}}<br>
                                 <label class="fw-bold">Unidad de Venta:</label> {{i.um}}<br> 
