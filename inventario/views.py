@@ -488,7 +488,6 @@ def inventario_toma_fisica_andagoya_vue(request, bodega, location):
     return render(request, 'inventario/toma_fisica/andagoya/toma_fisica.html')
 
 
-
 @login_required(login_url='login')
 def inventario_general(request): 
 
@@ -925,7 +924,6 @@ def reporte_andagoya_bpa(request):
     df_final.to_excel(response, index=False)
 
     return response
-
 
 
 ### INVENTARIO CEREZOS
