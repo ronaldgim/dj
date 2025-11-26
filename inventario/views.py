@@ -393,19 +393,42 @@ def inventario_andagoya_reportes(request):
 @login_required(login_url='login')
 def inventario_andagoya_home(request):
     
-    inv = pd.DataFrame(Inventario.objects.all().values())
-    bodega = inv[['ware_code', 'location', 'product_id', 'llenado']] 
+    # Inventario Andagoya
+    inventario_andagoya = Inventario.objects.all()
+    
+    # General
+    producto_ubicacion_list = (
+        ProductoUbicacion.objects
+        .prefetch_related('ubicaciones')
+        .filter(ubicaciones__estanteria=True)
+        .values_list('product_id', flat=True)
+    )
+    
+    inventario_andagoya_estanterias = inventario_andagoya.filter(
+        product_id__in=producto_ubicacion_list
+    )
+    
+    inventario_andagoya_estanterias_lleno = inventario_andagoya_estanterias.filter(
+        llenado_estanteria=True
+    )
+    
+    porcentaje_estanterias = 0 if inventario_andagoya_estanterias.count() == 0 else round(
+        (inventario_andagoya_estanterias_lleno.count() / inventario_andagoya_estanterias.count()) * 100, 2
+    )   
+    
+    # Bodegas
+    bodega = pd.DataFrame(inventario_andagoya.values('ware_code', 'location', 'product_id', 'llenado'))
 
     # Calcular todo en una sola agrupación
     bodega = bodega.groupby(['ware_code', 'location']).agg(
         total_productos=('product_id', 'count'),
         productos_llenos=('llenado', 'sum'),
         productos_no_llenos=('llenado', lambda x: (~x).sum())
-    ).reset_index()
-
+    ).reset_index(drop=False)
+    
     # Calcular porcentaje de llenado
     bodega['porcentaje_llenado'] = (bodega['productos_llenos'] / bodega['total_productos'] * 100).round(2)
-
+    
     # Agregar nombre de bodega
     bodega['Bodega'] = bodega.apply(lambda x: 
         'Andagoya' if x['ware_code'] == 'BAN' else 
@@ -414,18 +437,14 @@ def inventario_andagoya_home(request):
         'Cuarentena Cerezos' if x['ware_code'] == 'CUC' else 'Otras',
     axis=1)
     
-    items_general = Inventario.objects.all().count()
-    items_general_llenado = Inventario.objects.filter(llenado=True).count()
-    porcentaje_general = 0 if items_general == 0 else round((items_general_llenado / items_general) * 100, 2)
-    
-    
+    bodega = bodega[bodega['Bodega']!='Otras']
     bodega = bodega.sort_values(['Bodega', 'location'])
     bodega = de_dataframe_a_template(bodega)
-    
+
     context = {
         'bodega':bodega,
-        'general':items_general,
-        'general_porcentaje': porcentaje_general,
+        'general':inventario_andagoya_estanterias.count(),
+        'general_porcentaje': porcentaje_estanterias,
     }
 
     return render(request, 'inventario/toma_fisica/andagoya/home.html', context)
@@ -469,8 +488,6 @@ def inventario_toma_fisica_andagoya_vue(request, bodega, location):
     return render(request, 'inventario/toma_fisica/andagoya/toma_fisica.html')
 
 
-# from etiquetado.views import productos_ubicacion_lista_template
-from etiquetado.models import ProductoUbicacion
 
 @login_required(login_url='login')
 def inventario_general(request): 
