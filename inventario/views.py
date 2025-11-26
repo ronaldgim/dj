@@ -527,6 +527,7 @@ def inventario_general(request):
                     'lote_id':i.lote_id,
                     'unidades_estanteria':i.unidades_estanteria,
                     'ware_code':i.ware_code,
+                    'llenado_estanteria':i.llenado_estanteria,
                     'location':j['ubicaciones'],
                 }
                 inventario_data.append(data)
