@@ -475,11 +475,19 @@ from etiquetado.models import ProductoUbicacion
 @login_required(login_url='login')
 def inventario_general(request): 
 
-    n_inventario = Inventario.objects.all().count()
-    n_inventario_llenado = Inventario.objects.filter(llenado_estanteria=True).count()  # Inventario.objects.filter(llenado=True).count()
-    n_inventario_nollenado = Inventario.objects.filter(llenado_estanteria=False).count()  # Inventario.objects.filter(llenado=False).count()
-
-    producto_ubicacion = ProductoUbicacion.objects.all() 
+    producto_ubicacion = (
+        ProductoUbicacion.objects
+        .prefetch_related('ubicaciones')
+        .filter(ubicaciones__estanteria=True)
+    )
+    
+    producto_ubicacion_list = producto_ubicacion.values_list('product_id', flat=True)
+    inventario = Inventario.objects.filter(product_id__in=producto_ubicacion_list)
+    
+    n_inventario = inventario.count()
+    n_inventario_llenado = inventario.filter(llenado_estanteria=True).count()
+    n_inventario_nollenado = inventario.filter(llenado_estanteria=False).count()
+    
     ubicaciones = []
     for i in producto_ubicacion:
         data = {
@@ -491,7 +499,7 @@ def inventario_general(request):
         ubicaciones.append(data)
 
     inventario_data = []
-    for i in Inventario.objects.all():
+    for i in inventario: #Inventario.objects.all():
         for j in ubicaciones:
             if i.product_id == j['product_id']:
                 data = {
@@ -1697,7 +1705,7 @@ def reporte_cerezos_bpa(request):
         
         df_by_product['fecha_elab_lote']   = df_by_product['fecha_elab_lote'].astype('str')
         df_by_product['fecha_cadu_lote']   = df_by_product['fecha_cadu_lote'].astype('str')
-        
+
         df_by_product = df_by_product[[
                 'product_id',
                 'product_name',

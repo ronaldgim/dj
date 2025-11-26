@@ -85,7 +85,7 @@
                                 <button @click="getItem(i.id)" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#tomaFisicaForm">
                                     <i class="bi bi-boxes"></i>
                                 </button>
-                                <button @click="addItemLote(i.product_id)" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#agregarItemForm">
+                                <button @click="addItemLote(i.product_id)" class="btn btn-sm btn-warning text-white" data-bs-toggle="modal" data-bs-target="#agregarItemForm">
                                     <i class="bi bi-plus-circle"></i>
                                 </button>
                                 <button v-show="i.agregado" @click="eliminarAgregado(i.id)" class="btn btn-sm btn-danger">
