@@ -498,10 +498,9 @@ def inventario_general(request):
     )
     
     producto_ubicacion_list = producto_ubicacion.values_list('product_id', flat=True)
-    inventario = Inventario.objects.filter(
-        Q(product_id__in=producto_ubicacion_list) |
-        Q(llenado_estanteria=True)
-        )
+    inventario = Inventario.objects.filter(product_id__in=producto_ubicacion_list)
+    # inventario_estanteria_true = Inventario.objects.filter(llenado_estanteria=True)
+    # inventario_union = inventario.union(inventario_estanteria_true)
     
     n_inventario = inventario.count()
     n_inventario_llenado = inventario.filter(llenado_estanteria=True).count()
@@ -512,13 +511,12 @@ def inventario_general(request):
         data = {
             'id':i.id,
             'product_id': i.product_id,
-            # 'ware_code':i.ubicaciones.bodega if i.ubicaciones.exists() else '',
             'ubicaciones': list([{'estanteria': j.estanteria ,'nombre': j.nombre} for j in i.ubicaciones.all()])
         }
         ubicaciones.append(data)
 
     inventario_data = []
-    for i in inventario: #Inventario.objects.all():
+    for i in inventario: #inventario_union
         for j in ubicaciones:
             if i.product_id == j['product_id']:
                 data = {
@@ -540,6 +538,7 @@ def inventario_general(request):
         'n_inventario':n_inventario,
         'n_inventario_llenado':n_inventario_llenado,
         'n_inventario_nollenado':n_inventario_nollenado,
+        'productos_lista':list(producto_ubicacion_list.values()),
     }
 
     return JsonResponse(context)
