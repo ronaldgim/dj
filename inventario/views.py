@@ -848,9 +848,58 @@ def reporte_format_excel(request):
     return response
 
 
+
+# Reservas clientes pivot por cliente
+def reporte_reservas_clientes_pivot_cliente():
+
+    def reservas_lote_2():
+        with connections['gimpromed_sql'].cursor() as cursor:
+            cursor.execute("""
+                SELECT 
+                    r.CODIGO_CLIENTE,
+                    c.NOMBRE_CLIENTE,
+                    r.PRODUCT_ID,
+                    r.LOTE_ID,
+                    r.EGRESO_TEMP
+                FROM warehouse.reservas_lote_2 r
+                LEFT JOIN warehouse.clientes c ON r.CODIGO_CLIENTE = c.CODIGO_CLIENTE 
+                WHERE r.WARE_CODE = 'BCT';
+            """)
+            columns = [col[0].lower() for col in cursor.description]
+            reservas = [
+                dict(zip(columns, row))
+                for row in cursor.fetchall()
+            ]
+            
+            reservas = pd.DataFrame(reservas)
+            reservas = reservas.groupby(by=[
+                'codigo_cliente', #'CODIGO_CLIENTE',
+                'nombre_cliente',
+                'product_id',
+                'lote_id'
+            ])['egreso_temp'].sum().reset_index()
+            
+            connections['gimpromed_sql'].close()
+        return reservas
+
+    reservas = reservas_lote_2()
+    
+    reservas_pivot = reservas.pivot_table(
+        index=['product_id', 'lote_id'],
+        columns='nombre_cliente',
+        values='egreso_temp',
+        aggfunc='sum',
+        fill_value=0
+    ).reset_index()
+    
+
+
+    return reservas_pivot
+
+
 @login_required(login_url='login')
 def reporte_andagoya_bpa(request):
-    
+    reservas = reporte_reservas_clientes_pivot_cliente()
     inv = Inventario.objects.all().values(
         'product_id',
         'product_name',
@@ -916,6 +965,8 @@ def reporte_andagoya_bpa(request):
         
     df_final = pd.concat(df_list, ignore_index=True)
     
+    df_final = df_final.merge(reservas, on=['product_id','lote_id'], how='left')
+    
     date_time = str(datetime.now())
     date_time = date_time[0:16]
     n = 'inventario_andagoya_bpa_' + date_time + '_.xlsx'
@@ -927,6 +978,7 @@ def reporte_andagoya_bpa(request):
     df_final.to_excel(response, index=False)
 
     return response
+
 
 
 ### INVENTARIO CEREZOS
