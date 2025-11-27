@@ -52,6 +52,13 @@
         {% endif %}
     </div>
 
+    <button class="btn btn-sm btn-info text-white mb-2"
+    data-bs-toggle="modal" data-bs-target="#ReservasModal"
+    @click="fetchReservas()"
+    >
+        Reservas
+    </button>
+    
     <div class="row g-2 mb-2">
         <div class="col-md-4">
             <div class="card">
@@ -278,6 +285,56 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="ReservasModal" tabindex="-1" aria-labelledby="agregarItemFormLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="ReservasModalLabel">RESERVAS BODEGA CEREZOS</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="col-4">
+                        <input class="form-control mb-3" v-model="busquedaReservas" type="text" placeholder="Buscar...">
+                    </div>
+                    <table class="table table-hover" style="font-size: small;">
+                        <thead>
+                            <tr>
+                                <th>Nombre Cliente</th>
+                                <th>Código</th>
+                                <th>Nombre</th>
+                                <th>Marca</th>
+                                <th>Lote</th>
+                                <th>Unidades</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% verbatim %}
+                            <tr v-if="loadingReservas">
+                                <td colspan="6" class="text-center py-4">
+                                    <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                                    Cargando datos...
+                                </td>
+                            </tr>
+                            <tr v-for="(r, index) in reservasFiltradas" :key="index">
+                                <td>{{ r.nombre_cliente }}</td>
+                                <td>{{ r.product_id }}</td>
+                                <td>{{ r.Nombre }}</td>
+                                <td>{{ r.Marca }}</td>
+                                <td>{{ r.lote_id }}</td>
+                                <td class="text-end">{{ r.egreso_temp.toLocaleString() }}</td>
+                            </tr>
+                            {% endverbatim %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -319,23 +376,14 @@
             sortField:null,
             sortDirection:'asc',
             // sotockOrdenado:[],
+            loadingReservas:false,
+            reservas:[],
+            busquedaReservas:'',
         },
         mounted() {
             this.getStock();
         },
         computed:{
-            // stockFiltrado() {
-            //     return this.stock.filter(i => 
-            //         i.product_id.toLowerCase().includes(this.filtro.toLowerCase()) |
-            //         i.product_name.toLowerCase().includes(this.filtro.toLowerCase()) |
-            //         i.group_code.toLowerCase().includes(this.filtro.toLowerCase()) |
-            //         i.lote_id.toLowerCase().includes(this.filtro.toLowerCase()) 
-            //         // i.ubicacion__bodega.toLowerCase().includes(this.filtro.toLowerCase()) 
-            //         // i.ware_code.toLowerCase().includes(this.filtro.toLowerCase()) |
-            //         // i.location.toLowerCase().includes(this.filtro.toLowerCase())
-            //     )
-            // }
-
             stockFiltrado() {
                 // Paso 1: Aplicar filtro de búsqueda
                 let resultadoFiltrado = this.stock.filter(i => {
@@ -402,7 +450,23 @@
                     return this.sortDirection === 'asc' ? resultado : -resultado;
                 });
             },
+            reservasFiltradas() {
+                let resultadoReservasFiltradas = this.reservas.filter(r => {
+                    const nombreCliente = (r.nombre_cliente || '').toString().toLowerCase();
+                    const productId = (r.product_id || '').toString().toLowerCase();
+                    const productName = (r.Nombre || '').toString().toLowerCase();
+                    const marca = (r.Marca || '').toString().toLowerCase();
+                    const loteId = (r.lote_id || '').toString().toLowerCase();
+                    const busquedaLower = this.busquedaReservas.toLowerCase();
 
+                    return nombreCliente.includes(busquedaLower) ||
+                        productId.includes(busquedaLower) ||
+                        productName.includes(busquedaLower) ||
+                        marca.includes(busquedaLower) ||
+                        loteId.includes(busquedaLower);
+                });
+                return resultadoReservasFiltradas;
+            },
             totalDeUnidades() {
                 let totalDeUnidades = this.stockFiltrado.map(item => item.total_unidades);
                 return totalDeUnidades.reduce((acumulador, valorActual) => acumulador + valorActual, 0);
@@ -447,7 +511,6 @@
                 const numero = parseFloat(valor);
                 return isNaN(numero) ? 0 : numero;
             },
-
 
             async getStock() {
                 this.actualizandoStock = true;
@@ -535,7 +598,6 @@
                 this.sortDirection = 'asc';
                 }
             },
-
             // Función auxiliar para obtener el ícono de ordenamiento
             getIconoOrden(campo) {
                 if (this.sortField !== campo) {
@@ -547,7 +609,21 @@
             limpiarOrden() {
                 this.sortField = null;
                 this.sortDirection = 'asc';
-            }
+            },
+            async fetchReservas() {
+                try {
+                    this.loadingReservas = true;
+                    this.reservas = [];
+                    const response = await fetch('/inventario/reservas/BCT');
+                    const data = await response.json();
+                    this.reservas = data.reservas || [];
+                    console.log(this.reservas);
+                } catch (error) {
+                    console.error(error);
+                } finally {
+                    this.loadingReservas = false;
+                }
+            },
         },
     })
 </script>
