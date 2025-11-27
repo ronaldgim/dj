@@ -213,6 +213,12 @@ urlpatterns = [
         name ="reporte_cerezos_bpa"
     ),
     
+    path(
+        route='reservas/<str:ware_code>',
+        view = views.reservas_por_bodega,
+        name ="reservas_por_bodega"
+    ),
+    
     # # Actulizar stock lote FORM UPDDATE
     # path(
     #     route='inventario/<int:id>/<str:bodega>/<str:ubicacion>',

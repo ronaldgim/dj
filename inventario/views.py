@@ -879,14 +879,14 @@ def pivot_reservas_lote_2(ware_code):
         
         connections['gimpromed_sql'].close()
         
-        reservas_pivot = reservas.pivot_table(
-            index=['product_id', 'lote_id'],
-            columns='nombre_cliente',
-            values='egreso_temp',
-            aggfunc='sum',
-            fill_value=0
-        ).reset_index()
-    return reservas_pivot
+        # reservas_pivot = reservas.pivot_table(
+        #     index=['product_id', 'lote_id'],
+        #     columns='nombre_cliente',
+        #     values='egreso_temp',
+        #     aggfunc='sum',
+        #     fill_value=0
+        # ).reset_index()
+    return reservas # reservas_pivot
 
 
 @login_required(login_url='login')
@@ -1809,6 +1809,18 @@ def reporte_cerezos_bpa(request):
     df_final.to_excel(response, index=False)
 
     return response
+
+
+# reservas por bodega
+def reservas_por_bodega(request, ware_code):
+    reservas = pivot_reservas_lote_2(ware_code)
+    productos = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+    reservas = reservas.merge(productos, on='product_id', how='left')
+    reservas = de_dataframe_a_template(reservas)
+    context = {
+        'reservas': reservas,
+    }
+    return JsonResponse(context)
 
 
 #### ARQUEOS
