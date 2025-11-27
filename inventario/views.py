@@ -894,6 +894,14 @@ def reporte_andagoya_bpa(request):
     
     reservas = pivot_reservas_lote_2('BAN')
     
+    reservas = reservas.pivot_table(
+        index=['product_id', 'lote_id'],
+        columns='nombre_cliente',
+        values='egreso_temp',
+        aggfunc='sum',
+        fill_value=0
+    ).reset_index()
+    
     inv = Inventario.objects.all().values(
         'product_id',
         'product_name',
@@ -1795,6 +1803,13 @@ def reporte_cerezos_bpa(request):
     df_final = pd.concat(df_list).fillna('')
     
     reservas = pivot_reservas_lote_2('BCT')
+    reservas = reservas.pivot_table(
+        index=['product_id', 'lote_id'],
+        columns='nombre_cliente',
+        values='egreso_temp',
+        aggfunc='sum',
+        fill_value=0
+    ).reset_index()
     
     df_final = df_final.merge(reservas, on=['product_id','lote_id'], how='left')
     
