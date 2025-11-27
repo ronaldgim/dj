@@ -869,6 +869,7 @@ def pivot_reservas_lote_2(ware_code):
         ]
         
         reservas = pd.DataFrame(reservas)
+        reservas['lote_id'] = reservas['lote_id'].str.replace('.','',regex=False)
         reservas = reservas.groupby(by=[
             'codigo_cliente', #'CODIGO_CLIENTE',
             'nombre_cliente',
