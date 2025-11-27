@@ -863,7 +863,7 @@ def reporte_reservas_clientes_pivot_cliente():
                     r.EGRESO_TEMP
                 FROM warehouse.reservas_lote_2 r
                 LEFT JOIN warehouse.clientes c ON r.CODIGO_CLIENTE = c.CODIGO_CLIENTE 
-                WHERE r.WARE_CODE = 'BCT';
+                WHERE r.WARE_CODE = 'BAN';
             """)
             columns = [col[0].lower() for col in cursor.description]
             reservas = [
