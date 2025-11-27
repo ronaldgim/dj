@@ -892,8 +892,6 @@ def reporte_reservas_clientes_pivot_cliente():
         fill_value=0
     ).reset_index()
     
-
-
     return reservas_pivot
 
 
