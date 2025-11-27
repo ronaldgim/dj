@@ -494,7 +494,7 @@ def inventario_general(request):
     producto_ubicacion = (
         ProductoUbicacion.objects
         .prefetch_related('ubicaciones')
-        .filter(ubicaciones__estanteria=True)
+        #.filter(ubicaciones__estanteria=True)
     )
     
     producto_ubicacion_list = producto_ubicacion.values_list('product_id', flat=True)
