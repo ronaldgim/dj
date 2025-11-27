@@ -528,8 +528,8 @@
                 return locations.map(ubi => 
                     ubi.estanteria 
                     ? `<span class="badge fs-6 mb-2 bg-warning fw-bold">${ubi.nombre}</span>`
-                    //: `<span class="badge fs-6 m-2 bg-info fw-bold">${ubi.nombre}</span>`
-                    : ''
+                    : `<span class="badge fs-6 m-2 bg-info fw-bold">${ubi.nombre}</span>`
+                    //: ''
                 ).join(' ');
             },
 
