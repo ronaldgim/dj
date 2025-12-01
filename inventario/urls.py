@@ -219,6 +219,18 @@ urlpatterns = [
         name ="reservas_por_bodega"
     ),
     
+    path(
+        route='resumen_total_unificado',
+        view = views.resumen_total_unificado,
+        name ="resumen_total_unificado"
+    ),
+    
+    path(
+        route='resumen-total-unificado',
+        view = views.resumen_view,
+        name ="resumen-total-unificado"
+    ),
+    
     # # Actulizar stock lote FORM UPDDATE
     # path(
     #     route='inventario/<int:id>/<str:bodega>/<str:ubicacion>',
