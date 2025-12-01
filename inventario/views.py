@@ -1838,6 +1838,36 @@ def reservas_por_bodega(request, ware_code):
     return JsonResponse(context)
 
 
+# Reporte unificado
+@login_required(login_url='login')
+def resumen_total_unificado(request):
+    
+    cerezos = InventarioCerezos.objects.all().values('product_id', 'oh2', 'total_unidades')
+    cerezos_df = pd.DataFrame(cerezos)
+    
+    andagoya = Inventario.objects.all().values('product_id', 'oh2', 'total_unidades')
+    andagoya_df = pd.DataFrame(andagoya)
+    
+    resumen_total = pd.merge(
+        cerezos_df.groupby('product_id').sum().reset_index(),
+        andagoya_df.groupby('product_id').sum().reset_index(),
+        on='product_id',
+        how='outer',
+        suffixes=('_cerezos', '_andagoya')
+    ).fillna(0)
+    
+    productos = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+    resumen_total = resumen_total.merge(productos, on='product_id', how='left') 
+    
+    return JsonResponse({
+        'resumen_total': resumen_total.to_dict(orient='records')
+    })
+
+
+def resumen_view(request):
+    return render(request, 'inventario/toma_fisica/resumen-total.html')
+
+
 #### ARQUEOS
 # Nuevo Arqueo
 def nuevo_arqueo(request):
