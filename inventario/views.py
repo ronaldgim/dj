@@ -1864,6 +1864,59 @@ def resumen_total_unificado(request):
     })
 
 
+def detalle_resumen_total_unificado(request, product_id):
+    andagoya = Inventario.objects.filter(product_id=product_id).values(
+        'product_id',
+        'product_name',
+        'group_code',
+        # 'um',
+        # 'estado',
+        'oh2',
+        'lote_id',
+        # 'fecha_elab_lote',
+        # 'fecha_cadu_lote',
+        'ware_code',
+        'location',
+        # 'unidades_caja',
+        # 'numero_cajas',
+        # 'unidades_sueltas',
+        'total_unidades',
+        # 'diferencia',
+        # 'observaciones',
+        # 'user__username',
+    )
+    andagoya_df = pd.DataFrame(andagoya)
+    
+    cerezos = InventarioCerezos.objects.filter(product_id=product_id).values(
+        'product_id',
+        'product_name',
+        'group_code',
+        # 'um',
+        # 'estado',
+        'oh2',
+        'lote_id',
+        # 'fecha_elab_lote',
+        # 'fecha_cadu_lote',
+        'ubicacion__bodega',
+        'ubicacion__pasillo',
+        'ubicacion__modulo',
+        'ubicacion__nivel',
+        # 'unidades_caja',
+        # 'numero_cajas',
+        # 'unidades_sueltas',
+        'total_unidades',
+        # 'diferencia',
+        # 'observaciones',
+        # 'user__username',
+    )
+    cerezos_df = pd.DataFrame(cerezos)
+    
+    return JsonResponse({
+        'cerezos': cerezos_df.to_dict(orient='records'),
+        'andagoya': andagoya_df.to_dict(orient='records')
+    })
+    
+
 def resumen_view(request):
     return render(request, 'inventario/toma_fisica/resumen-total.html')
 

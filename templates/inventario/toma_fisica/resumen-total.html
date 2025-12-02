@@ -22,7 +22,7 @@
     </div>
 
     <div class="card mb-4">
-        <div class="card-header">TOMA FISICA ANDAGOYA</div>
+        <div class="card-header">RESUMEN UNIFICADO DE BODEGA ANDAGOYA Y CEREZOS</div>
         <div class="card-body">
             <div class="col-4 mb-3">
                 <input v-model="filtro" placeholder="Buscar..." type="text" class="form-control">
@@ -110,11 +110,14 @@
                                 T.F.Cerezos {% verbatim %}{{ getIconoOrden('total_unidades_cerezos') }}{% endverbatim %}
                             </span>
                             </th>
+                            <th scope="col">Detalles</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% verbatim %}
-                        <tr v-for="(i, index) in stockFiltrado" :key="index">                            
+                        <template v-for="(i, index) in stockFiltrado" :key="index">
+                        <!--tr v-for="(i, index) in stockFiltrado" :key="index"-->
+                        <tr :style="{ backgroundColor: expandedRow === i.product_id ? '#ceffbfff' : '' }" >
                             <td>{{ i.product_id }}</td>
                             <td>{{ i.Nombre }}</td>
                             <td>{{ i.Marca }}</td>
@@ -122,7 +125,75 @@
                             <td class="text-end">{{ formatNumber(i.total_unidades_andagoya) }}</td>
                             <td class="text-end">{{ formatNumber(i.oh2_cerezos) }}</td>
                             <td class="text-end">{{ formatNumber(i.total_unidades_cerezos) }}</td>
+                            <td>
+                                <button 
+                                    class="btn btn-sm btn-primary text-white"
+                                    @click="toggleRow(i.product_id)">
+                                    {{ expandedRow === i.product_id ? 'Ocultar' : 'Ver más' }}
+                                </button>
+                            </td>
                         </tr>
+
+                        <tr v-if="expandedRow === i.product_id" class="border-0 border-top-0">
+                            <td colspan="8">
+                                <div class="p-3" style="background-color: #f7ffcdff; border-radius: 15px;">
+                                    <h6 class="fw-bold">Detalle Andagoya</h6>
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Código</th>
+                                                <th>Nombre</th>
+                                                <th>Marca</th>
+                                                <th>Lote</th>
+                                                <th>Ubicación</th>
+                                                <th>Und.MBA</th>
+                                                <th>Und.TF</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr v-for="(d_a, idx) in detalle_andagoya" :key="idx">
+                                                <td>{{ d_a.product_id }}</td>
+                                                <td>{{ d_a.product_name }}</td>
+                                                <td>{{ d_a.group_code }}</td>
+                                                <td>{{ d_a.lote_id }}</td>
+                                                <td>{{ d_a.ware_code }}-{{ d_a.location }}</td>
+                                                <td class="text-end">{{ formatNumber(d_a.oh2) }}</td>
+                                                <td class="text-end">{{ formatNumber(d_a.total_unidades) }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="mt-3 p-3" style="background-color: #caf7ffff; border-radius: 15px;">
+                                    <h6 class="fw-bold">Detalle Cerezos</h6>
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Código</th>
+                                                <th>Nombre</th>
+                                                <th>Marca</th>
+                                                <th>Lote</th>
+                                                <th>Ubicación</th>
+                                                <th>Und.MBA</th>
+                                                <th>Und.TF</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr v-for="(d_c, idx) in detalle_cerezos" :key="idx">
+                                                <td>{{ d_c.product_id }}</td>
+                                                <td>{{ d_c.product_name }}</td>
+                                                <td>{{ d_c.group_code }}</td>
+                                                <td>{{ d_c.lote_id }}</td>
+                                                <td>{{ d_c.ubicacion__bodega }}-{{ d_c.ubicacion__pasillo }}-{{ d_c.ubicacion__modulo }}-{{ d_c.ubicacion__nivel }}</td>
+                                                <td class="text-end">{{ formatNumber(d_c.oh2) }}</td>
+                                                <td class="text-end">{{ formatNumber(d_c.total_unidades) }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </td>
+                        </tr>
+                        </template>
+
                         {% endverbatim %}
                     </tbody>
                 </table>
@@ -142,7 +213,11 @@
             actualizandoStock: false,
             stock: [],
             sortField: null,
-            sortDirection: 'asc'
+            sortDirection: 'asc',
+
+            expandedRow: null,
+            detalle_andagoya: [],
+            detalle_cerezos: [],
         },
         mounted() {
             this.getStock();
@@ -216,7 +291,7 @@
                 try {
                     const response = await fetch('/inventario/resumen_total_unificado');
                     const data = await response.json();
-                    console.log('Datos recibidos:', data);
+                    // console.log('Datos recibidos:', data);
                     
                     // Asegurarse de que todos los campos numéricos sean números
                     this.stock = (data.resumen_total || []).map(item => {
@@ -234,6 +309,30 @@
                     alert('Error al cargar los datos. Por favor, intente nuevamente.');
                 } finally {
                     this.actualizandoStock = false;
+                }
+            },
+            
+            toggleRow(product_id) {
+                // Si la fila ya está abierta, la cerramos
+                this.expandedRow = this.expandedRow === product_id ? null : product_id;
+                // console.log('Fila expandida:', product_id);
+                
+                if (this.expandedRow) {
+                    // Realizar la solicitud fetch para obtener los detalles
+                    fetch(`/inventario/resumen-total-unificado/detalle/${product_id}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            // console.log('Detalles recibidos:', data);
+                            // Aquí puedes asignar los datos recibidos a una propiedad para mostrarlos en la fila expandida
+                            this.detalle_andagoya = data.andagoya || [];
+                            this.detalle_cerezos = data.cerezos || [];
+                        })
+                        .catch(error => {
+                            console.error('Error al obtener detalles:', error);
+                        });
+                } else {
+                    // Si la fila se cierra, limpiar los detalles
+                    this.detalles = null;
                 }
             },
 
