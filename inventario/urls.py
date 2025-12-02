@@ -232,13 +232,13 @@ urlpatterns = [
     ),
     
     path(
-        route='resumen-total-unificado-andagoya/detalle/<str:product_id>',
+        route='resumen-total-unificado-andagoya/detalle', #/<str:product_id>',
         view = views.detalle_resumen_total_unificado_andagoya,
         name ="detalle_resumen_total_unificado_andagoya"
     ),
     
     path(
-        route='resumen-total-unificado-cerezos/detalle/<str:product_id>',
+        route='resumen-total-unificado-cerezos/detalle', #/<str:product_id>',
         view = views.detalle_resumen_total_unificado_cerezos,
         name ="detalle_resumen_total_unificado_cerezos"
     ),
