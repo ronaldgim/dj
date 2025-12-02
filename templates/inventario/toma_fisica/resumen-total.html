@@ -90,6 +90,16 @@
                                 T.F.Andagoya {% verbatim %}{{ getIconoOrden('total_unidades_andagoya') }}{% endverbatim %}
                             </span>
                             </th>
+                            <th
+                                scope="col"
+                                @click="ordenarPor('diferencia_andagoya')" 
+                                style="cursor: pointer;user-select: none;"
+                                :class="{ 'sorted': sortField === 'diferencia_andagoya' }"
+                            >
+                            <span style="white-space: nowrap;">
+                                Dif.Andagoya {% verbatim %}{{ getIconoOrden('diferencia_andagoya') }}{% endverbatim %}
+                            </span>
+                            </th>
                             <th 
                                 scope="col"
                                 @click="ordenarPor('oh2_cerezos')" 
@@ -110,6 +120,16 @@
                                 T.F.Cerezos {% verbatim %}{{ getIconoOrden('total_unidades_cerezos') }}{% endverbatim %}
                             </span>
                             </th>
+                            <th 
+                                scope="col"
+                                @click="ordenarPor('diferencia_cerezos')" 
+                                style="cursor: pointer;user-select: none;"
+                                :class="{ 'sorted': sortField === 'diferencia_cerezos' }"
+                            >
+                            <span style="white-space: nowrap;">
+                                Dif.Cerezos {% verbatim %}{{ getIconoOrden('diferencia_cerezos') }}{% endverbatim %}
+                            </span>
+                            </th>
                             <th scope="col">Detalles</th>
                         </tr>
                     </thead>
@@ -117,17 +137,20 @@
                         {% verbatim %}
                         <template v-for="(i, index) in stockFiltrado" :key="index">
                         <!--tr v-for="(i, index) in stockFiltrado" :key="index"-->
-                        <tr :style="{ backgroundColor: expandedRow === i.product_id ? '#ceffbfff' : '' }" >
+                        <!-- :style="{ backgroundColor: expandedRow === i.product_id ? '#ceffbfff' : '' }" class="btn btn-sm btn-primary text-white" -->
+                        <tr >
                             <td>{{ i.product_id }}</td>
                             <td>{{ i.Nombre }}</td>
                             <td>{{ i.Marca }}</td>
-                            <td class="text-end">{{ formatNumber(i.oh2_andagoya) }}</td>
-                            <td class="text-end">{{ formatNumber(i.total_unidades_andagoya) }}</td>
-                            <td class="text-end">{{ formatNumber(i.oh2_cerezos) }}</td>
-                            <td class="text-end">{{ formatNumber(i.total_unidades_cerezos) }}</td>
+                            <td class="text-end" style="background-color: #f7ffcdff;">{{ formatNumber(i.oh2_andagoya) }}</td>
+                            <td class="text-end" style="background-color: #f7ffcdff;">{{ formatNumber(i.total_unidades_andagoya) }}</td>
+                            <td class="text-end" style="background-color: #f7ffcdff;">{{ formatNumber(i.diferencia_andagoya) }}</td>
+                            <td class="text-end" style="background-color: #caf7ffff;">{{ formatNumber(i.oh2_cerezos) }}</td>
+                            <td class="text-end" style="background-color: #caf7ffff;">{{ formatNumber(i.total_unidades_cerezos) }}</td>
+                            <td class="text-end" style="background-color: #caf7ffff;">{{ formatNumber(i.diferencia_cerezos) }}</td>
                             <td>
                                 <button 
-                                    class="btn btn-sm btn-primary text-white"
+                                    :class="expandedRow === i.product_id ? 'btn btn-sm btn-secondary' : 'btn btn-sm btn-primary'"
                                     @click="toggleRow(i.product_id)">
                                     {{ expandedRow === i.product_id ? 'Ocultar' : 'Ver más' }}
                                 </button>
@@ -135,6 +158,12 @@
                         </tr>
 
                         <tr v-if="expandedRow === i.product_id" class="border-0 border-top-0">
+                            <td colspan="2" class="p-0 border-0">
+                                <strong>Producto:</strong> <br>
+                                    Codigo: {{ i.product_id }} <br>
+                                    Nombre: {{ i.Nombre }} <br>
+                                    Marca: {{ i.Marca }}
+                            </td>
                             <td colspan="8">
                                 <div class="p-3" style="background-color: #f7ffcdff; border-radius: 15px;">
                                     <h6 class="fw-bold">Detalle Andagoya</h6>
