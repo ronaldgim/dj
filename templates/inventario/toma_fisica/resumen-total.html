@@ -138,7 +138,7 @@
                         <template v-for="(i, index) in stockFiltrado" :key="index">
                         <!--tr v-for="(i, index) in stockFiltrado" :key="index"-->
                         <!-- :style="{ backgroundColor: expandedRow === i.product_id ? '#ceffbfff' : '' }" class="btn btn-sm btn-primary text-white" -->
-                        <tr >
+                        <tr :class="expandedRow === i.product_id ? 'fw-bold' : ''">
                             <td>{{ i.product_id }}</td>
                             <td>{{ i.Nombre }}</td>
                             <td>{{ i.Marca }}</td>
