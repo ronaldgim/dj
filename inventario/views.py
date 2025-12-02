@@ -1914,9 +1914,17 @@ def detalle_resumen_total_unificado(request, product_id):
     )
     cerezos_df = pd.DataFrame(cerezos)
     
+    totales = {
+        'andagoya_mba_total': int(andagoya_df['oh2'].sum().round(0)),
+        'andagoya_tf_total': int(andagoya_df['total_unidades'].sum().round(0)),
+        'cerezos_mba_total': int(cerezos_df['oh2'].sum().round(0)),
+        'cerezos_tf_total': int(cerezos_df['total_unidades'].sum().round(0)),
+    }
+    
     return JsonResponse({
         'cerezos': cerezos_df.to_dict(orient='records'),
-        'andagoya': andagoya_df.to_dict(orient='records')
+        'andagoya': andagoya_df.to_dict(orient='records'),
+        'totales': totales
     })
     
 
