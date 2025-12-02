@@ -231,6 +231,12 @@ urlpatterns = [
         name ="resumen-total-unificado"
     ),
     
+    path(
+        route='resumen-total-unificado/detalle/<str:product_id>',
+        view = views.detalle_resumen_total_unificado,
+        name ="detalle_resumen_total_unificado"
+    ),
+    
     # # Actulizar stock lote FORM UPDDATE
     # path(
     #     route='inventario/<int:id>/<str:bodega>/<str:ubicacion>',
