@@ -1889,6 +1889,7 @@ def detalle_resumen_total_unificado(request, product_id):
         # 'user__username',
     )
     andagoya_df = pd.DataFrame(andagoya)
+    andagoya_df['diferencia'] = andagoya_df['total_unidades'] - andagoya_df['oh2']
     
     cerezos = InventarioCerezos.objects.filter(product_id=product_id).values(
         'product_id',
@@ -1913,12 +1914,15 @@ def detalle_resumen_total_unificado(request, product_id):
         # 'user__username',
     )
     cerezos_df = pd.DataFrame(cerezos)
+    cerezos_df['diferencia'] = cerezos_df['total_unidades'] - cerezos_df['oh2']
     
     totales = {
         'andagoya_mba_total': int(andagoya_df['oh2'].sum().round(0)),
         'andagoya_tf_total': int(andagoya_df['total_unidades'].sum().round(0)),
         'cerezos_mba_total': int(cerezos_df['oh2'].sum().round(0)),
         'cerezos_tf_total': int(cerezos_df['total_unidades'].sum().round(0)),
+        'andagoya_diferencia_total': int(andagoya_df['diferencia'].sum().round(0)),
+        'cerezos_diferencia_total': int(cerezos_df['diferencia'].sum().round(0)),
     }
     
     return JsonResponse({
