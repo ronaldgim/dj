@@ -189,6 +189,11 @@
                                                 <td class="text-end">{{ formatNumber(d_a.oh2) }}</td>
                                                 <td class="text-end">{{ formatNumber(d_a.total_unidades) }}</td>
                                             </tr>
+                                            <tr>
+                                                <td colspan="5" class="text-end fw-bold">Totales:</td>
+                                                <td class="text-end fw-bold">{{ formatNumber(detalle_totales.andagoya_mba_total) }}</td>
+                                                <td class="text-end fw-bold">{{ formatNumber(detalle_totales.andagoya_tf_total) }}</td>
+                                            </tr>
                                         </tbody>
                                     </table>
                                 </div>
@@ -215,6 +220,11 @@
                                                 <td>{{ d_c.ubicacion__bodega }}-{{ d_c.ubicacion__pasillo }}-{{ d_c.ubicacion__modulo }}-{{ d_c.ubicacion__nivel }}</td>
                                                 <td class="text-end">{{ formatNumber(d_c.oh2) }}</td>
                                                 <td class="text-end">{{ formatNumber(d_c.total_unidades) }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="5" class="text-end fw-bold">Totales:</td>
+                                                <td class="text-end fw-bold">{{ formatNumber(detalle_totales.cerezos_mba_total) }}</td>
+                                                <td class="text-end fw-bold">{{ formatNumber(detalle_totales.cerezos_tf_total) }}</td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -247,6 +257,7 @@
             expandedRow: null,
             detalle_andagoya: [],
             detalle_cerezos: [],
+            detalle_totales: {}
         },
         mounted() {
             this.getStock();
@@ -355,6 +366,7 @@
                             // Aquí puedes asignar los datos recibidos a una propiedad para mostrarlos en la fila expandida
                             this.detalle_andagoya = data.andagoya || [];
                             this.detalle_cerezos = data.cerezos || [];
+                            this.detalle_totales = data.totales || {};
                         })
                         .catch(error => {
                             console.error('Error al obtener detalles:', error);
