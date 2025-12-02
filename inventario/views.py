@@ -1867,7 +1867,8 @@ def resumen_total_unificado(request):
     })
 
 
-def detalle_resumen_total_unificado_andagoya(request, product_id):
+def detalle_resumen_total_unificado_andagoya(request):
+    product_id = request.GET.get('product_id')
     andagoya = Inventario.objects.filter(product_id=product_id).values(
         'product_id',
         'product_name',
@@ -1888,6 +1889,17 @@ def detalle_resumen_total_unificado_andagoya(request, product_id):
         # 'observaciones',
         # 'user__username',
     )
+    
+    if not andagoya.exists():
+        return JsonResponse({
+            'andagoya': None,
+            'totales': {
+                'andagoya_mba_total': 0,
+                'andagoya_tf_total': 0,
+                'andagoya_diferencia_total': 0,
+            }
+        })
+    
     andagoya_df = pd.DataFrame(andagoya)
     andagoya_df['diferencia'] = andagoya_df['total_unidades'] - andagoya_df['oh2']
     
@@ -1904,8 +1916,8 @@ def detalle_resumen_total_unificado_andagoya(request, product_id):
     
 
 
-def detalle_resumen_total_unificado_cerezos(request, product_id):
-    
+def detalle_resumen_total_unificado_cerezos(request):
+    product_id = request.GET.get('product_id')
     cerezos = InventarioCerezos.objects.filter(product_id=product_id).values(
         'product_id',
         'product_name',
@@ -1928,6 +1940,17 @@ def detalle_resumen_total_unificado_cerezos(request, product_id):
         # 'observaciones',
         # 'user__username',
     )
+    
+    if not cerezos.exists():
+        return JsonResponse({
+            'cerezos': None,
+            'totales': {
+                'cerezos_mba_total': 0,
+                'cerezos_tf_total': 0,
+                'cerezos_diferencia_total': 0,
+            }
+        })
+    
     cerezos_df = pd.DataFrame(cerezos)
     cerezos_df['diferencia'] = cerezos_df['total_unidades'] - cerezos_df['oh2']
     
