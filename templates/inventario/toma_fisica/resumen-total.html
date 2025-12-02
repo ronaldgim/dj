@@ -73,7 +73,7 @@
                             <th 
                                 scope="col"
                                 @click="ordenarPor('oh2_andagoya')" 
-                                style="cursor: pointer;user-select: none;"
+                                style="cursor: pointer;user-select: none; background-color: #f7ffcdff;"
                                 :class="{ 'sorted': sortField === 'oh2_andagoya' }"
                             >
                             <span style="white-space: nowrap;">
@@ -83,7 +83,7 @@
                             <th 
                                 scope="col"
                                 @click="ordenarPor('total_unidades_andagoya')" 
-                                style="cursor: pointer;user-select: none;"
+                                style="cursor: pointer;user-select: none; background-color: #f7ffcdff;"
                                 :class="{ 'sorted': sortField === 'total_unidades_andagoya' }"
                             >
                             <span style="white-space: nowrap;">
@@ -93,7 +93,7 @@
                             <th
                                 scope="col"
                                 @click="ordenarPor('diferencia_andagoya')" 
-                                style="cursor: pointer;user-select: none;"
+                                style="cursor: pointer;user-select: none; background-color: #f7ffcdff;"
                                 :class="{ 'sorted': sortField === 'diferencia_andagoya' }"
                             >
                             <span style="white-space: nowrap;">
@@ -103,7 +103,7 @@
                             <th 
                                 scope="col"
                                 @click="ordenarPor('oh2_cerezos')" 
-                                style="cursor: pointer;user-select: none;"
+                                style="cursor: pointer;user-select: none; background-color: #caf7ffff;"
                                 :class="{ 'sorted': sortField === 'oh2_cerezos' }"
                             >
                             <span style="white-space: nowrap;">
@@ -113,7 +113,7 @@
                             <th 
                                 scope="col"
                                 @click="ordenarPor('total_unidades_cerezos')" 
-                                style="cursor: pointer;user-select: none;"
+                                style="cursor: pointer;user-select: none; background-color: #caf7ffff;"
                                 :class="{ 'sorted': sortField === 'total_unidades_cerezos' }"
                             >
                             <span style="white-space: nowrap;">
@@ -123,7 +123,7 @@
                             <th 
                                 scope="col"
                                 @click="ordenarPor('diferencia_cerezos')" 
-                                style="cursor: pointer;user-select: none;"
+                                style="cursor: pointer;user-select: none; background-color: #caf7ffff;"
                                 :class="{ 'sorted': sortField === 'diferencia_cerezos' }"
                             >
                             <span style="white-space: nowrap;">
@@ -144,10 +144,14 @@
                             <td>{{ i.Marca }}</td>
                             <td class="text-end" style="background-color: #f7ffcdff;">{{ formatNumber(i.oh2_andagoya) }}</td>
                             <td class="text-end" style="background-color: #f7ffcdff;">{{ formatNumber(i.total_unidades_andagoya) }}</td>
-                            <td class="text-end" style="background-color: #f7ffcdff;">{{ formatNumber(i.diferencia_andagoya) }}</td>
+                            <td :class="['text-end', i.diferencia_andagoya < 0 ? 'text-danger' : '']" style="background-color: #f7ffcdff;">
+                                {{ i.diferencia_andagoya < 0 ? `(${Math.abs(i.diferencia_andagoya).toLocaleString()})` : i.diferencia_andagoya.toLocaleString() }}
+                            </td>
                             <td class="text-end" style="background-color: #caf7ffff;">{{ formatNumber(i.oh2_cerezos) }}</td>
                             <td class="text-end" style="background-color: #caf7ffff;">{{ formatNumber(i.total_unidades_cerezos) }}</td>
-                            <td class="text-end" style="background-color: #caf7ffff;">{{ formatNumber(i.diferencia_cerezos) }}</td>
+                            <td :class="['text-end', i.diferencia_cerezos < 0 ? 'text-danger' : '']" style="background-color: #caf7ffff;">
+                                {{ i.diferencia_cerezos < 0 ? `(${Math.abs(i.diferencia_cerezos).toLocaleString()})` : i.diferencia_cerezos.toLocaleString() }}
+                            </td>
                             <td>
                                 <button 
                                     :class="expandedRow === i.product_id ? 'btn btn-sm btn-secondary' : 'btn btn-sm btn-primary'"
@@ -189,13 +193,15 @@
                                                 <td>{{ d_a.ware_code }}-{{ d_a.location }}</td>
                                                 <td class="text-end">{{ formatNumber(d_a.oh2) }}</td>
                                                 <td class="text-end">{{ formatNumber(d_a.total_unidades) }}</td>
-                                                <td class="text-end">{{ formatNumber(d_a.diferencia) }}</td>
+                                                <td :class="['text-end', d_a.diferencia < 0 ? 'text-danger' : '']">
+                                                    {{ d_a.diferencia < 0 ? `(${Math.abs(d_a.diferencia).toLocaleString()})` : d_a.diferencia.toLocaleString() }}</td>
                                             </tr>
                                             <tr>
                                                 <td colspan="5" class="text-end fw-bold">Totales:</td>
-                                                <td class="text-end fw-bold">{{ formatNumber(detalle_totales.andagoya_mba_total) }}</td>
-                                                <td class="text-end fw-bold">{{ formatNumber(detalle_totales.andagoya_tf_total) }}</td>
-                                                <td class="text-end fw-bold">{{ formatNumber(detalle_totales.andagoya_diferencia_total) }}</td>
+                                                <td class="text-end fw-bold">{{ formatNumber(detalle_totales_andagoya.andagoya_mba_total) }}</td>
+                                                <td class="text-end fw-bold">{{ formatNumber(detalle_totales_andagoya.andagoya_tf_total) }}</td>
+                                                <td :class="['text-end', 'fw-bold', detalle_totales_andagoya.andagoya_diferencia_total < 0 ? 'text-danger' : '']">
+                                                    {{ detalle_totales_andagoya.andagoya_diferencia_total < 0 ? `(${Math.abs(detalle_totales_andagoya.andagoya_diferencia_total).toLocaleString()})` : detalle_totales_andagoya.andagoya_diferencia_total.toLocaleString() }}</td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -224,13 +230,16 @@
                                                 <td>{{ d_c.ubicacion__bodega }}-{{ d_c.ubicacion__pasillo }}-{{ d_c.ubicacion__modulo }}-{{ d_c.ubicacion__nivel }}</td>
                                                 <td class="text-end">{{ formatNumber(d_c.oh2) }}</td>
                                                 <td class="text-end">{{ formatNumber(d_c.total_unidades) }}</td>
-                                                <td class="text-end">{{ formatNumber(d_c.diferencia) }}</td>
+                                                <td :class="['text-end', d_c.diferencia < 0 ? 'text-danger' : '']">
+                                                    {{ d_c.diferencia < 0 ? `(${Math.abs(d_c.diferencia).toLocaleString()})` : d_c.diferencia.toLocaleString() }}</td>
                                             </tr>
                                             <tr>
                                                 <td colspan="5" class="text-end fw-bold">Totales:</td>
-                                                <td class="text-end fw-bold">{{ formatNumber(detalle_totales.cerezos_mba_total) }}</td>
-                                                <td class="text-end fw-bold">{{ formatNumber(detalle_totales.cerezos_tf_total) }}</td>
-                                                <td class="text-end fw-bold">{{ formatNumber(detalle_totales.cerezos_diferencia_total) }}</td>
+                                                <td class="text-end fw-bold">{{ formatNumber(detalle_totales_cerezos.cerezos_mba_total) }}</td>
+                                                <td class="text-end fw-bold">{{ formatNumber(detalle_totales_cerezos.cerezos_tf_total) }}</td>
+                                                <td :class="['text-end', 'fw-bold', detalle_totales_cerezos.cerezos_diferencia_total < 0 ? 'text-danger' : '']">
+                                                    {{ detalle_totales_cerezos.cerezos_diferencia_total < 0 ? `(${Math.abs(detalle_totales_cerezos.cerezos_diferencia_total).toLocaleString()})` : detalle_totales_cerezos.cerezos_diferencia_total.toLocaleString() }}
+                                                </td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -263,7 +272,8 @@
             expandedRow: null,
             detalle_andagoya: [],
             detalle_cerezos: [],
-            detalle_totales: {}
+            detalle_totales_andagoya: {},
+            detalle_totales_cerezos: {}
         },
         mounted() {
             this.getStock();
@@ -365,25 +375,39 @@
                 
                 if (this.expandedRow) {
                     // Realizar la solicitud fetch para obtener los detalles
-                    fetch(`/inventario/resumen-total-unificado/detalle/${product_id}`)
+                    // ANDAGOYA
+                    fetch(`/inventario/resumen-total-unificado-andagoya/detalle/${product_id}`)
                         .then(response => response.json())
                         .then(data => {
                             // console.log('Detalles recibidos:', data);
                             // Aquí puedes asignar los datos recibidos a una propiedad para mostrarlos en la fila expandida
                             this.detalle_andagoya = data.andagoya || [];
-                            this.detalle_cerezos = data.cerezos || [];
-                            this.detalle_totales = data.totales || {};
+                            this.detalle_totales_andagoya = data.totales || {};
                         })
                         .catch(error => {
                             this.detalle_andagoya = [];
-                            this.detalle_cerezos = [];
-                            this.detalle_totales = {};
+                            this.detalle_totales_andagoya = {};
                         });
+                    fetch(`/inventario/resumen-total-unificado-cerezos/detalle/${product_id}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            // console.log('Detalles recibidos:', data);
+                            // Aquí puedes asignar los datos recibidos a una propiedad para mostrarlos en la fila expandida
+                            this.detalle_cerezos = data.cerezos || [];
+                            this.detalle_totales_cerezos = data.totales || {};
+                        })
+                        .catch(error => {
+                            this.detalle_cerezos = [];
+                            this.detalle_cerezos = [];
+                            this.detalle_totales_cerezos = {};
+                        });
+
                 } else {
                     // Si la fila se cierra, limpiar los detalles
                     this.detalle_andagoya = [];
                     this.detalle_cerezos = [];
-                    this.detalle_totales = {};
+                    this.detalle_totales_andagoya = {};
+                    this.detalle_totales_cerezos = {};
                 }
             },
 
