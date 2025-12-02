@@ -369,11 +369,15 @@
                             this.detalle_totales = data.totales || {};
                         })
                         .catch(error => {
-                            console.error('Error al obtener detalles:', error);
+                            this.detalle_andagoya = [];
+                            this.detalle_cerezos = [];
+                            this.detalle_totales = {};
                         });
                 } else {
                     // Si la fila se cierra, limpiar los detalles
-                    this.detalles = null;
+                    this.detalle_andagoya = [];
+                    this.detalle_cerezos = [];
+                    this.detalle_totales = {};
                 }
             },
 
