@@ -177,6 +177,7 @@
                                                 <th>Ubicación</th>
                                                 <th>Und.MBA</th>
                                                 <th>Und.TF</th>
+                                                <th>Diferencia</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -188,11 +189,13 @@
                                                 <td>{{ d_a.ware_code }}-{{ d_a.location }}</td>
                                                 <td class="text-end">{{ formatNumber(d_a.oh2) }}</td>
                                                 <td class="text-end">{{ formatNumber(d_a.total_unidades) }}</td>
+                                                <td class="text-end">{{ formatNumber(d_a.diferencia) }}</td>
                                             </tr>
                                             <tr>
                                                 <td colspan="5" class="text-end fw-bold">Totales:</td>
                                                 <td class="text-end fw-bold">{{ formatNumber(detalle_totales.andagoya_mba_total) }}</td>
                                                 <td class="text-end fw-bold">{{ formatNumber(detalle_totales.andagoya_tf_total) }}</td>
+                                                <td class="text-end fw-bold">{{ formatNumber(detalle_totales.andagoya_diferencia_total) }}</td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -209,6 +212,7 @@
                                                 <th>Ubicación</th>
                                                 <th>Und.MBA</th>
                                                 <th>Und.TF</th>
+                                                <th>Diferencia</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -220,11 +224,13 @@
                                                 <td>{{ d_c.ubicacion__bodega }}-{{ d_c.ubicacion__pasillo }}-{{ d_c.ubicacion__modulo }}-{{ d_c.ubicacion__nivel }}</td>
                                                 <td class="text-end">{{ formatNumber(d_c.oh2) }}</td>
                                                 <td class="text-end">{{ formatNumber(d_c.total_unidades) }}</td>
+                                                <td class="text-end">{{ formatNumber(d_c.diferencia) }}</td>
                                             </tr>
                                             <tr>
                                                 <td colspan="5" class="text-end fw-bold">Totales:</td>
                                                 <td class="text-end fw-bold">{{ formatNumber(detalle_totales.cerezos_mba_total) }}</td>
                                                 <td class="text-end fw-bold">{{ formatNumber(detalle_totales.cerezos_tf_total) }}</td>
+                                                <td class="text-end fw-bold">{{ formatNumber(detalle_totales.cerezos_diferencia_total) }}</td>
                                             </tr>
                                         </tbody>
                                     </table>
