@@ -1867,7 +1867,7 @@ def resumen_total_unificado(request):
     })
 
 
-def detalle_resumen_total_unificado(request, product_id):
+def detalle_resumen_total_unificado_andagoya(request, product_id):
     andagoya = Inventario.objects.filter(product_id=product_id).values(
         'product_id',
         'product_name',
@@ -1890,6 +1890,21 @@ def detalle_resumen_total_unificado(request, product_id):
     )
     andagoya_df = pd.DataFrame(andagoya)
     andagoya_df['diferencia'] = andagoya_df['total_unidades'] - andagoya_df['oh2']
+    
+    totales = {
+        'andagoya_mba_total': int(andagoya_df['oh2'].sum().round(0)),
+        'andagoya_tf_total': int(andagoya_df['total_unidades'].sum().round(0)),
+        'andagoya_diferencia_total': int(andagoya_df['diferencia'].sum().round(0)),
+    }
+    
+    return JsonResponse({
+        'andagoya': andagoya_df.to_dict(orient='records'),
+        'totales': totales
+    })
+    
+
+
+def detalle_resumen_total_unificado_cerezos(request, product_id):
     
     cerezos = InventarioCerezos.objects.filter(product_id=product_id).values(
         'product_id',
@@ -1917,20 +1932,17 @@ def detalle_resumen_total_unificado(request, product_id):
     cerezos_df['diferencia'] = cerezos_df['total_unidades'] - cerezos_df['oh2']
     
     totales = {
-        'andagoya_mba_total': int(andagoya_df['oh2'].sum().round(0)),
-        'andagoya_tf_total': int(andagoya_df['total_unidades'].sum().round(0)),
         'cerezos_mba_total': int(cerezos_df['oh2'].sum().round(0)),
         'cerezos_tf_total': int(cerezos_df['total_unidades'].sum().round(0)),
-        'andagoya_diferencia_total': int(andagoya_df['diferencia'].sum().round(0)),
         'cerezos_diferencia_total': int(cerezos_df['diferencia'].sum().round(0)),
     }
     
     return JsonResponse({
         'cerezos': cerezos_df.to_dict(orient='records'),
-        'andagoya': andagoya_df.to_dict(orient='records'),
         'totales': totales
     })
     
+
 
 def resumen_view(request):
     return render(request, 'inventario/toma_fisica/resumen-total.html')
