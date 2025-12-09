@@ -6,7 +6,6 @@ from django.db import connections
 from django.db.models import Sum, F, Value, Q
 from django.db.models.functions import Concat
 
-
 # Pandas
 import pandas as pd
 import numpy as np
@@ -16,14 +15,30 @@ import json
 
 # Models
 from datos.models import Product
-from .models import Inventario, InventarioTotale, InventarioCerezos, InventarioCerezosTotale, Arqueo, ArqueoFisico, ArqueosCreados
-from users.models import User, UserPerfil
+from .models import (
+    Inventario, 
+    InventarioTotale, 
+    InventarioCerezos, 
+    InventarioCerezosTotale, 
+    Arqueo, 
+    ArqueoFisico, 
+    ArqueosCreados
+)
+from users.models import User #, UserPerfil
 
 # models WMS
 from wms.models import Existencias, Ubicacion
 
 # Forms
-from .forms import InventarioForm, InventarioAgregarForm, InventarioTotalesForm,  InventarioCerezosForm, InventarioCerezosAgregarForm, InventarioCerezosTotalesForm, ArqueoForm
+from .forms import (
+    InventarioForm, 
+    InventarioAgregarForm, 
+    InventarioTotalesForm,  
+    InventarioCerezosForm, 
+    InventarioCerezosAgregarForm, 
+    InventarioCerezosTotalesForm, 
+    ArqueoForm
+)
 
 # Messages
 from django.contrib import messages
@@ -50,7 +65,7 @@ from datos.views import (
 
 
 # WMS
-from wms.models import InventarioIngresoBodega, Movimiento
+# from wms.models import InventarioIngresoBodega, Movimiento
 
 # HTTPS
 from django.views.decorators.http import require_GET, require_POST
