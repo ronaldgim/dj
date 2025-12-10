@@ -344,7 +344,8 @@
                             <td class="text-end">{{ totalUndEstanteria.toLocaleString() }}</td>
                             <td class="text-end">{{ totalUnidades.toLocaleString() }}</td>
                             <td class="text-end">{{ totalUnidadesMBA.toLocaleString() }}</td>
-                            <td class="text-end">{{ totalDiferencia.toLocaleString() }}</td>
+                            <!--td class="text-end">{{ totalDiferencia.toLocaleString() }}</td-->
+                            <td :class="['text-end', totalDiferencia < 0 ? 'text-danger' : '']">{{ totalDiferencia < 0 ? `(${Math.abs(totalDiferencia).toLocaleString()})` : totalDiferencia.toLocaleString()}}</td>
                             <td colspan="4"></td>
                         </tr>
                         {% endverbatim %}
