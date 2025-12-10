@@ -770,12 +770,12 @@
                     // Item
                     this.item = data.item;
                     this.ubicacion = data.item.ubi
-
                     
                     this.lotes = data.lotes || [];
 
                     // Total lotes
-                    this.total_lotes = this.lotes.reduce((acumulador, unidades) => acumulador + unidades.total_unidades, 0)
+                    // this.total_lotes = this.lotes.reduce((acumulador, unidades) => acumulador + unidades.total_unidades, 0)
+                    this.total_lotes = data.total_lotes || 0;
 
                     // Form totales
                     if (data.item_totales){
