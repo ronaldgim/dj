@@ -1887,10 +1887,6 @@ def resumen_total_unificado(request):
     resumen_total['diferencia_cerezos'] = resumen_total['total_unidades_cerezos'] - resumen_total['oh2_cerezos']
     resumen_total['diferencia_andagoya'] = resumen_total['total_unidades_andagoya'] - resumen_total['oh2_andagoya']
     
-    resumen_total['llenado_andagoya'] = resumen_total['total_unidades_andagoya'] > 0
-    resumen_total['llenado_cerezos'] = resumen_total['total_unidades_cerezos'] > 0
-    resumen_total['llenado'] = (resumen_total['llenado_andagoya']) & (resumen_total['llenado_cerezos'])
-    
     return JsonResponse({
         'resumen_total': resumen_total.to_dict(orient='records')
     })
