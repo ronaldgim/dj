@@ -766,17 +766,14 @@
                 try {
                     const response = await fetch(`/inventario/cerezos/toma-fisica/${item_id}`);
                     const data = await response.json();
-                    
+                    console.log(data);
                     // Item
                     this.item = data.item;
                     this.ubicacion = data.item.ubi
 
-                    // List de lotes
-                    this.lotes = this.stock.filter(i =>
-                        i.product_id == this.item.product_id && 
-                        i.ubicacion__id == this.item.ubicacion
-                    )
                     
+                    this.lotes = data.lotes || [];
+
                     // Total lotes
                     this.total_lotes = this.lotes.reduce((acumulador, unidades) => acumulador + unidades.total_unidades, 0)
 
