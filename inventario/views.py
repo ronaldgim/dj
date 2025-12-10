@@ -1299,7 +1299,8 @@ def inventario_cerezos_toma_fisica_item(request, item_id):
             Q(product_id=item.product_id) &
             Q(ubicacion__bodega=item.ubicacion.bodega) &
             Q(ubicacion__pasillo=item.ubicacion.pasillo)
-        ) #.annotate(unidades_ok=F('total_unidades'))
+        )
+        total_lotes = item_lotes.aggregate(total_lotes=Sum('total_unidades')) if item_lotes.exists() else 0
         
         # item totales
         item_totales = (InventarioCerezosTotale.objects
@@ -1308,11 +1309,12 @@ def inventario_cerezos_toma_fisica_item(request, item_id):
                 Q(ubicacion__bodega=item.ubicacion.bodega) &
                 Q(ubicacion__pasillo=item.ubicacion.pasillo)
             )
-        )
+        )       
         
         return JsonResponse({
             'item': item_dict,
             'lotes':list(item_lotes.values('product_id', 'lote_id', 'total_unidades')),
+            'total_lotes':total_lotes['total_lotes'],
             'item_totales': model_to_dict(item_totales.first()) if item_totales.first() else None,
             })
     
