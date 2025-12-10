@@ -90,7 +90,7 @@
                                 T.F.Andagoya {% verbatim %}{{ getIconoOrden('total_unidades_andagoya') }}{% endverbatim %}
                             </span>
                             </th>
-                            <th
+                            <!--th
                                 scope="col"
                                 @click="ordenarPor('diferencia_andagoya')" 
                                 style="cursor: pointer;user-select: none; background-color: #f7ffcdff;"
@@ -99,7 +99,7 @@
                             <span style="white-space: nowrap;">
                                 Dif.Andagoya {% verbatim %}{{ getIconoOrden('diferencia_andagoya') }}{% endverbatim %}
                             </span>
-                            </th>
+                            </th-->
                             <th 
                                 scope="col"
                                 @click="ordenarPor('oh2_cerezos')" 
@@ -120,7 +120,7 @@
                                 T.F.Cerezos {% verbatim %}{{ getIconoOrden('total_unidades_cerezos') }}{% endverbatim %}
                             </span>
                             </th>
-                            <th 
+                            <!--th 
                                 scope="col"
                                 @click="ordenarPor('diferencia_cerezos')" 
                                 style="cursor: pointer;user-select: none; background-color: #caf7ffff;"
@@ -128,6 +128,37 @@
                             >
                             <span style="white-space: nowrap;">
                                 Dif.Cerezos {% verbatim %}{{ getIconoOrden('diferencia_cerezos') }}{% endverbatim %}
+                            </span>
+                            </th-->
+
+                            <th 
+                                scope="col"
+                                @click="ordenarPor('mba_total')" 
+                                style="cursor: pointer;user-select: none;"
+                                :class="{ 'sorted': sortField === 'mba_total' }"
+                            >
+                            <span style="white-space: nowrap;">
+                                Total Unds. MBA {% verbatim %}{{ getIconoOrden('mba_total') }}{% endverbatim %}
+                            </span>
+                            </th>
+                            <th 
+                                scope="col"
+                                @click="ordenarPor('tf_total')" 
+                                style="cursor: pointer;user-select: none;"
+                                :class="{ 'sorted': sortField === 'tf_total' }"
+                            >
+                            <span style="white-space: nowrap;">
+                                Total T.F {% verbatim %}{{ getIconoOrden('tf_total') }}{% endverbatim %}
+                            </span>
+                            </th>
+                            <th 
+                                scope="col"
+                                @click="ordenarPor('diferencia_total')" 
+                                style="cursor: pointer;user-select: none;"
+                                :class="{ 'sorted': sortField === 'diferencia_total' }"
+                            >
+                            <span style="white-space: nowrap;">
+                                Diff. MBA-T.F {% verbatim %}{{ getIconoOrden('diferencia_total') }}{% endverbatim %}
                             </span>
                             </th>
                             <th scope="col">Llenado</th>
@@ -145,13 +176,18 @@
                             <td>{{ i.Marca }}</td>
                             <td class="text-end" style="background-color: #f7ffcdff;">{{ formatNumber(i.oh2_andagoya) }}</td>
                             <td class="text-end" style="background-color: #f7ffcdff;">{{ formatNumber(i.total_unidades_andagoya) }}</td>
-                            <td :class="['text-end', i.diferencia_andagoya < 0 ? 'text-danger' : '']" style="background-color: #f7ffcdff;">
+                            <!--td :class="['text-end', i.diferencia_andagoya < 0 ? 'text-danger' : '']" style="background-color: #f7ffcdff;">
                                 {{ i.diferencia_andagoya < 0 ? `(${Math.abs(i.diferencia_andagoya).toLocaleString()})` : i.diferencia_andagoya.toLocaleString() }}
-                            </td>
+                            </td-->
                             <td class="text-end" style="background-color: #caf7ffff;">{{ formatNumber(i.oh2_cerezos) }}</td>
                             <td class="text-end" style="background-color: #caf7ffff;">{{ formatNumber(i.total_unidades_cerezos) }}</td>
-                            <td :class="['text-end', i.diferencia_cerezos < 0 ? 'text-danger' : '']" style="background-color: #caf7ffff;">
+                            <!--td :class="['text-end', i.diferencia_cerezos < 0 ? 'text-danger' : '']" style="background-color: #caf7ffff;">
                                 {{ i.diferencia_cerezos < 0 ? `(${Math.abs(i.diferencia_cerezos).toLocaleString()})` : i.diferencia_cerezos.toLocaleString() }}
+                            </td-->
+                            <td class="text-end">{{ formatNumber(i.mba_total) }}</td>
+                            <td class="text-end">{{ formatNumber(i.tf_total) }}</td>
+                            <td :class="['text-end', i.diferencia_total < 0 ? 'text-danger' : '']">
+                                {{ i.diferencia_total < 0 ? `(${Math.abs(i.diferencia_total).toLocaleString()})` : i.diferencia_total.toLocaleString() }}
                             </td>
                             <td>
                                     {{ i.total_unidades_andagoya > 0 && i.total_unidades_cerezos > 0 ? '✅' : '❌' }}

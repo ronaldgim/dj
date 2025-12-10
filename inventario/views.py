@@ -1884,8 +1884,12 @@ def resumen_total_unificado(request):
     
     productos = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     resumen_total = resumen_total.merge(productos, on='product_id', how='left') 
-    resumen_total['diferencia_cerezos'] = resumen_total['total_unidades_cerezos'] - resumen_total['oh2_cerezos']
-    resumen_total['diferencia_andagoya'] = resumen_total['total_unidades_andagoya'] - resumen_total['oh2_andagoya']
+    # resumen_total['diferencia_cerezos'] = resumen_total['total_unidades_cerezos'] - resumen_total['oh2_cerezos']
+    # resumen_total['diferencia_andagoya'] = resumen_total['total_unidades_andagoya'] - resumen_total['oh2_andagoya']
+    
+    resumen_total['mba_total'] = resumen_total['oh2_cerezos'] + resumen_total['oh2_andagoya']
+    resumen_total['tf_total']  = resumen_total['total_unidades_cerezos'] + resumen_total['total_unidades_andagoya']
+    resumen_total['diferencia_total'] = resumen_total['tf_total'] - resumen_total['mba_total']
     
     return JsonResponse({
         'resumen_total': resumen_total.to_dict(orient='records')
