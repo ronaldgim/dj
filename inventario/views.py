@@ -255,11 +255,11 @@ def inventario_home(request):
     
     inventario_andagoya = Inventario.objects.all().count()
     inventario_andagoya_llenado = Inventario.objects.filter(llenado=True).count()
-    andagoya = 0 if inventario_andagoya == 0 else round(inventario_andagoya_llenado / inventario_andagoya, 0)
+    andagoya = 0 if inventario_andagoya == 0 else round((inventario_andagoya_llenado / inventario_andagoya) * 100, 1)
     
     inventario_cerezos = InventarioCerezos.objects.all().count()
     inventario_cerezos_llenado = InventarioCerezos.objects.filter(llenado=True).count()
-    cerezos = 0 if inventario_cerezos == 0 else round(inventario_cerezos_llenado / inventario_cerezos, 0)
+    cerezos = 0 if inventario_cerezos == 0 else round((inventario_cerezos_llenado / inventario_cerezos) * 100, 1)
     
     context = {
         'andagoya':inventario_andagoya,
@@ -1574,7 +1574,6 @@ def reporte_cerezos_tf_mba(request):
         'total_unidades': 'UNDS-TF',
     })
 
-
     # INV STOCK
     stock = stock_lote_inventario_cerezos()[['PRODUCT_ID','LOTE_ID','OH2','WARE_CODE','LOCATION']]
     stock['LOTE_ID'] = stock['LOTE_ID'].str.replace(pat='.', repl='', regex=False)
@@ -1621,7 +1620,6 @@ def reporte_cerezos_tf_mba(request):
         'DIFERENCIA (MBA-TF)',
         'DIFERENCIA (WMS-MBA)'
     ]]
-
 
     date_time = str(datetime.now())
     date_time = date_time[0:16]
@@ -1889,7 +1887,6 @@ def resumen_total_unificado(request):
     resumen_total['diferencia_cerezos'] = resumen_total['total_unidades_cerezos'] - resumen_total['oh2_cerezos']
     resumen_total['diferencia_andagoya'] = resumen_total['total_unidades_andagoya'] - resumen_total['oh2_andagoya']
     
-    
     return JsonResponse({
         'resumen_total': resumen_total.to_dict(orient='records')
     })
@@ -1941,7 +1938,6 @@ def detalle_resumen_total_unificado_andagoya(request):
         'andagoya': andagoya_df.to_dict(orient='records'),
         'totales': totales
     })
-    
 
 
 def detalle_resumen_total_unificado_cerezos(request):
@@ -1992,7 +1988,6 @@ def detalle_resumen_total_unificado_cerezos(request):
         'cerezos': cerezos_df.to_dict(orient='records'),
         'totales': totales
     })
-    
 
 
 def resumen_view(request):
