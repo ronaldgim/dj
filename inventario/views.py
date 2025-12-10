@@ -1574,7 +1574,6 @@ def reporte_cerezos_tf_mba(request):
         'total_unidades': 'UNDS-TF',
     })
 
-
     # INV STOCK
     stock = stock_lote_inventario_cerezos()[['PRODUCT_ID','LOTE_ID','OH2','WARE_CODE','LOCATION']]
     stock['LOTE_ID'] = stock['LOTE_ID'].str.replace(pat='.', repl='', regex=False)
@@ -1621,7 +1620,6 @@ def reporte_cerezos_tf_mba(request):
         'DIFERENCIA (MBA-TF)',
         'DIFERENCIA (WMS-MBA)'
     ]]
-
 
     date_time = str(datetime.now())
     date_time = date_time[0:16]
@@ -1889,6 +1887,9 @@ def resumen_total_unificado(request):
     resumen_total['diferencia_cerezos'] = resumen_total['total_unidades_cerezos'] - resumen_total['oh2_cerezos']
     resumen_total['diferencia_andagoya'] = resumen_total['total_unidades_andagoya'] - resumen_total['oh2_andagoya']
     
+    resumen_total['llenado_andagoya'] = resumen_total['total_unidades_andagoya'] > 0
+    resumen_total['llenado_cerezos'] = resumen_total['total_unidades_cerezos'] > 0
+    resumen_total['llenado'] = (resumen_total['llenado_andagoya']) & (resumen_total['llenado_cerezos'])
     
     return JsonResponse({
         'resumen_total': resumen_total.to_dict(orient='records')
@@ -1941,7 +1942,6 @@ def detalle_resumen_total_unificado_andagoya(request):
         'andagoya': andagoya_df.to_dict(orient='records'),
         'totales': totales
     })
-    
 
 
 def detalle_resumen_total_unificado_cerezos(request):
@@ -1992,7 +1992,6 @@ def detalle_resumen_total_unificado_cerezos(request):
         'cerezos': cerezos_df.to_dict(orient='records'),
         'totales': totales
     })
-    
 
 
 def resumen_view(request):
