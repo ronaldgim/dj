@@ -287,10 +287,18 @@
     </div>
 
     <div class="modal fade" id="ReservasModal" tabindex="-1" aria-labelledby="agregarItemFormLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="ReservasModalLabel">RESERVAS BODEGA CEREZOS</h5>
+                    <h5 class="modal-title" id="ReservasModalLabel">
+                        RESERVAS BODEGA CEREZOS
+                        <button
+                            class="btn btn-sm btn-info text-white ms-3"
+                            @click="fetchReservas()"    
+                        >
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </button>
+                    </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -300,7 +308,11 @@
                     <table class="table table-hover" style="font-size: small;">
                         <thead>
                             <tr>
-                                <th>Nombre Cliente</th>
+                                <th>N°.Pedido</th>
+                                <th>Fecha</th>
+                                <th>Cliente</th>
+                                <th>Status MBA</th>
+                                <th>Usuario</th>
                                 <th>Código</th>
                                 <th>Nombre</th>
                                 <th>Marca</th>
@@ -311,16 +323,20 @@
                         <tbody>
                             {% verbatim %}
                             <tr v-if="loadingReservas">
-                                <td colspan="6" class="text-center py-4">
+                                <td colspan="10" class="text-center py-4">
                                     <div class="spinner-border spinner-border-sm me-2" role="status"></div>
                                     Cargando datos...
                                 </td>
                             </tr>
                             <tr v-for="(r, index) in reservasFiltradas" :key="index">
+                                <td>{{ r.contrato_id }}</td>
+                                <td>{{ r.fecha_pedido }}</td>
                                 <td>{{ r.nombre_cliente }}</td>
+                                <td>{{ r.confirmed === '1' ? '✅' : '❌' }}</td>
+                                <td>{{ r.user_name }}</td>
                                 <td>{{ r.product_id }}</td>
-                                <td>{{ r.Nombre }}</td>
-                                <td>{{ r.Marca }}</td>
+                                <td>{{ r.nombre }}</td>
+                                <td>{{ r.marca }}</td>
                                 <td>{{ r.lote_id }}</td>
                                 <td class="text-end">{{ r.egreso_temp.toLocaleString() }}</td>
                             </tr>
@@ -452,7 +468,10 @@
             },
             reservasFiltradas() {
                 let resultadoReservasFiltradas = this.reservas.filter(r => {
+                    const contratoId = (r.contrato_id || '').toString().toLowerCase();
+                    const fechaPedido = (r.fecha_pedido || '').toString().toLowerCase();
                     const nombreCliente = (r.nombre_cliente || '').toString().toLowerCase();
+                    const userName = (r.user_name || '').toString().toLowerCase();
                     const productId = (r.product_id || '').toString().toLowerCase();
                     const productName = (r.Nombre || '').toString().toLowerCase();
                     const marca = (r.Marca || '').toString().toLowerCase();
@@ -460,6 +479,9 @@
                     const busquedaLower = this.busquedaReservas.toLowerCase();
 
                     return nombreCliente.includes(busquedaLower) ||
+                        contratoId.includes(busquedaLower) ||
+                        fechaPedido.includes(busquedaLower) ||
+                        userName.includes(busquedaLower) ||
                         productId.includes(busquedaLower) ||
                         productName.includes(busquedaLower) ||
                         marca.includes(busquedaLower) ||
