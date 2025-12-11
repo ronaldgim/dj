@@ -894,28 +894,27 @@ def pivot_reservas_lote_2(ware_code):
         
         connections['gimpromed_sql'].close()
         
-        # reservas_pivot = reservas.pivot_table(
-        #     index=['product_id', 'lote_id'],
-        #     columns='nombre_cliente',
-        #     values='egreso_temp',
-        #     aggfunc='sum',
-        #     fill_value=0
-        # ).reset_index()
-    return reservas # reservas_pivot
+        reservas_pivot = reservas.pivot_table(
+            index=['product_id', 'lote_id'],
+            columns='nombre_cliente',
+            values='egreso_temp',
+            aggfunc='sum',
+            fill_value=0
+        ).reset_index()
+    return reservas_pivot # reservas
 
 
 @login_required(login_url='login')
 def reporte_andagoya_bpa(request):
     
-    reservas = pivot_reservas_lote_2('BAN')
-    
-    reservas = reservas.pivot_table(
-        index=['product_id', 'lote_id'],
-        columns='nombre_cliente',
-        values='egreso_temp',
-        aggfunc='sum',
-        fill_value=0
-    ).reset_index()
+    reservas = pivot_reservas_lote_2('BAN')    
+    # reservas = reservas.pivot_table(
+    #     index=['product_id', 'lote_id'],
+    #     columns='nombre_cliente',
+    #     values='egreso_temp',
+    #     aggfunc='sum',
+    #     fill_value=0
+    # ).reset_index()
     
     inv = Inventario.objects.all().values(
         'product_id',
@@ -1829,13 +1828,13 @@ def reporte_cerezos_bpa(request):
     df_final = pd.concat(df_list).fillna('')
     
     reservas = pivot_reservas_lote_2('BCT')
-    reservas = reservas.pivot_table(
-        index=['product_id', 'lote_id'],
-        columns='nombre_cliente',
-        values='egreso_temp',
-        aggfunc='sum',
-        fill_value=0
-    ).reset_index()
+    # reservas = reservas.pivot_table(
+    #     index=['product_id', 'lote_id'],
+    #     columns='nombre_cliente',
+    #     values='egreso_temp',
+    #     aggfunc='sum',
+    #     fill_value=0
+    # ).reset_index()
     
     df_final = df_final.merge(reservas, on=['product_id','lote_id'], how='left')
     
@@ -1852,12 +1851,43 @@ def reporte_cerezos_bpa(request):
     return response
 
 
+def lista_reservas_lote_2(ware_code):
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute(f"""
+            SELECT 
+                r.CONTRATO_ID,
+                r.FECHA_PEDIDO,
+                r.CODIGO_CLIENTE,
+                c.NOMBRE_CLIENTE,
+                r.PRODUCT_ID,
+                p.Nombre,      
+                p.Marca,               
+                r.LOTE_ID,
+                r.EGRESO_TEMP,
+                r.CONFIRMED,
+                u.USER_NAME
+            FROM warehouse.reservas_lote_2 r
+            LEFT JOIN warehouse.clientes c ON r.CODIGO_CLIENTE = c.CODIGO_CLIENTE 
+            LEFT JOIN warehouse.productos p ON r.PRODUCT_ID = p.Codigo  
+            LEFT JOIN warehouse.pedidos l ON r.CONTRATO_ID = l.CONTRATO_ID
+            LEFT JOIN warehouse.user_mba u ON u.CODIGO_USUARIO = l.Entry_by
+            WHERE r.WARE_CODE = '{ware_code}';
+        """)
+        columns = [col[0].lower() for col in cursor.description]
+        reservas = [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+    return reservas
+
+
 # reservas por bodega
 def reservas_por_bodega(request, ware_code):
-    reservas = pivot_reservas_lote_2(ware_code)
-    productos = productos_odbc_and_django()[['product_id','Nombre','Marca']]
-    reservas = reservas.merge(productos, on='product_id', how='left')
-    reservas = de_dataframe_a_template(reservas)
+    # reservas = pivot_reservas_lote_2(ware_code)
+    reservas = lista_reservas_lote_2(ware_code)
+    # productos = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+    # reservas = reservas.merge(productos, on='product_id', how='left')
+    # reservas = de_dataframe_a_template(reservas)
     context = {
         'reservas': reservas,
     }
