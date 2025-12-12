@@ -63,15 +63,17 @@
                             </td>
                             <td>
                                 <label class="fw-bold">Bodega:</label> {{i.ware_code}}<br>
-                                <label class="fw-bold">Ubicaición(es):</label>
-                                <span class="m-2" v-html="ubicacionesString(i.location)"></span>
+                                <label class="fw-bold">Ubicaición(es):</label> <br >
+                                <span v-html="ubicacionesString(i.location)"></span>
                                 <br>
-                                <button @click="getItem(i.id)" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#tomaFisicaForm">
-                                    <i class="bi bi-boxes"></i>
-                                </button>
-                                <button @click="addItemLote(i.product_id)" class="btn btn-sm btn-warning text-white" data-bs-toggle="modal" data-bs-target="#agregarItemForm">
-                                    <i class="bi bi-plus-circle"></i>
-                                </button>
+                                <div class="mt-2">
+                                    <button @click="getItem(i.id)" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#tomaFisicaForm">
+                                        <i class="bi bi-boxes"></i>
+                                    </button>
+                                    <button @click="addItemLote(i.product_id)" class="btn btn-sm text-white" style="background: #F2962E" data-bs-toggle="modal" data-bs-target="#agregarItemForm">
+                                        <i class="bi bi-plus-circle"></i>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                         {% endverbatim %}
@@ -527,8 +529,8 @@
             ubicacionesString(locations) {
                 return locations.map(ubi => 
                     ubi.estanteria 
-                    ? `<span class="badge fs-6 mb-2 bg-warning fw-bold">${ubi.nombre}</span>`
-                    : `<span class="badge fs-6 m-2 bg-info fw-bold">${ubi.nombre}</span>`
+                    ? `<span style="font-size:12px" class="badge bg-warning fw-bold">${ubi.nombre}</span>`
+                    : `<span style="font-size:12px" class="badge bg-info fw-bold">${ubi.nombre}</span>`
                     //: ''
                 ).join(' ');
             },
