@@ -907,15 +907,6 @@ def pivot_reservas_lote_2(ware_code):
 @login_required(login_url='login')
 def reporte_andagoya_bpa(request):
     
-    reservas = pivot_reservas_lote_2('BAN')    
-    # reservas = reservas.pivot_table(
-    #     index=['product_id', 'lote_id'],
-    #     columns='nombre_cliente',
-    #     values='egreso_temp',
-    #     aggfunc='sum',
-    #     fill_value=0
-    # ).reset_index()
-    
     inv = Inventario.objects.all().values(
         'product_id',
         'product_name',
@@ -981,7 +972,15 @@ def reporte_andagoya_bpa(request):
         
     df_final = pd.concat(df_list, ignore_index=True)
     
+    reservas = pivot_reservas_lote_2('BAN')
+    reservas_columns = [col for col in reservas.columns if col not in ['product_id', 'lote_id']]
     df_final = df_final.merge(reservas, on=['product_id','lote_id'], how='left')
+    
+    df_first_columns = ['product_id', 'product_name', 'group_code', 'um', 'oh2']
+    df_last_columns  = ['lote_id','fecha_elab_lote','fecha_cadu_lote','ware_code','location','unidades_caja','numero_cajas',
+                        'unidades_sueltas', 'unidades_estanteria', 'subtotal_unidades','total_unidades','diferencia','observaciones','user__username']
+    
+    df_final = df_final[df_first_columns + reservas_columns + df_last_columns]
     
     date_time = str(datetime.now())
     date_time = date_time[0:16]
@@ -1828,15 +1827,13 @@ def reporte_cerezos_bpa(request):
     df_final = pd.concat(df_list).fillna('')
     
     reservas = pivot_reservas_lote_2('BCT')
-    # reservas = reservas.pivot_table(
-    #     index=['product_id', 'lote_id'],
-    #     columns='nombre_cliente',
-    #     values='egreso_temp',
-    #     aggfunc='sum',
-    #     fill_value=0
-    # ).reset_index()
+    reservas_columns = [col for col in reservas.columns if col not in ['product_id','lote_id']]
     
     df_final = df_final.merge(reservas, on=['product_id','lote_id'], how='left')
+    df_first_columns = ['product_id', 'product_name', 'group_code', 'um', 'oh2']    
+    df_last_columns  = ['lote_id','fecha_elab_lote','fecha_cadu_lote','ware_code','ubicacion__bodega','unidades_caja','numero_cajas',
+                        'unidades_sueltas','subtotal_unidades','total_unidades','diferencia','observaciones','user__username']
+    df_final = df_final[ df_first_columns +  reservas_columns + df_last_columns]
     
     date_time = str(datetime.now())
     date_time = date_time[0:16]
@@ -1878,16 +1875,13 @@ def lista_reservas_lote_2(ware_code):
             dict(zip(columns, row))
             for row in cursor.fetchall()
         ]
+        cursor.close()
     return reservas
 
 
 # reservas por bodega
 def reservas_por_bodega(request, ware_code):
-    # reservas = pivot_reservas_lote_2(ware_code)
     reservas = lista_reservas_lote_2(ware_code)
-    # productos = productos_odbc_and_django()[['product_id','Nombre','Marca']]
-    # reservas = reservas.merge(productos, on='product_id', how='left')
-    # reservas = de_dataframe_a_template(reservas)
     context = {
         'reservas': reservas,
     }
