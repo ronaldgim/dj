@@ -2022,6 +2022,15 @@ def resumen_view(request):
     return render(request, 'inventario/toma_fisica/resumen-total.html')
 
 
+
+def resumen_unificado_cerezos(request):
+    pass
+
+
+def resumen_unificado_cerezos_view(request):
+    return render(request, 'inventario/toma_fisica/cerezos/resumen.html')
+
+
 #### ARQUEOS
 # Nuevo Arqueo
 def nuevo_arqueo(request):
