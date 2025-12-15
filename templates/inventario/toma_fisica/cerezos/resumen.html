@@ -189,7 +189,8 @@
                                 {{ i.diferencia_total < 0 ? `(${Math.abs(i.diferencia_total).toLocaleString()})` : i.diferencia_total.toLocaleString() }}
                             </td-->
                             <td>
-                                {{ i.total_unidades_andagoya > 0 && i.total_unidades_cerezos > 0 ? '✅' : '❌' }}
+                                {#{ i.total_unidades_andagoya > 0 && i.total_unidades_cerezos > 0 ? '✅' : '❌' }#}
+                                {{ i.total_unidades_cerezos > 0 ? '✅' : '❌' }}
                             </td>
                             <td>
                                 <button 
