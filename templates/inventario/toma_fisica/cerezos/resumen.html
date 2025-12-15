@@ -129,8 +129,7 @@
                             <span style="white-space: nowrap;">
                                 Dif.Cerezos {% verbatim %}{{ getIconoOrden('diferencia_cerezos') }}{% endverbatim %}
                             </span>
-                            </th-->
-
+                            </th>
                             <th 
                                 scope="col"
                                 @click="ordenarPor('mba_total')" 
@@ -160,7 +159,7 @@
                             <span style="white-space: nowrap;">
                                 Diff. MBA-T.F {% verbatim %}{{ getIconoOrden('diferencia_total') }}{% endverbatim %}
                             </span>
-                            </th>
+                            </th-->
                             <th scope="col">Llenado</th>
                             <th scope="col">Detalles</th>
                         </tr>
@@ -183,14 +182,14 @@
                             <td class="text-end" style="background-color: #caf7ffff;">{{ formatNumber(i.total_unidades_cerezos) }}</td>
                             <!--td :class="['text-end', i.diferencia_cerezos < 0 ? 'text-danger' : '']" style="background-color: #caf7ffff;">
                                 {{ i.diferencia_cerezos < 0 ? `(${Math.abs(i.diferencia_cerezos).toLocaleString()})` : i.diferencia_cerezos.toLocaleString() }}
-                            </td-->
+                            </td>
                             <td class="text-end">{{ formatNumber(i.mba_total) }}</td>
                             <td class="text-end">{{ formatNumber(i.tf_total) }}</td>
                             <td :class="['text-end', i.diferencia_total < 0 ? 'text-danger' : '']">
                                 {{ i.diferencia_total < 0 ? `(${Math.abs(i.diferencia_total).toLocaleString()})` : i.diferencia_total.toLocaleString() }}
-                            </td>
+                            </td-->
                             <td>
-                                    {{ i.total_unidades_andagoya > 0 && i.total_unidades_cerezos > 0 ? '✅' : '❌' }}
+                                {{ i.total_unidades_andagoya > 0 && i.total_unidades_cerezos > 0 ? '✅' : '❌' }}
                             </td>
                             <td>
                                 <button 
