@@ -294,7 +294,7 @@
     </div>
 
     <div class="modal fade" id="ReservasModal" tabindex="-1" aria-labelledby="agregarItemFormLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="ReservasModalLabel">
@@ -320,11 +320,11 @@
                                 <th>Cliente</th>
                                 <th>Status MBA</th>
                                 <th>Usuario</th>
-                                <th>Código</th>
+                                <!--th>Código</th>
                                 <th>Nombre</th>
                                 <th>Marca</th>
                                 <th>Lote</th>
-                                <th>Unidades</th>
+                                <th>Unidades</th-->
                             </tr>
                         </thead>
                         <tbody>
@@ -341,11 +341,11 @@
                                 <td>{{ r.nombre_cliente }}</td>
                                 <td>{{ r.confirmed === '1' ? '✅' : '❌' }}</td>
                                 <td>{{ r.user_name }}</td>
-                                <td>{{ r.product_id }}</td>
+                                <!--td>{{ r.product_id }}</td>
                                 <td>{{ r.nombre }}</td>
                                 <td>{{ r.marca }}</td>
                                 <td>{{ r.lote_id }}</td>
-                                <td class="text-end">{{ r.egreso_temp.toLocaleString() }}</td>
+                                <td class="text-end">{{ r.egreso_temp.toLocaleString() }}</td-->
                             </tr>
                             {% endverbatim %}
                         </tbody>

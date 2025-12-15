@@ -1850,25 +1850,40 @@ def reporte_cerezos_bpa(request):
 
 def lista_reservas_lote_2(ware_code):
     with connections['gimpromed_sql'].cursor() as cursor:
+        # cursor.execute(f"""
+        #     SELECT 
+        #         r.CONTRATO_ID,
+        #         r.FECHA_PEDIDO,
+        #         r.CODIGO_CLIENTE,
+        #         c.NOMBRE_CLIENTE,
+        #         r.PRODUCT_ID,
+        #         p.Nombre,      
+        #         p.Marca,               
+        #         r.LOTE_ID,
+        #         r.EGRESO_TEMP,
+        #         r.CONFIRMED,
+        #         u.USER_NAME
+        #     FROM warehouse.reservas_lote_2 r
+        #     LEFT JOIN warehouse.clientes c ON r.CODIGO_CLIENTE = c.CODIGO_CLIENTE 
+        #     LEFT JOIN warehouse.productos p ON r.PRODUCT_ID = p.Codigo  
+        #     LEFT JOIN warehouse.pedidos l ON r.CONTRATO_ID = l.CONTRATO_ID
+        #     LEFT JOIN warehouse.user_mba u ON u.CODIGO_USUARIO = l.Entry_by
+        #     WHERE r.WARE_CODE = '{ware_code}';
+        # """)
         cursor.execute(f"""
-            SELECT 
+            SELECT DISTINCT
                 r.CONTRATO_ID,
                 r.FECHA_PEDIDO,
                 r.CODIGO_CLIENTE,
                 c.NOMBRE_CLIENTE,
-                r.PRODUCT_ID,
-                p.Nombre,      
-                p.Marca,               
-                r.LOTE_ID,
-                r.EGRESO_TEMP,
                 r.CONFIRMED,
                 u.USER_NAME
             FROM warehouse.reservas_lote_2 r
             LEFT JOIN warehouse.clientes c ON r.CODIGO_CLIENTE = c.CODIGO_CLIENTE 
-            LEFT JOIN warehouse.productos p ON r.PRODUCT_ID = p.Codigo  
             LEFT JOIN warehouse.pedidos l ON r.CONTRATO_ID = l.CONTRATO_ID
             LEFT JOIN warehouse.user_mba u ON u.CODIGO_USUARIO = l.Entry_by
-            WHERE r.WARE_CODE = '{ware_code}';
+            WHERE r.WARE_CODE = 'BAN'
+            ORDER BY r.FECHA_PEDIDO;
         """)
         columns = [col[0].lower() for col in cursor.description]
         reservas = [
