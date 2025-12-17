@@ -70,36 +70,6 @@
                                 Marca {% verbatim %}{{ getIconoOrden('Marca') }}{% endverbatim %}
                             </span>
                             </th>
-                            <!--th 
-                                scope="col"
-                                @click="ordenarPor('oh2_andagoya')" 
-                                style="cursor: pointer;user-select: none; background-color: #f7ffcdff;"
-                                :class="{ 'sorted': sortField === 'oh2_andagoya' }"
-                            >
-                            <span style="white-space: nowrap;">
-                                Und.Andagoya MBA {% verbatim %}{{ getIconoOrden('oh2_andagoya') }}{% endverbatim %}
-                            </span>
-                            </th>
-                            <th 
-                                scope="col"
-                                @click="ordenarPor('total_unidades_andagoya')" 
-                                style="cursor: pointer;user-select: none; background-color: #f7ffcdff;"
-                                :class="{ 'sorted': sortField === 'total_unidades_andagoya' }"
-                            >
-                            <span style="white-space: nowrap;">
-                                T.F.Andagoya {% verbatim %}{{ getIconoOrden('total_unidades_andagoya') }}{% endverbatim %}
-                            </span>
-                            </th-->
-                            <!--th
-                                scope="col"
-                                @click="ordenarPor('diferencia_andagoya')" 
-                                style="cursor: pointer;user-select: none; background-color: #f7ffcdff;"
-                                :class="{ 'sorted': sortField === 'diferencia_andagoya' }"
-                            >
-                            <span style="white-space: nowrap;">
-                                Dif.Andagoya {% verbatim %}{{ getIconoOrden('diferencia_andagoya') }}{% endverbatim %}
-                            </span>
-                            </th-->
                             <th 
                                 scope="col"
                                 @click="ordenarPor('oh2_cerezos')" 
@@ -120,46 +90,6 @@
                                 T.F.Cerezos {% verbatim %}{{ getIconoOrden('total_unidades_cerezos') }}{% endverbatim %}
                             </span>
                             </th>
-                            <!--th 
-                                scope="col"
-                                @click="ordenarPor('diferencia_cerezos')" 
-                                style="cursor: pointer;user-select: none; background-color: #caf7ffff;"
-                                :class="{ 'sorted': sortField === 'diferencia_cerezos' }"
-                            >
-                            <span style="white-space: nowrap;">
-                                Dif.Cerezos {% verbatim %}{{ getIconoOrden('diferencia_cerezos') }}{% endverbatim %}
-                            </span>
-                            </th>
-                            <th 
-                                scope="col"
-                                @click="ordenarPor('mba_total')" 
-                                style="cursor: pointer;user-select: none;"
-                                :class="{ 'sorted': sortField === 'mba_total' }"
-                            >
-                            <span style="white-space: nowrap;">
-                                Total Unds. MBA {% verbatim %}{{ getIconoOrden('mba_total') }}{% endverbatim %}
-                            </span>
-                            </th>
-                            <th 
-                                scope="col"
-                                @click="ordenarPor('tf_total')" 
-                                style="cursor: pointer;user-select: none;"
-                                :class="{ 'sorted': sortField === 'tf_total' }"
-                            >
-                            <span style="white-space: nowrap;">
-                                Total T.F {% verbatim %}{{ getIconoOrden('tf_total') }}{% endverbatim %}
-                            </span>
-                            </th>
-                            <th 
-                                scope="col"
-                                @click="ordenarPor('diferencia_total')" 
-                                style="cursor: pointer;user-select: none;"
-                                :class="{ 'sorted': sortField === 'diferencia_total' }"
-                            >
-                            <span style="white-space: nowrap;">
-                                Diff. MBA-T.F {% verbatim %}{{ getIconoOrden('diferencia_total') }}{% endverbatim %}
-                            </span>
-                            </th-->
                             <th scope="col">Llenado</th>
                             <th scope="col">Detalles</th>
                         </tr>
@@ -167,29 +97,13 @@
                     <tbody>
                         {% verbatim %}
                         <template v-for="(i, index) in stockFiltrado" :key="index">
-                        <!--tr v-for="(i, index) in stockFiltrado" :key="index"-->
-                        <!-- :style="{ backgroundColor: expandedRow === i.product_id ? '#ceffbfff' : '' }" class="btn btn-sm btn-primary text-white" -->
                         <tr :class="expandedRow === i.product_id ? 'fw-bold' : ''">
                             <td>{{ i.product_id }}</td>
                             <td>{{ i.Nombre }}</td>
                             <td>{{ i.Marca }}</td>
-                            <!--td class="text-end" style="background-color: #f7ffcdff;">{{ formatNumber(i.oh2_andagoya) }}</td>
-                            <td class="text-end" style="background-color: #f7ffcdff;">{{ formatNumber(i.total_unidades_andagoya) }}</td-->
-                            <!--td :class="['text-end', i.diferencia_andagoya < 0 ? 'text-danger' : '']" style="background-color: #f7ffcdff;">
-                                {{ i.diferencia_andagoya < 0 ? `(${Math.abs(i.diferencia_andagoya).toLocaleString()})` : i.diferencia_andagoya.toLocaleString() }}
-                            </td-->
                             <td class="text-end" style="background-color: #caf7ffff;">{{ formatNumber(i.oh2_cerezos) }}</td>
                             <td class="text-end" style="background-color: #caf7ffff;">{{ formatNumber(i.total_unidades_cerezos) }}</td>
-                            <!--td :class="['text-end', i.diferencia_cerezos < 0 ? 'text-danger' : '']" style="background-color: #caf7ffff;">
-                                {{ i.diferencia_cerezos < 0 ? `(${Math.abs(i.diferencia_cerezos).toLocaleString()})` : i.diferencia_cerezos.toLocaleString() }}
-                            </td>
-                            <td class="text-end">{{ formatNumber(i.mba_total) }}</td>
-                            <td class="text-end">{{ formatNumber(i.tf_total) }}</td>
-                            <td :class="['text-end', i.diferencia_total < 0 ? 'text-danger' : '']">
-                                {{ i.diferencia_total < 0 ? `(${Math.abs(i.diferencia_total).toLocaleString()})` : i.diferencia_total.toLocaleString() }}
-                            </td-->
                             <td>
-                                <!-- {{ i.total_unidades_andagoya > 0 && i.total_unidades_cerezos > 0 ? '✅' : '❌' }} -->
                                 {{ i.total_unidades_cerezos > 0 ? '✅' : '❌' }}
                             </td>
                             <td>
@@ -209,46 +123,6 @@
                                     Marca: {{ i.Marca }}
                             </td>
                             <td colspan="8">
-                                <!--div class="p-3" style="background-color: #f7ffcdff; border-radius: 15px;">
-                                    <h6 class="fw-bold">Detalle Andagoya</h6>
-                                    <table class="table table-sm">
-                                        <thead>
-                                            <tr>
-                                                <th>Código</th>
-                                                <th>Nombre</th>
-                                                <th>Marca</th>
-                                                <th>Lote</th>
-                                                <th>Ubicación</th>
-                                                <th>Und.MBA</th>
-                                                <th>Und.TF</th>
-                                                <th>Diferencia</th>
-                                            </tr>
-                                        </thead>
-                                        <!tbody>
-                                            <tr>
-                                                <td v-if="detalle_andagoya.length===0" class="text-center" colspan="8">No hay registros...</td>
-                                            </tr>
-                                            <tr v-for="(d_a, idx) in detalle_andagoya" :key="idx">
-                                                <td>{{ d_a.product_id }}</td>
-                                                <td>{{ d_a.product_name }}</td>
-                                                <td>{{ d_a.group_code }}</td>
-                                                <td>{{ d_a.lote_id }}</td>
-                                                <td>{{ d_a.ware_code }}-{{ d_a.location }}</td>
-                                                <td class="text-end">{{ formatNumber(d_a.oh2) }}</td>
-                                                <td class="text-end">{{ formatNumber(d_a.total_unidades) }}</td>
-                                                <td :class="['text-end', d_a.diferencia < 0 ? 'text-danger' : '']">
-                                                    {{ d_a.diferencia < 0 ? `(${Math.abs(d_a.diferencia)})` : d_a.diferencia }}</td>
-                                            </tr>
-                                            <tr>
-                                                <td colspan="5" class="text-end fw-bold">Totales:</td>
-                                                <td class="text-end fw-bold">{{ formatNumber(detalle_totales_andagoya.andagoya_mba_total) }}</td>
-                                                <td class="text-end fw-bold">{{ formatNumber(detalle_totales_andagoya.andagoya_tf_total) }}</td>
-                                                <td :class="['text-end', 'fw-bold', detalle_totales_andagoya.andagoya_diferencia_total < 0 ? 'text-danger' : '']">
-                                                    {{ detalle_totales_andagoya.andagoya_diferencia_total < 0 ? `(${Math.abs(detalle_totales_andagoya.andagoya_diferencia_total)})` : detalle_totales_andagoya.andagoya_diferencia_total }}</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div-->
                                 <div class="mt-3 p-3" style="background-color: #caf7ffff; border-radius: 15px;">
                                     <h6 class="fw-bold">Detalle Cerezos</h6>
                                     <table class="table table-sm">
@@ -417,24 +291,7 @@
             toggleRow(product_id) {
                 // Si la fila ya está abierta, la cerramos
                 this.expandedRow = this.expandedRow === product_id ? null : product_id;
-                // console.log('Fila expandida:', product_id);
-                
                 if (this.expandedRow) {
-                    // Realizar la solicitud fetch para obtener los detalles
-                    // ANDAGOYA
-                    // fetch(`/inventario/resumen-total-unificado-andagoya/detalle?product_id=${product_id}`)
-                    //     .then(response => response.json())
-                    //     .then(data => {
-                    //         // console.log('Detalles recibidos:', data);
-                    //         // Aquí puedes asignar los datos recibidos a una propiedad para mostrarlos en la fila expandida
-                    //         this.detalle_andagoya = data.andagoya || [];
-                    //         this.detalle_totales_andagoya = data.totales || {};
-                    //     })
-                    //     .catch(error => {
-                    //         this.detalle_andagoya = [];
-                    //         this.detalle_totales_andagoya = {};
-                    //     });
-                    // 
                     fetch(`/inventario/resumen-total-unificado-cerezos/detalle?product_id=${product_id}`)
                         .then(response => response.json())
                         .then(data => {
@@ -451,9 +308,7 @@
 
                 } else {
                     // Si la fila se cierra, limpiar los detalles
-                    // this.detalle_andagoya = [];
                     this.detalle_cerezos = [];
-                    // this.detalle_totales_andagoya = {};
                     this.detalle_totales_cerezos = {};
                 }
             },
