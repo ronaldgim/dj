@@ -2782,7 +2782,7 @@ def wms_estado_picking_actualizar_ajax(request):
         movs = Movimiento.objects.filter(n_referencia=estado_picking.n_pedido, estado_picking='En Despacho').values_list('unidades', flat=True)
         # movs = Movimiento.objects.filter(n_referencia=estado_picking.n_pedido).values_list('unidades', flat=True)
         
-        movs_total_unidades = sum(movs) * -1 
+        movs_total_unidades = sum(movs) * -1  
         data_reservas_total_unidades = sum(data_reservas) 
         if estado_picking.bodega == 'BCT':
             
@@ -3039,7 +3039,7 @@ def wms_picking_en_despacho_list(request): #OK
     anulados['n_referencia'] = anulados['n_referencia'].astype('float')
     anulados['n_referencia'] = anulados['n_referencia'].astype('int') 
 
-    mov      = Movimiento.objects.filter(estado_picking='En Despacho')
+    mov      = Movimiento.objects.filter(estado_picking='En Despacho') 
     mov_list = mov.values_list('n_referencia', flat=True).distinct()
     pik      = EstadoPicking.objects.filter(n_pedido__in=mov_list) 
 
@@ -3047,15 +3047,14 @@ def wms_picking_en_despacho_list(request): #OK
     contexto_picking = pd.DataFrame(pik.values())[['n_pedido','cliente']] 
     contexto_picking = contexto_picking.rename(columns={'n_pedido':'n_referencia'})
 
-    en_despacho = en_despacho.merge(contexto_picking, on='n_referencia', how='left')
+    en_despacho = en_despacho.merge(contexto_picking, on='n_referencia', how='left') 
     en_despacho['n_referencia'] = en_despacho['n_referencia'].astype('float')
     en_despacho['n_referencia'] = en_despacho['n_referencia'].astype('int')
     en_despacho['fecha_hora'] = pd.to_datetime(en_despacho['fecha_hora']).dt.strftime('%Y-%m-%d %H:%M')
     
     en_despacho = en_despacho.sort_values(by='fecha_hora', ascending=True)
-    en_despacho = en_despacho.drop_duplicates(subset='n_referencia', keep='last') #; print(en_despacho)
+    en_despacho = en_despacho.drop_duplicates(subset='n_referencia', keep='last') 
     en_despacho = en_despacho.merge(anulados, on='n_referencia', how='left')
-    
     en_despacho = de_dataframe_a_template(en_despacho)
 
     context = {
