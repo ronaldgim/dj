@@ -2042,12 +2042,24 @@ def resumen_view(request):
     return render(request, 'inventario/toma_fisica/resumen-total.html')
 
 
+@login_required(login_url='login')
+def resumen_cerezos_data(request):
+    
+    cerezos = InventarioCerezos.objects.all().values('product_id', 'oh2', 'total_unidades')
+    cerezos_df = pd.DataFrame(cerezos).groupby('product_id', as_index=False).agg({
+        'oh2': 'sum',
+        'total_unidades': 'sum'
+    })
+    productos = productos_odbc_and_django()[['product_id','Nombre','Marca']]
+    cerezos_df = cerezos_df.merge(productos, on='product_id', how='left') 
+    cerezos_df['lleno'] = cerezos_df['total_unidades'] > 0
+    cerezos_df['diferencia'] = cerezos_df['oh2'] - cerezos_df['total_unidades']
+    return JsonResponse({
+        'cerezos': de_dataframe_a_template(cerezos_df)
+    })
 
-def resumen_unificado_cerezos(request):
-    pass
 
-
-def resumen_unificado_cerezos_view(request):
+def resumen_cerezos_view(request):
     return render(request, 'inventario/toma_fisica/cerezos/resumen.html')
 
 

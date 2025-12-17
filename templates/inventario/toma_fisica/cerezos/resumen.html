@@ -20,6 +20,26 @@
             <i v-else class="bi bi-arrow-clockwise"></i> ACTUALIZAR DATOS
         </button>
     </div>
+    <div class="btn-group mb-3" role="group">
+        <button 
+            @click="aplicarFiltroTodo()" 
+            :class="{'btn-primary': !filtroEstado, 'btn-outline-primary': filtroEstado}" 
+            class="btn btn-sm">
+            Todo
+        </button>
+        <button 
+            @click="aplicarFiltroDiferencia0()" 
+            :class="{'btn-success': filtroEstado === 'diferencia0', 'btn-outline-success': filtroEstado !== 'diferencia0'}" 
+            class="btn btn-sm">
+            Diferencia 0
+        </button>
+        <button 
+            @click="aplicarFiltroLlenado()" 
+            :class="{'btn-info': filtroEstado === 'lleno', 'btn-outline-info': filtroEstado !== 'lleno'}" 
+            class="btn btn-sm">
+            Llenado
+        </button>
+    </div>
 
     <div class="card mb-4">
         <div class="card-header">RESUMEN CEREZOS</div>
@@ -72,22 +92,32 @@
                             </th>
                             <th 
                                 scope="col"
-                                @click="ordenarPor('oh2_cerezos')" 
+                                @click="ordenarPor('oh2')" 
                                 style="cursor: pointer;user-select: none; background-color: #caf7ffff;"
-                                :class="{ 'sorted': sortField === 'oh2_cerezos' }"
+                                :class="{ 'sorted': sortField === 'oh2' }"
                             >
                             <span style="white-space: nowrap;">
-                                Und.Cerezos MBA {% verbatim %}{{ getIconoOrden('oh2_cerezos') }}{% endverbatim %}
+                                Und.Cerezos MBA {% verbatim %}{{ getIconoOrden('oh2') }}{% endverbatim %}
                             </span>
                             </th>
                             <th 
                                 scope="col"
-                                @click="ordenarPor('total_unidades_cerezos')" 
+                                @click="ordenarPor('total_unidade')" 
                                 style="cursor: pointer;user-select: none; background-color: #caf7ffff;"
-                                :class="{ 'sorted': sortField === 'total_unidades_cerezos' }"
+                                :class="{ 'sorted': sortField === 'total_unidade' }"
                             >
                             <span style="white-space: nowrap;">
-                                T.F.Cerezos {% verbatim %}{{ getIconoOrden('total_unidades_cerezos') }}{% endverbatim %}
+                                T.F.Cerezos {% verbatim %}{{ getIconoOrden('total_unidade') }}{% endverbatim %}
+                            </span>
+                            </th>
+                            <th 
+                                scope="col"
+                                @click="ordenarPor('diferencia')" 
+                                style="cursor: pointer;user-select: none;"
+                                :class="{ 'sorted': sortField === 'diferencia' }"
+                            >
+                            <span style="white-space: nowrap;">
+                                Diferencia {% verbatim %}{{ getIconoOrden('diferencia') }}{% endverbatim %}
                             </span>
                             </th>
                             <th scope="col">Llenado</th>
@@ -101,10 +131,11 @@
                             <td>{{ i.product_id }}</td>
                             <td>{{ i.Nombre }}</td>
                             <td>{{ i.Marca }}</td>
-                            <td class="text-end" style="background-color: #caf7ffff;">{{ formatNumber(i.oh2_cerezos) }}</td>
-                            <td class="text-end" style="background-color: #caf7ffff;">{{ formatNumber(i.total_unidades_cerezos) }}</td>
+                            <td class="text-end" style="background-color: #caf7ffff;">{{ formatNumber(i.oh2) }}</td>
+                            <td class="text-end" style="background-color: #caf7ffff;">{{ formatNumber(i.total_unidades) }}</td>
+                            <td class="text-end">{{ formatNumber(i.diferencia) }}</td>
                             <td>
-                                {{ i.total_unidades_cerezos > 0 ? '✅' : '❌' }}
+                                {{ i.lleno ? '✅' : '❌' }}
                             </td>
                             <td>
                                 <button 
@@ -190,10 +221,10 @@
             sortDirection: 'asc',
 
             expandedRow: null,
-            // detalle_andagoya: [],
             detalle_cerezos: [],
-            // detalle_totales_andagoya: {},
-            detalle_totales_cerezos: {}
+            detalle_totales_cerezos: {},
+
+            filtroEstado:null
         },
         mounted() {
             this.getStock();
@@ -212,6 +243,21 @@
                         productName.includes(filtroLower) ||
                         marca.includes(filtroLower);
                 });
+
+                if (this.filtroEstado) {
+                    resultadoFiltrado = resultadoFiltrado.filter(i => {
+                        // Calcular diferencia si no existe en los datos
+                        // const diferencia = i.diferencia || this.calcularDiferencia(i);                        
+                        if (this.filtroEstado === 'diferencia0') {
+                            return i.diferencia != 0;
+                        } else if (this.filtroEstado === 'lleno') {
+                            // Asumiendo que 'lleno' significa que hay stock disponible
+                            // Ajusta esta lógica según tus necesidades específicas
+                            return i.lleno;
+                        }
+                        return true;
+                    });
+                };
                 
                 // Paso 2: Aplicar ordenamiento si hay un campo seleccionado
                 if (!this.sortField) {
@@ -265,19 +311,11 @@
             async getStock() {
                 this.actualizandoStock = true;
                 try {
-                    const response = await fetch('/inventario/resumen_total_unificado');
+                    // const response = await fetch('/inventario/resumen_total_unificado');
+                    const response = await fetch('/inventario/resumen_cerezos_data');
                     const data = await response.json();
-                    // console.log('Datos recibidos:', data);
-                    
-                    // Asegurarse de que todos los campos numéricos sean números
-                    this.stock = (data.resumen_total || []).map(item => {
-                        // Convertir campos numéricos a números
-                        item.oh2_andagoya = Number(item.oh2_andagoya) || 0;
-                        item.total_unidades_andagoya = Number(item.total_unidades_andagoya) || 0;
-                        item.oh2_cerezos = Number(item.oh2_cerezos) || 0;
-                        item.total_unidades_cerezos = Number(item.total_unidades_cerezos) || 0;
-                        return item;
-                    });
+                    console.log('Datos recibidos:', data);
+                    this.stock = data.cerezos || [];
                     
                 } catch (error) {
                     console.error('Error al obtener datos:', error);
@@ -363,6 +401,19 @@
             limpiarOrden() {
                 this.sortField = null;
                 this.sortDirection = 'asc';
+            },
+
+            // Métodos para los filtros
+            aplicarFiltroTodo() {
+                this.filtroEstado = null;
+            },
+            
+            aplicarFiltroDiferencia0() {
+                this.filtroEstado = 'diferencia0';
+            },
+            
+            aplicarFiltroLlenado() {
+                this.filtroEstado = 'lleno';
             }
         }
     });
