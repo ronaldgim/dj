@@ -243,11 +243,16 @@ urlpatterns = [
         name ="detalle_resumen_total_unificado_cerezos"
     ),
     
+    path(
+        route='resumen_cerezos_data', #/<str:product_id>',
+        view = views.resumen_cerezos_data,
+        name ="resumen_cerezos_data"
+    ),
     
     path(
         route='resumen-cerezos',
-        view = views.resumen_unificado_cerezos_view,
-        name ="resumen_unificado_cerezos_view"
+        view = views.resumen_cerezos_view,
+        name ="resumen_cerezos_view"
     ),
     
     # # Actulizar stock lote FORM UPDDATE
