@@ -93,7 +93,12 @@ urlpatterns = [
         view = views.inventario_toma_fisica_agregar_producto,
         name ="inventario_toma_fisica_agregar_producto"
     ),
-
+    
+    path(
+        route='andagoya/toma-fisica/eliminar-item-agregado',
+        view = views.inventario_andagoya_eliminar_item_agregado,
+        name ="inventario_andagoya_eliminar_item_agregado"
+    ),
     # Reporte Inventario Completo EXCEL
     path(
         route='reporte/completo/excel',
