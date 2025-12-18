@@ -45,7 +45,7 @@
                     <thead>
                         <tr>
                             <th>Item</th>
-                            <th scope="col">Invenario</th>
+                            <th scope="col">Inventario</th>
                         </tr>
                     </thead>
                     <tbody id="pedidosbuscar">
@@ -72,6 +72,9 @@
                                     </button>
                                     <button @click="addItemLote(i.product_id)" class="btn btn-sm text-white" style="background: #F2962E" data-bs-toggle="modal" data-bs-target="#agregarItemForm">
                                         <i class="bi bi-plus-circle"></i>
+                                    </button>
+                                    <button v-show="i.agregado" @click="eliminarAgregado(i.id)" class="btn btn-sm btn-danger">
+                                        <i class="bi bi-trash"></i>
                                     </button>
                                 </div>
                             </td>
@@ -944,6 +947,20 @@
                     this.productList = data.data || [];
                 } catch (error) {
                     console.log(error)
+                }
+            },
+            async eliminarAgregado(item_id) {
+                try {
+                    const response = await fetch(`/inventario/andagoya/toma-fisica/eliminar-item-agregado`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json',},
+                        body: JSON.stringify({'item_id':item_id})  
+                    });
+            
+                    const data = await response.json();
+                    this.stock = this.stock.filter((item) => item.id !== item_id);
+                } catch(error) {
+                    console.log(error);
                 }
             },
             addItemLote(product_id) {

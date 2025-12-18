@@ -545,6 +545,7 @@ def inventario_general(request):
                     'ware_code':i.ware_code,
                     'llenado_estanteria':i.llenado_estanteria,
                     'location':j['ubicaciones'],
+                    'agregado':i.agregado
                 }
                 inventario_data.append(data)
 
@@ -733,6 +734,20 @@ def inventario_toma_fisica_agregar_producto(request):
             return JsonResponse({'type':'danger','msg':form.errors})
 
 
+@csrf_exempt
+def inventario_andagoya_eliminar_item_agregado(request):
+    
+    if request.method == 'POST':
+
+        data = json.loads(request.body)
+        item_id = data.get('item_id')
+        item = Inventario.objects.get(id=item_id)
+        item.delete()
+        
+        return JsonResponse({'type':'success','msg':'Item eliminado correctamente'})
+    else:
+        return JsonResponse({'type':'danger','msg':'Error al eliminar item'})
+
 ## Reporte completo excel ###
 @login_required(login_url='login')
 def reporte_completo_excel(request):
@@ -817,7 +832,6 @@ def reporte_completo_excel(request):
     reporte_completo_excel.to_excel(response, index=False)
 
     return response
-
 
 @login_required(login_url='login')
 def reporte_format_excel(request):
