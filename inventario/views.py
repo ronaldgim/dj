@@ -947,7 +947,7 @@ def reporte_andagoya_bpa(request):
     inv_df = pd.DataFrame(inv).sort_values(by=['ware_code','location','product_id','lote_id','fecha_elab_lote'])
     inv_df['fecha_elab_lote']   = inv_df['fecha_elab_lote'].astype('str')
     inv_df['fecha_cadu_lote']   = inv_df['fecha_cadu_lote'].astype('str')
-    inv_df['subtotal_unidades'] = inv_df['numero_cajas'] * inv_df['unidades_caja'].astype(int) + inv_df['unidades_sueltas']
+    # inv_df['subtotal_unidades'] = inv_df['numero_cajas'] * inv_df['unidades_caja'].astype(int) + inv_df['unidades_sueltas']
     inv_df['unidades_caja']     = inv_df['unidades_caja'].astype('str')
     
     df_list = []
@@ -969,7 +969,7 @@ def reporte_andagoya_bpa(request):
             'numero_cajas',
             'unidades_sueltas',
             'unidades_estanteria',
-            'subtotal_unidades',
+            # 'subtotal_unidades',
             'total_unidades',
             'diferencia',
             'observaciones',
@@ -989,13 +989,19 @@ def reporte_andagoya_bpa(request):
     reservas = pivot_reservas_lote_2('BAN')
     reservas_columns = [col for col in reservas.columns if col not in ['product_id', 'lote_id']]
     df_final = df_final.merge(reservas, on=['product_id','lote_id'], how='left')
+
+    df_final = df_final.rename(columns={'total_unidades':'subtotal_unidades'})
+    df_final['total_unidades'] = df_final['subtotal_unidades'] + df_final[reservas_columns].sum(axis=1) 
     
     df_first_columns = ['product_id', 'product_name', 'group_code', 'um', 'oh2']
     df_last_columns  = ['lote_id','fecha_elab_lote','fecha_cadu_lote','ware_code','location','unidades_caja','numero_cajas',
                         'unidades_sueltas', 'unidades_estanteria', 'subtotal_unidades','total_unidades','diferencia','observaciones','user__username']
+                        # 'unidades_sueltas', 'unidades_estanteria','total_unidades','diferencia','observaciones','user__username']
     
     df_final = df_final[df_first_columns + reservas_columns + df_last_columns]
-    df_final['total_unidades'] = df_final['total_unidades'] + df_final[reservas_columns].sum(axis=1) 
+    # df_final = df_final.rename(comlumns={'total_unidades':'subtotal_unidades'})
+    
+    # df_final['total_unidades'] = df_final['total_unidades'] + df_final[reservas_columns].sum(axis=1) 
     df_final['diferencia'] = df_final['total_unidades'] - df_final['oh2']
     
     date_time = str(datetime.now())

@@ -91,6 +91,12 @@ urlpatterns = [
         name = 'wms_inventario_inicial_bodega'
     ),
     
+    # path(
+    #     route = 'recalcular-existencias',
+    #     view  = views.recalcular_existencias,
+    #     name  = 'recalcular_existencias'
+    # ),
+    
     # Inventario
     path(
         route='inventario',
