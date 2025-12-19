@@ -1315,21 +1315,30 @@ def inventario_cerezos_toma_fisica_item(request, item_id):
         item_dict['ubi'] = model_to_dict(item.ubicacion)
         
         # item lotes
+        # item_lotes = InventarioCerezos.objects.filter(
+        #     Q(product_id=item.product_id) &
+        #     Q(ubicacion__bodega=item.ubicacion.bodega) &
+        #     Q(ubicacion__pasillo=item.ubicacion.pasillo)
+        # )
         item_lotes = InventarioCerezos.objects.filter(
             Q(product_id=item.product_id) &
-            Q(ubicacion__bodega=item.ubicacion.bodega) &
-            Q(ubicacion__pasillo=item.ubicacion.pasillo)
+            Q(ubicacion__id=item.ubicacion.id)
         )
         total_lotes = item_lotes.aggregate(total_lotes=Sum('total_unidades')) if item_lotes.exists() else 0
         
         # item totales
+        # item_totales = (InventarioCerezosTotale.objects
+        #     .filter(product_id_t=item.product_id)
+        #     .filter(
+        #         Q(ubicacion__bodega=item.ubicacion.bodega) &
+        #         Q(ubicacion__pasillo=item.ubicacion.pasillo)
+        #     )
+        # )
         item_totales = (InventarioCerezosTotale.objects
             .filter(product_id_t=item.product_id)
-            .filter(
-                Q(ubicacion__bodega=item.ubicacion.bodega) &
-                Q(ubicacion__pasillo=item.ubicacion.pasillo)
-            )
-        )       
+            .filter(ubicacion__id=item.ubicacion.id)
+        )  
+        
         
         return JsonResponse({
             'item': item_dict,
