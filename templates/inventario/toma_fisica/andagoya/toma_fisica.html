@@ -101,6 +101,9 @@
                             </div>
                         </div>
                     </div>
+                    <div v-if="msg_lote" :class="`alert alert-${type_msg_lote} text-center p-2 m-0`" role="alert" style="font-size: smaller;">
+                        {{msg_lote}}
+                    </div>
                 </div>
             
                 <div class="modal-body">                    
@@ -180,9 +183,9 @@
                     <div class="card">
                         <div class="card-body">
                             <h6 class="text-center fw-bold">CONTEO POR LOTE</h6> 
-                            <div v-if="msg_lote" :class="`alert alert-${type_msg_lote} text-center p-2 m-0`" role="alert" style="font-size: smaller;">
+                            <!--div v-if="msg_lote" :class="`alert alert-${type_msg_lote} text-center p-2 m-0`" role="alert" style="font-size: smaller;">
                                 {{msg_lote}}
-                            </div>
+                            </div -->
 
                             <mark><label class="fw-bold m-0 p-0">Lote:</label> {{item.lote_id}}</mark><br>
                             <label class="fw-bold m-0 p-0">F.Elab:</label> {{item.fecha_elab_lote}}<br>
@@ -212,6 +215,7 @@
                                     class="btn btn-sm float-sm-end mt-2" 
                                     data-bs-dismiss="modal"
                                     style="background-color:#FF8E0D"
+                                    id="btn-regresar-tomafisica"
                                 >REGRESAR
                                 </button>
                                 <button type="submit" class="btn btn-sm btn-primary float-sm-end mt-2 me-2">GUARDAR</button>
@@ -234,7 +238,9 @@
                 {% verbatim %}
                 <div class="modal-header d-flex flex-column align-items-center">
                     <div class="d-flex justify-content-between w-100 align-items-center">
-                        <h5 class="modal-title text-center fw-bold" id="agregarItemFormLabel">AGREGAR ITEM {{ mi_bodega }} - {{ mi_ubicacion }}</h5>
+                        <h5 class="modal-title text-center fw-bold" id="agregarItemFormLabel">
+                            AGREGAR ITEM {{ mi_bodega }} - {{ mi_ubicacion }} <br>
+                        </h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div v-if="msg_agregar_lote" :class="`alert alert-${type_msg_agregar_lote} text-center p-2 m-0`" role="alert" style="font-size: smaller;">
@@ -350,22 +356,22 @@
                                 <textarea class="form-control form-control-sm" v-model="formAgregar.observaciones"></textarea>
 
                                 <label class="fw-bold">Total Unidades:</label> {{ conteo_fisico_agregar_lote.toLocaleString() }}<br>
+                                <button
+                                    type="submit"
+                                    class="btn btn-sm btn-primary float-sm-end mt-2 ms-2"
+                                    :disabled="(conteo_fisico_agregar_lote === 0) | agregando"
+                                    >
+                                    {{ agregando ? 'GUARDANDO...' : 'GUARDAR' }}
+                                </button>
                                 <button 
                                     type="button" 
                                     class="btn btn-sm float-sm-end mt-2" 
                                     data-bs-dismiss="modal"
                                     style="background-color:#FF8E0D"
+                                    id="btn-regresar-agregar"
                                 >REGRESAR
                                 </button>
-                                <button type="reset" class="btn btn-sm btn-secondary float-sm-end mt-2 ms-2 me-2">BOORAR</button>
-                                <button
-                                    type="submit"
-                                    class="btn btn-sm btn-primary float-sm-end mt-2"
-                                    :disabled="(conteo_fisico_agregar_lote === 0) | agregando"
-                                    >
-                                    {{ agregando ? 'GUARDANDO...' : 'GUARDAR' }}
-                                </button>
-                                
+                                <!--button type="reset" class="btn btn-sm btn-secondary float-sm-end mt-2 ms-2 me-2">BORRAR</button-->
                             </form>                      
                         </div>
                     </div>
@@ -806,7 +812,14 @@
                     this.msg_lote = data.msg; 
 
                     await this.getStock();
-                    await this.getItem(item_id);     
+                    await this.getItem(item_id);
+
+                    setTimeout(
+                        () => {
+                            this.msg_lote = '';
+                            document.getElementById("btn-regresar-tomafisica").click();
+                        }, 2000
+                    )
                     
                 } catch (error) {
                     this.type_msg_lote = 'danger';
@@ -876,40 +889,43 @@
                     this.type_msg_product='',
                     this.msg_product='';
 
-                    // reset form
-                    this.formAgregar.product_id = '';
-                    this.formAgregar.product_name = '';
-                    this.formAgregar.group_code = '';
-                    this.formAgregar.um = '';
-
-                    this.formAgregar.oh = 0;
-                    this.formAgregar.oh2 = 0;
-                    this.formAgregar.commited = 0;
-                    this.formAgregar.quantity = 0;
-
-                    this.formAgregar.lote_id = '';
-                    this.formAgregar.fecha_elab_lote = '';
-                    this.formAgregar.fecha_cadu_lote = '';
-                    this.formAgregar.ware_code = '';
-                    this.formAgregar.location = '';
-                    this.formAgregar.unidades_caja = '';
-                    this.formAgregar.numero_cajas = '';
-                    this.formAgregar.unidades_sueltas = '';
-                    this.formAgregar.observaciones = '';
                     
-                    this.formAgregar.lotes = [];
-
-                    this.mes_anio_felab = false,
-                    this.mes_anio_felab_msg = "",
-                    this.mes_anio_fcadu = false,
-                    this.mes_anio_fcadu_msg = "",
-                    this.agregando = false
-                    await this.getStock();
+                    
                     setTimeout(
                         () => {
                             this.msg_agregar_lote = '';
-                        }, 2000)
-                        
+                            document.getElementById("btn-regresar-agregar").click();
+                            // reset form
+                            this.formAgregar.product_id = '';
+                            this.formAgregar.product_name = '';
+                            this.formAgregar.group_code = '';
+                            this.formAgregar.um = '';
+
+                            this.formAgregar.oh = 0;
+                            this.formAgregar.oh2 = 0;
+                            this.formAgregar.commited = 0;
+                            this.formAgregar.quantity = 0;
+
+                            this.formAgregar.lote_id = '';
+                            this.formAgregar.fecha_elab_lote = '';
+                            this.formAgregar.fecha_cadu_lote = '';
+                            this.formAgregar.ware_code = '';
+                            this.formAgregar.location = '';
+                            this.formAgregar.unidades_caja = '';
+                            this.formAgregar.numero_cajas = '';
+                            this.formAgregar.unidades_sueltas = '';
+                            this.formAgregar.observaciones = '';
+                            
+                            this.formAgregar.lotes = [];
+
+                            this.mes_anio_felab = false,
+                            this.mes_anio_felab_msg = "",
+                            this.mes_anio_fcadu = false,
+                            this.mes_anio_fcadu_msg = "",
+                            this.agregando = false
+                        }, 2000
+                    )
+                    await this.getStock();
                 } catch (error) {
                     this.type_msg_agregar_lote = 'danger';
                     this.msg_agregar_lote = error;
