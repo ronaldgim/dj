@@ -1211,14 +1211,30 @@ def wms_existencias_query_product_lote(product_id, lote_id):
         
         Existencias.objects.filter(product_id=product_id, lote_id=lote_id).delete()
         Existencias.objects.bulk_create(existencias_list)
-
+        
         return exitencias
 
     except Exception as e:
-        print(e)
+        print(str(e))
         for i in existencias_list:
             print(i.id, i.product_id, i.lote_id, i.fecha_caducidad, i.ubicacion_id, i.unidades, i.estado)
         return HttpResponse(f'{e}')
+
+
+
+# def recalcular_existencias_fun():
+#     existencias = Existencias.objects.all()
+#     for i in existencias:
+#         prod = i.product_id
+#         lot  = i.lote_id
+        
+#         print(prod, lot)
+#         wms_existencias_query_product_lote(prod, lot)
+
+
+# def recalcular_existencias(request):
+#     recalcular_existencias_fun()
+#     return HttpResponse('recalculado')
 
 
 # Actualizar toda la tabla existencias
