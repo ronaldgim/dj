@@ -723,7 +723,7 @@ def inventario_toma_fisica_buscar_producto(request):
 @csrf_exempt
 def inventario_toma_fisica_agregar_producto(request):
     if request.method == 'POST':
-        data = json.loads(request.body)
+        data = json.loads(request.body) ; print(data)
         data['user'] = User.objects.get(id=data.get('user_id'))
         
         form = InventarioAgregarForm(data)
