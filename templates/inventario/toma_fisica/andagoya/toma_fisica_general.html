@@ -304,7 +304,8 @@
                                 
                                 <label>Presentación:</label>
                                 <input class="form-control form-control-sm" v-model="formAgregar.um" type="text" required>
-
+                                <!--input v-model="formAgregar.ware_code" value="BAN" type="text">
+                                <input v-model="formAgregar.location" value="BN1" type="text"-->
                                 <label>Lote:</label>
                                 <div class="row g-2">
                                     <div class="col-11">
@@ -482,8 +483,8 @@
                 lote_id:'',
                 fecha_elab_lote:'',
                 fecha_cadu_lote:'',
-                ware_code:'',
-                location:'',
+                ware_code:'BAN',
+                location:'BN1',
                 unidades_caja:'',
                 numero_cajas:'',
                 unidades_sueltas:'',
@@ -856,8 +857,8 @@
                         this.formAgregar.product_name = data.product.Nombre;
                         this.formAgregar.group_code = data.product.Marca;
                         this.formAgregar.um = data.product.Unidad;
-                        this.formAgregar.ware_code = this.mi_bodega;
-                        this.formAgregar.location = this.mi_ubicacion;
+                        // this.formAgregar.ware_code = this.mi_bodega;
+                        // this.formAgregar.location = this.mi_ubicacion;
                         this.formAgregar.unidades_caja = data.product.Unidad_Empaque;
 
                         // agregar lista de lotes
@@ -908,8 +909,8 @@
                     this.formAgregar.lote_id = '';
                     this.formAgregar.fecha_elab_lote = '';
                     this.formAgregar.fecha_cadu_lote = '';
-                    this.formAgregar.ware_code = '';
-                    this.formAgregar.location = '';
+                    this.formAgregar.ware_code = 'BAN';
+                    this.formAgregar.location = 'BN1';
                     this.formAgregar.unidades_caja = '';
                     this.formAgregar.numero_cajas = '';
                     this.formAgregar.unidades_sueltas = '';
