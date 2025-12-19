@@ -108,7 +108,9 @@
                 {% verbatim %}
                 <div class="modal-header d-flex flex-column align-items-center">
                     <div class="d-flex justify-content-between w-100 align-items-center">
-                        <h5 class="modal-title text-center fw-bold" id="tomaFisicaFormLabel">INVENTARIO {{ mi_bodega }}-{{ mi_ubicacion }}-{{ ubicacion.modulo }}-{{ ubicacion.nivel }}</h5>
+                        <h5 class="modal-title text-center fw-bold" id="tomaFisicaFormLabel">
+                            INVENTARIO {{ mi_bodega }}-{{ mi_ubicacion }}-{{ ubicacion.modulo }}-{{ ubicacion.nivel }}
+                        </h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="mt-2 w-100">
@@ -128,6 +130,9 @@
                                 {{ total_lotes.toLocaleString() }} - {{ total_agrupado.toLocaleString() }} = {{ diferencia.toLocaleString() }}
                             </div>
                         </div>
+                    </div>
+                    <div v-if="msg_lote" :class="`alert alert-${type_msg_lote} text-center p-2 mt-2`" role="alert" style="font-size: smaller;">
+                        {{msg_lote}}
                     </div>
                 </div>
                 
@@ -227,6 +232,7 @@
                                     class="btn btn-sm float-sm-end mt-2" 
                                     data-bs-dismiss="modal"
                                     style="background-color:#FF8E0D"
+                                    id="btn-regresar-tomafisica"
                                 >REGRESAR
                                 </button>
                                 <button type="submit" class="btn btn-sm btn-primary float-sm-end mt-2 me-2">GUARDAR</button>
@@ -248,8 +254,10 @@
                 {% verbatim %}
                 <div class="modal-header d-flex flex-column align-items-center">
                     <div class="d-flex justify-content-between w-100 align-items-center">
-                        <h5 class="modal-title text-center fw-bold" id="agregarItemFormLabel">AGREGAR ITEM {{ mi_bodega }} - {{ mi_ubicacion }}</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <h5 class="modal-title text-center fw-bold" id="agregarItemFormLabel">
+                            AGREGAR ITEM {{ mi_bodega }} - {{ mi_ubicacion }} 
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> <br>
                     </div>
                     <div v-if="msg_agregar_lote" :class="`alert alert-${type_msg_agregar_lote} text-center p-2 m-0`" role="alert" style="font-size: smaller;">
                         {{msg_agregar_lote}}
@@ -366,22 +374,23 @@
                                 <textarea class="form-control form-control-sm" v-model="formAgregar.observaciones"></textarea>
 
                                 <label class="fw-bold">Total Unidades:</label> {{ conteo_fisico_agregar_lote.toLocaleString() }}<br>
-                                
+                                <button
+                                    type="submit"
+                                    class="btn btn-sm btn-primary float-sm-end mt-2 ms-2"
+                                    :disabled="(conteo_fisico_agregar_lote === 0) | agregando"
+                                    >
+                                    {{ agregando ? 'GUARDANDO...' : 'GUARDAR' }}
+                                </button>
                                 <button 
                                     type="button" 
                                     class="btn btn-sm float-sm-end mt-2" 
                                     data-bs-dismiss="modal"
                                     style="background-color:#FF8E0D"
+                                    id="btn-regresar-agregar"
                                 >REGRESAR
                                 </button>
-                                <button type="reset" class="btn btn-sm btn-secondary float-sm-end mt-2 ms-2 me-2">BOORAR</button>
-                                <button
-                                    type="submit"
-                                    class="btn btn-sm btn-primary float-sm-end mt-2"
-                                    :disabled="(conteo_fisico_agregar_lote === 0) | agregando"
-                                    >
-                                    {{ agregando ? 'GUARDANDO...' : 'GUARDAR' }}
-                                </button>
+                                <!--button type="reset" class="btn btn-sm btn-secondary float-sm-end mt-2 ms-2 me-2">BORRAR</button-->
+                                
                             </form>                      
                         </div>
                     </div>
@@ -859,7 +868,14 @@
                     this.msg_lote = data.msg; 
 
                     await this.getStock();
-                    await this.getItem(item_id);        
+                    await this.getItem(item_id);
+
+                    setTimeout(
+                        () => {
+                            this.msg_lote = '';
+                            document.getElementById("btn-regresar-tomafisica").click();
+                        }, 2000
+                    )
                     
                 } catch (error) {
                     this.type_msg_lote = 'danger';
@@ -944,38 +960,41 @@
                     this.type_msg_product='',
                     this.msg_product='';
 
-                    // reset form
-                    this.formAgregar.product_id = '';
-                    this.formAgregar.product_name = '';
-                    this.formAgregar.group_code = '';
-                    this.formAgregar.um = '';
-                    this.formAgregar.estado='',
-
-                    this.formAgregar.oh2 = 0;
-
-                    this.formAgregar.lote_id = '';
-                    this.formAgregar.fecha_elab_lote = '';
-                    this.formAgregar.fecha_cadu_lote = '';
-                    
-                    this.formAgregar.unidades_caja = '';
-                    this.formAgregar.numero_cajas = '';
-                    this.formAgregar.unidades_sueltas = '';
-                    this.formAgregar.observaciones = '';
-                    this.formAgregar.ubicacion_id='',
-                    
-                    this.formAgregar.lotes = [];
-
-                    this.mes_anio_felab = false,
-                    this.mes_anio_felab_msg = "",
-                    this.mes_anio_fcadu = false,
-                    this.mes_anio_fcadu_msg = "",
-                    this.agregando = false
-                    await this.getStock();
-
                     setTimeout(
                         () => {
                             this.msg_agregar_lote = '';
-                        }, 2000)
+                            document.getElementById("btn-regresar-agregar").click();
+
+                            // reset form
+                            this.formAgregar.product_id = '';
+                            this.formAgregar.product_name = '';
+                            this.formAgregar.group_code = '';
+                            this.formAgregar.um = '';
+                            this.formAgregar.estado='',
+
+                            this.formAgregar.oh2 = 0;
+
+                            this.formAgregar.lote_id = '';
+                            this.formAgregar.fecha_elab_lote = '';
+                            this.formAgregar.fecha_cadu_lote = '';
+                            
+                            this.formAgregar.unidades_caja = '';
+                            this.formAgregar.numero_cajas = '';
+                            this.formAgregar.unidades_sueltas = '';
+                            this.formAgregar.observaciones = '';
+                            this.formAgregar.ubicacion_id='',
+                            
+                            this.formAgregar.lotes = [];
+
+                            this.mes_anio_felab = false,
+                            this.mes_anio_felab_msg = "",
+                            this.mes_anio_fcadu = false,
+                            this.mes_anio_fcadu_msg = "",
+                            this.agregando = false
+                        }, 2000
+                    )
+
+                    await this.getStock();
                     
                 } catch (error) {
                     this.type_msg_agregar_lote = 'danger';

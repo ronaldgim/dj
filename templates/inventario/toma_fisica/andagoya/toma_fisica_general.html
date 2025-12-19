@@ -107,105 +107,10 @@
                                 <label class="fw-bold m-0 p-0">Marca:</label> <span>{{item.group_code}}</span><br>
                             </div>
                         </div>
-                        
-                        <!--div class="card" :style="{backgroundColor:diferenciaColor(diferencia)}">
-                            <h6 class="text-center fw-bold">DIFERENCIA</h6>
-                            <label class="text-center fs-6">T.Lotes - T.Agrupado = Diferencia</label>
-                            <div class="fs-6 card-body d-flex justify-content-center align-items-center m-0 p-0">
-                                {{ total_lotes.toLocaleString() }} - {{ total_agrupado.toLocaleString() }} = {{ diferencia.toLocaleString() }}
-                            </div>
-                        </div-->
-                        
                     </div>
                 </div>
             
                 <div class="modal-body">                    
-                    <!-- TOTAL AGRUPADO -->
-                    <!--div class="card" style="background-color: #e5f9fd;">
-                        <div class="card-body">
-                            <h6 class="text-center fw-bold">TOTAL AGRUPADO</h6>
-                            <div v-if="msg_totales" :class="`alert alert-${type_msg_totales} text-center p-2 m-0`" role="alert" style="font-size: smaller;">
-                                {{msg_totales}}
-                            </div>
-                            <form @submit.prevent="actualizarCrearTotal()">
-                                <label>Unidades por cartón:</label>
-                                <input class="form-control form-control-sm" v-model="formTotales.unidades_caja_t" type="number" required>
-                                <label>Número de cartones totales:</label><br>
-                                <small style="color: gray; font-size:smaller">Este campo puede hacer calulos (+, -)</small> <small style="color: red; font-size:smaller">solo dos números</small><br>
-                                
-                                <div class="row g-2">
-                                    <div class="col-11">
-                                        <input class="form-control form-control-sm" v-model="formTotales.numero_cajas_t">
-                                    </div>
-                                    <div class="col-1">
-                                        <button @click="sumarInput(formTotales.numero_cajas_t, 'numero_cajas_t')" class="btn btn-sm btn-success" type="button">
-                                            =
-                                        </button>
-                                    </div>
-                                </div>                              
-                                
-                                <label>Unidades sueltas totales:</label><br>
-                                <small style="color: gray; font-size:smaller">Este campo puede hacer calulos (+, -)</small> <small style="color: red; font-size:smaller">solo dos números</small> <br>
-                                
-                                <div class="row g-2">
-                                    <div class="col-11">
-                                        <input class="form-control form-control-sm" v-model="formTotales.unidades_sueltas_t">
-                                    </div>
-                                    <div class="col-1">
-                                        <button @click="sumarInput(formTotales.unidades_sueltas_t, 'unidades_sueltas_t')" class="btn btn-sm btn-success" type="button">
-                                            =
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <label class="fw-bold">Total Unidades:</label> {{ total_agrupado.toLocaleString() }}<br>
-                                <button type="submit" class="btn btn-sm btn-primary float-sm-end mt-2">GUARDAR</button>
-                            </form>
-                        </div>
-                    </div>
-
-                    <hr-->
-
-                    <!-- DETALLE LOTES -->
-                    <!--div class="card">
-                        <div class="card-body mb-0 pb-0"> 
-                            <h6 class="fw-bold text-center">DETALLE DE LOTES</h6> 
-                            <table class="table">
-                                <thead>
-                                    <th>Código</th>
-                                    <th>Lote(s)</th>
-                                    <th>Unidades</th>
-                                </thead>
-                                <tbody>
-                                    <tr v-for="(i, index) in lotes">
-                                        <td>{{ i.product_id }}</td>
-                                        <td>{{ i.lote_id }}</td>
-                                        <td class="text-end">{{ i.total_unidades.toLocaleString() }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>TOTAL</th>
-                                        <td></td>
-                                        <td class="text-end">{{ total_lotes.toLocaleString() }}</td>
-                                    </tr>
-                                </tbody>
-                            </table>               
-                        </div>
-                    </div>
-
-                    <hr-->
-
-                    <!-- DIFERENCIA -->
-                    <!--div class="card" :style="{backgroundColor:diferenciaColor(diferencia)}">
-                        <h6 class="text-center fw-bold">DIFERENCIA</h6>
-                        <label class="text-center fs-6">T.Lotes - T.Agrupado = Diferencia</label>
-                        <div class="fs-1 card-body d-flex justify-content-center align-items-center m-0 p-0">
-                            {{ total_lotes.toLocaleString() }} - {{ total_agrupado.toLocaleString() }} = {{ diferencia.toLocaleString() }}
-                        </div>
-                    </div-->
-
-                    <!-- hr -->
-
-                    <!-- CONTEO POR LOTE -->
                     <div class="card">
                         <div class="card-body">
                             <h6 class="text-center fw-bold">CONTEO POR LOTE</h6> 
@@ -218,29 +123,19 @@
                             <label class="fw-bold m-0 p-0">F.Cadu:</label> {{item.fecha_cadu_lote}}<br>
                             
                             <form @submit.prevent="actualizarItem(formLote.id)">
-                                <!--label>Unidades por cartón:</label>
-                                <input class="form-control form-control-sm" v-model="formLote.unidades_caja" type="number" required>
-                                
-                                <label>Número total de cartones:</label>
-                                <input class="form-control form-control-sm" v-model="formLote.numero_cajas" type="number">
-                                
-                                <label>Unidades sueltas:</label>
-                                <input class="form-control form-control-sm" v-model="formLote.unidades_sueltas" type="number"-->
-                                
+
                                 <div class="bg-info p-2 mt-2 mb-2 rounded">
                                 <label>Unidades estanteria AN1:</label>
                                 <input class="form-control form-control-sm" v-model="formLote.unidades_estanteria" type="number">
                                 </div>
 
-                                <!--label>Observaciones:</label>
-                                <textarea class="form-control form-control-sm" v-model="formLote.observaciones"></textarea-->
-                                <!-- label class="fw-bold">Total Unidades:</label> {{ conteo_fisico_lote.toLocaleString() }}<br-->
                                 <label class="fw-bold">Total Unidades:</label> {{ item.unidades_estanteria }}<br>
                                 <button 
                                     type="button" 
                                     class="btn btn-sm float-sm-end mt-2" 
                                     data-bs-dismiss="modal"
                                     style="background-color:#FF8E0D"
+                                    id="btn-regresar-tomafisica"
                                 >REGRESAR
                                 </button>
                                 <button type="submit" class="btn btn-sm btn-primary float-sm-end mt-2 me-2">GUARDAR</button>
@@ -262,7 +157,9 @@
                 {% verbatim %}
                 <div class="modal-header d-flex flex-column align-items-center">
                     <div class="d-flex justify-content-between w-100 align-items-center">
-                        <h5 class="modal-title text-center fw-bold" id="agregarItemFormLabel">AGREGAR ITEM {{ mi_bodega }} - {{ mi_ubicacion }}</h5>
+                        <h5 class="modal-title text-center fw-bold" id="agregarItemFormLabel">
+                            AGREGAR ITEM {{ mi_bodega }} - {{ mi_ubicacion }}   <br>
+                        </h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div v-if="msg_agregar_lote" :class="`alert alert-${type_msg_agregar_lote} text-center p-2 m-0`" role="alert" style="font-size: smaller;">
@@ -288,9 +185,9 @@
                     <div class="card">
                         <div class="card-body">
                             <h6 class="text-center fw-bold">CONTEO POR LOTE</h6> 
-                            <div v-if="msg_agregar_lote" :class="`alert alert-${type_msg_agregar_lote} text-center p-2 m-0`" role="alert" style="font-size: smaller;">
+                            <!--div v-if="msg_agregar_lote" :class="`alert alert-${type_msg_agregar_lote} text-center p-2 m-0`" role="alert" style="font-size: smaller;">
                                 {{msg_agregar_lote}}
-                            </div>
+                            </div-->
                             <form @submit.prevent="agregarProducto()" id="form-agregar">
                                 
                                 <label>Código:</label>
@@ -358,34 +255,22 @@
                                 <p v-else-if="!validDateInputs.fecha_cadu_lote" style="color:red; font-size:smaller;">
                                     Formato inválido ({{ mes_anio_fcadu ? 'mm/aaaa' : 'dd/mm/aaaa' }})
                                 </p>
-
-                                <!--label>Unidades por cartón:</label>
-                                <input class="form-control form-control-sm" v-model="formAgregar.unidades_caja" type="number" required>
-
-                                <label>Número total de cartones:</label>
-                                <input class="form-control form-control-sm" v-model="formAgregar.numero_cajas" type="number">
-
-                                <label>Unidades sueltas:</label>
-                                <input class="form-control form-control-sm" v-model="formAgregar.unidades_sueltas" type="number"-->
-
                                 <div class="bg-info p-2 mt-2 mb-2 rounded">
                                 <label>Unidades estanteria:</label>
                                 <input class="form-control form-control-sm" v-model="formAgregar.unidades_estanteria" type="number">
                                 </div>
 
-                                <!--label>Observaciones:</label>
-                                <textarea class="form-control form-control-sm" v-model="formAgregar.observaciones"></textarea-->
-
                                 <label class="fw-bold">Total Unidades:</label> {{ conteo_fisico_agregar_lote.toLocaleString() }}<br>
+                                <button type="submit" class="btn btn-sm btn-primary float-sm-end mt-2 ms-2">{{ agregando ? 'GUARDANDO...' : 'GUARDAR' }}</button>
                                 <button 
                                     type="button" 
                                     class="btn btn-sm float-sm-end mt-2" 
                                     data-bs-dismiss="modal"
                                     style="background-color:#FF8E0D"
+                                    id="btn-regresar-agregar"
                                 >REGRESAR
                                 </button>
-                                <button type="reset" class="btn btn-sm btn-secondary float-sm-end mt-2 ms-2 me-2">BOORAR</button>
-                                <button type="submit" class="btn btn-sm btn-primary float-sm-end mt-2">{{ agregando ? 'GUARDANDO...' : 'GUARDAR' }}</button>
+                                <!--button type="reset" class="btn btn-sm btn-secondary float-sm-end mt-2 ms-2 me-2">BORRAR</button-->
                             </form>                      
                         </div>
                     </div>
@@ -812,7 +697,6 @@
                         method: 'POST',
                         headers: {'Content-Type': 'application/json',},
                         body: JSON.stringify(this.formLote)
-                        // body: JSON.stringify(this.formEstanteria)
                     });
                     const data = await response.json();
 
@@ -820,17 +704,14 @@
                     this.msg_lote = data.msg; 
 
                     await this.getStock();
-                    await this.getItem(item_id);     
+                    await this.getItem(item_id);
+
+                    setTimeout(
+                        () => {
+                            this.msg_lote = '';
+                            document.getElementById('btn-regresar-tomafisica').click();
+                        }, 2000)
                     
-                    // cerrar el modal id="tomaFisicaForm"
-                    // var modal = bootstrap.Modal.getInstance(document.getElementById('tomaFisicaForm'));
-                    // if (modal) {
-                    //     modal.hide();
-                    //     // Eliminar manualmente el backdrop si queda
-                    //     const backdrops = document.querySelectorAll('.modal-backdrop');
-                    //     backdrops.forEach(b => b.parentNode.removeChild(b));
-                    //     document.body.classList.remove('modal-open');
-                    // }
                     
                 } catch (error) {
                     this.type_msg_lote = 'danger';
@@ -895,43 +776,37 @@
                     this.type_msg_product='',
                     this.msg_product='';
 
-                    // reset form
-                    this.formAgregar.product_id = '';
-                    this.formAgregar.product_name = '';
-                    this.formAgregar.group_code = '';
-                    this.formAgregar.um = '';
-
-                    this.formAgregar.oh = 0;
-                    this.formAgregar.oh2 = 0;
-                    this.formAgregar.commited = 0;
-                    this.formAgregar.quantity = 0;
-
-                    this.formAgregar.lote_id = '';
-                    this.formAgregar.fecha_elab_lote = '';
-                    this.formAgregar.fecha_cadu_lote = '';
-                    this.formAgregar.ware_code = 'BAN';
-                    this.formAgregar.location = 'BN1';
-                    this.formAgregar.unidades_caja = '';
-                    this.formAgregar.numero_cajas = '';
-                    this.formAgregar.unidades_sueltas = '';
-                    this.formAgregar.observaciones = '';
-                    
-                    this.formAgregar.lotes = [];
-
                     await this.getStock();
-
-                    // var modal = bootstrap.Modal.getInstance(document.getElementById('agregarItemForm'));
-                    // if (modal) {
-                    //     modal.hide();
-                    //     // Eliminar manualmente el backdrop si queda
-                    //     const backdrops = document.querySelectorAll('.modal-backdrop');
-                    //     backdrops.forEach(b => b.parentNode.removeChild(b));
-                    //     document.body.classList.remove('modal-open');
-                    // }
 
                     setTimeout(
                         () => {
                             this.msg_agregar_lote = '';
+                            document.getElementById('btn-regresar-agregar').click();
+
+                            // reset form
+                            this.formAgregar.product_id = '';
+                            this.formAgregar.product_name = '';
+                            this.formAgregar.group_code = '';
+                            this.formAgregar.um = '';
+
+                            this.formAgregar.oh = 0;
+                            this.formAgregar.oh2 = 0;
+                            this.formAgregar.commited = 0;
+                            this.formAgregar.quantity = 0;
+
+                            this.formAgregar.lote_id = '';
+                            this.formAgregar.fecha_elab_lote = '';
+                            this.formAgregar.fecha_cadu_lote = '';
+                            this.formAgregar.ware_code = 'BAN';
+                            this.formAgregar.location = 'BN1';
+                            this.formAgregar.unidades_caja = '';
+                            this.formAgregar.numero_cajas = '';
+                            this.formAgregar.unidades_sueltas = '';
+                            this.formAgregar.observaciones = '';
+                            
+                            this.formAgregar.lotes = [];
+                            this.formAgregar.unidades_estanteria = '';
+
                         }, 2000)
                         
                 } catch (error) {
