@@ -946,6 +946,11 @@
                 this.formBuscar.product_id = event.target.value;
             },
             async eliminarAgregado(item_id) {
+                const item = this.stock.find(i => i.id === item_id);
+                let confirmar = confirm("¿Está seguro de eliminar este ítem agregado? \n\nCódigo: " + item.product_id + "\nNombre: " + item.product_name + "\nMarca: " + item.group_code  + "\nLote: " + item.lote_id + "\nUbicación: " + item.ubi_full_name + "\nTotal unidades lote: " + item.total_unidades.toLocaleString() + "\n\nEsta acción no se puede deshacer.");
+                if (!confirmar) {
+                    return;
+                }
                 try {
                     const response = await fetch(`/inventario/andagoya/toma-fisica/eliminar-item-agregado`, {
                         method: 'POST',
@@ -953,10 +958,10 @@
                         body: JSON.stringify({'item_id':item_id})  
                     });
             
-                    const data = await response.json();
+                    // const data = await response.json();
                     this.stock = this.stock.filter((item) => item.id !== item_id);
                 } catch(error) {
-                    console.log(error);
+                    alert("Error al eliminar el ítem: " + error);
                 }
             },
             addItemLote(product_id) {
