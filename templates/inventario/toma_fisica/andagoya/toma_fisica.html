@@ -143,7 +143,12 @@
                                 </div>
                                 <small style="color: gray; font-size:smaller">Este campo puede hacer calulos (+, -)</small> <small style="color: red; font-size:smaller">solo dos números</small><br>
                                 <label class="fw-bold mt-4">Total Unidades:</label> {{ total_agrupado_function.toLocaleString() }}<br>
-                                <button type="submit" class="btn btn-sm btn-primary mt-2">GUARDAR</button>
+                                <button 
+                                    type="submit" 
+                                    class="btn btn-sm btn-primary mt-2"
+                                    :disabled="total_agrupado_function === 0"
+                                >GUARDAR
+                                </button>
                             </form>
                         </div>
                     </div>
@@ -210,7 +215,12 @@
                                 <textarea class="form-control form-control-sm" v-model="formLote.observaciones"></textarea>
                                 <label class="fw-bold">Total Unidades:</label> {{ conteo_fisico_lote.toLocaleString() }}<br>
                                 
-                                <button type="submit" class="btn btn-sm btn-primary mt-2 me-2">GUARDAR</button>
+                                <button 
+                                    type="submit" 
+                                    class="btn btn-sm btn-primary mt-2 me-2"
+                                    :disabled="conteo_fisico_lote === 0"
+                                >GUARDAR
+                                </button>
                                 <button 
                                     type="button" 
                                     class="btn btn-sm mt-2" 

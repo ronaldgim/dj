@@ -172,7 +172,12 @@
                                 </div>
                                 <small style="color: gray; font-size:smaller">Este campo puede hacer calulos (+, -)</small> <small style="color: red; font-size:smaller">solo dos números</small> <br>
                                 <label class="fw-bold mt-4">Total Unidades:</label> {{ total_agrupado.toLocaleString() }}<br>
-                                <button type="submit" class="btn btn-sm btn-primary float-sm-end mt-2">GUARDAR</button>
+                                <button 
+                                    type="submit" 
+                                    class="btn btn-sm btn-primary mt-2"
+                                    :disabled="total_agrupado === 0"
+                                >GUARDAR
+                                </button>
                             </form>
                         </div>
                     </div>
@@ -227,15 +232,21 @@
                                 <label>Observaciones:</label>
                                 <textarea class="form-control form-control-sm" v-model="formLote.observaciones"></textarea>
                                 <label class="fw-bold">Total Unidades:</label> {{ conteo_fisico_lote.toLocaleString() }}<br>
+                                
+                                <button 
+                                    type="submit" 
+                                    class="btn btn-sm btn-primary mt-2 me-2"
+                                    :disabled="conteo_fisico_lote === 0"
+                                >GUARDAR
+                                </button>
                                 <button 
                                     type="button" 
-                                    class="btn btn-sm float-sm-end mt-2" 
+                                    class="btn btn-sm mt-2" 
                                     data-bs-dismiss="modal"
                                     style="background-color:#FF8E0D"
                                     id="btn-regresar-tomafisica"
                                 >REGRESAR
                                 </button>
-                                <button type="submit" class="btn btn-sm btn-primary float-sm-end mt-2 me-2">GUARDAR</button>
                             </form>                      
                         </div>
                     </div>
@@ -374,24 +385,23 @@
                                 <textarea class="form-control form-control-sm" v-model="formAgregar.observaciones"></textarea>
 
                                 <label class="fw-bold">Total Unidades:</label> {{ conteo_fisico_agregar_lote.toLocaleString() }}<br>
+                                
                                 <button
                                     type="submit"
-                                    class="btn btn-sm btn-primary float-sm-end mt-2 ms-2"
+                                    class="btn btn-sm btn-primary mt-2 me-2"
                                     :disabled="(conteo_fisico_agregar_lote === 0) | agregando"
                                     >
                                     {{ agregando ? 'GUARDANDO...' : 'GUARDAR' }}
                                 </button>
                                 <button 
                                     type="button" 
-                                    class="btn btn-sm float-sm-end mt-2" 
+                                    class="btn btn-sm mt-2" 
                                     data-bs-dismiss="modal"
                                     style="background-color:#FF8E0D"
                                     id="btn-regresar-agregar"
                                     @click="resetAgregarForm()"
                                 >REGRESAR
                                 </button>
-                                <!--button type="reset" class="btn btn-sm btn-secondary float-sm-end mt-2 ms-2 me-2">BORRAR</button-->
-                                
                             </form>                      
                         </div>
                     </div>
