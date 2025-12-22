@@ -257,7 +257,7 @@
                         <h5 class="modal-title text-center fw-bold" id="agregarItemFormLabel">
                             AGREGAR ITEM {{ mi_bodega }} - {{ mi_ubicacion }} 
                         </h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> <br>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" @click="resetAgregarForm()"></button> <br>
                     </div>
                     <div v-if="msg_agregar_lote" :class="`alert alert-${type_msg_agregar_lote} text-center p-2 m-0`" role="alert" style="font-size: smaller;">
                         {{msg_agregar_lote}}
@@ -387,6 +387,7 @@
                                     data-bs-dismiss="modal"
                                     style="background-color:#FF8E0D"
                                     id="btn-regresar-agregar"
+                                    @click="resetAgregarForm()"
                                 >REGRESAR
                                 </button>
                                 <!--button type="reset" class="btn btn-sm btn-secondary float-sm-end mt-2 ms-2 me-2">BORRAR</button-->
@@ -896,6 +897,13 @@
             async buscarProducto() {
                 
                 if (!this.formBuscar.product_id) {
+                    this.formAgregar.product_id = '';
+                    this.formAgregar.product_name = '';
+                    this.formAgregar.group_code = '';
+                    this.formAgregar.um = '';
+                    this.listaLotesAgregar = [];
+                    this.formAgregar.fecha_cadu_lote = '';
+                    this.formAgregar.fecha_elab_lote = '';
                     return
                 }
 
@@ -1040,6 +1048,25 @@
                 this.formBuscar.product_id = {codigo: product_id};
                 this.buscarProducto();
                 this.getUbicaciones(this.mi_bodega, this.mi_ubicacion);
+            },
+            resetAgregarForm() {
+                this.formBuscar.product_id = '';
+                this.type_msg_product='';
+                this.msg_product='';
+                this.formAgregar.product_id = '';
+                this.formAgregar.product_name = '';
+                this.formAgregar.group_code = '';
+                this.formAgregar.um = '';
+                this.listaLotesAgregar = [];
+                this.formAgregar.fecha_cadu_lote = '';
+                this.formAgregar.fecha_elab_lote = '';
+                this.formAgregar.numero_cajas = '';
+                this.formAgregar.unidades_sueltas = '';
+                this.formAgregar.observaciones = '';
+                this.mes_anio_felab = false;
+                this.mes_anio_felab_msg = "";
+                this.mes_anio_fcadu = false;
+                this.mes_anio_fcadu_msg = "";
             }
         }
     })
