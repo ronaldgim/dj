@@ -146,7 +146,6 @@
                                 <button 
                                     type="submit" 
                                     class="btn btn-sm btn-primary mt-2"
-                                    :disabled="total_agrupado_function === 0"
                                 >GUARDAR
                                 </button>
                             </form>
@@ -218,7 +217,6 @@
                                 <button 
                                     type="submit" 
                                     class="btn btn-sm btn-primary mt-2 me-2"
-                                    :disabled="conteo_fisico_lote === 0"
                                 >GUARDAR
                                 </button>
                                 <button 
@@ -370,7 +368,7 @@
                                 <button
                                     type="submit"
                                     class="btn btn-sm btn-primary mt-2 me-2"
-                                    :disabled="(conteo_fisico_agregar_lote === 0) | agregando"
+                                    :disabled="agregando"
                                     >
                                     {{ agregando ? 'GUARDANDO...' : 'GUARDAR' }}
                                 </button>
@@ -839,6 +837,9 @@
                     this.listaLotesAgregar = [];
                     this.formAgregar.fecha_cadu_lote = '';
                     this.formAgregar.fecha_elab_lote = '';
+                    this.formAgregar.unidades_caja = '';
+                    this.formAgregar.numero_cajas = '';
+                    this.formAgregar.unidades_sueltas = '';
                     return;
                 }
 
@@ -988,6 +989,8 @@
                 this.listaLotesAgregar = [];
                 this.formAgregar.fecha_cadu_lote = '';
                 this.formAgregar.fecha_elab_lote = '';
+                this.formAgregar.numero_cajas = '';
+                this.formAgregar.unidades_caja = '';
                 this.formAgregar.numero_cajas = '';
                 this.formAgregar.unidades_sueltas = '';
                 this.formAgregar.observaciones = '';
