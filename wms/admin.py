@@ -117,11 +117,15 @@ class TransferenciaAdmin(admin.ModelAdmin):
 class AjusteLiberacionAdmin(admin.ModelAdmin):
 
     list_display = (
+        'doc_id_corp',
         'doc_id',
         'product_id', 
         'lote_id', 
-        'egreso_temp'
+        'egreso_temp',
+        'unidades_cuc'
         )
+    # list_filter = ('doc_id_corp', 'doc_id', 'product_id')
+    search_fields = ['doc_id_corp', 'doc_id', 'product_id']
     
 @admin.register(TransferenciaStatus)
 class TransferenciaStatusAdmin(admin.ModelAdmin):
