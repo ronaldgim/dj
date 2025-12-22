@@ -1,6 +1,6 @@
 {% extends 'base_vue.html' %}
 {% block title %}
-<title>T.F Andagoya</title>
+<title>T.F Estanterias</title>
 {% endblock%}
 
 {% block navbar %}
@@ -130,15 +130,20 @@
                                 </div>
 
                                 <label class="fw-bold">Total Unidades:</label> {{ item.unidades_estanteria }}<br>
+                                
+                                <button 
+                                    type="submit" 
+                                    class="btn btn-sm btn-primary mt-2 me-2"
+                                >GUARDAR
+                                </button>
                                 <button 
                                     type="button" 
-                                    class="btn btn-sm float-sm-end mt-2" 
+                                    class="btn btn-sm mt-2" 
                                     data-bs-dismiss="modal"
                                     style="background-color:#FF8E0D"
                                     id="btn-regresar-tomafisica"
                                 >REGRESAR
                                 </button>
-                                <button type="submit" class="btn btn-sm btn-primary float-sm-end mt-2 me-2">GUARDAR</button>
                             </form>                      
                         </div>
                     </div>
@@ -160,7 +165,7 @@
                         <h5 class="modal-title text-center fw-bold" id="agregarItemFormLabel">
                             AGREGAR ITEM {{ mi_bodega }} - {{ mi_ubicacion }}   <br>
                         </h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" @click="resetAgregarForm()"></button>
                     </div>
                     <div v-if="msg_agregar_lote" :class="`alert alert-${type_msg_agregar_lote} text-center p-2 m-0`" role="alert" style="font-size: smaller;">
                         {{msg_agregar_lote}}
@@ -261,13 +266,20 @@
                                 </div>
 
                                 <label class="fw-bold">Total Unidades:</label> {{ conteo_fisico_agregar_lote.toLocaleString() }}<br>
-                                <button type="submit" class="btn btn-sm btn-primary float-sm-end mt-2 ms-2">{{ agregando ? 'GUARDANDO...' : 'GUARDAR' }}</button>
+                                <button 
+                                    type="submit" 
+                                    class="btn btn-sm btn-primary mt-2"
+                                    :disabled="(conteo_fisico_agregar_lote === 0) | agregando"
+                                    >
+                                    {{ agregando ? 'GUARDANDO...' : 'GUARDAR' }}
+                                </button>
                                 <button 
                                     type="button" 
-                                    class="btn btn-sm float-sm-end mt-2" 
+                                    class="btn btn-sm mt-2" 
                                     data-bs-dismiss="modal"
                                     style="background-color:#FF8E0D"
                                     id="btn-regresar-agregar"
+                                    @click="resetAgregarForm()"
                                 >REGRESAR
                                 </button>
                                 <!--button type="reset" class="btn btn-sm btn-secondary float-sm-end mt-2 ms-2 me-2">BORRAR</button-->
@@ -299,19 +311,6 @@
 
             // ITEM
             item:'',
-
-            // TOTALES
-            // type_msg_totales:'',
-            // msg_totales:'',
-            // formTotales:{
-            //     product_id_t:'',
-            //     ware_code_t:'',
-            //     location_t:'',
-            //     unidades_caja_t:'',
-            //     numero_cajas_t:'',
-            //     unidades_sueltas_t:'',
-            //     user_id: Number(document.getElementById("user-id").value)
-            // },
 
             // LOTES
             lotes:[],
@@ -634,26 +633,6 @@
                     
                     // Total lotes
                     this.total_lotes = this.lotes.reduce((acumulador, unidades) => acumulador + unidades.total_unidades, 0)
-
-                    // Form totales
-                    // if (data.item_totales){
-                    //     this.formTotales.id = data.item_totales.id;
-                    //     this.formTotales.product_id_t = data.item_totales.product_id_t;
-                    //     this.formTotales.ware_code_t = data.item_totales.ware_code_t;
-                    //     this.formTotales.location_t = data.item_totales.location_t;
-                    //     this.formTotales.unidades_caja_t = data.item_totales.unidades_caja_t;
-                    //     this.formTotales.numero_cajas_t = (data.item_totales.numero_cajas_t === 0) ? '' : data.item_totales.numero_cajas_t;
-                    //     this.formTotales.unidades_sueltas_t = (data.item_totales.unidades_sueltas_t === 0) ? '' : data.item_totales.unidades_sueltas_t;
-                    // } 
-                    // else {
-                    //     this.formTotales.id = null;  
-                    //     this.formTotales.product_id_t = data.item.product_id;
-                    //     this.formTotales.ware_code_t = data.item.ware_code;
-                    //     this.formTotales.location_t = data.item.location;
-                    //     this.formTotales.unidades_caja_t = data.item.unidades_caja;
-                    //     this.formTotales.numero_cajas_t = '';
-                    //     this.formTotales.unidades_sueltas_t = '';
-                    // }
                     
                     // Form lote 
                     this.formLote.id = data.item.id;
@@ -720,6 +699,17 @@
             },
 
             async buscarProducto() {
+                if (!this.formBuscar.product_id) {
+                    this.formAgregar.product_id = '';
+                    this.formAgregar.product_name = '';
+                    this.formAgregar.group_code = '';
+                    this.formAgregar.um = '';
+                    this.listaLotesAgregar = [];
+                    this.formAgregar.fecha_cadu_lote = '';
+                    this.formAgregar.fecha_elab_lote = '';
+                    this.formAgregar.unidades_estanteria = '';
+                    return;
+                }
                 try {
                     const response = await fetch('/inventario/toma-fisica/buscar-producto', {
                         method: 'POST',
@@ -847,6 +837,17 @@
             addItemLote(product_id) {
                 this.formBuscar.product_id = {codigo: product_id};
                 this.buscarProducto();
+            },
+            resetAgregarForm() {
+                this.formBuscar.product_id = '';
+                this.formAgregar.product_id = '';
+                this.formAgregar.product_name = '';
+                this.formAgregar.group_code = '';
+                this.formAgregar.um = '';
+                this.listaLotesAgregar = [];
+                this.formAgregar.fecha_cadu_lote = '';
+                this.formAgregar.fecha_elab_lote = '';
+                this.formAgregar.unidades_estanteria = ''
             }
         }
     })
