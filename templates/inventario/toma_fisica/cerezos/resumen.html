@@ -140,7 +140,12 @@
                             <td>{{ i.Marca }}</td>
                             <td class="text-end" style="background-color: #caf7ffff;">{{ formatNumber(i.oh2) }}</td>
                             <td class="text-end" style="background-color: #caf7ffff;">{{ formatNumber(i.total_unidades) }}</td>
-                            <td class="text-end">{{ formatNumber(i.diferencia) }}</td>
+                            <td :class="['text-end', i.diferencia < 0 ? 'text-danger' : '']">
+                                {{ 
+                                    i.diferencia < 0 ? "(" + formatNumber(Math.abs(i.diferencia)) + ")" : 
+                                    formatNumber(i.diferencia)
+                                }}
+                            </td>
                             <td>
                                 {{ i.lleno ? '✅' : '❌' }}
                             </td>
