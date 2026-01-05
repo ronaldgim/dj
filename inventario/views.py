@@ -2040,6 +2040,7 @@ def detalle_resumen_total_unificado_cerezos(request):
         # 'diferencia',
         # 'observaciones',
         # 'user__username',
+        'llenado'
     )
     
     if not cerezos.exists():
