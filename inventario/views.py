@@ -919,7 +919,7 @@ def pivot_reservas_lote_2(ware_code):
 
 
 @login_required(login_url='login')
-def reporte_andagoya_bpa(request):
+def reporte_andagoya_bpa_odld(request):
     
     inv = Inventario.objects.all().values(
         'product_id',
@@ -938,7 +938,7 @@ def reporte_andagoya_bpa(request):
         'numero_cajas',
         'unidades_sueltas',
         'unidades_estanteria',
-        'total_unidades',
+        # 'total_unidades',
         'diferencia',
         'observaciones',
         'user__username'
@@ -947,7 +947,7 @@ def reporte_andagoya_bpa(request):
     inv_df = pd.DataFrame(inv).sort_values(by=['ware_code','location','product_id','lote_id','fecha_elab_lote'])
     inv_df['fecha_elab_lote']   = inv_df['fecha_elab_lote'].astype('str')
     inv_df['fecha_cadu_lote']   = inv_df['fecha_cadu_lote'].astype('str')
-    # inv_df['subtotal_unidades'] = inv_df['numero_cajas'] * inv_df['unidades_caja'].astype(int) + inv_df['unidades_sueltas']
+    inv_df['subtotal_unidades'] = inv_df['numero_cajas'] * inv_df['unidades_caja'].astype(int) + inv_df['unidades_sueltas']
     inv_df['unidades_caja']     = inv_df['unidades_caja'].astype('str')
     
     df_list = []
@@ -969,13 +969,15 @@ def reporte_andagoya_bpa(request):
             'numero_cajas',
             'unidades_sueltas',
             'unidades_estanteria',
-            # 'subtotal_unidades',
-            'total_unidades',
+            'subtotal_unidades',
+            # 'total_unidades',
             'diferencia',
             'observaciones',
             'user__username'
         ]]
-                
+        
+        # df_product['total_unidades'] = df_product
+        
         df_totales = df_product.select_dtypes(include='number').sum()
         df_totales['product_id'] = f'Total: {i}'
         df_totales = pd.DataFrame([df_totales])
@@ -999,7 +1001,7 @@ def reporte_andagoya_bpa(request):
                         # 'unidades_sueltas', 'unidades_estanteria','total_unidades','diferencia','observaciones','user__username']
     
     df_final = df_final[df_first_columns + reservas_columns + df_last_columns]
-    # df_final = df_final.rename(comlumns={'total_unidades':'subtotal_unidades'})
+    # df_final = df_final.rename(columns={'total_unidades':'subtotal_unidades'})
     
     # df_final['total_unidades'] = df_final['total_unidades'] + df_final[reservas_columns].sum(axis=1) 
     df_final['diferencia'] = df_final['total_unidades'] - df_final['oh2']
@@ -1015,6 +1017,151 @@ def reporte_andagoya_bpa(request):
     df_final.to_excel(response, index=False)
 
     return response
+
+
+
+def reporte_andagoya_bpa(request):
+
+    # 1. DATA BASE
+    inv = Inventario.objects.all().values(
+        'product_id',
+        'product_name',
+        'group_code',
+        'um',
+        'oh2',
+        'commited',
+        'quantity',
+        'lote_id',
+        'fecha_elab_lote',
+        'fecha_cadu_lote',
+        'ware_code',
+        'location',
+        'unidades_caja',
+        'numero_cajas',
+        'unidades_sueltas',
+        'unidades_estanteria',
+        'diferencia',
+        'observaciones',
+        'user__username'
+    )
+
+    inv_df = pd.DataFrame(inv)
+
+    # 2. NORMALIZACIÓN
+    inv_df[['numero_cajas', 'unidades_caja',
+            'unidades_sueltas', 'unidades_estanteria']] = (
+        inv_df[['numero_cajas', 'unidades_caja',
+                'unidades_sueltas', 'unidades_estanteria']]
+        .fillna(0)
+        .astype(int)
+    )
+
+    inv_df['fecha_elab_lote'] = inv_df['fecha_elab_lote'].astype(str)
+    inv_df['fecha_cadu_lote'] = inv_df['fecha_cadu_lote'].astype(str)
+
+    inv_df['subtotal_unidades'] = (
+        inv_df['numero_cajas'] * inv_df['unidades_caja']
+        + inv_df['unidades_sueltas']
+        + inv_df['unidades_estanteria']
+    )
+
+    inv_df['unidades_caja'] = inv_df['unidades_caja'].astype(str)
+
+    inv_df = inv_df.sort_values(
+        by=['ware_code', 'location', 'product_id', 'lote_id', 'fecha_elab_lote']
+    )
+
+    # 3. AGRUPACIÓN POR PRODUCTO + TOTAL
+    df_list = []
+
+    for product_id, df_product in inv_df.groupby('product_id'):
+
+        df_product = df_product[[
+            'product_id',
+            'product_name',
+            'group_code',
+            'um',
+            'oh2',
+            'lote_id',
+            'fecha_elab_lote',
+            'fecha_cadu_lote',
+            'ware_code',
+            'location',
+            'unidades_caja',
+            'numero_cajas',
+            'unidades_sueltas',
+            'unidades_estanteria',
+            'subtotal_unidades',
+            'diferencia',
+            'observaciones',
+            'user__username'
+        ]]
+
+        # ---- TOTAL POR PRODUCTO (UNA FILA) ----
+        total_vals = df_product[[
+            'oh2',
+            'numero_cajas',
+            'unidades_sueltas',
+            'unidades_estanteria',
+            'subtotal_unidades',
+            'diferencia'
+        ]].sum()
+
+        total_row = {col: '' for col in df_product.columns}
+        total_row.update(total_vals.to_dict())
+        total_row['product_id'] = f'Total: {product_id}'
+
+        df_list.append(df_product)
+        df_list.append(pd.DataFrame([total_row]))
+
+    df_final = pd.concat(df_list, ignore_index=True)
+
+    # 4. RESERVAS (SOLO DETALLE)
+    reservas = pivot_reservas_lote_2('BAN')
+    reservas_cols = [c for c in reservas.columns if c not in ['product_id', 'lote_id']]
+
+    df_final = df_final.merge(
+        reservas,
+        on=['product_id', 'lote_id'],
+        how='left'
+    )
+
+    df_final[reservas_cols] = df_final[reservas_cols].fillna(0)
+
+    # 5. TOTALES FINALES
+    df_final['total_unidades'] = (
+        df_final['subtotal_unidades'] + df_final[reservas_cols].sum(axis=1)
+    )
+
+    df_final['diferencia'] = df_final['total_unidades'] - df_final['oh2']
+
+    # 6. ORDEN COLUMNAS
+    df_first_columns = ['product_id', 'product_name', 'group_code', 'um', 'oh2']
+    df_last_columns = [
+        'lote_id', 'fecha_elab_lote', 'fecha_cadu_lote',
+        'ware_code', 'location', 'unidades_caja',
+        'numero_cajas', 'unidades_sueltas',
+        'unidades_estanteria', 'subtotal_unidades',
+        'total_unidades', 'diferencia',
+        'observaciones', 'user__username'
+    ]
+
+    df_final = df_final[df_first_columns + reservas_cols + df_last_columns]
+
+    # 7. EXPORT EXCEL
+    date_time = datetime.now().strftime('%Y-%m-%d_%H-%M')
+    filename = f'inventario_andagoya_bpa_{date_time}.xlsx'
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+    df_final.to_excel(response, index=False)
+
+    return response
+
+
 
 
 ### INVENTARIO CEREZOS
