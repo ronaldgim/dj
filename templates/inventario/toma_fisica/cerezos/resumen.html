@@ -256,8 +256,8 @@
                         // Calcular diferencia si no existe en los datos
                         // const diferencia = i.diferencia || this.calcularDiferencia(i);                        
                         if (this.filtroEstado === 'diferencia0') {
-                            // return i.diferencia != 0;
-                            return i.diferencia === 0;
+                            return i.diferencia !== 0;
+                            // return i.diferencia === 0;
                         } else if (this.filtroEstado === 'lleno') {
                             // Asumiendo que 'lleno' significa que hay stock disponible
                             // Ajusta esta lógica según tus necesidades específicas
