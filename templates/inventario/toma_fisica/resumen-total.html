@@ -393,7 +393,7 @@
                 try {
                     const response = await fetch('/inventario/resumen_total_unificado');
                     const data = await response.json();
-                    // console.log('Datos recibidos:', data);
+                    // console.log('Datos recibidos:', response);
                     
                     // Asegurarse de que todos los campos numéricos sean números
                     this.stock = (data.resumen_total || []).map(item => {

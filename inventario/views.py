@@ -2321,7 +2321,7 @@ def reservas_por_bodega(request, ware_code):
 
 
 # Reporte unificado
-@login_required(login_url='login')
+#@login_required(login_url='login')
 def resumen_total_unificado(request):
     
     cerezos = InventarioCerezos.objects.all().values('product_id', 'oh2', 'total_unidades')
@@ -2348,7 +2348,7 @@ def resumen_total_unificado(request):
     resumen_total['diferencia_total'] = resumen_total['tf_total'] - resumen_total['mba_total']
     
     return JsonResponse({
-        'resumen_total': resumen_total.to_dict(orient='records')
+        'resumen_total': de_dataframe_a_template(resumen_total) #resumen_total.to_dict(orient='records')
     })
 
 
