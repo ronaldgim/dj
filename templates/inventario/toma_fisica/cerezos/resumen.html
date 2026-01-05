@@ -41,6 +41,13 @@
         </button>
     </div>
 
+    {% verbatim%}
+    <div>
+    Total de registros:
+        {{stockFiltrado.length }}
+    </div>
+    {% endverbatim%}
+
     <div class="card mb-4">
         <div class="card-header">RESUMEN CEREZOS</div>
         <div class="card-body">
@@ -249,7 +256,8 @@
                         // Calcular diferencia si no existe en los datos
                         // const diferencia = i.diferencia || this.calcularDiferencia(i);                        
                         if (this.filtroEstado === 'diferencia0') {
-                            return i.diferencia != 0;
+                            // return i.diferencia != 0;
+                            return i.diferencia === 0;
                         } else if (this.filtroEstado === 'lleno') {
                             // Asumiendo que 'lleno' significa que hay stock disponible
                             // Ajusta esta lógica según tus necesidades específicas
@@ -280,7 +288,8 @@
                         'oh2_andagoya', 
                         'total_unidades_andagoya',
                         'oh2_cerezos',
-                        'total_unidades_cerezos'
+                        'total_unidades_cerezos',
+                        'diferencia'
                     ];
                     
                     if (camposNumericos.includes(this.sortField)) {

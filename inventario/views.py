@@ -2082,7 +2082,9 @@ def resumen_cerezos_data(request):
     productos = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     cerezos_df = cerezos_df.merge(productos, on='product_id', how='left') 
     cerezos_df['lleno'] = cerezos_df['total_unidades'] > 0
-    cerezos_df['diferencia'] = cerezos_df['oh2'] - cerezos_df['total_unidades']
+    # cerezos_df['diferencia'] = cerezos_df['oh2'] - cerezos_df['total_unidades']
+    cerezos_df['diferencia'] = cerezos_df['total_unidades'] - cerezos_df['oh2']
+    
     return JsonResponse({
         'cerezos': de_dataframe_a_template(cerezos_df)
     })
