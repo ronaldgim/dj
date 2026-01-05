@@ -1019,7 +1019,7 @@ def reporte_andagoya_bpa_odld(request):
     return response
 
 
-
+@login_required(login_url='login')
 def reporte_andagoya_bpa(request):
 
     # 1. DATA BASE
