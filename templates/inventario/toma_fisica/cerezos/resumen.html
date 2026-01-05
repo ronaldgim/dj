@@ -194,9 +194,10 @@
                                                     {{ d_c.diferencia < 0 ? `(${Math.abs(d_c.diferencia).toLocaleString()})` : d_c.diferencia }}</td>
                                             </tr>
                                             <tr>
-                                                <td colspan="6" class="text-end fw-bold">Totales:</td>
+                                                <td colspan="5" class="text-end fw-bold">Totales:</td>
                                                 <td class="text-end fw-bold">{{ formatNumber(detalle_totales_cerezos.cerezos_mba_total) }}</td>
                                                 <td class="text-end fw-bold">{{ formatNumber(detalle_totales_cerezos.cerezos_tf_total) }}</td>
+                                                <td ></td>
                                                 <td :class="['text-end', 'fw-bold', detalle_totales_cerezos.cerezos_diferencia_total < 0 ? 'text-danger' : '']">
                                                     {{ detalle_totales_cerezos.cerezos_diferencia_total < 0 ? `(${Math.abs(detalle_totales_cerezos.cerezos_diferencia_total)})` : detalle_totales_cerezos.cerezos_diferencia_total }}
                                                 </td>
