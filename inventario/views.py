@@ -1664,7 +1664,7 @@ def reporte_cerezos_tf_mba(request):
 
 
 @login_required(login_url='login')
-def reporte_cerezos_bpa(request):
+def reporte_cerezos_bpa_old(request):
     
     # INV TOMA FISICA
     inv = InventarioCerezos.objects.all().values(
@@ -1877,6 +1877,271 @@ def reporte_cerezos_bpa(request):
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     response['Content-Disposition'] = nombre
     
+    df_final.to_excel(response, index=False)
+
+    return response
+
+
+
+@login_required(login_url='login')
+def reporte_cerezos_bpa(request):
+
+    # import pandas as pd
+    # from datetime import datetime
+    # from django.http import HttpResponse
+
+    # ===============================
+    # 1. DATA BASE
+    # ===============================
+    inv = InventarioCerezos.objects.all().values(
+        'product_id',
+        'product_name',
+        'group_code',
+        'um',
+        'estado',
+        'oh2',
+        'lote_id',
+        'fecha_elab_lote',
+        'fecha_cadu_lote',
+        'ubicacion__bodega',
+        'unidades_caja',
+        'numero_cajas',
+        'unidades_sueltas',
+        'total_unidades',
+        'diferencia',
+        'observaciones',
+        'user__username',
+    )
+
+    inv_df = pd.DataFrame(inv)
+
+    # ===============================
+    # 2. WARE CODE
+    # ===============================
+    inv_df['ware_code'] = inv_df['estado'].apply(
+        lambda x: 'BCT' if x == 'Disponible' else 'CUC'
+    )
+
+    # ===============================
+    # 3. UNIDADES (NUMÉRICOS)
+    # ===============================
+    inv_unidades_df = (
+        inv_df
+        .groupby([
+            'product_id',
+            'product_name',
+            'group_code',
+            'um',
+            'ware_code',
+            'unidades_caja',
+            'lote_id',
+            'fecha_elab_lote',
+            'fecha_cadu_lote',
+            'ubicacion__bodega',
+        ], dropna=False)[[
+            'oh2',
+            'numero_cajas',
+            'unidades_sueltas',
+            'total_unidades',
+            'diferencia'
+        ]]
+        .sum()
+        .reset_index()
+    )
+
+    # ===============================
+    # 4. USUARIOS (STRING AGREGADO)
+    # ===============================
+    df_users = (
+        inv_df
+        .assign(user__username=inv_df['user__username'].fillna(''))
+        .groupby([
+            'product_id',
+            'ware_code',
+            'lote_id',
+            'fecha_elab_lote',
+            'fecha_cadu_lote',
+            'ubicacion__bodega',
+        ], dropna=False)['user__username']
+        .apply(lambda x: ', '.join(sorted(set(filter(None, x)))))
+        .reset_index()
+    )
+
+    # ===============================
+    # 5. OBSERVACIONES (STRING AGREGADO)
+    # ===============================
+    df_obs = (
+        inv_df
+        .assign(observaciones=inv_df['observaciones'].fillna(''))
+        .groupby([
+            'product_id',
+            'ware_code',
+            'lote_id',
+            'fecha_elab_lote',
+            'fecha_cadu_lote',
+            'ubicacion__bodega',
+        ], dropna=False)['observaciones']
+        .apply(lambda x: ', '.join(sorted(set(filter(None, x)))))
+        .reset_index()
+    )
+
+    # ===============================
+    # 6. STR UNIDO (1–1)
+    # ===============================
+    df_str = df_users.merge(
+        df_obs,
+        on=[
+            'product_id',
+            'ware_code',
+            'lote_id',
+            'fecha_elab_lote',
+            'fecha_cadu_lote',
+            'ubicacion__bodega',
+        ],
+        how='left'
+    )
+
+    # ===============================
+    # 7. UNIÓN FINAL
+    # ===============================
+    df_unido = (
+        inv_unidades_df
+        .merge(
+            df_str,
+            on=[
+                'product_id',
+                'ware_code',
+                'lote_id',
+                'fecha_elab_lote',
+                'fecha_cadu_lote',
+                'ubicacion__bodega',
+            ],
+            how='left'
+        )
+        .sort_values(by=[
+            'ware_code',
+            'ubicacion__bodega',
+            'product_id',
+            'lote_id',
+            'fecha_elab_lote'
+        ])
+    )
+
+    # ===============================
+    # 8. SUBTOTAL UNIDADES
+    # ===============================
+    df_unido[['numero_cajas', 'unidades_caja', 'unidades_sueltas']] = (
+        df_unido[['numero_cajas', 'unidades_caja', 'unidades_sueltas']]
+        .fillna(0)
+        .astype(int)
+    )
+
+    df_unido['subtotal_unidades'] = (
+        df_unido['numero_cajas'] * df_unido['unidades_caja']
+        + df_unido['unidades_sueltas']
+    )
+
+    # ===============================
+    # 9. AGRUPACIÓN FINAL POR PRODUCTO
+    # ===============================
+    df_list = []
+
+    for product_id, df_prod in df_unido.groupby('product_id'):
+
+        # Detalle
+        df_detalle = (
+            df_prod
+            .groupby([
+                'product_id',
+                'product_name',
+                'group_code',
+                'um',
+                'ware_code',
+                'unidades_caja',
+                'lote_id',
+                'fecha_elab_lote',
+                'fecha_cadu_lote',
+                'ubicacion__bodega',
+                'observaciones',
+                'user__username'
+            ], dropna=False)[[
+                'oh2',
+                'numero_cajas',
+                'unidades_sueltas',
+                'subtotal_unidades',
+                'total_unidades',
+                'diferencia'
+            ]]
+            .sum()
+            .reset_index()
+        )
+
+        # Total por producto (UNA sola fila)
+        total_row = df_detalle[[
+            'oh2',
+            'numero_cajas',
+            'unidades_sueltas',
+            'subtotal_unidades',
+            'total_unidades',
+            'diferencia'
+        ]].sum()
+
+        total_row = pd.DataFrame([{
+            **{col: '' for col in df_detalle.columns},
+            **total_row.to_dict(),
+            'product_id': f'Total: {product_id}'
+        }])
+
+        df_list.append(df_detalle)
+        df_list.append(total_row)
+
+    df_final = pd.concat(df_list, ignore_index=True)
+
+    # ===============================
+    # 10. RESERVAS
+    # ===============================
+    reservas = pivot_reservas_lote_2('BCT')
+    reservas_cols = [c for c in reservas.columns if c not in ['product_id', 'lote_id']]
+
+    df_final = df_final.merge(
+        reservas,
+        on=['product_id', 'lote_id'],
+        how='left'
+    ).fillna(0)
+
+    # ===============================
+    # 11. AJUSTES FINALES
+    # ===============================
+    df_final['total_unidades'] = (
+        df_final['total_unidades'] + df_final[reservas_cols].sum(axis=1)
+    )
+
+    df_final['diferencia'] = df_final['total_unidades'] - df_final['oh2']
+
+    # ===============================
+    # 12. ORDEN COLUMNAS
+    # ===============================
+    df_first = ['product_id', 'product_name', 'group_code', 'um', 'oh2']
+    df_last = [
+        'lote_id', 'fecha_elab_lote', 'fecha_cadu_lote', 'ware_code',
+        'ubicacion__bodega', 'unidades_caja', 'numero_cajas',
+        'unidades_sueltas', 'subtotal_unidades', 'total_unidades',
+        'diferencia', 'observaciones', 'user__username'
+    ]
+
+    df_final = df_final[df_first + reservas_cols + df_last]
+
+    # ===============================
+    # 13. EXPORT EXCEL
+    # ===============================
+    date_time = datetime.now().strftime('%Y-%m-%d_%H-%M')
+    filename = f'inventario_cerezos_bpa_{date_time}.xlsx'
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
     df_final.to_excel(response, index=False)
 
     return response
