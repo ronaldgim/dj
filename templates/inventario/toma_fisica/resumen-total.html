@@ -120,7 +120,7 @@
                                 T.F.Cerezos {% verbatim %}{{ getIconoOrden('total_unidades_cerezos') }}{% endverbatim %}
                             </span>
                             </th>
-                            <th
+                            <!--th
                                 scope="col"
                                 @click="ordenarPor('egreso_temp_cerezos')" 
                                 style="cursor: pointer;user-select: none; background-color: #caf7ffff;"
@@ -129,7 +129,7 @@
                             <span style="white-space: nowrap;">
                                 Res.Cerezos {% verbatim %}{{ getIconoOrden('egreso_temp_cerezos') }}{% endverbatim %}
                             </span>
-                            </th>
+                            </th-->
                             <th 
                                 scope="col"
                                 @click="ordenarPor('mba_total')" 
@@ -176,7 +176,7 @@
                             <td class="text-end" style="background-color: #f7ffcdff;">{{ formatNumber(i.egreso_temp_andagoya) }}</td>
                             <td class="text-end" style="background-color: #caf7ffff;">{{ formatNumber(i.oh2_cerezos) }}</td>
                             <td class="text-end" style="background-color: #caf7ffff;">{{ formatNumber(i.total_unidades_cerezos) }}</td>
-                            <td class="text-end" style="background-color: #caf7ffff;">{{ formatNumber(i.egreso_temp_cerezos) }}</td>
+                            <!--td class="text-end" style="background-color: #caf7ffff;">{{ formatNumber(i.egreso_temp_cerezos) }}</td-->
                             <td class="text-end">{{ formatNumber(i.mba_total) }}</td>
                             <td class="text-end">{{ formatNumber(i.tf_total) }}</td>
                             <td :class="['text-end', i.diferencia_total < 0 ? 'text-danger' : '']">
