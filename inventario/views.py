@@ -2427,7 +2427,12 @@ def resumen_total_unificado(request):
     
     # Calcular totales y diferencias
     resumen_total['mba_total'] = resumen_total['oh2_cerezos'] + resumen_total['oh2_andagoya']
-    resumen_total['tf_total'] = resumen_total['total_unidades_cerezos'] + resumen_total['total_unidades_andagoya']
+    resumen_total['tf_total'] = (
+        resumen_total['total_unidades_cerezos'] + 
+        resumen_total['total_unidades_andagoya'] +
+        resumen_total.get('egreso_temp_cerezos', 0) +  # Reservas Cerezos
+        resumen_total.get('egreso_temp_andagoya', 0)    # Reservas Andagoya
+    )
     resumen_total['diferencia_total'] = resumen_total['tf_total'] - resumen_total['mba_total']
     
     return JsonResponse({
