@@ -90,16 +90,16 @@
                                 T.F.Andagoya {% verbatim %}{{ getIconoOrden('total_unidades_andagoya') }}{% endverbatim %}
                             </span>
                             </th>
-                            <!--th
+                            <th
                                 scope="col"
-                                @click="ordenarPor('diferencia_andagoya')" 
+                                @click="ordenarPor('egreso_temp_andagoya')" 
                                 style="cursor: pointer;user-select: none; background-color: #f7ffcdff;"
-                                :class="{ 'sorted': sortField === 'diferencia_andagoya' }"
+                                :class="{ 'sorted': sortField === 'egreso_temp_andagoya' }"
                             >
                             <span style="white-space: nowrap;">
-                                Dif.Andagoya {% verbatim %}{{ getIconoOrden('diferencia_andagoya') }}{% endverbatim %}
+                                Res.Andagoya {% verbatim %}{{ getIconoOrden('egreso_temp_andagoya') }}{% endverbatim %}
                             </span>
-                            </th-->
+                            </th>
                             <th 
                                 scope="col"
                                 @click="ordenarPor('oh2_cerezos')" 
@@ -120,17 +120,16 @@
                                 T.F.Cerezos {% verbatim %}{{ getIconoOrden('total_unidades_cerezos') }}{% endverbatim %}
                             </span>
                             </th>
-                            <!--th 
+                            <th
                                 scope="col"
-                                @click="ordenarPor('diferencia_cerezos')" 
+                                @click="ordenarPor('egreso_temp_cerezos')" 
                                 style="cursor: pointer;user-select: none; background-color: #caf7ffff;"
-                                :class="{ 'sorted': sortField === 'diferencia_cerezos' }"
+                                :class="{ 'sorted': sortField === 'egreso_temp_cerezos' }"
                             >
                             <span style="white-space: nowrap;">
-                                Dif.Cerezos {% verbatim %}{{ getIconoOrden('diferencia_cerezos') }}{% endverbatim %}
+                                Res.Cerezos {% verbatim %}{{ getIconoOrden('egreso_temp_cerezos') }}{% endverbatim %}
                             </span>
-                            </th-->
-
+                            </th>
                             <th 
                                 scope="col"
                                 @click="ordenarPor('mba_total')" 
@@ -168,22 +167,16 @@
                     <tbody>
                         {% verbatim %}
                         <template v-for="(i, index) in stockFiltrado" :key="index">
-                        <!--tr v-for="(i, index) in stockFiltrado" :key="index"-->
-                        <!-- :style="{ backgroundColor: expandedRow === i.product_id ? '#ceffbfff' : '' }" class="btn btn-sm btn-primary text-white" -->
                         <tr :class="expandedRow === i.product_id ? 'fw-bold' : ''">
                             <td>{{ i.product_id }}</td>
                             <td>{{ i.Nombre }}</td>
                             <td>{{ i.Marca }}</td>
                             <td class="text-end" style="background-color: #f7ffcdff;">{{ formatNumber(i.oh2_andagoya) }}</td>
                             <td class="text-end" style="background-color: #f7ffcdff;">{{ formatNumber(i.total_unidades_andagoya) }}</td>
-                            <!--td :class="['text-end', i.diferencia_andagoya < 0 ? 'text-danger' : '']" style="background-color: #f7ffcdff;">
-                                {{ i.diferencia_andagoya < 0 ? `(${Math.abs(i.diferencia_andagoya).toLocaleString()})` : i.diferencia_andagoya.toLocaleString() }}
-                            </td-->
+                            <td class="text-end" style="background-color: #f7ffcdff;">{{ formatNumber(i.egreso_temp_andagoya) }}</td>
                             <td class="text-end" style="background-color: #caf7ffff;">{{ formatNumber(i.oh2_cerezos) }}</td>
                             <td class="text-end" style="background-color: #caf7ffff;">{{ formatNumber(i.total_unidades_cerezos) }}</td>
-                            <!--td :class="['text-end', i.diferencia_cerezos < 0 ? 'text-danger' : '']" style="background-color: #caf7ffff;">
-                                {{ i.diferencia_cerezos < 0 ? `(${Math.abs(i.diferencia_cerezos).toLocaleString()})` : i.diferencia_cerezos.toLocaleString() }}
-                            </td-->
+                            <td class="text-end" style="background-color: #caf7ffff;">{{ formatNumber(i.egreso_temp_cerezos) }}</td>
                             <td class="text-end">{{ formatNumber(i.mba_total) }}</td>
                             <td class="text-end">{{ formatNumber(i.tf_total) }}</td>
                             <td :class="['text-end', i.diferencia_total < 0 ? 'text-danger' : '']">
@@ -196,7 +189,7 @@
                                 <button 
                                     :class="expandedRow === i.product_id ? 'btn btn-sm btn-secondary' : 'btn btn-sm btn-primary'"
                                     @click="toggleRow(i.product_id)">
-                                    {{ expandedRow === i.product_id ? 'Ocultar' : 'Ver más' }}
+                                    {{ expandedRow === i.product_id ? 'x' : '...' }}
                                 </button>
                             </td>
                         </tr>
@@ -363,6 +356,8 @@
                         'total_unidades_cerezos',
                         'mba_total',
                         'tf_total',
+                        'egreso_temp_andagoya',
+                        'egreso_temp_cerezos',
                         'diferencia_total',
                     ];
                     

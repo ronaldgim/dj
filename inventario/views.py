@@ -2321,36 +2321,242 @@ def reservas_por_bodega(request, ware_code):
     return JsonResponse(context)
 
 
+def reservas_lotes_2_agrupado_df(ware_code: str) -> pd.DataFrame:
+    """
+    Obtiene las reservas temporales agrupadas por product_id
+    para una bodega específica (WARE_CODE).
+    """
+
+    query = """
+        SELECT
+            PRODUCT_ID,
+            EGRESO_TEMP,
+            WARE_CODE
+        FROM warehouse.reservas_lote_2
+        WHERE WARE_CODE = %s
+    """
+
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute(query, [ware_code])
+
+        rows = cursor.fetchall()
+        if not rows:
+            return pd.DataFrame(columns=['product_id', 'egreso_temp', 'ware_code'])
+
+        columns = [col[0].lower() for col in cursor.description]
+        reservas_df = pd.DataFrame(rows, columns=columns)
+
+    # Asegurar tipo numérico
+    reservas_df['egreso_temp'] = (
+        reservas_df['egreso_temp']
+        .fillna(0)
+        .astype(int)
+    )
+    
+    # Agrupación explícita y segura
+    reservas_df = (
+        reservas_df
+        .groupby('product_id', as_index=False)
+        .agg({
+            'egreso_temp': 'sum'
+        })
+    )
+    
+    return reservas_df
+
+
 # Reporte unificado
-#@login_required(login_url='login')
+@login_required(login_url='login')
 def resumen_total_unificado(request):
+    """
+    Genera un resumen unificado del inventario de Cerezos y Andagoya,
+    incluyendo reservas y comparaciones con MBA.
+    """
     
+    # Obtener inventario de Cerezos
     cerezos = InventarioCerezos.objects.all().values('product_id', 'oh2', 'total_unidades')
-    cerezos_df = pd.DataFrame(cerezos)
+    cerezos_df = pd.DataFrame(list(cerezos))  # Usar list() para asegurar evaluación
     
+    if cerezos_df.empty:
+        cerezos_df = pd.DataFrame(columns=['product_id', 'oh2', 'total_unidades'])
+    
+    cerezos_df['ware_code'] = 'BCT'
+    cerezos_df = cerezos_df.fillna(0)
+    
+    # Obtener reservas de Cerezos
+    reservas_cerezos = reservas_lotes_2_agrupado_df('BCT')
+    # print("Reservas Cerezos:", reservas_cerezos)
+    
+    if not reservas_cerezos.empty:
+        cerezos_df = pd.merge(cerezos_df, reservas_cerezos, on='product_id', how='left')
+        cerezos_df = cerezos_df.fillna(0)  # Rellenar NaN después del merge
+    
+    # Obtener inventario de Andagoya
     andagoya = Inventario.objects.all().values('product_id', 'oh2', 'total_unidades')
-    andagoya_df = pd.DataFrame(andagoya)
+    andagoya_df = pd.DataFrame(list(andagoya))  # Usar list() para asegurar evaluación
+    
+    if andagoya_df.empty:
+        andagoya_df = pd.DataFrame(columns=['product_id', 'oh2', 'total_unidades'])
+    
+    andagoya_df['ware_code'] = 'BAN'
+    andagoya_df = andagoya_df.fillna(0)
+    
+    # Obtener reservas de Andagoya
+    reservas_andagoya = reservas_lotes_2_agrupado_df('BAN')
+    # print("Reservas Andagoya:", reservas_andagoya)
+    
+    if not reservas_andagoya.empty:
+        andagoya_df = pd.merge(andagoya_df, reservas_andagoya, on='product_id', how='left')
+        andagoya_df = andagoya_df.fillna(0)  # Rellenar NaN después del merge
+    
+    # Agrupar y unificar ambos inventarios
+    cerezos_agrupado = cerezos_df.groupby('product_id', as_index=False).sum(numeric_only=True)
+    andagoya_agrupado = andagoya_df.groupby('product_id', as_index=False).sum(numeric_only=True)
     
     resumen_total = pd.merge(
-        cerezos_df.groupby('product_id').sum().reset_index(),
-        andagoya_df.groupby('product_id').sum().reset_index(),
+        cerezos_agrupado,
+        andagoya_agrupado,
         on='product_id',
         how='outer',
         suffixes=('_cerezos', '_andagoya')
     ).fillna(0)
     
-    productos = productos_odbc_and_django()[['product_id','Nombre','Marca']]
-    resumen_total = resumen_total.merge(productos, on='product_id', how='left') 
-    # resumen_total['diferencia_cerezos'] = resumen_total['total_unidades_cerezos'] - resumen_total['oh2_cerezos']
-    # resumen_total['diferencia_andagoya'] = resumen_total['total_unidades_andagoya'] - resumen_total['oh2_andagoya']
+    # Obtener información de productos
+    productos = productos_odbc_and_django()[['product_id', 'Nombre', 'Marca']]
+    resumen_total = resumen_total.merge(productos, on='product_id', how='left')
     
+    # Calcular totales y diferencias
     resumen_total['mba_total'] = resumen_total['oh2_cerezos'] + resumen_total['oh2_andagoya']
-    resumen_total['tf_total']  = resumen_total['total_unidades_cerezos'] + resumen_total['total_unidades_andagoya']
+    resumen_total['tf_total'] = resumen_total['total_unidades_cerezos'] + resumen_total['total_unidades_andagoya']
     resumen_total['diferencia_total'] = resumen_total['tf_total'] - resumen_total['mba_total']
     
     return JsonResponse({
-        'resumen_total': de_dataframe_a_template(resumen_total) #resumen_total.to_dict(orient='records')
+        'resumen_total': de_dataframe_a_template(resumen_total)
     })
+
+
+# def resumen_total_unificado(request):
+
+#     # ========= CEREZOS =========
+#     cerezos_df = pd.DataFrame(
+#         InventarioCerezos.objects.all().values(
+#             'product_id', 'oh2', 'total_unidades'
+#         )
+#     )
+
+#     if cerezos_df.empty:
+#         cerezos_df = pd.DataFrame(
+#             columns=['product_id', 'oh2', 'total_unidades']
+#         )
+
+#     cerezos_df[['oh2', 'total_unidades']] = cerezos_df[['oh2', 'total_unidades']].fillna(0)
+
+#     reservas_cerezos = reservas_lotes_2_agrupado_df('BCT')
+#     if reservas_cerezos.empty:
+#         reservas_cerezos = pd.DataFrame(
+#             columns=['product_id', 'egreso_temp']
+#         )
+
+#     cerezos_df = (
+#         cerezos_df
+#         .merge(reservas_cerezos, on='product_id', how='left')
+#         .fillna({'egreso_temp': 0})
+#         .rename(columns={'egreso_temp': 'reservas_cerezos'})
+#     )
+
+#     cerezos_df = cerezos_df.rename(columns={
+#         'oh2': 'oh2_cerezos',
+#         'total_unidades': 'total_unidades_cerezos'
+#     })
+
+#     # ========= ANDAGOYA =========
+#     andagoya_df = pd.DataFrame(
+#         Inventario.objects.all().values(
+#             'product_id', 'oh2', 'total_unidades'
+#         )
+#     )
+
+#     if andagoya_df.empty:
+#         andagoya_df = pd.DataFrame(
+#             columns=['product_id', 'oh2', 'total_unidades']
+#         )
+
+#     andagoya_df[['oh2', 'total_unidades']] = andagoya_df[['oh2', 'total_unidades']].fillna(0)
+
+#     reservas_andagoya = reservas_lotes_2_agrupado_df('BAN')
+#     if reservas_andagoya.empty:
+#         reservas_andagoya = pd.DataFrame(
+#             columns=['product_id', 'egreso_temp']
+#         )
+
+#     andagoya_df = (
+#         andagoya_df
+#         .merge(reservas_andagoya, on='product_id', how='left')
+#         .fillna({'egreso_temp': 0})
+#         .rename(columns={'egreso_temp': 'reservas_andagoya'})
+#     )
+
+#     andagoya_df = andagoya_df.rename(columns={
+#         'oh2': 'oh2_andagoya',
+#         'total_unidades': 'total_unidades_andagoya'
+#     })
+
+#     # ========= MERGE FINAL =========
+#     resumen_total = (
+#         cerezos_df
+#         .merge(andagoya_df, on='product_id', how='outer')
+#         .fillna(0)
+#     )
+
+#     # ========= PRODUCTOS =========
+#     productos = productos_odbc_and_django()[['product_id', 'Nombre', 'Marca']]
+#     resumen_total = resumen_total.merge(productos, on='product_id', how='left')
+
+#     # ========= CÁLCULOS =========
+#     resumen_total['mba_total'] = (
+#         resumen_total['oh2_cerezos'] +
+#         resumen_total['oh2_andagoya']
+#     )
+
+#     resumen_total['tf_total'] = (
+#         resumen_total['total_unidades_cerezos'] +
+#         resumen_total['total_unidades_andagoya']
+#     )
+
+#     resumen_total['reservas_total'] = (
+#         resumen_total['reservas_cerezos'] +
+#         resumen_total['reservas_andagoya']
+#     )
+
+#     resumen_total['diferencia_total'] = (
+#         resumen_total['tf_total'] - resumen_total['mba_total']
+#     )
+
+#     # ========= ORDEN =========
+#     columnas_finales = [
+#         'product_id',
+#         'Nombre',
+#         'Marca',
+#         'oh2_cerezos',
+#         'oh2_andagoya',
+#         'mba_total',
+#         'total_unidades_cerezos',
+#         'total_unidades_andagoya',
+#         'tf_total',
+#         'reservas_cerezos',
+#         'reservas_andagoya',
+#         'reservas_total',
+#         'diferencia_total'
+#     ]
+
+#     resumen_total = resumen_total[columnas_finales]
+#     resumen_total = resumen_total.drop_duplicates(subset=['product_id'])
+#     resumen_total = resumen_total.sort_values(by=['product_id'])
+
+#     return JsonResponse({
+#         'resumen_total': de_dataframe_a_template(resumen_total)
+#     })
+
 
 
 def detalle_resumen_total_unificado_andagoya(request):
