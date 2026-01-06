@@ -2386,12 +2386,12 @@ def resumen_total_unificado(request):
     cerezos_agrupado = cerezos_df.groupby('product_id', as_index=False).sum(numeric_only=True)
     
     # Obtener reservas de Cerezos
-    reservas_cerezos = reservas_lotes_2_agrupado_df('BCT')
-    # print("Reservas Cerezos:", reservas_cerezos)
+    # reservas_cerezos = reservas_lotes_2_agrupado_df('BCT')
+    # # print("Reservas Cerezos:", reservas_cerezos)
     
-    if not reservas_cerezos.empty:
-        cerezos_agrupado = pd.merge(cerezos_agrupado, reservas_cerezos, on='product_id', how='left')
-        cerezos_agrupado = cerezos_agrupado.fillna(0)
+    # if not reservas_cerezos.empty:
+    #     cerezos_agrupado = pd.merge(cerezos_agrupado, reservas_cerezos, on='product_id', how='left')
+    #     cerezos_agrupado = cerezos_agrupado.fillna(0)
     
     # Obtener inventario de Andagoya
     andagoya = Inventario.objects.all().values('product_id', 'oh2', 'total_unidades')
@@ -2431,8 +2431,8 @@ def resumen_total_unificado(request):
     resumen_total['tf_total'] = (
         resumen_total['total_unidades_cerezos'] + 
         resumen_total['total_unidades_andagoya'] +
-        resumen_total.get('egreso_temp_andagoya', 0) +
-        resumen_total.get('egreso_temp_cerezos', 0)
+        resumen_total.get('egreso_temp_andagoya', 0) 
+        # resumen_total.get('egreso_temp_cerezos', 0)
     )
     resumen_total['diferencia_total'] = resumen_total['tf_total'] - resumen_total['mba_total']
     
