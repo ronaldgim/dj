@@ -92,12 +92,12 @@
                             </th>
                             <th
                                 scope="col"
-                                @click="ordenarPor('egreso_temp_andagoya')" 
+                                @click="ordenarPor('egreso_temp')" 
                                 style="cursor: pointer;user-select: none; background-color: #f7ffcdff;"
-                                :class="{ 'sorted': sortField === 'egreso_temp_andagoya' }"
+                                :class="{ 'sorted': sortField === 'egreso_temp' }"
                             >
                             <span style="white-space: nowrap;">
-                                Res.Andagoya {% verbatim %}{{ getIconoOrden('egreso_temp_andagoya') }}{% endverbatim %}
+                                Res.Andagoya {% verbatim %}{{ getIconoOrden('egreso_temp') }}{% endverbatim %}
                             </span>
                             </th>
                             <th 
@@ -173,7 +173,7 @@
                             <td>{{ i.Marca }}</td>
                             <td class="text-end" style="background-color: #f7ffcdff;">{{ formatNumber(i.oh2_andagoya) }}</td>
                             <td class="text-end" style="background-color: #f7ffcdff;">{{ formatNumber(i.total_unidades_andagoya) }}</td>
-                            <td class="text-end" style="background-color: #f7ffcdff;">{{ formatNumber(i.egreso_temp_andagoya) }}</td>
+                            <td class="text-end" style="background-color: #f7ffcdff;">{{ formatNumber(i.egreso_temp) }}</td>
                             <td class="text-end" style="background-color: #caf7ffff;">{{ formatNumber(i.oh2_cerezos) }}</td>
                             <td class="text-end" style="background-color: #caf7ffff;">{{ formatNumber(i.total_unidades_cerezos) }}</td>
                             <!--td class="text-end" style="background-color: #caf7ffff;">{{ formatNumber(i.egreso_temp_cerezos) }}</td-->
@@ -356,8 +356,7 @@
                         'total_unidades_cerezos',
                         'mba_total',
                         'tf_total',
-                        'egreso_temp_andagoya',
-                        'egreso_temp_cerezos',
+                        'egreso_temp',
                         'diferencia_total',
                     ];
                     

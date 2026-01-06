@@ -2370,7 +2370,7 @@ def reservas_lotes_2_agrupado_df(ware_code: str) -> pd.DataFrame:
 def resumen_total_unificado(request):
     """
     Genera un resumen unificado del inventario de Cerezos y Andagoya,
-    incluyendo reservas y comparaciones con MBA.
+    incluyendo reservas de Andagoya y comparaciones con MBA.
     """
     
     # Obtener inventario de Cerezos
@@ -2382,16 +2382,8 @@ def resumen_total_unificado(request):
     
     cerezos_df = cerezos_df.fillna(0)
     
-    # AGRUPAR ANTES del merge con reservas
+    # AGRUPAR inventario de Cerezos (sin reservas)
     cerezos_agrupado = cerezos_df.groupby('product_id', as_index=False).sum(numeric_only=True)
-    
-    # Obtener reservas de Cerezos
-    # reservas_cerezos = reservas_lotes_2_agrupado_df('BCT')
-    # # print("Reservas Cerezos:", reservas_cerezos)
-    
-    # if not reservas_cerezos.empty:
-    #     cerezos_agrupado = pd.merge(cerezos_agrupado, reservas_cerezos, on='product_id', how='left')
-    #     cerezos_agrupado = cerezos_agrupado.fillna(0)
     
     # Obtener inventario de Andagoya
     andagoya = Inventario.objects.all().values('product_id', 'oh2', 'total_unidades')
@@ -2407,8 +2399,7 @@ def resumen_total_unificado(request):
     
     # Obtener reservas de Andagoya
     reservas_andagoya = reservas_lotes_2_agrupado_df('BAN')
-    # print("Reservas Andagoya:", reservas_andagoya)
-    
+
     if not reservas_andagoya.empty:
         andagoya_agrupado = pd.merge(andagoya_agrupado, reservas_andagoya, on='product_id', how='left')
         andagoya_agrupado = andagoya_agrupado.fillna(0)
@@ -2431,14 +2422,10 @@ def resumen_total_unificado(request):
     resumen_total['tf_total'] = (
         resumen_total['total_unidades_cerezos'] + 
         resumen_total['total_unidades_andagoya'] +
-        resumen_total.get('egreso_temp_andagoya', 0) 
-        # resumen_total.get('egreso_temp_cerezos', 0)
+        resumen_total.get('egreso_temp', 0)
     )
     resumen_total['diferencia_total'] = resumen_total['tf_total'] - resumen_total['mba_total']
-    
-    # print("Resumen Total:")
-    # print(resumen_total)
-    
+
     return JsonResponse({
         'resumen_total': de_dataframe_a_template(resumen_total)
     })
