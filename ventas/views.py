@@ -120,20 +120,24 @@ def reporte_tipo_mba(request):
 
 # lote y cantidad por factura en reporte ventas
 def lote_factura_ajax(request):
-
-    fac = request.POST['fac']
-    cod = request.POST['cod']
-
-    lote_factura = lotes_facturas_odbc(fac, cod) 
-    df = pd.DataFrame(lote_factura)[['lote', 'fecha_caducidad', 'unidades']]
-    df = df.to_html(        
-        classes='table table-responsive table-bordered m-0 p-0', 
-        table_id= 'lotes',
-        float_format='{:.0f}'.format,
-        index=False,
-        justify='start')
     
-    return HttpResponse(df)
+    try:
+
+        fac = request.POST['fac']
+        cod = request.POST['cod']
+
+        lote_factura = lotes_facturas_odbc(fac, cod) 
+        df = pd.DataFrame(lote_factura)[['lote', 'fecha_caducidad', 'unidades']]
+        df = df.to_html(        
+            classes='table table-responsive table-bordered m-0 p-0', 
+            table_id= 'lotes',
+            float_format='{:.0f}'.format,
+            index=False,
+            justify='start')
+        
+        return HttpResponse(df)
+    except Exception as e:
+        return HttpResponse(f'Error: {e}')
 
 
 def pedidos_cuenca_datos(n_pedido):
