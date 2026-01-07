@@ -986,54 +986,82 @@ def ventas_armados_facturas_odbc(producto):
     return ventas_facturas
 
 
+# def lotes_facturas_odbc(n_factura, product_id):
+    
+#     try:
+
+#         cnxn = pyodbc.connect('DSN=mba3;PWD=API')
+#         cursorOdbc = cnxn.cursor()
+
+#         cursorOdbc.execute(
+
+#             f"""SELECT CLNT_Factura_Principal.CODIGO_FACTURA, INVT_Ficha_Principal.PRODUCT_ID, INVT_Lotes_Trasabilidad.EGRESO_TEMP, INVT_Lotes_Trasabilidad.LOTE_ID, INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD
+#             FROM CLNT_Factura_Principal CLNT_Factura_Principal, INVT_Ficha_Principal INVT_Ficha_Principal, INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad, INVT_Producto_Movimientos INVT_Producto_Movimientos
+#             WHERE INVT_Ficha_Principal.PRODUCT_ID_CORP = INVT_Producto_Movimientos.PRODUCT_ID_CORP AND
+#             CLNT_Factura_Principal.CODIGO_FACTURA = INVT_Producto_Movimientos.DOC_ID_CORP2 AND
+#             INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP = INVT_Ficha_Principal.PRODUCT_ID_CORP AND
+#             CLNT_Factura_Principal.CODIGO_FACTURA = INVT_Lotes_Trasabilidad.DOC_ID_CORP AND
+#             ((INVT_Producto_Movimientos.CONFIRM=TRUE) AND (CLNT_Factura_Principal.CODIGO_FACTURA='{n_factura}')
+#             AND
+#             (INVT_Producto_Movimientos.PRODUCT_ID='{product_id}') AND (INVT_Producto_Movimientos.I_E_SIGN='-') AND (INVT_Producto_Movimientos.ADJUSTMENT_TYPE='FT') AND
+#             (CLNT_Factura_Principal.ANULADA=FALSE))
+#             """
+#         )
+
+#         lote_factura = cursorOdbc.fetchall()
+
+#         lote_factura = [list(rows) for rows in lote_factura]
+#         lote_factura = pd.DataFrame(lote_factura)
+
+#         lote_factura = lote_factura.rename(columns={
+#             0:'n_factura',
+#             1:'product_id',
+#             2:'unidades',
+#             3:'lote',
+#             4:'fecha_caducidad'
+#         })
+
+#         lote_factura['fecha_caducidad'] = lote_factura['fecha_caducidad'].astype(str)
+
+#         lote_factura = de_dataframe_a_template(lote_factura)
+
+#         return lote_factura
+
+#     except pyodbc.Error as ex:
+#         print(f"Error: {ex}")
+    
+#     finally:
+#             cursorOdbc.close()
+#             cnxn.close()
+
+
 def lotes_facturas_odbc(n_factura, product_id):
     
-    try:
-
-        cnxn = pyodbc.connect('DSN=mba3;PWD=API')
-        cursorOdbc = cnxn.cursor()
-
-        cursorOdbc.execute(
-
-            f"""SELECT CLNT_Factura_Principal.CODIGO_FACTURA, INVT_Ficha_Principal.PRODUCT_ID, INVT_Lotes_Trasabilidad.EGRESO_TEMP, INVT_Lotes_Trasabilidad.LOTE_ID, INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD
-            FROM CLNT_Factura_Principal CLNT_Factura_Principal, INVT_Ficha_Principal INVT_Ficha_Principal, INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad, INVT_Producto_Movimientos INVT_Producto_Movimientos
-            WHERE INVT_Ficha_Principal.PRODUCT_ID_CORP = INVT_Producto_Movimientos.PRODUCT_ID_CORP AND
-            CLNT_Factura_Principal.CODIGO_FACTURA = INVT_Producto_Movimientos.DOC_ID_CORP2 AND
-            INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP = INVT_Ficha_Principal.PRODUCT_ID_CORP AND
-            CLNT_Factura_Principal.CODIGO_FACTURA = INVT_Lotes_Trasabilidad.DOC_ID_CORP AND
-            ((INVT_Producto_Movimientos.CONFIRM=TRUE) AND (CLNT_Factura_Principal.CODIGO_FACTURA='{n_factura}')
-            AND
-            (INVT_Producto_Movimientos.PRODUCT_ID='{product_id}') AND (INVT_Producto_Movimientos.I_E_SIGN='-') AND (INVT_Producto_Movimientos.ADJUSTMENT_TYPE='FT') AND
-            (CLNT_Factura_Principal.ANULADA=FALSE))
-            """
-        )
-
-        lote_factura = cursorOdbc.fetchall()
-
-        lote_factura = [list(rows) for rows in lote_factura]
-        lote_factura = pd.DataFrame(lote_factura)
-
-        lote_factura = lote_factura.rename(columns={
-            0:'n_factura',
-            1:'product_id',
-            2:'unidades',
-            3:'lote',
-            4:'fecha_caducidad'
-        })
-
-        lote_factura['fecha_caducidad'] = lote_factura['fecha_caducidad'].astype(str)
-
-        lote_factura = de_dataframe_a_template(lote_factura)
-
-        return lote_factura
-
-    except pyodbc.Error as ex:
-        print(f"Error: {ex}")
+    data = api_mba_sql(
+        f"""SELECT CLNT_Factura_Principal.CODIGO_FACTURA, INVT_Ficha_Principal.PRODUCT_ID, INVT_Lotes_Trasabilidad.EGRESO_TEMP, INVT_Lotes_Trasabilidad.LOTE_ID, INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD
+        FROM CLNT_Factura_Principal CLNT_Factura_Principal, INVT_Ficha_Principal INVT_Ficha_Principal, INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad, INVT_Producto_Movimientos INVT_Producto_Movimientos
+        WHERE INVT_Ficha_Principal.PRODUCT_ID_CORP = INVT_Producto_Movimientos.PRODUCT_ID_CORP AND
+        CLNT_Factura_Principal.CODIGO_FACTURA = INVT_Producto_Movimientos.DOC_ID_CORP2 AND
+        INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP = INVT_Ficha_Principal.PRODUCT_ID_CORP AND
+        CLNT_Factura_Principal.CODIGO_FACTURA = INVT_Lotes_Trasabilidad.DOC_ID_CORP AND
+        ((INVT_Producto_Movimientos.CONFIRM=TRUE) AND (CLNT_Factura_Principal.CODIGO_FACTURA='{n_factura}')
+        AND
+        (INVT_Producto_Movimientos.PRODUCT_ID='{product_id}') AND (INVT_Producto_Movimientos.I_E_SIGN='-') AND (INVT_Producto_Movimientos.ADJUSTMENT_TYPE='FT') AND
+        (CLNT_Factura_Principal.ANULADA=FALSE))
+        """)
     
-    finally:
-            cursorOdbc.close()
-            cnxn.close()
+    if data['status'] == 200:
+        data_df = pd.DataFrame(data['data'])
+        data_df = data_df.rename(columns={
+            'CODIGO_FACTURA':'n_factura',
+            'PRODUCT_ID':'product_id',
+            'EGRESO_TEMP':'unidades',
+            'LOTE_ID':'lote',
+            'FECHA_CADUCIDAD':'fecha_caducidad'
+        })
+        return de_dataframe_a_template(data_df)
 
+    return None
 
 
 def reservas_lotes_actualizar_odbc(request):
