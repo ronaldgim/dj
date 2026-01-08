@@ -121,17 +121,20 @@ def email_cliente_by_codigo(codigo_cliente: str, tipo_email: str = None) -> list
 
 
 def get_vendedor_email_by_contrato(contrato_id: str) -> list[str]:
-    with connections['gimpromed_sql'].cursor() as cursor:
-        cursor.execute("""
-            SELECT DISTINCT u.MAIL AS email
-            FROM warehouse.pedidos p
-            INNER JOIN warehouse.user_mba u 
-                ON p.Entry_by = u.CODIGO_USUARIO 
-            WHERE p.CONTRATO_ID = %s;
-        """, [contrato_id])
+    try:
+        with connections['gimpromed_sql'].cursor() as cursor:
+            cursor.execute("""
+                SELECT DISTINCT u.MAIL AS email
+                FROM warehouse.pedidos p
+                INNER JOIN warehouse.user_mba u 
+                    ON p.Entry_by = u.CODIGO_USUARIO 
+                WHERE p.CONTRATO_ID = %s;
+            """, [contrato_id])
 
-        rows = cursor.fetchall()
-        return [row[0] for row in rows] if rows else []
+            rows = cursor.fetchall()
+            return [row[0] for row in rows] if rows else []
+    except Exception as e:
+        return []
 
 
 def productos_mba_django():
