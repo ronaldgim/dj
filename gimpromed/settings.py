@@ -102,6 +102,7 @@ CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:8000',   # Desarrollo
     'http://172.16.28.17:8000', # .17
     'http://ems.gimpromed.com' #En producción
+    'http://172.16.28.177:8000', # .177
 ]
 
 CSRF_COOKIE_SAMESITE = 'Lax'  # Esto asegura compatibilidad con cookies

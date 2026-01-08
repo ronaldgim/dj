@@ -2125,7 +2125,9 @@ def wms_picking_notificaciones(request):
     pickings = EstadoPicking.objects.filter(
         Q(bodega='BCT') &
         Q(estado='FINALIZADO')
-    ).order_by('-id', 'n_pedido')[:100] #.values()
+    # ).order_by('-id', 'n_pedido')[:100] #.values() email_picking_fecha_hora
+    ).order_by('-email_picking_fecha_hora')[:100] #.values() 
+    
     
     pedidos = []
     for i in pickings:
