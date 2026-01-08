@@ -26,8 +26,13 @@ SECRET_KEY = 'django-insecure-$xt9tf@7)u9ic)=6!1rko=7-jlq2k%b2b%ixbm#wqpic1crvh3
 # DEBUG = False 
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
-
+# ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [
+    'http://127.0.0.1:8000',   # Desarrollo
+    'http://172.16.28.17:8000', # .17
+    'http://ems.gimpromed.com' #En producción
+    'http://172.16.28.117:8000', # .117
+]
 
 # Application definition
 
