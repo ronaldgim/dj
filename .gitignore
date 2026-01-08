@@ -3,3 +3,4 @@ db.squlite3
 bpa/__pycache__/
 *.pyc
 /operaciones-env
+AGENTS.md
