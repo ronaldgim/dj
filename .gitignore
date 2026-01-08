@@ -4,3 +4,4 @@ bpa/__pycache__/
 *.pyc
 /operaciones-env
 /venv
+AGENTS.md
