@@ -165,7 +165,7 @@
             <nav class="top-navbar navbar navbar-light bg-light"> 
                 <a class="navbar-brand fw-bold" href="{% url 'inicio' %}">
                     <img src="{% static 'fondo.png' %}" alt="" width="45" height="32" class="d-inline-block align-text-top">
-                    GIM - OPERACIONES
+                    <span class="col-sm d-none d-sm-inline">GIM - OPERACIONES</span>
                 </a>
                 <a class="navbar-brand text-end m-0 p-0" href="{% url 'logout' %}">
                     {{request.user}} <i class="bi bi-box-arrow-right"></i>
@@ -175,7 +175,7 @@
 
         <!-- Contenido Principal -->
         <div class="main-content">
-            <div class="container">
+            <div class="p-2">
                 {% block body %}
                 {% endblock %}
             </div>
