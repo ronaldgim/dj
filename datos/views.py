@@ -1785,6 +1785,45 @@ def trazabilidad_odbc(cod, lot):
         cnxn.close()
 
 
+def trazabilidad_api_mba(cod, lot):
+    try:
+        data = api_mba_sql(
+        f"""
+            SELECT INVT_Lotes_Trasabilidad.DOC_ID_CORP, INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP, INVT_Lotes_Trasabilidad.LOTE_ID, 
+            INVT_Lotes_Trasabilidad.AVAILABLE, INVT_Lotes_Trasabilidad.COMMITED, INVT_Lotes_Trasabilidad.EGRESO_TEMP, INVT_Lotes_Trasabilidad.OH, 
+            INVT_Lotes_Trasabilidad.Ingreso_Egreso, INVT_Lotes_Trasabilidad.Tipo_Movimiento, INVT_Lotes_Trasabilidad.Id_Linea_Egreso_Movimiento, 
+            INVT_Lotes_Trasabilidad.Link_Id_Linea_Ingreso, INVT_Lotes_Trasabilidad.CONFIRMADO, INVT_Lotes_Trasabilidad.Devolucio_MP, INVT_Lotes_Trasabilidad.Lote_Agregado, 
+            INVT_Lotes_Trasabilidad.WARE_COD_CORP, 
+            INVT_Ajustes_Principal.DATE_I , CLNT_Factura_Principal.FECHA_FACTURA, CLNT_Ficha_Principal.NOMBRE_CLIENTE, INVT_Lotes_Trasabilidad.Codigo_Alt_Clnt, CLNT_Pedidos_Principal.FECHA_DESDE 
+            FROM INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad 
+            LEFT JOIN INVT_Ajustes_Principal INVT_Ajustes_Principal 
+            ON INVT_Lotes_Trasabilidad.DOC_ID_CORP = INVT_Ajustes_Principal.DOC_ID_CORP 
+            LEFT JOIN CLNT_Factura_Principal CLNT_Factura_Principal 
+            ON INVT_Lotes_Trasabilidad.DOC_ID_CORP = CLNT_Factura_Principal.CODIGO_FACTURA 
+            LEFT JOIN CLNT_Ficha_Principal CLNT_Ficha_Principal 
+            ON INVT_Lotes_Trasabilidad.Codigo_Alt_Clnt = CLNT_Ficha_Principal.CODIGO_CLIENTE 
+            LEFT JOIN CLNT_Pedidos_Principal CLNT_Pedidos_Principal 
+            ON INVT_Lotes_Trasabilidad.DOC_ID_CORP = CLNT_Pedidos_Principal.CONTRATO_ID_CORP 
+            WHERE (INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP='{cod}-GIMPR') AND (INVT_Lotes_Trasabilidad.LOTE_ID LIKE '%{lot}%') AND (INVT_Lotes_Trasabilidad.CONFIRMADO=TRUE) 
+            ORDER BY INVT_Lotes_Trasabilidad.LINK_ID_LINEA_INGRESO
+        """
+        )
+        if data['status'] == 200:
+            df_trazabilidad = pd.DataFrame(data['data'])
+            df_trazabilidad['NOMBRE_CLIENTE'] = df_trazabilidad['NOMBRE_CLIENTE'].fillna('-')
+            df_trazabilidad['FECHA_FACTURA'] = df_trazabilidad['FECHA_FACTURA'].str.slice(0, 10)            
+            df_trazabilidad['FECHA_DESDE'] = df_trazabilidad['FECHA_DESDE'].str.slice(0, 10)            
+            df_trazabilidad['DATE_I'] = df_trazabilidad['DATE_I'].str.slice(0, 10)
+            # print(df_trazabilidad[['DOC_ID_CORP', 'FECHA_FACTURA', 'FECHA_DESDE', 'DATE_I']])
+            return df_trazabilidad.fillna('')
+        else:
+            return pd.DataFrame()
+    except Exception as e:
+        print(f"Error: {e}")
+        return pd.DataFrame()
+
+
+
 # Filtrar avance de etiquetado por pedido
 def etiquetado_avance_pedido(n_pedido):
     avance = EtiquetadoAvance.objects.filter(n_pedido=n_pedido).values()
