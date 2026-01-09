@@ -1616,7 +1616,7 @@ def df_error_lote_picking_v2():
         error_lote_df['product_id'] = ''
         error_lote_df['lote_id'] = ''
         error_lote_df['error_lote'] = False
-        return error_lote
+        return error_lote_df
 
 
 # From
@@ -1652,9 +1652,9 @@ def picking_estado_bodega(request, n_pedido):
         pedido = pedido.merge(product, on='PRODUCT_ID', how='left').sort_values('PRODUCT_ID')
         
         # pedido = pedido.merge(df_error_lote_picking().drop_duplicates(subset='product_id'), left_on='PRODUCT_ID', right_on='product_id', how='left')
-        error_lote = df_error_lote_picking_v2()
-        error_lote = error_lote[error_lote['andagoya']=='BAN']
+        error_lote = df_error_lote_picking_v2() 
         if not error_lote.empty:
+            error_lote = error_lote[error_lote['andagoya']=='BAN']
             pedido = pedido.merge(df_error_lote_picking_v2().drop_duplicates(subset='product_id'), left_on='PRODUCT_ID', right_on='product_id', how='left')
         
         # Calculos
@@ -1704,7 +1704,8 @@ def picking_estado_bodega(request, n_pedido):
 
         return render(request, 'etiquetado/picking_estado/picking_estado_bodega.html', context)
 
-    except:
+    except Exception as e:
+        messages.error(request, f'Error al cargar la página, {e} !!!')
         return HttpResponseRedirect('/etiquetado/picking/estado')
 
 
