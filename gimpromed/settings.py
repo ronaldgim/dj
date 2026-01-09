@@ -108,6 +108,7 @@ CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:8000',   # Desarrollo
     'http://172.16.28.17:8000', # .17
     'http://ems.gimpromed.com', #En producción
+    'https://ems.gimpromed.com', #En producción
     'http://172.16.28.117:8000', # .117
 ]
 
