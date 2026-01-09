@@ -1625,7 +1625,7 @@ def df_error_lote_picking_v2():
 @csrf_exempt
 def picking_estado_bodega(request, n_pedido):
     
-    # try:
+    try:
     
         estado_picking = EstadoPicking.objects.filter(n_pedido=n_pedido).exists()
         if estado_picking:
@@ -1704,8 +1704,9 @@ def picking_estado_bodega(request, n_pedido):
 
         return render(request, 'etiquetado/picking_estado/picking_estado_bodega.html', context)
 
-    # except:
-    #     return HttpResponseRedirect('/etiquetado/picking/estado')
+    except Exception as e:
+        messages.error(request, f'Error al cargar la página, {e} !!!')
+        return HttpResponseRedirect('/etiquetado/picking/estado')
 
 
 # AJAX - LOTES DE PRODUCTO POR BODEGA
