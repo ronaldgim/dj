@@ -45,19 +45,19 @@
 
 <div class="card text-center mb-4">
     <div class="card-header">
-      <ul class="nav nav-tabs card-header-tabs" id="bodegas_list">
-        {% for i in bodegas %}
-        <li class="nav-item">
-          <!--a class="nav-link active" aria-current="true" href="#" id="bod">{{i}}</a-->
-          <button name="bod" id="{{i}}" class="btn btn-secondary nav-link">{{i}}</button>
-        </li>
-        {% endfor %}
-      </ul>
+        <ul class="nav nav-tabs card-header-tabs" id="bodegas_list">
+            {% for i in bodegas %}
+            <li class="nav-item">
+            <!--a class="nav-link active" aria-current="true" href="#" id="bod">{{i}}</a-->
+            <button name="bod" id="{{i}}" class="btn btn-secondary nav-link">{{i}}</button>
+            </li>
+            {% endfor %}
+        </ul>
     </div>
     <div class="card-body" style="background-color: #fcfcfc ;" id="contenido">
-      <h5 class="card-title fw-bold">Reporte Trazabilidad</h5>
-      <label class="card-title fw-bold">Código: </label> {{cod}} - <label class="card-title fw-bold">Lote: </label> {{lot}}
-      
+        <h5 class="card-title fw-bold">Reporte Trazabilidad</h5>
+        <label class="card-title fw-bold">Código: </label> {{cod}} - <label class="card-title fw-bold">Lote: </label> {{lot}}
+
         {% if mensaje %} 
         <p>{{mensaje}}</p>
         {% endif %}
@@ -69,7 +69,7 @@
             <span class="text-center text-primary">Buscando... </span>
         </div>
 
-      {% for i in trazabilidad %}
+        {% for i in trazabilidad %}
 
         <div id="tabla-{{i.bodega}}" name="rep"> <!-- style="display: none;" -->
 
@@ -111,10 +111,6 @@
                 </div>
             </div>
 
-            <!--div class="col-4 mt-2">
-                <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
-            </div-->
-
             <div class="card mt-2 mb-2">
                 <div class="card-body m-0 p-0">
                     <div class="container table-responsive">
@@ -141,7 +137,7 @@
                                 <tr>
                                     <td class="text-start">{{j.DOC_ID_CORP}}</td>
                                     <td class="text-start">{{j.NOMBRE_CLIENTE}}</td>
-                                    <td class="text-start">{{j.FECHA|slice:'-8'}}</td>
+                                    <td class="text-start">{{j.FECHA}}</td>
                                     <td class="text-start">{{j.TIPO_MOVIMIENTO}}</td>
                                     <td class="text-end {% if j.TIPO_MOVIMIENTO == 'FT' %} text-danger {% endif %} " style="background-color: #D2FCD2;">
                                         {{j.CANTIDAD|floatformat:'0g'}}
@@ -191,54 +187,6 @@
             mostrarDiv(bod_select);
         })
     })
-</script>
-
-<!-- Filtro de columna -->
-<script>
-    $('.filter').change(function(){
-        filter_function(); //calling filter function each select box value change
-    });
-      
-    $('table tbody tr').show(); //intially all rows will be shown
-      
-    function filter_function(){
-        $('table tbody tr').hide(); //hide all rows
-        
-        var tipoFlag = 'Todos';
-        var tipoValue = $('#filter-tipo').val();
-        
-       //traversing each row one by one
-        $('table tr').each(function() {  
-          if(tipoValue == 'Todos'){
-            tipoFlag = 1;
-          }
-          else if(tipoValue == $(this).find('td.tipo').data('tipo')){
-            tipoFlag = 1;
-          }
-          else{
-            tipoFlag = 0;
-          }
-
-         if(tipoFlag){ 
-            $(this).show();
-         }
-      
-      });
-    }
-</script>
-
-
-<!--filtro buscar-->
-<script>
-    $(document).ready(function() {
-        $("#inputbuscar").on("keyup", function() {
-            var value = $(this).val().toLowerCase();
-            $("#pedidosbuscar tr").filter(function() {
-                $(this).toggle($(this).text()
-                .toLowerCase().indexOf(value) > -1)
-            });
-        });
-    });
 </script>
 
 <!-- Spiner -->

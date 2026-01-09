@@ -61,7 +61,9 @@ from datos.views import (
     de_dataframe_a_template, 
     reservas_lote_product_id, 
     productos_odbc_and_django,
-    trazabilidad_odbc)
+    trazabilidad_odbc,
+    trazabilidad_api_mba
+    )
 
 
 # WMS
@@ -3271,7 +3273,7 @@ def add_obs2_ajax(request):
     return HttpResponse('ok')
 
 
-#@permiso('TRAZABILIDAD', '/inventario/bodegas', 'Trazabilidad')
+# @permiso('TRAZABILIDAD', '/inventario/bodegas', 'Trazabilidad')
 def trazabilidad(request):
     
     try:
@@ -3281,7 +3283,17 @@ def trazabilidad(request):
             cod = request.POST['codigo']
             lot = request.POST['lote']
             
-            tr = trazabilidad_odbc(cod, lot)[[
+            # tr = trazabilidad_odbc(cod, lot)[[
+            #     'DOC_ID_CORP',
+            #     'NOMBRE_CLIENTE',
+            #     'DATE_I',
+            #     'FECHA_FACTURA',
+            #     'INGRESO_EGRESO',
+            #     'EGRESO_TEMP',
+            #     'TIPO_MOVIMIENTO',
+            #     'WARE_COD_CORP'
+            # ]]
+            tr = trazabilidad_api_mba(cod, lot)[[
                 'DOC_ID_CORP',
                 'NOMBRE_CLIENTE',
                 'DATE_I',
@@ -3292,13 +3304,22 @@ def trazabilidad(request):
                 'WARE_COD_CORP'
             ]]
             
-            tr['FECHA'] = tr.apply(lambda x: x['DATE_I'] if x['FECHA_FACTURA']==None else x['FECHA_FACTURA'] if x['DATE_I']==None else '', axis=1)
-            tr['CANTIDAD'] = tr.apply(lambda x: x['EGRESO_TEMP']*-1 if x['INGRESO_EGRESO']=='-' else x['EGRESO_TEMP'], axis=1)
-
-            tr['FECHA'] = pd.to_datetime(tr['FECHA'])
-            tr = tr.sort_values(by='FECHA', ascending=True).fillna('-')
-            tr['FECHA'] = tr['FECHA'].astype(str)
-
+            tr['FECHA'] = tr.apply(lambda x: x['DATE_I'] if x['FECHA_FACTURA']=='' else x['FECHA_FACTURA'] if x['DATE_I']=='' else '', axis=1)
+            # tr['FECHA'] = tr['FECHA_FACTURA'].combine_first(tr['DATE_I'])
+            # tr['CANTIDAD'] = tr.apply(lambda x: x['EGRESO_TEMP']*-1 if x['INGRESO_EGRESO']=='-' else x['EGRESO_TEMP'], axis=1)
+            tr['EGRESO_TEMP'] = pd.to_numeric(tr['EGRESO_TEMP'], errors='coerce').fillna(0)
+            tr['CANTIDAD'] = tr.apply(
+                lambda x: -x['EGRESO_TEMP'] if x['INGRESO_EGRESO'] == '-' else x['EGRESO_TEMP'],
+                axis=1
+            )
+            tr['CANTIDAD'] = pd.to_numeric(tr['CANTIDAD'], errors='coerce').fillna(0)
+            # print(tr)
+            # tr['FECHA'] = pd.to_datetime(tr['FECHA'])
+            # tr = tr.sort_values(by='FECHA', ascending=True).fillna('-')
+            tr = tr.sort_values(by='FECHA', ascending=True)
+            tr['FECHA'] = tr['FECHA'].astype('str')
+            cols_texto = ['DOC_ID_CORP', 'NOMBRE_CLIENTE', 'TIPO_MOVIMIENTO', 'WARE_COD_CORP']
+            tr[cols_texto] = tr[cols_texto].fillna('-')
             bodegas = tr['WARE_COD_CORP'].unique()
             movimientos = tr['TIPO_MOVIMIENTO'].unique()
 
@@ -3336,7 +3357,7 @@ def trazabilidad(request):
                 trz['tabla']  = tabla
 
                 trz_list.append(trz)
-            
+            #print(trz_list)
             context = {
             'cod':cod,
             'lot':lot,
@@ -3347,7 +3368,8 @@ def trazabilidad(request):
             
             return render(request, 'inventario/trazabilidad/trazabilidad.html', context)
         
-    except:
+    except Exception as e:
+        # print(e)
         context = {
             'cod':cod,
             'lot':lot,
