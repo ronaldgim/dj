@@ -4342,7 +4342,6 @@ def wms_reporte_nivelunovacio_rm(request):
 def wms_nota_entrega_input_ajax(request):
     
     n_entrega = int(request.POST['nota_entrega'])
-    
     ne_existente = NotaEntrega.objects.filter(doc_id=n_entrega)
     
     if ne_existente.exists():
@@ -4352,6 +4351,7 @@ def wms_nota_entrega_input_ajax(request):
                     'texto':'⚠ Nota de entrega ya añadida !!!'
                 }
             })
+        
         
     elif not ne_existente.exists():
 
