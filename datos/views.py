@@ -1132,43 +1132,6 @@ def factura_detalle_odbc(n_factura):
 
 
 def factura_lote_odbc(n_factura):
-
-    # cnxn = pyodbc.connect('DSN=mba3;PWD=API')
-    # cursorOdbc = cnxn.cursor()
-
-    # cursorOdbc.execute(
-
-    #     f"""SELECT CLNT_Factura_Principal.CODIGO_FACTURA, CLNT_Factura_Principal.CODIGO_CLIENTE, CLNT_Factura_Principal.FECHA_FACTURA, INVT_Ficha_Principal.PRODUCT_ID,
-    #     INVT_Ficha_Principal.PRODUCT_NAME, INVT_Ficha_Principal.GROUP_CODE, INVT_Lotes_Trasabilidad.EGRESO_TEMP, INVT_Lotes_Trasabilidad.LOTE_ID, INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD,
-    #     INVT_Ficha_Principal.Custom_Field_1
-    #     FROM CLNT_Factura_Principal CLNT_Factura_Principal, INVT_Ficha_Principal INVT_Ficha_Principal, INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad
-    #     WHERE INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP = INVT_Ficha_Principal.PRODUCT_ID_CORP AND CLNT_Factura_Principal.CODIGO_FACTURA = INVT_Lotes_Trasabilidad.DOC_ID_CORP AND
-    #     ((CLNT_Factura_Principal.CODIGO_FACTURA='{n_factura}') AND (CLNT_Factura_Principal.ANULADA=FALSE))
-    #     """
-    # )
-
-    # lote_factura = cursorOdbc.fetchall()
-
-    # lote_factura = [list(rows) for rows in lote_factura]
-    # lote_factura = pd.DataFrame(lote_factura)
-    
-    # lote_factura = lote_factura.rename(columns={
-    #     0:'CODIGO_FACTURA',
-    #     1:'CODIGO_CLIENTE',
-    #     2:'FECHA_FACTURA',
-    #     3:'PRODUCT_ID',
-    #     4:'PRODUCT_NAME',
-    #     5:'PRODUCT_GROUP',   # GROUP_CODE
-    #     6:'QUANTITY',        # EGRESO_TEMP
-    #     7:'LOTE_ID',
-    #     8:'FECHA_CADUCIDAD', 
-    #     9:'REG_SANITARIO'    # CUSTOM_FIELD_1
-    # })
-
-    # lote_factura['FECHA_FACTURA'] = lote_factura['FECHA_FACTURA'].astype(str)
-    # lote_factura['FECHA_CADUCIDAD'] = lote_factura['FECHA_CADUCIDAD'].astype(str)
-
-    # return lote_factura
     
     fac = api_mba_sql(f"""
         SELECT CLNT_Factura_Principal.CODIGO_FACTURA, CLNT_Factura_Principal.CODIGO_CLIENTE, CLNT_Factura_Principal.FECHA_FACTURA, INVT_Ficha_Principal.PRODUCT_ID,
@@ -1743,48 +1706,6 @@ def stock_lote_cuc_etiquetado_detalle_odbc():
         return stock_lote
 
 
-
-### Consulta a tabla de trasavilidad
-def trazabilidad_odbc(cod, lot):
-
-    try:
-        cnxn = pyodbc.connect('DSN=mba3;PWD=API')
-        # cursorOdbc = cnxn.cursor()
-
-        # cod = 'LR10090'
-        # lot = '30122234'
-
-        query = (
-            "SELECT INVT_Lotes_Trasabilidad.DOC_ID_CORP, INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP, INVT_Lotes_Trasabilidad.LOTE_ID, "
-            "INVT_Lotes_Trasabilidad.AVAILABLE, INVT_Lotes_Trasabilidad.COMMITED, INVT_Lotes_Trasabilidad.EGRESO_TEMP, INVT_Lotes_Trasabilidad.OH, "
-            "INVT_Lotes_Trasabilidad.Ingreso_Egreso, INVT_Lotes_Trasabilidad.Tipo_Movimiento, INVT_Lotes_Trasabilidad.Id_Linea_Egreso_Movimiento, "
-            "INVT_Lotes_Trasabilidad.Link_Id_Linea_Ingreso, INVT_Lotes_Trasabilidad.CONFIRMADO, INVT_Lotes_Trasabilidad.Devolucio_MP, INVT_Lotes_Trasabilidad.Lote_Agregado, "
-            "INVT_Lotes_Trasabilidad.WARE_COD_CORP, "
-            "INVT_Ajustes_Principal.DATE_I , CLNT_Factura_Principal.FECHA_FACTURA, CLNT_Ficha_Principal.NOMBRE_CLIENTE, INVT_Lotes_Trasabilidad.Codigo_Alt_Clnt, CLNT_Pedidos_Principal.FECHA_DESDE "
-            "FROM INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad "
-            "LEFT JOIN INVT_Ajustes_Principal INVT_Ajustes_Principal "
-            "ON INVT_Lotes_Trasabilidad.DOC_ID_CORP = INVT_Ajustes_Principal.DOC_ID_CORP "
-            "LEFT JOIN CLNT_Factura_Principal CLNT_Factura_Principal "
-            "ON INVT_Lotes_Trasabilidad.DOC_ID_CORP = CLNT_Factura_Principal.CODIGO_FACTURA "
-            "LEFT JOIN CLNT_Ficha_Principal CLNT_Ficha_Principal "
-            "ON INVT_Lotes_Trasabilidad.Codigo_Alt_Clnt = CLNT_Ficha_Principal.CODIGO_CLIENTE "
-            "LEFT JOIN CLNT_Pedidos_Principal CLNT_Pedidos_Principal "
-            "ON INVT_Lotes_Trasabilidad.DOC_ID_CORP = CLNT_Pedidos_Principal.CONTRATO_ID_CORP "
-            f"WHERE (INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP='{cod}-GIMPR') AND (INVT_Lotes_Trasabilidad.LOTE_ID LIKE '%{lot}%') AND (INVT_Lotes_Trasabilidad.CONFIRMADO=TRUE) "
-            "ORDER BY INVT_Lotes_Trasabilidad.LINK_ID_LINEA_INGRESO"
-        )
-        
-        df_trazabilidad = pd.read_sql_query(query, cnxn)
-        
-        return df_trazabilidad
-    
-    except Exception as e:
-        print(f"Error: {e}")
-    
-    finally:
-        cnxn.close()
-
-
 def trazabilidad_api_mba(cod, lot):
     try:
         data = api_mba_sql(
@@ -1947,12 +1868,9 @@ def wms_reservas_lote_consulta(product_id, lote_id):
 
 
 def wms_detalle_factura(n_factura):
-
-    # cnxn = pyodbc.connect('DSN=mba3;PWD=API')
     
     query = ("SELECT CLNT_Factura_Principal.CODIGO_FACTURA, CLNT_Factura_Principal.CODIGO_CLIENTE, CLNT_Factura_Principal.FECHA_FACTURA, INVT_Ficha_Principal.PRODUCT_ID, INVT_Ficha_Principal.PRODUCT_NAME, INVT_Ficha_Principal.GROUP_CODE, INVT_Lotes_Trasabilidad.EGRESO_TEMP, INVT_Lotes_Trasabilidad.LOTE_ID, INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD, INVT_Ficha_Principal.Custom_Field_1, CLNT_Factura_Principal.NUMERO_PEDIDO_SISTEMA "
     "FROM CLNT_Factura_Principal CLNT_Factura_Principal, INVT_Ficha_Principal INVT_Ficha_Principal, INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad "
-    # "WHERE INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP = INVT_Ficha_Principal.PRODUCT_ID_CORP AND CLNT_Factura_Principal.CODIGO_FACTURA = INVT_Lotes_Trasabilidad.DOC_ID_CORP AND ((CLNT_Factura_Principal.CODIGO_FACTURA='FCSRI-1001000080547-GIMPR') AND (CLNT_Factura_Principal.ANULADA=FALSE))")
     f"WHERE INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP = INVT_Ficha_Principal.PRODUCT_ID_CORP AND CLNT_Factura_Principal.CODIGO_FACTURA = INVT_Lotes_Trasabilidad.DOC_ID_CORP AND ((CLNT_Factura_Principal.CODIGO_FACTURA='{n_factura}') AND (CLNT_Factura_Principal.ANULADA=FALSE))")
     
     df = api_mba_sql(query)
@@ -2029,10 +1947,58 @@ def wms_stock_lote_cerezos_by_product(product_id):
         return stock
 
 
+# def wms_datos_nota_entrega(nota_entrega):
+    
+#     try:
+#         cnxn = pyodbc.connect('DSN=mba3;PWD=API')
+#         ne = 'A-' + f'{nota_entrega:010d}' + '-GIMPR'
+        
+#         query = (       
+#             "SELECT INVT_Lotes_Ubicacion.DOC_ID_CORP, INVT_Lotes_Ubicacion.PRODUCT_ID_CORP, "
+#             "INVT_Lotes_Ubicacion.LOTE_ID, INVT_Lotes_Ubicacion.EGRESO_TEMP, INVT_Lotes_Ubicacion.COMMITED, "
+#             "INVT_Lotes_Ubicacion.WARE_CODE_CORP, INVT_Lotes_Ubicacion.UBICACION, INVT_Producto_Lotes.Fecha_elaboracion_lote, "
+#             "INVT_Producto_Lotes.FECHA_CADUCIDAD "
+#             "FROM INVT_Lotes_Ubicacion INVT_Lotes_Ubicacion, INVT_Producto_Lotes INVT_Producto_Lotes "
+#             "WHERE INVT_Lotes_Ubicacion.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND "
+#             "INVT_Producto_Lotes.LOTE_ID = INVT_Lotes_Ubicacion.LOTE_ID AND "
+#             f"((INVT_Lotes_Ubicacion.DOC_ID_CORP='{ne}') "
+#             #"((INVT_Lotes_Ubicacion.DOC_ID_CORP='A-0000062645-GIMPR') "
+#             "AND (INVT_Producto_Lotes.ENTRADA_TIPO='OC'))"
+#         )
+        
+#         df = pd.read_sql_query(query, cnxn)
+        
+#         prod_id_list = []
+        
+#         for i in df['PRODUCT_ID_CORP']:
+#             prod_id = i.replace('-GIMPR','')
+#             prod_id_list.append(prod_id)
+        
+#         df['product_id'] = prod_id_list
+#         df['doc_id']     = nota_entrega
+        
+#         df = df.rename(columns={
+#             'DOC_ID_CORP':'doc_id_corp',
+#             'LOTE_ID':'lote_id',
+#             'EGRESO_TEMP':'unidades',
+#             'FECHA_CADUCIDAD':'fecha_caducidad'
+#         })
+        
+#         df = df[['doc_id_corp', 'doc_id','product_id','lote_id','fecha_caducidad','unidades']]
+#         df = df[df['unidades']!=0]
+        
+#         return df.to_dict(orient='records')
+    
+#     except Exception as e:
+#         print(e)
+#     finally:
+#         cnxn.close()
+
+
 def wms_datos_nota_entrega(nota_entrega):
     
     try:
-        cnxn = pyodbc.connect('DSN=mba3;PWD=API')
+        # cnxn = pyodbc.connect('DSN=mba3;PWD=API')
         ne = 'A-' + f'{nota_entrega:010d}' + '-GIMPR'
         
         query = (       
@@ -2048,34 +2014,37 @@ def wms_datos_nota_entrega(nota_entrega):
             "AND (INVT_Producto_Lotes.ENTRADA_TIPO='OC'))"
         )
         
-        df = pd.read_sql_query(query, cnxn)
+        # df = pd.read_sql_query(query, cnxn)
         
-        prod_id_list = []
-        
-        for i in df['PRODUCT_ID_CORP']:
-            prod_id = i.replace('-GIMPR','')
-            prod_id_list.append(prod_id)
-        
-        df['product_id'] = prod_id_list
-        df['doc_id']     = nota_entrega
-        
-        df = df.rename(columns={
-            'DOC_ID_CORP':'doc_id_corp',
-            'LOTE_ID':'lote_id',
-            'EGRESO_TEMP':'unidades',
-            'FECHA_CADUCIDAD':'fecha_caducidad'
-        })
-        
-        df = df[['doc_id_corp', 'doc_id','product_id','lote_id','fecha_caducidad','unidades']]
-        df = df[df['unidades']!=0]
-        
-        return df.to_dict(orient='records')
+        data = api_mba_sql(query)
+        if data['status'] == 200:
+            df = pd.DataFrame(data['data'])
+            prod_id_list = []
+            
+            for i in df['PRODUCT_ID_CORP']:
+                prod_id = i.replace('-GIMPR','')
+                prod_id_list.append(prod_id)
+            
+            df['product_id'] = prod_id_list
+            df['doc_id']     = nota_entrega
+            
+            df = df.rename(columns={
+                'DOC_ID_CORP':'doc_id_corp',
+                'LOTE_ID':'lote_id',
+                'EGRESO_TEMP':'unidades',
+                'FECHA_CADUCIDAD':'fecha_caducidad'
+            })
+            
+            df = df[['doc_id_corp', 'doc_id','product_id','lote_id','fecha_caducidad','unidades']]
+            df = df[df['unidades']!=0]
+            df['fecha_caducidad'] = df['fecha_caducidad'].astype('str').str.slice(0,10)
+            
+            return df.to_dict(orient='records')
+        else:
+            df = pd.DataFrame()
     
     except Exception as e:
         print(e)
-    finally:
-        cnxn.close()
-        
         
         
 def wms_ajuste_query_odbc(n_ajuste):

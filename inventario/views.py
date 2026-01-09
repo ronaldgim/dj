@@ -61,7 +61,6 @@ from datos.views import (
     de_dataframe_a_template, 
     reservas_lote_product_id, 
     productos_odbc_and_django,
-    trazabilidad_odbc,
     trazabilidad_api_mba
     )
 
@@ -3283,16 +3282,6 @@ def trazabilidad(request):
             cod = request.POST['codigo']
             lot = request.POST['lote']
             
-            # tr = trazabilidad_odbc(cod, lot)[[
-            #     'DOC_ID_CORP',
-            #     'NOMBRE_CLIENTE',
-            #     'DATE_I',
-            #     'FECHA_FACTURA',
-            #     'INGRESO_EGRESO',
-            #     'EGRESO_TEMP',
-            #     'TIPO_MOVIMIENTO',
-            #     'WARE_COD_CORP'
-            # ]]
             tr = trazabilidad_api_mba(cod, lot)[[
                 'DOC_ID_CORP',
                 'NOMBRE_CLIENTE',
