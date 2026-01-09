@@ -1743,48 +1743,6 @@ def stock_lote_cuc_etiquetado_detalle_odbc():
         return stock_lote
 
 
-
-### Consulta a tabla de trasavilidad
-def trazabilidad_odbc(cod, lot):
-
-    try:
-        cnxn = pyodbc.connect('DSN=mba3;PWD=API')
-        # cursorOdbc = cnxn.cursor()
-
-        # cod = 'LR10090'
-        # lot = '30122234'
-
-        query = (
-            "SELECT INVT_Lotes_Trasabilidad.DOC_ID_CORP, INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP, INVT_Lotes_Trasabilidad.LOTE_ID, "
-            "INVT_Lotes_Trasabilidad.AVAILABLE, INVT_Lotes_Trasabilidad.COMMITED, INVT_Lotes_Trasabilidad.EGRESO_TEMP, INVT_Lotes_Trasabilidad.OH, "
-            "INVT_Lotes_Trasabilidad.Ingreso_Egreso, INVT_Lotes_Trasabilidad.Tipo_Movimiento, INVT_Lotes_Trasabilidad.Id_Linea_Egreso_Movimiento, "
-            "INVT_Lotes_Trasabilidad.Link_Id_Linea_Ingreso, INVT_Lotes_Trasabilidad.CONFIRMADO, INVT_Lotes_Trasabilidad.Devolucio_MP, INVT_Lotes_Trasabilidad.Lote_Agregado, "
-            "INVT_Lotes_Trasabilidad.WARE_COD_CORP, "
-            "INVT_Ajustes_Principal.DATE_I , CLNT_Factura_Principal.FECHA_FACTURA, CLNT_Ficha_Principal.NOMBRE_CLIENTE, INVT_Lotes_Trasabilidad.Codigo_Alt_Clnt, CLNT_Pedidos_Principal.FECHA_DESDE "
-            "FROM INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad "
-            "LEFT JOIN INVT_Ajustes_Principal INVT_Ajustes_Principal "
-            "ON INVT_Lotes_Trasabilidad.DOC_ID_CORP = INVT_Ajustes_Principal.DOC_ID_CORP "
-            "LEFT JOIN CLNT_Factura_Principal CLNT_Factura_Principal "
-            "ON INVT_Lotes_Trasabilidad.DOC_ID_CORP = CLNT_Factura_Principal.CODIGO_FACTURA "
-            "LEFT JOIN CLNT_Ficha_Principal CLNT_Ficha_Principal "
-            "ON INVT_Lotes_Trasabilidad.Codigo_Alt_Clnt = CLNT_Ficha_Principal.CODIGO_CLIENTE "
-            "LEFT JOIN CLNT_Pedidos_Principal CLNT_Pedidos_Principal "
-            "ON INVT_Lotes_Trasabilidad.DOC_ID_CORP = CLNT_Pedidos_Principal.CONTRATO_ID_CORP "
-            f"WHERE (INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP='{cod}-GIMPR') AND (INVT_Lotes_Trasabilidad.LOTE_ID LIKE '%{lot}%') AND (INVT_Lotes_Trasabilidad.CONFIRMADO=TRUE) "
-            "ORDER BY INVT_Lotes_Trasabilidad.LINK_ID_LINEA_INGRESO"
-        )
-        
-        df_trazabilidad = pd.read_sql_query(query, cnxn)
-        
-        return df_trazabilidad
-    
-    except Exception as e:
-        print(f"Error: {e}")
-    
-    finally:
-        cnxn.close()
-
-
 def trazabilidad_api_mba(cod, lot):
     try:
         data = api_mba_sql(
