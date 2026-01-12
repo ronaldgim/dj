@@ -2183,43 +2183,43 @@ def extraer_numero_de_factura(fac):
 
 
 ## DATOS ANEXOS FACTURA
-def datos_factura_compras_publicas_cabecera_odbc(n_factura):
+# def datos_factura_compras_publicas_cabecera_odbc(n_factura):
 
-    try:
-        cnxn = pyodbc.connect('DSN=mba3;PWD=API')
-        cursorOdbc = cnxn.cursor()
+#     try:
+#         cnxn = pyodbc.connect('DSN=mba3;PWD=API')
+#         cursorOdbc = cnxn.cursor()
 
-        cursorOdbc.execute(       
+#         cursorOdbc.execute(       
             
-            "SELECT "
-            "CLNT_Factura_Principal.CODIGO_FACTURA, "
-            "CLNT_Factura_Principal.FECHA_FACTURA, "
-            "CLNT_Factura_Principal.NUMERO_PEDIDO_SISTEMA, "
-            "CLNT_Factura_Principal.CODIGO_CLIENTE, "
-            "CLNT_Ficha_Principal.NOMBRE_CLIENTE, "
-            "CLNT_Ficha_Principal.IDENTIFICACION_FISCAL, "
-            "CLNT_Ficha_Principal.DIRECCION_PRINCIPAL_1 "
+#             "SELECT "
+#             "CLNT_Factura_Principal.CODIGO_FACTURA, "
+#             "CLNT_Factura_Principal.FECHA_FACTURA, "
+#             "CLNT_Factura_Principal.NUMERO_PEDIDO_SISTEMA, "
+#             "CLNT_Factura_Principal.CODIGO_CLIENTE, "
+#             "CLNT_Ficha_Principal.NOMBRE_CLIENTE, "
+#             "CLNT_Ficha_Principal.IDENTIFICACION_FISCAL, "
+#             "CLNT_Ficha_Principal.DIRECCION_PRINCIPAL_1 "
             
-            "FROM "
-            "CLNT_Factura_Principal "
-            "INNER JOIN CLNT_Ficha_Principal ON CLNT_Factura_Principal.CODIGO_CLIENTE = CLNT_Ficha_Principal.CODIGO_CLIENTE "
+#             "FROM "
+#             "CLNT_Factura_Principal "
+#             "INNER JOIN CLNT_Ficha_Principal ON CLNT_Factura_Principal.CODIGO_CLIENTE = CLNT_Ficha_Principal.CODIGO_CLIENTE "
             
-            "WHERE "
-            f"CLNT_Factura_Principal.CODIGO_FACTURA = '{n_factura}'"
+#             "WHERE "
+#             f"CLNT_Factura_Principal.CODIGO_FACTURA = '{n_factura}'"
             
-        )
+#         )
 
-        columns = [col[0] for col in cursorOdbc.description]
-        datos   = [dict(zip(columns, row)) for row in cursorOdbc.fetchall()][0]
+#         columns = [col[0] for col in cursorOdbc.description]
+#         datos   = [dict(zip(columns, row)) for row in cursorOdbc.fetchall()][0]
         
-        return datos
+#         return datos
 
-    except Exception as e:
-        print(f"Error: {e}")
+#     except Exception as e:
+#         print(f"Error: {e}")
     
-    finally:
-        cursorOdbc.close()
-        cnxn.close()
+#     finally:
+#         cursorOdbc.close()
+#         cnxn.close()
 
 
 def datos_factura_compras_publicas_productos_odbc(n_factura):
