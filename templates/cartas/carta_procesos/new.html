@@ -143,5 +143,9 @@
             }
         })
     })
+
+    $("#proceso").on('input', function() {
+        $(this).val($(this).val().trim());
+    });
 </script>
 {% endblock %}
