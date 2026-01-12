@@ -171,12 +171,6 @@ urlpatterns = [
     #     name  = 'volumen_bodegas'
     # ),
 
-    path(
-        route = 'inventario/bodega',
-        view  = views.inventario_bodega,
-        name  = 'inventario_bodega'
-    ),
-
     # RESERVAS
     path(
         route = 'revision/reservas',

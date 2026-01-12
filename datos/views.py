@@ -1947,58 +1947,9 @@ def wms_stock_lote_cerezos_by_product(product_id):
         return stock
 
 
-# def wms_datos_nota_entrega(nota_entrega):
-    
-#     try:
-#         cnxn = pyodbc.connect('DSN=mba3;PWD=API')
-#         ne = 'A-' + f'{nota_entrega:010d}' + '-GIMPR'
-        
-#         query = (       
-#             "SELECT INVT_Lotes_Ubicacion.DOC_ID_CORP, INVT_Lotes_Ubicacion.PRODUCT_ID_CORP, "
-#             "INVT_Lotes_Ubicacion.LOTE_ID, INVT_Lotes_Ubicacion.EGRESO_TEMP, INVT_Lotes_Ubicacion.COMMITED, "
-#             "INVT_Lotes_Ubicacion.WARE_CODE_CORP, INVT_Lotes_Ubicacion.UBICACION, INVT_Producto_Lotes.Fecha_elaboracion_lote, "
-#             "INVT_Producto_Lotes.FECHA_CADUCIDAD "
-#             "FROM INVT_Lotes_Ubicacion INVT_Lotes_Ubicacion, INVT_Producto_Lotes INVT_Producto_Lotes "
-#             "WHERE INVT_Lotes_Ubicacion.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND "
-#             "INVT_Producto_Lotes.LOTE_ID = INVT_Lotes_Ubicacion.LOTE_ID AND "
-#             f"((INVT_Lotes_Ubicacion.DOC_ID_CORP='{ne}') "
-#             #"((INVT_Lotes_Ubicacion.DOC_ID_CORP='A-0000062645-GIMPR') "
-#             "AND (INVT_Producto_Lotes.ENTRADA_TIPO='OC'))"
-#         )
-        
-#         df = pd.read_sql_query(query, cnxn)
-        
-#         prod_id_list = []
-        
-#         for i in df['PRODUCT_ID_CORP']:
-#             prod_id = i.replace('-GIMPR','')
-#             prod_id_list.append(prod_id)
-        
-#         df['product_id'] = prod_id_list
-#         df['doc_id']     = nota_entrega
-        
-#         df = df.rename(columns={
-#             'DOC_ID_CORP':'doc_id_corp',
-#             'LOTE_ID':'lote_id',
-#             'EGRESO_TEMP':'unidades',
-#             'FECHA_CADUCIDAD':'fecha_caducidad'
-#         })
-        
-#         df = df[['doc_id_corp', 'doc_id','product_id','lote_id','fecha_caducidad','unidades']]
-#         df = df[df['unidades']!=0]
-        
-#         return df.to_dict(orient='records')
-    
-#     except Exception as e:
-#         print(e)
-#     finally:
-#         cnxn.close()
-
-
 def wms_datos_nota_entrega(nota_entrega):
     
     try:
-        # cnxn = pyodbc.connect('DSN=mba3;PWD=API')
         ne = 'A-' + f'{nota_entrega:010d}' + '-GIMPR'
         
         query = (       
@@ -2013,8 +1964,6 @@ def wms_datos_nota_entrega(nota_entrega):
             #"((INVT_Lotes_Ubicacion.DOC_ID_CORP='A-0000062645-GIMPR') "
             "AND (INVT_Producto_Lotes.ENTRADA_TIPO='OC'))"
         )
-        
-        # df = pd.read_sql_query(query, cnxn)
         
         data = api_mba_sql(query)
         if data['status'] == 200:
