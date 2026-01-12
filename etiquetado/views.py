@@ -102,11 +102,6 @@ from django_xhtml2pdf.utils import pdf_decorator
 from django.core.mail import send_mail
 from django.conf import settings
 
-
-# Inventario Bodega
-import pyodbc
-import mysql.connector
-
 # No utilizar csrf_token
 from django.views.decorators.csrf import csrf_exempt
 

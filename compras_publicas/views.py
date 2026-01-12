@@ -57,7 +57,6 @@ from datos.views import (
     datos_anexo,
     datos_anexo_product_list,
     extraer_fecha
-    #datos_factura_compras_publicas_cabecera_odbc,
     #datos_factura_compras_publicas_productos_odbc
     )
 

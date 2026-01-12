@@ -230,7 +230,6 @@ def api_actualizar_facturas_warehouse():
 def api_actualizar_imp_llegadas_warehouse():
 
     try:
-        # actualizar_imp_llegadas_odbc
         imp_llegadas_mba = api_mba_sql(
             """
             SELECT 
@@ -400,64 +399,6 @@ def api_actualizar_imp_transito_warehouse():
 ### 5 ACTUALIZAR PEDIDOS
 def api_actualizar_pedidos_warehouse():
     
-    # try:
-    #     pedidos_mba = api_mba_sql(
-    #         """ 
-    #         SELECT 
-    #             CLNT_Pedidos_Principal.CONTRATO_ID, 
-    #             CLNT_Pedidos_Principal.FECHA_PEDIDO, 
-    #             CLNT_Pedidos_Principal.WARE_CODE,
-    #             CLNT_Pedidos_Principal.CONFIRMED, 
-    #             CLNT_Pedidos_Principal.HORA_LLEGADA,
-    #             CLNT_Pedidos_Principal.Preparacion_numero, 
-    #             CLNT_Pedidos_Principal.Entry_by
-    #         FROM 
-    #             CLNT_Pedidos_Principal CLNT_Pedidos_Principal
-    #         ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID DESC
-    #         """
-    #     )
-    #     # print(pedidos_mba)
-
-    #     if pedidos_mba['status'] == 200:
-            
-    #         data = []
-    #         for i in pedidos_mba['data']:
-
-    #             contrato_id = str(i['CONTRATO_ID']) + '.0'
-    #             fecha_pedido = datetime.strptime(i['FECHA_PEDIDO'][:10], '%d/%m/%Y')
-    #             ware_code = i['WARE_CODE']
-    #             confirmed = 0 if i['CONFIRMED'] == 'false' else 1
-    #             hora_llegada = i['HORA_LLEGADA']
-    #             num_print = i['PREPARACION_NUMERO']
-    #             entry_by = i['ENTRY_BY']
-                
-    #             row = (
-    #                 contrato_id,
-    #                 fecha_pedido,
-    #                 ware_code,
-    #                 confirmed,
-    #                 hora_llegada,
-    #                 num_print,
-    #                 entry_by
-    #             )
-                
-    #             data.append(row)
-                
-    #         #with transaction.atomic():
-    #         # Borrar datos de tabla imp_transito
-    #         delete_data_warehouse('pedidos')
-            
-    #         # # Insertar datos de tabla imp_transito
-    #         insert_data_warehouse('pedidos', data)
-            
-    #         admin_warehouse_timestamp(tabla='pedidos', actualizar_datetime=True, mensaje='Actualizado correctamente')
-    #     else:
-    #         admin_warehouse_timestamp(tabla='pedidos', actualizar_datetime=False, mensaje=f'Error api: status {pedidos_mba["status"]}')
-    # except Exception as e:
-    #     print(e)
-    #     admin_warehouse_timestamp(tabla='pedidos', actualizar_datetime=False, mensaje=f'Error exception {e}')
-
-
     try:
         cnxn = pyodbc.connect('DSN=mba3;PWD=API')
         cursor = cnxn.cursor()
@@ -1109,37 +1050,6 @@ def odbc_actualizar_stock_lote():
     try:
         cnxn = pyodbc.connect('DSN=mba3;PWD=API')
         cursor = cnxn.cursor()
-        
-        # stock_lote_query_mba = cursor.execute(
-        #     """
-        #     SELECT 
-        #         INVT_Ficha_Principal.PRODUCT_ID, 
-        #         INVT_Ficha_Principal.PRODUCT_NAME, 
-        #         INVT_Ficha_Principal.GROUP_CODE, 
-        #         INVT_Ficha_Principal.UM, 
-        #         INVT_Producto_Lotes.OH, 
-        #         INVT_Producto_Lotes_Bodegas.OH, 
-        #         INVT_Producto_Lotes_Bodegas.COMMITED, 
-        #         INVT_Producto_Lotes_Bodegas.QUANTITY, 
-        #         INVT_Producto_Lotes.LOTE_ID, 
-        #         INVT_Producto_Lotes.Fecha_elaboracion_lote, 
-        #         INVT_Producto_Lotes.FECHA_CADUCIDAD, 
-        #         INVT_Producto_Lotes_Bodegas.WARE_CODE, 
-        #         INVT_Producto_Lotes_Bodegas.LOCATION 
-                
-        #     FROM 
-        #         INVT_Ficha_Principal INVT_Ficha_Principal, 
-        #         INVT_Producto_Lotes INVT_Producto_Lotes, 
-        #         INVT_Producto_Lotes_Bodegas INVT_Producto_Lotes_Bodegas 
-        #     WHERE 
-        #         INVT_Ficha_Principal.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND 
-        #         INVT_Producto_Lotes_Bodegas.PRODUCT_ID_CORP = INVT_Ficha_Principal.PRODUCT_ID_CORP AND 
-        #         INVT_Producto_Lotes.LOTE_ID = INVT_Producto_Lotes_Bodegas.LOTE_ID AND 
-        #         INVT_Producto_Lotes.WARE_CODE_CORP = INVT_Producto_Lotes_Bodegas.WARE_CODE AND 
-        #         ((INVT_Producto_Lotes.OH>0) AND (INVT_Producto_Lotes_Bodegas.OH>0))
-        #     """
-        # )
-
 
         stock_lote_query_mba = cursor.execute(
             """
