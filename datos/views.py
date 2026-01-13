@@ -1996,19 +1996,51 @@ def wms_datos_nota_entrega(nota_entrega):
         print(e)
         
         
-def wms_ajuste_query_odbc(n_ajuste):
+# def wms_ajuste_query_odbc(n_ajuste):
     
-    cnxn = pyodbc.connect('DSN=mba3;PWD=API')
-    cursorOdbc = cnxn.cursor()
+#     cnxn = pyodbc.connect('DSN=mba3;PWD=API')
+#     cursorOdbc = cnxn.cursor()
+    
+#     # La variable 'n' no está siendo usada en la consulta. Asegúrate de que sea necesario.
+#     n = 'A-00000' + str(n_ajuste) + '-GIMPR'
+#     print(n)
+#     #Transferencia Egreso
+#     try:
+
+#         # Segunda consulta
+#         cursorOdbc.execute(
+#             "SELECT INVT_Lotes_Ubicacion.DOC_ID_CORP, INVT_Lotes_Ubicacion.PRODUCT_ID_CORP, INVT_Lotes_Ubicacion.LOTE_ID, "
+#             "INVT_Lotes_Ubicacion.EGRESO_TEMP, INVT_Lotes_Ubicacion.COMMITED, INVT_Lotes_Ubicacion.WARE_CODE_CORP, "
+#             "INVT_Lotes_Ubicacion.UBICACION, INVT_Producto_Lotes.Fecha_elaboracion_lote, INVT_Producto_Lotes.FECHA_CADUCIDAD "
+#             "FROM INVT_Lotes_Ubicacion, INVT_Producto_Lotes "
+#             "WHERE INVT_Lotes_Ubicacion.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP "
+#             "AND INVT_Producto_Lotes.LOTE_ID = INVT_Lotes_Ubicacion.LOTE_ID "
+#             f"AND ((INVT_Lotes_Ubicacion.DOC_ID_CORP='{n}') AND (INVT_Producto_Lotes.ENTRADA_TIPO='OC')) "
+#         )
+#         inventario = [tuple(row) for row in cursorOdbc.fetchall()]
+#         inventario_df = pd.DataFrame(inventario, columns=['DOC_ID_CORP', 'PRODUCT_ID_CORP', 'LOTE_ID', 'EGRESO_TEMP', 'COMMITED', 'WARE_CODE_CORP', 'UBICACION', 'Fecha_elaboracion_lote', 'FECHA_CADUCIDAD']) if inventario else pd.DataFrame()
+        
+#         inventario_df['product_id'] = list(map(lambda x:x[:-6], list(inventario_df['PRODUCT_ID_CORP'])))
+        
+#         return inventario_df
+        
+#     except Exception as e:
+#         print(e)
+    
+#     finally:
+#         cursorOdbc.close()
+#         cnxn.close()
+
+
+def wms_ajuste_query_api(n_ajuste):
     
     # La variable 'n' no está siendo usada en la consulta. Asegúrate de que sea necesario.
     n = 'A-00000' + str(n_ajuste) + '-GIMPR'
-    
     #Transferencia Egreso
     try:
 
         # Segunda consulta
-        cursorOdbc.execute(
+        api_sql = api_mba_sql(
             "SELECT INVT_Lotes_Ubicacion.DOC_ID_CORP, INVT_Lotes_Ubicacion.PRODUCT_ID_CORP, INVT_Lotes_Ubicacion.LOTE_ID, "
             "INVT_Lotes_Ubicacion.EGRESO_TEMP, INVT_Lotes_Ubicacion.COMMITED, INVT_Lotes_Ubicacion.WARE_CODE_CORP, "
             "INVT_Lotes_Ubicacion.UBICACION, INVT_Producto_Lotes.Fecha_elaboracion_lote, INVT_Producto_Lotes.FECHA_CADUCIDAD "
@@ -2017,20 +2049,19 @@ def wms_ajuste_query_odbc(n_ajuste):
             "AND INVT_Producto_Lotes.LOTE_ID = INVT_Lotes_Ubicacion.LOTE_ID "
             f"AND ((INVT_Lotes_Ubicacion.DOC_ID_CORP='{n}') AND (INVT_Producto_Lotes.ENTRADA_TIPO='OC')) "
         )
-        inventario = [tuple(row) for row in cursorOdbc.fetchall()]
-        inventario_df = pd.DataFrame(inventario, columns=['DOC_ID_CORP', 'PRODUCT_ID_CORP', 'LOTE_ID', 'EGRESO_TEMP', 'COMMITED', 'WARE_CODE_CORP', 'UBICACION', 'Fecha_elaboracion_lote', 'FECHA_CADUCIDAD']) if inventario else pd.DataFrame()
         
-        inventario_df['product_id'] = list(map(lambda x:x[:-6], list(inventario_df['PRODUCT_ID_CORP'])))
+        if api_sql['status'] == 200:
+            data = pd.DataFrame(api_sql['data'])
+            # data = pd.DataFrame(data, columns=['DOC_ID_CORP', 'PRODUCT_ID_CORP', 'LOTE_ID', 'EGRESO_TEMP', 'COMMITED', 'WARE_CODE_CORP', 'UBICACION', 'Fecha_elaboracion_lote', 'FECHA_CADUCIDAD']) if data else pd.DataFrame()
+            data['product_id'] = list(map(lambda x:x[:-6], list(data['PRODUCT_ID_CORP'])))
+            data['FECHA_CADUCIDAD'] = data['FECHA_CADUCIDAD'].str.slice(0,10)
+            data['FECHA_ELABORACION_LOTE'] = data['FECHA_ELABORACION_LOTE'].str.slice(0,10)
         
-        return inventario_df
+        return data
         
     except Exception as e:
         print(e)
-    
-    finally:
-        cursorOdbc.close()
-        cnxn.close()
-        
+
 
 # TRAER TELEFONO DE CLIENTES
 def whastapp_cliente_por_codigo(codigo_cliente):
@@ -2222,63 +2253,63 @@ def extraer_numero_de_factura(fac):
 #         cnxn.close()
 
 
-def datos_factura_compras_publicas_productos_odbc(n_factura):
+# def datos_factura_compras_publicas_productos_odbc(n_factura):
     
-    try:
-        cnxn = pyodbc.connect('DSN=mba3;PWD=API')
-        cursorOdbc = cnxn.cursor()
+#     try:
+#         cnxn = pyodbc.connect('DSN=mba3;PWD=API')
+#         cursorOdbc = cnxn.cursor()
 
-        cursorOdbc.execute(
+#         cursorOdbc.execute(
             
-            "SELECT "
-            "CLNT_Factura_Principal.CODIGO_FACTURA, "
-            "CLNT_Factura_Principal.FECHA_FACTURA, "
-            "INVT_Ficha_Principal.PRODUCT_ID, "
-            "INVT_Ficha_Principal.PRODUCT_NAME, "
-            "INVT_Ficha_Principal.GROUP_CODE, "
-            "INVT_Producto_Movimientos.QUANTITY, "
-            "INVT_Ficha_Principal.Custom_Field_1, "
-            "INVT_Ficha_Principal.Custom_Field_2, "
-            "INVT_Lotes_Trasabilidad.LOTE_ID, "
-            "INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD, "
-            "INVT_Producto_Lotes.Fecha_elaboracion_lote, "
-            "INVT_Lotes_Trasabilidad.Precio_venta "
+#             "SELECT "
+#             "CLNT_Factura_Principal.CODIGO_FACTURA, "
+#             "CLNT_Factura_Principal.FECHA_FACTURA, "
+#             "INVT_Ficha_Principal.PRODUCT_ID, "
+#             "INVT_Ficha_Principal.PRODUCT_NAME, "
+#             "INVT_Ficha_Principal.GROUP_CODE, "
+#             "INVT_Producto_Movimientos.QUANTITY, "
+#             "INVT_Ficha_Principal.Custom_Field_1, "
+#             "INVT_Ficha_Principal.Custom_Field_2, "
+#             "INVT_Lotes_Trasabilidad.LOTE_ID, "
+#             "INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD, "
+#             "INVT_Producto_Lotes.Fecha_elaboracion_lote, "
+#             "INVT_Lotes_Trasabilidad.Precio_venta "
             
-            "FROM "
-            "CLNT_Factura_Principal CLNT_Factura_Principal, "
-            "INVT_Ficha_Principal INVT_Ficha_Principal, "
-            "INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad, "
-            "INVT_Producto_Lotes INVT_Producto_Lotes, "
-            "INVT_Producto_Movimientos INVT_Producto_Movimientos "
+#             "FROM "
+#             "CLNT_Factura_Principal CLNT_Factura_Principal, "
+#             "INVT_Ficha_Principal INVT_Ficha_Principal, "
+#             "INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad, "
+#             "INVT_Producto_Lotes INVT_Producto_Lotes, "
+#             "INVT_Producto_Movimientos INVT_Producto_Movimientos "
             
-            "WHERE "
-            "CLNT_Factura_Principal.CODIGO_FACTURA = INVT_Producto_Movimientos.DOC_ID_CORP2 "
-            "AND INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP = INVT_Ficha_Principal.PRODUCT_ID_CORP "
-            "AND CLNT_Factura_Principal.CODIGO_FACTURA = INVT_Lotes_Trasabilidad.DOC_ID_CORP AND "
-            "INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND "
-            "INVT_Lotes_Trasabilidad.LOTE_ID = INVT_Producto_Lotes.LOTE_ID AND "
-            "INVT_Producto_Movimientos.PRODUCT_ID_CORP = INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP AND "
-            "INVT_Lotes_Trasabilidad.WARE_COD_CORP = INVT_Producto_Lotes.WARE_CODE_CORP AND "
-            "INVT_Producto_Movimientos.UNIT_COST = INVT_Lotes_Trasabilidad.Precio_venta AND "
-            "((INVT_Producto_Movimientos.CONFIRM=TRUE) AND (CLNT_Factura_Principal.CODIGO_FACTURA='FCSRI-1001000090896-GIMPR') AND "
-            f"((INVT_Producto_Movimientos.CONFIRM=TRUE) AND (CLNT_Factura_Principal.CODIGO_FACTURA='{n_factura}') AND "
-            #"(INVT_Producto_Movimientos.I_E_SIGN='-') AND (INVT_Producto_Movimientos.ADJUSTMENT_TYPE='FT') AND "
-            "(CLNT_Factura_Principal.ANULADA=FALSE))"
-        )
+#             "WHERE "
+#             "CLNT_Factura_Principal.CODIGO_FACTURA = INVT_Producto_Movimientos.DOC_ID_CORP2 "
+#             "AND INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP = INVT_Ficha_Principal.PRODUCT_ID_CORP "
+#             "AND CLNT_Factura_Principal.CODIGO_FACTURA = INVT_Lotes_Trasabilidad.DOC_ID_CORP AND "
+#             "INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND "
+#             "INVT_Lotes_Trasabilidad.LOTE_ID = INVT_Producto_Lotes.LOTE_ID AND "
+#             "INVT_Producto_Movimientos.PRODUCT_ID_CORP = INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP AND "
+#             "INVT_Lotes_Trasabilidad.WARE_COD_CORP = INVT_Producto_Lotes.WARE_CODE_CORP AND "
+#             "INVT_Producto_Movimientos.UNIT_COST = INVT_Lotes_Trasabilidad.Precio_venta AND "
+#             "((INVT_Producto_Movimientos.CONFIRM=TRUE) AND (CLNT_Factura_Principal.CODIGO_FACTURA='FCSRI-1001000090896-GIMPR') AND "
+#             f"((INVT_Producto_Movimientos.CONFIRM=TRUE) AND (CLNT_Factura_Principal.CODIGO_FACTURA='{n_factura}') AND "
+#             #"(INVT_Producto_Movimientos.I_E_SIGN='-') AND (INVT_Producto_Movimientos.ADJUSTMENT_TYPE='FT') AND "
+#             "(CLNT_Factura_Principal.ANULADA=FALSE))"
+#         )
 
-        columns = [col[0] for col in cursorOdbc.description]
-        datos   = [dict(zip(columns, row)) for row in cursorOdbc.fetchall()]
+#         columns = [col[0] for col in cursorOdbc.description]
+#         datos   = [dict(zip(columns, row)) for row in cursorOdbc.fetchall()]
 
-        datos   = pd.DataFrame(datos)
-        # print(datos)
-        return datos
+#         datos   = pd.DataFrame(datos)
+#         # print(datos)
+#         return datos
 
-    except Exception as e:
-        print(f"Error: {e}")
+#     except Exception as e:
+#         print(f"Error: {e}")
     
-    finally:
-        cursorOdbc.close()
-        cnxn.close()
+#     finally:
+#         cursorOdbc.close()
+#         cnxn.close()
 
 
 def resporte_diferencia_mba_wms():
