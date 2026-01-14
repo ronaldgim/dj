@@ -200,8 +200,8 @@ class ErrorLoteDetalle(models.Model):
 class ErrorLoteV2(models.Model):
     
     product_id = models.CharField(max_length=50)
-    nombre = models.CharField(max_length=100)
-    marca = models.CharField(max_length=30)
+    nombre = models.CharField(max_length=100, blank=True, null=True)
+    marca = models.CharField(max_length=30, blank=True, null=True)
     lote_id = models.CharField(max_length=50)
     ubicacion = models.CharField(max_length=100, blank=True)
     quantity = models.IntegerField(default=0)
@@ -213,5 +213,5 @@ class ErrorLoteV2(models.Model):
     error_available = models.BooleanField(default=False)
     
     def __str__(self):
-        return self.product_id
+        return f'{self.product_id} - {self.nombre} - {self.marca}'
     
