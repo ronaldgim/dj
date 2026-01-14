@@ -4355,7 +4355,7 @@ def wms_nota_entrega_input_ajax(request):
         
     elif not ne_existente.exists():
 
-        ne_datos = wms_datos_nota_entrega(n_entrega)
+        ne_datos = wms_datos_nota_entrega(n_entrega) ;print(ne_datos)
         try:
             for i in ne_datos:
                 

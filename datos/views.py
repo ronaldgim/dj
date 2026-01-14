@@ -1967,16 +1967,9 @@ def wms_datos_nota_entrega(nota_entrega):
         
         data = api_mba_sql(query)
         if data['status'] == 200:
-            df = pd.DataFrame(data['data']) 
-            prod_id_list = []
-            
-            for i in df['PRODUCT_ID_CORP']:
-                prod_id = i.replace('-GIMPR','')
-                prod_id_list.append(prod_id)
-            
-            df['product_id'] = prod_id_list
-            df['doc_id']     = nota_entrega
-            
+            df = pd.DataFrame(data['data'])  
+            df['product_id'] = df['PRODUCT_ID_CORP'].str.replace('-GIMPR','')
+            df['doc_id']     = nota_entrega            
             df = df.rename(columns={
                 'DOC_ID_CORP':'doc_id_corp',
                 'LOTE_ID':'lote_id',
@@ -1985,11 +1978,11 @@ def wms_datos_nota_entrega(nota_entrega):
             })
             
             df = df[['doc_id_corp', 'doc_id','product_id','lote_id','fecha_caducidad','unidades']]
-            df['fecha_caducidad'] = df['fecha_caducidad'].str.slice(0,10)
-            df['fecha_caducidad'] = pd.to_datetime(df['fecha_caducidad'], errors='coerce').dt.strftime('%Y-%m-%d')
-            df = df[df['unidades']!=0]
-            df['fecha_caducidad'] = df['fecha_caducidad'].astype('str').str.slice(0,10)
             
+            # df['fecha_caducidad'] = df['fecha_caducidad'].str.slice(0,10)
+            df['fecha_caducidad'] = df['fecha_caducidad'].astype('str').str.slice(0,10) 
+            df['fecha_caducidad'] = pd.to_datetime(df['fecha_caducidad'], format='%d/%m/%Y', dayfirst=True)
+            df = df[df['unidades']!=0] 
             return df.to_dict(orient='records')
         else:
             df = pd.DataFrame()
