@@ -400,10 +400,8 @@ def api_actualizar_imp_transito_warehouse():
 def api_actualizar_pedidos_warehouse():
     
     try:
-        cnxn = pyodbc.connect('DSN=mba3;PWD=API')
-        cursor = cnxn.cursor()
         
-        pedidos_query_mba = cursor.execute(
+        data_api = api_mba_sql(
         """ 
         SELECT 
             CLNT_Pedidos_Principal.CONTRATO_ID, 
@@ -418,12 +416,32 @@ def api_actualizar_pedidos_warehouse():
         ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID DESC
         """
         )
-
-        data = [tuple(i) for i in pedidos_query_mba.fetchall()]
-
-        
-        if len(data) > 0:
+        print(data_api)
+        if data_api['status'] == 200:
             
+            data = []
+            for i in data_api['data']:
+                
+                contrato_id = i['CONTRATO_ID']
+                fecha_pedido = datetime.strptime(i['FECHA_PEDIDO'][:10], '%d/%m/%Y')
+                ware_code = i['WARE_CODE']
+                confirmed = 0 if i['CONFIRMED'] == 'false' else 1
+                hora_llegada = i['HORA_LLEGADA']
+                preparacion_numero = i['PREPARACION_NUMERO']
+                entry_by = i['ENTRY_BY']
+                
+                row = (
+                    contrato_id,
+                    fecha_pedido,
+                    ware_code,
+                    confirmed,
+                    hora_llegada,
+                    preparacion_numero,
+                    entry_by
+                )
+                
+                data.append(row)
+                
             #while transaction.atomic():
             # Borrar datos de tabla stock_lote
             delete_data_warehouse('pedidos')
@@ -440,9 +458,6 @@ def api_actualizar_pedidos_warehouse():
     except Exception as e:
         # print(e)
         admin_warehouse_timestamp(tabla='pedidos', actualizar_datetime=False, mensaje=f'Error ODBC exception: {e}')
-        
-    finally:
-        cnxn.close()
 
 
 ### 6 ACTUALIZAR PRODUCTOS WAREHOUSE POR API DATA
