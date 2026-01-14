@@ -416,7 +416,7 @@ def api_actualizar_pedidos_warehouse():
         ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID DESC
         """
         )
-        print(data_api)
+
         if data_api['status'] == 200:
             
             data = []
