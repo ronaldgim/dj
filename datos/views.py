@@ -2550,7 +2550,6 @@ def analisis_error_lote_data_v2():
     else:
         prods = productos_odbc_and_django()[['product_id','Nombre','Marca']]
         df_grouped_product_lote = pd.merge(left=df_grouped_product_lote, right=prods, left_on='PRODUCT_ID', right_on='product_id', how='left')
-        print(df_grouped_product_lote)
         return {
             'lotes':de_dataframe_a_template(df_grouped_product_lote)
         }
