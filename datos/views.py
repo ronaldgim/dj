@@ -1967,7 +1967,7 @@ def wms_datos_nota_entrega(nota_entrega):
         
         data = api_mba_sql(query)
         if data['status'] == 200:
-            df = pd.DataFrame(data['data'])
+            df = pd.DataFrame(data['data']) 
             prod_id_list = []
             
             for i in df['PRODUCT_ID_CORP']:
@@ -1985,6 +1985,8 @@ def wms_datos_nota_entrega(nota_entrega):
             })
             
             df = df[['doc_id_corp', 'doc_id','product_id','lote_id','fecha_caducidad','unidades']]
+            df['fecha_caducidad'] = df['fecha_caducidad'].str.slice(0,10)
+            df['fecha_caducidad'] = pd.to_datetime(df['fecha_caducidad'], errors='coerce').dt.strftime('%Y-%m-%d')
             df = df[df['unidades']!=0]
             df['fecha_caducidad'] = df['fecha_caducidad'].astype('str').str.slice(0,10)
             
