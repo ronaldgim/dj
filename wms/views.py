@@ -24,7 +24,6 @@ from datos.views import (
     doc_transferencia_odbc,
     
     # Ajuste Datos
-    # wms_ajuste_query_odbc,
     wms_ajuste_query_api,
     
     # Permisos costum @decorador
@@ -4738,7 +4737,6 @@ def wms_ajuste_liberacion_input_ajax(request):
     tipo_liberacion = request.POST['tipo']
     n_liberacion = request.POST['n_liberacion']
     
-    # liberacion_data = wms_ajuste_query_odbc(n_liberacion) ; print(liberacion_data)
     liberacion_data = wms_ajuste_query_api(n_liberacion) 
     liberacion_data['LOTE_ID'] = liberacion_data['LOTE_ID'].str.replace('.', '') 
     liberacion_data = liberacion_data[liberacion_data['EGRESO_TEMP']!=0]
