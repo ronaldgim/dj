@@ -2016,8 +2016,8 @@ def wms_ajuste_query_api(n_ajuste):
             data['FECHA_CADUCIDAD'] = data['FECHA_CADUCIDAD'].str.slice(0,10)
             data['FECHA_ELABORACION_LOTE'] = data['FECHA_ELABORACION_LOTE'].str.slice(0,10)
             
-            data['FECHA_CADUCIDAD'] = pd.to_datetime(data['FECHA_CADUCIDAD'], errors='coerce').dt.strftime('%Y-%m-%d')
-            data['FECHA_ELABORACION_LOTE'] = pd.to_datetime(data['FECHA_ELABORACION_LOTE'], errors='coerce').dt.strftime('%Y-%m-%d')
+            data['FECHA_CADUCIDAD'] = pd.to_datetime(data['FECHA_CADUCIDAD'], format='%d/%m/%Y', dayfirst=True)
+            data['FECHA_ELABORACION_LOTE'] = pd.to_datetime(data['FECHA_ELABORACION_LOTE'], format='%d/%m/%Y', dayfirst=True)
 
         return data
         
