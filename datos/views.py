@@ -1994,42 +1994,6 @@ def wms_datos_nota_entrega(nota_entrega):
     
     except Exception as e:
         print(e)
-        
-        
-# def wms_ajuste_query_odbc(n_ajuste):
-    
-#     cnxn = pyodbc.connect('DSN=mba3;PWD=API')
-#     cursorOdbc = cnxn.cursor()
-    
-#     # La variable 'n' no está siendo usada en la consulta. Asegúrate de que sea necesario.
-#     n = 'A-00000' + str(n_ajuste) + '-GIMPR'
-#     print(n)
-#     #Transferencia Egreso
-#     try:
-
-#         # Segunda consulta
-#         cursorOdbc.execute(
-#             "SELECT INVT_Lotes_Ubicacion.DOC_ID_CORP, INVT_Lotes_Ubicacion.PRODUCT_ID_CORP, INVT_Lotes_Ubicacion.LOTE_ID, "
-#             "INVT_Lotes_Ubicacion.EGRESO_TEMP, INVT_Lotes_Ubicacion.COMMITED, INVT_Lotes_Ubicacion.WARE_CODE_CORP, "
-#             "INVT_Lotes_Ubicacion.UBICACION, INVT_Producto_Lotes.Fecha_elaboracion_lote, INVT_Producto_Lotes.FECHA_CADUCIDAD "
-#             "FROM INVT_Lotes_Ubicacion, INVT_Producto_Lotes "
-#             "WHERE INVT_Lotes_Ubicacion.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP "
-#             "AND INVT_Producto_Lotes.LOTE_ID = INVT_Lotes_Ubicacion.LOTE_ID "
-#             f"AND ((INVT_Lotes_Ubicacion.DOC_ID_CORP='{n}') AND (INVT_Producto_Lotes.ENTRADA_TIPO='OC')) "
-#         )
-#         inventario = [tuple(row) for row in cursorOdbc.fetchall()]
-#         inventario_df = pd.DataFrame(inventario, columns=['DOC_ID_CORP', 'PRODUCT_ID_CORP', 'LOTE_ID', 'EGRESO_TEMP', 'COMMITED', 'WARE_CODE_CORP', 'UBICACION', 'Fecha_elaboracion_lote', 'FECHA_CADUCIDAD']) if inventario else pd.DataFrame()
-        
-#         inventario_df['product_id'] = list(map(lambda x:x[:-6], list(inventario_df['PRODUCT_ID_CORP'])))
-        
-#         return inventario_df
-        
-#     except Exception as e:
-#         print(e)
-    
-#     finally:
-#         cursorOdbc.close()
-#         cnxn.close()
 
 
 def wms_ajuste_query_api(n_ajuste):
@@ -2056,7 +2020,10 @@ def wms_ajuste_query_api(n_ajuste):
             data['product_id'] = list(map(lambda x:x[:-6], list(data['PRODUCT_ID_CORP'])))
             data['FECHA_CADUCIDAD'] = data['FECHA_CADUCIDAD'].str.slice(0,10)
             data['FECHA_ELABORACION_LOTE'] = data['FECHA_ELABORACION_LOTE'].str.slice(0,10)
-        
+            
+            data['FECHA_CADUCIDAD'] = pd.to_datetime(data['FECHA_CADUCIDAD'], errors='coerce').dt.strftime('%Y-%m-%d')
+            data['FECHA_ELABORACION_LOTE'] = pd.to_datetime(data['FECHA_ELABORACION_LOTE'], errors='coerce').dt.strftime('%Y-%m-%d')
+
         return data
         
     except Exception as e:
