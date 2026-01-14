@@ -4384,7 +4384,8 @@ def wms_nota_entrega_input_ajax(request):
                         'texto': f'✅ Nota de entrega {ne.doc_id} añadida exitosamente !!!'
                     }
                 })
-        except:
+        except Exception as e:
+            print(e)
             return JsonResponse({
                 'msg':{
                     'type': 'danger',
