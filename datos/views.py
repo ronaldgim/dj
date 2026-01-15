@@ -669,67 +669,67 @@ def admin_actualizar_warehouse_view(request):
 
 ### UTILS 
 # DATOS PARA MUESTREO DE TRANSFERENCIAS
-def doc_transferencia_odbc(n_transf):
+# def doc_transferencia_odbc(n_transf):
 
-    cnxn = pyodbc.connect('DSN=mba3;PWD=API')
-    cursorOdbc = cnxn.cursor()
+#     cnxn = pyodbc.connect('DSN=mba3;PWD=API')
+#     cursorOdbc = cnxn.cursor()
 
-    n = 'A-00000' + str(n_transf) + '-GIMPR'
+#     n = 'A-00000' + str(n_transf) + '-GIMPR'
     
-    #Transferencia Egreso
-    try:
-        cursorOdbc.execute(
-        f"""    
-        SELECT 
-            INVT_Lotes_Ubicacion.DOC_ID_CORP, 
-            INVT_Lotes_Ubicacion.PRODUCT_ID_CORP, 
-            INVT_Lotes_Ubicacion.LOTE_ID, 
-            INVT_Lotes_Ubicacion.EGRESO_TEMP,
-            INVT_Producto_Lotes.WARE_CODE_CORP, 
-            INVT_Producto_Lotes.ANIADIDO, 
-            INVT_Lotes_Ubicacion.UBICACION, 
-            INVT_Producto_Lotes.Fecha_elaboracion_lote,
-            INVT_Producto_Lotes.FECHA_CADUCIDAD, 
-            INVT_Producto_Lotes.ENTRADA_TIPO, 
-            INVT_Lotes_Ubicacion.UBICACION, 
-            INVT_Lotes_Ubicacion.WARE_CODE_CORP
-        FROM 
-            INVT_Lotes_Ubicacion INVT_Lotes_Ubicacion, 
-            INVT_Producto_Lotes INVT_Producto_Lotes
-        WHERE 
-            INVT_Lotes_Ubicacion.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND 
-            INVT_Producto_Lotes.LOTE_ID = INVT_Lotes_Ubicacion.LOTE_ID AND
-            ((INVT_Lotes_Ubicacion.DOC_ID_CORP='{n}') AND 
-            (INVT_Lotes_Ubicacion.EGRESO_TEMP>0) AND 
-            (INVT_Producto_Lotes.WARE_CODE_CORP='BCT'))
-        """
-        )
+#     #Transferencia Egreso
+#     try:
+#         cursorOdbc.execute(
+#         f"""    
+#         SELECT 
+#             INVT_Lotes_Ubicacion.DOC_ID_CORP, 
+#             INVT_Lotes_Ubicacion.PRODUCT_ID_CORP, 
+#             INVT_Lotes_Ubicacion.LOTE_ID, 
+#             INVT_Lotes_Ubicacion.EGRESO_TEMP,
+#             INVT_Producto_Lotes.WARE_CODE_CORP, 
+#             INVT_Producto_Lotes.ANIADIDO, 
+#             INVT_Lotes_Ubicacion.UBICACION, 
+#             INVT_Producto_Lotes.Fecha_elaboracion_lote,
+#             INVT_Producto_Lotes.FECHA_CADUCIDAD, 
+#             INVT_Producto_Lotes.ENTRADA_TIPO, 
+#             INVT_Lotes_Ubicacion.UBICACION, 
+#             INVT_Lotes_Ubicacion.WARE_CODE_CORP
+#         FROM 
+#             INVT_Lotes_Ubicacion INVT_Lotes_Ubicacion, 
+#             INVT_Producto_Lotes INVT_Producto_Lotes
+#         WHERE 
+#             INVT_Lotes_Ubicacion.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND 
+#             INVT_Producto_Lotes.LOTE_ID = INVT_Lotes_Ubicacion.LOTE_ID AND
+#             ((INVT_Lotes_Ubicacion.DOC_ID_CORP='{n}') AND 
+#             (INVT_Lotes_Ubicacion.EGRESO_TEMP>0) AND 
+#             (INVT_Producto_Lotes.WARE_CODE_CORP='BCT'))
+#         """
+#         )
         
-        columns = [col[0] for col in cursorOdbc.description]
-        transferencia = [dict(zip(columns, row)) for row in cursorOdbc.fetchall()] 
-        transferencia = pd.DataFrame(transferencia)
-        transferencia['product_id'] = list(map(lambda x:x[:-6], list(transferencia['PRODUCT_ID_CORP'])))
+#         columns = [col[0] for col in cursorOdbc.description]
+#         transferencia = [dict(zip(columns, row)) for row in cursorOdbc.fetchall()] 
+#         transferencia = pd.DataFrame(transferencia)
+#         transferencia['product_id'] = list(map(lambda x:x[:-6], list(transferencia['PRODUCT_ID_CORP'])))
         
-        transferencia = transferencia.rename(columns={
-            'DOC_ID_CORP': 'doc',
-            'LOTE_ID':'lote_id',
-            'EGRESO_TEMP': 'unidades',
-            'WARE_CODE_CORP': 'bodega_salida',
-            'FECHA_ELABORACION_LOTE': 'f_elab',
-            'FECHA_CADUCIDAD': 'f_cadu',
-        })
+#         transferencia = transferencia.rename(columns={
+#             'DOC_ID_CORP': 'doc',
+#             'LOTE_ID':'lote_id',
+#             'EGRESO_TEMP': 'unidades',
+#             'WARE_CODE_CORP': 'bodega_salida',
+#             'FECHA_ELABORACION_LOTE': 'f_elab',
+#             'FECHA_CADUCIDAD': 'f_cadu',
+#         })
         
-    except:
-        transferencia = pd.DataFrame()
+#     except:
+#         transferencia = pd.DataFrame()
         
-    finally:
-        cursorOdbc.close()
-        cnxn.close()   
+#     finally:
+#         cursorOdbc.close()
+#         cnxn.close()   
     
-    t = transferencia.sort_values('UBICACION')
-    t = t.reset_index(drop=True) 
+#     t = transferencia.sort_values('UBICACION')
+#     t = t.reset_index(drop=True) 
 
-    return t
+#     return t
 
 
 
