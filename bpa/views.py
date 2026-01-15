@@ -38,7 +38,8 @@ import datetime
 
 # TRANSFERENCIA ODBC
 from datos.views import (
-    doc_transferencia_odbc, 
+    # doc_transferencia_odbc, 
+    transferencias_mba,
     importaciones_llegadas_odbc, 
     productos_odbc_and_django, 
     importaciones_llegadas_por_docid_odbc,
@@ -532,7 +533,8 @@ def transferencias(request):
                 messages.error(request, 'Ya existe un muestreo de esta transferencia, use el buscador !!!')
 
             else:
-                transf = doc_transferencia_odbc(n) 
+                # transf = doc_transferencia_odbc(n) 
+                transf = transferencias_mba(n)
                 documento = list(map(lambda x:x[7:-6], list(transf['doc'])))
                 transf['documento'] = documento
                 transf = transf[['documento', 'product_id', 'lote_id', 'unidades']]
@@ -587,8 +589,9 @@ def muestreo_transferencia(request, doc):
 def revision_tecnica_transferencia(request, doc):
     
     trans = pd.DataFrame(Trasferencia.objects.filter(documento=doc).values())
-    trans_odbc = doc_transferencia_odbc(doc)[['product_id','bodega_salida']]
-    bodega_salida = trans_odbc.iloc[0]['bodega_salida']
+    # trans_odbc = doc_transferencia_odbc(doc)[['product_id','bodega_salida']]
+    trans_api = transferencias_mba(doc)[['product_id','bodega_salida']]
+    bodega_salida = trans_api.iloc[0]['bodega_salida']
 
     prod = productos_odbc_and_django()[[
         'product_id',
