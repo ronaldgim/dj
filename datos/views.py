@@ -77,8 +77,6 @@ from api_mba.tablas_warehouse import (
     api_actualizar_reservas_lotes_warehouse,   # 10
     api_actualizar_reservas_lotes_2_warehouse, # 11
     api_actualizar_stock_lote_warehouse,       # 12
-    
-    # odbc_actualizar_stock_lote,
     api_actualizar_mis_reservas_etiquetado,
     notificaciones_email_whatsapp
     )
@@ -575,7 +573,6 @@ def stock_lote(request):
 
             # 12 Stock Lotes
             # warehouse.stock_lotes
-            # odbc_actualizar_stock_lote()
             api_actualizar_stock_lote_warehouse()
 
             ### TABLA DJANGO
@@ -622,7 +619,6 @@ def stock_lote(request):
             elif table_name == "reservas_lote_2":
                 api_actualizar_reservas_lotes_2_warehouse()
             elif table_name == "stock_lote":
-                # odbc_actualizar_stock_lote()
                 api_actualizar_stock_lote_warehouse()
             elif table_name == "etiquetado_stock":
                 actualizar_datos_etiquetado_fun()

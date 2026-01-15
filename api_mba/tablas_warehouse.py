@@ -1028,71 +1028,7 @@ def api_actualizar_reservas_lotes_2_warehouse():
         admin_warehouse_timestamp(tabla='reservas_lote_2', actualizar_datetime=False, mensaje=f'Error exception: {e}')
 
 
-### 12 ACTULIZAR STOCK LOTE POR ODBC
-# def odbc_actualizar_stock_lote():
-
-#     try:
-#         cnxn = pyodbc.connect('DSN=mba3;PWD=API')
-#         cursor = cnxn.cursor()
-
-#         stock_lote_query_mba = cursor.execute(
-#             """
-#             SELECT 
-#                 INVT_Ficha_Principal.PRODUCT_ID, 
-#                 INVT_Ficha_Principal.PRODUCT_NAME, 
-#                 INVT_Ficha_Principal.GROUP_CODE,
-#                 INVT_Ficha_Principal.UM, 
-#                 INVT_Producto_Lotes.OH, 
-#                 INVT_Producto_Lotes_Bodegas.OH, 
-#                 INVT_Producto_Lotes_Bodegas.COMMITED,
-#                 INVT_Producto_Lotes_Bodegas.QUANTITY, 
-#                 INVT_Producto_Lotes.LOTE_ID, 
-#                 INVT_Producto_Lotes.Fecha_elaboracion_lote, 
-#                 INVT_Producto_Lotes.FECHA_CADUCIDAD,
-#                 INVT_Producto_Lotes_Bodegas.WARE_CODE, 
-#                 INVT_Producto_Lotes_Bodegas.LOCATION, 
-#                 INVT_Producto_Lotes.AVAILABLE
-#             FROM 
-#                 INVT_Ficha_Principal INVT_Ficha_Principal, 
-#                 INVT_Producto_Lotes INVT_Producto_Lotes, 
-#                 INVT_Producto_Lotes_Bodegas INVT_Producto_Lotes_Bodegas 
-#             WHERE 
-#                 INVT_Ficha_Principal.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND 
-#                 INVT_Producto_Lotes_Bodegas.PRODUCT_ID_CORP = INVT_Ficha_Principal.PRODUCT_ID_CORP AND 
-#                 INVT_Producto_Lotes_Bodegas.Confirm=true AND 
-#                 INVT_Producto_Lotes.LOTE_ID = INVT_Producto_Lotes_Bodegas.LOTE_ID AND 
-#                 INVT_Producto_Lotes.WARE_CODE_CORP = INVT_Producto_Lotes_Bodegas.WARE_CODE AND 
-#                 ((INVT_Producto_Lotes.OH>0) AND (INVT_Producto_Lotes_Bodegas.OH>0))
-#             """
-#         )
-
-#         # print(pd.DataFrame.from_records(stock_lote_query_mba.fetchall(), columns=[column[0] for column in stock_lote_query_mba.description]))
-#         # actualizar_stock_lote_warehouse() ; 
-#         # api_prueba_fechas()
-#         data = [tuple(i) for i in stock_lote_query_mba.fetchall()]
-        
-#         if len(data) > 0:
-            
-#             #while transaction.atomic():
-#             # Borrar datos de tabla stock_lote
-#             delete_data_warehouse('stock_lote')
-            
-#             # Insertar datos de tabla stock_lote
-#             insert_data_warehouse('stock_lote', data)
-            
-#             admin_warehouse_timestamp(tabla='stock_lote', actualizar_datetime=True, mensaje='Actualizado correctamente')
-            
-#         else:
-            
-#             admin_warehouse_timestamp(tabla='stock_lote', actualizar_datetime=False, mensaje='Error fetch ODBC')
-            
-#     except Exception as e:
-        
-#         admin_warehouse_timestamp(tabla='stock_lote', actualizar_datetime=False, mensaje=f'Error ODBC exception: {e}')
-        
-#     finally:
-#         cnxn.close()
-
+### 12 ACTULIZAR STOCK LOTE
 def api_actualizar_stock_lote_warehouse():
     
     try:
@@ -1128,7 +1064,6 @@ def api_actualizar_stock_lote_warehouse():
         )
     
         if stock_lote_mba["status"] == 200:
-            print(pd.DataFrame(stock_lote_mba['data']))
             data = []
             for i in stock_lote_mba['data']:
                 product_id   = i['PRODUCT_ID']
@@ -1140,9 +1075,7 @@ def api_actualizar_stock_lote_warehouse():
                 commited     = i['COMMITED']
                 quantity     = i['QUANTITY']
                 lote_id      = i['LOTE_ID']
-                # f_elab_lote  = i['FECHA_ELABORACION_LOTE'][:10] # cortar formato de fecha que trae la api 
                 f_elab_lote  = datetime.strptime(i['FECHA_ELABORACION_LOTE'][:10], '%d/%m/%Y')
-                # f_cadu_lote  = i['FECHA_CADUCIDAD'][:10] # cortar formato de fecha que trae la api
                 f_cadu_lote  = datetime.strptime(i['FECHA_CADUCIDAD'][:10], '%d/%m/%Y')
                 ware_code    = i['WARE_CODE']
                 location     = i['LOCATION']
