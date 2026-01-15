@@ -20,8 +20,6 @@ from datos.views import (
     wms_stock_lote_products,
     wms_datos_nota_entrega,
 
-    # Trasnferencia
-    doc_transferencia_odbc,
     # api transferencias mba
     transferencias_mba,
     
@@ -3355,7 +3353,6 @@ def wms_revision_transferencia_ajax(request):
         n_trasf = request.POST['n_trasf']
         prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
 
-        # trasf_mba = doc_transferencia_odbc(n_trasf) 
         trasf_mba = transferencias_mba(n_trasf)
         trasf_mba['unidades'] = trasf_mba['unidades'].astype('int') 
         trasf_mba = trasf_mba.rename(columns={'unidades':'unidades_mba'})
@@ -3581,7 +3578,6 @@ def wms_transferencia_input_ajax(request):
     n_trasf = request.POST['n_trasf']
     
     trans_mba = transferencias_mba(n_trasf)
-    # trans_mba  = doc_transferencia_odbc(n_trasf)
     
     if trans_mba.empty:
         return JsonResponse({
