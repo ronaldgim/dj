@@ -31,9 +31,6 @@ import logging
 import sshtunnel
 from sshtunnel import SSHTunnelForwarder
 
-# Pyodbc
-import pyodbc
-
 # Json
 import json
 
@@ -44,13 +41,9 @@ from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 
-# Mysql connector
-import mysql.connector
-
 ### PERMISOS PERSONALIZADOS
 from users.models import UserPerfil
 from django.contrib.auth.models import User
-
 
 ### PERMISO PERSONALIZADO
 from functools import wraps
