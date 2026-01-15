@@ -786,7 +786,6 @@ def transferencias_mba(n_transf):
         transf_df = pd.DataFrame(transf_list)
         transf_df['lote_id'] = transf_df['lote_id'].str.replace('.', '')
         transf_df = transf_df.groupby(by=['doc','n_transferencia','product_id','lote_id','f_elab','f_cadu','bodega_salida','ubicacion'])['unidades'].sum().reset_index()
-        
         return transf_df
     
     else:
