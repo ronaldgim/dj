@@ -532,7 +532,7 @@ def transferencias(request):
                 messages.error(request, 'Ya existe un muestreo de esta transferencia, use el buscador !!!')
 
             else:
-                transf = doc_transferencia_odbc(n) ; transf
+                transf = doc_transferencia_odbc(n) 
                 documento = list(map(lambda x:x[7:-6], list(transf['doc'])))
                 transf['documento'] = documento
                 transf = transf[['documento', 'product_id', 'lote_id', 'unidades']]
