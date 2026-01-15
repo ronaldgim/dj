@@ -16,10 +16,6 @@ import numpy as np
 # Json
 import json
 
-# Pyodbc
-import pyodbc
-import mysql.connector
-
 # Paginado
 from django.core.paginator import Paginator
 

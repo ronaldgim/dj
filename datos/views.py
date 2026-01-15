@@ -65,19 +65,20 @@ from api_mba.mba import api_mba_sql
 from api_mba.tablas_warehouse import (
     admin_warehouse_timestamp,
     
-    api_actualizar_clientes_warehouse,
-    api_actualizar_facturas_warehouse,
-    api_actualizar_imp_llegadas_warehouse,
-    api_actualizar_imp_transito_warehouse,
-    api_actualizar_pedidos_warehouse,
-    api_actualizar_productos_warehouse, 
-    api_actualizar_producto_transito_warehouse,
-    api_actualizar_proformas_warehouse,
-    api_actualizar_reservas_warehouse,
-    api_actualizar_reservas_lotes_warehouse,
-    api_actualizar_reservas_lotes_2_warehouse,
+    api_actualizar_clientes_warehouse,         # 1
+    api_actualizar_facturas_warehouse,         # 2
+    api_actualizar_imp_llegadas_warehouse,     # 3
+    api_actualizar_imp_transito_warehouse,     # 4
+    api_actualizar_pedidos_warehouse,          # 5
+    api_actualizar_productos_warehouse,        # 6
+    api_actualizar_producto_transito_warehouse,# 7
+    api_actualizar_proformas_warehouse,        # 8
+    api_actualizar_reservas_warehouse,         # 9
+    api_actualizar_reservas_lotes_warehouse,   # 10
+    api_actualizar_reservas_lotes_2_warehouse, # 11
+    api_actualizar_stock_lote_warehouse,       # 12
     
-    odbc_actualizar_stock_lote,
+    # odbc_actualizar_stock_lote,
     api_actualizar_mis_reservas_etiquetado,
     notificaciones_email_whatsapp
     )
@@ -574,7 +575,8 @@ def stock_lote(request):
 
             # 12 Stock Lotes
             # warehouse.stock_lotes
-            odbc_actualizar_stock_lote()
+            # odbc_actualizar_stock_lote()
+            api_actualizar_stock_lote_warehouse()
 
             ### TABLA DJANGO
             # 13 tabla de etiquetado estock
@@ -620,7 +622,8 @@ def stock_lote(request):
             elif table_name == "reservas_lote_2":
                 api_actualizar_reservas_lotes_2_warehouse()
             elif table_name == "stock_lote":
-                odbc_actualizar_stock_lote()
+                # odbc_actualizar_stock_lote()
+                api_actualizar_stock_lote_warehouse()
             elif table_name == "etiquetado_stock":
                 actualizar_datos_etiquetado_fun()
             elif table_name == "mis_reservas":
@@ -2173,105 +2176,6 @@ def extraer_numero_de_factura(fac):
         return n_fac
     except:
         return fac
-
-
-## DATOS ANEXOS FACTURA
-# def datos_factura_compras_publicas_cabecera_odbc(n_factura):
-
-#     try:
-#         cnxn = pyodbc.connect('DSN=mba3;PWD=API')
-#         cursorOdbc = cnxn.cursor()
-
-#         cursorOdbc.execute(       
-            
-#             "SELECT "
-#             "CLNT_Factura_Principal.CODIGO_FACTURA, "
-#             "CLNT_Factura_Principal.FECHA_FACTURA, "
-#             "CLNT_Factura_Principal.NUMERO_PEDIDO_SISTEMA, "
-#             "CLNT_Factura_Principal.CODIGO_CLIENTE, "
-#             "CLNT_Ficha_Principal.NOMBRE_CLIENTE, "
-#             "CLNT_Ficha_Principal.IDENTIFICACION_FISCAL, "
-#             "CLNT_Ficha_Principal.DIRECCION_PRINCIPAL_1 "
-            
-#             "FROM "
-#             "CLNT_Factura_Principal "
-#             "INNER JOIN CLNT_Ficha_Principal ON CLNT_Factura_Principal.CODIGO_CLIENTE = CLNT_Ficha_Principal.CODIGO_CLIENTE "
-            
-#             "WHERE "
-#             f"CLNT_Factura_Principal.CODIGO_FACTURA = '{n_factura}'"
-            
-#         )
-
-#         columns = [col[0] for col in cursorOdbc.description]
-#         datos   = [dict(zip(columns, row)) for row in cursorOdbc.fetchall()][0]
-        
-#         return datos
-
-#     except Exception as e:
-#         print(f"Error: {e}")
-    
-#     finally:
-#         cursorOdbc.close()
-#         cnxn.close()
-
-
-# def datos_factura_compras_publicas_productos_odbc(n_factura):
-    
-#     try:
-#         cnxn = pyodbc.connect('DSN=mba3;PWD=API')
-#         cursorOdbc = cnxn.cursor()
-
-#         cursorOdbc.execute(
-            
-#             "SELECT "
-#             "CLNT_Factura_Principal.CODIGO_FACTURA, "
-#             "CLNT_Factura_Principal.FECHA_FACTURA, "
-#             "INVT_Ficha_Principal.PRODUCT_ID, "
-#             "INVT_Ficha_Principal.PRODUCT_NAME, "
-#             "INVT_Ficha_Principal.GROUP_CODE, "
-#             "INVT_Producto_Movimientos.QUANTITY, "
-#             "INVT_Ficha_Principal.Custom_Field_1, "
-#             "INVT_Ficha_Principal.Custom_Field_2, "
-#             "INVT_Lotes_Trasabilidad.LOTE_ID, "
-#             "INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD, "
-#             "INVT_Producto_Lotes.Fecha_elaboracion_lote, "
-#             "INVT_Lotes_Trasabilidad.Precio_venta "
-            
-#             "FROM "
-#             "CLNT_Factura_Principal CLNT_Factura_Principal, "
-#             "INVT_Ficha_Principal INVT_Ficha_Principal, "
-#             "INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad, "
-#             "INVT_Producto_Lotes INVT_Producto_Lotes, "
-#             "INVT_Producto_Movimientos INVT_Producto_Movimientos "
-            
-#             "WHERE "
-#             "CLNT_Factura_Principal.CODIGO_FACTURA = INVT_Producto_Movimientos.DOC_ID_CORP2 "
-#             "AND INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP = INVT_Ficha_Principal.PRODUCT_ID_CORP "
-#             "AND CLNT_Factura_Principal.CODIGO_FACTURA = INVT_Lotes_Trasabilidad.DOC_ID_CORP AND "
-#             "INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND "
-#             "INVT_Lotes_Trasabilidad.LOTE_ID = INVT_Producto_Lotes.LOTE_ID AND "
-#             "INVT_Producto_Movimientos.PRODUCT_ID_CORP = INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP AND "
-#             "INVT_Lotes_Trasabilidad.WARE_COD_CORP = INVT_Producto_Lotes.WARE_CODE_CORP AND "
-#             "INVT_Producto_Movimientos.UNIT_COST = INVT_Lotes_Trasabilidad.Precio_venta AND "
-#             "((INVT_Producto_Movimientos.CONFIRM=TRUE) AND (CLNT_Factura_Principal.CODIGO_FACTURA='FCSRI-1001000090896-GIMPR') AND "
-#             f"((INVT_Producto_Movimientos.CONFIRM=TRUE) AND (CLNT_Factura_Principal.CODIGO_FACTURA='{n_factura}') AND "
-#             #"(INVT_Producto_Movimientos.I_E_SIGN='-') AND (INVT_Producto_Movimientos.ADJUSTMENT_TYPE='FT') AND "
-#             "(CLNT_Factura_Principal.ANULADA=FALSE))"
-#         )
-
-#         columns = [col[0] for col in cursorOdbc.description]
-#         datos   = [dict(zip(columns, row)) for row in cursorOdbc.fetchall()]
-
-#         datos   = pd.DataFrame(datos)
-#         # print(datos)
-#         return datos
-
-#     except Exception as e:
-#         print(f"Error: {e}")
-    
-#     finally:
-#         cursorOdbc.close()
-#         cnxn.close()
 
 
 def resporte_diferencia_mba_wms():

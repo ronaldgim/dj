@@ -948,37 +948,6 @@ def api_actualizar_reservas_lotes_2_warehouse():
     
     try:
         reservas_lotes_2_mba = api_mba_sql(
-            # """
-            # SELECT 
-            #     CLNT_Pedidos_Principal.FECHA_PEDIDO, 
-            #     CLNT_Pedidos_Principal.CONTRATO_ID, 
-            #     CLNT_Ficha_Principal.CODIGO_CLIENTE, 
-            #     INVT_Ficha_Principal.PRODUCT_ID, 
-            #     CLNT_Pedidos_Principal.WARE_CODE, 
-            #     INVT_Lotes_Trasabilidad.EGRESO_TEMP, 
-            #     INVT_Lotes_Trasabilidad.LOTE_ID, 
-            #     INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD, 
-            #     INVT_Producto_Lotes.Fecha_elaboracion_lote, 
-            #     CLNT_Pedidos_Principal.CONFIRMED, 
-            #     CLNT_Pedidos_Principal.SEC_NAME_CLIENTE 
-            
-            # FROM 
-            #     CLNT_Ficha_Principal CLNT_Ficha_Principal, 
-            #     INVT_Ficha_Principal INVT_Ficha_Principal, 
-            #     CLNT_Pedidos_Principal CLNT_Pedidos_Principal,
-            #     INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad, 
-            #     INVT_Producto_Lotes INVT_Producto_Lotes
-                
-            # WHERE 
-            #     CLNT_Ficha_Principal.CODIGO_CLIENTE = CLNT_Pedidos_Principal.CLIENT_ID AND 
-            #     INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND 
-            #     INVT_Lotes_Trasabilidad.LOTE_ID = INVT_Producto_Lotes.LOTE_ID AND 
-            #     INVT_Lotes_Trasabilidad.WARE_COD_CORP = INVT_Producto_Lotes.WARE_CODE_CORP AND 
-            #     INVT_Lotes_Trasabilidad.DOC_ID_CORP = CLNT_Pedidos_Principal.CONTRATO_ID_CORP AND 
-            #     INVT_Ficha_Principal.PRODUCT_ID_CORP = INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP AND ((CLNT_Pedidos_Principal.PEDIDO_CERRADO=false))
-                
-            # ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID
-            # """
             """
             SELECT 
                 CLNT_Pedidos_Principal.FECHA_PEDIDO, 
@@ -1060,21 +1029,82 @@ def api_actualizar_reservas_lotes_2_warehouse():
 
 
 ### 12 ACTULIZAR STOCK LOTE POR ODBC
-def odbc_actualizar_stock_lote():
+# def odbc_actualizar_stock_lote():
 
+#     try:
+#         cnxn = pyodbc.connect('DSN=mba3;PWD=API')
+#         cursor = cnxn.cursor()
+
+#         stock_lote_query_mba = cursor.execute(
+#             """
+#             SELECT 
+#                 INVT_Ficha_Principal.PRODUCT_ID, 
+#                 INVT_Ficha_Principal.PRODUCT_NAME, 
+#                 INVT_Ficha_Principal.GROUP_CODE,
+#                 INVT_Ficha_Principal.UM, 
+#                 INVT_Producto_Lotes.OH, 
+#                 INVT_Producto_Lotes_Bodegas.OH, 
+#                 INVT_Producto_Lotes_Bodegas.COMMITED,
+#                 INVT_Producto_Lotes_Bodegas.QUANTITY, 
+#                 INVT_Producto_Lotes.LOTE_ID, 
+#                 INVT_Producto_Lotes.Fecha_elaboracion_lote, 
+#                 INVT_Producto_Lotes.FECHA_CADUCIDAD,
+#                 INVT_Producto_Lotes_Bodegas.WARE_CODE, 
+#                 INVT_Producto_Lotes_Bodegas.LOCATION, 
+#                 INVT_Producto_Lotes.AVAILABLE
+#             FROM 
+#                 INVT_Ficha_Principal INVT_Ficha_Principal, 
+#                 INVT_Producto_Lotes INVT_Producto_Lotes, 
+#                 INVT_Producto_Lotes_Bodegas INVT_Producto_Lotes_Bodegas 
+#             WHERE 
+#                 INVT_Ficha_Principal.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND 
+#                 INVT_Producto_Lotes_Bodegas.PRODUCT_ID_CORP = INVT_Ficha_Principal.PRODUCT_ID_CORP AND 
+#                 INVT_Producto_Lotes_Bodegas.Confirm=true AND 
+#                 INVT_Producto_Lotes.LOTE_ID = INVT_Producto_Lotes_Bodegas.LOTE_ID AND 
+#                 INVT_Producto_Lotes.WARE_CODE_CORP = INVT_Producto_Lotes_Bodegas.WARE_CODE AND 
+#                 ((INVT_Producto_Lotes.OH>0) AND (INVT_Producto_Lotes_Bodegas.OH>0))
+#             """
+#         )
+
+#         # print(pd.DataFrame.from_records(stock_lote_query_mba.fetchall(), columns=[column[0] for column in stock_lote_query_mba.description]))
+#         # actualizar_stock_lote_warehouse() ; 
+#         # api_prueba_fechas()
+#         data = [tuple(i) for i in stock_lote_query_mba.fetchall()]
+        
+#         if len(data) > 0:
+            
+#             #while transaction.atomic():
+#             # Borrar datos de tabla stock_lote
+#             delete_data_warehouse('stock_lote')
+            
+#             # Insertar datos de tabla stock_lote
+#             insert_data_warehouse('stock_lote', data)
+            
+#             admin_warehouse_timestamp(tabla='stock_lote', actualizar_datetime=True, mensaje='Actualizado correctamente')
+            
+#         else:
+            
+#             admin_warehouse_timestamp(tabla='stock_lote', actualizar_datetime=False, mensaje='Error fetch ODBC')
+            
+#     except Exception as e:
+        
+#         admin_warehouse_timestamp(tabla='stock_lote', actualizar_datetime=False, mensaje=f'Error ODBC exception: {e}')
+        
+#     finally:
+#         cnxn.close()
+
+def api_actualizar_stock_lote_warehouse():
+    
     try:
-        cnxn = pyodbc.connect('DSN=mba3;PWD=API')
-        cursor = cnxn.cursor()
-
-        stock_lote_query_mba = cursor.execute(
-            """
+        stock_lote_mba = api_mba_sql(
+        """
             SELECT 
                 INVT_Ficha_Principal.PRODUCT_ID, 
                 INVT_Ficha_Principal.PRODUCT_NAME, 
                 INVT_Ficha_Principal.GROUP_CODE,
                 INVT_Ficha_Principal.UM, 
-                INVT_Producto_Lotes.OH, 
-                INVT_Producto_Lotes_Bodegas.OH, 
+                INVT_Producto_Lotes.OH AS OH_LOTE, 
+                INVT_Producto_Lotes_Bodegas.OH AS OH_BODEGA, 
                 INVT_Producto_Lotes_Bodegas.COMMITED,
                 INVT_Producto_Lotes_Bodegas.QUANTITY, 
                 INVT_Producto_Lotes.LOTE_ID, 
@@ -1094,32 +1124,57 @@ def odbc_actualizar_stock_lote():
                 INVT_Producto_Lotes.LOTE_ID = INVT_Producto_Lotes_Bodegas.LOTE_ID AND 
                 INVT_Producto_Lotes.WARE_CODE_CORP = INVT_Producto_Lotes_Bodegas.WARE_CODE AND 
                 ((INVT_Producto_Lotes.OH>0) AND (INVT_Producto_Lotes_Bodegas.OH>0))
-            """
+        """
         )
+    
+        if stock_lote_mba["status"] == 200:
+            print(pd.DataFrame(stock_lote_mba['data']))
+            data = []
+            for i in stock_lote_mba['data']:
+                product_id   = i['PRODUCT_ID']
+                product_name = i['PRODUCT_NAME']
+                group_code   = i['GROUP_CODE']
+                um           = i['UM']
+                oh           = i['OH_LOTE']
+                oh2          = i['OH_BODEGA'] 
+                commited     = i['COMMITED']
+                quantity     = i['QUANTITY']
+                lote_id      = i['LOTE_ID']
+                # f_elab_lote  = i['FECHA_ELABORACION_LOTE'][:10] # cortar formato de fecha que trae la api 
+                f_elab_lote  = datetime.strptime(i['FECHA_ELABORACION_LOTE'][:10], '%d/%m/%Y')
+                # f_cadu_lote  = i['FECHA_CADUCIDAD'][:10] # cortar formato de fecha que trae la api
+                f_cadu_lote  = datetime.strptime(i['FECHA_CADUCIDAD'][:10], '%d/%m/%Y')
+                ware_code    = i['WARE_CODE']
+                location     = i['LOCATION']
+                available    = i['AVAILABLE']   
 
-        data = [tuple(i) for i in stock_lote_query_mba.fetchall()]
-        
-        if len(data) > 0:
-            
-            #while transaction.atomic():
-            # Borrar datos de tabla stock_lote
+                t = (
+                    product_id,
+                    product_name,
+                    group_code,
+                    um,
+                    oh,
+                    oh2,
+                    commited,
+                    quantity,
+                    lote_id,
+                    f_elab_lote,
+                    f_cadu_lote,
+                    ware_code,
+                    location,
+                    available
+                )
+                data.append(t)
+            # Borrar datos de tabla clientes
             delete_data_warehouse('stock_lote')
             
-            # Insertar datos de tabla stock_lote
+            # Insertar datos de tabla clientes
             insert_data_warehouse('stock_lote', data)
-            
-            admin_warehouse_timestamp(tabla='stock_lote', actualizar_datetime=True, mensaje='Actualizado correctamente')
-            
-        else:
-            
-            admin_warehouse_timestamp(tabla='stock_lote', actualizar_datetime=False, mensaje='Error fetch ODBC')
-            
+    
     except Exception as e:
         
-        admin_warehouse_timestamp(tabla='stock_lote', actualizar_datetime=False, mensaje=f'Error ODBC exception: {e}')
-        
-    finally:
-        cnxn.close()
+        admin_warehouse_timestamp(tabla='stock_lote', actualizar_datetime=False, mensaje=f'Error: {e}')
+
 
 
 ### 14 ACTUALIZAR RESERVAS MODELO DE ETIQUETADO
@@ -1127,32 +1182,6 @@ def api_actualizar_mis_reservas_etiquetado():
     
     try:    
         reservas_mba = api_mba_sql(
-        # """
-        # SELECT
-        #     CLNT_Pedidos_Principal.FECHA_PEDIDO,
-        #     CLNT_Pedidos_Principal.CONTRATO_ID,
-        #     CLNT_Ficha_Principal.CODIGO_CLIENTE,
-        #     CLNT_Ficha_Principal.NOMBRE_CLIENTE,
-        #     CLNT_Pedidos_Detalle.PRODUCT_ID,
-        #     CLNT_Pedidos_Detalle.PRODUCT_NAME,
-        #     CLNT_Pedidos_Detalle.QUANTITY,
-        #     CLNT_Pedidos_Detalle.Despachados,
-        #     CLNT_Pedidos_Principal.WARE_CODE,
-        #     CLNT_Pedidos_Principal.CONFIRMED,
-        #     CLNT_Pedidos_Principal.HORA_LLEGADA,
-        #     CLNT_Pedidos_Principal.SEC_NAME_CLIENTE,
-        #     CLNT_Pedidos_Detalle.UNIQUE_ID
-        # FROM
-        #     CLNT_Ficha_Principal CLNT_Ficha_Principal,
-        #     CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle,
-        #     CLNT_Pedidos_Principal CLNT_Pedidos_Principal
-        # WHERE
-        #     CLNT_Pedidos_Principal.CONTRATO_ID_CORP = CLNT_Pedidos_Detalle.CONTRATO_ID_CORP AND
-        #     CLNT_Ficha_Principal.CODIGO_CLIENTE = CLNT_Pedidos_Principal.CLIENT_ID AND
-        #     CLNT_Pedidos_Detalle.Despachados=0 AND
-        #     ((CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND (CLNT_Pedidos_Detalle.TIPO_DOCUMENTO='PE') AND
-        #     (CLNT_Pedidos_Detalle.PRODUCT_ID<>'MANTEN')) ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID DESC
-        # """
         """
         SELECT 
             CLNT_Pedidos_Principal.FECHA_PEDIDO, 
@@ -1285,17 +1314,12 @@ def api_actualizar_mis_reservas_etiquetado():
                         admin_warehouse_timestamp(tabla='mis_reservas', actualizar_datetime=True, mensaje='Actualizado correctamente')
                         
         else:
-            # print(f"Error en la API: {reservas_mba.get('message', 'Error desconocido')}")
             admin_warehouse_timestamp(tabla='mis_reservas', actualizar_datetime=False, mensaje=f'Error api: status {reservas_mba["status"]}')
-            
             return False
-            
         return True
         
     except Exception as e:
-        # print(f"Error en api_actualizar_mis_reservas_etiquetado: {str(e)}")
         admin_warehouse_timestamp(tabla='mis_reservas', actualizar_datetime=False, mensaje=f'Error exception: {e}')
-        
         return False
 
 
@@ -1417,103 +1441,18 @@ GIMPROMED Cia. Ltda.\n
 
 
 
-## NO TRAE EL DATO DE OH2
-### ACTUALIZAR STOCK LOTE
-# def actualizar_stock_lote_warehouse():
-#     try:
-    
-#         stock_lote_mba = api_mba_sql(
-#             """
-#             SELECT 
-#                 INVT_Ficha_Principal.PRODUCT_ID, 
-#                 INVT_Ficha_Principal.PRODUCT_NAME, 
-#                 INVT_Ficha_Principal.GROUP_CODE, 
-#                 INVT_Ficha_Principal.UM, 
-#                 INVT_Producto_Lotes.OH, 
-#                 INVT_Producto_Lotes_Bodegas.OH, 
-#                 INVT_Producto_Lotes_Bodegas.COMMITED, 
-#                 INVT_Producto_Lotes_Bodegas.QUANTITY, 
-#                 INVT_Producto_Lotes.LOTE_ID, 
-#                 INVT_Producto_Lotes.Fecha_elaboracion_lote, 
-#                 INVT_Producto_Lotes.FECHA_CADUCIDAD, 
-#                 INVT_Producto_Lotes_Bodegas.WARE_CODE, 
-#                 INVT_Producto_Lotes_Bodegas.LOCATION 
-                
-#             FROM 
-#                 INVT_Ficha_Principal INVT_Ficha_Principal, 
-#                 INVT_Producto_Lotes INVT_Producto_Lotes, 
-#                 INVT_Producto_Lotes_Bodegas INVT_Producto_Lotes_Bodegas 
-#             WHERE 
-#                 INVT_Ficha_Principal.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND 
-#                 INVT_Producto_Lotes_Bodegas.PRODUCT_ID_CORP = INVT_Ficha_Principal.PRODUCT_ID_CORP AND 
-#                 INVT_Producto_Lotes.LOTE_ID = INVT_Producto_Lotes_Bodegas.LOTE_ID AND 
-#                 INVT_Producto_Lotes.WARE_CODE_CORP = INVT_Producto_Lotes_Bodegas.WARE_CODE AND 
-#                 ((INVT_Producto_Lotes.OH>0) AND (INVT_Producto_Lotes_Bodegas.OH>0))
-#             """
-#         )
-    
-#         if stock_lote_mba["status"] == 200:
-            
-#             print(stock_lote_mba['data'][0])
-            #print(len(stock_lote_mba['data'][0]))
-            
-            # data = [tuple(i.values()) for i in productos_transito_mba["data"]]
-            
-            # data = []
-            # for i in stock_lote_mba['data']:
-            #     product_id = i['PRODUCT_ID']
-            #     product_name = i['PRODUCT_NAME']
-            #     group_code = i['GROUP_CODE']
-            #     um = i['UM']
-            #     oh = i['OH']
-                
-            #     oh2 = i['OH2'] #ojoo no hay en la api
-                
-            #     commited = i['COMMITED']
-            #     quantity = i['QUANTITY']
-            #     lote_id = i['LOTE_ID']
-            #     fecha_elaboracion_lote = i['FECHA_ELABORACION_LOTE'][:10] # cortar formato de fecha que trae la api
-            #     fecha_caducidad = i['FECHA_CADUCIDAD'][:10] # cortar formato de fecha que trae la api
-            #     ware_code = i['WARE_CODE']
-            #     location = i['LOCATION']
-
-            #     t = (
-            #         product_id,
-            #         product_name,
-            #         group_code,
-            #         um,
-            #         oh,
-            #         oh2,
-            #         commited,
-            #         quantity,
-            #         lote_id,
-            #         fecha_elaboracion_lote,
-            #         fecha_caducidad,
-            #         ware_code,
-            #         location,
-            #     )
-
-            #     data.append(t)
-            # print(data)
-            # # Borrar datos de tabla clientes
-            # delete_data_warehouse('stock_lote')
-            
-            # # Insertar datos de tabla clientes
-            # insert_data_warehouse('stock_lote', data)
-    
-    # except Exception as e:
-        
-        # send_mail(
-        #     subject='Error DB WAREHOUSE',
-        #     message=f"""
-            
-        #     TABLA: STOCK LOTE - 'warehouse.stock_lote'
-            
-        #     ERROR : {e}
-            
-        #     """,
-        #     from_email=settings.EMAIL_HOST_USER,
-        #     recipient_list=['egarces@gimpromed.com'],
-        #     fail_silently=False,
-        # )
-        
+# def api_prueba_fechas():
+#     prueba = api_mba_sql(
+#     """
+#         SELECT
+#             INVT_Producto_Lotes.FECHA_CADUCIDAD,
+#             LENGTH(INVT_Producto_Lotes.FECHA_CADUCIDAD) AS len,
+#             HEX(INVT_Producto_Lotes.FECHA_CADUCIDAD)    AS hex
+#         FROM INVT_Producto_Lotes
+#         WHERE INVT_Producto_Lotes.FECHA_CADUCIDAD IS NOT NULL;
+#     """
+#     )
+#     print(prueba)
+#     if prueba["status"] == 200:
+#         # print(pd.DataFrame.from_records(prueba['data']))
+#         print(pd.DataFrame(prueba['data'])) 
