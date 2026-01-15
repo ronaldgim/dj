@@ -679,13 +679,30 @@ def doc_transferencia_odbc(n_transf):
     #Transferencia Egreso
     try:
         cursorOdbc.execute(
-            
-            "SELECT INVT_Lotes_Ubicacion.DOC_ID_CORP, INVT_Lotes_Ubicacion.PRODUCT_ID_CORP, INVT_Lotes_Ubicacion.LOTE_ID, INVT_Lotes_Ubicacion.EGRESO_TEMP, "
-            "INVT_Producto_Lotes.WARE_CODE_CORP, INVT_Producto_Lotes.ANIADIDO, INVT_Lotes_Ubicacion.UBICACION, INVT_Producto_Lotes.Fecha_elaboracion_lote, "
-            "INVT_Producto_Lotes.FECHA_CADUCIDAD, INVT_Producto_Lotes.ENTRADA_TIPO, INVT_Lotes_Ubicacion.UBICACION, INVT_Lotes_Ubicacion.WARE_CODE_CORP "
-            "FROM INVT_Lotes_Ubicacion INVT_Lotes_Ubicacion, INVT_Producto_Lotes INVT_Producto_Lotes "
-            "WHERE INVT_Lotes_Ubicacion.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND INVT_Producto_Lotes.LOTE_ID = INVT_Lotes_Ubicacion.LOTE_ID AND "
-            f"((INVT_Lotes_Ubicacion.DOC_ID_CORP='{n}') AND (INVT_Lotes_Ubicacion.EGRESO_TEMP>0) AND (INVT_Producto_Lotes.WARE_CODE_CORP='BCT'))"
+        f"""    
+        SELECT 
+            INVT_Lotes_Ubicacion.DOC_ID_CORP, 
+            INVT_Lotes_Ubicacion.PRODUCT_ID_CORP, 
+            INVT_Lotes_Ubicacion.LOTE_ID, 
+            INVT_Lotes_Ubicacion.EGRESO_TEMP,
+            INVT_Producto_Lotes.WARE_CODE_CORP, 
+            INVT_Producto_Lotes.ANIADIDO, 
+            INVT_Lotes_Ubicacion.UBICACION, 
+            INVT_Producto_Lotes.Fecha_elaboracion_lote,
+            INVT_Producto_Lotes.FECHA_CADUCIDAD, 
+            INVT_Producto_Lotes.ENTRADA_TIPO, 
+            INVT_Lotes_Ubicacion.UBICACION, 
+            INVT_Lotes_Ubicacion.WARE_CODE_CORP
+        FROM 
+            INVT_Lotes_Ubicacion INVT_Lotes_Ubicacion, 
+            INVT_Producto_Lotes INVT_Producto_Lotes
+        WHERE 
+            INVT_Lotes_Ubicacion.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND 
+            INVT_Producto_Lotes.LOTE_ID = INVT_Lotes_Ubicacion.LOTE_ID AND
+            ((INVT_Lotes_Ubicacion.DOC_ID_CORP='{n}') AND 
+            (INVT_Lotes_Ubicacion.EGRESO_TEMP>0) AND 
+            (INVT_Producto_Lotes.WARE_CODE_CORP='BCT'))
+        """
         )
         
         columns = [col[0] for col in cursorOdbc.description]

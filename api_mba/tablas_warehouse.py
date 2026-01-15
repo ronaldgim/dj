@@ -5,9 +5,6 @@ from api_mba.mba import api_mba_sql #, api_mba_sql_pedidos
 from django.db import connections #, transaction
 from django.db.models import Q
 
-# ODBC
-import pyodbc
-
 # Send mail
 from django.core.mail import send_mail
 from django.conf import settings
