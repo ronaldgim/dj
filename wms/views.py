@@ -22,6 +22,8 @@ from datos.views import (
 
     # Trasnferencia
     doc_transferencia_odbc,
+    # api transferencias mba
+    transferencias_mba,
     
     # Ajuste Datos
     wms_ajuste_query_api,
@@ -30,10 +32,7 @@ from datos.views import (
     permisos,
     
     # Fecuencia de ventas
-    frecuancia_ventas,
-    
-    # api transferencias mba
-    transferencias_mba
+    frecuancia_ventas
     )
 
 
@@ -53,9 +52,6 @@ from django.http import HttpResponse,JsonResponse, HttpResponseRedirect
 
 # Json
 import json
-
-# Pyodbc
-import pyodbc 
 
 # Datetime
 from datetime import datetime
@@ -132,7 +128,6 @@ from django.utils.html import strip_tags
 from django.template.loader import render_to_string
 from django.core.mail import send_mail
 from django.conf import settings
-
 
 # Pyodbc
 import pyodbc
