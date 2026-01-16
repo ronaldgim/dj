@@ -179,7 +179,7 @@ WARE_CODE_CORP: "CUC" -->
 
                     var thead = `<thead class="thead-dark">
                                     <tr>
-                                       <th scope="col">DOC_ID_CORP</th>
+                                        <th scope="col">DOC_ID_CORP</th>
                                         <th scope="col">PRODUCT_ID_CORP</th>
                                         <th scope="col">COMMITED</th>
                                         <th scope="col">EGRESO_TEMP</th>
@@ -240,36 +240,5 @@ WARE_CODE_CORP: "CUC" -->
         hideLoading();
 
     </script>
-    <!-- Pasar datos por request para movimiento interno-->
-    <!--script>
-
-$("button[name='mov-interno']").click(function(){
-    var product_id = $(this).closest("tr").find("#prod").html();
-    var lote_id = $(this).closest("tr").find("#lote").html();
-    var ubicacion  = $(this).closest("tr").find("#ubi").html();
-
-    $.ajax({
-        type:"GET",
-        url:"{#% url 'wms_mov_interno' %#}",
-        data:{
-            //'csrfmiddlewaretoken': '{{ csrf_token }}',
-            'product_id':product_id,
-            'lote_id':lote_id,
-            'ubicacion' :ubicacion
-        },
-        success: function(){
-            // window.location.replace("http://172.16.28.17:8000/wms/inventario/mov-interno")
-            window.location.replace("http://127.0.0.1:8000/wms/inventario/mov-interno")
-        },
-        error:function(){
-            $('#msg').html('<div class="text-center alert alert-danger mt-3" role="alert"> Error !!! </div>')
-                setTimeout(function(){
-                window.location.reload();
-                }, 2000)
-        }
-    })
-})
-
-</script-->
 
     {% endblock %}
