@@ -1100,6 +1100,8 @@ def api_actualizar_stock_lote_warehouse():
             
             # Insertar datos de tabla clientes
             insert_data_warehouse('stock_lote', data)
+            
+            admin_warehouse_timestamp(tabla='stock_lote', actualizar_datetime=True, mensaje='Actualizado correctamente')
     
     except Exception as e:
         

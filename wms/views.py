@@ -127,8 +127,8 @@ from django.template.loader import render_to_string
 from django.core.mail import send_mail
 from django.conf import settings
 
-# Pyodbc
-import pyodbc
+# # Pyodbc
+# import pyodbc
 
 # Paginado
 from django.core.paginator import Paginator
@@ -4062,111 +4062,111 @@ def wms_ingreso_ajuste(request):
 
 
 
-def wms_busqueda_ajuste(request, n_ajuste):
+# def wms_busqueda_ajuste(request, n_ajuste):
 
-    user = request.user.id
+#     user = request.user.id
     
-    cnxn = pyodbc.connect('DSN=mba3;PWD=API')
-    cursorOdbc = cnxn.cursor()
+#     cnxn = pyodbc.connect('DSN=mba3;PWD=API')
+#     cursorOdbc = cnxn.cursor()
     
 
-    # La variable 'n' no está siendo usada en la consulta. Asegúrate de que sea necesario.
-    n = 'A-00000' + str(n_ajuste) + '-GIMPR'
+#     # La variable 'n' no está siendo usada en la consulta. Asegúrate de que sea necesario.
+#     n = 'A-00000' + str(n_ajuste) + '-GIMPR'
     
-    #Transferencia Egreso
-    try:
-        cursorOdbc.execute(
-            "SELECT INVT_Producto_Lotes_Bodegas.Doc_id_Corp, "
-            "INVT_Producto_Lotes_Bodegas.PRODUCT_ID_CORP, "
-            "INVT_Producto_Lotes_Bodegas.LOTE_ID, "
-            "INVT_Producto_Lotes_Bodegas.WARE_CODE, "
-            "INVT_Producto_Lotes_Bodegas.LOCATION "
-            "FROM INVT_Producto_Lotes_Bodegas "
-            f"WHERE (INVT_Producto_Lotes_Bodegas.Doc_id_Corp='{n}') "
-        )
+#     #Transferencia Egreso
+#     try:
+#         cursorOdbc.execute(
+#             "SELECT INVT_Producto_Lotes_Bodegas.Doc_id_Corp, "
+#             "INVT_Producto_Lotes_Bodegas.PRODUCT_ID_CORP, "
+#             "INVT_Producto_Lotes_Bodegas.LOTE_ID, "
+#             "INVT_Producto_Lotes_Bodegas.WARE_CODE, "
+#             "INVT_Producto_Lotes_Bodegas.LOCATION "
+#             "FROM INVT_Producto_Lotes_Bodegas "
+#             f"WHERE (INVT_Producto_Lotes_Bodegas.Doc_id_Corp='{n}') "
+#         )
         
-        ajuste = [tuple(row) for row in cursorOdbc.fetchall()]
+#         ajuste = [tuple(row) for row in cursorOdbc.fetchall()]
 
-        ajuste_df = pd.DataFrame(ajuste, columns=['DOC_ID_CORP', 'PRODUCT_ID_CORP', 'LOTE_ID', 'WARE_CODE', 'LOCATION']) if ajuste else pd.DataFrame()
+#         ajuste_df = pd.DataFrame(ajuste, columns=['DOC_ID_CORP', 'PRODUCT_ID_CORP', 'LOTE_ID', 'WARE_CODE', 'LOCATION']) if ajuste else pd.DataFrame()
         
-        # Segunda consulta
-        cursorOdbc.execute(
-            "SELECT INVT_Lotes_Ubicacion.DOC_ID_CORP, INVT_Lotes_Ubicacion.PRODUCT_ID_CORP, INVT_Lotes_Ubicacion.LOTE_ID, "
-            "INVT_Lotes_Ubicacion.EGRESO_TEMP, INVT_Lotes_Ubicacion.COMMITED, INVT_Lotes_Ubicacion.WARE_CODE_CORP, "
-            "INVT_Lotes_Ubicacion.UBICACION, INVT_Producto_Lotes.Fecha_elaboracion_lote, INVT_Producto_Lotes.FECHA_CADUCIDAD "
-            "FROM INVT_Lotes_Ubicacion, INVT_Producto_Lotes "
-            "WHERE INVT_Lotes_Ubicacion.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP "
-            "AND INVT_Producto_Lotes.LOTE_ID = INVT_Lotes_Ubicacion.LOTE_ID "
-            f"AND ((INVT_Lotes_Ubicacion.DOC_ID_CORP='{n}') AND (INVT_Producto_Lotes.ENTRADA_TIPO='OC')) "
-        )
-        inventario = [tuple(row) for row in cursorOdbc.fetchall()]
-        inventario_df = pd.DataFrame(inventario, columns=['DOC_ID_CORP', 'PRODUCT_ID_CORP', 'LOTE_ID', 'EGRESO_TEMP', 'COMMITED', 'WARE_CODE_CORP', 'UBICACION', 'Fecha_elaboracion_lote', 'FECHA_CADUCIDAD']) if inventario else pd.DataFrame()
+#         # Segunda consulta
+#         cursorOdbc.execute(
+#             "SELECT INVT_Lotes_Ubicacion.DOC_ID_CORP, INVT_Lotes_Ubicacion.PRODUCT_ID_CORP, INVT_Lotes_Ubicacion.LOTE_ID, "
+#             "INVT_Lotes_Ubicacion.EGRESO_TEMP, INVT_Lotes_Ubicacion.COMMITED, INVT_Lotes_Ubicacion.WARE_CODE_CORP, "
+#             "INVT_Lotes_Ubicacion.UBICACION, INVT_Producto_Lotes.Fecha_elaboracion_lote, INVT_Producto_Lotes.FECHA_CADUCIDAD "
+#             "FROM INVT_Lotes_Ubicacion, INVT_Producto_Lotes "
+#             "WHERE INVT_Lotes_Ubicacion.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP "
+#             "AND INVT_Producto_Lotes.LOTE_ID = INVT_Lotes_Ubicacion.LOTE_ID "
+#             f"AND ((INVT_Lotes_Ubicacion.DOC_ID_CORP='{n}') AND (INVT_Producto_Lotes.ENTRADA_TIPO='OC')) "
+#         )
+#         inventario = [tuple(row) for row in cursorOdbc.fetchall()]
+#         inventario_df = pd.DataFrame(inventario, columns=['DOC_ID_CORP', 'PRODUCT_ID_CORP', 'LOTE_ID', 'EGRESO_TEMP', 'COMMITED', 'WARE_CODE_CORP', 'UBICACION', 'Fecha_elaboracion_lote', 'FECHA_CADUCIDAD']) if inventario else pd.DataFrame()
         
-        # Unión (merge) de los DataFrames en los campos comunes
-        if not ajuste_df.empty and not inventario_df.empty:
-            resultado_df = pd.merge(ajuste_df, inventario_df, on=['DOC_ID_CORP', 'PRODUCT_ID_CORP', 'LOTE_ID'], how='inner')
-            resultado_df = resultado_df.drop_duplicates(subset=['DOC_ID_CORP', 'PRODUCT_ID_CORP', 'LOTE_ID'])
+#         # Unión (merge) de los DataFrames en los campos comunes
+#         if not ajuste_df.empty and not inventario_df.empty:
+#             resultado_df = pd.merge(ajuste_df, inventario_df, on=['DOC_ID_CORP', 'PRODUCT_ID_CORP', 'LOTE_ID'], how='inner')
+#             resultado_df = resultado_df.drop_duplicates(subset=['DOC_ID_CORP', 'PRODUCT_ID_CORP', 'LOTE_ID'])
             
-            if 'Fecha_elaboracion_lote' in resultado_df.columns:
-                resultado_df['Fecha_elaboracion_lote'] = resultado_df['Fecha_elaboracion_lote'].apply(lambda x: x.strftime('%Y-%m-%d') if pd.notnull(x) else x)
-            if 'FECHA_CADUCIDAD' in resultado_df.columns:
-                resultado_df['FECHA_CADUCIDAD'] = resultado_df['FECHA_CADUCIDAD'].apply(lambda x: x.strftime('%Y-%m-%d') if pd.notnull(x) else x)
+#             if 'Fecha_elaboracion_lote' in resultado_df.columns:
+#                 resultado_df['Fecha_elaboracion_lote'] = resultado_df['Fecha_elaboracion_lote'].apply(lambda x: x.strftime('%Y-%m-%d') if pd.notnull(x) else x)
+#             if 'FECHA_CADUCIDAD' in resultado_df.columns:
+#                 resultado_df['FECHA_CADUCIDAD'] = resultado_df['FECHA_CADUCIDAD'].apply(lambda x: x.strftime('%Y-%m-%d') if pd.notnull(x) else x)
             
-            #eliminar por DOC_ID_CORP
-            LiberacionCuarentena.objects.filter(doc_id_corp = n ).delete(),
+#             #eliminar por DOC_ID_CORP
+#             LiberacionCuarentena.objects.filter(doc_id_corp = n ).delete(),
             
 
-            #si ya existe un registro con los mismos datos en doc_id_corp, product_id_corp ,lote_id que lo actualize o cree
-            #sino que lo cree
+#             #si ya existe un registro con los mismos datos en doc_id_corp, product_id_corp ,lote_id que lo actualize o cree
+#             #sino que lo cree
             
-            for index, row in resultado_df.iterrows():
-                #busca si existe el registro
-                existe = LiberacionCuarentena.objects.filter(doc_id_corp = row['DOC_ID_CORP']).filter(product_id_corp = row['PRODUCT_ID_CORP']).filter(lote_id = row['LOTE_ID']).exists()
-                if existe==False:
-                    LiberacionCuarentena.objects.update_or_create(
-                    #replace string
-                    doc_id = n_ajuste,
-                    doc_id_corp = row['DOC_ID_CORP'],
-                    product_id_corp = row['PRODUCT_ID_CORP'],
-                    product_id= row['PRODUCT_ID_CORP'].replace('-GIMPR',''),
-                    lote_id = row['LOTE_ID'],
-                    ware_code = row['WARE_CODE'],
-                    location = row['LOCATION'],
-                    egreso_temp = row['EGRESO_TEMP'],
-                    commited = row['COMMITED'],
-                    ware_code_corp = row['WARE_CODE_CORP'],
-                    ubicacion = row['UBICACION'],
-                    fecha_elaboracion_lote = row['Fecha_elaboracion_lote'],
-                    fecha_caducidad = row['FECHA_CADUCIDAD'],
-                    estado=0
-                    )
-                    #wms_get_existencias(row,n_ajuste,user)
-                else:
-                    if(existe.estado==0):
-                        pass
-                        #wms_get_existencias(row,n_ajuste,user)
+#             for index, row in resultado_df.iterrows():
+#                 #busca si existe el registro
+#                 existe = LiberacionCuarentena.objects.filter(doc_id_corp = row['DOC_ID_CORP']).filter(product_id_corp = row['PRODUCT_ID_CORP']).filter(lote_id = row['LOTE_ID']).exists()
+#                 if existe==False:
+#                     LiberacionCuarentena.objects.update_or_create(
+#                     #replace string
+#                     doc_id = n_ajuste,
+#                     doc_id_corp = row['DOC_ID_CORP'],
+#                     product_id_corp = row['PRODUCT_ID_CORP'],
+#                     product_id= row['PRODUCT_ID_CORP'].replace('-GIMPR',''),
+#                     lote_id = row['LOTE_ID'],
+#                     ware_code = row['WARE_CODE'],
+#                     location = row['LOCATION'],
+#                     egreso_temp = row['EGRESO_TEMP'],
+#                     commited = row['COMMITED'],
+#                     ware_code_corp = row['WARE_CODE_CORP'],
+#                     ubicacion = row['UBICACION'],
+#                     fecha_elaboracion_lote = row['Fecha_elaboracion_lote'],
+#                     fecha_caducidad = row['FECHA_CADUCIDAD'],
+#                     estado=0
+#                     )
+#                     #wms_get_existencias(row,n_ajuste,user)
+#                 else:
+#                     if(existe.estado==0):
+#                         pass
+#                         #wms_get_existencias(row,n_ajuste,user)
                     
-            # LiberacionCuarentena.objects.bulk_create(liberacion_cuarentena_objects)
+#             # LiberacionCuarentena.objects.bulk_create(liberacion_cuarentena_objects)
 
-            # Asegúrate de que las columnas de fecha estén en un formato de fecha reconocible
-            # Si las columnas ya están en formato de fecha, no necesitas hacer nada más.
-            # Si necesitas ajustar el formato, puedes hacerlo aquí.
+#             # Asegúrate de que las columnas de fecha estén en un formato de fecha reconocible
+#             # Si las columnas ya están en formato de fecha, no necesitas hacer nada más.
+#             # Si necesitas ajustar el formato, puedes hacerlo aquí.
 
-            # Convertir DataFrame a JSON, asegurándose de que las fechas se formateen correctamente
-            resultado_json = resultado_df.to_json(orient='records', force_ascii=False, date_format='iso')
+#             # Convertir DataFrame a JSON, asegurándose de que las fechas se formateen correctamente
+#             resultado_json = resultado_df.to_json(orient='records', force_ascii=False, date_format='iso')
         
-            return HttpResponse(resultado_json, content_type='application/json')
-        else:
-            return JsonResponse({'error': 'No se encontraron datos para realizar la unión.'}, status=404)
+#             return HttpResponse(resultado_json, content_type='application/json')
+#         else:
+#             return JsonResponse({'error': 'No se encontraron datos para realizar la unión.'}, status=404)
 
-    except Exception as e:
-        print(e)
-        return JsonResponse({'error': str(e)}, status=500)      
+#     except Exception as e:
+#         print(e)
+#         return JsonResponse({'error': str(e)}, status=500)      
 
-    finally:
-        # Cerrar la conexión con el ODBC
-        cnxn.close()
-        cursorOdbc.close()
+#     finally:
+#         # Cerrar la conexión con el ODBC
+#         cnxn.close()
+#         cursorOdbc.close()
 
 
 def wms_get_existencias(row,n_ajuste,user):
