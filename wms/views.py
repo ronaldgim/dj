@@ -4061,7 +4061,6 @@ def wms_ingreso_ajuste(request):
     return render(request, 'wms/ingreso_ajuste.html', {'elementos': ''})
 
 
-
 # def wms_busqueda_ajuste(request, n_ajuste):
 
 #     user = request.user.id
@@ -4145,7 +4144,7 @@ def wms_ingreso_ajuste(request):
 #                     if(existe.estado==0):
 #                         pass
 #                         #wms_get_existencias(row,n_ajuste,user)
-                    
+
 #             # LiberacionCuarentena.objects.bulk_create(liberacion_cuarentena_objects)
 
 #             # Asegúrate de que las columnas de fecha estén en un formato de fecha reconocible
