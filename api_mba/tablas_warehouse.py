@@ -1104,7 +1104,7 @@ def api_actualizar_stock_lote_warehouse():
             admin_warehouse_timestamp(tabla='stock_lote', actualizar_datetime=True, mensaje='Actualizado correctamente')
     
     except Exception as e:
-        print(e)
+        
         admin_warehouse_timestamp(tabla='stock_lote', actualizar_datetime=False, mensaje=f'Error: {e}')
 
 
