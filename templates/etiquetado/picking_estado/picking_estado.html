@@ -64,14 +64,7 @@
 <h5 class="m-4 text-center fw-bold">LISTADO DE PICKING ANDAGOYA</h5>
 <h6 class="text-start"><strong>Actulizado: </strong>{{actualizado}}</h6>
 
-<!--form method="post">
-    {% csrf_token %}
-    <button class="btn btn-primary btn-sm mt-2 mb-2" type="submit"> 
-        <i class="bi bi-arrow-clockwise"></i> Actualizar
-    </button>
-</form-->
-
-<button class="btn btn-primary btn-sm mt-2 mb-2" type="button" onclick="actualizar()"> 
+<button class="btn btn-primary btn-sm mt-2 mb-2" type="button" id="actualizar"> 
     <i class="bi bi-arrow-clockwise"></i> Actualizar
 </button>
 
@@ -203,10 +196,22 @@
 </script>
 
 <script>
-    // Refresh para ver todos los pedidos
-    function actualizar () {
-        window.location.reload()
-    }
+    // Actualizar datos de picking
+    $("#actualizar").click(function() {
+        console.log('Actualizando datos de picking...');
+        fetch('/datos/stocklote', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json',},
+            body: JSON.stringify({'table_name':'reservas'}),
+        }).then(data => {
+            // console.log('Actualización completada:', data);
+            setTimeout(function() {
+                location.reload();
+            }, 1000);
+        }).catch(error => {
+            console.error('Error en la petición:', error);
+        });
+    });
 </script>
 
 <script>
