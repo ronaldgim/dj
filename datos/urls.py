@@ -70,17 +70,17 @@ urlpatterns = [
     ),
     
     
-    #### PICKING ESTADISTICAS
-    path(
-        route='obtener_data_picking_estadistica',
-        view=views.obtener_data_picking_estadistica,
-        name='obtener_data_picking_estadistica',
-    ),
+    # #### PICKING ESTADISTICAS
+    # path(
+    #     route='obtener_data_picking_estadistica',
+    #     view=views.obtener_data_picking_estadistica,
+    #     name='obtener_data_picking_estadistica',
+    # ),
     
-    path(
-        route='actualizar_picking_stadisticas_all',
-        view=views.actualizar_picking_stadisticas_all,
-        name='actualizar_picking_stadisticas_all',
-    ),
+    # path(
+    #     route='actualizar_picking_stadisticas_all',
+    #     view=views.actualizar_picking_stadisticas_all,
+    #     name='actualizar_picking_stadisticas_all',
+    # ),
 
 ]
