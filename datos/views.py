@@ -2296,11 +2296,11 @@ def analisis_error_lote_data_v2():
             data = pd.DataFrame(data)
             data['LOTE_ID'] = data['LOTE_ID'].str.replace('.','')
             
-            # data = data.groupby(by=['PRODUCT_ID','LOTE_ID']).sum().reset_index()
             data = data.groupby(by=['PRODUCT_ID','LOTE_ID']).agg({
                 'QUANTITY': 'sum',
                 'AVAILABLE': 'sum',
                 'LOCATION': lambda x: ', '.join(x.dropna().astype(str).unique()),
+                #'WARE_CODE': lambda x: ', '.join(x.dropna().astype(str).unique()),
             }).reset_index()
             
             data['DIFF_AVAILABLE'] = data['QUANTITY'] - data['AVAILABLE']
@@ -2319,13 +2319,12 @@ def analisis_error_lote_data_v2():
             data = pd.DataFrame(data)
             data['LOTE_ID'] = data['LOTE_ID'].str.replace('.','')
             
-            # data = data.groupby(by=['PRODUCT_ID','LOTE_ID']).sum().reset_index()
             data = data.groupby(by=['PRODUCT_ID','LOTE_ID']).agg({
                 'COMMITED':'sum',
                 'LOCATION': lambda x: ', '.join(x.dropna().astype(str).unique()),
+                #'WARE_CODE': lambda x: ', '.join(x.dropna().astype(str).unique()),
                 }).reset_index()
             
-            #data['COMMITED'] = data['COMMITED'].astype('int')
             data = data[data['COMMITED'] < 0]
             data['error'] = 'commited_negativo'
             return data
@@ -2342,6 +2341,7 @@ def analisis_error_lote_data_v2():
         'DIFF_AVAILABLE': 'sum',
         'COMMITED': 'sum',
         'LOCATION': lambda x: ', '.join(x.dropna().astype(str).unique()),
+        #'WARE_CODE': lambda x: ', '.join(x.dropna().astype(str).unique()),
         'error': lambda x: ', '.join(x.dropna().astype(str).unique())
     }) 
     
@@ -2434,12 +2434,34 @@ def actualizar_data_error_lote_v2():
         lotes = data['lotes']
         obj_lotes = []
         for j in lotes:
+            
+            cerezos = {'CN4', 'CN5', 'CN6', 'CN7', 'CUC'}
+            andagoya = {'AN1', 'AN4', 'BN1', 'BN2', 'BN3', 'BN4', 'CUA'}
+            
+            # Dividir y crear conjunto de ubicaciones
+            locations = set(loc.strip() for loc in str(j.get('LOCATION', '')).split(','))
+            
+            # Verificar intersecciones
+            has_cerezos = bool(locations & cerezos)
+            has_andagoya = bool(locations & andagoya)
+            
+            # Determinar bod
+            if has_cerezos and has_andagoya:
+                bod = 'BCT, BAN'
+            elif has_cerezos:
+                bod = 'BCT'
+            elif has_andagoya:
+                bod = 'BAN'
+            else:
+                bod = 'N/U'
+            
             obj_l = ErrorLoteV2(
                 product_id = j.get('PRODUCT_ID'),
                 nombre = j.get('Nombre', '-'),
                 marca = j.get('Marca', '-'),
                 lote_id = j.get('LOTE_ID'),
                 ubicacion = j.get('LOCATION'),
+                bodega = bod, #j.get('WARE_CODE', '-'),
                 quantity = j.get('QUANTITY'),
                 available = j.get('AVAILABLE'),
                 diff_available = j.get('DIFF_AVAILABLE'),

@@ -203,6 +203,7 @@ class ErrorLoteV2(models.Model):
     nombre = models.CharField(max_length=100, blank=True, null=True)
     marca = models.CharField(max_length=30, blank=True, null=True)
     lote_id = models.CharField(max_length=50)
+    bodega = models.CharField(max_length=20, blank=True)
     ubicacion = models.CharField(max_length=100, blank=True)
     quantity = models.IntegerField(default=0)
     available = models.IntegerField(default=0)
