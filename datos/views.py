@@ -2495,7 +2495,7 @@ estado_picking_query = (
         'fecha_actualizado',
         'user__user__username',
     )
-).order_by('-n_pedido')[10:20]
+).order_by('-n_pedido')
 
 
 def datos_reserva_by_contrato_id(contrato_id) -> dict:
