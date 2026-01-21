@@ -2,6 +2,8 @@
 from django.db import connections, transaction
 from django.db.models import Q
 
+import time
+    
 # Shortcuts
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
@@ -13,9 +15,8 @@ from django.contrib import messages
 from django.views.generic import TemplateView
 
 # Models
-from datos.models import TimeStamp, Product, AdminActualizationWarehaouse, ErrorLoteReporte, ErrorLoteDetalle, ErrorLoteV2 #Vehiculos 
-from etiquetado.models import EstadoPicking, PedidosEstadoEtiquetado
-from etiquetado.models import EtiquetadoAvance
+from datos.models import TimeStamp, Product, AdminActualizationWarehaouse, ErrorLoteReporte, ErrorLoteDetalle, ErrorLoteV2, PickingEstadistica #Vehiculos 
+from etiquetado.models import EstadoPicking, EtiquetadoAvance
 from wms.models import Existencias
 
 # Autentication
@@ -2478,3 +2479,291 @@ def actualizar_data_error_lote_v2():
         adm_table.datetime = datetime.now()
         adm_table.mensaje = 'Actualizado correctamente'
         adm_table.save()
+
+
+### PICKING ESTADISTICAS 
+estado_picking_query = (
+    EstadoPicking.objects
+    .filter(estado='FINALIZADO').values(
+        'n_pedido',
+        'bodega',
+        'codigo_cliente',
+        'tipo_cliente',
+        'cliente',
+        'detalle',
+        'fecha_creado',
+        'fecha_actualizado',
+        'user__user__username',
+    )
+).order_by('-n_pedido')
+
+
+def datos_reserva_by_contrato_id(contrato_id) -> dict:
+    """
+    Obtener datos de cabecera de reserva en MBA por contrato_id
+    """
+    query = f"""
+        SELECT 
+            pp.CONTRATO_ID, 
+            pp.FECHA_PEDIDO, 
+            pp.HORA_LLEGADA,
+            pp.WARE_CODE, 
+            pp.Entry_by,
+            fp.CODIGO_CLIENTE, 
+            fp.NOMBRE_CLIENTE, 
+            fp.CLIENT_TYPE
+        FROM 
+            CLNT_Pedidos_Principal pp,
+            CLNT_Pedidos_Detalle pd,
+            CLNT_Ficha_Principal fp
+        WHERE 
+            pp.CONTRATO_ID_CORP = pd.CONTRATO_ID_CORP
+            AND fp.CODIGO_CLIENTE = pp.CLIENT_ID
+            AND pd.TIPO_DOCUMENTO = 'PE'
+            AND TRIM(pp.CONTRATO_ID) = '{contrato_id}'
+        ORDER BY pp.CONTRATO_ID DESC
+    """
+    
+    reserva = api_mba_sql(query)
+    
+    if reserva['status'] == 200:
+        try:
+            data = reserva['data'][0]
+            fecha_pedido = str(data['FECHA_PEDIDO'])[:10]   # slicing correcto
+            hora_llegada = str(data['HORA_LLEGADA'])
+            creado_mba_str = f"{fecha_pedido} {hora_llegada}"            
+            try:
+                creado_mba = datetime.strptime(creado_mba_str, '%d/%m/%Y %H:%M:%S')
+            except ValueError:
+                creado_mba = datetime.strptime(creado_mba_str, '%d/%m/%Y %H:%M')
+
+            data['creado_mba'] = creado_mba
+            return data
+        except Exception as e:
+            print(e)
+            return {}
+    else:
+        return {}
+
+
+def datos_pedido_by_contrato_id(contrato_id) -> list:
+    """
+    Obtener datos de detalle de reserva en MBA por contrato_id
+    """
+    query = f"""
+        SELECT 
+            pp.CONTRATO_ID,             
+            pd.PRODUCT_ID, 
+            pd.QUANTITY
+        FROM 
+            CLNT_Pedidos_Principal pp,
+            CLNT_Pedidos_Detalle pd
+        WHERE 
+            pp.CONTRATO_ID_CORP = pd.CONTRATO_ID_CORP
+            AND pd.TIPO_DOCUMENTO = 'PE'
+            AND pd.PRODUCT_ID <> 'MANTEN'
+            AND TRIM(pp.CONTRATO_ID) = '{contrato_id}'
+        ORDER BY pp.CONTRATO_ID DESC
+    """
+    reserva = api_mba_sql(query)
+    
+    if reserva['status'] == 200:
+        return reserva['data']
+    
+    return []
+
+
+def datos_facturacion_by_contrato_id(contrato_id) -> dict:
+    """
+    Obtener datos de facturación en MBA por contrato_id
+    """
+    query = f"""
+        SELECT DISTINCT
+            f.CODIGO_FACTURA,
+            f.FECHA_FACTURA,
+            f.HORA_FACTURA,
+            f.NUMERO_PEDIDO_SISTEMA
+        FROM 
+            CLNT_Factura_Principal f
+        INNER JOIN 
+            INVT_Producto_Movimientos pm
+            ON f.CODIGO_FACTURA = pm.DOC_ID_CORP2
+        WHERE 
+            pm.CONFIRM = TRUE
+            AND pm.I_E_SIGN = '-'
+            AND pm.ADJUSTMENT_TYPE = 'FT'
+            AND TRIM(f.NUMERO_PEDIDO_SISTEMA) = '{contrato_id}';
+        """
+        
+    facturas = api_mba_sql(query)
+    
+    if facturas['status'] == 200:
+        try:
+            data = facturas['data'][0] 
+            fecha_factura_str = str(data['FECHA_FACTURA'])[:10]
+            hora_factura_str = str(data['HORA_FACTURA'])
+            fecha_factura_completa_str = f"{fecha_factura_str} {hora_factura_str}" 
+            try:
+                fecha_factura = datetime.strptime(fecha_factura_completa_str, '%d/%m/%Y %H:%M:%S')
+            except ValueError:
+                fecha_factura = datetime.strptime(fecha_factura_completa_str, '%d/%m/%Y %H:%M')
+            data['fecha_factura'] = fecha_factura
+            return data
+        except Exception as e:
+            print(e)
+            return {}
+    else:
+        return {}
+
+
+def obtener_data_picking_estadistica(request):
+
+    for i in estado_picking_query:
+        
+        contrato_id = i['n_pedido']
+        contrato_id = str(contrato_id).strip().split('.')[0] if '.' in str(contrato_id) else str(contrato_id)
+        reserva = datos_reserva_by_contrato_id(contrato_id)
+        
+        PickingEstadistica.objects.create(
+            contrato_id = contrato_id,
+            creado_mba = reserva.get('creado_mba') if reserva else None,
+            bodega = reserva.get('WARE_CODE') if reserva else '',
+            creado_por_mba = reserva.get('ENTRY_BY') if reserva else None,
+            codigo_cliente = reserva.get('CODIGO_CLIENTE') if reserva else '',
+            nombre_cliente = reserva.get('NOMBRE_CLIENTE') if reserva else '',
+            tipo_cliente = reserva.get('CLIENT_TYPE') if reserva else '',
+            inicio_picking = i.get('fecha_creado'),
+            fin_picking = i.get('fecha_actualizado'),
+            usuario_picking = i.get('user__user__username'),
+        )
+        
+        actualizar_datos_calculo_pedidos_picking_estadisticas()
+        actualizar_datos_usuario_mba()
+        actualizar_datos_facturacion()
+        
+        time.sleep(2)  # Simular tiempo de procesamiento por cada registro
+    
+    return HttpResponse("OK")
+
+
+def actualizar_datos_calculo_pedidos_picking_estadisticas():
+    estadisticas = PickingEstadistica.objects.filter(datos_completos=False)
+
+    for e in estadisticas:
+        data_mba = datos_pedido_by_contrato_id(e.contrato_id)
+        prod = productos_odbc_and_django()[[
+            'product_id', 'Unidad_Empaque', 'vol_m3', 'Peso'
+        ]]
+        prod['Unidad_Empaque'] = (
+            pd.to_numeric(prod['Unidad_Empaque'], errors='coerce')
+            .replace(0, 0.0025)
+            .fillna(0.0025)
+        )
+
+        data = pd.DataFrame(data_mba)
+
+        if data.empty:
+            continue
+
+        # Merge seguro
+        data = data.merge(
+            prod,
+            left_on='PRODUCT_ID',
+            right_on='product_id',
+            how='left'
+        )
+
+        # Conversión segura de tipos
+        for col in ['Unidad_Empaque', 'vol_m3', 'Peso', 'QUANTITY']:
+            data[col] = pd.to_numeric(data[col], errors='coerce')
+
+        # Evitar división por cero
+        data['Unidad_Empaque'] = data['Unidad_Empaque'].replace(0, np.nan)
+
+        # Cálculos
+        data['Cartones'] = data['QUANTITY'] / data['Unidad_Empaque']
+
+        items = data['PRODUCT_ID'].nunique()
+
+        total_volumen = (
+            data['vol_m3'] * data['Cartones']
+        ).fillna(0).sum()
+
+        total_peso = (
+            data['Peso'] * data['QUANTITY']
+        ).fillna(0).sum()
+
+        # Guardar resultados
+        e.total_items = items
+        e.total_volumen_m3 = total_volumen
+        e.total_peso_kg = total_peso
+        # e.save(update_fields=[
+        #     'total_items',
+        #     'total_volumen_m3',
+        #     'total_peso_kg',
+        #     'datos_completos'
+        # ])
+        e.save()
+
+
+def actualizar_datos_usuario_mba():
+    
+    def email_by_entry_by(entry_by):
+        with connections['gimpromed_sql'].cursor() as cursor:
+            cursor.execute(f"""
+                SELECT 
+                    pp.Entry_by,
+                    um.mail AS email_usuario
+                FROM 
+                    warehouse.pedidos pp
+                LEFT JOIN 
+                    warehouse.user_mba um
+                    ON TRIM(pp.Entry_by) = TRIM(um.codigo_usuario)
+                WHERE 
+                    TRIM(pp.Entry_by) = '{entry_by}';
+            """
+            )
+            
+            email = cursor.fetchone()
+            connections['gimpromed_sql'].close()
+            if email:
+                return email[1]
+            return None
+    
+    estadisticas = PickingEstadistica.objects.filter(datos_completos=False)
+    for e in estadisticas:
+        if e.creado_por_mba and not e.creado_por_mba_username:
+            email = email_by_entry_by(e.creado_por_mba) 
+            try:
+                username = User.objects.filter(email=email).first()
+            except Exception as ex:
+                username = '' 
+            e.creado_por_mba_username = username
+            # e.save(update_fields=['creado_por_mba_username'])
+            e.save()
+
+
+def actualizar_datos_facturacion():
+    
+    estadisticas = PickingEstadistica.objects.filter(datos_completos=False)
+
+    for e in estadisticas:
+        data_facturacion = datos_facturacion_by_contrato_id(e.contrato_id)
+        if not data_facturacion:
+            continue
+
+        e.numero_factura = data_facturacion.get('CODIGO_FACTURA', '')
+        e.fecha_facturacion = data_facturacion.get('fecha_factura', None)
+        # e.save(update_fields=[
+        #     'numero_factura',
+        #     'fecha_facturacion',
+        # ])
+        e.save()
+
+
+def actualizar_picking_stadisticas_all(request):
+    actualizar_datos_calculo_pedidos_picking_estadisticas()
+    actualizar_datos_usuario_mba()
+    actualizar_datos_facturacion()
+    
+    return HttpResponse("OK")
