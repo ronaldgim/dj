@@ -2762,6 +2762,8 @@ def actualizar_datos_facturacion():
 
 
 def actualizar_picking_stadisticas_all(request):
+    
+    print('Actualizando Picking Estadisticas')
     actualizar_datos_calculo_pedidos_picking_estadisticas()
     actualizar_datos_usuario_mba()
     actualizar_datos_facturacion()
