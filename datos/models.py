@@ -1,7 +1,7 @@
 # Models
 from django.db import models
 from django.contrib.auth.models import User
-
+from django.core.exceptions import ValidationError
 
 # Personas
 PERSONAS_CHOICES = [
@@ -215,4 +215,165 @@ class ErrorLoteV2(models.Model):
     
     def __str__(self):
         return f'{self.product_id} - {self.nombre} - {self.marca}'
+
+
+class PickingEstadistica(models.Model):
     
+    # Número de contrato o pedido | EstadoPicking - default.etiquetado
+    contrato_id = models.CharField(max_length=7, unique=True) 
+    
+    # Fecha y hora de creación en el sistema MBA | Pedidos - warehouse.pedidos 
+    creado_mba = models.DateTimeField(blank=True, null=True) 
+    
+    # Año creado
+    anio_creado = models.PositiveIntegerField(default=0)
+    
+    # Mes creado
+    mes_creado = models.PositiveIntegerField(default=0)
+    
+    # Día creado
+    dia_creado = models.PositiveIntegerField(default=0)
+    
+    # Dia de la semana creado
+    dia_semana_creado = models.PositiveSmallIntegerField(blank=True, null=True)
+    
+    # Dia de la semana creado string
+    dia_semana_creado_str = models.CharField(max_length=10, blank=True, null=True)
+    
+    # Bodega | EstadoPicking - default.etiquetado
+    bodega = models.CharField(max_length=5, blank=True, null=True)
+    
+    # Usuario que creó el pedido en MBA | Pedidos - warehouse.pedidos
+    creado_por_mba = models.CharField(max_length=50, blank=True)
+    
+    # Username del usuario que creó el pedido en MBA | Query para obtner username de django
+    creado_por_mba_username = models.CharField(max_length=50, blank=True)
+    
+    # Codigo cliente | EstadoPicking - default.etiquetado
+    codigo_cliente = models.CharField(max_length=20, blank=True)
+    
+    # Nombre cliente | EstadoPicking - default.etiquetado
+    nombre_cliente = models.CharField(max_length=255, blank=True)
+    
+    # Tipo cliente | EstadoPicking - default.etiquetado
+    tipo_cliente = models.CharField(max_length=50, blank=True)
+    
+    # Fecha y hora de inicio del picking | EstadoPicking - default.etiquetado
+    inicio_picking = models.DateTimeField(blank=True, null=True)
+    
+    # Fecha y hora de fin del picking | EstadoPicking - default.etiquetado
+    fin_picking = models.DateTimeField(blank=True, null=True)
+
+    # Numero de factura 
+    numero_factura = models.CharField(max_length=30, blank=True)
+    
+    # Fecha y hora de facturación
+    fecha_facturacion = models.DateTimeField(blank=True, null=True)
+
+    # Total de ítems en el picking | EstadoPicking - default.etiquetado
+    total_items = models.PositiveIntegerField(default=0)
+    
+    # Total volumen en m3 del picking | EstadoPicking - default.etiquetado
+    total_volumen_m3 = models.FloatField(default=0.0)
+    
+    # Total peso en Kg del picking | EstadoPicking - default.etiquetado
+    total_peso_kg = models.FloatField(default=0.0)
+    
+    # Usuario que realizó el picking | EstadoPicking - default.etiquetado
+    usuario_picking = models.CharField(max_length=50, blank=True)
+    
+    # Tiempo de creacion a inicio picking 
+    tiempo_creacion_a_inicio = models.DurationField(blank=True, null=True)
+    
+    # Tiempo de inicio a fin picking
+    tiempo_inicio_a_fin = models.DurationField(blank=True, null=True)
+    
+    # Tiempo de finalizado a facturación
+    tiempo_fin_a_facturacion = models.DurationField(blank=True, null=True)
+    
+    # Tiempo total de proceso
+    tiempo_total_proceso = models.DurationField(blank=True, null=True)
+    
+    # Datos completos
+    datos_completos = models.BooleanField(default=False)
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=["anio_creado", "mes_creado"]),
+            models.Index(fields=["bodega"]),
+            models.Index(fields=["tipo_cliente"]),
+            models.Index(fields=["usuario_picking"]),
+        ]
+    
+    def __str__(self):
+        return self.contrato_id
+    
+    def clean(self):
+        if self.inicio_picking and self.creado_mba:
+            if self.inicio_picking < self.creado_mba:
+                raise ValidationError("inicio_picking no puede ser menor que creado_mba")
+
+        if self.fin_picking and self.inicio_picking:
+            if self.fin_picking < self.inicio_picking:
+                raise ValidationError("fin_picking no puede ser menor que inicio_picking")
+
+        if self.fecha_facturacion and self.fin_picking:
+            if self.fecha_facturacion < self.fin_picking:
+                raise ValidationError("fecha_facturacion no puede ser menor que fin_picking")
+    
+    def calcular_fechas_creacion(self):
+        if not self.creado_mba:
+            return
+
+        self.anio_creado = self.creado_mba.year
+        self.mes_creado = self.creado_mba.month
+        self.dia_creado = self.creado_mba.day
+        self.dia_semana_creado = self.creado_mba.weekday()
+        self.dia_semana_creado_str = self.creado_mba.strftime('%A')
+
+    def calcular_duraciones(self):
+        if self.creado_mba and self.inicio_picking:
+            self.tiempo_creacion_a_inicio = self.inicio_picking - self.creado_mba
+
+        if self.inicio_picking and self.fin_picking:
+            self.tiempo_inicio_a_fin = self.fin_picking - self.inicio_picking
+
+        if self.fin_picking and self.fecha_facturacion:
+            self.tiempo_fin_a_facturacion = self.fecha_facturacion - self.fin_picking
+
+        if self.creado_mba and self.fecha_facturacion:
+            self.tiempo_total_proceso = self.fecha_facturacion - self.creado_mba
+    
+    def save(self, *args, **kwargs):
+        self.full_clean()  # valida coherencia
+        self.calcular_fechas_creacion()
+        self.calcular_duraciones()
+        self.datos_completos = self.comprobar_datos_completos()
+        super().save(*args, **kwargs)
+    
+    def comprobar_datos_completos(self):
+        campos_requeridos = [
+            self.contrato_id,
+            self.creado_mba,
+            self.anio_creado,
+            self.mes_creado,
+            self.dia_creado,
+            self.dia_semana_creado,
+            self.dia_semana_creado_str,
+            self.bodega,
+            self.creado_por_mba,
+            self.creado_por_mba_username,
+            self.codigo_cliente,
+            self.nombre_cliente,
+            self.tipo_cliente,
+            self.inicio_picking,
+            self.fin_picking,
+            self.numero_factura,
+            self.fecha_facturacion,
+            self.total_items,
+            self.total_volumen_m3,
+            self.total_peso_kg,
+            self.usuario_picking,
+            self.tiempo_total_proceso
+        ]
+        return all(campo is not None for campo in campos_requeridos)
