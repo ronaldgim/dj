@@ -4419,6 +4419,7 @@ def reporte_error_lote_excel_v2(request):
         'nombre', 
         'marca',
         'lote_id',
+        'bodega',
         'ubicacion',
         # 'quantity',
         # 'available',
@@ -4440,7 +4441,7 @@ def reporte_error_lote_excel_v2(request):
         'COMMITED':'Asignado',
         'AVAILABLE':'Disponible'
     })
-    reporte = reporte[['Código', 'Nombre del producto', 'Marca', 'Unidad de medida', 'Lote', 'Ubicación(es)', 'Existencia', 'Asignado', 'Disponible']]
+    reporte = reporte[['Código', 'Nombre del producto', 'Marca', 'Unidad de medida', 'Lote', 'Bodega(s)', 'Ubicación(es)', 'Existencia', 'Asignado', 'Disponible']]
     
     hoy = datetime.today().strftime('%Y-%m-%d_%H-%M-%S')
     nombre_archivo = f'Reporte-Error-Lote-V2_{hoy}.xlsx'
@@ -4463,8 +4464,9 @@ def reporte_error_lote_excel_v2(request):
         worksheet.column_dimensions['F'].width = 12
         worksheet.column_dimensions['G'].width = 12
         worksheet.column_dimensions['H'].width = 12 
-        worksheet.column_dimensions['I'].width = 12          
-
+        worksheet.column_dimensions['I'].width = 12  
+        worksheet.column_dimensions['J'].width = 12        
+        
         return response
     
 
