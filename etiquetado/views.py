@@ -4399,49 +4399,93 @@ def reporte_error_lote(request):
     return render(request, 'etiquetado/error-lote/reporte-error-lote.html')
 
 
-def reporte_error_lote_excel_v2(request):
+# def reporte_error_lote_excel_v2(request):
     
-    def mba_data():
-        with connections['gimpromed_sql'].cursor() as cursor:
-            cursor.execute("SELECT PRODUCT_ID, LOTE_ID, UM, QUANTITY, COMMITED, AVAILABLE FROM warehouse.stock_lote")
-            columns = [col[0] for col in cursor.description]
-            stock = [dict(zip(columns, row)) for row in cursor.fetchall()]
-            stock = pd.DataFrame(stock)
-            stock['LOTE_ID'] = stock['LOTE_ID'].str.replace('.', '')
-            stock = stock.groupby(by=['PRODUCT_ID','LOTE_ID', 'UM']).sum().reset_index()
-            stock = stock.rename(columns={'PRODUCT_ID':'product_id', 'LOTE_ID':'lote_id'})
-            return stock
+#     def mba_data():
+#         with connections['gimpromed_sql'].cursor() as cursor:
+#             cursor.execute("SELECT PRODUCT_ID, LOTE_ID, UM, QUANTITY, COMMITED, AVAILABLE FROM warehouse.stock_lote")
+#             columns = [col[0] for col in cursor.description]
+#             stock = [dict(zip(columns, row)) for row in cursor.fetchall()]
+#             stock = pd.DataFrame(stock)
+#             stock['LOTE_ID'] = stock['LOTE_ID'].str.replace('.', '')
+#             stock = stock.groupby(by=['PRODUCT_ID','LOTE_ID', 'UM']).sum().reset_index()
+#             stock = stock.rename(columns={'PRODUCT_ID':'product_id', 'LOTE_ID':'lote_id'})
+#             return stock
+    
+#     data = ErrorLoteV2.objects.all().values()
+#     reporte = pd.DataFrame(data)
+#     reporte = reporte[[
+#         'product_id', 
+#         'nombre', 
+#         'marca',
+#         'lote_id',
+#         'bodega',
+#         'ubicacion',
+#         # 'quantity',
+#         # 'available',
+#         # 'diff_available',
+#         # 'commited',
+#         # 'error',
+#         # 'error_commited',
+#         # 'error_available'
+#     ]]
+#     reporte = reporte.merge(mba_data(), on=['product_id','lote_id'], how='left')
+#     reporte = reporte.rename(columns={
+#         'product_id':'Código',
+#         'nombre':'Nombre del producto',
+#         'marca':'Marca',
+#         'UM':'Unidad de medida',
+#         'lote_id':'Lote',
+#         'ubicacion':'Ubicación(es)',
+#         'QUANTITY':'Existencia',
+#         'COMMITED':'Asignado',
+#         'AVAILABLE':'Disponible'
+#     })
+#     reporte = reporte[['Código', 'Nombre del producto', 'Marca', 'Unidad de medida', 'Lote', 'Ubicación(es)', 'Existencia', 'Asignado', 'Disponible']]
+    
+#     hoy = datetime.today().strftime('%Y-%m-%d_%H-%M-%S')
+#     nombre_archivo = f'Reporte-Error-Lote-V2_{hoy}.xlsx'
+#     content_disposition = f'attachment; filename="{nombre_archivo}"'
+#     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+#     response['Content-Disposition'] = content_disposition
+    
+#     with pd.ExcelWriter(response, engine='openpyxl') as writer:
+        
+#         reporte.to_excel(writer, sheet_name='Reporte-Reservas', index=False)
+        
+#         workbook = writer.book
+#         worksheet = writer.sheets['Reporte-Reservas']
+        
+#         worksheet.column_dimensions['A'].width = 15 
+#         worksheet.column_dimensions['B'].width = 30 
+#         worksheet.column_dimensions['C'].width = 11 
+#         worksheet.column_dimensions['D'].width = 16
+#         worksheet.column_dimensions['E'].width = 15 
+#         worksheet.column_dimensions['F'].width = 12
+#         worksheet.column_dimensions['G'].width = 12
+#         worksheet.column_dimensions['H'].width = 12 
+#         worksheet.column_dimensions['I'].width = 12         
+        
+#         return response
+
+
+def reporte_error_lote_excel_v2(request):
     
     data = ErrorLoteV2.objects.all().values()
     reporte = pd.DataFrame(data)
-    reporte = reporte[[
-        'product_id', 
-        'nombre', 
-        'marca',
-        'lote_id',
-        'bodega',
-        'ubicacion',
-        # 'quantity',
-        # 'available',
-        # 'diff_available',
-        # 'commited',
-        # 'error',
-        # 'error_commited',
-        # 'error_available'
-    ]]
-    reporte = reporte.merge(mba_data(), on=['product_id','lote_id'], how='left')
+    
     reporte = reporte.rename(columns={
         'product_id':'Código',
         'nombre':'Nombre del producto',
         'marca':'Marca',
-        'UM':'Unidad de medida',
         'lote_id':'Lote',
+        'bodega':'Bodega(s)',
         'ubicacion':'Ubicación(es)',
-        'QUANTITY':'Existencia',
-        'COMMITED':'Asignado',
-        'AVAILABLE':'Disponible'
+        'quantity':'Existencia',
+        'commited':'Asignado',
+        'available':'Disponible',
     })
-    reporte = reporte[['Código', 'Nombre del producto', 'Marca', 'Unidad de medida', 'Lote', 'Bodega(s)', 'Ubicación(es)', 'Existencia', 'Asignado', 'Disponible']]
+    reporte = reporte[['Código', 'Nombre del producto', 'Marca', 'Lote', 'Bodega(s)', 'Ubicación(es)', 'Existencia', 'Asignado', 'Disponible']]
     
     hoy = datetime.today().strftime('%Y-%m-%d_%H-%M-%S')
     nombre_archivo = f'Reporte-Error-Lote-V2_{hoy}.xlsx'
@@ -4464,11 +4508,10 @@ def reporte_error_lote_excel_v2(request):
         worksheet.column_dimensions['F'].width = 12
         worksheet.column_dimensions['G'].width = 12
         worksheet.column_dimensions['H'].width = 12 
-        worksheet.column_dimensions['I'].width = 12  
-        worksheet.column_dimensions['J'].width = 12        
+        worksheet.column_dimensions['I'].width = 12         
         
         return response
-    
+
 
 def reporte_error_lote_v2(request):    
     # from datos.views import analisis_error_lote_data, analisis_error_lote_data_v2
