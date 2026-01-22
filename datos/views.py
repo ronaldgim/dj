@@ -60,6 +60,8 @@ from api_mba.tablas_warehouse import (
     admin_warehouse_timestamp,
     
     api_actualizar_clientes_warehouse,         # 1
+    odbc_actualizar_clientes_warehouse,
+    
     api_actualizar_facturas_warehouse,         # 2
     api_actualizar_imp_llegadas_warehouse,     # 3
     api_actualizar_imp_transito_warehouse,     # 4
@@ -504,6 +506,11 @@ def actualizar_datos_etiquetado_fun():
 
 
 
+def obtener_conexion_config(table_name):
+    return AdminActualizationWarehaouse.objects.get(table_name=table_name).conexion
+
+
+
 ## Carga la tabla de stock lote automaticamente
 @csrf_exempt
 def stock_lote(request):
@@ -523,7 +530,10 @@ def stock_lote(request):
             
             # 1 Clientes
             # warehouse.clientes
-            api_actualizar_clientes_warehouse()
+            if obtener_conexion_config('clientes') == 'api':
+                api_actualizar_clientes_warehouse()
+            elif obtener_conexion_config('clientes') == 'odbc':
+                odbc_actualizar_clientes_warehouse()
             
             # 2 Facturas (ultimos 2 meses)
             # warehouse.facturas
@@ -591,7 +601,12 @@ def stock_lote(request):
         elif table_name:
             
             if table_name == "clientes":
-                api_actualizar_clientes_warehouse()
+                # api_actualizar_clientes_warehouse()
+                if obtener_conexion_config('clientes') == 'api':
+                    api_actualizar_clientes_warehouse()
+                elif obtener_conexion_config('clientes') == 'odbc':
+                    odbc_actualizar_clientes_warehouse()
+                
             elif table_name == "facturas":
                 api_actualizar_facturas_warehouse()
             elif table_name == "imp_llegadas":
@@ -2482,6 +2497,10 @@ def actualizar_data_error_lote_v2():
 
 @csrf_exempt
 def cambiar_conexion_de_warehouse(request):
+    
+    # from api_mba.tablas_warehouse import odbc_actualizar_clientes_warehouse    
+    # odbc_actualizar_clientes_warehouse()
+    # return HttpResponse('ok')
     
     if request.method == 'POST':
         data = json.loads(request.body)

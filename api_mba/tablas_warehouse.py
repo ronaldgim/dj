@@ -1,6 +1,9 @@
 # API MBA
 from api_mba.mba import api_mba_sql #, api_mba_sql_pedidos
 
+# Conexión ODBC
+import pyodbc
+
 # BD Connection
 from django.db import connections #, transaction
 from django.db.models import Q
@@ -42,6 +45,9 @@ from utils.warehouse_data import (
     cartones_volumen_factura
 )
 
+### CONEXIÓN ODBC
+CONX = pyodbc.connect("DSN=mba;UID=API;PWD=API")
+CURSOR = CONX.cursor()
 
 # eliminar datos de tablas en wharehouse
 def delete_data_warehouse(table_name):
@@ -110,7 +116,25 @@ def admin_warehouse_timestamp(tabla, actualizar_datetime, mensaje):
 
 
 ###### FUNCIONES PARA ACTUALIZAR DATOS EN WAREHOUSE ######
-### 1 ACTUALIZAR CLIENTES WAREHOUSE POR API DATA
+# 1 QUERY CLIENTES
+QUERY_CLIENTES = """
+    SELECT 
+        CLNT_Ficha_Principal.CODIGO_CLIENTE, 
+        CLNT_Ficha_Principal.IDENTIFICACION_FISCAL, 
+        CLNT_Ficha_Principal.NOMBRE_CLIENTE, 
+        CLNT_Ficha_Principal.CIUDAD_PRINCIPAL, 
+        CLNT_Ficha_Principal.CLIENT_TYPE, 
+        CLNT_Ficha_Principal.SALESMAN, 
+        CLNT_Ficha_Principal.LIMITE_CREDITO, 
+        CLNT_Ficha_Principal.PriceList, 
+        CLNT_Ficha_Principal.E_MAIL, 
+        CLNT_Ficha_Principal.Email_Fiscal, 
+        CLNT_Ficha_Principal.DIRECCION_PRINCIPAL_1, 
+        CLNT_Ficha_Principal.FAX 
+    FROM 
+        CLNT_Ficha_Principal CLNT_Ficha_Principal
+"""
+### 1 API ACTUALIZAR CLIENTES WAREHOUSE 
 def api_actualizar_clientes_warehouse():
     
     try:
@@ -138,6 +162,34 @@ def api_actualizar_clientes_warehouse():
     except Exception as e:
         
         admin_warehouse_timestamp(tabla='clientes', actualizar_datetime=False, mensaje=f'Error exception: {e}')
+
+
+### 1 ODBC ACTUALIZAR CLIENTES WAREHOUSE 
+def odbc_actualizar_clientes_warehouse():
+    
+    try:
+    
+        clientes_query = CURSOR.execute(
+            QUERY_CLIENTES
+        )
+        
+        data = clientes_query.fetchall()
+
+        if len(data) >= 1:
+            
+            # Borrar datos de tabla clientes
+            delete_data_warehouse('clientes')
+            
+            # Insertar datos de tabla clientes
+            insert_data_warehouse('clientes', data)
+
+            admin_warehouse_timestamp(tabla='clientes', actualizar_datetime=True, mensaje='ODBC - Actualizado correctamente')
+        else:
+            admin_warehouse_timestamp(tabla='clientes', actualizar_datetime=False, mensaje='ODBC NO TRAE DATOS')
+    
+    except Exception as e:
+        
+        admin_warehouse_timestamp(tabla='clientes', actualizar_datetime=False, mensaje=f'ODBC Error exception: {e}')
 
 
 ### 2 ACTUALIZAR FACTURAS WAREHOUSE
