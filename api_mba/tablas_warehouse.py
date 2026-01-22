@@ -21,9 +21,7 @@ from dateutil.relativedelta import relativedelta
 import pandas as pd
 
 # Queries de mba por api
-from api_mba.api_query import (
-    api_query_clientes_mba
-    )
+from api_mba.api_query import api_query_clientes_mba
 
 # datos de actualización
 from datos.models import AdminActualizationWarehaouse
