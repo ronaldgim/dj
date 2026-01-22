@@ -140,6 +140,7 @@ class AdminActualizationWarehaouse(models.Model):
     milisegundos = models.IntegerField(null=True)
     orden = models.IntegerField(null=True)
     mensaje = models.TextField(blank=True)
+    conexion = models.CharField(max_length=15, blank=True, default='api')
     
     def __str__(self):
         return self.table_name

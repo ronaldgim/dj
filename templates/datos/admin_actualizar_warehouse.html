@@ -28,7 +28,9 @@
                             <th scope="col">PERIODICIDAD</th>
                             <th scope="col">MENSAJE</th>
                             <!--th scope="col">MILISEGUNDOS</th-->
+                            <th scope="col">Conexión Actual</th>
                             <th scope="col">ACTUALIZAR</th>
+                            <th scope="col">Cambiar Conexión</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -42,12 +44,22 @@
                             <td>{{i.periodicidad}}</td>
                             <!--td>{{i.milisegundos}}</td-->
                             <td>{{i.mensaje}}</td>
+                            <td class="text-center"><code> {{i.conexion}} </code></td>
                             <td class="text-center">
                                 <button @click="actualizarTablaWarehouse(i.table_name)" class="btn btn-sm btn-success">
                                     <span v-if="i.actualizandoEstaTabla" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                                     <i class="bi bi-arrow-clockwise"></i>
                                 </button>
                             </td>
+                            <td class="text-center">
+                                <button v-show="i.conexion == 'odbc'" @click="cambiarConexion(i.table_name, 'api')" class="btn btn-sm btn-primary">
+                                    api
+                                </button>
+                                <button v-show="i.conexion == 'api'" @click="cambiarConexion(i.table_name, 'odbc')" class="btn btn-sm btn-success">
+                                    odbc
+                                </button>
+                            </td>
+                            
                             {% endverbatim %}
                         </tr>
                     </tbody>
@@ -158,6 +170,28 @@
                     console.error(error);
                 } finally {
                     this.actualizandoTodo = false;
+                }
+            },
+
+            async cambiarConexion(table_name, nueva_conexion) {
+                try {
+                    const response = await fetch("/datos/cambiar_conexion_de_warehouse", {
+                        method: "POST",
+                        headers: {"Content-Type": "application/json",},
+                        body:JSON.stringify({table_name, nueva_conexion}),
+                    });
+                    if (!response.ok) {
+                        throw new Error(response.statusText);
+                    }
+
+                    if (response.tipo == 'fail') {
+                        alert("No se pudo cambiar la conexión");
+                        return;
+                    }
+                    
+                    await this.getDatosAdminWarehouse();
+                } catch {
+                    console.error(error);
                 }
             },
         },
