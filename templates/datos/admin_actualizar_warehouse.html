@@ -29,8 +29,8 @@
                             <th scope="col">MENSAJE</th>
                             <!--th scope="col">MILISEGUNDOS</th-->
                             <th scope="col">Conexión Actual</th>
-                            <th scope="col">ACTUALIZAR</th>
                             <th scope="col">Cambiar Conexión</th>
+                            <th scope="col">ACTUALIZAR</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -46,12 +46,6 @@
                             <td>{{i.mensaje}}</td>
                             <td class="text-center"><code> {{i.conexion}} </code></td>
                             <td class="text-center">
-                                <button @click="actualizarTablaWarehouse(i.table_name)" class="btn btn-sm btn-success">
-                                    <span v-if="i.actualizandoEstaTabla" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                                    <i class="bi bi-arrow-clockwise"></i>
-                                </button>
-                            </td>
-                            <td class="text-center">
                                 <button v-show="i.conexion == 'odbc'" @click="cambiarConexion(i.table_name, 'api')" class="btn btn-sm btn-primary">
                                     api
                                 </button>
@@ -59,7 +53,12 @@
                                     odbc
                                 </button>
                             </td>
-                            
+                            <td class="text-center">
+                                <button @click="actualizarTablaWarehouse(i.table_name)" class="btn btn-sm btn-success">
+                                    <span v-if="i.actualizandoEstaTabla" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                    <i class="bi bi-arrow-clockwise"></i>
+                                </button>
+                            </td>
                             {% endverbatim %}
                         </tr>
                     </tbody>
