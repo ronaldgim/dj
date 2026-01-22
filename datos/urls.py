@@ -19,6 +19,11 @@ urlpatterns = [
         name = 'admin_actualizar_warehouse_json_response'
     ),
 
+    path(
+        route = 'cambiar_conexion_de_warehouse',
+        view = views.cambiar_conexion_de_warehouse,
+        name = 'cambiar_conexion_de_warehouse'
+    ),
     # EJECUTAR FUNCIÓN STOCK LOTE COMPLETA
     path(
         route = 'stocklote',
@@ -70,7 +75,7 @@ urlpatterns = [
     ),
     
     
-    # #### PICKING ESTADISTICAS
+    #### PICKING ESTADISTICAS
     # path(
     #     route='obtener_data_picking_estadistica',
     #     view=views.obtener_data_picking_estadistica,

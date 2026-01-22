@@ -2480,6 +2480,28 @@ def actualizar_data_error_lote_v2():
         adm_table.mensaje = 'Actualizado correctamente'
         adm_table.save()
 
+@csrf_exempt
+def cambiar_conexion_de_warehouse(request):
+    
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        table_name = data.get("table_name", None)
+        if table_name:
+            nueva_conexion = data.get("nueva_conexion", None)
+            if nueva_conexion:
+                adm = AdminActualizationWarehaouse.objects.get(table_name=table_name)
+                adm.conexion = nueva_conexion
+                adm.save()
+                return JsonResponse({
+                    'tipo':'ok'
+                })
+            return JsonResponse({
+                'tipo':'fail'
+            })
+        return JsonResponse({
+            'tipo':'fail'
+        })
+
 
 ### PICKING ESTADISTICAS 
 estado_picking_query = (
@@ -2495,7 +2517,7 @@ estado_picking_query = (
         'fecha_actualizado',
         'user__user__username',
     )
-).order_by('-n_pedido')
+).order_by('-n_pedido')[:200]
 
 
 def datos_reserva_by_contrato_id(contrato_id) -> dict:
