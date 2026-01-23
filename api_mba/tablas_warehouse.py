@@ -59,8 +59,8 @@ from utils.warehouse_data import (
 
 ### CONEXIÓN ODBC
 # CONX = pyodbc.connect("DSN=mba3;UID=API;PWD=API")
-CONX = pyodbc.connect("DSN=mba3;PWD=API")
-CURSOR = CONX.cursor()
+# CONX = pyodbc.connect("DSN=mba3;PWD=API")
+# CURSOR = CONX.cursor()
 
 # eliminar datos de tablas en wharehouse
 def delete_data_warehouse(table_name):
@@ -181,8 +181,10 @@ def api_actualizar_clientes_warehouse():
 def odbc_actualizar_clientes_warehouse():
     
     try:
-    
-        clientes_query = CURSOR.execute(
+        cnx = pyodbc.connect("DSN=mba3;PWD=API")
+        cursor = cnx.cursor
+        # clientes_query = CURSOR.execute(
+        clientes_query = cursor.execute(
             QUERY_CLIENTES
         )
         
