@@ -58,7 +58,8 @@ from utils.warehouse_data import (
 
 
 ### CONEXIÓN ODBC
-CONX = pyodbc.connect("DSN=mba3;UID=API;PWD=API")
+# CONX = pyodbc.connect("DSN=mba3;UID=API;PWD=API")
+CONX = pyodbc.connect("DSN=mba3;PWD=API")
 CURSOR = CONX.cursor()
 
 # eliminar datos de tablas en wharehouse
