@@ -63,6 +63,8 @@ from api_mba.tablas_warehouse import (
     odbc_actualizar_clientes_warehouse,
     
     api_actualizar_facturas_warehouse,         # 2
+    odbc_actualizar_stock_lote_warehouse,
+    
     api_actualizar_imp_llegadas_warehouse,     # 3
     api_actualizar_imp_transito_warehouse,     # 4
     api_actualizar_pedidos_warehouse,          # 5
@@ -537,7 +539,10 @@ def stock_lote(request):
             
             # 2 Facturas (ultimos 2 meses)
             # warehouse.facturas
-            api_actualizar_facturas_warehouse()
+            if obtener_conexion_config('stock_lote') == 'api':
+                api_actualizar_facturas_warehouse()
+            elif obtener_conexion_config('stock_lote') == 'odbc':
+                odbc_actualizar_stock_lote_warehouse()
             
             # 3 Imp Llegadas
             # warehouse.imp_llegadas
@@ -627,8 +632,13 @@ def stock_lote(request):
                 api_actualizar_reservas_lotes_warehouse()
             elif table_name == "reservas_lote_2":
                 api_actualizar_reservas_lotes_2_warehouse()
+                
             elif table_name == "stock_lote":
-                api_actualizar_stock_lote_warehouse()
+                if obtener_conexion_config('stock_lote') == 'api':
+                    api_actualizar_facturas_warehouse()
+                elif obtener_conexion_config('stock_lote') == 'odbc':
+                    odbc_actualizar_stock_lote_warehouse()
+                
             elif table_name == "etiquetado_stock":
                 actualizar_datos_etiquetado_fun()
             elif table_name == "mis_reservas":
