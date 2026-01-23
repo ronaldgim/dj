@@ -166,15 +166,15 @@ def api_actualizar_clientes_warehouse():
             # Insertar datos de tabla clientes
             insert_data_warehouse('clientes', data)
             
-            admin_warehouse_timestamp(tabla='clientes', actualizar_datetime=True, mensaje='Actualizado correctamente')
+            admin_warehouse_timestamp(tabla='clientes', actualizar_datetime=True, mensaje='API- Actualizado correctamente')
             
         else:
             
-            admin_warehouse_timestamp(tabla='clientes', actualizar_datetime=False, mensaje=f'Error api: status {clientes_mba["status"]}')
+            admin_warehouse_timestamp(tabla='clientes', actualizar_datetime=False, mensaje=f'API- Error api: status {clientes_mba["status"]}')
 
     except Exception as e:
         
-        admin_warehouse_timestamp(tabla='clientes', actualizar_datetime=False, mensaje=f'Error exception: {e}')
+        admin_warehouse_timestamp(tabla='clientes', actualizar_datetime=False, mensaje=f'API- Error exception: {e}')
 
 
 ### 1 ODBC ACTUALIZAR CLIENTES WAREHOUSE 
