@@ -43,25 +43,6 @@ from utils.warehouse_data import (
     cartones_volumen_factura
 )
 
-# import platform
-
-# IS_WINDOUS = platform.system() == 'Windows'
-
-# def get_4d_connection():
-#     if platform.system() == "Windows":
-#         return pyodbc.connect(
-#             "DSN=mba;UID=API;PWD=API",
-#             autocommit=False
-#         )
-#     else:
-#         raise RuntimeError("ODBC 4D no disponible en Linux")
-
-
-### CONEXIÓN ODBC
-# CONX = pyodbc.connect("DSN=mba3;UID=API;PWD=API")
-# CONX = pyodbc.connect("DSN=mba3;PWD=API")
-# CURSOR = CONX.cursor()
-
 # eliminar datos de tablas en wharehouse
 def delete_data_warehouse(table_name):
     
@@ -183,10 +164,7 @@ def odbc_actualizar_clientes_warehouse():
     try:
         cnx = pyodbc.connect("DSN=mba3;PWD=API")
         cursor = cnx.cursor()
-        # clientes_query = CURSOR.execute(
-        clientes_query = cursor.execute(
-            QUERY_CLIENTES
-        )
+        clientes_query = cursor.execute(QUERY_CLIENTES)
         
         data = clientes_query.fetchall()
 
@@ -1093,39 +1071,39 @@ def api_actualizar_reservas_lotes_2_warehouse():
 
 
 ### 12 ACTULIZAR STOCK LOTE
+STOCK_LOTE_QUERY = """
+    SELECT 
+        INVT_Ficha_Principal.PRODUCT_ID, 
+        INVT_Ficha_Principal.PRODUCT_NAME, 
+        INVT_Ficha_Principal.GROUP_CODE,
+        INVT_Ficha_Principal.UM, 
+        INVT_Producto_Lotes.OH AS OH_LOTE, 
+        INVT_Producto_Lotes_Bodegas.OH AS OH_BODEGA, 
+        INVT_Producto_Lotes_Bodegas.COMMITED,
+        INVT_Producto_Lotes_Bodegas.QUANTITY, 
+        INVT_Producto_Lotes.LOTE_ID, 
+        INVT_Producto_Lotes.Fecha_elaboracion_lote, 
+        INVT_Producto_Lotes.FECHA_CADUCIDAD,
+        INVT_Producto_Lotes_Bodegas.WARE_CODE, 
+        INVT_Producto_Lotes_Bodegas.LOCATION, 
+        INVT_Producto_Lotes.AVAILABLE
+    FROM 
+        INVT_Ficha_Principal INVT_Ficha_Principal, 
+        INVT_Producto_Lotes INVT_Producto_Lotes, 
+        INVT_Producto_Lotes_Bodegas INVT_Producto_Lotes_Bodegas 
+    WHERE 
+        INVT_Ficha_Principal.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND 
+        INVT_Producto_Lotes_Bodegas.PRODUCT_ID_CORP = INVT_Ficha_Principal.PRODUCT_ID_CORP AND 
+        INVT_Producto_Lotes_Bodegas.Confirm=true AND 
+        INVT_Producto_Lotes.LOTE_ID = INVT_Producto_Lotes_Bodegas.LOTE_ID AND 
+        INVT_Producto_Lotes.WARE_CODE_CORP = INVT_Producto_Lotes_Bodegas.WARE_CODE AND 
+        ((INVT_Producto_Lotes.OH>0) AND (INVT_Producto_Lotes_Bodegas.OH>0))
+"""
+
 def api_actualizar_stock_lote_warehouse():
     
     try:
-        stock_lote_mba = api_mba_sql(
-        """
-            SELECT 
-                INVT_Ficha_Principal.PRODUCT_ID, 
-                INVT_Ficha_Principal.PRODUCT_NAME, 
-                INVT_Ficha_Principal.GROUP_CODE,
-                INVT_Ficha_Principal.UM, 
-                INVT_Producto_Lotes.OH AS OH_LOTE, 
-                INVT_Producto_Lotes_Bodegas.OH AS OH_BODEGA, 
-                INVT_Producto_Lotes_Bodegas.COMMITED,
-                INVT_Producto_Lotes_Bodegas.QUANTITY, 
-                INVT_Producto_Lotes.LOTE_ID, 
-                INVT_Producto_Lotes.Fecha_elaboracion_lote, 
-                INVT_Producto_Lotes.FECHA_CADUCIDAD,
-                INVT_Producto_Lotes_Bodegas.WARE_CODE, 
-                INVT_Producto_Lotes_Bodegas.LOCATION, 
-                INVT_Producto_Lotes.AVAILABLE
-            FROM 
-                INVT_Ficha_Principal INVT_Ficha_Principal, 
-                INVT_Producto_Lotes INVT_Producto_Lotes, 
-                INVT_Producto_Lotes_Bodegas INVT_Producto_Lotes_Bodegas 
-            WHERE 
-                INVT_Ficha_Principal.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND 
-                INVT_Producto_Lotes_Bodegas.PRODUCT_ID_CORP = INVT_Ficha_Principal.PRODUCT_ID_CORP AND 
-                INVT_Producto_Lotes_Bodegas.Confirm=true AND 
-                INVT_Producto_Lotes.LOTE_ID = INVT_Producto_Lotes_Bodegas.LOTE_ID AND 
-                INVT_Producto_Lotes.WARE_CODE_CORP = INVT_Producto_Lotes_Bodegas.WARE_CODE AND 
-                ((INVT_Producto_Lotes.OH>0) AND (INVT_Producto_Lotes_Bodegas.OH>0))
-        """
-        )
+        stock_lote_mba = api_mba_sql(STOCK_LOTE_QUERY)
     
         if stock_lote_mba["status"] == 200:
             data = []
@@ -1168,11 +1146,40 @@ def api_actualizar_stock_lote_warehouse():
             # Insertar datos de tabla clientes
             insert_data_warehouse('stock_lote', data)
             
-            admin_warehouse_timestamp(tabla='stock_lote', actualizar_datetime=True, mensaje='Actualizado correctamente')
+            admin_warehouse_timestamp(tabla='stock_lote', actualizar_datetime=True, mensaje='API - Actualizado correctamente')
+    
+        else:
+            admin_warehouse_timestamp(tabla='stock_lote', actualizar_datetime=True, mensaje='API NO TRAE DATOS')
     
     except Exception as e:
         
-        admin_warehouse_timestamp(tabla='stock_lote', actualizar_datetime=False, mensaje=f'Error: {e}')
+        admin_warehouse_timestamp(tabla='stock_lote', actualizar_datetime=False, mensaje=f'API - Error: {e}')
+
+
+def odbc_actualizar_stock_lote_warehouse():
+    
+    try:
+        
+        cnx = pyodbc.connect("DSN=mba3;PWD=API")
+        cursor = cnx.cursor()        
+        stock_lote_mba = cursor.execute(STOCK_LOTE_QUERY)
+        data = stock_lote_mba.fetchall()
+        
+        if len(data) >=1 :
+
+            # Borrar datos de tabla clientes
+            delete_data_warehouse('stock_lote')
+            
+            # Insertar datos de tabla clientes
+            insert_data_warehouse('stock_lote', data)
+            
+            admin_warehouse_timestamp(tabla='stock_lote', actualizar_datetime=True, mensaje='ODBC - Actualizado correctamente')
+        else:
+            admin_warehouse_timestamp(tabla='stock_lote', actualizar_datetime=True, mensaje='ODBC - NO TRAE DATOS')
+    
+    except Exception as e:
+        
+        admin_warehouse_timestamp(tabla='stock_lote', actualizar_datetime=False, mensaje=f'ODBC - Error: {e}')
 
 
 
