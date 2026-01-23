@@ -43,8 +43,22 @@ from utils.warehouse_data import (
     cartones_volumen_factura
 )
 
+# import platform
+
+# IS_WINDOUS = platform.system() == 'Windows'
+
+# def get_4d_connection():
+#     if platform.system() == "Windows":
+#         return pyodbc.connect(
+#             "DSN=mba;UID=API;PWD=API",
+#             autocommit=False
+#         )
+#     else:
+#         raise RuntimeError("ODBC 4D no disponible en Linux")
+
+
 ### CONEXIÓN ODBC
-CONX = pyodbc.connect("DSN=mba;UID=API;PWD=API")
+CONX = pyodbc.connect("DSN=mba3;UID=API;PWD=API")
 CURSOR = CONX.cursor()
 
 # eliminar datos de tablas en wharehouse
