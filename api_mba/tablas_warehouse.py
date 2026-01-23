@@ -21,9 +21,7 @@ from dateutil.relativedelta import relativedelta
 import pandas as pd
 
 # Queries de mba por api
-from api_mba.api_query import (
-    api_query_clientes_mba
-    )
+from api_mba.api_query import api_query_clientes_mba
 
 # datos de actualización
 from datos.models import AdminActualizationWarehaouse
@@ -45,9 +43,24 @@ from utils.warehouse_data import (
     cartones_volumen_factura
 )
 
+# import platform
+
+# IS_WINDOUS = platform.system() == 'Windows'
+
+# def get_4d_connection():
+#     if platform.system() == "Windows":
+#         return pyodbc.connect(
+#             "DSN=mba;UID=API;PWD=API",
+#             autocommit=False
+#         )
+#     else:
+#         raise RuntimeError("ODBC 4D no disponible en Linux")
+
+
 ### CONEXIÓN ODBC
-CONX = pyodbc.connect("DSN=mba;UID=API;PWD=API")
-CURSOR = CONX.cursor()
+# CONX = pyodbc.connect("DSN=mba3;UID=API;PWD=API")
+# CONX = pyodbc.connect("DSN=mba3;PWD=API")
+# CURSOR = CONX.cursor()
 
 # eliminar datos de tablas en wharehouse
 def delete_data_warehouse(table_name):
@@ -168,8 +181,10 @@ def api_actualizar_clientes_warehouse():
 def odbc_actualizar_clientes_warehouse():
     
     try:
-    
-        clientes_query = CURSOR.execute(
+        cnx = pyodbc.connect("DSN=mba3;PWD=API")
+        cursor = cnx.cursor()
+        # clientes_query = CURSOR.execute(
+        clientes_query = cursor.execute(
             QUERY_CLIENTES
         )
         
