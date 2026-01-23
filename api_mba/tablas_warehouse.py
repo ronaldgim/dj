@@ -182,7 +182,7 @@ def odbc_actualizar_clientes_warehouse():
     
     try:
         cnx = pyodbc.connect("DSN=mba3;PWD=API")
-        cursor = cnx.cursor
+        cursor = cnx.cursor()
         # clientes_query = CURSOR.execute(
         clientes_query = cursor.execute(
             QUERY_CLIENTES
