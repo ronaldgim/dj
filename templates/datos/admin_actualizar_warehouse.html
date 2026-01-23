@@ -47,23 +47,14 @@
                             <td class="text-center"><code> {{i.conexion}} </code></td>
                             <td class="text-center">
                                 
-                                <div v-show="i.table_name == 'clientes'">
+                                <div v-show="i.table_name == 'clientes' || i.table_name == 'stock_lote'">
                                     <button v-show="i.conexion == 'odbc'" @click="cambiarConexion(i.table_name, 'api')" class="btn btn-sm btn-primary">
                                         api
                                     </button>
                                     <button v-show="i.conexion == 'api'" @click="cambiarConexion(i.table_name, 'odbc')" class="btn btn-sm btn-success">
                                         odbc
                                     </button>
-                                </div>
-                                <div v-show="i.table_name == 'stock_lote'">
-                                    <button v-show="i.conexion == 'odbc'" @click="cambiarConexion(i.table_name, 'api')" class="btn btn-sm btn-primary">
-                                        api
-                                    </button>
-                                    <button v-show="i.conexion == 'api'" @click="cambiarConexion(i.table_name, 'odbc')" class="btn btn-sm btn-success">
-                                        odbc
-                                    </button>
-                                </div>
-                                
+                                </div>                                
                             </td>
                             <td class="text-center">
                                 <button @click="actualizarTablaWarehouse(i.table_name)" class="btn btn-sm btn-success">
