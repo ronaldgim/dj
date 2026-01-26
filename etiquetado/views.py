@@ -1661,7 +1661,6 @@ def picking_estado_bodega(request, n_pedido):
         t_unidades = pedido['QUANTITY'].sum()
         
         data = de_dataframe_a_template(pedido)
-        
         for i in data:
             product_id = i['PRODUCT_ID']
             for j in ubicaciones_andagoya:
@@ -1680,11 +1679,19 @@ def picking_estado_bodega(request, n_pedido):
                     elif not ubi_estanteria and len(ubi_no_estanteria) >= 1:
                         # i['ubicaciones'] = sorted(ubi_no_estanteria, key = lambda x: (x.bodega, x.pasillo, x.modulo, x.nivel))
                         i['ubicaciones'] = ubi_no_estanteria[:1]
-                        
+                    
                     break
-        
+                
+        data_ordenada = sorted(
+            data,
+            key=lambda x: (
+                x['ubicaciones'][0].bodega if x['ubicaciones'] else '',
+                x['ubicaciones'][0].pasillo if x['ubicaciones'] else ''
+            )
+        )
+
         context = {
-            'reservas':data,
+            'reservas': data_ordenada, # data,
             'pedido':n_pedido,
 
             'cabecera':data[0],
