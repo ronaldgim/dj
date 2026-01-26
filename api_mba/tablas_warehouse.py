@@ -926,6 +926,7 @@ QUERY_RESERVAS_LOTE = """
     
     ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID, CLNT_Pedidos_Detalle.PRODUCT_ID DESC    
 """
+
 def api_actualizar_reservas_lotes_warehouse():
     
     try:
@@ -965,7 +966,7 @@ def api_actualizar_reservas_lotes_warehouse():
                 )
                 
                 data.append(row)
-                
+            print(data[:5])
             #with transaction.atomic():
             # Borrar datos de tabla reservas_lote
             delete_data_warehouse('reservas_lote')
@@ -990,18 +991,49 @@ def odbc_actualizar_reservas_lotes_warehouse():
         
         cnx = pyodbc.connect("DSN=mba3;PWD=API")
         cursor = cnx.cursor()
-        reservas_lotes_query = cursor.execute(QUERY_CLIENTES)
+        reservas_lotes_query = cursor.execute(QUERY_RESERVAS_LOTE)
+        data = reservas_lotes_query.fetchall() 
         
-        data = reservas_lotes_query.fetchall()
-        
+        data_transformada = []
         if len(data) >= 1 :
+            
+            for i in data:
+                # print(i)
+                fecha_pedido = i[0]
+                contrato_id = str(i[1]).split('.')[0] #;print(contrato_id)
+                codigo_cliente = i[2]
+                product_id = i[3]
+                ware_code = i[4]
+                egreso_temp = i[5]
+                lote_id = i[6]
+                fecha_caducidad = i[7]
+                confirmed = i[9]
+                fecha_elaboracion_lote = i[8]
+                price = i[10]
+                
+                row = (
+                    fecha_pedido,
+                    contrato_id,
+                    codigo_cliente,
+                    product_id,
+                    ware_code,
+                    egreso_temp,
+                    lote_id,
+                    fecha_caducidad,
+                    confirmed,
+                    fecha_elaboracion_lote,
+                    price
+                )
+                # print(row)
+                data_transformada.append(row)
             
             #with transaction.atomic():
             # Borrar datos de tabla reservas_lote
             delete_data_warehouse('reservas_lote')
             
             # Insertar datos de tabla reservas_lote
-            insert_data_warehouse('reservas_lote', data)
+            # insert_data_warehouse('reservas_lote', data)
+            insert_data_warehouse('reservas_lote', data_transformada)
             
             admin_warehouse_timestamp(tabla='reservas_lote', actualizar_datetime=True, mensaje='ODBC - Actualizado correctamente')
 
@@ -1010,7 +1042,7 @@ def odbc_actualizar_reservas_lotes_warehouse():
             admin_warehouse_timestamp(tabla='reservas_lote', actualizar_datetime=False, mensaje=f'ODBC - ERROR ODBC NO TRAE DATOS')
         
     except Exception as e:
-        
+        print(e)
         admin_warehouse_timestamp(tabla='reservas_lote', actualizar_datetime=False, mensaje=f'ODBC - Error exception: {e}')
 
 
