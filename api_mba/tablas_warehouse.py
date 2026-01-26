@@ -893,45 +893,44 @@ def api_actualizar_reservas_warehouse():
 
 
 ### 10 ACTUALIZAR RESERVAS LOTES WAREHOUSE
+QUERY_RESERVAS_LOTE = """
+    SELECT 
+        CLNT_Pedidos_Principal.FECHA_PEDIDO, 
+        CLNT_Pedidos_Principal.CONTRATO_ID, 
+        CLNT_Ficha_Principal.CODIGO_CLIENTE, 
+        CLNT_Pedidos_Detalle.PRODUCT_ID, 
+        CLNT_Pedidos_Principal.WARE_CODE, 
+        INVT_Lotes_Trasabilidad.EGRESO_TEMP, 
+        INVT_Lotes_Trasabilidad.LOTE_ID, 
+        INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD, 
+        INVT_Producto_Lotes.Fecha_elaboracion_lote, 
+        CLNT_Pedidos_Principal.CONFIRMED, 
+        CLNT_Pedidos_Detalle.UNIT_COST 
+    
+    FROM 
+        CLNT_Ficha_Principal CLNT_Ficha_Principal, 
+        CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, 
+        CLNT_Pedidos_Principal CLNT_Pedidos_Principal, 
+        INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad, 
+        INVT_Producto_Lotes INVT_Producto_Lotes 
+    
+    WHERE 
+        CLNT_Pedidos_Principal.CONTRATO_ID_CORP = CLNT_Pedidos_Detalle.CONTRATO_ID_CORP AND 
+        CLNT_Ficha_Principal.CODIGO_CLIENTE = CLNT_Pedidos_Principal.CLIENT_ID AND 
+        CLNT_Pedidos_Detalle.CONTRATO_ID_CORP = INVT_Lotes_Trasabilidad.DOC_ID_CORP AND 
+        CLNT_Pedidos_Detalle.PRODUCT_ID_CORP = INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP AND 
+        INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND
+        INVT_Lotes_Trasabilidad.LOTE_ID = INVT_Producto_Lotes.LOTE_ID AND 
+        INVT_Lotes_Trasabilidad.WARE_COD_CORP = INVT_Producto_Lotes.WARE_CODE_CORP AND 
+        ((CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND (CLNT_Pedidos_Detalle.TIPO_DOCUMENTO='PE')) 
+    
+    ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID, CLNT_Pedidos_Detalle.PRODUCT_ID DESC    
+"""
 def api_actualizar_reservas_lotes_warehouse():
     
     try:
     
-        reservas_lotes_mba = api_mba_sql(
-            """
-            SELECT 
-                CLNT_Pedidos_Principal.FECHA_PEDIDO, 
-                CLNT_Pedidos_Principal.CONTRATO_ID, 
-                CLNT_Ficha_Principal.CODIGO_CLIENTE, 
-                CLNT_Pedidos_Detalle.PRODUCT_ID, 
-                CLNT_Pedidos_Principal.WARE_CODE, 
-                INVT_Lotes_Trasabilidad.EGRESO_TEMP, 
-                INVT_Lotes_Trasabilidad.LOTE_ID, 
-                INVT_Lotes_Trasabilidad.FECHA_CADUCIDAD, 
-                INVT_Producto_Lotes.Fecha_elaboracion_lote, 
-                CLNT_Pedidos_Principal.CONFIRMED, 
-                CLNT_Pedidos_Detalle.UNIT_COST 
-            
-            FROM 
-                CLNT_Ficha_Principal CLNT_Ficha_Principal, 
-                CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, 
-                CLNT_Pedidos_Principal CLNT_Pedidos_Principal, 
-                INVT_Lotes_Trasabilidad INVT_Lotes_Trasabilidad, 
-                INVT_Producto_Lotes INVT_Producto_Lotes 
-            
-            WHERE 
-                CLNT_Pedidos_Principal.CONTRATO_ID_CORP = CLNT_Pedidos_Detalle.CONTRATO_ID_CORP AND 
-                CLNT_Ficha_Principal.CODIGO_CLIENTE = CLNT_Pedidos_Principal.CLIENT_ID AND 
-                CLNT_Pedidos_Detalle.CONTRATO_ID_CORP = INVT_Lotes_Trasabilidad.DOC_ID_CORP AND 
-                CLNT_Pedidos_Detalle.PRODUCT_ID_CORP = INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP AND 
-                INVT_Lotes_Trasabilidad.PRODUCT_ID_CORP = INVT_Producto_Lotes.PRODUCT_ID_CORP AND
-                INVT_Lotes_Trasabilidad.LOTE_ID = INVT_Producto_Lotes.LOTE_ID AND 
-                INVT_Lotes_Trasabilidad.WARE_COD_CORP = INVT_Producto_Lotes.WARE_CODE_CORP AND 
-                ((CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND (CLNT_Pedidos_Detalle.TIPO_DOCUMENTO='PE')) 
-            
-            ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID, CLNT_Pedidos_Detalle.PRODUCT_ID DESC    
-            """
-        )
+        reservas_lotes_mba = api_mba_sql(QUERY_RESERVAS_LOTE)
         
         if reservas_lotes_mba["status"] == 200:
         
@@ -974,15 +973,45 @@ def api_actualizar_reservas_lotes_warehouse():
             # Insertar datos de tabla reservas_lote
             insert_data_warehouse('reservas_lote', data)
             
-            admin_warehouse_timestamp(tabla='reservas_lote', actualizar_datetime=True, mensaje='Actualizado correctamente')
+            admin_warehouse_timestamp(tabla='reservas_lote', actualizar_datetime=True, mensaje='API - Actualizado correctamente')
 
         else:
         
-            admin_warehouse_timestamp(tabla='reservas_lote', actualizar_datetime=False, mensaje=f'Error api: status {reservas_lotes_mba["status"]}')
+            admin_warehouse_timestamp(tabla='reservas_lote', actualizar_datetime=False, mensaje=f'API - Error api: status {reservas_lotes_mba["status"]}')
         
     except Exception as e:
         
-        admin_warehouse_timestamp(tabla='reservas_lote', actualizar_datetime=False, mensaje=f'Error exception: {e}')
+        admin_warehouse_timestamp(tabla='reservas_lote', actualizar_datetime=False, mensaje=f'API - Error exception: {e}')
+
+
+def odbc_actualizar_reservas_lotes_warehouse():
+    
+    try:
+        
+        cnx = pyodbc.connect("DSN=mba3;PWD=API")
+        cursor = cnx.cursor()
+        reservas_lotes_query = cursor.execute(QUERY_CLIENTES)
+        
+        data = reservas_lotes_query.fetchall()
+        
+        if len(data) >= 1 :
+            
+            #with transaction.atomic():
+            # Borrar datos de tabla reservas_lote
+            delete_data_warehouse('reservas_lote')
+            
+            # Insertar datos de tabla reservas_lote
+            insert_data_warehouse('reservas_lote', data)
+            
+            admin_warehouse_timestamp(tabla='reservas_lote', actualizar_datetime=True, mensaje='ODBC - Actualizado correctamente')
+
+        else:
+        
+            admin_warehouse_timestamp(tabla='reservas_lote', actualizar_datetime=False, mensaje=f'ODBC - ERROR ODBC NO TRAE DATOS')
+        
+    except Exception as e:
+        
+        admin_warehouse_timestamp(tabla='reservas_lote', actualizar_datetime=False, mensaje=f'ODBC - Error exception: {e}')
 
 
 ### 11 ACTUALIZAR RESERVAS LOTES WAREHOUSE
