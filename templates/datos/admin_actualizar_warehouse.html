@@ -47,7 +47,7 @@
                             <td class="text-center"><code> {{i.conexion}} </code></td>
                             <td class="text-center">
                                 
-                                <div v-show="i.table_name == 'clientes' || i.table_name == 'stock_lote'">
+                                <div v-show="i.table_name == 'clientes' || i.table_name == 'stock_lote' || i.table_name == 'reservas_lote'">
                                     <button v-show="i.conexion == 'odbc'" @click="cambiarConexion(i.table_name, 'api')" class="btn btn-sm btn-primary">
                                         api
                                     </button>
