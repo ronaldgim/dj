@@ -93,7 +93,7 @@
 
                             <!-- th scope="col">Creado</th -->
                             <th scope="col">Actualizado</th>
-                            <th scope="col">Usuario</th>
+                            <!-- th scope="col">Usuario</th-->
                             <th scope="col">Acciones</th>
                         </tr>
                     </thead>
@@ -133,8 +133,11 @@
 
 
                             <!-- td>{{i.creado|date:'Y-m-d H:m'}}</td -->
-                            <td>{{i.actualizado|date:'Y-m-d H:m'}}</td>
-                            <td>{{i.usuario.first_name}} {{i.usuario.last_name}}</td>
+                            <td>
+                                {{i.actualizado|date:'Y-m-d'}} <br>
+                                {{i.usuario.first_name}} {{i.usuario.last_name}}
+                            </td>
+                            <!-- td>{{i.usuario.first_name}} {{i.usuario.last_name}}</td -->
                             <td>
                                 <div class="btn-group" role="group" aria-label="Basic example">
                                     <button 
@@ -260,6 +263,7 @@
                 <div class="modal-body" id="editModalBody">
                     <!-- El contenido del formulario se cargará aquí vía AJAX -->
                 </div>
+                
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Guardar cambios</button>
