@@ -7,7 +7,7 @@ class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
         fields = '__all__'
-        exclude = ['usuario', 'unidad', 'u_empaque', 'consignacion']
+        exclude = ['unidad', 'u_empaque', 'consignacion']
         labels = {
             'order'       : 'Orden',
             'revisado'    : 'Revisado',
@@ -96,12 +96,13 @@ class ProductForm(forms.ModelForm):
                 'role': 'switch',
                 'id': 'flexSwitchCheckChecked'
             }),
-            # 'usuario': forms.HiddenInput(),
+            'usuario': forms.HiddenInput(),
         }
     
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
-        super(ProductForm, self).__init__(*args, **kwargs)
+        # super(ProductForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         
         # Marcar campos requeridos para Bootstrap
         for field_name, field in self.fields.items():
@@ -131,6 +132,17 @@ class ProductForm(forms.ModelForm):
         if u_empaque is not None and u_empaque < 0:
             raise forms.ValidationError("Las unidades por empaque no pueden ser negativas.")
         return u_empaque
+    
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        
+        if self.user:
+            instance.usuario = self.user
+        
+        if commit:
+            instance.save()
+        
+        return instance
 
 
 class InventarioForm(forms.ModelForm):
