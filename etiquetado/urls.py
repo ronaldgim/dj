@@ -594,6 +594,16 @@ urlpatterns = [
         route = 'inventario_transferencia_data',
         view  = transferencia_data.inventario_transferencia_data,
         name  = 'inventario_transferencia_data'
+    ),
+    
+    
+    ################################
+    ##### PICKING ESTADISTICAS #####
+    ################################
+    path(
+        route = 'picking-estadisticas',
+        view  = views.dashboard_picking_estadisticas,
+        name  = 'dashboard_picking_estadisticas'
     )
 ]
 

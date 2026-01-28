@@ -4528,3 +4528,12 @@ def reporte_error_lote_v2(request):
         'actualizado':AdminActualizationWarehaouse.objects.get(table_name='error_lote_v2').datetime
     }
     return render(request, 'etiquetado/error-lote/reporte-error-lote-v2.html', context)
+
+
+
+################################
+##### PICKING ESTADISTICAS #####
+################################
+
+def dashboard_picking_estadisticas(request):
+    return render(request, 'dashboards/picking_estadisticas.html')

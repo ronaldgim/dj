@@ -87,5 +87,11 @@ urlpatterns = [
     #     view=views.actualizar_picking_stadisticas_all,
     #     name='actualizar_picking_stadisticas_all',
     # ),
+    
+    path(
+        route='pipeline_picking_estadisticas_batch/<int:year>/<int:month>',
+        view=views.pipeline_picking_estadisticas_batch,
+        name='pipeline_picking_estadisticas_batch',
+    ),
 
 ]

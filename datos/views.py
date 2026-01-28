@@ -2,6 +2,8 @@
 from django.db import connections, transaction
 from django.db.models import Q
 
+from datetime import time, timedelta
+
 import time
     
 # Shortcuts
@@ -2543,22 +2545,6 @@ def cambiar_conexion_de_warehouse(request):
 
 
 ### PICKING ESTADISTICAS 
-estado_picking_query = (
-    EstadoPicking.objects
-    .filter(estado='FINALIZADO').values(
-        'n_pedido',
-        'bodega',
-        'codigo_cliente',
-        'tipo_cliente',
-        'cliente',
-        'detalle',
-        'fecha_creado',
-        'fecha_actualizado',
-        'user__user__username',
-    )
-).order_by('-n_pedido')[:200]
-
-
 def datos_reserva_by_contrato_id(contrato_id) -> dict:
     """
     Obtener datos de cabecera de reserva en MBA por contrato_id
@@ -2584,27 +2570,41 @@ def datos_reserva_by_contrato_id(contrato_id) -> dict:
             AND TRIM(pp.CONTRATO_ID) = '{contrato_id}'
         ORDER BY pp.CONTRATO_ID DESC
     """
-    
-    reserva = api_mba_sql(query)
-    
-    if reserva['status'] == 200:
-        try:
-            data = reserva['data'][0]
-            fecha_pedido = str(data['FECHA_PEDIDO'])[:10]   # slicing correcto
-            hora_llegada = str(data['HORA_LLEGADA'])
-            creado_mba_str = f"{fecha_pedido} {hora_llegada}"            
-            try:
-                creado_mba = datetime.strptime(creado_mba_str, '%d/%m/%Y %H:%M:%S')
-            except ValueError:
-                creado_mba = datetime.strptime(creado_mba_str, '%d/%m/%Y %H:%M')
 
-            data['creado_mba'] = creado_mba
-            return data
-        except Exception as e:
-            print(e)
-            return {}
-    else:
+    reserva = api_mba_sql(query)
+
+    if reserva.get('status') != 200:
         return {}
+
+    data_list = reserva.get('data', [])
+
+    # ✅ CLAVE: validar lista vacía
+    if not data_list:
+        return {}
+
+    try:
+        data = data_list[0]
+
+        fecha_pedido = str(data.get('FECHA_PEDIDO', ''))[:10]
+        hora_llegada = str(data.get('HORA_LLEGADA', '')).strip()
+
+        if not fecha_pedido or not hora_llegada:
+            return {}
+
+        creado_mba_str = f"{fecha_pedido} {hora_llegada}"
+
+        try:
+            creado_mba = datetime.strptime(creado_mba_str, '%d/%m/%Y %H:%M:%S')
+        except ValueError:
+            creado_mba = datetime.strptime(creado_mba_str, '%d/%m/%Y %H:%M')
+
+        data['creado_mba'] = creado_mba
+        return data
+
+    except Exception as e:
+        print(f'Error - datos_reserva_by_contrato_id ({contrato_id}): {e}')
+        return {}
+
 
 
 def datos_pedido_by_contrato_id(contrato_id) -> list:
@@ -2677,156 +2677,375 @@ def datos_facturacion_by_contrato_id(contrato_id) -> dict:
         return {}
 
 
-def obtener_data_picking_estadistica(request):
-
-    for i in estado_picking_query:
-        
-        contrato_id = i['n_pedido']
-        contrato_id = str(contrato_id).strip().split('.')[0] if '.' in str(contrato_id) else str(contrato_id)
-        reserva = datos_reserva_by_contrato_id(contrato_id)
-        
-        PickingEstadistica.objects.create(
-            contrato_id = contrato_id,
-            creado_mba = reserva.get('creado_mba') if reserva else None,
-            bodega = reserva.get('WARE_CODE') if reserva else '',
-            creado_por_mba = reserva.get('ENTRY_BY') if reserva else None,
-            codigo_cliente = reserva.get('CODIGO_CLIENTE') if reserva else '',
-            nombre_cliente = reserva.get('NOMBRE_CLIENTE') if reserva else '',
-            tipo_cliente = reserva.get('CLIENT_TYPE') if reserva else '',
-            inicio_picking = i.get('fecha_creado'),
-            fin_picking = i.get('fecha_actualizado'),
-            usuario_picking = i.get('user__user__username'),
+def email_by_entry_by(entry_by):
+    with connections['gimpromed_sql'].cursor() as cursor:
+        cursor.execute(f"""
+            SELECT 
+                pp.Entry_by,
+                um.mail AS email_usuario
+            FROM 
+                warehouse.pedidos pp
+            LEFT JOIN 
+                warehouse.user_mba um
+                ON TRIM(pp.Entry_by) = TRIM(um.codigo_usuario)
+            WHERE 
+                TRIM(pp.Entry_by) = '{entry_by}';
+        """
         )
         
-        actualizar_datos_calculo_pedidos_picking_estadisticas()
-        actualizar_datos_usuario_mba()
-        actualizar_datos_facturacion()
-        
-        time.sleep(2)  # Simular tiempo de procesamiento por cada registro
-    
-    return HttpResponse("OK")
+        email = cursor.fetchone()
+        connections['gimpromed_sql'].close()
+        if email:
+            return email[1]
+        return None
 
 
-def actualizar_datos_calculo_pedidos_picking_estadisticas():
-    estadisticas = PickingEstadistica.objects.filter(datos_completos=False)
-
-    for e in estadisticas:
-        data_mba = datos_pedido_by_contrato_id(e.contrato_id)
-        prod = productos_odbc_and_django()[[
-            'product_id', 'Unidad_Empaque', 'vol_m3', 'Peso'
-        ]]
-        prod['Unidad_Empaque'] = (
-            pd.to_numeric(prod['Unidad_Empaque'], errors='coerce')
-            .replace(0, 0.0025)
-            .fillna(0.0025)
+###
+def obtener_estado_picking_batch(year: int, month: int):
+    """
+    Retorna un batch de EstadoPicking usando slicing
+    Ej: inicio=0, fin=100
+    """
+    return (
+        EstadoPicking.objects
+        #.filter(fecha_creado__year__lt=2026) # Menor a 2026
+        .filter(
+            Q(fecha_creado__year=year) &
+            Q(fecha_creado__month=month)
         )
-
-        data = pd.DataFrame(data_mba)
-
-        if data.empty:
-            continue
-
-        # Merge seguro
-        data = data.merge(
-            prod,
-            left_on='PRODUCT_ID',
-            right_on='product_id',
-            how='left'
-        )
-
-        # Conversión segura de tipos
-        for col in ['Unidad_Empaque', 'vol_m3', 'Peso', 'QUANTITY']:
-            data[col] = pd.to_numeric(data[col], errors='coerce')
-
-        # Evitar división por cero
-        data['Unidad_Empaque'] = data['Unidad_Empaque'].replace(0, np.nan)
-
-        # Cálculos
-        data['Cartones'] = data['QUANTITY'] / data['Unidad_Empaque']
-
-        items = data['PRODUCT_ID'].nunique()
-
-        total_volumen = (
-            data['vol_m3'] * data['Cartones']
-        ).fillna(0).sum()
-
-        total_peso = (
-            data['Peso'] * data['QUANTITY']
-        ).fillna(0).sum()
-
-        # Guardar resultados
-        e.total_items = items
-        e.total_volumen_m3 = total_volumen
-        e.total_peso_kg = total_peso
-        # e.save(update_fields=[
-        #     'total_items',
-        #     'total_volumen_m3',
-        #     'total_peso_kg',
-        #     'datos_completos'
-        # ])
-        e.save()
+        .order_by('-n_pedido')
+        .values(
+            'n_pedido',
+            'estado',
+            'bodega',
+            'codigo_cliente',
+            'tipo_cliente',
+            'cliente',
+            'fecha_creado',
+            'fecha_actualizado',
+            'user__user__username',
+        ) #[inicio:fin]
+    )
 
 
-def actualizar_datos_usuario_mba():
-    
-    def email_by_entry_by(entry_by):
-        with connections['gimpromed_sql'].cursor() as cursor:
-            cursor.execute(f"""
-                SELECT 
-                    pp.Entry_by,
-                    um.mail AS email_usuario
-                FROM 
-                    warehouse.pedidos pp
-                LEFT JOIN 
-                    warehouse.user_mba um
-                    ON TRIM(pp.Entry_by) = TRIM(um.codigo_usuario)
-                WHERE 
-                    TRIM(pp.Entry_by) = '{entry_by}';
-            """
+def cargar_picking_base_batch(year: int, month: int):
+    estado_qs = obtener_estado_picking_batch(year, month)
+
+    for i in estado_qs:
+        try:
+            contrato_id = str(i['n_pedido']).split('.')[0].strip()
+
+            PickingEstadistica.objects.update_or_create(
+                contrato_id=contrato_id,
+                defaults={
+                    'estado':i.get('estado'),
+                    'bodega': i.get('bodega'),
+                    'codigo_cliente': i.get('codigo_cliente'),
+                    'nombre_cliente': i.get('cliente'),
+                    'tipo_cliente': i.get('tipo_cliente'),
+                    'inicio_picking': i.get('fecha_creado'),
+                    'fin_picking': i.get('fecha_actualizado'),
+                    'usuario_picking': i.get('user__user__username'),
+                }
             )
-            
-            email = cursor.fetchone()
-            connections['gimpromed_sql'].close()
-            if email:
-                return email[1]
+        except Exception as e:
+            # logger.error(f"Error cargando picking base {i}: {e}")
+            print(f'Error - cargar_picking_base_batch: {e}')
+
+
+# def enriquecer_mba(batch_inicio: int = None, batch_fin: int = None):
+def enriquecer_mba():
+    """
+    Enriquece PickingEstadistica con datos de cabecera MBA.
+    """
+
+    qs = PickingEstadistica.objects.filter(datos_completos=False)
+
+    for e in qs:
+        try:
+            reserva = datos_reserva_by_contrato_id(e.contrato_id)
+            if not reserva:
+                continue
+
+            update_fields = []
+
+            if reserva.get('creado_mba'):
+                e.creado_mba = reserva['creado_mba']
+                update_fields.append('creado_mba')
+
+            if not e.bodega and reserva.get('WARE_CODE'):
+                e.bodega = reserva['WARE_CODE']
+                update_fields.append('bodega')
+
+            if reserva.get('ENTRY_BY'):
+                e.creado_por_mba = reserva['ENTRY_BY']
+                update_fields.append('creado_por_mba')
+
+            if reserva.get('CODIGO_CLIENTE'):
+                e.codigo_cliente = reserva['CODIGO_CLIENTE']
+                update_fields.append('codigo_cliente')
+
+            if reserva.get('NOMBRE_CLIENTE'):
+                e.nombre_cliente = reserva['NOMBRE_CLIENTE']
+                update_fields.append('nombre_cliente')
+
+            if reserva.get('CLIENT_TYPE'):
+                e.tipo_cliente = reserva['CLIENT_TYPE']
+                update_fields.append('tipo_cliente')
+
+            ciudad = reserva.get('CIUDAD_PRINCIPAL')
+            if ciudad:
+                e.ciudad_cliente = ciudad
+                update_fields.append('ciudad_cliente')
+
+            if update_fields:
+                e.save(update_fields=update_fields)
+
+        except Exception as ex:
+            print(f'Error - enriquecer_mba ({e.contrato_id}): {ex}')
+
+
+def enriquecer_usuario_mba(batch_inicio: int = None, batch_fin: int = None):
+    """
+    Enriquece PickingEstadistica con username Django
+    a partir del Entry_by de MBA.
+    """
+
+    qs = PickingEstadistica.objects.filter(
+        # creado_por_mba__isnull=False,
+        creado_por_mba_username__exact=''
+    )
+
+    if batch_inicio is not None and batch_fin is not None:
+        qs = qs.order_by('id')[batch_inicio:batch_fin]
+
+    for e in qs:
+        try:
+            email = email_by_entry_by(e.creado_por_mba)
+            if not email:
+                continue
+
+            user = User.objects.filter(email=email).only('username').first()
+            if not user:
+                continue
+
+            e.creado_por_mba_username = user.username
+            e.save(update_fields=['creado_por_mba_username'])
+
+        except Exception as ex:
+            print(f'Error - enriquecer_usuario_mba: {ex}')
+            # logger.error(
+            #     f"[MBA USER] Error contrato {e.contrato_id}: {ex}",
+            #     exc_info=True
+            # )
+
+
+def calcular_duracion_minutos(fecha_inicio, fecha_fin):
+    """
+    Retorna duración en minutos considerando SOLO:
+    - Lunes a viernes
+    - Horario laboral (08:00 - 17:00)
+
+    Si es inválida o negativa → None
+    """
+    try:
+        if not fecha_inicio or not fecha_fin:
             return None
+
+        if fecha_fin <= fecha_inicio:
+            return None
+
+        HORA_INICIO = time(7, 30) # 07:30
+        HORA_FIN = time(17, 0)    # 18:00
+
+        total_minutos = 0
+        fecha_actual = fecha_inicio
+
+        while fecha_actual.date() <= fecha_fin.date():
+
+            # Saltar fines de semana
+            if fecha_actual.weekday() >= 5:
+                fecha_actual += timedelta(days=1)
+                continue
+
+            inicio_jornada = fecha_actual.replace(
+                hour=HORA_INICIO.hour,
+                minute=HORA_INICIO.minute,
+                second=0,
+                microsecond=0
+            )
+
+            fin_jornada = fecha_actual.replace(
+                hour=HORA_FIN.hour,
+                minute=HORA_FIN.minute,
+                second=0,
+                microsecond=0
+            )
+
+            inicio = max(fecha_inicio, inicio_jornada) if fecha_actual.date() == fecha_inicio.date() else inicio_jornada
+            fin = min(fecha_fin, fin_jornada) if fecha_actual.date() == fecha_fin.date() else fin_jornada
+
+            if fin > inicio:
+                total_minutos += (fin - inicio).total_seconds() / 60
+
+            fecha_actual += timedelta(days=1)
+
+        return round(total_minutos, 2) if total_minutos > 0 else None
+
+    except Exception as ex:
+        print(f'Error - calcular_duracion_minutos: {ex}')
+        return None
+
+
+# def recalcular_duraciones_batch(inicio: int, fin: int):
+def recalcular_duraciones_batch():
     
-    estadisticas = PickingEstadistica.objects.filter(datos_completos=False)
+    estadisticas = PickingEstadistica.objects.filter(datos_completos=False) #all().order_by('id')[inicio:fin]
+
     for e in estadisticas:
-        if e.creado_por_mba and not e.creado_por_mba_username:
-            email = email_by_entry_by(e.creado_por_mba) 
-            try:
-                username = User.objects.filter(email=email).first()
-            except Exception as ex:
-                username = '' 
-            e.creado_por_mba_username = username
-            # e.save(update_fields=['creado_por_mba_username'])
-            e.save()
+        try:
+            # Fechas derivadas
+            if e.creado_mba:
+                e.anio_creado = e.creado_mba.year
+                e.mes_creado = e.creado_mba.month
+                e.dia_creado = e.creado_mba.day
+                e.dia_semana_creado = e.creado_mba.weekday()
+                e.dia_semana_creado_str = e.creado_mba.strftime('%A')
+
+            # Duraciones en minutos
+            e.tiempo_creacion_a_inicio = calcular_duracion_minutos(
+                e.creado_mba, e.inicio_picking
+            )
+
+            e.tiempo_inicio_a_fin = calcular_duracion_minutos(
+                e.inicio_picking, e.fin_picking
+            )
+
+            e.tiempo_fin_a_facturacion = calcular_duracion_minutos(
+                e.fin_picking, e.fecha_facturacion
+            )
+
+            e.tiempo_total_proceso = calcular_duracion_minutos(
+                e.creado_mba, e.fecha_facturacion
+            )
+
+            e.save(update_fields=[
+                'anio_creado', 
+                'mes_creado', 
+                'dia_creado',
+                'dia_semana_creado', 
+                'dia_semana_creado_str',
+                'tiempo_creacion_a_inicio',
+                'tiempo_inicio_a_fin',
+                'tiempo_fin_a_facturacion',
+                'tiempo_total_proceso'
+            ])
+
+        except Exception as ex:
+            print('Error - recalcular_duraciones_batch: {ex}')
+            #logger.error(f"Error recalculando duraciones {e.contrato_id}: {ex}")
 
 
-def actualizar_datos_facturacion():
-    
-    estadisticas = PickingEstadistica.objects.filter(datos_completos=False)
+# def calcular_items_y_volumen_batch(inicio: int, fin: int):
+#     estadisticas = PickingEstadistica.objects.order_by('id')[inicio:fin]
+def calcular_items_y_volumen_batch():
+    estadisticas = PickingEstadistica.objects.filter(datos_completos=False)  #.order_by('id')[inicio:fin]
+
+    prod = productos_odbc_and_django()[[
+        'product_id', 'Unidad_Empaque', 'vol_m3', 'Peso'
+    ]]
+
+    prod['Unidad_Empaque'] = (
+        pd.to_numeric(prod['Unidad_Empaque'], errors='coerce')
+        .replace(0, 0.0025)
+        .fillna(0.0025)
+    )
 
     for e in estadisticas:
-        data_facturacion = datos_facturacion_by_contrato_id(e.contrato_id)
-        if not data_facturacion:
-            continue
+        try:
+            data_mba = datos_pedido_by_contrato_id(e.contrato_id)
+            if not data_mba:
+                continue
 
-        e.numero_factura = data_facturacion.get('CODIGO_FACTURA', '')
-        e.fecha_facturacion = data_facturacion.get('fecha_factura', None)
-        # e.save(update_fields=[
-        #     'numero_factura',
-        #     'fecha_facturacion',
-        # ])
-        e.save()
+            df = pd.DataFrame(data_mba)
+            if df.empty:
+                continue
+
+            df = df.merge(
+                prod,
+                left_on='PRODUCT_ID',
+                right_on='product_id',
+                how='left'
+            )
+
+            df['QUANTITY'] = pd.to_numeric(df['QUANTITY'], errors='coerce')
+            df['Cartones'] = df['QUANTITY'] / df['Unidad_Empaque']
+
+            e.total_items = df['PRODUCT_ID'].nunique()
+            e.total_volumen_m3 = (df['vol_m3'] * df['Cartones']).fillna(0).sum()
+            e.total_peso_kg = (df['Peso'] * df['QUANTITY']).fillna(0).sum()
+
+            e.save(update_fields=[
+                'total_items', 'total_volumen_m3', 'total_peso_kg'
+            ])
+
+        except Exception as ex:
+            print('Error- calcular_items_y_voluman_batch: {ex}')
+            #logger.error(f"Error calculando items {e.contrato_id}: {ex}")
 
 
-def actualizar_picking_stadisticas_all(request):
+# def enriquecer_facturacion(batch_inicio: int = None, batch_fin: int = None):
+def enriquecer_facturacion():
+    """
+    Enriquece PickingEstadistica con datos de facturación MBA.
+    """
+
+    qs = PickingEstadistica.objects.filter(datos_complentos=False).filter(numero_factura__exact='')
+
+    # if batch_inicio is not None and batch_fin is not None:
+    #     qs = qs.order_by('id')[batch_inicio:batch_fin]
+
+    for e in qs:
+        try:
+            data = datos_facturacion_by_contrato_id(e.contrato_id)
+            if not data:
+                continue
+
+            n_fac_sri = data.get('CODIGO_FACTURA', '')
+
+            if n_fac_sri:
+                n_fac = str(n_fac_sri).split('-')[1][5:]
+                n_fac = n_fac.lstrip('0')  
+            else:
+                n_fac = ''
+
+            e.numero_factura = n_fac #data.get('CODIGO_FACTURA', '')
+            e.fecha_facturacion = data.get('fecha_factura')
+
+            e.save(update_fields=[
+                'numero_factura',
+                'fecha_facturacion'
+            ])
+
+        except Exception as ex:
+            print(f'Error - enriquecer_facturacion: {ex}')
+            # logger.error(
+            #     f"[FACT] Error contrato {e.contrato_id}: {ex}",
+            #     exc_info=True
+            # )
+
+
+
+def pipeline_picking_estadisticas_batch(request, year: int, month: int):
     
-    print('Actualizando Picking Estadisticas')
-    actualizar_datos_calculo_pedidos_picking_estadisticas()
-    actualizar_datos_usuario_mba()
-    actualizar_datos_facturacion()
+    if request.user.is_superuser:
     
-    return HttpResponse("OK")
+        cargar_picking_base_batch(year, month)
+        enriquecer_mba()
+        enriquecer_usuario_mba()
+        calcular_items_y_volumen_batch() #(inicio, fin)
+        enriquecer_facturacion()
+        recalcular_duraciones_batch() #(inicio, fin)
+        
+        return HttpResponse('ok')
+    return HttpResponse('necesita permisos de super usuario')
