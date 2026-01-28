@@ -223,6 +223,9 @@ class PickingEstadistica(models.Model):
     # Número de contrato o pedido | EstadoPicking - default.etiquetado
     contrato_id = models.CharField(max_length=7, unique=True) 
     
+    # Estado de picking | EstadoPicking - default.etiquetado
+    estado = models.CharField(max_length=15, blank=True)
+    
     # Fecha y hora de creación en el sistema MBA | Pedidos - warehouse.pedidos 
     creado_mba = models.DateTimeField(blank=True, null=True) 
     
@@ -259,6 +262,9 @@ class PickingEstadistica(models.Model):
     # Tipo cliente | EstadoPicking - default.etiquetado
     tipo_cliente = models.CharField(max_length=50, blank=True)
     
+    # Ciudad cliente | Warehouse
+    ciudad_cliente = models.CharField(max_length=50, blank=True)
+    
     # Fecha y hora de inicio del picking | EstadoPicking - default.etiquetado
     inicio_picking = models.DateTimeField(blank=True, null=True)
     
@@ -266,7 +272,7 @@ class PickingEstadistica(models.Model):
     fin_picking = models.DateTimeField(blank=True, null=True)
 
     # Numero de factura 
-    numero_factura = models.CharField(max_length=30, blank=True)
+    numero_factura = models.CharField(max_length=15, blank=True)
     
     # Fecha y hora de facturación
     fecha_facturacion = models.DateTimeField(blank=True, null=True)
@@ -284,16 +290,16 @@ class PickingEstadistica(models.Model):
     usuario_picking = models.CharField(max_length=50, blank=True)
     
     # Tiempo de creacion a inicio picking 
-    tiempo_creacion_a_inicio = models.DurationField(blank=True, null=True)
+    tiempo_creacion_a_inicio = models.FloatField(blank=True, null=True)
     
     # Tiempo de inicio a fin picking
-    tiempo_inicio_a_fin = models.DurationField(blank=True, null=True)
+    tiempo_inicio_a_fin = models.FloatField(blank=True, null=True)
     
     # Tiempo de finalizado a facturación
-    tiempo_fin_a_facturacion = models.DurationField(blank=True, null=True)
+    tiempo_fin_a_facturacion = models.FloatField(blank=True, null=True)
     
     # Tiempo total de proceso
-    tiempo_total_proceso = models.DurationField(blank=True, null=True)
+    tiempo_total_proceso = models.FloatField(blank=True, null=True)
     
     # Datos completos
     datos_completos = models.BooleanField(default=False)
@@ -309,72 +315,59 @@ class PickingEstadistica(models.Model):
     def __str__(self):
         return self.contrato_id
     
-    def clean(self):
-        if self.inicio_picking and self.creado_mba:
-            if self.inicio_picking < self.creado_mba:
-                raise ValidationError("inicio_picking no puede ser menor que creado_mba")
+    def comprobar_datos_completos(self) -> bool:
+        """
+        Determina si el registro tiene datos suficientes
+        para ser considerado COMPLETO y usable en dashboards
+        """
 
-        if self.fin_picking and self.inicio_picking:
-            if self.fin_picking < self.inicio_picking:
-                raise ValidationError("fin_picking no puede ser menor que inicio_picking")
-
-        if self.fecha_facturacion and self.fin_picking:
-            if self.fecha_facturacion < self.fin_picking:
-                raise ValidationError("fecha_facturacion no puede ser menor que fin_picking")
-    
-    def calcular_fechas_creacion(self):
-        if not self.creado_mba:
-            return
-
-        self.anio_creado = self.creado_mba.year
-        self.mes_creado = self.creado_mba.month
-        self.dia_creado = self.creado_mba.day
-        self.dia_semana_creado = self.creado_mba.weekday()
-        self.dia_semana_creado_str = self.creado_mba.strftime('%A')
-
-    def calcular_duraciones(self):
-        if self.creado_mba and self.inicio_picking:
-            self.tiempo_creacion_a_inicio = self.inicio_picking - self.creado_mba
-
-        if self.inicio_picking and self.fin_picking:
-            self.tiempo_inicio_a_fin = self.fin_picking - self.inicio_picking
-
-        if self.fin_picking and self.fecha_facturacion:
-            self.tiempo_fin_a_facturacion = self.fecha_facturacion - self.fin_picking
-
-        if self.creado_mba and self.fecha_facturacion:
-            self.tiempo_total_proceso = self.fecha_facturacion - self.creado_mba
-    
-    def save(self, *args, **kwargs):
-        self.full_clean()  # valida coherencia
-        self.calcular_fechas_creacion()
-        self.calcular_duraciones()
-        self.datos_completos = self.comprobar_datos_completos()
-        super().save(*args, **kwargs)
-    
-    def comprobar_datos_completos(self):
-        campos_requeridos = [
+        # Campos que NO pueden ser None
+        campos_not_null = [
             self.contrato_id,
             self.creado_mba,
-            self.anio_creado,
-            self.mes_creado,
-            self.dia_creado,
-            self.dia_semana_creado,
-            self.dia_semana_creado_str,
             self.bodega,
-            self.creado_por_mba,
-            self.creado_por_mba_username,
             self.codigo_cliente,
             self.nombre_cliente,
             self.tipo_cliente,
             self.inicio_picking,
             self.fin_picking,
-            self.numero_factura,
             self.fecha_facturacion,
+            self.usuario_picking,
+            self.tiempo_total_proceso,
+        ]
+
+        if any(campo is None for campo in campos_not_null):
+            return False
+
+        # Campos string que no pueden ser vacíos
+        campos_string_no_vacios = [
+            self.creado_por_mba,
+            self.creado_por_mba_username,
+            self.numero_factura,
+        ]
+
+        if any(not str(campo).strip() for campo in campos_string_no_vacios):
+            return False
+
+        # Campos numéricos que deben ser > 0
+        campos_numericos_positivos = [
             self.total_items,
             self.total_volumen_m3,
             self.total_peso_kg,
-            self.usuario_picking,
-            self.tiempo_total_proceso
+            self.tiempo_total_proceso,
         ]
-        return all(campo is not None for campo in campos_requeridos)
+
+        if any(campo <= 0 for campo in campos_numericos_positivos):
+            return False
+
+        return True
+
+    def save(self, *args, **kwargs):
+        update_fields = kwargs.get("update_fields")
+
+        self.datos_completos = self.comprobar_datos_completos()
+
+        if update_fields:
+            kwargs["update_fields"] = set(update_fields) | {"datos_completos"}
+
+        super().save(*args, **kwargs)
