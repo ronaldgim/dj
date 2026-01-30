@@ -2,8 +2,6 @@
 from django.db import connections, transaction
 from django.db.models import Q
 
-from datetime import time, timedelta
-
 import time
     
 # Shortcuts
@@ -2558,7 +2556,8 @@ def datos_reserva_by_contrato_id(contrato_id) -> dict:
             pp.Entry_by,
             fp.CODIGO_CLIENTE, 
             fp.NOMBRE_CLIENTE, 
-            fp.CLIENT_TYPE
+            fp.CLIENT_TYPE,
+            fp.CIUDAD_PRINCIPAL
         FROM 
             CLNT_Pedidos_Principal pp,
             CLNT_Pedidos_Detalle pd,
@@ -2578,7 +2577,7 @@ def datos_reserva_by_contrato_id(contrato_id) -> dict:
 
     data_list = reserva.get('data', [])
 
-    # ✅ CLAVE: validar lista vacía
+    # CLAVE: validar lista vacía
     if not data_list:
         return {}
 
@@ -2713,7 +2712,7 @@ def obtener_estado_picking_batch(year: int, month: int):
             Q(fecha_creado__year=year) &
             Q(fecha_creado__month=month)
         )
-        .order_by('-n_pedido')
+        .order_by('n_pedido')
         .values(
             'n_pedido',
             'estado',
@@ -2724,7 +2723,7 @@ def obtener_estado_picking_batch(year: int, month: int):
             'fecha_creado',
             'fecha_actualizado',
             'user__user__username',
-        ) #[inicio:fin]
+        )[400:600]  #[inicio:fin]
     )
 
 
@@ -2793,11 +2792,15 @@ def enriquecer_mba():
                 e.tipo_cliente = reserva['CLIENT_TYPE']
                 update_fields.append('tipo_cliente')
 
-            ciudad = reserva.get('CIUDAD_PRINCIPAL')
-            if ciudad:
-                e.ciudad_cliente = ciudad
-                update_fields.append('ciudad_cliente')
+            # ciudad = reserva.get('CIUDAD_PRINCIPAL')
+            # if ciudad:
+            #     e.ciudad_cliente = ciudad
+            #     update_fields.append('ciudad_cliente')
 
+            if reserva.get('CIUDAD_PRINCIPAL'):
+                e.ciudad_cliente = reserva['CIUDAD_PRINCIPAL']
+                update_fields.append('ciudad_cliente')
+                
             if update_fields:
                 e.save(update_fields=update_fields)
 
@@ -2805,7 +2808,9 @@ def enriquecer_mba():
             print(f'Error - enriquecer_mba ({e.contrato_id}): {ex}')
 
 
-def enriquecer_usuario_mba(batch_inicio: int = None, batch_fin: int = None):
+# def enriquecer_usuario_mba(batch_inicio: int = None, batch_fin: int = None):
+def enriquecer_usuario_mba():
+    
     """
     Enriquece PickingEstadistica con username Django
     a partir del Entry_by de MBA.
@@ -2816,8 +2821,8 @@ def enriquecer_usuario_mba(batch_inicio: int = None, batch_fin: int = None):
         creado_por_mba_username__exact=''
     )
 
-    if batch_inicio is not None and batch_fin is not None:
-        qs = qs.order_by('id')[batch_inicio:batch_fin]
+    # if batch_inicio is not None and batch_fin is not None:
+    #     qs = qs.order_by('id')[batch_inicio:batch_fin]
 
     for e in qs:
         try:
@@ -2848,6 +2853,9 @@ def calcular_duracion_minutos(fecha_inicio, fecha_fin):
 
     Si es inválida o negativa → None
     """
+    
+    from datetime import time, timedelta
+    
     try:
         if not fecha_inicio or not fecha_fin:
             return None
@@ -3000,7 +3008,7 @@ def enriquecer_facturacion():
     Enriquece PickingEstadistica con datos de facturación MBA.
     """
 
-    qs = PickingEstadistica.objects.filter(datos_complentos=False).filter(numero_factura__exact='')
+    qs = PickingEstadistica.objects.filter(datos_completos=False).filter(numero_factura__exact='')
 
     # if batch_inicio is not None and batch_fin is not None:
     #     qs = qs.order_by('id')[batch_inicio:batch_fin]
@@ -3035,7 +3043,6 @@ def enriquecer_facturacion():
             # )
 
 
-
 def pipeline_picking_estadisticas_batch(request, year: int, month: int):
     
     if request.user.is_superuser:
@@ -3049,3 +3056,40 @@ def pipeline_picking_estadisticas_batch(request, year: int, month: int):
         
         return HttpResponse('ok')
     return HttpResponse('necesita permisos de super usuario')
+
+
+
+def registros_estadopicking_year_month(request, year, month):
+    n_registros_estado_picking = EstadoPicking.objects.filter(
+        Q(fecha_creado__year=year) &
+        Q(fecha_creado__month=month)
+    ).count()
+    
+    n_registros_picking_estadistica = PickingEstadistica.objects.filter(
+        Q(anio_creado=year) &
+        Q(mes_creado=month)
+    ).count()
+    
+    return HttpResponse(f"""
+    
+    <h1>Estado Pikcing</h1>
+    <p>Hay {n_registros_estado_picking} en {year} / {month}</p>
+    <br>
+    <h1>Pikcing Estadistica</h1>
+    <p>Hay {n_registros_picking_estadistica} en {year} / {month}</p>
+    
+    """) 
+
+
+def probar_api_mba_query(request, query:str):
+    
+    if request.method == 'POST':
+        try:
+            data = api_mba_sql(query)
+            if data.get('status') == 200:
+                return HttpResponse(data.get('data'))
+            return HttpResponse('No hay data')
+        except Exception as e:
+            return HttpResponse(f'Error - {e}')
+    
+    return render()
