@@ -1,0 +1,262 @@
+{% extends 'base_vue.html' %}
+
+{% block title %}
+<title>Metro - Cotizaciones</title>
+{% endblock %}
+
+{% block navbar %}
+{% include 'etiquetado/topnavbar.html' %}
+{% endblock %}
+
+{% block body_2 %}
+
+<div id="app" class="container-fluid">
+
+    <h5 class="m-4 text-center fw-bold">
+        LISTA DE COTIZACIONES
+    </h5>
+
+    <div v-if="msg" :class="type_msg" role="alert">
+        {% verbatim %}{{ msg }}{% endverbatim %}
+    </div>
+
+    <button
+        class="btn btn-primary mb-4"
+        data-bs-toggle="modal"
+        data-bs-target="#modalCotizacion"
+    >
+        + Agregar cotización
+    </button>
+
+    <!-- TABLA -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-sm mb-0">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Descripción</th>
+                            <th>Archivo subido</th>
+                            <th>Archivo procesado</th>
+                            <th>Subido por</th>
+                            <th>Creado en</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% verbatim %}
+                        <tr v-if="loading">
+                            <td colspan="5" class="text-center">
+                                <div class="spinner-border spinner-border-sm"></div>
+                                cargando...
+                            </td>
+                        </tr>
+
+                        <tr v-for="c in cotizaciones" :key="c.id">
+                            <td>{{ c.codigo }}</td>
+                            <td>{{ c.descripcion }}</td>
+                            <td>
+                                <a v-if="c.archivo_origen" :href="c.archivo_origen" target="_blank">Ver archivo</a>
+                                <span v-else class="text-muted">No disponible</span>
+                            </td>
+                            <td>
+                                <a v-if="c.archivo_procesado" :href="c.archivo_procesado" target="_blank">Ver archivo</a>
+                                <span v-else class="text-muted">No procesado</span>
+                            </td>
+                            <td>{{ c.creado_por__first_name }} {{c.creado_por__last_name}}</td>
+                            <td>{{formatFecha(c.creado_en) }}</td>
+                        </tr>
+
+                        <tr v-if="!loading && cotizaciones.length === 0">
+                            <td colspan="5" class="text-center text-muted">
+                                No existen cotizaciones registradas
+                            </td>
+                        </tr>
+                        {% endverbatim %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL -->
+    <div
+        class="modal fade"
+        id="modalCotizacion"
+        tabindex="-1"
+        aria-hidden="true"
+    >
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Agregar Cotización</h5>
+                    <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                    ></button>
+                </div>
+
+                <div class="modal-body">
+
+                    <div v-if="msg" :class="type_msg" role="alert">
+                        {% verbatim %}{{ msg }}{% endverbatim %}
+                    </div>
+
+                    <form @submit.prevent="submitCotizacion" enctype="multipart/form-data">
+
+                        <div class="mb-3">
+                            <label class="form-label">Descripción</label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                v-model="descripcion"
+                                required
+                            >
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">
+                                Archivo de cotización (xlsx / xls)
+                            </label>
+                            <input
+                                type="file"
+                                class="form-control"
+                                accept=".xlsx,.xls"
+                                @change="onFileChange"
+                                required
+                            >
+                        </div>
+
+                        <div class="alert alert-info">
+                            <strong>Instrucciones</strong>
+                            <ul class="mb-0">
+                                <li>Archivo Excel (.xlsx o .xls)</li>
+                                <li>Usar la plantilla definida</li>
+                                <li>Verifique los datos antes de subir</li>
+                            </ul>
+                        </div>
+
+                        <button
+                            type="submit"
+                            class="btn btn-success"
+                            :disabled="subiendo"
+                            v-show="btnProcesarLoading === false"
+                        >
+                            <span v-if="!subiendo">Subir cotización</span>
+                            <span v-else class="spinner-border spinner-border-sm"></span>
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+new Vue({
+    el: '#app',
+    data: {
+        cotizaciones: [],
+        loading: false,
+
+        // form
+        descripcion: '',
+        archivo: null,
+        subiendo: false,
+
+        // mensajes
+        msg: '',
+        type_msg: '',
+
+        // btn-procesar
+        btnProcesarLoading: false,
+        idArchivoAgregado: null,
+    },
+    mounted() {
+        this.fetchCotizaciones()
+    },
+    methods: {
+        async fetchCotizaciones() {
+            this.loading = true
+            try {
+                const response = await fetch('/metro/cotizaciones_list')
+                const data = await response.json()
+                this.cotizaciones = data.data;
+                this.idArchivoAgregado = data.id;
+            } catch (e) {
+                console.error(e)
+            } finally {
+                this.loading = false
+            }
+        },
+
+        onFileChange(e) {
+            this.archivo = e.target.files[0]
+        },
+
+        async submitCotizacion() {
+            if (!this.archivo) return
+
+            this.subiendo = true
+            this.msg = ''
+
+            const formData = new FormData()
+            formData.append('descripcion', this.descripcion)
+            formData.append('archivo', this.archivo)
+
+            try {
+                const response = await fetch('/metro/upload_cotizacion', {
+                    method: 'POST',
+                    body: formData,
+                    // headers: {
+                    //     'X-CSRFToken': this.getCsrfToken()
+                    // }
+                })
+
+                if (!response.ok) {
+                    throw new Error('Error al subir archivo')
+                }
+
+                const data = await response.json()
+
+                // this.btnProcesarLoading = true
+                
+                this.type_msg = 'alert alert-success'
+                this.msg = `Cotización creada: ${data.codigo}`
+
+                this.descripcion = ''
+                this.archivo = null
+
+                this.fetchCotizaciones()
+                // window.location.reload();
+                // cerrar el modal
+                document.querySelector('.btn-close').click()
+
+            } catch (e) {
+                this.type_msg = 'alert alert-danger'
+                this.msg = e.toString()
+            } finally {
+                this.subiendo = false
+            }
+        },
+
+        formatFecha(fecha) {
+            if (!fecha) return ''
+            return new Date(fecha).toLocaleString('es-EC', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            })
+        }
+    }
+})
+</script>
+
+{% endblock %}

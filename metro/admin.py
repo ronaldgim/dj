@@ -1,5 +1,5 @@
 from django.contrib import admin
-from metro.models import Product, Inventario, TomaFisica, Kardex
+from metro.models import Product, Inventario, TomaFisica, Kardex, Cotizacion
 
 
 @admin.register(Product)
@@ -25,7 +25,6 @@ class ProductAdmin(admin.ModelAdmin):
     
     search_fields = ('codigo_gim', 'codigo_hm')
 
-
 @admin.register(Inventario)
 class InventarioAdmin(admin.ModelAdmin):
     list_display = (
@@ -39,7 +38,6 @@ class InventarioAdmin(admin.ModelAdmin):
         'actualizado',
         'usuario',
     )
-
 
 @admin.register(TomaFisica)
 class TomaFisicaAdmin(admin.ModelAdmin):
@@ -76,3 +74,8 @@ class KardexAdmin(admin.ModelAdmin):
     )
     
     search_fields = ('product__codigo_gim', 'product__codigo_hm')
+
+
+@admin.register(Cotizacion)
+class CotizacionAdmin(admin.ModelAdmin):
+    pass

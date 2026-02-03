@@ -121,4 +121,23 @@ urlpatterns = [
         view = views.metro_reporte_consignacion,
         name = 'reporte_consignacion'
     ),
+    
+    ## Cotizaciones
+    path(
+        route = 'cotizaciones-list',
+        view = views.cotizaciones_list_view,
+        name = 'cotizaciones_list_view'
+    ),
+    
+    path(
+        route = 'cotizaciones_list',
+        view = views.cotizaciones_list,
+        name = 'cotizaciones_list'
+    ),
+    
+    path(
+        route = 'upload_cotizacion',
+        view = views.upload_cotizacion,
+        name = 'upload_cotizacion'
+    ),
 ]

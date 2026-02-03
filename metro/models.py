@@ -1,24 +1,6 @@
-from django.db import models
+from django.db import models, transaction
 from users.models import User
-
-
-# ESTADO_INVENTARIO = [
-#     ('ABIERTO','ABIERTO'),
-#     ('CERRADO','CERRADO'),
-# ]
-
-# ESTADO_TOMA_FISICA = [
-#     ('CREADO','CREADO'),
-#     ('EN PROCESO','EN PROCESO'),
-#     ('EN PAUSA','EN PAUSA'),
-#     ('FINALIZADO','FINALIZADO'),
-# ]
-
-
-# TIPO_MOVIMIENTO = [
-#     ('Ingreso', 'Ingreso'),
-#     ('Egreso', 'Egreso'),
-# ]
+import datetime
 
 DESCRIPCION_MOVIMIENTO = [
     ('Saldo inicial', 'Saldo inicial'),
@@ -56,16 +38,6 @@ class Product(models.Model):
     
     def __str__(self):
         return f'Código GIM: {self.codigo_gim} - Código HM: {self.codigo_hm}'
-    
-    # @property
-    # def saldo(self, *args, **kwargs):
-        
-    #     try:
-    #         if self.kardex_records:
-    #             return self.kardex_records.order_by('-id').first().saldo
-    #         return 0
-    #     except:
-    #         return 0
     
     @property
     def saldo(self):
@@ -115,14 +87,6 @@ class Product(models.Model):
             return '$ 0.00'
         precio_total = round(self.precio_unitario * self.saldo, 2)
         return f'$ {precio_total:,.2f}'
-    
-    # @property
-    # def alerta(self):
-    #     # Retorna True si existe al menos un movimiento con algún campo faltante
-    #     return any(
-    #         not (mov.nota_entrega and mov.fecha_nota and mov.movimiento_mba and mov.fecha_mba and mov.documento)
-    #         for mov in self.kardex_records.all()
-    #     )
     
     @property
     def alerta(self):
@@ -296,3 +260,83 @@ class Kardex(models.Model):
         
         if self.cantidad < 0:
             return self.cantidad * -1
+
+
+class Cotizacion(models.Model):
+    
+    codigo = models.CharField(max_length=50, unique=True)
+    descripcion = models.CharField(max_length=255, blank=True)
+
+    archivo_origen = models.FileField(
+        upload_to="cotizaciones/",
+        null=True,
+        blank=True
+    )
+
+    creado_por = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True
+    )
+
+    creado_en = models.DateTimeField(auto_now_add=True)
+    
+    archivo_procesado = models.FileField(
+        upload_to="cotizaciones/",
+        null=True,
+        blank=True
+    )
+    
+    def save(self, *args, **kwargs):
+        creating = self.pk is None
+
+        # Primer save para obtener el ID
+        super().save(*args, **kwargs)
+
+        if creating and not self.codigo:
+            numero = Cotizacion.objects.filter(id__lte=self.id).count()
+            correlativo = f"{numero:03d}"
+            
+            self.codigo = f"METRO-{correlativo}"
+
+            # Segundo save solo para actualizar el código
+            super().save(update_fields=["codigo"])
+
+    def __str__(self):
+        return self.codigo
+
+
+
+# class CotizacionItem(models.Model):
+#     cotizacion = models.ForeignKey(
+#         Cotizacion,
+#         on_delete=models.CASCADE,
+#         related_name="items"
+#     )
+
+#     producto = models.ForeignKey(
+#         Product, 
+#         on_delete=models.SET_NULL,
+#         null=True
+#     )
+
+#     articulo = models.CharField(max_length=255)
+#     descripcion = models.CharField(max_length=255)
+#     medida = models.CharField(max_length=50)
+
+#     cantidad = models.PositiveIntegerField(default=0)
+#     bonificacion = models.PositiveIntegerField(default=0)
+
+#     precio_unitario = models.DecimalField(max_digits=10, decimal_places=2)
+#     precio_total = models.DecimalField(max_digits=12, decimal_places=2)
+
+#     porcentaje_descuento = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+#     descuento = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+#     impuesto = models.DecimalField(max_digits=10, decimal_places=2)
+#     centro_costo = models.CharField(max_length=100)
+
+#     creado_en = models.DateTimeField(auto_now_add=True)
+
+#     def __str__(self):
+#         return self.articulo
