@@ -135,33 +135,30 @@ def ini(mycursor,mycursor_web, archivo) -> pd.DataFrame:
     df = df.copy()
     df.loc["TOTAL", "Total"] = pd.to_numeric(df["Total"], errors="coerce").sum()
 
-    def check_dif(df):
+    # def check_dif(df):
 
-        estilos = pd.DataFrame("", index=df.index, columns=df.columns)
+    #     estilos = pd.DataFrame("", index=df.index, columns=df.columns)
 
-        # Amarillo: 'tiene' != 0
-        check = df["reserva_metro"].fillna(0) != 0
-        estilos.loc[check, "reserva_metro"] = "background-color: #FFEB9C"  # amarillo claro
+    #     # Amarillo: 'tiene' != 0
+    #     check = df["reserva_metro"].fillna(0) != 0
+    #     estilos.loc[check, "reserva_metro"] = "background-color: #FFEB9C"  # amarillo claro
 
-        # Amarillo: 'tiene' != 0
-        check = df["reserva_gim"].fillna(0) != 0
-        estilos.loc[check, "reserva_gim"] = "background-color: #FFEB9C"  # amarillo claro
+    #     # Amarillo: 'tiene' != 0
+    #     check = df["reserva_gim"].fillna(0) != 0
+    #     estilos.loc[check, "reserva_gim"] = "background-color: #FFEB9C"  # amarillo claro
 
-        # Rojo: cantidad > disponible_and
-        qty = pd.to_numeric(df["cantidad"], errors="coerce")
-        disp = pd.to_numeric(df["disponible_ban"], errors="coerce")
-        check = qty > disp
-        estilos.loc[check, "disponible_ban"] = "background-color: #FFC7CE"
+    #     # Rojo: cantidad > disponible_and
+    #     qty = pd.to_numeric(df["cantidad"], errors="coerce")
+    #     disp = pd.to_numeric(df["disponible_ban"], errors="coerce")
+    #     check = qty > disp
+    #     estilos.loc[check, "disponible_ban"] = "background-color: #FFC7CE"
 
-        return estilos
+    #     return estilos
 
 
-    styled = df.style.apply(check_dif, axis=None)
+    # styled = df.style.apply(check_dif, axis=None)
 
-    file_name = 'Cuadro_Metro1.xlsx'
-    styled.to_excel(file_name, engine="openpyxl")
+    # file_name = 'Cuadro_Metro1.xlsx'
+    # styled.to_excel(file_name, engine="openpyxl")
 
     return df
-
-
-# df=ini(mycursor,mycursor_web)
