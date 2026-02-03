@@ -32,7 +32,7 @@ from metro.models import Product, Inventario, TomaFisica, Kardex, Cotizacion
 from metro.forms import ProductForm, InventarioForm, TomaFisicaForm, KardexForm 
 
 # procesar archivo metro
-from metro.procesar_pedido_metro import ini, mycursor, mycursor_web
+from metro.procesar_pedido_metro import ini #, mycursor, mycursor_web
 
 
 ### PRODUCTOS
@@ -821,7 +821,8 @@ def upload_cotizacion(request):
 
     # Aquí luego procesas el Excel
     # guardar_items_cotizacion(cotizacion)
-    procesado = ini(mycursor, mycursor_web, archivo)
+    # procesado = ini(mycursor, mycursor_web, archivo)
+    procesado = ini(archivo)
     guardar_dataframe_como_excel(cotizacion, procesado)
 
     return JsonResponse({
