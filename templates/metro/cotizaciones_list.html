@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block navbar %}
-{% include 'etiquetado/topnavbar.html' %}
+{% include 'metro/topnavbar.html' %}
 {% endblock %}
 
 {% block body_2 %}
@@ -69,7 +69,7 @@
                         </tr>
 
                         <tr v-if="!loading && cotizaciones.length === 0">
-                            <td colspan="5" class="text-center text-muted">
+                            <td colspan="6" class="text-center text-muted">
                                 No existen cotizaciones registradas
                             </td>
                         </tr>
