@@ -317,12 +317,12 @@ class PickingEstadistica(models.Model):
     
     def comprobar_datos_completos(self) -> bool:
         """
-        Determina si el registro tiene datos suficientes
-        para ser considerado COMPLETO y usable en dashboards
+        Retorna True si el registro tiene información suficiente
+        para ser considerado COMPLETO y usable en dashboards.
         """
 
-        # Campos que NO pueden ser None
-        campos_not_null = [
+        # 1 Campos obligatorios (no pueden ser None)
+        campos_not_null = (
             self.contrato_id,
             self.creado_mba,
             self.bodega,
@@ -332,30 +332,32 @@ class PickingEstadistica(models.Model):
             self.inicio_picking,
             self.fin_picking,
             self.fecha_facturacion,
-            self.usuario_picking,
             self.tiempo_total_proceso,
-        ]
+        )
 
         if any(campo is None for campo in campos_not_null):
             return False
 
-        # Campos string que no pueden ser vacíos
-        campos_string_no_vacios = [
+        # 2 Campos string obligatorios (no vacíos ni espacios)
+        campos_string = (
+            self.estado,
             self.creado_por_mba,
             self.creado_por_mba_username,
             self.numero_factura,
-        ]
+            self.usuario_picking,
+            self.ciudad_cliente
+        )
 
-        if any(not str(campo).strip() for campo in campos_string_no_vacios):
+        if any(not campo or not campo.strip() for campo in campos_string):
             return False
 
-        # Campos numéricos que deben ser > 0
-        campos_numericos_positivos = [
+        # 3 Campos numéricos que deben ser > 0
+        campos_numericos_positivos = (
             self.total_items,
             self.total_volumen_m3,
             self.total_peso_kg,
             self.tiempo_total_proceso,
-        ]
+        )
 
         if any(campo <= 0 for campo in campos_numericos_positivos):
             return False

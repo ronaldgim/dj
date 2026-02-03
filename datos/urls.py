@@ -88,10 +88,16 @@ urlpatterns = [
     #     name='actualizar_picking_stadisticas_all',
     # ),
     
+    # path(
+    #     route='pipeline_picking_estadisticas_batch/<int:year>/<int:month>',
+    #     view=views.pipeline_picking_estadisticas_batch,
+    #     name='pipeline_picking_estadisticas_batch',
+    # ),
+    
     path(
-        route='pipeline_picking_estadisticas_batch/<int:year>/<int:month>',
-        view=views.pipeline_picking_estadisticas_batch,
-        name='pipeline_picking_estadisticas_batch',
+        route='registros_estadopicking_year_month/<int:year>/<int:month>',
+        view=views.registros_estadopicking_year_month,
+        name='registros_estadopicking_year_month',
     ),
 
 ]

@@ -600,10 +600,20 @@ urlpatterns = [
     ################################
     ##### PICKING ESTADISTICAS #####
     ################################
+    
+    path(
+        route = 'dashboard_completo_api/',
+        view  = views.dashboard_completo_api,
+        name  = 'dashboard_completo_api'    
+    ),
+    
     path(
         route = 'picking-estadisticas',
         view  = views.dashboard_picking_estadisticas,
         name  = 'dashboard_picking_estadisticas'
-    )
+    ),
+    
+    
+    
 ]
 

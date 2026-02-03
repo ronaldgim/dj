@@ -1,536 +1,163 @@
 {% extends 'base_vue.html' %}
+
 {% block title %}
 <title>DASHBOARD COMPLETO CEREZOS</title>
-{% endblock%}
+{% endblock %}
 
-{#% block navbar %#}
-{#% include 'etiquetado/topnavbar.html' %#}
-{#% endblock %#}
-
-{#% block body %#}
 {% block body_2 %}
-
-<style>
-    
-    thead {
-        position: sticky;
-        top: 0;
-        /*z-index: 10;*/
-        background-color: #ffffff;
-    }
-    
-    .table-responsive-pedidos {
-        height: 452px;
-        overflow-y: scroll;
-    }
-
-    .table-responsive-stock {
-        height: 452px;
-        overflow-y: scroll;
-    }
-    
-    .table-responsive-publico {
-        height: 486px;
-        /*height: 452px;*/
-        overflow-y: scroll;
-    }
-</style>
 
 <div id="app">
 
-    <div class="text-center mt-2">
+    <!-- HEADER -->
+    <div class="text-center mt-2 mb-3">
         <h1 class="fw-bold d-inline">DASHBOARD COMPLETO CEREZOS</h1>
-        <div v-if="cargandoDashboard" class="spinner-border" role="status"></div>
-        <div v-if="errorDatos"><i style="color:red" class="bi bi-bug-fill"></i></div>
+
+        <div v-if="loading" class="spinner-border ms-2" role="status"></div>
+        <div v-if="error" class="ms-2 text-danger">
+            <i class="bi bi-bug-fill"></i> Error cargando datos
+        </div>
     </div>
 
-    <h6 class="mt-0 pt-0 text-end fw-bold">Actualizado:{% verbatim %}{{ fechaHoraActual }}{% endverbatim %}</h6>
-    
-    <!-- Botón para actualizar el dashboard -->
-    <!--button @click="actualizarDashboard">Actualizar Dashboard</button-->
+    <!-- FILTROS -->
+    <div class="row mb-3">
+        <div class="col-md-3">
+            <input type="date" v-model="filtros.fecha_inicio" class="form-control">
+        </div>
+        <div class="col-md-3">
+            <input type="date" v-model="filtros.fecha_fin" class="form-control">
+        </div>
+        <div class="col-md-3">
+            <select v-model="filtros.bodega" class="form-select">
+                <option value="">Todas las bodegas</option>
+                <option value="BAN">ANDAGOYA</option>
+                <option value="BCT">CEREZOS</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <button class="btn btn-primary w-100" @click="cargarDashboard">
+                Aplicar filtros
+            </button>
+        </div>
+    </div>
 
-    
+    <!-- KPIs -->
     <div class="row mb-4">
-        <div class="col mb-4">
-            <div class="card">
-                <h6 class="card-header text-center fs-2">PEDIDOS PENDIENTES</h6>
+        <div class="col-md-3" v-for="(valor, key) in kpisPrincipales" :key="key">
+            <div class="card text-center shadow-sm">
                 <div class="card-body">
-                    <!--div class="container">
-                        <ul class="list-group">
-                            {% verbatim %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center bg-danger text-white">
-                                PEDIDOS MÁS DE 3 DÍAS
-                                <span class="fs-4">{{pedidos_mas_tres_dias}}</span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center bg-warning text-white">
-                                PEDIDOS AYER
-                                <span class="fs-4">{{pedidos_ayer}}</span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center bg-success text-white">
-                                PEDIDOS HOY
-                                <span class="fs-4">{{pedidos_hoy}}</span>
-                            </li>
-                            {% endverbatim %}
-                        </ul>
-                    </div-->
-                    
-                    {% verbatim %}
-                    <div class="row">
-                        <div class="col-4">
-                            <div class="card bg-danger">
-                                <div class="card-body m-1 p-1">
-                                    <h5 class="card-title text-white text-center mb-0 pb-0">+ 3 DÍAS</h5>
-                                    <p class="card-text text-center text-white fs-2 fw-bold">{{pedidos_mas_tres_dias}}</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-4">
-                            <div class="card bg-warning">
-                                <div class="card-body m-1 p-1">
-                                    <h5 class="card-title text-white text-center mb-0 pb-0">AYER</h5>
-                                    <p class="card-text text-center text-white fs-2 fw-bold">{{pedidos_ayer}}</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-4">
-                            <div class="card bg-success">
-                                <div class="card-body m-1 p-1">
-                                    <h5 class="card-title text-white text-center mb-0 pb-0">NUEVOS</h5>
-                                    <p class="card-text text-center text-white fs-2 fw-bold">{{pedidos_hoy}}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {% endverbatim %}
-
-                    <div class="table-responsive-pedidos mt-2">
-                        <table class="table">
-                            <thead>
-                                <th>N° PEDIDO</th>
-                                <th>FECHA</th>
-                                <th>CIU</th>
-                                <th>ESTADO</th>
-                                <th>OP</th>
-                            </thead>
-                            <tbody style="font-size: small;">
-                                <tr v-for="(i, index) in pedidosCerezosData" :key="index">
-                                    {% verbatim %}
-                                    <td :style="{backgroundColor: obtenerColorFondoNumeroPedido(i.fecha_estado)}">
-                                        <a :href="'/etiquetado/pedidos/' + i.CONTRATO_ID" class="fs-6" target="_blank">{{i.contrato_id}}</a>
-                                        <i v-if="i.DISP" style="color:red;" class="bi bi-file-earmark-x-fill"></i>
-                                        <i v-if="i.CONFIRMED" class="bi bi-check2"></i>
-                                        <i v-if="i.NUM_PRINT == 0" style="color:grey;" class="bi bi-printer-fill"></i>
-                                        <br>
-                                        {{i.NOMBRE_CLIENTE}}
-                                    </td>
-                                    <td>{{i.FECHA_PEDIDO}} {{i.HORA_LLEGADA}}</td>
-                                    <td>{{i.CIUDAD_PRINCIPAL}}</td>
-                                    <td>
-                                        <!--a :class="obtenerColorFondoEstado(i.estado)" :style="{backgroundColor: obtenerColorFondoEstadoIncompleto(i.estado)}">{{i.estado}}</a-->
-                                        <h6 class="p-0 m-0"><span :class="obtenerColorFondoEstado(i.estado)" :style="{backgroundColor: obtenerColorFondoEstadoIncompleto(i.estado)}">{{i.estado}}</span></h6>
-                                    </td>
-                                    <td v-if="i.first_name != '-'">{{i.first_name}}.{{i.last_name}}</td>
-                                    <td v-else>-</td>
-                                    {% endverbatim %}
-                                </tr>
-                            </tbody>
-                        </table>
-
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col mb-4">
-            <div class="card">
-                <h6 class="card-header text-center fs-2">ETIQUETADO STOCK</h6>
-                <div class="card-body">
-                    <!--div class="container">
-                        <ul class="list-group">
-                            {% verbatim %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center bg-danger text-white">
-                                URGENTE <span class="fs-4">{{urgente}}</span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center bg-warning text-white">
-                                PRONTO <span class="fs-4">{{pronto}}</span>
-                            </li>
-                            {% endverbatim %}
-                        </ul>
-                    </div-->
-                    {% verbatim %}
-                    <div class="row">
-                        <div class="col-6">
-                            <div class="card bg-danger">
-                                <div class="card-body m-1 p-1">
-                                    <h5 class="card-title text-white text-center mb-0 pb-0">URGENTE</h5>
-                                    <p class="card-text text-center text-white fs-2 fw-bold">{{urgente}}</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="card bg-warning">
-                                <div class="card-body m-1 p-1">
-                                    <h5 class="card-title text-white text-center mb-0 pb-0">PRONTO</h5>
-                                    <p class="card-text text-center text-white fs-2 fw-bold">{{pronto}}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {% endverbatim %}
-                    <div class="table-responsive-stock mt-2">
-                        <table class="table">
-                            <thead>
-                                <th>ITEM</th>
-                                <th>CUA</th>
-                                <th>TIEMPO</th>
-                                <th>MESES</th>
-                            </thead>
-                            <tbody style="font-size: small;"> 
-                                <tr v-for="(i, index) in etiquetadoData" :key="index">
-                                    {% verbatim %}
-                                    <td>
-                                        <span v-if="i.estado == 'EN PROCESO'"><i class="bi bi-check-circle-fill" style="color:green"></i></span>
-                                        <a :href="'/etiquetado/etiquetado-stock-detalle/' + i.PRODUCT_ID" class="fs-6" target="_blank">{{i.PRODUCT_ID}}</a>
-                                        <span v-if="i.n_personas" class="bg-info bg-gradient text-white m-2 p-1">{{i.n_personas}}p</span>
-                                        <br>
-                                        <span style="font-size: small;">{{i.PRODUCT_NAME}}</span> 
-                                    </td>
-                                    <td class="text-end">{{i.Cuarentena|floatformat:'0g'}}</td>
-                                    <td class="text-end">{{i.tiempo}}</td>
-                                    <td :style="{backgroundColor: obtenerColorFondoMeses(i.Meses, config_urgente, config_correcto)}" class="text-end">{{i.Meses}}</td>
-                                    {% endverbatim %}
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col">
-            <div class="card">
-                <h6 class="card-header text-center fs-2">
-                    ETIQUETADO PÚBLICO
-                    {% if request.user.is_superuser or request.user.id == 16 %}
-                    <button type="button" class="btn btn-sm btn-primary mb-2 pt-0 pb-0 ps-1 pe-1" data-bs-toggle="modal" data-bs-target="#addPedidoModal">
-                        <i class="bi bi-plus-circle"></i>
-                    </button>
-                    {% endif %}
-                </h6>
-                
-                <div class="card-body">
-                    <div class="container">
-                        <ul class="list-group">
-                            <li class="list-group-item d-flex justify-content-between align-items-center bg-primary text-white">
-                                NÚMERO DE PEDIDOS 
-                                {% verbatim %}
-                                <span class="fs-4">{{n_publico}}</span>
-                                {% endverbatim %}
-                            </li>
-                        </ul>
-                    </div>
-                    
-                    <!--div class="row">
-                        <div class="col-12">
-                            <div class="card bg-primary">
-                                <div class="card-body m-1 p-1">
-                                    <h5 class="card-title text-white text-center mb-0 pb-0">NÚMERO DE PEDIDOS </h5>
-                                    {% verbatim %}
-                                    <p class="card-text text-center text-white fs-2 fw-bold">{{n_publico}}</p>
-                                    {% endverbatim %}
-                                </div>
-                            </div>
-                        </div>
-                    </div-->
-                    
-                    <div class="table-responsive-publico mt-2">
-                        <table class="table">
-                            <thead>
-                                <th>N° PEDIDO</th>
-                                <th>ENTREGA</th>
-                                <th>TIEMPO</th>
-                                <th>ESTADO</th>
-                            </thead>
-                            <tbody style="font-size: small;">
-                                <tr v-for="(i, index) in publicoData" :key="index" :style="{backgroundColor: obtenerColorPedidoTemporal(i.TIPO_PEDIDO)}">
-                                    {% verbatim %}
-                                    <td>
-                                        <a v-if="i.TIPO_PEDIDO" :href="'/etiquetado/pedidos-temporales/' + i.id_pedido_temporal" class="fs-6" target="_blank">{{i.contrato_id}}</a>
-                                        <a v-else="i.TIPO_PEDIDO" :href="'/etiquetado/pedidos/' + i.CONTRATO_ID" class="fs-6" target="_blank">{{i.contrato_id}}</a>
-                                        <i v-if="i.DISP === 'NOT' && i.estado_picking_x !== 'FINALIZADO'" style="color:red;" class="bi bi-file-earmark-x-fill"></i>
-                                        <i v-if="i.estado_picking_x == 'FINALIZADO'" style="color:green;" class="bi bi-check2-square"></i>
-                                        <br>
-                                        <span>{{i.NOMBRE_CLIENTE}}</span> <br>
-                                    </td>
-                                    <td v-if="i.dia" :style="{backgroundColor: obtenerColorFondoEntrega(i.estado_entrega)}">
-                                        {{i.dia}} {{i.dia_numero}}. {{i.mes}} {{i.hora}}
-                                        <br>
-                                        Faltan: {{i.dias_faltantes}} días
-                                    </td>
-                                    <td v-else>-</td>
-                                    <td>
-                                        <span v-if="i.TIEMPOS == 't1'">{{i.t_1p_str}}</span>
-                                        <span v-if="i.TIEMPOS == 't2'">{{i.t_2p_str}}</span>
-                                        <span v-if="i.TIEMPOS == 't3'">{{i.t_3p_str}}</span>
-                                        <span v-if="i.TIEMPOS == 'F'">F</span><br>
-                                        <span>{{i.ciudad}}</span>
-                                    </td>
-                                    <td class="text-center">
-                                        <!--a :class="obtenerColorFondoEstado(i.estado)" :style="{backgroundColor: obtenerColorFondoEstadoIncompleto(i.estado)}">{{i.estado}}</a-->
-                                        <h6 class="p-0 m-0"><span :class="obtenerColorFondoEstado(i.estado)" :style="{backgroundColor: obtenerColorFondoEstadoIncompleto(i.estado)}">{{i.estado}}</span></h6>
-                                        <!--span v-if="i.estado != '-'" class="mt-2 ps-1 pe-1" style="background-color: #BAF690;">{{i.avance}}%</span-->
-                                        <span v-if="i.estado != '-' && !i.TIPO_PEDIDO" class="badge text-dark rounded-pill mt-2" style="background-color: #BAF690; font-size: 12px">{{i.avance}}%</span>
-                                        <span v-if="i.estado != '-' && i.TIPO_PEDIDO">-</span>
-                                    </td>
-                                    {% endverbatim %}
-                                </tr>
-                            </tbody>
-                            
-                        </table>
-                    </div>
+                    <h6 class="text-muted">{{ key }}</h6>
+                    <h4 class="fw-bold">{{ valor }}</h4>
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- Modal -->
-    <div class="modal fade" id="addPedidoModal" tabindex="-1" aria-labelledby="addPedidoModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="addPedidoModalLabel">Agregar pedido a dashboard público</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form @submit.prevent="addPedidoPublico">
-                <div class="modal-body">
-                    <div class="row g-2">
-                        <div class="col-4">
-                            <label class="pt-2">Número de pedido:</label>
-                        </div>
-                        <div class="col-8">
-                            <input type="number" v-model="formPedido.contrato" class="form-control" required>
-                        </div>
+
+    <!-- SLA -->
+    <div class="card mb-4">
+        <div class="card-header fw-bold">
+            Cumplimiento SLA
+        </div>
+        <div class="card-body">
+            <div v-for="(sla, etapa) in dashboard.slas_reales.slas" :key="etapa">
+                {% verbatim %}
+                <strong>{{ etapa }}</strong>:
+                {{ sla.porcentaje_cumplimiento.toFixed(2) }}
+                <div class="progress mb-2">
+                    <div class="progress-bar"
+                        :style="{ width: sla.porcentaje_cumplimiento + '%' }">
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button id="close-button" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary" :disabled="loading">Agregar</button>
-                </div>
-            </form>
+                {% endverbatim %}
             </div>
+        </div>
+    </div>
+
+    <!-- CHART -->
+    <div class="card">
+        <div class="card-header fw-bold">
+            Tendencia pedidos (diario)
+        </div>
+        <div class="card-body">
+            <div id="chartPedidos" style="height:400px;"></div>
         </div>
     </div>
 
 </div>
 
+<!-- VUE APP -->
 <script>
-    const dashboardUrl = "{% url 'dashboard_completo_json_response' %}";
-    
-    new Vue({
-        el: '#app',
-        data: {
-            // CONFIG
-            cargandoDashboard:false,
-            errorDatos:false,
-            fechaHoraActual: '',
-            config_urgente:'',
-            config_correcto:'',
-            // PEDIDOS PENDIENTES
-            pedidos_mas_tres_dias: '',
-            pedidos_ayer:'',
-            pedidos_hoy:'',
-            pedidos_cerezos: [],
-            // ETIQUETADO STOCK
-            urgente:'',
-            pronto:'',
-            etiquetado:[],
-            // ETIQUETADO publico
-            n_publico:'',
-            publico:[],
-            // add pedido publico
-            loading:false,
-            formPedido:{
-                contrato:'',
+new Vue({
+    el: '#app',
+    data() {
+        return {
+            loading: false,
+            error: false,
+            dashboard: {
+                kpis_operativos: {},
+                slas_reales: { slas: {} },
+                tendencias_diarias: []
+            },
+            filtros: {
+                fecha_inicio: '',
+                fecha_fin: '',
+                bodega: '',
+                cliente: ''
             }
-        },
-        mounted() {
-            // Datos de dashboard
-            this.actualizarDashboard();
-            // Actualizar datos de dashboard cada (5 minuto)
-            setInterval(this.actualizarDashboard, 300000);
-        },
-        computed: {
-            pedidosCerezosData() {
-                return this.pedidos_cerezos.map(i => {
-                    return {
-                        ...i,
-                        contrato_id:i.CONTRATO_ID.slice(0,5),
-                        CIUDAD_PRINCIPAL:i.CIUDAD_PRINCIPAL.slice(0,3),
-                        HORA_LLEGADA:i.HORA_LLEGADA.slice(0,5),
-                        first_name:i.first_name.slice(0,1),
-                        last_name:i.last_name.slice(0,1),
-                    };
-                });
-            },
+        }
+    },
+    computed: {
+        kpisPrincipales() {
+            const k = this.dashboard.kpis_operativos || {}
+            return {
+                'Pedidos': k.total_pedidos || 0,
+                'Ítems': k.total_items || 0,
+                'Volumen m3': (k.total_volumen_m3 || 0).toFixed(2),
+                'Peso Kg': (k.total_peso_kg || 0).toFixed(2),
+                'Tiempo Promedio (min)': (k.tiempo_promedio_total || 0).toFixed(1)
+            }
+        }
+    },
+    mounted() {
+        this.cargarDashboard()
+    },
+    methods: {
+        cargarDashboard() {
+            this.loading = true
+            this.error = false
 
-            etiquetadoData() {
-                return this.etiquetado.map(i => {
-                    return {
-                        ...i,
-                        Cuarentena: i.Cuarentena.toLocaleString('es-ES'),
-                    };
-                });
-            },
+            const params = new URLSearchParams(this.filtros).toString()
 
-            publicoData() {
-                return this.publico.map(i => {
-                    return {
-                        ...i,
-                        // contrato_id:i.CONTRATO_ID.slice(0,5),
-                        contrato_id: i.TIPO_PEDIDO ? i.CONTRATO_ID : i.CONTRATO_ID.slice(0,5),
-                        ciudad:i.CIUDAD_PRINCIPAL.slice(0,3),
-                        dia: i.dia ? i.dia.slice(0, 4) : '',
-                        // dia_mes: i.fecha_hora ? i.fecha_hora.slice(8,10) : '',
-                        // dia_mes: i.fecha_entrega ? i.fecha_entrega.slice(8,10) : '',
-                        mes: i.mes ? i.mes.slice(0,3) : '',
-                        //hora: i.fecha_hora ? i.fecha_hora.slice(11,16) : '',
-                        hora: i.fecha_entrega ? i.fecha_entrega.slice(11,16) : '',
-                    }
+            fetch(`/etiquetado/dashboard_completo_api/?${params}`)
+                .then(res => res.json())
+                .then(data => {
+                    this.dashboard = data
+                    this.renderChart()
                 })
-            }
+                .catch(() => this.error = true)
+                .finally(() => this.loading = false)
         },
-        methods: {
-            obtenerColorFondoNumeroPedido(fecha_estado) {
-                switch (fecha_estado) {
-                    case 'hoy':
-                        return '#BAF690';
-                    case 'ayer':
-                        return '#F6F490';
-                    case 'mas3':
-                        return '#F6B690';
-                    default:"white"
-                }
-            },
+        renderChart() {
+            const chart = echarts.init(document.getElementById('chartPedidos'))
 
-            obtenerColorFondoMeses(meses, config_urgente, config_correcto) {
-                if (meses < config_urgente) {
-                    return '#F6B690';
-                } else if (meses >= config_urgente && meses < config_correcto) {
-                    return '#F6F490';
-                } else if (meses >=config_correcto ) {
-                    return '#BAF690';
-                }
-            },
+            const data = this.dashboard.tendencias_diarias || []
 
-            obtenerColorFondoEntrega(estado_entrega){
-                switch (estado_entrega) {
-                    case 'CONFIRMADO': 
-                        return '#AED6F1';
-                    default:"white"
-                }
-            },
-
-            // obtenerColorFondoEstado(estado){
-            //     switch (estado) {
-            //         case 'EN PAUSA':
-            //             return 'btn btn-danger btn-sm disabled';
-            //         case 'EN TRANSITO':
-            //             return 'btn btn-primary btn-sm disabled';
-            //         case 'EN PROCESO':
-            //             return 'btn btn-warning text-white btn-sm disabled';
-            //         case 'FINALIZADO':
-            //             return 'btn btn-success btn-sm disabled';
-            //         case 'INCOMPLETO':
-            //             return 'btn text-white btn-sm disabled';
-            //     }
-            // },
-
-            obtenerColorFondoEstado(estado){
-                switch (estado) {
-                    case 'EN PAUSA':
-                        return 'badge bg-danger rounded-pill text-wrap shadow rounded';
-                    case 'EN TRANSITO':
-                        return 'badge bg-primary rounded-pill text-wrap shadow rounded';
-                    case 'EN PROCESO':
-                        return 'badge bg-warning rounded-pill text-wrap shadow rounded'; // text-dark
-                    case 'FINALIZADO':
-                        return 'badge bg-success rounded-pill text-wrap shadow rounded';
-                    case 'INCOMPLETO':
-                        return 'badge rounded-pill shadow rounded';
-                }
-            },
-
-            obtenerColorFondoEstadoIncompleto(estado) {
-                switch (estado) {
-                    case 'INCOMPLETO':
-                        return '#bf03c8';
-                }
-            },
-
-            obtenerColorPedidoTemporal(tipo_pedido){
-                switch (tipo_pedido) {
-                    case 'TEMPORAL':
-                        return '#DEDEDE';
-                }
-            },
-
-            async actualizarDashboard() {
-                this.cargandoDashboard = true;
-                
-                try {
-                    const response = await fetch(dashboardUrl);  
-                    if (!response.ok) {
-                        throw new Error(response.statusText);
-                    }
-                    const data = await response.json();
-                    // CONFIG
-                    this.config_urgente = data.urgente;
-                    this.config_correcto = data.correcto;
-                    this.errorDatos = false;
-                    this.fechaHoraActual = new Date().toLocaleDateString('es-Es', {hour:'numeric',minute:'numeric'});
-                    // PEDIDOS PENDIENTES
-                    this.pedidos_mas_tres_dias = data.pedidos_cerezos_mas3;
-                    this.pedidos_ayer = data.pedidos_cerezos_ayer;
-                    this.pedidos_hoy = data.pedidos_cerezos_hoy;
-                    this.pedidos_cerezos = data.pedidos_cerezos || [];
-                    // ETIQUETADO STOCK
-                    this.urgente = data.n_urgente;
-                    this.pronto = data.n_pronto;
-                    this.etiquetado = data.etiquetado || [];
-                    // ETIQUETADO publico
-                    this.n_publico = data.n_publico;
-                    this.publico = data.publico || [];
-                } catch (error) {
-                    this.errorDatos = true;
-                    console.log(error);
-                } finally {
-                    this.cargandoDashboard = false;
-                }
-            },
-
-            async addPedidoPublico() {
-                this.cargandoDashboard = true;
-                try {
-                    const response = await fetch('/etiquetado/add_etiquetado_publico', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify(this.formPedido),
-                    });
-                    if (!response.ok) {
-                        throw new Error('Error al enviar los datos');
-                    }
-                    const result = await response.json();
-                    if (result.msg === 'ok') {
-                        this.formPedido.contrato = '';
-                        const modal = bootstrap.Modal.getInstance(document.getElementById('close-button').click());
-                        this.actualizarDashboard();
-                    };
-                } catch (error) {
-                    console.log(error);
-                }
-            }
-        },
-    });
+            chart.setOption({
+                tooltip: { trigger: 'axis' },
+                xAxis: {
+                    type: 'category',
+                    data: data.map(d => d.periodo)
+                },
+                yAxis: { type: 'value' },
+                series: [{
+                    name: 'Pedidos',
+                    type: 'line',
+                    smooth: true,
+                    data: data.map(d => d.total_pedidos)
+                }]
+            })
+        }
+    }
+})
 </script>
 
 {% endblock %}

@@ -4535,5 +4535,19 @@ def reporte_error_lote_v2(request):
 ##### PICKING ESTADISTICAS #####
 ################################
 
+from django.http import JsonResponse
+from datos.views import get_dashboard_completo
+
+def dashboard_completo_api(request):
+    data = get_dashboard_completo(
+        request.GET.get('fecha_inicio'),
+        request.GET.get('fecha_fin'),
+        request.GET.get('bodega'),
+        request.GET.get('cliente'),
+    )
+    return JsonResponse(data, safe=False)
+
+
 def dashboard_picking_estadisticas(request):
     return render(request, 'dashboards/picking_estadisticas.html')
+

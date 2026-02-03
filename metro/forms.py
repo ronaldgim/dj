@@ -368,4 +368,3 @@ class KardexForm(forms.ModelForm):
         if cantidad == 0:
             raise forms.ValidationError("La cantidad no puede ser cero.")
         return cantidad
-

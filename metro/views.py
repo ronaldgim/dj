@@ -2,6 +2,9 @@
 import json
 import datetime
 import pandas as pd
+from decimal import Decimal, InvalidOperation
+from io import BytesIO
+from django.core.files.base import ContentFile
 
 # Django
 from django.shortcuts import render
@@ -15,6 +18,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.db.models import Func, F, Value, IntegerField, CharField
 from django.db.models.functions import Cast
 from django.views.decorators.csrf import csrf_exempt
+# from django.views.decorators.http import require_POST
 
 # Email
 from django.core.mail import EmailMultiAlternatives
@@ -23,8 +27,13 @@ from django.template.loader import render_to_string
 from django.conf import settings
 
 # Models
-from metro.models import Product, Inventario, TomaFisica, Kardex
-from metro.forms import ProductForm, InventarioForm, TomaFisicaForm, KardexForm
+from django.db import transaction
+from metro.models import Product, Inventario, TomaFisica, Kardex, Cotizacion 
+from metro.forms import ProductForm, InventarioForm, TomaFisicaForm, KardexForm 
+
+# procesar archivo metro
+from metro.procesar_pedido_metro import ini #, mycursor, mycursor_web
+
 
 ### PRODUCTOS
 @login_required(login_url='login')
@@ -761,3 +770,197 @@ def metro_reporte_consignacion(request):
         worksheet.column_dimensions['J'].width = 17 # Precio unitario hm
         
     return response
+
+
+
+### COTIZACIÓNES
+
+def cotizaciones_list_view(request):
+    return render(request, 'metro/cotizaciones_list.html')
+
+
+def cotizaciones_list(request):
+    cotizaciones = Cotizacion.objects.select_related('creado_por').order_by('-id')
+
+    data = []
+    for c in cotizaciones:
+        data.append({
+            'id': c.id,
+            'codigo': c.codigo,
+            'descripcion': c.descripcion,
+            'archivo_origen': c.archivo_origen.url if c.archivo_origen else '',
+            'archivo_procesado': c.archivo_procesado.url if c.archivo_procesado else '',
+            'creado_por__first_name': c.creado_por.first_name if c.creado_por else '',
+            'creado_por__last_name': c.creado_por.last_name if c.creado_por else '',
+            'creado_en': c.creado_en,
+        })
+
+    return JsonResponse({
+        'msg': True,
+        'data': data
+    })
+
+
+@login_required
+@csrf_exempt
+def upload_cotizacion(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "Método no permitido"}, status=405)
+
+    archivo = request.FILES.get("archivo")
+    descripcion = request.POST.get("descripcion", "")
+
+    if not archivo:
+        return JsonResponse({"error": "Archivo requerido"}, status=400)
+
+    cotizacion = Cotizacion.objects.create(
+        descripcion=descripcion,
+        archivo_origen=archivo,
+        creado_por=request.user
+    )
+
+    # Aquí luego procesas el Excel
+    # guardar_items_cotizacion(cotizacion)
+    # procesado = ini(mycursor, mycursor_web, archivo)
+    procesado = ini(archivo)
+    guardar_dataframe_como_excel(cotizacion, procesado)
+
+    return JsonResponse({
+        "id": cotizacion.id,
+        "codigo": cotizacion.codigo
+    })
+
+
+# def guardar_items_cotizacion(cotizacion):
+#     """
+#     Lee el archivo Excel asociado a la cotización y guarda los items en CotizacionItem.
+    
+#     Args:
+#         cotizacion: Instancia de Cotizacion con archivo_origen asociado
+        
+#     Returns:
+#         int: Número de items creados
+        
+#     Raises:
+#         ValueError: Si no hay archivo o hay error en el procesamiento
+#     """
+#     if not cotizacion.archivo_origen:
+#         raise ValueError("La cotización no tiene archivo asociado")
+    
+#     file_path = cotizacion.archivo_origen.path
+    
+#     # Columnas esperadas y sus valores por defecto
+#     COLUMNAS_CONFIG = {
+#         'ARTICULO': ('-', str),
+#         'DESCRIPCION': ('-', str),
+#         'MEDIDA': ('-', str),
+#         'CANTIDAD': (0, float),
+#         'BONIFICACION': (0, float),
+#         'PRECIO UNITARIO': (0, float),
+#         'PRECIO TOTAL': (0, float),
+#         '% DESC': (0, float),
+#         'DESCUENTO': (0, float),
+#         'IMPUESTO': (0, float),
+#         'CENTRO_COSTO': ('-', str),
+#     }
+    
+#     try:
+#         # Leer Excel con mejor rendimiento
+#         df = pd.read_excel(file_path, engine='openpyxl')
+        
+#         # Filtrar filas válidas antes de procesar
+#         df = df[df['ARTICULO'].notna() & (df['ARTICULO'] != '-')]
+        
+#         if df.empty:
+#             return 0
+        
+#         # Reemplazar NaN por valores por defecto
+#         df = df.fillna({col: default for col, (default, _) in COLUMNAS_CONFIG.items()})
+        
+#         # Pre-cargar productos para evitar N+1 queries
+#         codigos_articulos = df['ARTICULO'].astype(str).str.strip().unique()
+#         productos_map = {
+#             prod.codigo_hm: prod 
+#             for prod in Product.objects.filter(codigo_hm__in=codigos_articulos)
+#         }
+        
+#         # Crear items
+#         items = []
+#         for _, row in df.iterrows():
+#             articulo = str(row['ARTICULO']).strip()
+#             producto_hm = productos_map.get(articulo)
+            
+#             items.append(
+#                 CotizacionItem(
+#                     cotizacion_id=cotizacion.id,
+#                     producto=producto_hm,
+#                     articulo=articulo,
+#                     descripcion=str(row['DESCRIPCION']).strip(),
+#                     medida=str(row['MEDIDA']).strip(),
+#                     cantidad=_to_decimal(row['CANTIDAD']),
+#                     bonificacion=_to_decimal(row['BONIFICACION']),
+#                     precio_unitario=_to_decimal(row['PRECIO UNITARIO']),
+#                     precio_total=_to_decimal(row['PRECIO TOTAL']),
+#                     porcentaje_descuento=_to_decimal(row['% DESC']),
+#                     descuento=_to_decimal(row['DESCUENTO']),
+#                     impuesto=_to_decimal(row['IMPUESTO']),
+#                     centro_costo=str(row.get('CENTRO_COSTO', '-')).strip(),
+#                 )
+#             )
+        
+#         # Usar transacción para integridad de datos
+#         with transaction.atomic():
+#             CotizacionItem.objects.bulk_create(items, batch_size=1000)
+        
+#         return len(items)
+        
+#     # except FileNotFoundError:
+#     #     raise ValueError(f"No se encuentra el archivo: {file_path}")
+#     # except pd.errors.EmptyDataError:
+#     #     raise ValueError("El archivo Excel está vacío")
+#     # except KeyError as e:
+#     #     raise ValueError(f"Columna requerida no encontrada en Excel: {e}")
+#     # except Exception as e:
+#     #     raise ValueError(f"Error procesando archivo Excel: {str(e)}")
+#     except:
+#         pass
+
+
+# def _to_decimal(value):
+#     """Convierte un valor a Decimal de forma segura."""
+#     try:
+#         return Decimal(str(value)) if value not in (None, '', '-') else Decimal('0')
+#     except (ValueError, InvalidOperation):
+#         return Decimal('0')
+
+
+def guardar_dataframe_como_excel(cotizacion, dataframe):
+    """
+    Recibe un DataFrame y lo guarda como archivo Excel
+    en el campo archivo_procesado del modelo Cotizacion
+    """
+
+    # 1 Crear Excel en memoria
+    output = BytesIO()
+
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        dataframe.to_excel(
+            writer,
+            index=False,
+            sheet_name='Procesado'
+        )
+
+    output.seek(0)
+
+    # 2 Nombre del archivo
+    fecha = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"{cotizacion.codigo}_procesado_{fecha}.xlsx"
+
+    # 3 Guardar en el FileField
+    cotizacion.archivo_procesado.save(
+        filename,
+        ContentFile(output.read()),
+        save=True
+    )
+
+    return cotizacion.archivo_procesado.url
