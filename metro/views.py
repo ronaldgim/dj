@@ -802,7 +802,6 @@ def cotizaciones_list(request):
 
 
 @login_required
-# @transaction.atomic
 @csrf_exempt
 def upload_cotizacion(request):
     if request.method != "POST":
@@ -823,7 +822,7 @@ def upload_cotizacion(request):
     # Aquí luego procesas el Excel
     # guardar_items_cotizacion(cotizacion)
     procesado = ini(mycursor, mycursor_web, archivo)
-    guardar_dataframe_como_excel(cotizacion,procesado)
+    guardar_dataframe_como_excel(cotizacion, procesado)
 
     return JsonResponse({
         "id": cotizacion.id,

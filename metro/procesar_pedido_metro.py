@@ -19,6 +19,7 @@ mydb_web = mysql.connector.connect(
 )
 mycursor_web = mydb_web.cursor()
 
+
 def ini(mycursor,mycursor_web, archivo) -> pd.DataFrame:
     list_t=[]
     list=[]
