@@ -17,7 +17,7 @@ def api_mba_sql(sql):
         }
     except Exception as e:
         print(str(e))
-        return {
-            "status": 200, #r.status_code,
-            "data": f"Api status {r.status_code} {str(e)}"
-        }
+        # return {
+        #     "status": 200, #r.status_code,
+        #     "data": f"Api status: {r.status_code} - Error: {str(e)}"
+        # }
