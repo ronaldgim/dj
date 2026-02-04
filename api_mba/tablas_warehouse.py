@@ -495,7 +495,7 @@ def api_actualizar_pedidos_warehouse():
             
         else:
             
-            admin_warehouse_timestamp(tabla='pedidos', actualizar_datetime=False, mensaje='Error fetch ODBC')
+            admin_warehouse_timestamp(tabla='pedidos', actualizar_datetime=False, mensaje=f'Error api estatus')
             
     except Exception as e:
         # print(e)

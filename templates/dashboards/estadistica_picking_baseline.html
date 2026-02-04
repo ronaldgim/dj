@@ -1,0 +1,1304 @@
+{% extends 'base_vue.html' %}
+{% block title %}
+<title>Dashboard Baseline - Análisis de Picking</title>
+{% endblock %}
+
+{% block body_2 %}
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        background: #f5f7fa;
+        color: #333;
+    }
+    
+    .container-dashboard {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .header {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+    }
+    
+    .header h1 {
+        font-size: 28px;
+        margin-bottom: 10px;
+        color: #2c3e50;
+    }
+    
+    .filters {
+        background: white;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+    }
+    
+    .filters h2 {
+        font-size: 18px;
+        margin-bottom: 20px;
+        color: #2c3e50;
+    }
+    
+    .filter-group {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .filter-item {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .filter-item label {
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #555;
+    }
+    
+    .filter-item select,
+    .filter-item input {
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+        background: white;
+    }
+    
+    .filter-item select:focus,
+    .filter-item input:focus {
+        outline: none;
+        border-color: #3498db;
+    }
+    
+    .btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .btn-primary {
+        background: #3498db;
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background: #2980b9;
+    }
+    
+    .btn-primary:disabled {
+        background: #95a5a6;
+        cursor: not-allowed;
+    }
+    
+    .btn-secondary {
+        background: #95a5a6;
+        color: white;
+    }
+    
+    .btn-secondary:hover {
+        background: #7f8c8d;
+    }
+    
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .kpi-card {
+        background: white;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        border-left: 4px solid #3498db;
+    }
+    
+    .kpi-card.success {
+        border-left-color: #27ae60;
+    }
+    
+    .kpi-card.warning {
+        border-left-color: #f39c12;
+    }
+    
+    .kpi-card.danger {
+        border-left-color: #e74c3c;
+    }
+    
+    .kpi-label {
+        font-size: 13px;
+        color: #7f8c8d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+    }
+    
+    .kpi-value {
+        font-size: 32px;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 5px;
+    }
+    
+    .kpi-subtitle {
+        font-size: 13px;
+        color: #95a5a6;
+    }
+    
+    .charts-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+        gap: 30px;
+        margin-bottom: 30px;
+    }
+    
+    .chart-card {
+        background: white;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .chart-card.full-width {
+        grid-column: 1 / -1;
+    }
+    
+    .chart-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #ecf0f1;
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 350px;
+    }
+    
+    .chart-container.small {
+        height: 250px;
+    }
+    
+    .chart-container.large {
+        height: 450px;
+    }
+    
+    .loading {
+        text-align: center;
+        padding: 40px;
+        color: #95a5a6;
+    }
+    
+    .loading-spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #3498db;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 15px;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .error {
+        background: #fee;
+        color: #c33;
+        padding: 20px;
+        border-radius: 8px;
+        border: 1px solid #fcc;
+        margin: 20px 0;
+    }
+    
+    .error h3 {
+        margin: 0 0 10px 0;
+    }
+    
+    .error pre {
+        background: #fff;
+        padding: 10px;
+        border-radius: 4px;
+        overflow-x: auto;
+        font-size: 12px;
+        margin-top: 10px;
+    }
+    
+    .metadata {
+        background: #ecf0f1;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-size: 13px;
+    }
+    
+    .metadata strong {
+        color: #2c3e50;
+    }
+    
+    @media (max-width: 768px) {
+        .charts-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .kpi-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div id="app" class="container-dashboard">
+    {% verbatim %}
+    <!-- Header -->
+    <div class="header">
+        <h1>📊 Dashboard de Baseline - Análisis de Picking</h1>
+        <p>Análisis estadístico de operaciones de picking y logística</p>
+    </div>
+    
+    <!-- Filtros -->
+    <div class="filters">
+        <h2>🔍 Filtros de Análisis</h2>
+        
+        <div class="filter-group">
+            <!-- Filtro por rango de fechas -->
+            <div class="filter-item">
+                <label>Año Inicio</label>
+                <select v-model="filtros.anio_inicio">
+                    <option value="">Todos</option>
+                    <option v-for="anio in opcionesFiltros.anios" :key="anio" :value="anio">
+                        {{ anio }}
+                    </option>
+                </select>
+            </div>
+            
+            <div class="filter-item">
+                <label>Mes Inicio</label>
+                <select v-model="filtros.mes_inicio" :disabled="!filtros.anio_inicio">
+                    <option value="">Todos</option>
+                    <option v-for="mes in opcionesFiltros.meses" :key="mes" :value="mes">
+                        {{ nombreMes(mes) }}
+                    </option>
+                </select>
+            </div>
+            
+            <div class="filter-item">
+                <label>Año Fin</label>
+                <select v-model="filtros.anio_fin">
+                    <option value="">Hoy</option>
+                    <option v-for="anio in opcionesFiltros.anios" :key="anio" :value="anio">
+                        {{ anio }}
+                    </option>
+                </select>
+            </div>
+            
+            <div class="filter-item">
+                <label>Mes Fin</label>
+                <select v-model="filtros.mes_fin" :disabled="!filtros.anio_fin">
+                    <option value="">Diciembre</option>
+                    <option v-for="mes in opcionesFiltros.meses" :key="mes" :value="mes">
+                        {{ nombreMes(mes) }}
+                    </option>
+                </select>
+            </div>
+            
+            <!-- Filtro por bodega -->
+            <div class="filter-item">
+                <label>Bodega</label>
+                <select v-model="filtros.bodega">
+                    <option value="">Todas</option>
+                    <option v-for="bodega in opcionesFiltros.bodegas" :key="bodega" :value="bodega">
+                        {{ bodega }}
+                    </option>
+                </select>
+            </div>
+            
+            <!-- Filtro por tipo de cliente -->
+            <div class="filter-item">
+                <label>Tipo de Cliente</label>
+                <select v-model="filtros.tipo_cliente">
+                    <option value="">Todos</option>
+                    <option v-for="tipo in opcionesFiltros.tipos_cliente" :key="tipo" :value="tipo">
+                        {{ tipo }}
+                    </option>
+                </select>
+            </div>
+            
+            <!-- Filtro por ciudad -->
+            <div class="filter-item">
+                <label>Ciudad</label>
+                <select v-model="filtros.ciudad">
+                    <option value="">Todas</option>
+                    <option v-for="ciudad in opcionesFiltros.ciudades" :key="ciudad" :value="ciudad">
+                        {{ ciudad }}
+                    </option>
+                </select>
+            </div>
+            
+            <!-- Opción rápida: últimos N meses -->
+            <div class="filter-item">
+                <label>Últimos Meses</label>
+                <select v-model="filtros.meses_historico">
+                    <option value="">Usar rango específico</option>
+                    <option value="1">Último mes</option>
+                    <option value="3">Últimos 3 meses</option>
+                    <option value="6">Últimos 6 meses</option>
+                    <option value="12">Último año</option>
+                </select>
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 10px;">
+            <button class="btn btn-primary" @click="cargarDatos" :disabled="cargando">
+                {{ cargando ? 'Cargando...' : '🔄 Aplicar Filtros' }}
+            </button>
+            <button class="btn btn-secondary" @click="limpiarFiltros">
+                🗑️ Limpiar
+            </button>
+        </div>
+    </div>
+    
+    <!-- Loading -->
+    <div v-if="cargando" class="loading">
+        <div class="loading-spinner"></div>
+        <p>Cargando datos del baseline...</p>
+    </div>
+    
+    <!-- Error -->
+    <div v-if="error" class="error">
+        <h3>❌ Error al cargar datos</h3>
+        <p><strong>Mensaje:</strong> {{ error }}</p>
+        <p v-if="errorDetalle"><strong>Detalle:</strong></p>
+        <pre v-if="errorDetalle">{{ errorDetalle }}</pre>
+        <button class="btn btn-primary" @click="cargarDatos" style="margin-top: 10px;">
+            🔄 Reintentar
+        </button>
+    </div>
+    
+    <!-- Contenido Principal -->
+    <div v-if="!cargando && baselineData && !error && tieneMetadata">
+        <!-- Metadata -->
+        <div class="metadata">
+            <strong>📅 Periodo:</strong> {{ baselineData.metadata.filtros_aplicados.periodo }} &nbsp;|&nbsp;
+            <strong>📊 Registros:</strong> {{ formatNumber(baselineData.metadata.total_registros) }} &nbsp;|&nbsp;
+            <strong>🏢 Bodegas:</strong> {{ baselineData.metadata.filtros_aplicados.bodegas }} &nbsp;|&nbsp;
+            <strong>👥 Tipos Cliente:</strong> {{ baselineData.metadata.filtros_aplicados.tipos_cliente }}
+        </div>
+        
+        <!-- KPIs Principales -->
+        <div class="kpi-grid" v-if="tienePromedios">
+            <div class="kpi-card">
+                <div class="kpi-label">Tiempo Promedio Total</div>
+                <div class="kpi-value">{{ baselineData.promedios.tiempos.total_horas.toFixed(1) }}h</div>
+                <div class="kpi-subtitle">{{ baselineData.promedios.tiempos.total_minutos.toFixed(0) }} minutos</div>
+            </div>
+            
+            <div class="kpi-card">
+                <div class="kpi-label">Tiempo Promedio Picking</div>
+                <div class="kpi-value">{{ baselineData.promedios.tiempos.picking_minutos.toFixed(0) }}m</div>
+                <div class="kpi-subtitle">Proceso de recolección</div>
+            </div>
+            
+            <div class="kpi-card">
+                <div class="kpi-label">Items por Pedido</div>
+                <div class="kpi-value">{{ baselineData.promedios.complejidad.items_por_pedido.toFixed(1) }}</div>
+                <div class="kpi-subtitle">Complejidad promedio</div>
+            </div>
+            
+            <div class="kpi-card">
+                <div class="kpi-label">Pedidos por Día</div>
+                <div class="kpi-value">{{ baselineData.volumetria.diario.promedio_pedidos.toFixed(0) }}</div>
+                <div class="kpi-subtitle">Volumen diario</div>
+            </div>
+            
+            <div class="kpi-card" :class="consistenciaClass">
+                <div class="kpi-label">Consistencia del Proceso</div>
+                <div class="kpi-value">{{ baselineData.variabilidad.coeficientes_variacion.total.toFixed(1) }}%</div>
+                <div class="kpi-subtitle">
+                    {{ baselineData.variabilidad.interpretacion.total }}
+                </div>
+            </div>
+            
+            <div class="kpi-card success">
+                <div class="kpi-label">Tasa de Completitud</div>
+                <div class="kpi-value">{{ baselineData.promedios.calidad.completitud_porcentaje.toFixed(1) }}%</div>
+                <div class="kpi-subtitle">Datos completos</div>
+            </div>
+        </div>
+        
+        <!-- Gráficos -->
+        <div class="charts-grid">
+            <!-- Gráfico 1: Distribución de Percentiles -->
+            <div class="chart-card" v-if="tienePercentiles">
+                <h3 class="chart-title">📊 Distribución de Tiempos (Percentiles)</h3>
+                <div class="chart-container small">
+                    <canvas ref="chartPercentiles"></canvas>
+                </div>
+            </div>
+            
+            <!-- Gráfico 2: Comparación de Tiempos Promedio -->
+            <div class="chart-card" v-if="tienePromedios">
+                <h3 class="chart-title">⏱️ Desglose de Tiempos Promedio</h3>
+                <div class="chart-container small">
+                    <canvas ref="chartTiempos"></canvas>
+                </div>
+            </div>
+            
+            <!-- Gráfico 3: Volumen por Día de la Semana -->
+            <div class="chart-card full-width" v-if="tieneDiaSemana">
+                <h3 class="chart-title">📅 Volumen y Tiempos por Día de la Semana</h3>
+                <div class="chart-container">
+                    <canvas ref="chartDiaSemana"></canvas>
+                </div>
+            </div>
+            
+            <!-- Gráfico 4: Por Bodega -->
+            <div class="chart-card" v-if="tieneBodegas">
+                <h3 class="chart-title">🏢 Análisis por Bodega</h3>
+                <div class="chart-container">
+                    <canvas ref="chartBodegas"></canvas>
+                </div>
+            </div>
+            
+            <!-- Gráfico 5: Por Tipo de Cliente -->
+            <div class="chart-card" v-if="tieneTipoCliente">
+                <h3 class="chart-title">👥 Análisis por Tipo de Cliente</h3>
+                <div class="chart-container">
+                    <canvas ref="chartTipoCliente"></canvas>
+                </div>
+            </div>
+            
+            <!-- Gráfico 6: Por Complejidad (ECharts) -->
+            <div class="chart-card full-width" v-if="tieneComplejidad">
+                <h3 class="chart-title">📦 Análisis por Complejidad de Pedido</h3>
+                <div class="chart-container" ref="chartComplejidad"></div>
+            </div>
+            
+            <!-- Gráfico 7: Tendencia Temporal -->
+            <div class="chart-card full-width" v-if="tieneTendencia">
+                <h3 class="chart-title">📈 Tendencia Temporal</h3>
+                <div class="chart-container large">
+                    <canvas ref="chartTendencia"></canvas>
+                </div>
+            </div>
+            
+            <!-- Gráfico 8: Horas Pico -->
+            <div class="chart-card" v-if="tieneHorasPico">
+                <h3 class="chart-title">🕐 Horas Pico de Operación</h3>
+                <div class="chart-container small">
+                    <canvas ref="chartHorasPico"></canvas>
+                </div>
+            </div>
+            
+            <!-- Gráfico 9: Top Usuarios -->
+            <div class="chart-card" v-if="tieneTopUsuarios">
+                <h3 class="chart-title">⭐ Top 10 Operadores</h3>
+                <div class="chart-container">
+                    <canvas ref="chartTopUsuarios"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Mensaje cuando no hay datos -->
+    <div v-if="!cargando && baselineData && baselineData.error" class="error">
+        <h3>⚠️ No hay datos disponibles</h3>
+        <p>{{ baselineData.error }}</p>
+        <div class="metadata" style="margin-top: 15px;">
+            <strong>Filtros aplicados:</strong><br>
+            <span v-if="baselineData.filtros">{{ JSON.stringify(baselineData.filtros, null, 2) }}</span>
+        </div>
+        <button class="btn btn-secondary" @click="limpiarFiltros" style="margin-top: 10px;">
+            🔄 Resetear Filtros
+        </button>
+    </div>
+    {% endverbatim %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+<script>
+new Vue({
+    el: '#app',
+    data: {
+        baselineData: null,
+        cargando: false,
+        error: null,
+        errorDetalle: null,
+        charts: {},
+        filtros: {
+            anio_inicio: '',
+            mes_inicio: '',
+            anio_fin: '',
+            mes_fin: '',
+            bodega: '',
+            tipo_cliente: '',
+            ciudad: '',
+            meses_historico: '6'
+        },
+        opcionesFiltros: {
+            anios: [],
+            meses: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+            bodegas: [],
+            tipos_cliente: [],
+            ciudades: []
+        }
+    },
+    computed: {
+        consistenciaClass() {
+            if (!this.baselineData || !this.baselineData.variabilidad) return '';
+            const cv = this.baselineData.variabilidad.coeficientes_variacion.total;
+            if (cv < 15) return 'success';
+            if (cv < 35) return 'warning';
+            return 'danger';
+        },
+        tieneMetadata() {
+            return this.baselineData && 
+                   this.baselineData.metadata && 
+                   this.baselineData.metadata.filtros_aplicados;
+        },
+        tienePromedios() {
+            return this.baselineData && 
+                   this.baselineData.promedios && 
+                   this.baselineData.promedios.tiempos;
+        },
+        tienePercentiles() {
+            return this.baselineData && 
+                   this.baselineData.percentiles && 
+                   this.baselineData.percentiles.tiempo_total_proceso;
+        },
+        tieneDiaSemana() {
+            return this.baselineData && 
+                   this.baselineData.volumetria && 
+                   this.baselineData.volumetria.por_dia_semana && 
+                   this.baselineData.volumetria.por_dia_semana.length > 0;
+        },
+        tieneBodegas() {
+            return this.baselineData && 
+                   this.baselineData.segmentacion && 
+                   this.baselineData.segmentacion.por_bodega && 
+                   this.baselineData.segmentacion.por_bodega.length > 0;
+        },
+        tieneTipoCliente() {
+            return this.baselineData && 
+                   this.baselineData.segmentacion && 
+                   this.baselineData.segmentacion.por_tipo_cliente && 
+                   this.baselineData.segmentacion.por_tipo_cliente.length > 0;
+        },
+        tieneComplejidad() {
+            return this.baselineData && 
+                   this.baselineData.segmentacion && 
+                   this.baselineData.segmentacion.por_complejidad && 
+                   this.baselineData.segmentacion.por_complejidad.length > 0;
+        },
+        tieneTendencia() {
+            return this.baselineData && 
+                   this.baselineData.distribucion_temporal && 
+                   this.baselineData.distribucion_temporal.por_mes && 
+                   this.baselineData.distribucion_temporal.por_mes.length > 0;
+        },
+        tieneHorasPico() {
+            return this.baselineData && 
+                   this.baselineData.volumetria && 
+                   this.baselineData.volumetria.horas_pico && 
+                   this.baselineData.volumetria.horas_pico.length > 0;
+        },
+        tieneTopUsuarios() {
+            return this.baselineData && 
+                   this.baselineData.segmentacion && 
+                   this.baselineData.segmentacion.top_usuarios && 
+                   this.baselineData.segmentacion.top_usuarios.length > 0;
+        }
+    },
+    mounted() {
+        console.log('Vue app montado');
+        this.cargarOpcionesFiltros();
+        this.cargarDatos();
+    },
+    methods: {
+        async cargarOpcionesFiltros() {
+            try {
+                console.log('Cargando opciones de filtros...');
+                const response = await axios.get('/etiquetado/api/baseline/filtros/');
+                this.opcionesFiltros = response.data;
+                console.log('Opciones de filtros cargadas:', this.opcionesFiltros);
+            } catch (error) {
+                console.error('Error cargando opciones de filtros:', error);
+                // No mostrar error al usuario, solo en consola
+            }
+        },
+        
+        async cargarDatos() {
+            this.cargando = true;
+            this.error = null;
+            this.errorDetalle = null;
+            
+            try {
+                // Construir parámetros
+                const params = {};
+                
+                if (this.filtros.meses_historico) {
+                    params.meses_historico = this.filtros.meses_historico;
+                } else {
+                    if (this.filtros.anio_inicio) params.anio_inicio = this.filtros.anio_inicio;
+                    if (this.filtros.mes_inicio) params.mes_inicio = this.filtros.mes_inicio;
+                    if (this.filtros.anio_fin) params.anio_fin = this.filtros.anio_fin;
+                    if (this.filtros.mes_fin) params.mes_fin = this.filtros.mes_fin;
+                }
+                
+                if (this.filtros.bodega) params.bodegas = this.filtros.bodega;
+                if (this.filtros.tipo_cliente) params.tipos_cliente = this.filtros.tipo_cliente;
+                if (this.filtros.ciudad) params.ciudades = this.filtros.ciudad;
+                
+                console.log('Cargando datos con parámetros:', params);
+                
+                const response = await axios.get('/etiquetado/api/baseline/data/', { params });
+                
+                console.log('Respuesta recibida:', response.data);
+                
+                // Verificar si la respuesta tiene la estructura esperada
+                if (response.data.error) {
+                    // El backend retornó un error controlado
+                    this.baselineData = response.data;
+                    this.error = null;
+                } else if (!response.data.metadata) {
+                    // La respuesta no tiene la estructura esperada
+                    throw new Error('La respuesta del servidor no tiene el formato esperado (falta metadata)');
+                } else {
+                    this.baselineData = response.data;
+                    
+                    // Esperar al siguiente tick para que Vue renderice los canvas
+                    await this.$nextTick();
+                    
+                    // Crear gráficos
+                    this.crearGraficos();
+                }
+                
+            } catch (error) {
+                console.error('Error completo:', error);
+                
+                if (error.response) {
+                    // El servidor respondió con un código de error
+                    this.error = `Error ${error.response.status}: ${error.response.statusText}`;
+                    this.errorDetalle = JSON.stringify(error.response.data, null, 2);
+                } else if (error.request) {
+                    // La petición se hizo pero no hubo respuesta
+                    this.error = 'No se recibió respuesta del servidor. Verifica tu conexión.';
+                    this.errorDetalle = 'La petición fue enviada pero el servidor no respondió.';
+                } else {
+                    // Algo pasó al configurar la petición
+                    this.error = error.message || 'Error desconocido al cargar los datos';
+                    this.errorDetalle = error.stack;
+                }
+            } finally {
+                this.cargando = false;
+            }
+        },
+        
+        limpiarFiltros() {
+            this.filtros = {
+                anio_inicio: '',
+                mes_inicio: '',
+                anio_fin: '',
+                mes_fin: '',
+                bodega: '',
+                tipo_cliente: '',
+                ciudad: '',
+                meses_historico: '6'
+            };
+            this.cargarDatos();
+        },
+        
+        crearGraficos() {
+            console.log('Creando gráficos...');
+            
+            // Destruir gráficos existentes
+            Object.values(this.charts).forEach(chart => {
+                if (chart && typeof chart.destroy === 'function') {
+                    chart.destroy();
+                } else if (chart && typeof chart.dispose === 'function') {
+                    chart.dispose();
+                }
+            });
+            this.charts = {};
+            
+            // Crear cada gráfico solo si hay datos
+            if (this.tienePercentiles) this.crearGraficoPercentiles();
+            if (this.tienePromedios) this.crearGraficoTiempos();
+            if (this.tieneDiaSemana) this.crearGraficoDiaSemana();
+            if (this.tieneBodegas) this.crearGraficoBodegas();
+            if (this.tieneTipoCliente) this.crearGraficoTipoCliente();
+            if (this.tieneComplejidad) this.crearGraficoComplejidad();
+            if (this.tieneTendencia) this.crearGraficoTendencia();
+            if (this.tieneHorasPico) this.crearGraficoHorasPico();
+            if (this.tieneTopUsuarios) this.crearGraficoTopUsuarios();
+            
+            console.log('Gráficos creados:', Object.keys(this.charts));
+        },
+        
+        crearGraficoPercentiles() {
+            if (!this.$refs.chartPercentiles) return;
+            
+            const percentiles = this.baselineData.percentiles.tiempo_total_proceso;
+            
+            const ctx = this.$refs.chartPercentiles.getContext('2d');
+            this.charts.percentiles = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['P25', 'P50 (Mediana)', 'P75', 'P90', 'P95'],
+                    datasets: [{
+                        label: 'Tiempo Total (minutos)',
+                        data: [
+                            percentiles.p25,
+                            percentiles.p50,
+                            percentiles.p75,
+                            percentiles.p90,
+                            percentiles.p95
+                        ],
+                        backgroundColor: [
+                            'rgba(46, 204, 113, 0.7)',
+                            'rgba(52, 152, 219, 0.7)',
+                            'rgba(241, 196, 15, 0.7)',
+                            'rgba(230, 126, 34, 0.7)',
+                            'rgba(231, 76, 60, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgb(46, 204, 113)',
+                            'rgb(52, 152, 219)',
+                            'rgb(241, 196, 15)',
+                            'rgb(230, 126, 34)',
+                            'rgb(231, 76, 60)'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.parsed.y.toFixed(0) + ' minutos (' + (context.parsed.y / 60).toFixed(1) + 'h)';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Minutos'
+                            }
+                        }
+                    }
+                }
+            });
+        },
+        
+        crearGraficoTiempos() {
+            if (!this.$refs.chartTiempos) return;
+            
+            const tiempos = this.baselineData.promedios.tiempos;
+            
+            const ctx = this.$refs.chartTiempos.getContext('2d');
+            this.charts.tiempos = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: [
+                        'Espera Inicio',
+                        'Picking',
+                        'Facturación'
+                    ],
+                    datasets: [{
+                        data: [
+                            tiempos.inicio_minutos,
+                            tiempos.picking_minutos,
+                            tiempos.facturacion_minutos
+                        ],
+                        backgroundColor: [
+                            'rgba(52, 152, 219, 0.7)',
+                            'rgba(46, 204, 113, 0.7)',
+                            'rgba(155, 89, 182, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgb(52, 152, 219)',
+                            'rgb(46, 204, 113)',
+                            'rgb(155, 89, 182)'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce(function(a, b) { return a + b; }, 0);
+                                    const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                    return context.label + ': ' + context.parsed.toFixed(0) + ' min (' + percentage + '%)';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        },
+        
+        // ... (resto de métodos de creación de gráficos igual que antes)
+        // Los copio igual porque no han cambiado
+        
+        crearGraficoDiaSemana() {
+            if (!this.$refs.chartDiaSemana) return;
+            
+            const datos = this.baselineData.volumetria.por_dia_semana;
+            
+            const ctx = this.$refs.chartDiaSemana.getContext('2d');
+            this.charts.diaSemana = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: datos.map(function(d) { return d.dia_semana_creado_str; }),
+                    datasets: [
+                        {
+                            label: 'Pedidos',
+                            data: datos.map(function(d) { return d.pedidos; }),
+                            backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                            borderColor: 'rgb(52, 152, 219)',
+                            borderWidth: 2,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Tiempo Promedio (min)',
+                            data: datos.map(function(d) { return d.promedio_tiempo; }),
+                            type: 'line',
+                            borderColor: 'rgb(231, 76, 60)',
+                            backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                            borderWidth: 3,
+                            yAxisID: 'y1',
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Número de Pedidos'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Tiempo Promedio (min)'
+                            },
+                            grid: {
+                                drawOnChartArea: false
+                            }
+                        }
+                    }
+                }
+            });
+        },
+        
+        crearGraficoBodegas() {
+            if (!this.$refs.chartBodegas) return;
+            
+            const datos = this.baselineData.segmentacion.por_bodega;
+            
+            const ctx = this.$refs.chartBodegas.getContext('2d');
+            this.charts.bodegas = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: datos.map(function(d) { return d.bodega; }),
+                    datasets: [
+                        {
+                            label: 'Pedidos',
+                            data: datos.map(function(d) { return d.pedidos; }),
+                            backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                            borderColor: 'rgb(52, 152, 219)',
+                            borderWidth: 2,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Tiempo Promedio (min)',
+                            data: datos.map(function(d) { return d.promedio_tiempo; }),
+                            backgroundColor: 'rgba(46, 204, 113, 0.7)',
+                            borderColor: 'rgb(46, 204, 113)',
+                            borderWidth: 2,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Número de Pedidos'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Tiempo Promedio (min)'
+                            },
+                            grid: {
+                                drawOnChartArea: false
+                            }
+                        }
+                    }
+                }
+            });
+        },
+        
+        crearGraficoTipoCliente() {
+            if (!this.$refs.chartTipoCliente) return;
+            
+            const datos = this.baselineData.segmentacion.por_tipo_cliente;
+            
+            const ctx = this.$refs.chartTipoCliente.getContext('2d');
+            this.charts.tipoCliente = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: datos.map(function(d) { return d.tipo_cliente; }),
+                    datasets: [{
+                        label: 'Tiempo Promedio (min)',
+                        data: datos.map(function(d) { return d.promedio_tiempo; }),
+                        backgroundColor: datos.map(function(d, i) {
+                            const colors = [
+                                'rgba(52, 152, 219, 0.7)',
+                                'rgba(46, 204, 113, 0.7)',
+                                'rgba(155, 89, 182, 0.7)',
+                                'rgba(241, 196, 15, 0.7)'
+                            ];
+                            return colors[i % colors.length];
+                        }),
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                afterLabel: function(context) {
+                                    const item = datos[context.dataIndex];
+                                    return [
+                                        'Pedidos: ' + item.pedidos,
+                                        'Items prom: ' + item.items_promedio.toFixed(1)
+                                    ];
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        },
+        
+        crearGraficoComplejidad() {
+            if (!this.$refs.chartComplejidad) return;
+            
+            const datos = this.baselineData.segmentacion.por_complejidad;
+            
+            const chart = echarts.init(this.$refs.chartComplejidad);
+            
+            const option = {
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'shadow'
+                    }
+                },
+                legend: {
+                    data: ['Pedidos', 'Tiempo Picking (min)', 'Tiempo Total (min)']
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    data: datos.map(function(d) { return d.rango; }),
+                    axisLabel: {
+                        rotate: 45
+                    }
+                },
+                yAxis: [
+                    {
+                        type: 'value',
+                        name: 'Pedidos',
+                        position: 'left'
+                    },
+                    {
+                        type: 'value',
+                        name: 'Tiempo (min)',
+                        position: 'right'
+                    }
+                ],
+                series: [
+                    {
+                        name: 'Pedidos',
+                        type: 'bar',
+                        data: datos.map(function(d) { return d.pedidos; }),
+                        itemStyle: {
+                            color: 'rgba(52, 152, 219, 0.7)'
+                        }
+                    },
+                    {
+                        name: 'Tiempo Picking (min)',
+                        type: 'line',
+                        yAxisIndex: 1,
+                        data: datos.map(function(d) { return d.tiempo_picking_promedio; }),
+                        itemStyle: {
+                            color: 'rgb(46, 204, 113)'
+                        },
+                        lineStyle: {
+                            width: 3
+                        }
+                    },
+                    {
+                        name: 'Tiempo Total (min)',
+                        type: 'line',
+                        yAxisIndex: 1,
+                        data: datos.map(function(d) { return d.tiempo_total_promedio; }),
+                        itemStyle: {
+                            color: 'rgb(231, 76, 60)'
+                        },
+                        lineStyle: {
+                            width: 3
+                        }
+                    }
+                ]
+            };
+            
+            chart.setOption(option);
+            this.charts.complejidad = chart;
+        },
+        
+        crearGraficoTendencia() {
+            if (!this.$refs.chartTendencia) return;
+            
+            const datos = this.baselineData.distribucion_temporal.por_mes;
+            const self = this;
+            
+            const ctx = this.$refs.chartTendencia.getContext('2d');
+            this.charts.tendencia = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: datos.map(function(d) { return self.nombreMes(d.mes_creado) + ' ' + d.anio_creado; }),
+                    datasets: [
+                        {
+                            label: 'Pedidos',
+                            data: datos.map(function(d) { return d.pedidos; }),
+                            borderColor: 'rgb(52, 152, 219)',
+                            backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.4,
+                            fill: true,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Tiempo Promedio (min)',
+                            data: datos.map(function(d) { return d.promedio_tiempo; }),
+                            borderColor: 'rgb(231, 76, 60)',
+                            backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.4,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Número de Pedidos'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Tiempo Promedio (min)'
+                            },
+                            grid: {
+                                drawOnChartArea: false
+                            }
+                        }
+                    }
+                }
+            });
+        },
+        
+        crearGraficoHorasPico() {
+            if (!this.$refs.chartHorasPico) return;
+            
+            const datos = this.baselineData.volumetria.horas_pico;
+            
+            const ctx = this.$refs.chartHorasPico.getContext('2d');
+            this.charts.horasPico = new Chart(ctx, {
+                type: 'polarArea',
+                data: {
+                    labels: datos.map(function(d) { return d.hora; }),
+                    datasets: [{
+                        label: 'Pedidos',
+                        data: datos.map(function(d) { return d.pedidos; }),
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.7)',
+                            'rgba(54, 162, 235, 0.7)',
+                            'rgba(255, 206, 86, 0.7)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        },
+        
+        crearGraficoTopUsuarios() {
+            if (!this.$refs.chartTopUsuarios) return;
+            
+            const datos = this.baselineData.segmentacion.top_usuarios.slice(0, 10);
+            
+            const ctx = this.$refs.chartTopUsuarios.getContext('2d');
+            this.charts.topUsuarios = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: datos.map(function(d) { return d.usuario_picking; }),
+                    datasets: [{
+                        label: 'Pedidos Procesados',
+                        data: datos.map(function(d) { return d.pedidos; }),
+                        backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                        borderColor: 'rgb(52, 152, 219)',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                afterLabel: function(context) {
+                                    const item = datos[context.dataIndex];
+                                    return [
+                                        'Tiempo prom: ' + item.promedio_tiempo_picking.toFixed(0) + ' min',
+                                        'Items totales: ' + item.items_totales,
+                                        'Productividad: ' + item.productividad.toFixed(1) + ' items/h'
+                                    ];
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        },
+        
+        // Utilidades
+        nombreMes(num) {
+            const meses = [
+                'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+            ];
+            return meses[num - 1] || '';
+        },
+        
+        formatNumber(num) {
+            return num ? num.toLocaleString('es-ES') : '0';
+        }
+    }
+});
+</script>
+
+{% endblock %}

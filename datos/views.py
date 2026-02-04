@@ -2723,7 +2723,7 @@ def obtener_estado_picking_batch(year: int, month: int):
             'fecha_creado',
             'fecha_actualizado',
             'user__user__username',
-        )[540:560]  #[inicio:fin]
+        )#[400:600]  #[inicio:fin]
     )
 
 
@@ -3046,14 +3046,14 @@ def enriquecer_facturacion():
 def pipeline_picking_estadisticas_batch(request, year: int, month: int):
     
     if request.user.is_superuser:
-    
+        print(f'Inicia mineria de datos año: {year} - mes: {month}')
         cargar_picking_base_batch(year, month)
         enriquecer_mba()
         enriquecer_usuario_mba()
         calcular_items_y_volumen_batch() #(inicio, fin)
         enriquecer_facturacion()
         recalcular_duraciones_batch() #(inicio, fin)
-        
+        print(f'Fin mineria de datos año: {year} - mes: {month}')
         return HttpResponse('ok')
     return HttpResponse('necesita permisos de super usuario')
 
@@ -3095,401 +3095,401 @@ def probar_api_mba_query(request, query:str):
     return render()
 
 
-# =============================================================================
-# FUNCIONES KPIs Y SLAs PARA PICKING ESTADISTICA
-# =============================================================================
+# # =============================================================================
+# # FUNCIONES KPIs Y SLAs PARA PICKING ESTADISTICA
+# # =============================================================================
 
-from django.db.models import Avg, Count, Sum, Max, Min, StdDev, Variance, F, ExpressionWrapper, FloatField, DurationField
-from django.db.models.functions import Coalesce, TruncDay, TruncWeek, TruncMonth, Extract
-
-
-def get_kpis_operativos(fecha_inicio=None, fecha_fin=None, bodega=None, cliente=None):
-    """
-    Obtiene KPIs operativos principales del proceso de picking
-    
-    Args:
-        fecha_inicio: datetime - Fecha inicio del filtro
-        fecha_fin: datetime - Fecha fin del filtro  
-        bodega: str - Código de bodega
-        cliente: str - Código de cliente
-        
-    Returns:
-        dict - KPIs operativos agregados
-    """
-    queryset = PickingEstadistica.objects.all()
-    
-    # Aplicar filtros
-    if fecha_inicio:
-        queryset = queryset.filter(creado_mba__gte=fecha_inicio)
-    if fecha_fin:
-        queryset = queryset.filter(creado_mba__lte=fecha_fin)
-    if bodega:
-        queryset = queryset.filter(bodega=bodega)
-    if cliente:
-        queryset = queryset.filter(codigo_cliente=cliente)
-    
-    # Filtrar solo datos completos para cálculos precisos
-    queryset = queryset.filter(datos_completos=True)
-    
-    kpis = queryset.aggregate(
-        total_pedidos=Count('contrato_id'),
-        total_items=Sum('total_items'),
-        total_volumen_m3=Sum('total_volumen_m3'),
-        total_peso_kg=Sum('total_peso_kg'),
-        
-        # Tiempos promedio (minutos)
-        tiempo_promedio_creacion_inicio=Avg('tiempo_creacion_a_inicio'),
-        tiempo_promedio_inicio_fin=Avg('tiempo_inicio_a_fin'),
-        tiempo_promedio_fin_facturacion=Avg('tiempo_fin_a_facturacion'),
-        tiempo_promedio_total=Avg('tiempo_total_proceso'),
-        
-        # Desviaciones estándar para medir consistencia
-        std_tiempo_total=StdDev('tiempo_total_proceso'),
-        
-        # Valores extremos
-        tiempo_minimo_total=Min('tiempo_total_proceso'),
-        tiempo_maximo_total=Max('tiempo_total_proceso'),
-        
-        # Eficiencia por pedido
-        #items_promedio_por_pedido=Avg('total_items'),
-        #volumen_promedio_por_pedido=Avg('total_volumen_m3'),
-        #peso_promedio_por_pedido=Avg('total_peso_kg'),
-    )
-    
-    # Calcular KPIs derivados
-    total_pedidos = kpis['total_pedidos'] or 0
-    if total_pedidos > 0:
-        kpis['porcentaje_completitud'] = float(kpis['total_pedidos']) / queryset.count() * 100
-        kpis['eficiencia_items_minuto'] = (kpis['total_items'] or 0) / (kpis['tiempo_promedio_total'] or 1)
-        kpis['variabilidad_tiempo'] = (kpis['std_tiempo_total'] or 0) / (kpis['tiempo_promedio_total'] or 1) * 100
-    else:
-        kpis['porcentaje_completitud'] = 0
-        kpis['eficiencia_items_minuto'] = 0
-        kpis['variabilidad_tiempo'] = 0
-    
-    return kpis
+# from django.db.models import Avg, Count, Sum, Max, Min, StdDev, Variance, F, ExpressionWrapper, FloatField, DurationField
+# from django.db.models.functions import Coalesce, TruncDay, TruncWeek, TruncMonth, Extract
 
 
-def calcular_slas_reales(fecha_inicio=None, fecha_fin=None, bodega=None, cliente=None):
-    """
-    Calcula SLAs reales basados en umbrales de tiempo
+# def get_kpis_operativos(fecha_inicio=None, fecha_fin=None, bodega=None, cliente=None):
+#     """
+#     Obtiene KPIs operativos principales del proceso de picking
     
-    Args:
-        fecha_inicio: datetime - Fecha inicio del filtro
-        fecha_fin: datetime - Fecha fin del filtro
-        bodega: str - Código de bodega  
-        cliente: str - Código de cliente
+#     Args:
+#         fecha_inicio: datetime - Fecha inicio del filtro
+#         fecha_fin: datetime - Fecha fin del filtro  
+#         bodega: str - Código de bodega
+#         cliente: str - Código de cliente
         
-    Returns:
-        dict - Métricas de SLA
-    """
-    queryset = PickingEstadistica.objects.all()
+#     Returns:
+#         dict - KPIs operativos agregados
+#     """
+#     queryset = PickingEstadistica.objects.all()
     
-    # Aplicar filtros
-    if fecha_inicio:
-        queryset = queryset.filter(creado_mba__gte=fecha_inicio)
-    if fecha_fin:
-        queryset = queryset.filter(creado_mba__lte=fecha_fin)
-    if bodega:
-        queryset = queryset.filter(bodega=bodega)
-    if cliente:
-        queryset = queryset.filter(codigo_cliente=cliente)
+#     # Aplicar filtros
+#     if fecha_inicio:
+#         queryset = queryset.filter(creado_mba__gte=fecha_inicio)
+#     if fecha_fin:
+#         queryset = queryset.filter(creado_mba__lte=fecha_fin)
+#     if bodega:
+#         queryset = queryset.filter(bodega=bodega)
+#     if cliente:
+#         queryset = queryset.filter(codigo_cliente=cliente)
     
-    # Filtrar solo datos completos
-    queryset = queryset.filter(datos_completos=True)
+#     # Filtrar solo datos completos para cálculos precisos
+#     queryset = queryset.filter(datos_completos=True)
     
-    # Umbrales de SLA (ajustables según requerimientos del negocio)
-    UMBRALES = {
-        'tiempo_creacion_a_inicio': 30,  # minutos
-        'tiempo_inicio_a_fin': 120,      # minutos  
-        'tiempo_fin_a_facturacion': 60,   # minutos
-        'tiempo_total_proceso': 180    # minutos
-    }
+#     kpis = queryset.aggregate(
+#         total_pedidos=Count('contrato_id'),
+#         total_items=Sum('total_items'),
+#         total_volumen_m3=Sum('total_volumen_m3'),
+#         total_peso_kg=Sum('total_peso_kg'),
+        
+#         # Tiempos promedio (minutos)
+#         tiempo_promedio_creacion_inicio=Avg('tiempo_creacion_a_inicio'),
+#         tiempo_promedio_inicio_fin=Avg('tiempo_inicio_a_fin'),
+#         tiempo_promedio_fin_facturacion=Avg('tiempo_fin_a_facturacion'),
+#         tiempo_promedio_total=Avg('tiempo_total_proceso'),
+        
+#         # Desviaciones estándar para medir consistencia
+#         std_tiempo_total=StdDev('tiempo_total_proceso'),
+        
+#         # Valores extremos
+#         tiempo_minimo_total=Min('tiempo_total_proceso'),
+#         tiempo_maximo_total=Max('tiempo_total_proceso'),
+        
+#         # Eficiencia por pedido
+#         #items_promedio_por_pedido=Avg('total_items'),
+#         #volumen_promedio_por_pedido=Avg('total_volumen_m3'),
+#         #peso_promedio_por_pedido=Avg('total_peso_kg'),
+#     )
     
-    total_pedidos = queryset.count()
+#     # Calcular KPIs derivados
+#     total_pedidos = kpis['total_pedidos'] or 0
+#     if total_pedidos > 0:
+#         kpis['porcentaje_completitud'] = float(kpis['total_pedidos']) / queryset.count() * 100
+#         kpis['eficiencia_items_minuto'] = (kpis['total_items'] or 0) / (kpis['tiempo_promedio_total'] or 1)
+#         kpis['variabilidad_tiempo'] = (kpis['std_tiempo_total'] or 0) / (kpis['tiempo_promedio_total'] or 1) * 100
+#     else:
+#         kpis['porcentaje_completitud'] = 0
+#         kpis['eficiencia_items_minuto'] = 0
+#         kpis['variabilidad_tiempo'] = 0
     
-    if total_pedidos == 0:
-        return {
-            'total_pedidos': 0,
-            'slas': {},
-            'nivel_general': 0
-        }
-    
-    slas = {}
-    
-    for etapa, umbral_minutos in UMBRALES.items():
-        cumplimiento = queryset.filter(**{f'{etapa}__lte': umbral_minutos}).count()
-        slas[etapa] = {
-            'umbral_minutos': umbral_minutos,
-            'pedidos_dentro_sla': cumplimiento,
-            'porcentaje_cumplimiento': (cumplimiento / total_pedidos) * 100
-        }
-    
-    # Calcular nivel general de SLA (promedio de todas las etapas)
-    if slas:
-        nivel_general = sum(sla['porcentaje_cumplimiento'] for sla in slas.values()) / len(slas)
-    else:
-        nivel_general = 0
-    
-    return {
-        'total_pedidos': total_pedidos,
-        'slas': slas,
-        'nivel_general': nivel_general
-    }
+#     return kpis
 
 
-def get_metricas_agregadas_por_fecha(fecha_inicio, fecha_fin, bodega=None, cliente=None, granularidad='dia'):
-    """
-    Obtiene métricas agregadas por rango de fechas con granularidad específica
+# def calcular_slas_reales(fecha_inicio=None, fecha_fin=None, bodega=None, cliente=None):
+#     """
+#     Calcula SLAs reales basados en umbrales de tiempo
     
-    Args:
-        fecha_inicio: datetime - Fecha inicio
-        fecha_fin: datetime - Fecha fin
-        bodega: str - Código de bodega (opcional)
-        cliente: str - Código de cliente (opcional)
-        granularidad: str - 'dia', 'semana', 'mes'
+#     Args:
+#         fecha_inicio: datetime - Fecha inicio del filtro
+#         fecha_fin: datetime - Fecha fin del filtro
+#         bodega: str - Código de bodega  
+#         cliente: str - Código de cliente
         
-    Returns:
-        list of dict - Métricas por período
-    """
-    queryset = PickingEstadistica.objects.all()
+#     Returns:
+#         dict - Métricas de SLA
+#     """
+#     queryset = PickingEstadistica.objects.all()
     
-    # Aplicar filtros base
-    queryset = queryset.filter(
-        creado_mba__gte=fecha_inicio,
-        creado_mba__lte=fecha_fin,
-        datos_completos=True
-    )
+#     # Aplicar filtros
+#     if fecha_inicio:
+#         queryset = queryset.filter(creado_mba__gte=fecha_inicio)
+#     if fecha_fin:
+#         queryset = queryset.filter(creado_mba__lte=fecha_fin)
+#     if bodega:
+#         queryset = queryset.filter(bodega=bodega)
+#     if cliente:
+#         queryset = queryset.filter(codigo_cliente=cliente)
     
-    if bodega:
-        queryset = queryset.filter(bodega=bodega)
-    if cliente:
-        queryset = queryset.filter(codigo_cliente=cliente)
+#     # Filtrar solo datos completos
+#     queryset = queryset.filter(datos_completos=True)
     
-    # Definir función de truncado según granularidad
-    if granularidad == 'dia':
-        trunc_func = TruncDay('creado_mba')
-    elif granularidad == 'semana':
-        trunc_func = TruncWeek('creado_mba')
-    elif granularidad == 'mes':
-            trunc_func = TruncMonth('creado_mba')
-    else:
-        raise ValueError("Granularidad debe ser 'dia', 'semana' o 'mes'")
+#     # Umbrales de SLA (ajustables según requerimientos del negocio)
+#     UMBRALES = {
+#         'tiempo_creacion_a_inicio': 30,  # minutos
+#         'tiempo_inicio_a_fin': 120,      # minutos  
+#         'tiempo_fin_a_facturacion': 60,   # minutos
+#         'tiempo_total_proceso': 180    # minutos
+#     }
     
-    # Agrupar y agregar métricas
-    metricas = queryset.annotate(
-        periodo=trunc_func
-    ).values('periodo').annotate(
-        total_pedidos=Count('contrato_id'),
-        total_items=Sum('total_items'),
-        total_volumen_m3=Sum('total_volumen_m3'),
-        total_peso_kg=Sum('total_peso_kg'),
-        
-        # Tiempos promedio
-        tiempo_promedio_creacion_inicio=Avg('tiempo_creacion_a_inicio'),
-        tiempo_promedio_inicio_fin=Avg('tiempo_inicio_a_fin'),
-        tiempo_promedio_fin_facturacion=Avg('tiempo_fin_a_facturacion'),
-        tiempo_promedio_total=Avg('tiempo_total_proceso'),
-        
-        # Eficiencias
-        #items_promedio_por_pedido=Avg('total_items'),
-        volumen_promedio_por_pedido=Avg('total_volumen_m3'),
-        peso_promedio_por_pedido=Avg('total_peso_kg'),
-        
-        # Extremos
-        tiempo_minimo_total=Min('tiempo_total_proceso'),
-        tiempo_maximo_total=Max('tiempo_total_proceso'),
-    ).order_by('periodo')
+#     total_pedidos = queryset.count()
     
-    # Convertir a lista de dicts para compatibilidad con charts
-    resultado = []
-    for metrica in metricas:
-        resultado.append({
-            'periodo': metrica['periodo'].isoformat() if metrica['periodo'] else None,
-            'total_pedidos': metrica['total_pedidos'] or 0,
-            'total_items': metrica['total_items'] or 0,
-            'total_volumen_m3': float(metrica['total_volumen_m3'] or 0),
-            'total_peso_kg': float(metrica['total_peso_kg'] or 0),
-            'tiempo_promedio_creacion_inicio': float(metrica['tiempo_promedio_creacion_inicio'] or 0),
-            'tiempo_promedio_inicio_fin': float(metrica['tiempo_promedio_inicio_fin'] or 0),
-            'tiempo_promedio_fin_facturacion': float(metrica['tiempo_promedio_fin_facturacion'] or 0),
-            'tiempo_promedio_total': float(metrica['tiempo_promedio_total'] or 0),
-            'items_promedio_por_pedido': float(metrica['items_promedio_por_pedido'] or 0),
-            'volumen_promedio_por_pedido': float(metrica['volumen_promedio_por_pedido'] or 0),
-            'peso_promedio_por_pedido': float(metrica['peso_promedio_por_pedido'] or 0),
-            'tiempo_minimo_total': float(metrica['tiempo_minimo_total'] or 0),
-            'tiempo_maximo_total': float(metrica['tiempo_maximo_total'] or 0),
-        })
+#     if total_pedidos == 0:
+#         return {
+#             'total_pedidos': 0,
+#             'slas': {},
+#             'nivel_general': 0
+#         }
     
-    return resultado
+#     slas = {}
+    
+#     for etapa, umbral_minutos in UMBRALES.items():
+#         cumplimiento = queryset.filter(**{f'{etapa}__lte': umbral_minutos}).count()
+#         slas[etapa] = {
+#             'umbral_minutos': umbral_minutos,
+#             'pedidos_dentro_sla': cumplimiento,
+#             'porcentaje_cumplimiento': (cumplimiento / total_pedidos) * 100
+#         }
+    
+#     # Calcular nivel general de SLA (promedio de todas las etapas)
+#     if slas:
+#         nivel_general = sum(sla['porcentaje_cumplimiento'] for sla in slas.values()) / len(slas)
+#     else:
+#         nivel_general = 0
+    
+#     return {
+#         'total_pedidos': total_pedidos,
+#         'slas': slas,
+#         'nivel_general': nivel_general
+#     }
 
 
-def get_metricas_por_bodega(fecha_inicio=None, fecha_fin=None, cliente=None):
-    """
-    Obtiene métricas desglosadas por bodega
+# def get_metricas_agregadas_por_fecha(fecha_inicio, fecha_fin, bodega=None, cliente=None, granularidad='dia'):
+#     """
+#     Obtiene métricas agregadas por rango de fechas con granularidad específica
     
-    Args:
-        fecha_inicio: datetime - Fecha inicio (opcional)
-        fecha_fin: datetime - Fecha fin (opcional)
-        cliente: str - Código de cliente (opcional)
+#     Args:
+#         fecha_inicio: datetime - Fecha inicio
+#         fecha_fin: datetime - Fecha fin
+#         bodega: str - Código de bodega (opcional)
+#         cliente: str - Código de cliente (opcional)
+#         granularidad: str - 'dia', 'semana', 'mes'
         
-    Returns:
-        list of dict - Métricas por bodega
-    """
-    queryset = PickingEstadistica.objects.all()
+#     Returns:
+#         list of dict - Métricas por período
+#     """
+#     queryset = PickingEstadistica.objects.all()
     
-    # Aplicar filtros
-    if fecha_inicio:
-        queryset = queryset.filter(creado_mba__gte=fecha_inicio)
-    if fecha_fin:
-        queryset = queryset.filter(creado_mba__lte=fecha_fin)
-    if cliente:
-        queryset = queryset.filter(codigo_cliente=cliente)
+#     # Aplicar filtros base
+#     queryset = queryset.filter(
+#         creado_mba__gte=fecha_inicio,
+#         creado_mba__lte=fecha_fin,
+#         datos_completos=True
+#     )
     
-    queryset = queryset.filter(datos_completos=True)
+#     if bodega:
+#         queryset = queryset.filter(bodega=bodega)
+#     if cliente:
+#         queryset = queryset.filter(codigo_cliente=cliente)
     
-    # Agrupar por bodega
-    metricas = queryset.values('bodega').annotate(
-        total_pedidos=Count('contrato_id'),
-        total_items=Sum('total_items'),
-        total_volumen_m3=Sum('total_volumen_m3'),
-        total_peso_kg=Sum('total_peso_kg'),
+#     # Definir función de truncado según granularidad
+#     if granularidad == 'dia':
+#         trunc_func = TruncDay('creado_mba')
+#     elif granularidad == 'semana':
+#         trunc_func = TruncWeek('creado_mba')
+#     elif granularidad == 'mes':
+#             trunc_func = TruncMonth('creado_mba')
+#     else:
+#         raise ValueError("Granularidad debe ser 'dia', 'semana' o 'mes'")
+    
+#     # Agrupar y agregar métricas
+#     metricas = queryset.annotate(
+#         periodo=trunc_func
+#     ).values('periodo').annotate(
+#         total_pedidos=Count('contrato_id'),
+#         total_items=Sum('total_items'),
+#         total_volumen_m3=Sum('total_volumen_m3'),
+#         total_peso_kg=Sum('total_peso_kg'),
         
-        # Tiempos promedio
-        tiempo_promedio_creacion_inicio=Avg('tiempo_creacion_a_inicio'),
-        tiempo_promedio_inicio_fin=Avg('tiempo_inicio_a_fin'),
-        tiempo_promedio_fin_facturacion=Avg('tiempo_fin_a_facturacion'),
-        tiempo_promedio_total=Avg('tiempo_total_proceso'),
+#         # Tiempos promedio
+#         tiempo_promedio_creacion_inicio=Avg('tiempo_creacion_a_inicio'),
+#         tiempo_promedio_inicio_fin=Avg('tiempo_inicio_a_fin'),
+#         tiempo_promedio_fin_facturacion=Avg('tiempo_fin_a_facturacion'),
+#         tiempo_promedio_total=Avg('tiempo_total_proceso'),
         
-        # Eficiencias
-        #items_promedio_por_pedido=Avg('total_items'),
+#         # Eficiencias
+#         #items_promedio_por_pedido=Avg('total_items'),
+#         volumen_promedio_por_pedido=Avg('total_volumen_m3'),
+#         peso_promedio_por_pedido=Avg('total_peso_kg'),
         
-        # Extremos
-        tiempo_minimo_total=Min('tiempo_total_proceso'),
-        tiempo_maximo_total=Max('tiempo_total_proceso'),
-    ).order_by('-total_pedidos')
+#         # Extremos
+#         tiempo_minimo_total=Min('tiempo_total_proceso'),
+#         tiempo_maximo_total=Max('tiempo_total_proceso'),
+#     ).order_by('periodo')
     
-    # Convertir a lista de dicts
-    resultado = []
-    for metrica in metricas:
-        if metrica['bodega']:  # Excluir bodegas nulas
-            resultado.append({
-                'bodega': metrica['bodega'],
-                'total_pedidos': metrica['total_pedidos'] or 0,
-                'total_items': metrica['total_items'] or 0,
-                'total_volumen_m3': float(metrica['total_volumen_m3'] or 0),
-                'total_peso_kg': float(metrica['total_peso_kg'] or 0),
-                'tiempo_promedio_creacion_inicio': float(metrica['tiempo_promedio_creacion_inicio'] or 0),
-                'tiempo_promedio_inicio_fin': float(metrica['tiempo_promedio_inicio_fin'] or 0),
-                'tiempo_promedio_fin_facturacion': float(metrica['tiempo_promedio_fin_facturacion'] or 0),
-                'tiempo_promedio_total': float(metrica['tiempo_promedio_total'] or 0),
-                #'items_promedio_por_pedido': float(metrica['items_promedio_por_pedido'] or 0),
-                'tiempo_minimo_total': float(metrica['tiempo_minimo_total'] or 0),
-                'tiempo_maximo_total': float(metrica['tiempo_maximo_total'] or 0),
-            })
+#     # Convertir a lista de dicts para compatibilidad con charts
+#     resultado = []
+#     for metrica in metricas:
+#         resultado.append({
+#             'periodo': metrica['periodo'].isoformat() if metrica['periodo'] else None,
+#             'total_pedidos': metrica['total_pedidos'] or 0,
+#             'total_items': metrica['total_items'] or 0,
+#             'total_volumen_m3': float(metrica['total_volumen_m3'] or 0),
+#             'total_peso_kg': float(metrica['total_peso_kg'] or 0),
+#             'tiempo_promedio_creacion_inicio': float(metrica['tiempo_promedio_creacion_inicio'] or 0),
+#             'tiempo_promedio_inicio_fin': float(metrica['tiempo_promedio_inicio_fin'] or 0),
+#             'tiempo_promedio_fin_facturacion': float(metrica['tiempo_promedio_fin_facturacion'] or 0),
+#             'tiempo_promedio_total': float(metrica['tiempo_promedio_total'] or 0),
+#             'items_promedio_por_pedido': float(metrica['items_promedio_por_pedido'] or 0),
+#             'volumen_promedio_por_pedido': float(metrica['volumen_promedio_por_pedido'] or 0),
+#             'peso_promedio_por_pedido': float(metrica['peso_promedio_por_pedido'] or 0),
+#             'tiempo_minimo_total': float(metrica['tiempo_minimo_total'] or 0),
+#             'tiempo_maximo_total': float(metrica['tiempo_maximo_total'] or 0),
+#         })
     
-    return resultado
+#     return resultado
 
 
-def get_metricas_por_cliente(fecha_inicio=None, fecha_fin=None, bodega=None, limite=20):
-    """
-    Obtiene métricas desglosadas por cliente
+# def get_metricas_por_bodega(fecha_inicio=None, fecha_fin=None, cliente=None):
+#     """
+#     Obtiene métricas desglosadas por bodega
     
-    Args:
-        fecha_inicio: datetime - Fecha inicio (opcional)
-        fecha_fin: datetime - Fecha fin (opcional)  
-        bodega: str - Código de bodega (opcional)
-        limite: int - Límite de clientes a retornar
+#     Args:
+#         fecha_inicio: datetime - Fecha inicio (opcional)
+#         fecha_fin: datetime - Fecha fin (opcional)
+#         cliente: str - Código de cliente (opcional)
         
-    Returns:
-        list of dict - Métricas por cliente
-    """
-    queryset = PickingEstadistica.objects.all()
+#     Returns:
+#         list of dict - Métricas por bodega
+#     """
+#     queryset = PickingEstadistica.objects.all()
     
-    # Aplicar filtros
-    if fecha_inicio:
-        queryset = queryset.filter(creado_mba__gte=fecha_inicio)
-    if fecha_fin:
-        queryset = queryset.filter(creado_mba__lte=fecha_fin)
-    if bodega:
-        queryset = queryset.filter(bodega=bodega)
+#     # Aplicar filtros
+#     if fecha_inicio:
+#         queryset = queryset.filter(creado_mba__gte=fecha_inicio)
+#     if fecha_fin:
+#         queryset = queryset.filter(creado_mba__lte=fecha_fin)
+#     if cliente:
+#         queryset = queryset.filter(codigo_cliente=cliente)
     
-    queryset = queryset.filter(datos_completos=True).exclude(codigo_cliente='')
+#     queryset = queryset.filter(datos_completos=True)
     
-    # Agrupar por cliente
-    metricas = queryset.values('codigo_cliente', 'tipo_cliente').annotate(
-        total_pedidos=Count('contrato_id'),
-        total_items=Sum('total_items'),
-        total_volumen_m3=Sum('total_volumen_m3'),
-        total_peso_kg=Sum('total_peso_kg'),
+#     # Agrupar por bodega
+#     metricas = queryset.values('bodega').annotate(
+#         total_pedidos=Count('contrato_id'),
+#         total_items=Sum('total_items'),
+#         total_volumen_m3=Sum('total_volumen_m3'),
+#         total_peso_kg=Sum('total_peso_kg'),
         
-        # Tiempos promedio
-        tiempo_promedio_creacion_inicio=Avg('tiempo_creacion_a_inicio'),
-        tiempo_promedio_inicio_fin=Avg('tiempo_inicio_a_fin'),
-        tiempo_promedio_fin_facturacion=Avg('tiempo_fin_a_facturacion'),
-        tiempo_promedio_total=Avg('tiempo_total_proceso'),
+#         # Tiempos promedio
+#         tiempo_promedio_creacion_inicio=Avg('tiempo_creacion_a_inicio'),
+#         tiempo_promedio_inicio_fin=Avg('tiempo_inicio_a_fin'),
+#         tiempo_promedio_fin_facturacion=Avg('tiempo_fin_a_facturacion'),
+#         tiempo_promedio_total=Avg('tiempo_total_proceso'),
         
-        # Eficiencias
-        #items_promedio_por_pedido=Avg('total_items'),
+#         # Eficiencias
+#         #items_promedio_por_pedido=Avg('total_items'),
         
-        # Extremos
-        tiempo_minimo_total=Min('tiempo_total_proceso'),
-        tiempo_maximo_total=Max('tiempo_total_proceso'),
-    ).order_by('-total_pedidos')[:limite]
+#         # Extremos
+#         tiempo_minimo_total=Min('tiempo_total_proceso'),
+#         tiempo_maximo_total=Max('tiempo_total_proceso'),
+#     ).order_by('-total_pedidos')
     
-    # Convertir a lista de dicts
-    resultado = []
-    for metrica in metricas:
-        resultado.append({
-            'codigo_cliente': metrica['codigo_cliente'],
-            'tipo_cliente': metrica['tipo_cliente'],
-            'total_pedidos': metrica['total_pedidos'] or 0,
-            'total_items': metrica['total_items'] or 0,
-            'total_volumen_m3': float(metrica['total_volumen_m3'] or 0),
-            'total_peso_kg': float(metrica['total_peso_kg'] or 0),
-            'tiempo_promedio_creacion_inicio': float(metrica['tiempo_promedio_creacion_inicio'] or 0),
-            'tiempo_promedio_inicio_fin': float(metrica['tiempo_promedio_inicio_fin'] or 0),
-            'tiempo_promedio_fin_facturacion': float(metrica['tiempo_promedio_fin_facturacion'] or 0),
-            'tiempo_promedio_total': float(metrica['tiempo_promedio_total'] or 0),
-            #'items_promedio_por_pedido': float(metrica['items_promedio_por_pedido'] or 0),
-            'tiempo_minimo_total': float(metrica['tiempo_minimo_total'] or 0),
-            'tiempo_maximo_total': float(metrica['tiempo_maximo_total'] or 0),
-        })
+#     # Convertir a lista de dicts
+#     resultado = []
+#     for metrica in metricas:
+#         if metrica['bodega']:  # Excluir bodegas nulas
+#             resultado.append({
+#                 'bodega': metrica['bodega'],
+#                 'total_pedidos': metrica['total_pedidos'] or 0,
+#                 'total_items': metrica['total_items'] or 0,
+#                 'total_volumen_m3': float(metrica['total_volumen_m3'] or 0),
+#                 'total_peso_kg': float(metrica['total_peso_kg'] or 0),
+#                 'tiempo_promedio_creacion_inicio': float(metrica['tiempo_promedio_creacion_inicio'] or 0),
+#                 'tiempo_promedio_inicio_fin': float(metrica['tiempo_promedio_inicio_fin'] or 0),
+#                 'tiempo_promedio_fin_facturacion': float(metrica['tiempo_promedio_fin_facturacion'] or 0),
+#                 'tiempo_promedio_total': float(metrica['tiempo_promedio_total'] or 0),
+#                 #'items_promedio_por_pedido': float(metrica['items_promedio_por_pedido'] or 0),
+#                 'tiempo_minimo_total': float(metrica['tiempo_minimo_total'] or 0),
+#                 'tiempo_maximo_total': float(metrica['tiempo_maximo_total'] or 0),
+#             })
     
-    return resultado
+#     return resultado
 
 
-def get_dashboard_completo(fecha_inicio=None, fecha_fin=None, bodega=None, cliente=None):
-    """
-    Función consolidada que retorna todas las métricas para un dashboard BI
+# def get_metricas_por_cliente(fecha_inicio=None, fecha_fin=None, bodega=None, limite=20):
+#     """
+#     Obtiene métricas desglosadas por cliente
     
-    Args:
-        fecha_inicio: datetime - Fecha inicio (opcional)
-        fecha_fin: datetime - Fecha fin (opcional)
-        bodega: str - Código de bodega (opcional)
-        cliente: str - Código de cliente (opcional)
+#     Args:
+#         fecha_inicio: datetime - Fecha inicio (opcional)
+#         fecha_fin: datetime - Fecha fin (opcional)  
+#         bodega: str - Código de bodega (opcional)
+#         limite: int - Límite de clientes a retornar
         
-    Returns:
-        dict - Dashboard completo con todas las métricas
-    """
-    return {
-        'kpis_operativos': get_kpis_operativos(fecha_inicio, fecha_fin, bodega, cliente),
-        'slas_reales': calcular_slas_reales(fecha_inicio, fecha_fin, bodega, cliente),
-        'tendencias_diarias': get_metricas_agregadas_por_fecha(
-            fecha_inicio, fecha_fin, bodega, cliente, 'dia'
-        ) if fecha_inicio and fecha_fin else [],
-        'tendencias_semanales': get_metricas_agregadas_por_fecha(
-            fecha_inicio, fecha_fin, bodega, cliente, 'semana'
-        ) if fecha_inicio and fecha_fin else [],
-        'tendencias_mensuales': get_metricas_agregadas_por_fecha(
-            fecha_inicio, fecha_fin, bodega, cliente, 'mes'
-        ) if fecha_inicio and fecha_fin else [],
-        'metricas_por_bodega': get_metricas_por_bodega(fecha_inicio, fecha_fin, cliente),
-        'metricas_por_cliente': get_metricas_por_cliente(fecha_inicio, fecha_fin, bodega),
-    }
+#     Returns:
+#         list of dict - Métricas por cliente
+#     """
+#     queryset = PickingEstadistica.objects.all()
+    
+#     # Aplicar filtros
+#     if fecha_inicio:
+#         queryset = queryset.filter(creado_mba__gte=fecha_inicio)
+#     if fecha_fin:
+#         queryset = queryset.filter(creado_mba__lte=fecha_fin)
+#     if bodega:
+#         queryset = queryset.filter(bodega=bodega)
+    
+#     queryset = queryset.filter(datos_completos=True).exclude(codigo_cliente='')
+    
+#     # Agrupar por cliente
+#     metricas = queryset.values('codigo_cliente', 'tipo_cliente').annotate(
+#         total_pedidos=Count('contrato_id'),
+#         total_items=Sum('total_items'),
+#         total_volumen_m3=Sum('total_volumen_m3'),
+#         total_peso_kg=Sum('total_peso_kg'),
+        
+#         # Tiempos promedio
+#         tiempo_promedio_creacion_inicio=Avg('tiempo_creacion_a_inicio'),
+#         tiempo_promedio_inicio_fin=Avg('tiempo_inicio_a_fin'),
+#         tiempo_promedio_fin_facturacion=Avg('tiempo_fin_a_facturacion'),
+#         tiempo_promedio_total=Avg('tiempo_total_proceso'),
+        
+#         # Eficiencias
+#         #items_promedio_por_pedido=Avg('total_items'),
+        
+#         # Extremos
+#         tiempo_minimo_total=Min('tiempo_total_proceso'),
+#         tiempo_maximo_total=Max('tiempo_total_proceso'),
+#     ).order_by('-total_pedidos')[:limite]
+    
+#     # Convertir a lista de dicts
+#     resultado = []
+#     for metrica in metricas:
+#         resultado.append({
+#             'codigo_cliente': metrica['codigo_cliente'],
+#             'tipo_cliente': metrica['tipo_cliente'],
+#             'total_pedidos': metrica['total_pedidos'] or 0,
+#             'total_items': metrica['total_items'] or 0,
+#             'total_volumen_m3': float(metrica['total_volumen_m3'] or 0),
+#             'total_peso_kg': float(metrica['total_peso_kg'] or 0),
+#             'tiempo_promedio_creacion_inicio': float(metrica['tiempo_promedio_creacion_inicio'] or 0),
+#             'tiempo_promedio_inicio_fin': float(metrica['tiempo_promedio_inicio_fin'] or 0),
+#             'tiempo_promedio_fin_facturacion': float(metrica['tiempo_promedio_fin_facturacion'] or 0),
+#             'tiempo_promedio_total': float(metrica['tiempo_promedio_total'] or 0),
+#             #'items_promedio_por_pedido': float(metrica['items_promedio_por_pedido'] or 0),
+#             'tiempo_minimo_total': float(metrica['tiempo_minimo_total'] or 0),
+#             'tiempo_maximo_total': float(metrica['tiempo_maximo_total'] or 0),
+#         })
+    
+#     return resultado
 
 
-def get_ranking_eficiencia(fecha_inicio=None, fecha_fin=None, dimension='bodega', limite=10):
+# def get_dashboard_completo(fecha_inicio=None, fecha_fin=None, bodega=None, cliente=None):
+#     """
+#     Función consolidada que retorna todas las métricas para un dashboard BI
+    
+#     Args:
+#         fecha_inicio: datetime - Fecha inicio (opcional)
+#         fecha_fin: datetime - Fecha fin (opcional)
+#         bodega: str - Código de bodega (opcional)
+#         cliente: str - Código de cliente (opcional)
+        
+#     Returns:
+#         dict - Dashboard completo con todas las métricas
+#     """
+#     return {
+#         'kpis_operativos': get_kpis_operativos(fecha_inicio, fecha_fin, bodega, cliente),
+#         'slas_reales': calcular_slas_reales(fecha_inicio, fecha_fin, bodega, cliente),
+#         'tendencias_diarias': get_metricas_agregadas_por_fecha(
+#             fecha_inicio, fecha_fin, bodega, cliente, 'dia'
+#         ) if fecha_inicio and fecha_fin else [],
+#         'tendencias_semanales': get_metricas_agregadas_por_fecha(
+#             fecha_inicio, fecha_fin, bodega, cliente, 'semana'
+#         ) if fecha_inicio and fecha_fin else [],
+#         'tendencias_mensuales': get_metricas_agregadas_por_fecha(
+#             fecha_inicio, fecha_fin, bodega, cliente, 'mes'
+#         ) if fecha_inicio and fecha_fin else [],
+#         'metricas_por_bodega': get_metricas_por_bodega(fecha_inicio, fecha_fin, cliente),
+#         'metricas_por_cliente': get_metricas_por_cliente(fecha_inicio, fecha_fin, bodega),
+#     }
+
+
+# def get_ranking_eficiencia(fecha_inicio=None, fecha_fin=None, dimension='bodega', limite=10):
     """
     Obtiene ranking de eficiencia por bodega o cliente
     
