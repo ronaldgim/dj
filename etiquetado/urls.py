@@ -607,18 +607,18 @@ urlpatterns = [
     #     name  = 'dashboard_completo_api'    
     # ),
     
-    path(
-        route = 'picking-estadisticas',
-        view  = views.dashboard_picking_estadisticas,
-        name  = 'dashboard_picking_estadisticas'
-    ),
+    # path(
+    #     route = 'picking-estadisticas',
+    #     view  = views.dashboard_picking_estadisticas,
+    #     name  = 'dashboard_picking_estadisticas'
+    # ),
     
-    path('dashboard/baseline/', views.dashboard_baseline, name='dashboard_baseline'),
-    path('api/baseline/data/', views.api_baseline_data, name='api_baseline_data'),
-    # urls.py - agregar
-    path('api/baseline/debug/', views.api_baseline_debug, name='api_baseline_debug'),
-    path('api/baseline/comparacion/', views.api_comparacion_periodos, name='api_comparacion_periodos'),
-    path('api/baseline/filtros/', views.api_filtros_disponibles, name='api_filtros_disponibles'),
+    # path('dashboard/baseline/', views.dashboard_baseline, name='dashboard_baseline'),
+    # path('api/baseline/data/', views.api_baseline_data, name='api_baseline_data'),
+    # # urls.py - agregar
+    # path('api/baseline/debug/', views.api_baseline_debug, name='api_baseline_debug'),
+    # path('api/baseline/comparacion/', views.api_comparacion_periodos, name='api_comparacion_periodos'),
+    # path('api/baseline/filtros/', views.api_filtros_disponibles, name='api_filtros_disponibles'),
     
 ]
 
