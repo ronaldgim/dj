@@ -499,7 +499,7 @@ def api_actualizar_pedidos_warehouse():
             
     except Exception as e:
         # print(e)
-        admin_warehouse_timestamp(tabla='pedidos', actualizar_datetime=False, mensaje=f'Error ODBC exception: {e}')
+        admin_warehouse_timestamp(tabla='pedidos', actualizar_datetime=False, mensaje=f'Error API exception: {e}')
 
 
 ### 6 ACTUALIZAR PRODUCTOS WAREHOUSE POR API DATA
