@@ -4535,19 +4535,222 @@ def reporte_error_lote_v2(request):
 ##### PICKING ESTADISTICAS #####
 ################################
 
-from django.http import JsonResponse
-from datos.views import get_dashboard_completo
+# from django.http import JsonResponse
+# from datos.views import get_dashboard_completo
 
-def dashboard_completo_api(request):
-    data = get_dashboard_completo(
-        request.GET.get('fecha_inicio'),
-        request.GET.get('fecha_fin'),
-        request.GET.get('bodega'),
-        request.GET.get('cliente'),
-    )
-    return JsonResponse(data, safe=False)
+# def dashboard_completo_api(request):
+#     data = get_dashboard_completo(
+#         request.GET.get('fecha_inicio'),
+#         request.GET.get('fecha_fin'),
+#         request.GET.get('bodega'),
+#         request.GET.get('cliente'),
+#     )
+#     return JsonResponse(data, safe=False)
+
+
 
 
 def dashboard_picking_estadisticas(request):
     return render(request, 'dashboards/picking_estadisticas.html')
 
+
+# views.py
+from django.views.decorators.http import require_http_methods
+#from analytics.baseline import BaselineAnalyzer
+from datos.analitycs.baseline import BaselineAnalyzer
+# import json
+from datos.models import PickingEstadistica
+
+@login_required
+def dashboard_baseline(request):
+    """Vista principal del dashboard de baseline"""
+    return render(request, 'dashboards/estadistica_picking_baseline.html')
+
+@login_required
+@require_http_methods(["GET"])
+def api_baseline_data(request):
+    """
+    API que retorna datos del baseline según filtros
+    
+    Parámetros GET:
+    - meses_historico: int (opcional)
+    - anio_inicio: int (opcional)
+    - mes_inicio: int (opcional)
+    - anio_fin: int (opcional)
+    - mes_fin: int (opcional)
+    - bodegas: string comma-separated (opcional)
+    - tipos_cliente: string comma-separated (opcional)
+    - ciudades: string comma-separated (opcional)
+    """
+    
+    # Extraer parámetros
+    params = {}
+    
+    # Fechas
+    if request.GET.get('meses_historico'):
+        params['meses_historico'] = int(request.GET.get('meses_historico'))
+    
+    if request.GET.get('anio_inicio'):
+        params['anio_inicio'] = int(request.GET.get('anio_inicio'))
+    if request.GET.get('mes_inicio'):
+        params['mes_inicio'] = int(request.GET.get('mes_inicio'))
+    if request.GET.get('anio_fin'):
+        params['anio_fin'] = int(request.GET.get('anio_fin'))
+    if request.GET.get('mes_fin'):
+        params['mes_fin'] = int(request.GET.get('mes_fin'))
+    
+    # Filtros de segmentación
+    if request.GET.get('bodegas'):
+        params['bodegas'] = request.GET.get('bodegas').split(',')
+    if request.GET.get('tipos_cliente'):
+        params['tipos_cliente'] = request.GET.get('tipos_cliente').split(',')
+    if request.GET.get('ciudades'):
+        params['ciudades'] = request.GET.get('ciudades').split(',')
+    
+    # Crear analyzer y obtener baseline
+    try:
+        analyzer = BaselineAnalyzer(**params)
+        baseline = analyzer.get_baseline_completo()
+        
+        return JsonResponse(baseline, safe=False)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+# views.py
+@login_required
+def api_baseline_debug(request):
+    """Debug: Ver estado de los datos"""
+    from django.db.models import Count, Min, Max, Avg
+    
+    stats = {
+        'total_registros': PickingEstadistica.objects.count(),
+        'con_datos_completos': PickingEstadistica.objects.filter(datos_completos=True).count(),
+        'sin_datos_completos': PickingEstadistica.objects.filter(datos_completos=False).count(),
+    }
+    
+    # Rango de fechas
+    fechas = PickingEstadistica.objects.aggregate(
+        min_fecha=Min('creado_mba'),
+        max_fecha=Max('creado_mba'),
+        min_anio=Min('anio_creado'),
+        max_anio=Max('anio_creado')
+    )
+    stats['fechas'] = fechas
+    
+    # Por año/mes
+    por_periodo = list(
+        PickingEstadistica.objects
+        .values('anio_creado', 'mes_creado')
+        .annotate(
+            total=Count('id'),
+            completos=Count('id', filter=Q(datos_completos=True))
+        )
+        .order_by('-anio_creado', '-mes_creado')[:12]
+    )
+    stats['ultimos_periodos'] = por_periodo
+    
+    # Por bodega
+    por_bodega = list(
+        PickingEstadistica.objects
+        .values('bodega')
+        .annotate(total=Count('id'))
+        .order_by('-total')
+    )
+    stats['bodegas'] = por_bodega
+    
+    # Muestra de registros
+    muestra = list(
+        PickingEstadistica.objects
+        .values(
+            'contrato_id', 'creado_mba', 'anio_creado', 'mes_creado',
+            'bodega', 'tipo_cliente', 'datos_completos', 'tiempo_total_proceso'
+        )[:10]
+    )
+    stats['muestra'] = muestra
+    
+    return JsonResponse(stats, safe=False)
+
+@login_required
+def api_comparacion_periodos(request):
+    """API para comparar dos periodos"""
+    try:
+        # Periodo 1 (actual)
+        periodo1_params = {
+            'anio_inicio': int(request.GET.get('p1_anio_inicio')),
+            'mes_inicio': int(request.GET.get('p1_mes_inicio')),
+            'anio_fin': int(request.GET.get('p1_anio_fin')),
+            'mes_fin': int(request.GET.get('p1_mes_fin')),
+        }
+        
+        # Periodo 2 (comparación)
+        periodo2_params = {
+            'anio_inicio': int(request.GET.get('p2_anio_inicio')),
+            'mes_inicio': int(request.GET.get('p2_mes_inicio')),
+            'anio_fin': int(request.GET.get('p2_anio_fin')),
+            'mes_fin': int(request.GET.get('p2_mes_fin')),
+        }
+        
+        analyzer = BaselineAnalyzer(**periodo1_params)
+        comparacion = analyzer.comparar_periodos(periodo2_params)
+        
+        return JsonResponse(comparacion, safe=False)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+@login_required
+def api_filtros_disponibles(request):
+    """Retorna las opciones disponibles para los filtros"""
+    
+    bodegas = list(
+        PickingEstadistica.objects
+        .values_list('bodega', flat=True)
+        .distinct()
+        .order_by('bodega')
+    )
+    
+    tipos_cliente = list(
+        PickingEstadistica.objects
+        .values_list('tipo_cliente', flat=True)
+        .distinct()
+        .order_by('tipo_cliente')
+    )
+    
+    ciudades = list(
+        PickingEstadistica.objects
+        .values_list('ciudad_cliente', flat=True)
+        .distinct()
+        .order_by('ciudad_cliente')
+    )
+    
+    # # Años y meses disponibles
+    # anios = list(
+    #     PickingEstadistica.objects
+    #     .values_list('anio_creado', flat=True)
+    #     .distinct()
+    #     .order_by('-anio_creado')
+    # )
+    
+    vendedor = list(
+        PickingEstadistica.objects
+        .values_list('creado_por_mba_username', flat=True)
+        .distinct()
+        .order_by('creado_por_mba_username')
+    )
+    
+    picker = list(
+        PickingEstadistica.objects
+        .values_list('usuario_picking', flat=True)
+        .distinct()
+        .order_by('usuario_picking')
+    )
+    
+    
+    return JsonResponse({
+        'bodegas': bodegas,
+        'tipos_cliente': tipos_cliente,
+        'ciudades': ciudades,
+        'anios': [2024, 2025],
+        'vendedor':vendedor,
+        'picker':picker,
+        'meses': list(range(1, 13))
+    })
