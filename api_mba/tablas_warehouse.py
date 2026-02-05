@@ -190,8 +190,8 @@ def api_actualizar_facturas_warehouse():
     
     try:
     
-        #currentTimeDate = datetime.now() - relativedelta(days=90)
-        currentTimeDate = datetime.now() - relativedelta(days=270)
+        currentTimeDate = datetime.now() - relativedelta(days=90)
+        #currentTimeDate = datetime.now() - relativedelta(days=270)
         OneMonthTime = currentTimeDate.strftime('%d-%m-%Y')
         
         facturas_mba = api_mba_sql(
