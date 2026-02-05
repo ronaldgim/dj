@@ -2723,7 +2723,7 @@ def obtener_estado_picking_batch(year: int, month: int):
             'fecha_creado',
             'fecha_actualizado',
             'user__user__username',
-        )#[400:600]  #[inicio:fin]
+        )[0:200]  #[inicio:fin]
     )
 
 

@@ -17,7 +17,19 @@
 
 
 <h5 class="m-4 text-center fw-bold">{{cabecera.NOMBRE_CLIENTE}}</h5>
-
+{% if messages %}
+    {% for message in messages %}
+    {% if message.tags == 'success'%}
+    <div class="alert text-center alert-success" role="alert">
+        {{message}}
+    </div>
+    {% elif message.tags == 'error'%}
+    <div class="alert text-center alert-danger" role="alert">
+        {{message}}
+    </div>
+    {%endif%}
+    {% endfor %}
+{% endif %}
 <div class="row">
     <div class="col-md-6 col-sm-12">
         <span class="fw-bold">Pedido: </span>{{cabecera.CONTRATO_ID|slice:':-2'}}<br>

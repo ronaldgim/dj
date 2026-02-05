@@ -1635,7 +1635,7 @@ def picking_estado_bodega(request, n_pedido):
 
         pedido = pedido_por_cliente(n_pedido)
         
-        ubicaciones_andagoya = productos_ubicacion_lista_template()
+        ubicaciones_andagoya = productos_ubicacion_lista_template() 
 
         cliente = clientes_table()[['CODIGO_CLIENTE','CLIENT_TYPE']]
         pedido = pedido.merge(cliente, on='CODIGO_CLIENTE', how='left')
@@ -1681,17 +1681,23 @@ def picking_estado_bodega(request, n_pedido):
                         i['ubicaciones'] = ubi_no_estanteria[:1]
                     
                     break
-                
-        data_ordenada = sorted(
-            data,
-            key=lambda x: (
-                x['ubicaciones'][0].bodega if x['ubicaciones'] else '',
-                x['ubicaciones'][0].pasillo if x['ubicaciones'] else ''
+
+        try:
+            data_ordenada = sorted(
+                data,
+                key=lambda x: (
+                    x['ubicaciones'][0].bodega if x['ubicaciones'] else '',
+                    x['ubicaciones'][0].pasillo if x['ubicaciones'] else ''
+                )
             )
-        )
+            
+            data = data_ordenada
+            
+        except:
+            data = data
 
         context = {
-            'reservas': data_ordenada, # data,
+            'reservas': data, #data_ordenada,
             'pedido':n_pedido,
 
             'cabecera':data[0],
