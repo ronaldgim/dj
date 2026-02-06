@@ -1,7 +1,7 @@
 {% extends 'base_vue.html' %}
 
 {% block title %}
-<title>Metro - Cotizaciones</title>
+<title>Metro - Pedidos</title>
 {% endblock %}
 
 {% block navbar %}
@@ -13,7 +13,7 @@
 <div id="app" class="container-fluid">
 
     <h5 class="m-4 text-center fw-bold">
-        LISTA DE COTIZACIONES
+        LISTA DE PEDIDOS
     </h5>
 
     <div v-if="msg" :class="type_msg" role="alert">
@@ -25,7 +25,7 @@
         data-bs-toggle="modal"
         data-bs-target="#modalCotizacion"
     >
-        + Agregar cotización
+        + Agregar pedido
     </button>
 
     <!-- TABLA -->
@@ -36,7 +36,7 @@
                     <thead>
                         <tr>
                             <th>Código</th>
-                            <th>Descripción</th>
+                            <th>Número de pedido</th>
                             <th>Archivo subido</th>
                             <th>Archivo procesado</th>
                             <th>Subido por</th>
@@ -70,7 +70,7 @@
 
                         <tr v-if="!loading && cotizaciones.length === 0">
                             <td colspan="6" class="text-center text-muted">
-                                No existen cotizaciones registradas
+                                No existen pedidos registradas
                             </td>
                         </tr>
                         {% endverbatim %}
@@ -91,7 +91,7 @@
             <div class="modal-content">
 
                 <div class="modal-header">
-                    <h5 class="modal-title">Agregar Cotización</h5>
+                    <h5 class="modal-title">Agregar Pedido</h5>
                     <button
                         type="button"
                         class="btn-close"
@@ -108,7 +108,7 @@
                     <form @submit.prevent="submitCotizacion" enctype="multipart/form-data">
 
                         <div class="mb-3">
-                            <label class="form-label">Descripción</label>
+                            <label class="form-label">Número de pedido</label>
                             <input
                                 type="text"
                                 class="form-control"
@@ -119,7 +119,7 @@
 
                         <div class="mb-3">
                             <label class="form-label">
-                                Archivo de cotización (xlsx / xls)
+                                Archivo de pedido (xlsx / xls)
                             </label>
                             <input
                                 type="file"
@@ -145,7 +145,7 @@
                             :disabled="subiendo"
                             v-show="btnProcesarLoading === false"
                         >
-                            <span v-if="!subiendo">Subir cotización</span>
+                            <span v-if="!subiendo">Subir pedido</span>
                             <span v-else class="spinner-border spinner-border-sm"></span>
                         </button>
                     </form>
