@@ -15,6 +15,12 @@
         ACTUALIZAR TODO
     </button>
 
+    <div>
+    {% verbatim %}
+        <span>Hora actual: {{hora_actual}}</span>
+    {% endverbatim %}
+    </div>
+
     <div class="card mb-4">
         <div class="card-body">
             <div class="table-responsive">
@@ -78,6 +84,7 @@
     new Vue({
         el: '#app',
         data: {
+            hora_actual: '',
             actualizandoTodo:false,
             tablas:[],
         },
@@ -156,6 +163,25 @@
 
             async actualizarAutomatica() {
                 this.actualizandoTodo = true;
+                
+                const ahora = new Date();
+                const horaActual = ahora.getHours();
+                const minutosActual = ahora.getMinutes();
+                
+                // Convertir a minutos totales para comparación fácil
+                const minutosTotales = horaActual * 60 + minutosActual;
+                
+                // Definir límites (5:30 AM = 5*60+30 = 330, 22:00 = 22*60 = 1320)
+                const inicio = 5 * 60 + 30;  // 5:30 AM
+                const fin = 22 * 60;         // 22:00 PM
+                
+                // Verificar si está dentro del horario permitido
+                if (minutosTotales < inicio || minutosTotales > fin) {
+                    console.log("Fuera del horario permitido (7:30 AM - 6:00 PM)");
+                    this.actualizandoTodo = false;
+                    return; // Salir de la función
+                }
+
                 try {
                     const response = await fetch("/datos/stocklote", {
                         method: "POST",
@@ -196,6 +222,11 @@
                     console.error(error);
                 }
             },
+
+            // hora_actual() {
+            //     return this.hora_actual = new Date().toLocaleTimeString();
+            // }
+
         },
     })
 </script>
