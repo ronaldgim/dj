@@ -652,10 +652,14 @@ def wms_imp_ingresadas(request): #OK
     imps = pd.DataFrame(
         InventarioIngresoBodega.objects
         .filter(referencia='Ingreso Importación')
-        .values()).sort_values(by='fecha_hora',ascending=False)
-    imps_llegadas = importaciones_llegadas_odbc()[['DOC_ID_CORP','MEMO']] 
+        .values()).sort_values(by='fecha_hora',ascending=False
+    )
+    imps['fecha_hora'] = pd.to_datetime(imps['fecha_hora']).dt.strftime('%Y-%m-%d')
+    
+    imps_llegadas = importaciones_llegadas_odbc()[['DOC_ID_CORP','MEMO', 'ENTRADA_FECHA']] 
     imps_llegadas = imps_llegadas.rename(columns={'DOC_ID_CORP':'n_referencia'}).drop_duplicates(subset='n_referencia')
-
+    imps_llegadas['ENTRADA_FECHA'] = imps_llegadas['ENTRADA_FECHA'].astype('str')
+    
     imps = imps.merge(imps_llegadas, on='n_referencia', how='left') 
     
     imp_fotos = pd.DataFrame(ImportacionFotos.objects.all().values()).drop_duplicates(subset='importacion')
@@ -666,6 +670,9 @@ def wms_imp_ingresadas(request): #OK
         imps = imps.merge(prod, on='product_id', how='left')
         imps = imps.drop_duplicates(subset='n_referencia') 
         imps = de_dataframe_a_template(imps)
+    
+    # imps['ENTRADA_FECHA'] = imps['ENTRADA_FECHA'].astype('str')
+    # imps['fecha_hora'] = imps['fecha_hora'].astype('str')
     
     context = {
         'imp':imps

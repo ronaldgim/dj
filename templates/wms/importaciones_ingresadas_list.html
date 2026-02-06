@@ -49,6 +49,8 @@
                         <th scope="col">Proveedor</th>
                         <th scope="col">Orden MBA</th>
                         <th scope="col">Orden GIM</th>
+                        <th scope="col">Fecha entrada MBA</th>
+                        <th scope="col">Fecha ingreso WMS</th>
                         <th scope="col">Bodega</th>
                         <th scope="col">Acciones</th>
                         <th scope="col">Fotos</th>
@@ -60,6 +62,8 @@
                         <td>{{i.Marca}}</td>
                         <td>{{i.n_referencia}}</td>
                         <td>{{i.MEMO}}</td>
+                        <td>{{i.ENTRADA_FECHA}}</td>
+                        <td>{{i.fecha_hora}}</td>
                         <td>{{i.bodega}}</td>
                         <td>
                             <a class="btn btn-primary btn-sm" href="{% url 'wms_bodega_imp' i.n_referencia %}">
