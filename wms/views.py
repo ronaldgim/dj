@@ -2017,6 +2017,9 @@ def wms_movimientos_list(request): #OK
     """ Lista de movimientos """
 
     mov = Movimiento.objects.all().order_by('-fecha_hora', '-id')
+    # mov = Movimiento.objects.select_related(
+    #     'ubicacion', 'usuario'
+    # ).order_by('-fecha_hora', '-id')
     
     paginator = Paginator(mov, 50)
     page_number = request.GET.get('page')

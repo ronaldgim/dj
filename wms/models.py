@@ -156,6 +156,13 @@ class Movimiento(models.Model):
         enum = f'{total_registros:06d}'
         return enum 
 
+    @property
+    def factura_int(self):
+        if self.n_factura and self.n_factura.startswith('FCSRI-'):
+            factura = self.n_factura.split('-')[1][5:]
+            return int(factura)
+        else:
+            return self.n_factura
 
     def save(self, *args, **kwargs):
         if self.lote_id and '.' in self.lote_id:
