@@ -4760,3 +4760,8 @@ def reporte_error_lote_v2(request):
 #         'picker':picker,
 #         'meses': list(range(1, 13))
 #     })
+
+
+# from datos.analitycs.baseline import PickingQuerySetBuilder
+
+# def pedidos_por_bodega
