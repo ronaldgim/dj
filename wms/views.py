@@ -6310,7 +6310,7 @@ def wms_reporte_componentes_armados(request):
         reporte = pd.DataFrame(componentes_armados)
         reporte = reporte.groupby(by=['product_id', 'nombre', 'marca', 'creado'])['unidades'].sum()
         reporte = reporte.reset_index()
-        reporte = reporte[['product_id','nombre','marca','unidades']]
+        reporte = reporte[['product_id','nombre','marca','unidades', 'creado']]
         
         date_time = str(datetime.now())
         date_time = date_time[0:16]
