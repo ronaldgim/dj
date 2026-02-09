@@ -1,5 +1,111 @@
 from django.shortcuts import render, redirect 
 
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+
+from utils.warehouse_data import get_vendedor_email_by_contrato
+
+# PDF
+from django_xhtml2pdf.utils import pdf_decorator
+
+# Pedidos por clientes
+from etiquetado.views import pedido_por_cliente, reservas_table
+
+# Http
+from django.http import HttpResponse,JsonResponse, HttpResponseRedirect
+
+# Json
+import json
+
+# Datetime
+from datetime import datetime
+
+# DB
+from django.db import connections, transaction
+from django.db.models import Q, Sum, OuterRef, Subquery
+
+
+from wms.models import (
+    InventarioIngresoBodega, 
+    Ubicacion, Movimiento, 
+    Existencias, 
+    Transferencia, 
+    LiberacionCuarentena,
+    NotaEntrega,
+    AnulacionPicking,
+    TransferenciaStatus,
+    AjusteLiberacion,
+    NotaEntregaStatus,
+    DespachoCarton,
+    ProductoArmado,
+    OrdenEmpaque,
+    FacturaAnulada,
+    ImportacionFotos,
+    CostoImportacion,
+    OrdenSalida
+    )
+
+from warehouse.models import Cliente
+
+from django.core.exceptions import ObjectDoesNotExist
+
+# excel 
+from openpyxl.styles import Font, Alignment
+
+# Pandas y Numpy
+import pandas as pd
+import numpy as np
+
+# Forms
+from wms.forms import (
+    MovimientosForm, 
+    DespachoCartonForm,
+    ProductoNuevoArmadoForm,
+    OrdenEmpaqueForm,
+    OrdenEmpaqueUpdateForm,
+    ComponenteArmadoForm,
+    ProductoNuevoArmadoUpdateForm,
+    FacturaAnuladaForm,
+    ImportacionFotosForm,
+    OrdenSalidaForm
+    )
+
+# Messages
+from django.contrib import messages
+
+# Models
+from users.models import User, UserPerfil
+from etiquetado.models import EstadoPicking, ProductoUbicacion
+from datos.models import Reservas
+
+# Login
+from django.contrib.auth.decorators import login_required #, permission_required
+
+# Email
+from django.core.mail import EmailMultiAlternatives
+from django.utils.html import strip_tags
+from django.template.loader import render_to_string
+from django.core.mail import send_mail
+from django.conf import settings
+
+# Paginado
+from django.core.paginator import Paginator
+from django.core.files.base import ContentFile
+
+# PDF
+from django_xhtml2pdf.utils import pisa #pdf_decorator
+
+# datos api_mba
+from api_mba.tablas_warehouse import api_actualizar_imp_transito_warehouse
+
+# Utils
+from utils.warehouse_data import productos_mba_django
+
+# BYTES
+import io
+
+from warehouse.models import Producto
+
 # Datos de importaciones
 from datos.views import (
     importaciones_llegadas_odbc,
@@ -32,121 +138,6 @@ from datos.views import (
     # Fecuencia de ventas
     frecuancia_ventas
     )
-
-
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
-
-from utils.warehouse_data import get_vendedor_email_by_contrato
-
-# PDF
-from django_xhtml2pdf.utils import pdf_decorator
-
-# Pedidos por clientes
-from etiquetado.views import pedido_por_cliente, reservas_table
-
-# Http
-from django.http import HttpResponse,JsonResponse, HttpResponseRedirect
-
-# Json
-import json
-
-# Datetime
-from datetime import datetime
-
-# DB
-from django.db import connections
-
-# Models
-from django.db.models import Sum, Count
-from wms.models import (
-    InventarioIngresoBodega, 
-    Ubicacion, Movimiento, 
-    Existencias, 
-    Transferencia, 
-    LiberacionCuarentena,
-    NotaEntrega,
-    AnulacionPicking,
-    TransferenciaStatus,
-    AjusteLiberacion,
-    NotaEntregaStatus,
-    DespachoCarton,
-    ProductoArmado,
-    OrdenEmpaque,
-    FacturaAnulada,
-    ImportacionFotos,
-    CostoImportacion,
-    OrdenSalida
-    )
-
-from django.core.exceptions import ObjectDoesNotExist
-
-# excel 
-from openpyxl.styles import Font, Alignment
-
-
-# Pandas y Numpy
-import pandas as pd
-import numpy as np
-
-# Forms
-from wms.forms import (
-    MovimientosForm, 
-    DespachoCartonForm,
-    ProductoNuevoArmadoForm,
-    OrdenEmpaqueForm,
-    OrdenEmpaqueUpdateForm,
-    ComponenteArmadoForm,
-    ProductoNuevoArmadoUpdateForm,
-    FacturaAnuladaForm,
-    ImportacionFotosForm,
-    OrdenSalidaForm
-    )
-
-# Messages
-from django.contrib import messages
-
-# Query's
-from django.db.models import Q
-
-from django.db import transaction
-
-# Models
-from users.models import User, UserPerfil
-from etiquetado.models import EstadoPicking, ProductoUbicacion
-from datos.models import Reservas
-
-
-# Login
-from django.contrib.auth.decorators import login_required, permission_required
-
-# Email
-from django.core.mail import EmailMultiAlternatives
-from django.utils.html import strip_tags
-from django.template.loader import render_to_string
-from django.core.mail import send_mail
-from django.conf import settings
-
-# # Pyodbc
-# import pyodbc
-
-# Paginado
-from django.core.paginator import Paginator
-from django.core.files.base import ContentFile
-
-# PDF
-from django_xhtml2pdf.utils import pisa #pdf_decorator
-
-# datos api_mba
-from api_mba.tablas_warehouse import api_actualizar_imp_transito_warehouse
-
-# Utils
-from utils.warehouse_data import productos_mba_django
-
-
-# BYTES
-import io
-
 
 """
     LISTAS DE INGRESOS
@@ -2096,28 +2087,84 @@ def wms_movimientos_list(request): #OK
 @permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'], '/wms/home', 'ingrear a Listado de Pedidos')
 def wms_listado_pedidos(request): #OK
     """ Listado de pedidos (picking) """
-    
-    clientes = clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE']]
-    clientes = clientes.rename(columns={'CODIGO_CLIENTE':'codigo_cliente'})
-    
-    mis_reservas = Reservas.objects.filter(ware_code='BCT').order_by('-fecha_pedido', '-hora_llegada')
-    
-    pedidos = pd.DataFrame(       
-        mis_reservas.values('contrato_id', 'codigo_cliente', 'ware_code', 'fecha_pedido', 'hora_llegada')
-    )
-    pedidos['contrato_id'] = pedidos['contrato_id'] + '.0'
-    pedidos = pedidos.drop_duplicates(subset='contrato_id', keep='first').reset_index(drop=True)
-    pedidos['fecha_pedido'] = pedidos['fecha_pedido'].astype(str)
-    pedidos = pedidos.merge(clientes, on='codigo_cliente', how='left')
-    
-    estados = pd.DataFrame(EstadoPicking.objects.all().values('n_pedido','estado','user__user__first_name','user__user__last_name'))
-    estados = estados.rename(columns={'n_pedido':'contrato_id'})
-    pedidos = pedidos.merge(estados, on='contrato_id', how='left')
 
-    pedidos = de_dataframe_a_template(pedidos)[:200]
+    # clientes = clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE']]
+    # clientes = clientes.rename(columns={'CODIGO_CLIENTE':'codigo_cliente'})
+    
+    # mis_reservas = Reservas.objects.filter(ware_code='BCT').order_by('-fecha_pedido', '-hora_llegada')
+    
+    # pedidos = pd.DataFrame(       
+    #     mis_reservas.values('contrato_id', 'codigo_cliente', 'ware_code', 'fecha_pedido', 'hora_llegada')
+    # )
+    # pedidos['contrato_id'] = pedidos['contrato_id'] + '.0'
+    # pedidos = pedidos.drop_duplicates(subset='contrato_id', keep='first').reset_index(drop=True)
+    # pedidos['fecha_pedido'] = pedidos['fecha_pedido'].astype(str)
+    # pedidos = pedidos.merge(clientes, on='codigo_cliente', how='left')
+    
+    # estados = pd.DataFrame(EstadoPicking.objects.all().values('n_pedido','estado','user__user__first_name','user__user__last_name'))
+    # estados = estados.rename(columns={'n_pedido':'contrato_id'})
+    # pedidos = pedidos.merge(estados, on='contrato_id', how='left')
+
+    # pedidos = de_dataframe_a_template(pedidos)[:200]
+    
+    q_reserva = request.GET.get('n_pedido', None)    
+    query = (
+        Reservas.objects
+        .filter(ware_code='BCT')
+        .values(
+            'contrato_id',
+            'codigo_cliente',
+            'fecha_pedido',
+            'hora_llegada',
+            'ware_code'
+        )
+        .order_by('-contrato_id')
+        .distinct()
+    )
+
+    if q_reserva:
+        query = query.filter(contrato_id=q_reserva)
+
+    query = query[:150]
+
+    reservas = list(query)
+    
+    contratos = [f'{r['contrato_id']}.0' for r in reservas]
+
+    estados = (
+        EstadoPicking.objects
+        .filter(n_pedido__in=contratos)
+        .select_related('user__user')
+    )
+
+    estado_map = {e.n_pedido: e for e in estados}
+    codigos_cliente = {r['codigo_cliente'] for r in reservas}
+    
+    clientes = {
+        c.codigo_cliente: c.nombre_cliente
+        for c in Cliente.objects
+            .using('gimpromed_sql')
+            .filter(codigo_cliente__in=codigos_cliente)
+    }
+
+    datos_pedidos = []
+    for r in reservas:
+        estado = estado_map.get(f'{r['contrato_id']}.0')
+        datos_pedidos.append({
+            'contrato_id': r['contrato_id'],
+            'cliente': clientes.get(r['codigo_cliente']),
+            'bodega': 'Cerezos', #if r['ware_code'] == 'BCT' else 'Andagoya',
+            'fecha_hora': f"{r['fecha_pedido']} - {r['hora_llegada']}",
+            'estado': estado.estado if estado else None,
+            'usuario': (
+                f"{estado.user.user.first_name} {estado.user.user.last_name}"
+                if estado and estado.user and estado.user.user
+                else None
+            ),
+        })
     
     context = {
-        'reservas':pedidos
+        'reservas': datos_pedidos #pedidos
     }
 
     return render(request, 'wms/listado_pedidos_misreservas.html', context)
@@ -3478,6 +3525,10 @@ def wms_transferencias_estatus_transf(n_transf):
     transf_status.avance       = avance_i
     
     transf_status.save()
+    
+    if transf_status.estado == 'FINALIZADO':
+        # enviar email
+        correo_finalizacion_picking(n_transferencia=n_transf)
 
     return JsonResponse({
         'msg':{
@@ -3485,6 +3536,56 @@ def wms_transferencias_estatus_transf(n_transf):
             'texto':f'✅ Transferencia {n_transf} actualizado !!!'
         }
     })
+
+
+def correo_finalizacion_picking(n_transferencia):
+    
+    # Obtener transferencias (base de datos por defecto)
+    transferencia = Transferencia.objects.filter(n_transferencia=n_transferencia)
+
+    # Extraer los product_ids en Python (sin query adicional)
+    product_ids = [t.product_id for t in transferencia]
+
+    # Obtener productos (base de datos gimpromed_sql)
+    productos = (
+        Producto.objects
+        .using('gimpromed_sql')
+        .filter(codigo__in=product_ids)
+        )
+    
+    data_transferencia = []
+    for i in transferencia:
+        data = {
+            'product_id':i.product_id,
+            'nombre':productos.filter(codigo=i.product_id).first().nombre,
+            'marca':productos.filter(codigo=i.product_id).first().marca,
+            'lote':i.lote_id,
+            'fecha_caducidad':i.fecha_caducidad,
+            'unidades':i.unidades
+        }
+        data_transferencia.append(data)
+    
+    context = {
+        'n_transferencia':n_transferencia,
+        'data_transferencia':data_transferencia
+    }
+    
+    html_message = render_to_string('emails/finalizar_transferencia.html', context)
+    plain_message = strip_tags(html_message)
+    
+    email = EmailMultiAlternatives(
+        subject=f'Picking Transferencia Finalizada # {n_transferencia}',
+        from_email=settings.EMAIL_HOST_USER,
+        body=plain_message,
+        to=[
+            'pespinosa@gimpromed.com',
+            'jgualotuna@gimpromed.com',
+            'egarces@gimpromed.com'
+            ],
+    )
+    
+    email.attach_alternative(html_message, 'text/html')
+    email.send()
 
 
 def wms_transferencia_data_pdf_email(n_transferencia):
@@ -3648,26 +3749,40 @@ def wms_transferencia_input_ajax(request):
 @permisos(['BODEGA', 'OPERACIONES'], '/wms/home', 'ingresar a lista de transferencias')
 def wms_transferencias_list(request):
     
-    transf_wms = pd.DataFrame(Transferencia.objects.all().values()).drop_duplicates(subset='n_transferencia')
-    # transf_wms = transf_wms[transf_wms['bodega_salida']=='BCT']
-    transf_wms = transf_wms[(transf_wms['bodega_salida']=='BCT') | (transf_wms['bodega_salida']=='CUC')]
+    # transferencia_wms = (
+    #     Transferencia.objects
+    #     .filter(Q(bodega_salida='BCT') | Q(bodega_salida='CUC'))
+    #     .values('n_transferencia') 
+    #     .annotate(
+    #         estado=Subquery(
+    #             TransferenciaStatus.objects.filter(
+    #                 n_transferencia=OuterRef('n_transferencia')
+    #             )
+    #             #.order_by('-fecha_hora')  # si tienes fecha
+    #             .values('estado')[:1]
+    #         )
+    #     )
+    #     .order_by('-n_transferencia')
+    # ).distinct() # -> distinc fuera de queryset
     
-    transf_status = pd.DataFrame(TransferenciaStatus.objects.all().values())[['n_transferencia','estado','avance']]
+    transferencias_wms = (
+        TransferenciaStatus.objects.all()
+        .annotate(
+            fecha_hora = Subquery(
+                Transferencia.objects.filter(
+                    n_transferencia = OuterRef('n_transferencia')
+                )
+                .values('fecha_hora')[:1]
+            )
+        )
+        .order_by('-n_transferencia')
+    )
     
-    if not transf_wms.empty:
-        transf_wms = transf_wms.sort_values(by='fecha_hora', ascending=False)
-        transf_wms['fecha_hora'] = pd.to_datetime(transf_wms['fecha_hora']).dt.strftime('%d-%m-%Y - %r').astype(str)
-        
-    if not transf_status.empty:
-        transf_wms = transf_wms.merge(transf_status, on='n_transferencia', how='left')
-    
-    transf_wms = de_dataframe_a_template(transf_wms)
     context = {
-        'transf_wms':transf_wms
+        'transf_wms': transferencias_wms #transf_wms
     }
 
     return render(request, 'wms/transferencias_list.html', context)
-
 
 
 @login_required(login_url='login')
@@ -6195,7 +6310,7 @@ def wms_reporte_componentes_armados(request):
         reporte = pd.DataFrame(componentes_armados)
         reporte = reporte.groupby(by=['product_id', 'nombre', 'marca', 'creado'])['unidades'].sum()
         reporte = reporte.reset_index()
-        reporte = reporte[['product_id','nombre','marca','unidades']]
+        reporte = reporte[['product_id','nombre','marca','unidades', 'creado']]
         
         date_time = str(datetime.now())
         date_time = date_time[0:16]

@@ -71,7 +71,10 @@ INSTALLED_APPS = [
     'wms',
     
     # H.METROPOLITANO
-    'metro'
+    'metro',
+    
+    # Warehouse -> app para menejar bases de datos de warehaouse
+    'warehouse'
 ]
 
 X_FRAME_OPTIONS = 'SAMEORIGIN'
@@ -200,6 +203,10 @@ DATABASES = {
     # },
 }
 
+# DB ROUTER
+DATABASE_ROUTERS = [
+    'gimpromed.db_router.GimpromedRouter',
+]
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators

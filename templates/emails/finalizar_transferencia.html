@@ -1,0 +1,55 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Picking</title>
+</head>
+<body>
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+        td, th {
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+        td.n {
+            text-align: right;
+        }
+    </style>
+    
+    <h4>Estimados Compañeros:</h4>
+
+    <p>Se notifica finalización de picking de transferencia:</p>
+
+    <p><strong>N°. Transferencia:</strong> {{n_transferencia}}</p>
+
+    <table>
+        <thead>
+            <th>Código</th>
+            <th>Nombre</th>
+            <th>Marca</th>
+            <th>Lote</th>
+            <th>F.Caducidad</th>
+            <th>Unidades</th>
+        </thead>
+        <tbody>
+            {% for i in data_transferencia %}
+            <tr>
+                <td>{{i.product_id}}</td>
+                <td>{{i.nombre}}</td>
+                <td>{{i.marca}}</td>
+                <td>{{i.lote}}</td>
+                <td>{{i.fecha_caducidad}}</td>
+                <td>{{i.unidades}}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <p>**** Esta notificación ha sido enviada automáticamente - No responder ****</p>
+</body>
+</html>
