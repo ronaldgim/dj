@@ -100,4 +100,8 @@ urlpatterns = [
         name='registros_estadopicking_year_month',
     ),
 
+    # CRON ENDPOINTS
+    path('cron/tablas-criticas/', views.cron_tablas_criticas, name='cron_tablas_criticas'),
+    path('cron/tablas-moderadas/', views.cron_tablas_moderadas, name='cron_tablas_moderadas'),
+    path('cron/tablas-baja-frecuencia/', views.cron_tablas_baja_frecuencia, name='cron_tablas_baja_frecuencia'),
 ]

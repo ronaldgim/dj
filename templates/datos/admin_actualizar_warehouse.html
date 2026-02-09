@@ -9,11 +9,17 @@
 <div id="app">
 
     <h5 class="text-center m-4 fw-bold">LISTADO DE TABLAS</h5>
-    
-    <button @click="actualizarAutomatica" class="btn btn-primary mb-2" type="button">
-        <span v-if="actualizandoTodo" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-        ACTUALIZAR TODO
-    </button>
+
+    <div class="mb-3">
+        <button @click="actualizarAutomatica" class="btn btn-primary" type="button">
+            <span v-if="actualizandoTodo" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            ACTUALIZAR TODO
+        </button>
+
+        <small class="text-muted ms-3">
+            ℹ️ Las tablas se actualizan automáticamente en el servidor (Celery) cada 15-30 min
+        </small>
+    </div>
 
     <div>
     {% verbatim %}
@@ -79,33 +85,25 @@
 
 <script>
     const adminDataUrl = "{% url 'admin_actualizar_warehouse_json_response' %}";
-    const cadaCincoMin = 5 * 60 * 1000;
-    const cadaUnaHora = 60 * 60 * 1000;
+    // CRÍTICO: Intervalos aumentados para reducir carga en API MBA
+    const cadaQuinceMin = 15 * 60 * 1000;    // 15 minutos
+    const cadaTreintaMin = 30 * 60 * 1000;   // 30 minutos
+    const cadaUnaHora = 60 * 60 * 1000;      // 1 hora
     new Vue({
         el: '#app',
         data: {
             hora_actual: '',
             actualizandoTodo:false,
             tablas:[],
+            actualizacionesEnProgreso: new Set(), // Prevenir ejecuciones concurrentes
         },
         mounted() {
             this.getDatosAdminWarehouse();
 
-            setInterval(() => this.actualizarTablaWarehouse('facturas'), cadaCincoMin);
-            setInterval(() => this.actualizarTablaWarehouse('imp_transito'), cadaUnaHora);
-            setInterval(() => this.actualizarTablaWarehouse('productos_transito'), cadaCincoMin);
-            setInterval(() => this.actualizarTablaWarehouse('proformas'), cadaCincoMin);
-            setInterval(() => this.actualizarTablaWarehouse('reservas'), cadaCincoMin);
-            setInterval(() => this.actualizarTablaWarehouse('reservas_lote'), cadaCincoMin);
-            setInterval(() => this.actualizarTablaWarehouse('reservas_lote_2'), cadaCincoMin);
-            setInterval(() => this.actualizarTablaWarehouse('stock_lote'), cadaCincoMin);
-            setInterval(() => this.actualizarTablaWarehouse('etiquetado_stock'), cadaCincoMin);
-            setInterval(() => this.actualizarTablaWarehouse('pedidos'), cadaCincoMin);
-            setInterval(() => this.actualizarTablaWarehouse('mis_reservas'), cadaCincoMin);
-            setInterval(() => this.actualizarTablaWarehouse('error_lote'), cadaCincoMin);
-            setInterval(() => this.actualizarTablaWarehouse('error_lote_v2'), cadaCincoMin);
-            setInterval(() => this.actualizarTablaWarehouse('notificaciones'), cadaCincoMin);
-
+            // Auto-refrescar cada 2 horas (solo para mostrar timestamps actualizados)
+            setInterval(() => {
+                this.getDatosAdminWarehouse();
+            }, 2 * 60 * 60 * 1000); // 2 horas
         },
         computed:{
             tablasData() {
@@ -137,9 +135,17 @@
             },
 
             async actualizarTablaWarehouse(table_name) {
+                // PROTECCIÓN: Evitar ejecuciones concurrentes de la misma tabla
+                if (this.actualizacionesEnProgreso.has(table_name)) {
+                    console.log(`⏳ Actualización de ${table_name} ya en progreso, saltando...`);
+                    return;
+                }
+
                 const tabla = this.tablas.find((i) => i.table_name === table_name);
-                
                 if (!tabla) return;
+
+                // Marcar como en progreso
+                this.actualizacionesEnProgreso.add(table_name);
                 this.$set(tabla, 'actualizandoEstaTabla', true);
 
                 try {
@@ -151,12 +157,13 @@
                     if (!response.ok) {
                         throw new Error(response.statusText);
                     }
-                    
+
                     await this.getDatosAdminWarehouse();
-                    this.$set(tabla, 'actualizandoEstaTabla', false);
-                } catch {
-                    console.error(error);
+                } catch (error) {
+                    console.error(`❌ Error actualizando ${table_name}:`, error);
                 } finally {
+                    // Liberar el lock
+                    this.actualizacionesEnProgreso.delete(table_name);
                     this.$set(tabla, 'actualizandoEstaTabla', false);
                 }
             },

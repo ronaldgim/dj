@@ -12,14 +12,14 @@ import time
 def enviar_correos_prueba(email):
     movs = Movimiento.objects.all()[:5]
     for i in movs:
-        
+
         mensaje = f"""
         Id: {i.id}
         Código: {i.product_id}
         Lote: {i.lote_id}
         Unidades: {i.unidades}
         """
-        
+
         send_mail(
             subject='Prueba Celery',
             message=mensaje,
@@ -28,10 +28,10 @@ def enviar_correos_prueba(email):
             recipient_list=[email],
             fail_silently=False,
         )
-        
+
     return 'correos enviados'
-    
-    
+
+
 @shared_task
 def prueba_sleep():
     time.sleep(10)
