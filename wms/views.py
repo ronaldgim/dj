@@ -45,6 +45,8 @@ from wms.models import (
     OrdenSalida
     )
 
+from warehouse.models import Cliente
+
 from django.core.exceptions import ObjectDoesNotExist
 
 # excel 
@@ -2085,28 +2087,84 @@ def wms_movimientos_list(request): #OK
 @permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'], '/wms/home', 'ingrear a Listado de Pedidos')
 def wms_listado_pedidos(request): #OK
     """ Listado de pedidos (picking) """
-    
-    clientes = clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE']]
-    clientes = clientes.rename(columns={'CODIGO_CLIENTE':'codigo_cliente'})
-    
-    mis_reservas = Reservas.objects.filter(ware_code='BCT').order_by('-fecha_pedido', '-hora_llegada')
-    
-    pedidos = pd.DataFrame(       
-        mis_reservas.values('contrato_id', 'codigo_cliente', 'ware_code', 'fecha_pedido', 'hora_llegada')
-    )
-    pedidos['contrato_id'] = pedidos['contrato_id'] + '.0'
-    pedidos = pedidos.drop_duplicates(subset='contrato_id', keep='first').reset_index(drop=True)
-    pedidos['fecha_pedido'] = pedidos['fecha_pedido'].astype(str)
-    pedidos = pedidos.merge(clientes, on='codigo_cliente', how='left')
-    
-    estados = pd.DataFrame(EstadoPicking.objects.all().values('n_pedido','estado','user__user__first_name','user__user__last_name'))
-    estados = estados.rename(columns={'n_pedido':'contrato_id'})
-    pedidos = pedidos.merge(estados, on='contrato_id', how='left')
 
-    pedidos = de_dataframe_a_template(pedidos)[:200]
+    # clientes = clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE']]
+    # clientes = clientes.rename(columns={'CODIGO_CLIENTE':'codigo_cliente'})
+    
+    # mis_reservas = Reservas.objects.filter(ware_code='BCT').order_by('-fecha_pedido', '-hora_llegada')
+    
+    # pedidos = pd.DataFrame(       
+    #     mis_reservas.values('contrato_id', 'codigo_cliente', 'ware_code', 'fecha_pedido', 'hora_llegada')
+    # )
+    # pedidos['contrato_id'] = pedidos['contrato_id'] + '.0'
+    # pedidos = pedidos.drop_duplicates(subset='contrato_id', keep='first').reset_index(drop=True)
+    # pedidos['fecha_pedido'] = pedidos['fecha_pedido'].astype(str)
+    # pedidos = pedidos.merge(clientes, on='codigo_cliente', how='left')
+    
+    # estados = pd.DataFrame(EstadoPicking.objects.all().values('n_pedido','estado','user__user__first_name','user__user__last_name'))
+    # estados = estados.rename(columns={'n_pedido':'contrato_id'})
+    # pedidos = pedidos.merge(estados, on='contrato_id', how='left')
+
+    # pedidos = de_dataframe_a_template(pedidos)[:200]
+    
+    q_reserva = request.GET.get('n_pedido', None)    
+    query = (
+        Reservas.objects
+        .filter(ware_code='BCT')
+        .values(
+            'contrato_id',
+            'codigo_cliente',
+            'fecha_pedido',
+            'hora_llegada',
+            'ware_code'
+        )
+        .order_by('-contrato_id')
+        .distinct()
+    )
+
+    if q_reserva:
+        query = query.filter(contrato_id=q_reserva)
+
+    query = query[:150]
+
+    reservas = list(query)
+    
+    contratos = [f'{r['contrato_id']}.0' for r in reservas]
+
+    estados = (
+        EstadoPicking.objects
+        .filter(n_pedido__in=contratos)
+        .select_related('user__user')
+    )
+
+    estado_map = {e.n_pedido: e for e in estados}
+    codigos_cliente = {r['codigo_cliente'] for r in reservas}
+    
+    clientes = {
+        c.codigo_cliente: c.nombre_cliente
+        for c in Cliente.objects
+            .using('gimpromed_sql')
+            .filter(codigo_cliente__in=codigos_cliente)
+    }
+
+    datos_pedidos = []
+    for r in reservas:
+        estado = estado_map.get(f'{r['contrato_id']}.0')
+        datos_pedidos.append({
+            'contrato_id': r['contrato_id'],
+            'cliente': clientes.get(r['codigo_cliente']),
+            'bodega': 'Cerezos', #if r['ware_code'] == 'BCT' else 'Andagoya',
+            'fecha_hora': f"{r['fecha_pedido']} - {r['hora_llegada']}",
+            'estado': estado.estado if estado else None,
+            'usuario': (
+                f"{estado.user.user.first_name} {estado.user.user.last_name}"
+                if estado and estado.user and estado.user.user
+                else None
+            ),
+        })
     
     context = {
-        'reservas':pedidos
+        'reservas': datos_pedidos #pedidos
     }
 
     return render(request, 'wms/listado_pedidos_misreservas.html', context)
