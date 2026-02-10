@@ -104,6 +104,7 @@ class Producto(models.Model):
         managed = False
         verbose_name = 'Producto'
         verbose_name_plural = 'Productos'
+        #app_label
 
     # 🔒 SOLO LECTURA
     def save(self, *args, **kwargs):

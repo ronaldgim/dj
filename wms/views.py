@@ -2579,7 +2579,7 @@ def wms_egreso_picking_misreservas(request, n_pedido): #OK
 @permisos(['BODEGA'], '/wms/picking/list', 'cambio de estado de picking')
 def wms_estado_picking_ajax(request):
 
-    contrato_id = request.POST['n_ped'] #; print(contrato_id)
+    contrato_id = request.POST['n_ped'] 
     # contrato = contrato_id.split(',')[0]
     estado = request.POST['estado']
     user_id = int(request.POST['user_id'])
@@ -2594,7 +2594,7 @@ def wms_estado_picking_ajax(request):
     tipo_cliente   = reserva['CLIENT_TYPE'].iloc[0]
     bodega         = reserva['WARE_CODE'].iloc[0]
     codigo_cliente = reserva['CODIGO_CLIENTE'].iloc[0]
-    data           = (reserva[['PRODUCT_ID', 'QUANTITY']]).to_dict()
+    data           = (reserva[['PRODUCT_ID', 'QUANTITY']]).to_dict() ;print(data)
     data           = json.dumps(data)
 
     estado_picking = EstadoPicking(
@@ -2612,11 +2612,16 @@ def wms_estado_picking_ajax(request):
     try:
         estado_picking.save()
         if estado_picking.id:
-            return JsonResponse({'msg':f'✅ Estado de picking {estado_picking.estado}',
-                                'alert':'success'})
-    except:
-        return JsonResponse({'msg':'❌ Error, intente nuevamente !!!',
-                            'alert':'danger'})
+            return JsonResponse({
+                'msg':f'✅ Estado de picking {estado_picking.estado}',
+                'alert':'success'
+            })
+    except Exception as e:
+        # print(e)
+        return JsonResponse({
+            'msg':f'❌ Error, {e} !!!',
+            'alert':'danger'
+        })
 
 
 ## Agregar foto a picking
