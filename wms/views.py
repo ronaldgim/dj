@@ -2151,7 +2151,7 @@ def wms_listado_pedidos(request): #OK
     for r in reservas:
         estado = estado_map.get(f'{r['contrato_id']}.0')
         datos_pedidos.append({
-            'contrato_id': r['contrato_id'],
+            'contrato_id': f'{r['contrato_id']}.0',
             'cliente': clientes.get(r['codigo_cliente']),
             'bodega': 'Cerezos', #if r['ware_code'] == 'BCT' else 'Andagoya',
             'fecha_hora': f"{r['fecha_pedido']} - {r['hora_llegada']}",
@@ -2429,8 +2429,8 @@ def wms_egreso_picking(request, n_pedido): #OK
 @login_required(login_url='login')
 @permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'], '/picking/list', 'ingresar a Detalle de Pedido')
 def wms_egreso_picking_misreservas(request, n_pedido): #OK
-    
-    estado_picking = EstadoPicking.objects.filter(n_pedido=n_pedido).exists()
+    print(n_pedido)
+    estado_picking = EstadoPicking.objects.filter(n_pedido=n_pedido).exists() ;print(estado_picking)
     if estado_picking:
         est = EstadoPicking.objects.get(n_pedido=n_pedido)
         estado = est.estado
