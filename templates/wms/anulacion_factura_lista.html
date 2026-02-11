@@ -237,18 +237,14 @@
             },
 
             success: function(response) {
-                console.log(response);
-                console.log(response.tipo);
-                console.log(response.msg);
                 
                 $('#msg_reemplazo').html(`<div class="text-center alert alert-${response.tipo}" role="alert"> ${response.msg} !!! </div>`)
                 if (response.success) {
                     $('input[name="id_registro"]').val('');
                     $('input[name="nuevo_picking"]').val('');
                     $('input[name="nueva_factura"]').val('');
-                    $(".btn-close").click();
+                    // $(".btn-close").click();
                 }
-
             },
             
             error: function() {
