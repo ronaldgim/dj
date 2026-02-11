@@ -6529,7 +6529,7 @@ def factura_reemplazar_picking_y_factura_ajax(request):
     return JsonResponse({
         'succes':True,
         'tipo':'success',
-        'msg':'Reemplazado con exito !!!'
+        'msg':'En desarrollo  !!!'
     })
     
     # return JsonResponse({
