@@ -104,9 +104,9 @@ class Producto(models.Model):
         managed = False
         verbose_name = 'Producto'
         verbose_name_plural = 'Productos'
-        #app_label
+        app_label = 'warehouse'
 
-    # 🔒 SOLO LECTURA
+    # SOLO LECTURA
     def save(self, *args, **kwargs):
         raise NotImplementedError("Este modelo es de solo lectura")
 
