@@ -509,10 +509,21 @@ def actualizar_datos_etiquetado_fun():
     return print('etiquetado-fun')
 
 
-
+# Obtener tipo de conexión de tabla warehouse
 def obtener_conexion_config(table_name):
     return AdminActualizationWarehaouse.objects.get(table_name=table_name).conexion
 
+# Obtener ultima actualización de tabla warehouse
+def obtener_ultima_actualizacion_admin_warehouse(table_name):
+    try:
+        ultima_actulizacion = AdminActualizationWarehaouse.objects.get(table_name=table_name).datetime
+        ultima_actulizacion_date = ultima_actulizacion.date()
+        hoy = datetime.now().date()
+        if ultima_actulizacion_date == hoy:
+            return f'Hoy {ultima_actulizacion.strftime('%H:%M')}'
+        return ultima_actulizacion.strftime('%Y-%m-%d %H:%M')
+    except:
+        return ultima_actulizacion
 
 
 ## Carga la tabla de stock lote automaticamente
