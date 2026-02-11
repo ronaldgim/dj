@@ -6453,41 +6453,48 @@ def lista_facturas_anualdas(request):
 @permisos(['ADMINISTRADOR','OPERACIONES'],'/wms/home', 'ingresar a anulación de picking')
 def factura_anulada_detalle(request, n_factura):
     
-    productos = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     factura = FacturaAnulada.objects.get(n_factura=n_factura)
+    mov_anulados_wms = Movimiento.objects.select_related('usuario', 'ubicacion').filter(n_factura=n_factura)
+    mov_ingresado_wms = Movimiento.objects.select_related('usuario', 'ubicacion').filter(n_referencia=n_factura)
     
-    mov_anulados = pd.DataFrame(Movimiento.objects.filter(n_factura=n_factura).values(
-        'product_id',
-        'lote_id',
-        'fecha_caducidad',
-        'estado_picking',
-        'unidades',
-        'usuario__first_name',
-        'usuario__last_name'
-    ))
-    mov_ingresados = pd.DataFrame(Movimiento.objects.filter(n_referencia=n_factura).values(
-        'product_id',
-        'lote_id',
-        'fecha_caducidad',
-        'estado_picking',
-        'unidades',
-        'usuario__first_name',
-        'usuario__last_name'
-    ))
+    product_ids = list(mov_anulados_wms.values_list('product_id', flat=True))
+    productos = Producto.objects.using('gimpromed_sql').filter(codigo__in=product_ids)
+    productos_dict = { p.codigo: p for p in productos }
     
-    if not mov_anulados.empty:
-        mov_anulados = mov_anulados.merge(productos, on='product_id', how='left')
-        mov_anulados['fecha_caducidad'] = mov_anulados['fecha_caducidad'].astype('str')
-        mov_anulados['unidades'] = mov_anulados['unidades'] * -1
+    mov_an = []
+    for i in mov_anulados_wms:
+        prod = productos_dict.get(i.product_id)
+        mov_an.append({
+            'product_id':i.product_id,
+            'nombre': prod.nombre,
+            'marca': prod.marca,
+            'lote':i.lote_id,
+            'f_caducidad':i.fecha_caducidad.strftime('%Y-%m-%d'),
+            'estado_picking':i.estado_picking,
+            'usuario':f'{i.usuario.first_name} {i.usuario.last_name}',
+            'ubicacion':i.ubicacion,
+            'unidades': i.unidades * - 1 if i.unidades < 0 else i.unidades
+        })
     
-    if not mov_ingresados.empty:
-        mov_ingresados = mov_ingresados.merge(productos, on='product_id', how='left')
-        mov_ingresados['fecha_caducidad'] = mov_ingresados['fecha_caducidad'].astype('str')
-    
+    mov_in = []
+    for i in mov_ingresado_wms:
+        prod = productos_dict.get(i.product_id)
+        mov_in.append({
+            'product_id':i.product_id,
+            'nombre': prod.nombre,
+            'marca': prod.marca,
+            'lote':i.lote_id,
+            'f_caducidad':i.fecha_caducidad.strftime('%Y-%m-%d'),
+            'estado_picking':i.estado_picking,
+            'usuario':f'{i.usuario.first_name} {i.usuario.last_name}',
+            'ubicacion':i.ubicacion,
+            'unidades': i.unidades * - 1 if i.unidades < 0 else i.unidades
+        })
+        
     context = {
         'factura': factura,
-        'anulados': de_dataframe_a_template(mov_anulados),
-        'ingresados': de_dataframe_a_template(mov_ingresados),
+        'mov_an':mov_an,
+        'mov_in':mov_in
     }
     
     return render(request, 'wms/anulacion_factura_detail.html', context)
