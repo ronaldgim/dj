@@ -213,7 +213,7 @@ class TransferenciaStatus(models.Model):
     unidades_wms    = models.PositiveIntegerField(verbose_name='Unidades wms', default=0)
     avance          = models.FloatField(verbose_name='Avance', default=0.0)
     estado          = models.CharField(verbose_name='Estado', max_length=20)
-    creado          = models.DateTimeField(null=True, blank=True)
+    creado          = models.DateTimeField(null=True, blank=True, auto_now_add=True)
     en_proceso      = models.DateTimeField(null=True, blank=True)
     finalizado      = models.DateTimeField(null=True, blank=True)
     
