@@ -60,30 +60,30 @@
 
 
 <h5 class="m-4 text-center fw-bold">LISTADO DE PICKING CEREZOS (WMS)</h5>
-<h6 class="text-start"><strong>Actulizado: </strong>{{actualizado}}</h6>
+<h6 class="text-start"><strong>Ultima actualización: </strong>{{ultima_actualizacion}}</h6>
 
-<!--form method="post">
-    {% csrf_token %}
-    <button class="btn btn-primary btn-sm mt-2 mb-2" type="submit"> 
-        <i class="bi bi-arrow-clockwise"></i> Actualizar
-    </button>
-</form-->
-
-<button class="btn btn-primary btn-sm mt-2 mb-2" onclick="window.location.reload()"> 
+<!--button class="btn btn-primary btn-sm mt-2 mb-2" onclick="window.location.reload()"> 
     <i class="bi bi-arrow-clockwise"></i> Actualizar
-</button> <br>
+</button> <br-->
 
-<button class="btn btn-info btn-sm mb-2" id="mispedidos"> 
-    <i class="bi bi-person-lines-fill"></i> Mis pedidos
-</button>
+<div class="d-flex justify-content-start align-items-center flex-wrap gap-2">
+    <button class="btn btn-info btn-sm mb-2" id="mispedidos"> 
+        <i class="bi bi-person-lines-fill"></i> Mis pedidos
+    </button>
 
-<button class="btn btn-info btn-sm mb-2" onclick="window.location.reload()"> 
-    <i class="bi bi-list-ccolumns-reverse"></i> Todos los pedidos
-</button>
+    <button class="btn btn-info btn-sm mb-2" onclick="window.location.reload()"> 
+        <i class="bi bi-list-ccolumns-reverse"></i> Todos los pedidos
+    </button>
 
-<button class="btn btn-sm btn-secondary mb-2" onclick="notificacionesData()" type="button" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
-    Notificaciones
-</button>
+    <button class="btn btn-sm btn-secondary mb-2" onclick="notificacionesData()" type="button" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+        Notificaciones
+    </button>
+</div>
+
+
+
+
+
 
 <div class="col-12 mt-2">
     <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">

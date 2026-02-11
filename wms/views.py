@@ -24,7 +24,7 @@ from datetime import datetime
 from django.db import connections, transaction
 from django.db.models import Q, Sum, OuterRef, Subquery
 
-
+from datos.models import AdminActualizationWarehaouse
 from wms.models import (
     InventarioIngresoBodega, 
     Ubicacion, Movimiento, 
@@ -108,6 +108,7 @@ from warehouse.models import Producto
 
 # Datos de importaciones
 from datos.views import (
+    obtener_ultima_actualizacion_admin_warehouse,
     importaciones_llegadas_odbc,
     importaciones_en_transito_odbc,
     importaciones_en_transito_detalle_odbc,
@@ -2061,51 +2062,10 @@ def wms_movimientos_list(request): #OK
 ### PICKDING
 # Lista de pedidos
 # url: picking/list
-# @login_required(login_url='login')
-# @permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'], '/wms/home', 'ingrear a Listado de Pedidos')
-# def wms_listado_pedidos(request): #OK
-#     """ Listado de pedidos (picking) """
-#     pedidos = pd.DataFrame(reservas_table()) 
-#     pedidos = pedidos[pedidos['WARE_CODE']=='BCT']
-#     pedidos['FECHA_PEDIDO'] = pedidos['FECHA_PEDIDO'].astype(str)
-#     pedidos = pedidos.drop_duplicates(subset='CONTRATO_ID')
-    
-#     estados = pd.DataFrame(EstadoPicking.objects.all().values('n_pedido','estado','user__user__first_name','user__user__last_name'))
-#     estados = estados.rename(columns={'n_pedido':'CONTRATO_ID'})
-#     pedidos = pedidos.merge(estados, on='CONTRATO_ID', how='left')
-
-#     pedidos = de_dataframe_a_template(pedidos)
-
-#     context = {
-#         'reservas':pedidos
-#     }
-
-#     return render(request, 'wms/listado_pedidos.html', context)
-
-
 @login_required(login_url='login')
 @permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'], '/wms/home', 'ingrear a Listado de Pedidos')
 def wms_listado_pedidos(request): #OK
     """ Listado de pedidos (picking) """
-
-    # clientes = clientes_warehouse()[['CODIGO_CLIENTE','NOMBRE_CLIENTE']]
-    # clientes = clientes.rename(columns={'CODIGO_CLIENTE':'codigo_cliente'})
-    
-    # mis_reservas = Reservas.objects.filter(ware_code='BCT').order_by('-fecha_pedido', '-hora_llegada')
-    
-    # pedidos = pd.DataFrame(       
-    #     mis_reservas.values('contrato_id', 'codigo_cliente', 'ware_code', 'fecha_pedido', 'hora_llegada')
-    # )
-    # pedidos['contrato_id'] = pedidos['contrato_id'] + '.0'
-    # pedidos = pedidos.drop_duplicates(subset='contrato_id', keep='first').reset_index(drop=True)
-    # pedidos['fecha_pedido'] = pedidos['fecha_pedido'].astype(str)
-    # pedidos = pedidos.merge(clientes, on='codigo_cliente', how='left')
-    
-    # estados = pd.DataFrame(EstadoPicking.objects.all().values('n_pedido','estado','user__user__first_name','user__user__last_name'))
-    # estados = estados.rename(columns={'n_pedido':'contrato_id'})
-    # pedidos = pedidos.merge(estados, on='contrato_id', how='left')
-
-    # pedidos = de_dataframe_a_template(pedidos)[:200]
     
     q_reserva = request.GET.get('n_pedido', None)    
     query = (
@@ -2164,7 +2124,8 @@ def wms_listado_pedidos(request): #OK
         })
     
     context = {
-        'reservas': datos_pedidos #pedidos
+        'reservas': datos_pedidos, #pedidos
+        'ultima_actualizacion':obtener_ultima_actualizacion_admin_warehouse('mis_reservas')
     }
 
     return render(request, 'wms/listado_pedidos_misreservas.html', context)
@@ -3732,7 +3693,6 @@ def wms_transferencia_input_ajax(request):
             fecha_caducidad = i['f_cadu'],
             bodega_salida   = i['bodega_salida'],
             unidades        = i['unidades'],
-            # ubicacion       = i['UBICACION']
             ubicacion       = i['ubicacion']
             
         )
