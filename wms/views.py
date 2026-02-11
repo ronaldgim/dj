@@ -6378,6 +6378,7 @@ def detalle_anulacion_factura_ajax(request):
 def anulacion_factura_movimientos_ajax(request):
     
     try:
+        user_id = request.user.id
         if request.method == 'POST':
             n_factura = request.POST.get('n_factura')
             factura = FacturaAnulada.objects.get(n_factura=n_factura)
@@ -6398,7 +6399,8 @@ def anulacion_factura_movimientos_ajax(request):
                         unidades=i.unidades * -1,
                         estado='Disponible',
                         estado_picking='',
-                        usuario_id=i.usuario.id,
+                        #usuario_id=i.usuario.id,
+                        usuario_id=user_id,
                     )
                     
                     mov.save()
