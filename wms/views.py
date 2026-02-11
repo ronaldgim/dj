@@ -6351,7 +6351,7 @@ def detalle_anulacion_factura_ajax(request):
         n_factura = request.POST.get('n_factura', None)
         movimientos = Movimiento.objects.filter(n_factura=n_factura)
         n_picking = movimientos.first().n_referencia
-        nombre_cliente = EstadoPicking.objects.get(n_pedido=n_picking)
+        cliente = EstadoPicking.objects.get(n_pedido=n_picking)
         
         if movimientos.exists():
             
@@ -6359,7 +6359,8 @@ def detalle_anulacion_factura_ajax(request):
                 'tipo':'success',
                 'msg':'Factura pendiente de anulación',
                 'n_picking':movimientos.first().n_referencia.split('.')[0],
-                'cliente': nombre_cliente.cliente 
+                'cliente': cliente.cliente,
+                'codigo_cliente':cliente.codigo_cliente
             })
         else:
             return JsonResponse({
@@ -6426,8 +6427,27 @@ def anulacion_factura_movimientos_ajax(request):
 @permisos(['ADMINISTRADOR','OPERACIONES'],'/wms/home', 'ingresar a anulación de picking')
 def lista_facturas_anualdas(request):
     
-    facturas = FacturaAnulada.objects.all()
+    facturas = FacturaAnulada.objects.select_related('usuario').all().order_by('-id')
+    clientes_ids = list(facturas.values_list('codigo_cliente', flat=True))
+    clientes = Cliente.objects.using('gimpromed_sql').filter(codigo_cliente__in=clientes_ids)
+    clientes_dict = { c.codigo_cliente:c for c in clientes }
     
+    facturas_list = []
+    for i in facturas:
+        cli = clientes_dict.get(i.codigo_cliente)
+        facturas_list.append({
+            'id':i.id,
+            'n_factura':i.n_factura,
+            'n_picking':i.n_picking,
+            'cliente':cli.nombre_cliente,
+            'motivo':i.motivo.upper(),
+            'tipo_cliente':cli.client_type,
+            'h_publico': True if cli.client_type == 'HOSPU' else False,
+            'estado':i.estado,
+            'creado':i.creado.strftime('%Y-%m-%d'),
+            'usuario':f'{i.usuario.first_name} {i.usuario.last_name}'
+        })
+        
     if request.method == 'POST':
         form = FacturaAnuladaForm(request.POST)
         if form.is_valid():
@@ -6443,7 +6463,7 @@ def lista_facturas_anualdas(request):
             messages.error(request, form.errors)
             
     context = {
-        'facturas': facturas,
+        'facturas': facturas_list #facturas,
     }
     
     return render(request, 'wms/anulacion_factura_lista.html', context)
@@ -6453,44 +6473,70 @@ def lista_facturas_anualdas(request):
 @permisos(['ADMINISTRADOR','OPERACIONES'],'/wms/home', 'ingresar a anulación de picking')
 def factura_anulada_detalle(request, n_factura):
     
-    productos = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     factura = FacturaAnulada.objects.get(n_factura=n_factura)
+    mov_anulados_wms = Movimiento.objects.select_related('usuario', 'ubicacion').filter(n_factura=n_factura)
+    mov_ingresado_wms = Movimiento.objects.select_related('usuario', 'ubicacion').filter(n_referencia=n_factura)
     
-    mov_anulados = pd.DataFrame(Movimiento.objects.filter(n_factura=n_factura).values(
-        'product_id',
-        'lote_id',
-        'fecha_caducidad',
-        'estado_picking',
-        'unidades',
-        'usuario__first_name',
-        'usuario__last_name'
-    ))
-    mov_ingresados = pd.DataFrame(Movimiento.objects.filter(n_referencia=n_factura).values(
-        'product_id',
-        'lote_id',
-        'fecha_caducidad',
-        'estado_picking',
-        'unidades',
-        'usuario__first_name',
-        'usuario__last_name'
-    ))
+    product_ids = list(mov_anulados_wms.values_list('product_id', flat=True))
+    productos = Producto.objects.using('gimpromed_sql').filter(codigo__in=product_ids)
+    productos_dict = { p.codigo: p for p in productos }
     
-    if not mov_anulados.empty:
-        mov_anulados = mov_anulados.merge(productos, on='product_id', how='left')
-        mov_anulados['fecha_caducidad'] = mov_anulados['fecha_caducidad'].astype('str')
-        mov_anulados['unidades'] = mov_anulados['unidades'] * -1
+    mov_an = []
+    for i in mov_anulados_wms:
+        prod = productos_dict.get(i.product_id)
+        mov_an.append({
+            'product_id':i.product_id,
+            'nombre': prod.nombre,
+            'marca': prod.marca,
+            'lote':i.lote_id,
+            'f_caducidad':i.fecha_caducidad.strftime('%Y-%m-%d'),
+            'estado_picking':i.estado_picking,
+            'usuario':f'{i.usuario.first_name} {i.usuario.last_name}',
+            'ubicacion':i.ubicacion,
+            'unidades': i.unidades * - 1 if i.unidades < 0 else i.unidades
+        })
     
-    if not mov_ingresados.empty:
-        mov_ingresados = mov_ingresados.merge(productos, on='product_id', how='left')
-        mov_ingresados['fecha_caducidad'] = mov_ingresados['fecha_caducidad'].astype('str')
-    
+    mov_in = []
+    for i in mov_ingresado_wms:
+        prod = productos_dict.get(i.product_id)
+        mov_in.append({
+            'product_id':i.product_id,
+            'nombre': prod.nombre,
+            'marca': prod.marca,
+            'lote':i.lote_id,
+            'f_caducidad':i.fecha_caducidad.strftime('%Y-%m-%d'),
+            'estado_picking':i.estado_picking,
+            'usuario':f'{i.usuario.first_name} {i.usuario.last_name}',
+            'ubicacion':i.ubicacion,
+            'unidades': i.unidades * - 1 if i.unidades < 0 else i.unidades
+        })
+        
     context = {
         'factura': factura,
-        'anulados': de_dataframe_a_template(mov_anulados),
-        'ingresados': de_dataframe_a_template(mov_ingresados),
+        'mov_an':mov_an,
+        'mov_in':mov_in
     }
     
     return render(request, 'wms/anulacion_factura_detail.html', context)
+
+
+
+@login_required(login_url='login')
+@permisos(['ADMINISTRADOR','OPERACIONES'],'/wms/home', 'ingresar a anulación de picking')
+@require_POST
+def factura_reemplazar_picking_y_factura_ajax(request):
+    print(request.body)
+    return JsonResponse({
+        'succes':True,
+        'tipo':'success',
+        'msg':'Reemplazado con exito !!!'
+    })
+    
+    # return JsonResponse({
+    #     'succes':False,
+    #     'tipo':'danger',
+    #     'msg':'... !!!'
+    # })
 
 
 def wms_reporte_diferencia_mba_wms(request):

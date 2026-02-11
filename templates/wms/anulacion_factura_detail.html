@@ -1,4 +1,4 @@
-{%extends 'base.html' %}
+{% extends 'base.html' %}
 
 {% block title %}
 <title>Productos en despacho</title>
@@ -28,7 +28,7 @@
 
 
 <div class="card mb-2">
-    <div class="card-body mt-2 mb-2 p-0">
+    <div class="card-body mt-2 mb-2 p-2">
         <div class="container table-responsive">
             <label class="fw-bold">Cliente:</label> {{factura.cliente}}<br>
             <label class="fw-bold"># Factura:</label> <span id="n_factura">{{factura.n_factura}}</span><br>
@@ -46,7 +46,6 @@
 
 <div id="msg"></div>
 
-
 <h6 class="text-start fw-bold mt-4">Lista de productos de factura anulada</h6>
 <div class="card mb-2">
     <div class="card-body m-0 p-0">
@@ -59,21 +58,23 @@
                         <th scope="col">Marca</th>
                         <th scope="col">Lote</th>
                         <th scope="col">F.Exp</th>
-                        <th scope="col">Estado</th>
+                        <th scope="col">Estado Picking</th>
                         <th scope="col">Usuario Picking</th>
+                        <th scope="col">Ubicación</th>
                         <th scope="col">Unidades</th>
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
-                    {% for i in anulados %}
+                    {% for i in mov_an %}
                     <tr>
                         <td>{{i.product_id}}</td>
-                        <td>{{i.Nombre}}</td>
-                        <td>{{i.Marca}}</td>
-                        <td>{{i.lote_id}}</td>
-                        <td>{{i.fecha_caducidad}}</td>
+                        <td>{{i.nombre}}</td>
+                        <td>{{i.marca}}</td>
+                        <td>{{i.lote}}</td>
+                        <td>{{i.f_caducidad}}</td>
                         <td>{{i.estado_picking}}</td>
-                        <td>{{i.usuario__first_name}} {{i.usuario__last_name}}</td>
+                        <td>{{i.usuario}}</td>
+                        <td>{{i.ubicacion}}</td>
                         <td class="text-end">{{i.unidades | floatformat:"0g"}}</td>
                     </tr>
                     {% endfor %}
@@ -82,6 +83,7 @@
         </div>
     </div>
 </div>
+
 
 <h6 class="text-start fw-bold mt-4">Lista de productos ingresados</h6>
 <div class="card mb-2">
@@ -95,31 +97,26 @@
                         <th scope="col">Marca</th>
                         <th scope="col">Lote</th>
                         <th scope="col">F.Exp</th>
-                        <th scope="col">Estado</th>
+                        <th scope="col">Estado Picking</th>
                         <th scope="col">Usuario Picking</th>
+                        <th scope="col">Ubicación</th>
                         <th scope="col">Unidades</th>
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
-                    {% if not ingresados %}
-                    <tr>
-                        <td colspan="8" class="text-center bg-warning">No hay productos ingresados</td>
-                    </tr>
-                    {% else %}
-                    {% for i in ingresados %}
+                    {% for i in mov_in %}
                     <tr>
                         <td>{{i.product_id}}</td>
-                        <td>{{i.Nombre}}</td>
-                        <td>{{i.Marca}}</td>
-                        <td>{{i.lote_id}}</td>
-                        <td>{{i.fecha_caducidad}}</td>
-                        <!--td>{{i.estado_picking}}</td-->
-                        <td>-</td>
-                        <td>{{i.usuario__first_name}} {{i.usuario__last_name}}</td>
+                        <td>{{i.nombre}}</td>
+                        <td>{{i.marca}}</td>
+                        <td>{{i.lote}}</td>
+                        <td>{{i.f_caducidad}}</td>
+                        <td>{{i.estado_picking | default:"-"}}</td>
+                        <td>{{i.usuario}}</td>
+                        <td>{{i.ubicacion}}</td>
                         <td class="text-end">{{i.unidades | floatformat:"0g"}}</td>
                     </tr>
                     {% endfor %}
-                    {% endif %}
                 </tbody>
             </table>
         </div>

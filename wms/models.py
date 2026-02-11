@@ -364,11 +364,12 @@ class OrdenEmpaque(models.Model):
         enum = f'{enum:07d}'
         return enum 
 
-
+from warehouse.models import Cliente
 class FacturaAnulada(models.Model):
     
     n_factura   = models.CharField(verbose_name='Factura', max_length=13, unique=True)
     n_picking   = models.CharField(verbose_name='Picking', max_length=13)
+    codigo_cliente = models.CharField(blank=True, max_length=15)
     cliente     = models.CharField(verbose_name='Cliente', max_length=100)
     motivo      = models.TextField(verbose_name='Motivo', max_length=50)
     estado      = models.CharField(verbose_name='Estado', choices=ESTADO_ANULACION_FACTURA, max_length=20)
