@@ -3747,7 +3747,8 @@ def wms_transferencia_input_ajax(request):
             estado          = 'CREADO',
             unidades_mba    = 0,
             unidades_wms    = 0,
-            avance          = 0.0
+            avance          = 0.0,
+            creado          = datetime.now()
         )
     
     return JsonResponse({
