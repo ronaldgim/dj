@@ -3531,10 +3531,16 @@ def wms_transferencias_estatus_transf(n_transf):
     
     transf_status.save()
     
+    if transf_status.estado == 'EN PROCESO':
+        transf_status.en_proceso = datetime.now()
+        transf_status.save()
+    
     if transf_status.estado == 'FINALIZADO':
         # enviar email
         correo_finalizacion_picking(n_transferencia=n_transf)
-
+        transf_status.finalizado = datetime.now()
+        transf_status.save()
+        
     return JsonResponse({
         'msg':{
             'tipo':'success',
