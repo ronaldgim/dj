@@ -697,6 +697,12 @@ urlpatterns = [
     ),
     
     path(
+        route='factura_reemplazar_picking_y_factura_ajax', 
+        view = views.factura_reemplazar_picking_y_factura_ajax,
+        name = 'factura_reemplazar_picking_y_factura_ajax'
+    ),
+        
+    path(
         route='anulacion_factura_movimientos_ajax', 
         view = views.anulacion_factura_movimientos_ajax,
         name = 'anulacion_factura_movimientos_ajax'

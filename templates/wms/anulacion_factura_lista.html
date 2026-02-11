@@ -73,12 +73,22 @@
                             
 
                         </td>
-                        <td>{{i.creado|date:"Y-m-d"}}</td>
-                        <td>{{i.usuario.first_name}} {{i.usuario.last_name}}</td>
+                        <td>{{i.creado}}</td>
+                        <td>{{i.usuario}}</td>
                         <td class="text-center">
                             <a class="btn btn-primary btn-sm" href="{% url 'factura_anulada_detalle' i.n_factura %}">
                                 <i class="bi bi-eye"></i>
                             </a>
+                            <button 
+                                class="btn btn-warning btn-sm {% if not i.h_publico %} disabled {% endif %}"  
+                                name="change-factura" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#changeFactura"
+                                id="{{i.id}}"
+                                onclick="cargar_id_factura(this.id)"
+                            >
+                                F
+                            </button>
                         </td>
                     </tr>
                     {% endfor %}
@@ -88,13 +98,12 @@
     </div>
 </div>
 
-
-<!-- Modal -->
+<!-- ADD FACTURA ANULADA -->
 <div class="modal fade" id="addFactura" tabindex="-1" aria-labelledby="addFacturaLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="eaddFacturaLabel">Añadir Factura</h5>
+                <h5 class="modal-title" id="addFacturaLabel">Añadir Factura</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" name="modal-close"></button>
             </div>
             <div class="modal-body">
@@ -117,6 +126,8 @@
                     <label class="fw-bold mt-2">Cliente:</label>
                     <input type="text" name="cliente" class="form-control" readonly required>
 
+                    <input type="hidden" name="codigo_cliente">
+
                     <label class="fw-bold mt-2">Motivo:</label>
                     <textarea class="form-control" name="motivo" rows="3" required></textarea>
 
@@ -133,6 +144,41 @@
     </div>
 </div>
 
+<!-- Modal -->
+<div class="modal fade" id="changeFactura" tabindex="-1" aria-labelledby="changeFacturaLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="changeFacturaLabel">Reemplazar Pickig y Factura</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" name="modal-close"></button>
+            </div>
+            <div class="modal-body">
+
+                <div id="msg_reemplazo"></div>
+                
+                <!--form method="POST" action="{% url 'factura_reemplazar_picking_y_factura_ajax' %}" id="reemplazar-factura-picking"-->
+                <form method="POST" onsubmit="reemplazar_action()" id="reemplazar-factura-picking">
+                    {% csrf_token %}
+
+                    <input type="hidden" name="id_registro" class="form-control" required>
+
+                    <label class="fw-bold mt-2"># Nuevo Picking:</label>
+                    <input type="text" name="nuevo_picking" class="form-control" required>
+
+                    <label class="fw-bold mt-2"># Nueva Factura:</label>
+                    <input type="text" name="nueva_factura" class="form-control" required>
+
+                    <!--input type="hidden" name="usuario" value="{{request.user.id}}" -->
+                    <!-- input type="hidden" name="estado" value="Pendiente" -->
+                </form>
+
+            </div>
+            <div class="modal-footer">
+                <button type="submit" form="reemplazar-factura-picking" class="btn btn-success">Generar Reemplazo</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- BUSCAR FACTURA -->
 <script>
@@ -156,7 +202,7 @@
                 } else {
                     $('input[name="n_picking"]').val(response.n_picking);
                     $('input[name="cliente"]').val(response.cliente);
-
+                    $('input[name="codigo_cliente"]').val(response.codigo_cliente);
                 }
             },
             
@@ -168,9 +214,53 @@
     })
 </script>
 
-
-
 <script>
+    function cargar_id_factura(id) {
+        $('input[name="id_registro"]').val(id);
+    }
+
+    function reemplazar_action() {
+        event.preventDefault();
+
+        var id_registro = $('input[name="id_registro"]').val();
+        var nuevo_picking = $('input[name="nuevo_picking"]').val();
+        var nueva_factura = $('input[name="nueva_factura"]').val();
+
+        $.ajax({
+            type:"POST",
+            url:"{% url 'factura_reemplazar_picking_y_factura_ajax' %}",
+            data:{
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'id_registro': id_registro,
+                'nuevo_picking': nuevo_picking,
+                'nueva_factura': nueva_factura,
+            },
+
+            success: function(response) {
+                console.log(response);
+                console.log(response.tipo);
+                console.log(response.msg);
+                
+                $('#msg_reemplazo').html(`<div class="text-center alert alert-${response.tipo}" role="alert"> ${response.msg} !!! </div>`)
+                if (response.success) {
+                    $('input[name="id_registro"]').val('');
+                    $('input[name="nuevo_picking"]').val('');
+                    $('input[name="nueva_factura"]').val('');
+                    $(".btn-close").click();
+                }
+
+            },
+            
+            error: function() {
+                $('#msg_reemplazo').html('<div class="text-center alert alert-danger" role="alert"> Error !!! </div>')
+            }
+            
+        })
+    }
+</script>
+
+
+<!--script>
     $("button[name='regresar']").click(function(){
         var btn = $(this)
         var id  = btn.attr("id")
@@ -195,8 +285,7 @@
             
         })
     })
-</script>
-
+</script-->
 
 <script>
     $("button[name='modal-close']").click(function() {

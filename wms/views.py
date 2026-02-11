@@ -6351,7 +6351,7 @@ def detalle_anulacion_factura_ajax(request):
         n_factura = request.POST.get('n_factura', None)
         movimientos = Movimiento.objects.filter(n_factura=n_factura)
         n_picking = movimientos.first().n_referencia
-        nombre_cliente = EstadoPicking.objects.get(n_pedido=n_picking)
+        cliente = EstadoPicking.objects.get(n_pedido=n_picking)
         
         if movimientos.exists():
             
@@ -6359,7 +6359,8 @@ def detalle_anulacion_factura_ajax(request):
                 'tipo':'success',
                 'msg':'Factura pendiente de anulación',
                 'n_picking':movimientos.first().n_referencia.split('.')[0],
-                'cliente': nombre_cliente.cliente 
+                'cliente': cliente.cliente,
+                'codigo_cliente':cliente.codigo_cliente
             })
         else:
             return JsonResponse({
@@ -6426,8 +6427,27 @@ def anulacion_factura_movimientos_ajax(request):
 @permisos(['ADMINISTRADOR','OPERACIONES'],'/wms/home', 'ingresar a anulación de picking')
 def lista_facturas_anualdas(request):
     
-    facturas = FacturaAnulada.objects.all()
+    facturas = FacturaAnulada.objects.select_related('usuario').all().order_by('-id')
+    clientes_ids = list(facturas.values_list('codigo_cliente', flat=True))
+    clientes = Cliente.objects.using('gimpromed_sql').filter(codigo_cliente__in=clientes_ids)
+    clientes_dict = { c.codigo_cliente:c for c in clientes }
     
+    facturas_list = []
+    for i in facturas:
+        cli = clientes_dict.get(i.codigo_cliente)
+        facturas_list.append({
+            'id':i.id,
+            'n_factura':i.n_factura,
+            'n_picking':i.n_picking,
+            'cliente':cli.nombre_cliente,
+            'motivo':i.motivo.upper(),
+            'tipo_cliente':cli.client_type,
+            'h_publico': True if cli.client_type == 'HOSPU' else False,
+            'estado':i.estado,
+            'creado':i.creado.strftime('%Y-%m-%d'),
+            'usuario':f'{i.usuario.first_name} {i.usuario.last_name}'
+        })
+        
     if request.method == 'POST':
         form = FacturaAnuladaForm(request.POST)
         if form.is_valid():
@@ -6443,7 +6463,7 @@ def lista_facturas_anualdas(request):
             messages.error(request, form.errors)
             
     context = {
-        'facturas': facturas,
+        'facturas': facturas_list #facturas,
     }
     
     return render(request, 'wms/anulacion_factura_lista.html', context)
@@ -6498,6 +6518,25 @@ def factura_anulada_detalle(request, n_factura):
     }
     
     return render(request, 'wms/anulacion_factura_detail.html', context)
+
+
+
+@login_required(login_url='login')
+@permisos(['ADMINISTRADOR','OPERACIONES'],'/wms/home', 'ingresar a anulación de picking')
+@require_POST
+def factura_reemplazar_picking_y_factura_ajax(request):
+    print(request.body)
+    return JsonResponse({
+        'succes':True,
+        'tipo':'success',
+        'msg':'Reemplazado con exito !!!'
+    })
+    
+    # return JsonResponse({
+    #     'succes':False,
+    #     'tipo':'danger',
+    #     'msg':'... !!!'
+    # })
 
 
 def wms_reporte_diferencia_mba_wms(request):
