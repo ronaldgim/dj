@@ -6447,7 +6447,11 @@ def lista_facturas_anualdas(request):
             'h_publico': True if cli.client_type == 'HOSPU' else False,
             'estado':i.estado,
             'creado':i.creado.strftime('%Y-%m-%d'),
-            'usuario':f'{i.usuario.first_name} {i.usuario.last_name}'
+            'usuario':f'{i.usuario.first_name} {i.usuario.last_name}',
+            'nueva_factura':i.nueva_factura if i.nueva_factura else '-',
+            'nuevo_picking':i.nuevo_picking if i.nuevo_picking else '-',
+            'reemplazado_en':i.fecha_reemplazo.strftime('%Y-%m-%d') if i.fecha_reemplazo else '-',
+            'reemplazado_por':f'{i.usuario_reemplazo.first_name} {i.usuario_reemplazo.last_name}' if i.usuario_reemplazo else '-'
         })
         
     if request.method == 'POST':

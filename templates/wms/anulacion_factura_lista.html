@@ -38,15 +38,15 @@
             <table class="table" style="font-size:small">
                 <thead>
                     <tr>
-                        <th scope="col"># Factura</th>
-                        <th scope="col"># Picking</th>
+                        <th scope="col">#Factura</th>
+                        <th scope="col">#Picking</th>
                         <th scope="col">Cliente</th>
                         <th scope="col">Motivo</th>
                         <th scope="col">Estado</th>
                         <th scope="col">Anulado en</th>
                         <th scope="col">Anulado por</th>
-                        <th scope="col">Nueva Factura</th>
-                        <th scope="col">Nuevo Picking</th>
+                        <th scope="col">N.Factura</th>
+                        <th scope="col">N.Picking</th>
                         <th scope="col">Reemplazado en</th>
                         <th scope="col">Reemplazado por</th>
                         <th scope="col">Acciones</th>
@@ -78,17 +78,23 @@
                         </td>
                         <td>{{i.creado}}</td>
                         <td>{{i.usuario}}</td>
-                        <td>{{i.nueva_factura|default:"-"}}</td>
-                        <td>{{i.nuevo_picking|default:"-"}}</td>
-                        <td>{{i.reemplazado_en|default:"-"}}</td>
-                        <td>{{i.reemplazado_por|default:"-"}}</td>
+
+                        <td>{{i.nueva_factura}}</td>
+                        <td>{{i.nuevo_picking}}</td>
+                        <td>{{i.reemplazado_en}}</td>
+                        <td>{{i.reemplazado_por}}</td>
                         <td class="text-center">
                             <div class="btn-group" role="group" aria-label="Basic example">
                                 <a class="btn btn-primary btn-sm" href="{% url 'factura_anulada_detalle' i.n_factura %}">
                                     <i class="bi bi-eye"></i>
                                 </a>
                                 <button 
-                                    class="btn btn-warning btn-sm {% if not i.h_publico %} disabled {% endif %}"  
+                                    class="
+                                        btn btn-warning btn-sm 
+                                        {% if not i.h_publico and i.nueva_factura %} 
+                                            disabled 
+                                        {% endif %}
+                                        "  
                                     name="change-factura" 
                                     data-bs-toggle="modal" 
                                     data-bs-target="#changeFactura"
@@ -253,6 +259,10 @@
                     $('input[name="nuevo_picking"]').val('');
                     $('input[name="nueva_factura"]').val('');
                     // $(".btn-close").click();
+
+                    setTimeout(function() {
+                        location.reload();
+                    }, 2000);
                 }
             },
             
