@@ -81,6 +81,7 @@ BODEGA_ARMADO = [
 ESTADO_ANULACION_FACTURA = [
     ('Anulado', 'Anulado'),
     ('Pendiente', 'Pendiente'),
+    ('Reemplazado', 'Reemplazado')
 ]
 
 # Create your models here.
@@ -364,7 +365,7 @@ class OrdenEmpaque(models.Model):
         enum = f'{enum:07d}'
         return enum 
 
-from warehouse.models import Cliente
+
 class FacturaAnulada(models.Model):
     
     n_factura   = models.CharField(verbose_name='Factura', max_length=13, unique=True)
@@ -375,7 +376,11 @@ class FacturaAnulada(models.Model):
     estado      = models.CharField(verbose_name='Estado', choices=ESTADO_ANULACION_FACTURA, max_length=20)
     creado      = models.DateTimeField(verbose_name='Creado', auto_now_add=True)
     actualizado = models.DateTimeField(verbose_name='Actualizado', auto_now=True)
-    usuario     = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.CASCADE)
+    usuario     = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.CASCADE, related_name='usuario_anulacion')
+    nueva_factura = models.CharField(verbose_name='Factura', max_length=13, blank=True, null=True)
+    nuevo_picking = models.CharField(verbose_name='Factura', max_length=13, blank=True, null=True)
+    usuario_reemplazo = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.CASCADE, related_name='usuario_reemplazo', blank=True, null=True)
+    fecha_reemplazo = models.DateTimeField(blank=True, null=True)
     
     def __str__(self):
         return self.n_factura
