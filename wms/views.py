@@ -6386,7 +6386,7 @@ def anulacion_factura_movimientos_ajax(request):
             if factura.estado != 'Anulado':
                 movimientos = Movimiento.objects.filter(n_factura=n_factura)
                 for i in movimientos:
-                    mov = Movimiento(
+                    mov = Movimiento(   
                         product_id=i.product_id,
                         lote_id=i.lote_id,
                         fecha_caducidad=i.fecha_caducidad,
@@ -6522,23 +6522,125 @@ def factura_anulada_detalle(request, n_factura):
     return render(request, 'wms/anulacion_factura_detail.html', context)
 
 
-
 @login_required(login_url='login')
 @permisos(['ADMINISTRADOR','OPERACIONES'],'/wms/home', 'ingresar a anulación de picking')
 @require_POST
+@transaction.atomic
 def factura_reemplazar_picking_y_factura_ajax(request):
-    print(request.body)
+
+    factura_anulada_id = request.POST.get('id_registro')
+    nuevo_picking = request.POST.get('nuevo_picking')
+    nueva_factura = request.POST.get('nueva_factura')
+
+    try:
+        f_anulada = FacturaAnulada.objects.select_for_update().get(
+            id=factura_anulada_id
+        )
+    except FacturaAnulada.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'tipo': 'danger',
+            'msg': 'No se encuentra la factura a reemplazar !!!'
+        })
+
+    mov_ingreso_anuladas = Movimiento.objects.filter(
+        tipo='Ingreso',
+        referencia='Factura anulada',
+        n_referencia=f_anulada.n_factura
+    )
+
+    mov_ingreso = mov_ingreso_anuladas.first()
+
+    if not mov_ingreso:
+        return JsonResponse({
+            'success': False,
+            'tipo': 'danger',
+            'msg': 'No existen movimientos de ingreso asociados.'
+        })
+
+    mov_egreso_picking = Movimiento.objects.filter(
+        tipo='Egreso',
+        referencia='Picking',
+        n_referencia=f'{f_anulada.n_picking}.0'
+    ).first()
+
+    if not mov_egreso_picking:
+        return JsonResponse({
+            'success': False,
+            'tipo': 'danger',
+            'msg': 'No se encuentra movimiento de egreso original.'
+        })
+
+    product_ids = mov_ingreso_anuladas.values_list('product_id', flat=True)
+    lote_ids = mov_ingreso_anuladas.values_list('lote_id', flat=True)
+
+    existencias = Existencias.objects.filter(
+        ubicacion=mov_ingreso.ubicacion,
+        product_id__in=product_ids,
+        lote_id__in=lote_ids
+    )
+
+    if not existencias.exists():
+        return JsonResponse({
+            'success': False,
+            'tipo': 'danger',
+            'msg': 'No se encuentran productos en existencias en la ubicación.'
+        })
+
+    nuevos_movimientos = []
+
+    for i in mov_ingreso_anuladas:
+
+        mov = Movimiento(
+            product_id=i.product_id,
+            lote_id=i.lote_id,
+            fecha_caducidad=i.fecha_caducidad,
+            tipo='Egreso',
+            descripcion=f'Reemplazo de factura {f_anulada.n_factura}',
+            referencia='Picking',
+            n_referencia=f'{nuevo_picking}.0',
+            n_factura=nueva_factura,
+            ubicacion=i.ubicacion,
+            unidades=i.unidades * -1,
+            estado='',
+            estado_picking='Despachado',
+            usuario=mov_egreso_picking.usuario,
+        )
+
+        nuevos_movimientos.append(mov)
+
+    Movimiento.objects.bulk_create(nuevos_movimientos)
+
+    # actualizar existencias
+    for mov in nuevos_movimientos:
+        wms_existencias_query_product_lote(
+            product_id=mov.product_id,
+            lote_id=mov.lote_id
+        )
+
+    if Movimiento.objects.filter(
+        tipo='Egreso',
+        n_referencia=f'{nuevo_picking}.0'
+    ).exists():
+
+        f_anulada.nueva_factura = nueva_factura
+        f_anulada.nuevo_picking = nuevo_picking
+        f_anulada.usuario_reemplazo = request.user
+        f_anulada.fecha_reemplazo = datetime.now()
+        f_anulada.save()
+
+        EstadoPicking.objects.filter(
+            n_pedido=f'{f_anulada.n_picking}.0'
+        ).update(
+            n_pedido=f'{nuevo_picking}.0',
+            n_factura=nueva_factura
+        )
+
     return JsonResponse({
-        'succes':True,
-        'tipo':'success',
-        'msg':'En desarrollo  !!!'
+        'success': True,
+        'tipo': 'success',
+        'msg': 'Factura reemplazada correctamente.'
     })
-    
-    # return JsonResponse({
-    #     'succes':False,
-    #     'tipo':'danger',
-    #     'msg':'... !!!'
-    # })
 
 
 def wms_reporte_diferencia_mba_wms(request):

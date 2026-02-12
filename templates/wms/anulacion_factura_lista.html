@@ -8,7 +8,7 @@
 {% include 'wms/topnavbar.html' %}
 {% endblock %}
 
-{% block body %}
+{% block body_2 %}
 
 <h5 class="m-4 text-center fw-bold">LISTA DE FACTURAS ANULADAS</h5>
 
@@ -33,8 +33,8 @@
 </button>
 
 <div class="card mb-2 mt-2">
-    <div class="card-body m-0 p-0">
-        <div class="container table-responsive">
+    <div class="card-body m-2 p-2">
+        <div class="table-responsive">
             <table class="table" style="font-size:small">
                 <thead>
                     <tr>
@@ -45,6 +45,10 @@
                         <th scope="col">Estado</th>
                         <th scope="col">Anulado en</th>
                         <th scope="col">Anulado por</th>
+                        <th scope="col">Nueva Factura</th>
+                        <th scope="col">Nuevo Picking</th>
+                        <th scope="col">Reemplazado en</th>
+                        <th scope="col">Reemplazado por</th>
                         <th scope="col">Acciones</th>
                     </tr>
                 </thead>
@@ -56,13 +60,14 @@
                         <td>{{i.cliente}}</td>
                         <td>{{i.motivo}}</td>
                         <td>
-
                             <span style="font-size: 12px"
                             class=" badge rounded-pill mt-2
                                 {% if i.estado == 'Pendiente' %} 
-                                    bg-warning
+                                    bg-secondary
                                 {% elif i.estado == 'Cancelado' %}
                                     bg-danger
+                                {% elif i.estado == 'Reemplazado' %}
+                                    bg-warning
                                 {% else %}
                                     bg-success
                                 {% endif %}
@@ -70,25 +75,29 @@
                             > 
                                 {{i.estado|upper}}    
                             </span>
-                            
-
                         </td>
                         <td>{{i.creado}}</td>
                         <td>{{i.usuario}}</td>
+                        <td>{{i.nueva_factura|default:"-"}}</td>
+                        <td>{{i.nuevo_picking|default:"-"}}</td>
+                        <td>{{i.reemplazado_en|default:"-"}}</td>
+                        <td>{{i.reemplazado_por|default:"-"}}</td>
                         <td class="text-center">
-                            <a class="btn btn-primary btn-sm" href="{% url 'factura_anulada_detalle' i.n_factura %}">
-                                <i class="bi bi-eye"></i>
-                            </a>
-                            <button 
-                                class="btn btn-warning btn-sm {% if not i.h_publico %} disabled {% endif %}"  
-                                name="change-factura" 
-                                data-bs-toggle="modal" 
-                                data-bs-target="#changeFactura"
-                                id="{{i.id}}"
-                                onclick="cargar_id_factura(this.id)"
-                            >
-                                F
-                            </button>
+                            <div class="btn-group" role="group" aria-label="Basic example">
+                                <a class="btn btn-primary btn-sm" href="{% url 'factura_anulada_detalle' i.n_factura %}">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <button 
+                                    class="btn btn-warning btn-sm {% if not i.h_publico %} disabled {% endif %}"  
+                                    name="change-factura" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#changeFactura"
+                                    id="{{i.id}}"
+                                    onclick="cargar_id_factura(this.id)"
+                                >
+                                    F
+                                </button>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
@@ -238,7 +247,7 @@
 
             success: function(response) {
                 
-                $('#msg_reemplazo').html(`<div class="text-center alert alert-${response.tipo}" role="alert"> ${response.msg} !!! </div>`)
+                $('#msg_reemplazo').html(`<div class="text-center alert alert-${response.tipo}" role="alert"> ${response.msg} </div>`)
                 if (response.success) {
                     $('input[name="id_registro"]').val('');
                     $('input[name="nuevo_picking"]').val('');
