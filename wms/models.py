@@ -288,10 +288,16 @@ class AnulacionPicking(models.Model):
     usuario         = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.CASCADE, blank=True, null=True)
     fecha_hora      = models.DateTimeField(verbose_name='Fecha Hora', auto_now_add=True)
     
-    
     def __str__(self):
         return self.picking_anulado 
     
+    @property
+    def picking_anulado_int(self):
+        return int(self.picking_anulado.split('.')[0])
+    
+    @property
+    def picking_nuevo_int(self):
+        return int(self.picking_nuevo.split('.')[0])
     
 class AjusteLiberacion(models.Model):
     

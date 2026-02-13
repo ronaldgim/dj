@@ -4693,13 +4693,57 @@ def wms_movimiento_egreso_nota_entrega(request): #OK
     return JsonResponse({'msg':'❌Error !!!'})
 
 
-
 ## Anulación picking
 @login_required(login_url='login')
 @permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'],'/wms/home', 'ingresar a anulación de picking')
 def wms_anulacion_picking_list(request):
     
-    anuladas = AnulacionPicking.objects.all().order_by('-fecha_hora')
+    anuladas = (
+        AnulacionPicking.objects
+        .all()
+        .order_by('-fecha_hora')
+    )
+
+    # Obtener todos los pickings (anulados + nuevos) en una sola pasada
+    picking_set = set()
+
+    for a in anuladas:
+        if a.picking_anulado:
+            picking_set.add(a.picking_anulado)
+        if a.picking_nuevo:
+            picking_set.add(a.picking_nuevo)
+
+    # Traer estados en una sola query
+    estados = (
+        EstadoPicking.objects
+        .filter(n_pedido__in=picking_set)
+    )
+
+    estados_dict = {e.n_pedido: e for e in estados}
+
+    # Construcción segura
+    anuladas_list = []
+
+    for i in anuladas:
+        estado_anulado = estados_dict.get(i.picking_anulado)
+        estado_nuevo = estados_dict.get(i.picking_nuevo)
+
+        cliente = None
+        if estado_anulado and estado_anulado.cliente:
+            cliente = estado_anulado.cliente
+        elif estado_nuevo and estado_nuevo.cliente:
+            cliente = estado_nuevo.cliente
+
+        anuladas_list.append({
+            'id':i.id,
+            'picking_anulado': i.picking_anulado_int,
+            'picking_nuevo': i.picking_nuevo_int,
+            'fecha_hora': i.fecha_hora,
+            'estado': i.estado,
+            'cliente': cliente if cliente else '-'
+        })
+    
+    
     
     if request.method == 'POST':
         
@@ -4724,8 +4768,8 @@ def wms_anulacion_picking_list(request):
             messages.error(request, e)
             
     context = {
-        'anuladas':anuladas
-    }
+        'anuladas': anuladas_list #anuladas
+    } 
     
     return render(request, 'wms/anulacion_picking_crear.html', context)
 
