@@ -163,7 +163,16 @@ class Movimiento(models.Model):
             factura = self.n_factura.split('-')[1][5:]
             return int(factura)
         else:
-            return self.n_factura
+            return self.n_factura if self.n_factura else '-'
+    
+    @property
+    def picking_int(self):
+        if self.referencia == 'Picking' and self.n_referencia and '.0' in self.n_referencia:
+            picking = self.n_referencia.split('.')[0]
+            return int(picking)
+        else:
+            return self.n_referencia
+            
 
     def save(self, *args, **kwargs):
         if self.lote_id and '.' in self.lote_id:

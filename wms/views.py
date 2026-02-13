@@ -22,7 +22,7 @@ from datetime import datetime
 
 # DB
 from django.db import connections, transaction
-from django.db.models import Q, Sum, OuterRef, Subquery
+from django.db.models import Q, Sum, OuterRef, Subquery, F
 
 from datos.models import AdminActualizationWarehaouse
 from wms.models import (
@@ -4979,31 +4979,28 @@ def wms_ajuste_liberacion_detalle(request, n_liberacion):
 @permisos(['ADMINISTRADOR','OPERACIONES'],'/wms/home', 'ingresar a retiro de productos en despacho')
 def wms_retiro_producto_despacho(request):
     
-    picking_factura = Movimiento.objects.filter(
-            Q(referencia='Picking') &
-            Q(estado_picking='No Despachado')
-            # Q(estado_picking=estado_de_picking)
+    ultimo_mov = (
+        Movimiento.objects
+        .filter(
+            n_referencia=OuterRef('n_referencia'),
+            referencia='Picking',
+            estado_picking='No Despachado'
         )
-        
-    picking_factura_df = pd.DataFrame(picking_factura.values(
-        'referencia',
-        'n_referencia',
-        'n_factura',
-        'fecha_hora',
-        'actualizado',
-        'usuario__first_name',
-        'usuario__last_name',
-        )).drop_duplicates(subset='n_referencia').sort_values(by='n_referencia', ascending=False)
-    
-    picking_factura_df['picking'] = picking_factura_df['n_referencia'].str.slice(0,-2)
-    picking_factura_df['factura'] = picking_factura_df['n_factura'].apply(split_factura_movimiento)
-    picking_factura_df['actualizado'] = picking_factura_df['actualizado'].astype('str').str.slice(0,16)
-    
-    # context = {
-    #     'picking_factura_df': de_dataframe_a_template(picking_factura_df),
-    #     #'titulo': 'LISTA DE PICKING - FACTURA' if estado_de_picking == 'Despachado' else 'LISTA DE PICKING - PRODUCTOS NO DESPACHADOS'
-    # }
+        .order_by('-actualizado')
+    )
 
+    picking_retirado = (
+        Movimiento.objects
+        .filter(
+            referencia='Picking',
+            estado_picking='No Despachado'
+        )
+        .annotate(
+            ultimo_id=Subquery(ultimo_mov.values('id')[:1])
+        )
+        .filter(id=F('ultimo_id'))
+    )    
+    
     if request.method == 'POST':
         n_picking = request.POST['n_picking'] + '.0' 
         estado_picking = EstadoPicking.objects.filter(n_pedido=n_picking)
@@ -5033,7 +5030,7 @@ def wms_retiro_producto_despacho(request):
                     #messages.error(request, f"El Picking {request.POST['n_picking']} su estado es {estado}")
     
     context = {
-        'picking_factura_df': de_dataframe_a_template(picking_factura_df),
+        'picking_retirado': picking_retirado 
     }
     
     return render(request, 'wms/retiro_producto_despacho_list.html', context)
