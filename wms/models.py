@@ -163,7 +163,16 @@ class Movimiento(models.Model):
             factura = self.n_factura.split('-')[1][5:]
             return int(factura)
         else:
-            return self.n_factura
+            return self.n_factura if self.n_factura else '-'
+    
+    @property
+    def picking_int(self):
+        if self.referencia == 'Picking' and self.n_referencia and '.0' in self.n_referencia:
+            picking = self.n_referencia.split('.')[0]
+            return int(picking)
+        else:
+            return self.n_referencia
+            
 
     def save(self, *args, **kwargs):
         if self.lote_id and '.' in self.lote_id:
@@ -279,10 +288,16 @@ class AnulacionPicking(models.Model):
     usuario         = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.CASCADE, blank=True, null=True)
     fecha_hora      = models.DateTimeField(verbose_name='Fecha Hora', auto_now_add=True)
     
-    
     def __str__(self):
         return self.picking_anulado 
     
+    @property
+    def picking_anulado_int(self):
+        return int(self.picking_anulado.split('.')[0])
+    
+    @property
+    def picking_nuevo_int(self):
+        return int(self.picking_nuevo.split('.')[0])
     
 class AjusteLiberacion(models.Model):
     

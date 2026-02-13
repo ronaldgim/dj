@@ -468,7 +468,7 @@ urlpatterns = [
     
     # Anulación de pikcing
     path(
-        route='anulacion-picking/list',
+        route='anulacion-picking-list',
         view = views.wms_anulacion_picking_list,
         name = 'wms_anulacion_picking_list'
     ),

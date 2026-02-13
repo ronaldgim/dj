@@ -22,7 +22,7 @@ from datetime import datetime
 
 # DB
 from django.db import connections, transaction
-from django.db.models import Q, Sum, OuterRef, Subquery
+from django.db.models import Q, Sum, OuterRef, Subquery, F
 
 from datos.models import AdminActualizationWarehaouse
 from wms.models import (
@@ -2390,8 +2390,8 @@ def wms_egreso_picking(request, n_pedido): #OK
 @login_required(login_url='login')
 @permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'], '/picking/list', 'ingresar a Detalle de Pedido')
 def wms_egreso_picking_misreservas(request, n_pedido): #OK
-    print(n_pedido)
-    estado_picking = EstadoPicking.objects.filter(n_pedido=n_pedido).exists() ;print(estado_picking)
+    
+    estado_picking = EstadoPicking.objects.filter(n_pedido=n_pedido).exists() 
     if estado_picking:
         est = EstadoPicking.objects.get(n_pedido=n_pedido)
         estado = est.estado
@@ -4693,13 +4693,55 @@ def wms_movimiento_egreso_nota_entrega(request): #OK
     return JsonResponse({'msg':'❌Error !!!'})
 
 
-
 ## Anulación picking
 @login_required(login_url='login')
 @permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'],'/wms/home', 'ingresar a anulación de picking')
 def wms_anulacion_picking_list(request):
     
-    anuladas = AnulacionPicking.objects.all().order_by('-fecha_hora')
+    anuladas = (
+        AnulacionPicking.objects
+        .all()
+        .order_by('-fecha_hora')
+    )
+
+    # Obtener todos los pickings (anulados + nuevos) en una sola pasada
+    picking_set = set()
+
+    for a in anuladas:
+        if a.picking_anulado:
+            picking_set.add(a.picking_anulado)
+        if a.picking_nuevo:
+            picking_set.add(a.picking_nuevo)
+
+    # Traer estados en una sola query
+    estados = (
+        EstadoPicking.objects
+        .filter(n_pedido__in=picking_set)
+    )
+
+    estados_dict = {e.n_pedido: e for e in estados}
+
+    # Construcción segura
+    anuladas_list = []
+
+    for i in anuladas:
+        estado_anulado = estados_dict.get(i.picking_anulado)
+        estado_nuevo = estados_dict.get(i.picking_nuevo)
+
+        cliente = None
+        if estado_anulado and estado_anulado.cliente:
+            cliente = estado_anulado.cliente
+        elif estado_nuevo and estado_nuevo.cliente:
+            cliente = estado_nuevo.cliente
+
+        anuladas_list.append({
+            'id':i.id,
+            'picking_anulado': i.picking_anulado_int,
+            'picking_nuevo': i.picking_nuevo_int,
+            'fecha_hora': i.fecha_hora,
+            'estado': i.estado,
+            'cliente': cliente if cliente else '-'
+        })
     
     if request.method == 'POST':
         
@@ -4724,8 +4766,8 @@ def wms_anulacion_picking_list(request):
             messages.error(request, e)
             
     context = {
-        'anuladas':anuladas
-    }
+        'anuladas': anuladas_list #anuladas
+    } 
     
     return render(request, 'wms/anulacion_picking_crear.html', context)
 
@@ -4979,31 +5021,28 @@ def wms_ajuste_liberacion_detalle(request, n_liberacion):
 @permisos(['ADMINISTRADOR','OPERACIONES'],'/wms/home', 'ingresar a retiro de productos en despacho')
 def wms_retiro_producto_despacho(request):
     
-    picking_factura = Movimiento.objects.filter(
-            Q(referencia='Picking') &
-            Q(estado_picking='No Despachado')
-            # Q(estado_picking=estado_de_picking)
+    ultimo_mov = (
+        Movimiento.objects
+        .filter(
+            n_referencia=OuterRef('n_referencia'),
+            referencia='Picking',
+            estado_picking='No Despachado'
         )
-        
-    picking_factura_df = pd.DataFrame(picking_factura.values(
-        'referencia',
-        'n_referencia',
-        'n_factura',
-        'fecha_hora',
-        'actualizado',
-        'usuario__first_name',
-        'usuario__last_name',
-        )).drop_duplicates(subset='n_referencia').sort_values(by='n_referencia', ascending=False)
-    
-    picking_factura_df['picking'] = picking_factura_df['n_referencia'].str.slice(0,-2)
-    picking_factura_df['factura'] = picking_factura_df['n_factura'].apply(split_factura_movimiento)
-    picking_factura_df['actualizado'] = picking_factura_df['actualizado'].astype('str').str.slice(0,16)
-    
-    # context = {
-    #     'picking_factura_df': de_dataframe_a_template(picking_factura_df),
-    #     #'titulo': 'LISTA DE PICKING - FACTURA' if estado_de_picking == 'Despachado' else 'LISTA DE PICKING - PRODUCTOS NO DESPACHADOS'
-    # }
+        .order_by('-actualizado')
+    )
 
+    picking_retirado = (
+        Movimiento.objects
+        .filter(
+            referencia='Picking',
+            estado_picking='No Despachado'
+        )
+        .annotate(
+            ultimo_id=Subquery(ultimo_mov.values('id')[:1])
+        )
+        .filter(id=F('ultimo_id'))
+    )    
+    
     if request.method == 'POST':
         n_picking = request.POST['n_picking'] + '.0' 
         estado_picking = EstadoPicking.objects.filter(n_pedido=n_picking)
@@ -5033,7 +5072,7 @@ def wms_retiro_producto_despacho(request):
                     #messages.error(request, f"El Picking {request.POST['n_picking']} su estado es {estado}")
     
     context = {
-        'picking_factura_df': de_dataframe_a_template(picking_factura_df),
+        'picking_retirado': picking_retirado 
     }
     
     return render(request, 'wms/retiro_producto_despacho_list.html', context)

@@ -38,7 +38,7 @@
         }
 </style>
 
-<h5 class="mt-4 text-center fw-bold">ANULAR PICKING</h5>
+<h5 class="mt-4 text-center fw-bold">REEMPLAZAR PICKING</h5>
 
 
 {% if messages %}
@@ -82,6 +82,7 @@
                     <tr>
                         <th scope="col">Picking anulado</th>
                         <th scope="col">Picking nuevo</th>
+                        <th scope="col">Cliente</th>
                         <th scope="col">Fecha de anulación</th>
                         <th scope="col">Estado</th>
                         <th scope="col">Ver</th>
@@ -92,6 +93,7 @@
                         <tr>
                             <td>{{i.picking_anulado | slice:'-2'}}</td>
                             <td>{{i.picking_nuevo | slice:'-2'}}</td>
+                            <td>{{i.cliente}}</td>
                             <td>{{i.fecha_hora}}</td>                            
                             <td>
                                 {% if i.estado %}
