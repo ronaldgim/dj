@@ -2390,8 +2390,8 @@ def wms_egreso_picking(request, n_pedido): #OK
 @login_required(login_url='login')
 @permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'], '/picking/list', 'ingresar a Detalle de Pedido')
 def wms_egreso_picking_misreservas(request, n_pedido): #OK
-    print(n_pedido)
-    estado_picking = EstadoPicking.objects.filter(n_pedido=n_pedido).exists() ;print(estado_picking)
+    
+    estado_picking = EstadoPicking.objects.filter(n_pedido=n_pedido).exists() 
     if estado_picking:
         est = EstadoPicking.objects.get(n_pedido=n_pedido)
         estado = est.estado
@@ -4742,8 +4742,6 @@ def wms_anulacion_picking_list(request):
             'estado': i.estado,
             'cliente': cliente if cliente else '-'
         })
-    
-    
     
     if request.method == 'POST':
         
