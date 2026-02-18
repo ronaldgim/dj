@@ -17,22 +17,8 @@
 </style>
 
 <h5 class="m-4 text-center fw-bold">
-    {{picking.referencia}} 
-    {% if picking.referencia == 'Picking' %} 
-        {{picking.n_referencia|slice:"0:5"}} 
-    {% else %} 
-        {{picking.n_referencia}} 
-    {% endif %}
-    -
-    {% if picking.n_factura %}
-        Factura {{picking.n_factura}}
-    {% endif %}
+    Picking - {{picking.n_referencia | slice:-2}}
 </h5>
-
-<!--div class="mt-2 mb-2">   
-    <span class="fw-bold" style="font-size: small;">Pedido: </span> <span style="font-size: small;">{{n_ped|slice:'-2'}}</span> <br>
-    <span class="fw-bold" style="font-size: small;">Fecha-Hora: </span> <span style="font-size: small;"> {{fecha|date:'Y-m-d'}} - {{hora}}</span> 
-</div-->
 
 <div class="col-12 mt-2 mb-2">
     <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
@@ -68,18 +54,20 @@
                         <th scope="col">Estado</th>
                         <th scope="col">Cantidad</th>
                         <th scope="col">Usuario</th>
+                        <th scope="col">Fecha-Hora</th>
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
-                    {% for i in picking_df %}
+                    {% for i in picking_list %}
                         <tr {% if i.estado_picking == 'No Despachado' %} class="bg-warning" {% endif %}>
-                            <td>{{i.product_id}}</td>
-                            <td>{{i.Nombre}}</td>
-                            <td>{{i.Marca}}</td>
-                            <td>{{i.lote_id}}</td>
+                            <td>{{i.codigo}}</td>
+                            <td>{{i.nombre}}</td>
+                            <td>{{i.marca}}</td>
+                            <td>{{i.lote}}</td>
                             <td>{{i.estado_picking}}</td>
                             <td class="text-end">{{i.unidades|floatformat:"0g"}}</td>
-                            <td>{{i.usuario__first_name}} {{i.usuario__last_name}}</td>
+                            <td>{{i.usuario}}</td>
+                            <td>{{i.fecha_hora}}</td>
                         </tr>
                     {% endfor %}
                 </tbody>

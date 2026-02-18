@@ -5026,8 +5026,7 @@ def wms_retiro_producto_despacho(request):
         Movimiento.objects
         .filter(
             n_referencia=OuterRef('n_referencia'),
-            referencia='Picking',
-            estado_picking='No Despachado'
+            referencia='Reverso de picking'
         )
         .order_by('-actualizado')
     )
@@ -5035,13 +5034,13 @@ def wms_retiro_producto_despacho(request):
     picking_retirado = (
         Movimiento.objects
         .filter(
-            referencia='Picking',
-            estado_picking='No Despachado'
+            referencia='Reverso de picking'
         )
         .annotate(
             ultimo_id=Subquery(ultimo_mov.values('id')[:1])
         )
         .filter(id=F('ultimo_id'))
+        .order_by('-id')
     )    
     
     if request.method == 'POST':
@@ -5059,18 +5058,14 @@ def wms_retiro_producto_despacho(request):
                 messages.error(request, f"El Picking {request.POST['n_picking']} esta en bodega Andagoya")
                 
             elif bodega == 'BCT':
-                #if estado == 'FINALIZADO':
-                    picking = Movimiento.objects.filter(n_referencia=n_picking).filter(estado_picking='En Despacho')
-                    
-                    context = {
-                        'picking':picking,
-                        'cabecera':estado_picking.last()
-                        }
-                    
-                    return render(request, 'wms/retiro_producto_despacho_list.html', context)
+                picking = Movimiento.objects.filter(n_referencia=n_picking).filter(estado_picking='En Despacho')
                 
-                #else:
-                    #messages.error(request, f"El Picking {request.POST['n_picking']} su estado es {estado}")
+                context = {
+                    'picking':picking,
+                    'cabecera':estado_picking.last()
+                    }
+                
+                return render(request, 'wms/retiro_producto_despacho_list.html', context)
     
     context = {
         'picking_retirado': picking_retirado 
@@ -6351,30 +6346,40 @@ def split_factura_movimiento(n_factura):
 
 
 @login_required(login_url='login')
-def wms_referenica_detalle(request, referencia, n_referencia):
+def wms_referenica_detalle(request, n_referencia):
     
     try:
         # Picking
-        picking = Movimiento.objects.filter(
-            Q(referencia=referencia) &
-            Q(n_referencia=n_referencia)
+        picking = (
+            Movimiento.objects
+                .select_related('usuario')
+                .filter(
+                    estado_picking='No despachado',
+                    n_referencia = n_referencia
+                )
             )
+
+        lista_productos = list(picking.values_list('product_id', flat=True))
+        productos = Producto.objects.using('gimpromed_sql').filter(codigo__in=lista_productos)
+        productos_dict = {p.codigo:p for p in productos}
         
-        picking_df = pd.DataFrame(picking.values(
-            'product_id',
-            'lote_id',
-            'unidades',
-            'estado_picking',
-            'usuario__first_name',
-            'usuario__last_name'
-        ))
-        productos = productos_odbc_and_django()[['product_id','Nombre','Marca']]
-        picking_df = picking_df.merge(productos, on='product_id', how='left')
-        picking_df['unidades'] = picking_df['unidades'] * -1 
+        picking_list = []
+        for i in picking:
+            prod = productos_dict.get(i.product_id)
+            picking_list.append({
+                'codigo':prod.codigo if prod.codigo else '-',
+                'nombre':prod.nombre if prod.nombre else '-',
+                'marca':prod.marca if prod.marca else '-',
+                'lote':i.lote_id,
+                'estado_picking':i.estado_picking,
+                'unidades':i.unidades_abs,
+                'usuario':f'{i.usuario.first_name} {i.usuario.last_name}',
+                'fecha_hora':i.actualizado.strftime("%Y-%m-%d %H:%M")
+            })
         
         context = {
             'picking' : picking.first(),
-            'picking_df': de_dataframe_a_template(picking_df)
+            'picking_list': picking_list 
         }
         
         return render(request, 'wms/picking_detalle.html', context)

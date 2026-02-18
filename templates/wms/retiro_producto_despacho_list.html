@@ -11,7 +11,6 @@
 {% block body %}
 
 
-
 <h5 class="m-4 text-center fw-bold">RETIRAR PRODUCTOS DE DESPACHO</h5>
 
 {% if messages %}
@@ -104,7 +103,6 @@
                 <thead>
                     <tr>
                         <th scope="col"># Picking</th>
-                        <th scope="col"># Factura</th>
                         <th scope="col">Fecha de retiro</th>
                         <th scope="col">Usuario</th>
                         <th scope="col">Detalle</th>
@@ -114,11 +112,10 @@
                     {% for i in picking_retirado %}
                         <tr>
                             <td>{{i.picking_int}}</td>
-                            <td>{{i.factura_int}}</td>
                             <td>{{i.actualizado}}</td>
                             <td>{{i.usuario.first_name}} {{i.usuario.last_name}}</td>
                             <td>
-                                <a class="btn btn-sm btn-primary" href="{% url 'wms_referenica_detalle' i.referencia i.n_referencia %}">
+                                <a class="btn btn-sm btn-primary" href="{% url 'wms_referenica_detalle' i.n_referencia %}">
                                     <i class="bi bi-eye"></i>
                                 </a>
                             </td>

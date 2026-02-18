@@ -158,6 +158,12 @@ class Movimiento(models.Model):
         return enum 
 
     @property
+    def unidades_abs(self):
+        if self.unidades < 0:
+            return self.unidades * -1
+        return self.unidades
+
+    @property
     def factura_int(self):
         if self.n_factura and self.n_factura.startswith('FCSRI-'):
             factura = self.n_factura.split('-')[1][5:]
@@ -167,13 +173,13 @@ class Movimiento(models.Model):
     
     @property
     def picking_int(self):
-        if self.referencia == 'Picking' and self.n_referencia and '.0' in self.n_referencia:
+        # if self.referencia == 'Picking' and self.n_referencia and '.0' in self.n_referencia:
+        if '.0' in self.n_referencia:
             picking = self.n_referencia.split('.')[0]
             return int(picking)
         else:
             return self.n_referencia
             
-
     def save(self, *args, **kwargs):
         if self.lote_id and '.' in self.lote_id:
             self.lote_id = self.lote_id.replace('.', '')
