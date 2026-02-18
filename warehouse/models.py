@@ -190,7 +190,7 @@ class Cliente(models.Model):
         verbose_name = 'Cliente'
         verbose_name_plural = 'Clientes'
 
-    # 🔒 SOLO LECTURA
+    # SOLO LECTURA
     def save(self, *args, **kwargs):
         raise NotImplementedError("Este modelo es de solo lectura")
 
@@ -275,3 +275,119 @@ class Reserva(models.Model):
 
     def __str__(self):
         return f"{self.fecha_pedido} - {self.nombre_cliente} - {self.product_id}"
+
+
+# class VentaFactura(models.Model):
+
+#     # Primary Key virtual (NO existe en la BD)
+#     pk_virtual = models.CharField(
+#         max_length=200,
+#         primary_key=True
+#     )
+
+#     codigo_cliente = models.CharField(
+#         max_length=45,
+#         db_column='CODIGO_CLIENTE',
+#         blank=True,
+#         null=True
+#     )
+
+#     product_id = models.CharField(
+#         max_length=100,
+#         db_column='PRODUCT_ID',
+#         blank=True,
+#         null=True
+#     )
+
+#     fecha = models.DateField(
+#         db_column='FECHA',
+#         blank=True,
+#         null=True
+#     )
+
+#     i_e_sign = models.CharField(
+#         max_length=45,
+#         db_column='I_E_SIGN',
+#         blank=True,
+#         null=True
+#     )
+
+#     quantity = models.IntegerField(
+#         db_column='QUANTITY',
+#         blank=True,
+#         null=True
+#     )
+
+#     unit_price = models.FloatField(
+#         db_column='UNIT_PRICE',
+#         blank=True,
+#         null=True
+#     )
+
+#     net_line_total = models.FloatField(
+#         db_column='NET_LINE_TOTAL',
+#         blank=True,
+#         null=True
+#     )
+
+#     unit_cost = models.FloatField(
+#         db_column='UNIT_COST',
+#         blank=True,
+#         null=True
+#     )
+
+#     cost_total = models.FloatField(
+#         db_column='COST_TOTAL',
+#         blank=True,
+#         null=True
+#     )
+
+#     numero_pedido_sistema = models.IntegerField(
+#         db_column='NUMERO_PEDIDO_SISTEMA',
+#         blank=True,
+#         null=True
+#     )
+
+#     codigo_factura = models.CharField(
+#         max_length=100,
+#         db_column='CODIGO_FACTURA',
+#         blank=True,
+#         null=True
+#     )
+
+#     war_code = models.CharField(
+#         max_length=45,
+#         db_column='WAR_CODE',
+#         blank=True,
+#         null=True
+#     )
+
+#     hora_factura = models.CharField(
+#         max_length=45,
+#         db_column='HORA_FACTURA',
+#         blank=True,
+#         null=True
+#     )
+
+#     auto_xml = models.CharField(
+#         max_length=100,
+#         db_column='AUTO_XML',
+#         blank=True,
+#         null=True
+#     )
+
+#     class Meta:
+#         managed = False
+#         db_table = 'venta_facturas'
+#         verbose_name = 'Venta Factura'
+#         verbose_name_plural = 'Ventas Facturas'
+
+#     # SOLO LECTURA
+#     def save(self, *args, **kwargs):
+#         raise NotImplementedError("Este modelo es solo lectura")
+
+#     def delete(self, *args, **kwargs):
+#         raise NotImplementedError("Este modelo es solo lectura")
+
+#     def __str__(self):
+#         return f"{self.codigo_factura} - {self.product_id}"

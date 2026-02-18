@@ -136,7 +136,7 @@ class Movimiento(models.Model):
     lote_id         = models.CharField(verbose_name='Lote id', max_length=50)
     fecha_caducidad = models.DateField(verbose_name='Fecha de caducidad')
     tipo            = models.CharField(verbose_name='Tipo de movimiento', choices=TIPOS_MOVIMIENTOS, max_length=10)
-    descripcion     = models.CharField(verbose_name='Descripción del movimiento', max_length=20, blank=True)
+    descripcion     = models.CharField(verbose_name='Descripción del movimiento', max_length=50, blank=True)
     referencia      = models.CharField(verbose_name='Referencia del movimiento', choices=REFERENCIA_MOVIMIENTOS, max_length=20, blank=True)
     n_referencia    = models.CharField(verbose_name='Numero de referencia',max_length=20, blank=True)
     n_factura       = models.CharField(verbose_name='Factura despachado',max_length=40, blank=True)

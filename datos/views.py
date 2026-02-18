@@ -990,35 +990,80 @@ def ventas_facturas_odbc(): # PARA REGISTRO DE GUIAS
     return ventas_facturas
 
 
-def ventas_odbc_facturas(desde, hasta, cli): 
+# def ventas_odbc_facturas(desde, hasta, cli): 
+    
+#     try:
+#         with connections['gimpromed_sql'].cursor() as cursor:
+#             cursor.execute(
+#                 f"""
+#                 SELECT 
+#                     CODIGO_CLIENTE,
+#                     FECHA,
+#                     PRODUCT_ID,
+#                     QUANTITY,
+#                     UNIT_PRICE,
+#                     CODIGO_FACTURA
+#                 FROM venta_facturas 
+#                 WHERE CODIGO_CLIENTE = '{cli}' AND STR_TO_DATE(FECHA, '%Y-%m-%d') BETWEEN '{desde}' AND '{hasta}'
+#                 """
+#             )
+#             columns = [col[0] for col in cursor.description]
+#             ventas_facturas = [
+#                 dict(zip(columns, row))
+#                 for row in cursor.fetchall()
+#             ]
+#             ventas_facturas = pd.DataFrame(ventas_facturas).fillna(0)
+#             ventas_facturas['PRECIO_TOTAL'] = ventas_facturas['QUANTITY'] * ventas_facturas['UNIT_PRICE']
+#             # ventas_facturas['factura_str'] = ventas_facturas['CODIGO_FACTURA'].str.split('-')[1]
+#             return ventas_facturas
+#     except Exception as e:
+#         print(e)
+#         return str(e)
+
+
+def obtener_ventas_porcliente_warehouse(codigo_cliente, desde, hasta):
     
     try:
+        query = """
+            SELECT 
+                vf.CODIGO_CLIENTE,
+                c.NOMBRE_CLIENTE,
+                c.CLIENT_TYPE,
+                vf.FECHA,
+                vf.PRODUCT_ID,
+                p.Nombre,
+                p.Marca,
+                p.Unidad,
+                vf.QUANTITY,
+                vf.UNIT_PRICE,
+                (vf.QUANTITY * vf.UNIT_PRICE) AS PRECIO_TOTAL,
+                vf.CODIGO_FACTURA
+            FROM venta_facturas vf
+            INNER JOIN clientes c 
+                ON c.CODIGO_CLIENTE = vf.CODIGO_CLIENTE
+            INNER JOIN productos p 
+                ON p.Codigo = vf.PRODUCT_ID
+            WHERE vf.CODIGO_CLIENTE = %s
+                AND vf.FECHA BETWEEN %s AND %s
+        """
+
         with connections['gimpromed_sql'].cursor() as cursor:
-            cursor.execute(
-                f"""
-                SELECT 
-                    CODIGO_CLIENTE,
-                    FECHA,
-                    PRODUCT_ID,
-                    QUANTITY,
-                    UNIT_PRICE,
-                    CODIGO_FACTURA
-                FROM venta_facturas 
-                WHERE CODIGO_CLIENTE = '{cli}' AND STR_TO_DATE(FECHA, '%Y-%m-%d') BETWEEN '{desde}' AND '{hasta}'
-                """
-            )
+            cursor.execute(query, [codigo_cliente, desde, hasta])
+
             columns = [col[0] for col in cursor.description]
-            ventas_facturas = [
+            ventas = [
                 dict(zip(columns, row))
                 for row in cursor.fetchall()
             ]
-            ventas_facturas = pd.DataFrame(ventas_facturas).fillna(0)
-            ventas_facturas['PRECIO_TOTAL'] = ventas_facturas['QUANTITY'] * ventas_facturas['UNIT_PRICE']
-            # ventas_facturas['factura_str'] = ventas_facturas['CODIGO_FACTURA'].str.split('-')[1]
-            return ventas_facturas
+            return ventas
+    
     except Exception as e:
-        print(e)
-        return str(e)
+        print("Error en obtener_ventas_porcliente_warehouse:", e)
+        return None # pd.DataFrame()
+    
+    finally:
+        cursor.close()
+
 
 
 def ventas_armados_facturas_odbc(producto):

@@ -1,243 +1,227 @@
-{%extends 'base.html' %}
+{% extends 'base.html' %}
 
 {% block title %}
 <title>Reporte Ventas</title>
-{% endblock%}
+{% endblock %}
 
 {% block navbar %}
 {% include 'ventas/topnavbar.html' %}
 {% endblock %}
 
-{% block body %}
-
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+{% block body_2 %}
 
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-<div>
 
 <h5 class="m-4 text-center"><strong>REPORTE VENTAS</strong></h5>
 
-<!--h6 class="m-4 text-end"><strong>Actulizado: </strong>{{time_reservas}}</h6-->
-
 <div class="mb-4">
-    <form method="POST">
-    <!-- form method="GET" -->
-        {% csrf_token %}
-        <div class="row">
-            <div class="col-6">
-                <label>Cliente:</label>
-                <select class="form-select" name="cliente" id="chosen-select" required>
-                    <option value="">---------</option>
-                    {% for i in clientes %}
-                    <option value="{{i.CODIGO_CLIENTE}}">{{i.NOMBRE_CLIENTE}}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            
-            <div class="col-3">
-                <label>Desde:</label>
-                <input class="form-control" type="date" name="desde" id="" value="{{desde|date:'Y-m-d'}}" required>
-            </div>
-
-            <div class="col-3">
-                <label>Hasta:</label>
-                <input class="form-control" type="date" name="hasta" id="" value="{{hasta|date:'Y-m-d'}}" required>
-            </div>
+<form method="GET">
+    <div class="row">
+        <div class="col-6">
+            <label>Cliente:</label>
+            <select class="form-select" name="cliente" id="chosen-select" required>
+                <option value="">---------</option>
+                {% for i in clientes %}
+                    <option value="{{i.codigo_cliente}}"
+                        {% if i.codigo_cliente == request.GET.cliente %}selected{% endif %}>
+                        {{i.nombre_cliente}}
+                    </option>
+                {% endfor %}
+            </select>
         </div>
-        <button class="btn btn-primary mt-2" type="submit" id="nombre_cliente">
-            <i class="bi bi-search"></i> Consultar
-        </button>
-    </form>
+
+        <div class="col-3">
+            <label>Desde:</label>
+            <input 
+                class="form-control" 
+                type="date" 
+                name="desde"
+                value="{{request.GET.desde|default:desde}}" 
+                required
+            >
+        </div>
+
+        <div class="col-3">
+            <label>Hasta:</label>
+            <input 
+                class="form-control" 
+                type="date" 
+                name="hasta"
+                value="{{request.GET.hasta|default:hasta}}" 
+                required
+            >
+        </div>
+    </div>
+
+    <button class="btn btn-primary mt-2" type="submit" id="btnConsultar">
+        <i class="bi bi-search"></i> Consultar
+    </button>
+</form>
 </div>
 
 {% if cliente %}
 <h5 class="text-center"><strong>{{cliente}}</strong></h5>
-<h6 class="text-center"><strong>Desde:</strong> {{desde|date:'d F Y'}} <strong>Hasta:</strong> {{hasta|date:'d F Y'}}</strong></h6>
+<h6 class="text-center">
+    <strong>Desde:</strong> {{desde}}
+    <strong>Hasta:</strong> {{hasta}}
+</h6>
 {% endif %}
-
-<div class="col-4 mb-2">
-    <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
-</div>
 
 {% if messages %}
-{% for message in messages %}
-{% if message.tags == 'success'%}
-<div class="alert text-center alert-success" role="alert">
-    {{message}}
-</div>
-{% elif message.tags == 'error'%}
-<div class="alert text-center alert-danger" role="alert">
-    {{message}}
-</div>
-{%endif%}
-{% endfor %}
+    {% for message in messages %}
+        <div class="alert alert-{{message.tags}} text-center">
+            {{message}}
+        </div>
+    {% endfor %}
 {% endif %}
 
-<div class="text-center" id="spinner">
-    <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading...</span>
-    </div><br>
-    <span class="text-center text-primary">Cargando... </span>
+{% if ventas %}
+
+<div class="col-4 mb-2">
+    <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control" disabled>
 </div>
 
+<div class="card">
+<div class="card-body">
+<div class="table-responsive">
 
-<div class="card mb-2">
-    <div class="card-body m-0 p-0">
-        <div class="container table-responsive">
-            <table class="table" id="myTable">
-                <thead>
-                    <tr>
-                        <th scope="col">Código</th>
-                        <th scope="col">Nombre</th>
-                        <th scope="col">Marca</th>
-                        <th scope="col">Und</th>
-                        <th scope="col">Fecha</th>
-                        <th scope="col">Factura</th>
-                        <th scope="col">Cantidad</th>
-                        <th scope="col">P/Unitario</th>
-                        <th scope="col">Valor</th>
-                    </tr>
-                </thead>
-                <tbody id="pedidosbuscar">
-                    {% for i in ventas %}
-                    <tr>
-                        <td id="cod">{{i.PRODUCT_ID}}</td>
-                        <td>{{i.Nombre}}</td>
-                        <td>{{i.Marca}}</td>
-                        <td>{{i.Unidad}}</td>
-                        <td>{{i.FECHA}}</td>
-                        <td>{{i.CODIGO_FACTURA|slice:'6:19'}}
-                            <button id="{{i.CODIGO_FACTURA}}" name="n_factura" class="btn btn-outline-primary btn-sm" >
-                                <i class="bi bi-list-ol"></i>
-                            </button>
-                        </td>
-                        <td class="text-end">{{i.QUANTITY|floatformat:"0g"}}</td> 
-                        <td class="text-end">$ {{i.UNIT_PRICE|floatformat:"2g"}}</td> 
-                        <td class="text-end">$ {{i.PRECIO_TOTAL|floatformat:"2g"}}</td> 
-                    </tr>
-                    {% endfor %}
-                </tbody>
-                    <tr>
-                        <td colspan="6" class="text-start fw-bold">Totales:</td>
-                        <td class="text-end">{{total_cantidad|floatformat:"0g"}}</td>
-                        <td class="text-end">$ {{total_unitario|floatformat:"2g"}}</td>
-                        <td class="text-end">$ {{total_ventas|floatformat:"2g"}}</td>
-                    </tr>
-            </table>
-        </div>
-    </div>
+<table class="table table-hover" id="myTable">
+    <thead>
+        <tr>
+            <th>Código</th>
+            <th>Nombre</th>
+            <th>Marca</th>
+            <th>Und</th>
+            <th>Fecha</th>
+            <th>Factura</th>
+            <th class="text-end">Cantidad</th>
+            <th class="text-end">P/Unitario</th>
+            <th class="text-end">Valor</th>
+        </tr>
+    </thead>
+
+    <tbody id="pedidosbuscar">
+        {% for i in ventas %}
+        <tr>
+            <td class="producto-cod">{{i.PRODUCT_ID}}</td>
+            <td>{{i.Nombre}}</td>
+            <td>{{i.Marca}}</td>
+            <td>{{i.Unidad}}</td>
+            <td>{{i.FECHA}}</td>
+            <td>
+                {{i.CODIGO_FACTURA|slice:'6:19'}}
+                <button 
+                    type="button"
+                    data-factura="{{i.CODIGO_FACTURA}}"
+                    class="btn btn-outline-primary btn-sm btnFactura">
+                    <i class="bi bi-list-ol"></i>
+                </button>
+            </td>
+            <td class="text-end">{{i.QUANTITY|floatformat:0}}</td>
+            <td class="text-end">$ {{i.UNIT_PRICE|floatformat:2}}</td>
+            <td class="text-end">$ {{i.PRECIO_TOTAL|floatformat:2}}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+
+    <tfoot class="table-light fw-bold">
+        <tr>
+            <td colspan="6">Totales:</td>
+            <td class="text-end">{{total_cantidad}}</td>
+            <td></td>
+            <td class="text-end">$ {{total_ventas}}</td>
+        </tr>
+    </tfoot>
+
+</table>
+
+</div>
+</div>
+{% elif request.GET.cliente %}
+<div class="alert alert-warning text-center">
+    No hay ventas en el período seleccionado.
+</div>
+{% endif %}
+
 </div>
 
-</div>
-<!--filtro buscar-->
 <script>
-    $(document).ready(function() {
-        $("#inputbuscar").on("keyup", function() {
-            var value = $(this).val().toLowerCase();
-            $("#pedidosbuscar tr").filter(function() {
-                $(this).toggle($(this).text()
-                .toLowerCase().indexOf(value) > -1)
-            });
-        });
+$(document).ready(function() {
+    setTimeout(function() {
+        document.getElementById('inputbuscar').disabled = false;
+    }, 500); // 500 milisegundos = 1/2 segundo
+});
+
+$(document).ready(function(){
+
+    $('#chosen-select').select2({
+        width: '100%'
     });
-</script>
 
+    $('.btnFactura').on('click', function(){
 
-<script>
-    $(document).ready(function() {
-        $('#chosen-select').select2();
-    })
-</script>
+        let btn = $(this);
+        let fac = btn.data('factura');
+        let cod = btn.closest('tr').find('.producto-cod').text();
+        let parentRow = btn.closest('tr');
 
-<!-- Spiner -->
-<script>
+        let existing = parentRow.next('.child-row');
 
-    var sp = document.getElementById("spinner").style.display = "none";   
-
-    $("#nombre_cliente").on("click", function() {
-        // console.log("loading")
-        var cl = document.getElementById("chosen-select").value;
-        
-        if (cl) {
-            //# console.log('loading');
-            var sp = document.getElementById("spinner").style.display = "block";
+        if(existing.length){
+            existing.remove();
+            return;
         }
-    })
-</script>
 
-<script>
+        parentRow.after(`
+            <tr class="child-row">
+                <td class="text-center" colspan="9">Cargando...</td>
+            </tr>
+        `);
 
-    $("button[name='n_factura']").click(function() {
-        var fac = $(this).attr('id');
-        var cod = $(this).closest('tr').find("#cod").html();
-
-        var childRow = $ (this).closest("tr").next(".child-row");
-        var parentRow = $(this).closest("tr");
-
-
-        if (childRow.length) {
-            //# ELIMINA FIILA INSERTADA
-            childRow.remove();
-        } else {
-            var childRow = $(
-                "<tr class='child-row' style='background-color: #cdffd6'>" + 
-                    "<td colspan='5'></td>" + 
-                    "<td colspan='4'>Cargando...</td>" + 
-                "</tr>"
-                );
-            parentRow.after(childRow)
-
-            //# AJAX REQUEST
-            $.ajax({
+        $.ajax({
             url:"{% url 'lote_factura_ajax' %}",
             type:"POST",
+            headers: { "X-CSRFToken": "{{ csrf_token }}" },
             data:{
-                'csrfmiddlewaretoken': '{{ csrf_token }}',
-                'fac':fac,
-                'cod':cod,
+                fac: fac,
+                cod: cod
             },
-
-            success: function(response) {
-
-                //console.log(response);
-
-                // var childRow2 = $(
-                // "<tr class='child-row' style='background-color: #cdffd6'>" + 
-                //     "<td colspan='5'></td>" + 
-                //     `<td colspan='4'>Lote: ${response[0].lote} - Unidades: ${response[0].unidades}</td>` + 
-                // "</tr>"
-                // );
-
-                var childRow2 = $(
-                "<tr class='child-row' style='background-color: #cdffd6'>" + 
-                    "<td colspan='5'></td>" + 
-                    // `<td colspan='4'>Lote: ${response[0].lote} - Unidades: ${response[0].unidades}</td>` + 
-                    `<td colspan='4'>${response}</td>` + 
-                "</tr>"
-                );
-                parentRow.after(childRow).next(childRow).replaceWith(childRow2)
-
+            success:function(response){
+                parentRow.next('.child-row').replaceWith(`
+                    <tr class="child-row" style='background-color: #cdffd6'>
+                        <td colspan="5"></td>
+                        <td colspan="4">${response}</td>
+                    </tr>
+                `);
             },
+            error:function(){
+                parentRow.next('.child-row').replaceWith(`
+                    <tr class="child-row table-danger">
+                        <td class="text-center" colspan="9">Error al cargar información</td>
+                    </tr>
+                `);
+            }
+        });
 
-            error: function() {
-                var childRow3 = $(
-                "<tr class='child-row' style='background-color: #f9cdcd'>" + 
-                    "<td colspan='5'></td>" + 
-                    `<td colspan='4'>Error !!!</td>` + 
-                "</tr>"
-                );
-                parentRow.after(childRow).next(childRow).replaceWith(childRow3)
-                }
-            })
-        }
-    })
+    });
+
+});
+
+$(document).ready(function() {
+    $("#inputbuscar").on("keyup", function() {
+        var value = $(this).val().toLowerCase();
+        $("#pedidosbuscar tr").filter(function() {
+            $(this).toggle($(this).text()
+            .toLowerCase().indexOf(value) > -1)
+        });
+    });
+});
 
 </script>
 
-<!-- DataTable -->
-<!-- datatable -->
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.css" />  
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.js"></script>
 
@@ -253,9 +237,8 @@
             columnDefs:[
                 {type:'signed-num',targets:0}
             ]
-    })
+        })
     })
 </script>
-
 
 {% endblock %}
