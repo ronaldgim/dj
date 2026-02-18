@@ -1,4 +1,5 @@
 from django.db import models
+from datetime import date
 # from datos.models import Product as MyProduct
 # from dataclasses import dataclass
 
@@ -266,7 +267,7 @@ class Reserva(models.Model):
         verbose_name = 'Reserva'
         verbose_name_plural = 'Reservas'
 
-    # 🔒 SOLO LECTURA
+    # SOLO LECTURA
     def save(self, *args, **kwargs):
         raise NotImplementedError("Este modelo es de solo lectura")
 
@@ -277,117 +278,220 @@ class Reserva(models.Model):
         return f"{self.fecha_pedido} - {self.nombre_cliente} - {self.product_id}"
 
 
-# class VentaFactura(models.Model):
+class CuentasCobrar(models.Model):
 
-#     # Primary Key virtual (NO existe en la BD)
-#     pk_virtual = models.CharField(
-#         max_length=200,
-#         primary_key=True
-#     )
+    codigo_factura = models.CharField(
+        max_length=255,
+        primary_key=True,
+        db_column='CODIGO_FACTURA'
+    )
 
-#     codigo_cliente = models.CharField(
-#         max_length=45,
-#         db_column='CODIGO_CLIENTE',
-#         blank=True,
-#         null=True
-#     )
+    numero_factura = models.CharField(
+        max_length=50,
+        db_column='NUMERO_FACTURA',
+        blank=True,
+        null=True
+    )
 
-#     product_id = models.CharField(
-#         max_length=100,
-#         db_column='PRODUCT_ID',
-#         blank=True,
-#         null=True
-#     )
+    codigo_cliente = models.CharField(
+        max_length=50,
+        db_column='CODIGO_CLIENTE',
+        blank=True,
+        null=True
+    )
 
-#     fecha = models.DateField(
-#         db_column='FECHA',
-#         blank=True,
-#         null=True
-#     )
+    identificacion_fiscal = models.CharField(
+        max_length=20,
+        db_column='IDENTIFICACION_FISCAL',
+        blank=True,
+        null=True
+    )
 
-#     i_e_sign = models.CharField(
-#         max_length=45,
-#         db_column='I_E_SIGN',
-#         blank=True,
-#         null=True
-#     )
+    nombre_cliente = models.CharField(
+        max_length=255,
+        db_column='NOMBRE_CLIENTE',
+        blank=True,
+        null=True
+    )
 
-#     quantity = models.IntegerField(
-#         db_column='QUANTITY',
-#         blank=True,
-#         null=True
-#     )
+    fecha_factura = models.DateField(
+        db_column='FECHA_FACTURA',
+        blank=True,
+        null=True
+    )
 
-#     unit_price = models.FloatField(
-#         db_column='UNIT_PRICE',
-#         blank=True,
-#         null=True
-#     )
+    fecha_vencimiento = models.DateField(
+        db_column='FECHA_VENCIMIENTO',
+        blank=True,
+        null=True
+    )
 
-#     net_line_total = models.FloatField(
-#         db_column='NET_LINE_TOTAL',
-#         blank=True,
-#         null=True
-#     )
+    valor_total_pagado = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        db_column='VALOR_TOTAL_PAGADO',
+        blank=True,
+        null=True
+    )
 
-#     unit_cost = models.FloatField(
-#         db_column='UNIT_COST',
-#         blank=True,
-#         null=True
-#     )
+    valor_total_saldo_a_cobrar = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        db_column='VALOR_TOTAL_SALDO_A_COBRAR',
+        blank=True,
+        null=True
+    )
 
-#     cost_total = models.FloatField(
-#         db_column='COST_TOTAL',
-#         blank=True,
-#         null=True
-#     )
+    balance = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        db_column='BALANCE',
+        blank=True,
+        null=True
+    )
 
-#     numero_pedido_sistema = models.IntegerField(
-#         db_column='NUMERO_PEDIDO_SISTEMA',
-#         blank=True,
-#         null=True
-#     )
+    en_estatus_no_venta_b = models.BooleanField(
+        db_column='EN_ESTATUS_NO_VENTA_B',
+        blank=True,
+        null=True
+    )
 
-#     codigo_factura = models.CharField(
-#         max_length=100,
-#         db_column='CODIGO_FACTURA',
-#         blank=True,
-#         null=True
-#     )
+    limite_credito = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        db_column='LIMITE_CREDITO',
+        blank=True,
+        null=True
+    )
 
-#     war_code = models.CharField(
-#         max_length=45,
-#         db_column='WAR_CODE',
-#         blank=True,
-#         null=True
-#     )
+    price_list = models.CharField(
+        max_length=50,
+        db_column='PriceList',
+        blank=True,
+        null=True
+    )
 
-#     hora_factura = models.CharField(
-#         max_length=45,
-#         db_column='HORA_FACTURA',
-#         blank=True,
-#         null=True
-#     )
+    salesman = models.CharField(
+        max_length=100,
+        db_column='SALESMAN',
+        blank=True,
+        null=True
+    )
 
-#     auto_xml = models.CharField(
-#         max_length=100,
-#         db_column='AUTO_XML',
-#         blank=True,
-#         null=True
-#     )
+    riesgo = models.CharField(
+        max_length=50,
+        db_column='RIESGO',
+        blank=True,
+        null=True
+    )
 
-#     class Meta:
-#         managed = False
-#         db_table = 'venta_facturas'
-#         verbose_name = 'Venta Factura'
-#         verbose_name_plural = 'Ventas Facturas'
+    terminos_de_pago_alfa_num = models.CharField(
+        max_length=50,
+        db_column='TERMINOS_DE_PAGO_ALFA_NUM',
+        blank=True,
+        null=True
+    )
 
-#     # SOLO LECTURA
-#     def save(self, *args, **kwargs):
-#         raise NotImplementedError("Este modelo es solo lectura")
+    terminos_de_pago_dias = models.IntegerField(
+        db_column='TERMINOS_DE_PAGO_DIAS',
+        blank=True,
+        null=True
+    )
 
-#     def delete(self, *args, **kwargs):
-#         raise NotImplementedError("Este modelo es solo lectura")
+    dias_ven = models.IntegerField(
+        db_column='DIAS_VEN',
+        blank=True,
+        null=True
+    )
 
-#     def __str__(self):
-#         return f"{self.codigo_factura} - {self.product_id}"
+    categoria_mora = models.CharField(
+        max_length=90,
+        db_column='CATEGORIA_MORA',
+        blank=True,
+        null=True
+    )
+
+    class Meta:
+        managed = False
+        db_table = 'cuentas_cobrar'
+        verbose_name = 'Cuenta por cobrar'
+        verbose_name_plural = "Cuentas por cobrar"
+
+    # SOLO LECTURA
+    def save(self, *args, **kwargs):
+        raise NotImplementedError("Este modelo es de solo lectura")
+
+    def delete(self, *args, **kwargs):
+        raise NotImplementedError("Este modelo es de solo lectura")
+
+    def __str__(self):
+        return f"{self.codigo_factura} - {self.nombre_cliente}"
+
+    @property
+    def dias_mora_real(self):
+        if not self.fecha_vencimiento:
+            return 0
+
+        hoy = date.today()
+        if hoy <= self.fecha_vencimiento:
+            return 0
+
+        return (hoy - self.fecha_vencimiento).days
+
+    @property
+    def esta_vencida(self):
+        return self.dias_mora_real > 0
+    
+    @property
+    def porcentaje_credito_usado(self):
+        if not self.limite_credito or self.limite_credito == 0:
+            return 0
+
+        if not self.balance:
+            return 0
+
+        return round((self.balance / self.limite_credito) * 100, 2)
+
+    @property
+    def clasificacion_mora(self):
+        dias = self.dias_mora_real
+
+        if dias <= 0:
+            return "Al día"
+        elif dias <= 30:
+            return "Mora 1-30"
+        elif dias <= 60:
+            return "Mora 31-60"
+        elif dias <= 90:
+            return "Mora 61-90"
+        else:
+            return "Mora > 90"
+
+    @property
+    def color_estado(self):
+        dias = self.dias_mora_real
+
+        if dias <= 0:
+            return "success"
+        elif dias <= 30:
+            return "warning"
+        elif dias <= 60:
+            return "orange"
+        else:
+            return "danger"
+
+    @property
+    def saldo_pendiente(self):
+        if not self.valor_total_saldo_a_cobrar:
+            return 0
+        return self.valor_total_saldo_a_cobrar
+
+    @property
+    def riesgo_crediticio(self):
+        if self.porcentaje_credito_usado > 100:
+            return "Sobre límite"
+        if self.dias_mora_real > 60:
+            return "Alto riesgo"
+        if self.dias_mora_real > 30:
+            return "Riesgo medio"
+        return "Normal"

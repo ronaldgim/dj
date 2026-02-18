@@ -66,9 +66,13 @@ urlpatterns = [
     # API
     path('api/', include('api.urls')),
     
-    # API
+    # METRO
     path('metro/', include('metro.urls')),
     
+    # DASHBOARDS
     path('dashboards/', include('dashboards.urls')),
+    
+    # CONTABILIDAD
+    path('contabilidad/', include('contabilidad.urls')),
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

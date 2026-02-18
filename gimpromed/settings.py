@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     'compras_publicas',
     'regulatorio_legal',
     'ventas',
+    'contabilidad',
 
     # WMS
     'wms',
