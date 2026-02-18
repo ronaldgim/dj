@@ -672,7 +672,8 @@ urlpatterns = [
     ),
     
     path(
-        route='detalle/<str:referencia>/<str:n_referencia>', 
+        # route='detalle/<str:referencia>/<str:n_referencia>', 
+        route='detalle/<str:n_referencia>', 
         view = views.wms_referenica_detalle,
         name = 'wms_referenica_detalle'
     ),
