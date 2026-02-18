@@ -6354,7 +6354,7 @@ def wms_referenica_detalle(request, n_referencia):
             Movimiento.objects
                 .select_related('usuario')
                 .filter(
-                    estado_picking='No despachado',
+                    # estado_picking='No despachado',
                     n_referencia = n_referencia
                 )
             )
@@ -6371,6 +6371,7 @@ def wms_referenica_detalle(request, n_referencia):
                 'nombre':prod.nombre if prod.nombre else '-',
                 'marca':prod.marca if prod.marca else '-',
                 'lote':i.lote_id,
+                'tipo':i.tipo,
                 'estado_picking':i.estado_picking,
                 'unidades':i.unidades_abs,
                 'usuario':f'{i.usuario.first_name} {i.usuario.last_name}',
