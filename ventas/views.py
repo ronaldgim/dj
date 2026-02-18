@@ -5,9 +5,13 @@ import pandas as pd
 # Date
 from datetime import date, datetime, timedelta
 
+# Models
+from warehouse.models import Cliente # VentaFactura
+
 # Ventas facturas odbc
 from datos.views import (
-    ventas_odbc_facturas, 
+    obtener_ventas_porcliente_warehouse,
+    # ventas_odbc_facturas, 
     de_dataframe_a_template, 
     productos_odbc_and_django, 
     clientes_warehouse, 
@@ -38,81 +42,56 @@ from django.contrib.auth.decorators import login_required
 @permisos(['VENTAS'], '/', 'ingresar a Ventas')
 def reporte_tipo_mba(request):
 
-    desde = datetime.strptime('2023-01-01', '%Y-%m-%d')
-    hasta = date.today()
-    h = str(date.today())
-    clientes = clientes_warehouse()[['CODIGO_CLIENTE', 'NOMBRE_CLIENTE']]
-    clientes = clientes.sort_values('NOMBRE_CLIENTE')
+    desde_default = '2024-01-01'
+    hasta_default = date.today().strftime('%Y-%m-%d')
 
-    if request.method == 'POST':
-        cli = request.POST.get('cliente', '')
-        desde = request.POST.get('desde', '')
-        hasta = request.POST.get('hasta', '')
+    clientes = (
+        Cliente.objects
+        .using('gimpromed_sql')
+        .all()
+        .order_by('nombre_cliente')
+    )
 
-        d=datetime.strptime(desde, '%Y-%m-%d')
-        h=datetime.strptime(hasta, '%Y-%m-%d')
-        
-        vent = ventas_odbc_facturas(desde, hasta, cli) # .sort_values(by='FECHA', ascending=False)
-        # vent['FECHA'] = vent['FECHA'].astype('str')
-        
-        if not vent.empty:
-            
-            prod = productos_odbc_and_django()[['product_id', 'Unidad', 'Nombre', 'Marca']]
-            prod = prod.rename(columns={'product_id':'PRODUCT_ID'})
-            cliente_list = clientes_warehouse()[['CODIGO_CLIENTE', 'NOMBRE_CLIENTE']]
-            
-            vent['FECHA'] = vent['FECHA'].astype('str')
-            vent = vent.sort_values(by='FECHA', ascending=False)
-            vent = vent.merge(prod, on='PRODUCT_ID', how='left')
-            vent = vent.merge(cliente_list, on='CODIGO_CLIENTE', how='left')
-            
-            vent['UNIT_PRICE'] = vent['UNIT_PRICE'].round(2)
-            vent['PRECIO_TOTAL'] = vent['PRECIO_TOTAL'].round(2)
+    # Obtener parámetros GET
+    cli = request.GET.get('cliente')
+    desde = request.GET.get('desde')
+    hasta = request.GET.get('hasta')
 
-            total_cantidad =  vent['QUANTITY'].sum()
-            total_unitario = vent['UNIT_PRICE'].sum()
-            total_ventas = vent['PRECIO_TOTAL'].sum()
-            
-            vent = de_dataframe_a_template(vent)
+    ventas = []
+    total_cantidad = 0
+    total_ventas = 0
+    cliente_nombre = None
 
-            cliente = cliente_list.set_index('CODIGO_CLIENTE')
-            cliente = cliente.to_dict()['NOMBRE_CLIENTE']
-            cliente = cliente[cli] 
+    # Solo consultar si vienen todos los parámetros
+    if cli and desde and hasta:
 
-            context = {
-                'ventas':vent,
-                'total_cantidad':total_cantidad,
-                'total_unitario':total_unitario,
-                'total_ventas':total_ventas,
+        ventas = obtener_ventas_porcliente_warehouse(
+            codigo_cliente=cli,
+            desde=desde,
+            hasta=hasta
+        )
 
-                'clientes':de_dataframe_a_template(clientes),
+        if ventas:
+            total_cantidad = sum(v['QUANTITY'] for v in ventas)
+            total_ventas = sum(v['PRECIO_TOTAL'] for v in ventas)
 
-                'cliente':cliente,
-                'desde':d,
-                'hasta':h,
-            }
-
-            return render(request, 'ventas/reporte_ventas.html', context)
-        
-        elif vent.empty:
-            
-            messages.error(request, 'No hay ventas de este cliente en el periodo seleccionado !!!')
-            
-            context = {
-                'clientes':de_dataframe_a_template(clientes),
-                'desde':d,
-                'hasta':h
-            }
-            
-            return render(request, 'ventas/reporte_ventas.html', context)
-            
-
+            cliente_obj = clientes.filter(codigo_cliente=cli).first()
+            if cliente_obj:
+                cliente_nombre = cliente_obj.nombre_cliente
+        else:
+            messages.warning(
+                request,
+                'No hay ventas de este cliente en el periodo seleccionado.'
+            )
+    
     context = {
-        # 'ventas':ventas,
-        'clientes':de_dataframe_a_template(clientes),
-
-        'desde':desde,
-        'hasta':hasta
+        'clientes': clientes,
+        'ventas': ventas,
+        'total_cantidad': f"{total_cantidad:,.0f}",
+        'total_ventas': f"${total_ventas:,.2f}", #round(total_ventas, 2),
+        'cliente': cliente_nombre,
+        'desde': desde if desde else desde_default,
+        'hasta': hasta if hasta else hasta_default,
     }
 
     return render(request, 'ventas/reporte_ventas.html', context)
