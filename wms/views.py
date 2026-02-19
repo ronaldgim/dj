@@ -3219,6 +3219,7 @@ def wms_cruce_picking_factura(request):
     }
     return render(request, 'wms/cruce_picking_factura.html', context)
 
+
 @login_required(login_url='login')
 def nueva_orden_salida(request, n_factura):
     
