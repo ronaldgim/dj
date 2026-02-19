@@ -28,9 +28,9 @@
 
 <div id="msg"></div>
 
-{% if request.user.id == '19' or request.user.id == '16' or request.user.is_superuser %}
+{% if request.user.id == 19 or request.user.id == 16 or request.user.is_superuser %}
 <button class="btn btn-primary" name="agregar-factura" data-bs-toggle="modal" data-bs-target="#addFactura">
-    Añadir Factura
+    + Añadir Factura
 </button>
 {% endif %}
 
