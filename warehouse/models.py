@@ -190,6 +190,7 @@ class Cliente(models.Model):
         managed = False  # CLAVE: Django no crea ni migra la tabla
         verbose_name = 'Cliente'
         verbose_name_plural = 'Clientes'
+        app_label = 'warehouse'
 
     # SOLO LECTURA
     def save(self, *args, **kwargs):
@@ -266,6 +267,7 @@ class Reserva(models.Model):
         managed = False
         verbose_name = 'Reserva'
         verbose_name_plural = 'Reservas'
+        app_label = 'warehouse'
 
     # SOLO LECTURA
     def save(self, *args, **kwargs):
@@ -416,6 +418,7 @@ class CuentasCobrar(models.Model):
         db_table = 'cuentas_cobrar'
         verbose_name = 'Cuenta por cobrar'
         verbose_name_plural = "Cuentas por cobrar"
+        app_label = 'warehouse'
 
     # SOLO LECTURA
     def save(self, *args, **kwargs):
@@ -495,3 +498,53 @@ class CuentasCobrar(models.Model):
         if self.dias_mora_real > 30:
             return "Riesgo medio"
         return "Normal"
+
+
+################################
+###### TABLAS DE PRECIOS #######
+################################
+
+class Promocion(models.Model):
+    ref = models.CharField(
+        max_length=45, 
+        primary_key=True, 
+        db_column='Ref'
+    )
+    detalle = models.CharField(
+        max_length=100, 
+        db_column='Detalle', 
+        blank=True, 
+        null=True
+    )
+    marca = models.CharField(
+        max_length=45, 
+        db_column='Marca', 
+        blank=True, 
+        null=True
+    )
+    precio_h = models.FloatField(
+        db_column='PrecioH', 
+        blank=True, 
+        null=True
+    )
+    precio_d = models.FloatField(
+        db_column='PrecioD', 
+        blank=True, 
+        null=True
+    )
+    promocion = models.CharField(
+        max_length=400, 
+        db_column='Promocion', 
+        blank=True, 
+        null=True
+    )
+
+    class Meta:
+        managed = False  # IMPORTANTE: no modifica la BD
+        db_table = 'promociones'
+        verbose_name = 'Promoción'
+        verbose_name_plural = 'Promociones'
+        app_label = 'precios'
+
+    def __str__(self):
+        return f"{self.ref} - {self.detalle}"

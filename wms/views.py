@@ -4847,14 +4847,18 @@ def wms_anulacion_picking_ajax(request):
         })
 
 
-
 ### Ajuste Liberación ERIK
 @login_required(login_url='login')
 @permisos(['ADMINISTRADOR','OPERACIONES'],'/wms/home', 'ingresar a ajuste liberaciones')
 def wms_ajuste_liberacion_list(request):
     
-    ajuste_liberacion = pd.DataFrame(AjusteLiberacion.objects.all().values().order_by('-doc_id')).drop_duplicates(subset=['doc_id'])
-    ajuste_liberacion = de_dataframe_a_template(ajuste_liberacion)
+    ajuste_liberacion = (
+        AjusteLiberacion.objects
+            .all()
+            .values('doc_id', 'tipo', 'estado')
+            .order_by('-doc_id')
+            .distinct()
+        )
     
     context = {
         'ajuste_liberacion':ajuste_liberacion

@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 
 # JWT Django
 # from rest_framework_simplejwt.views import (
@@ -12,7 +12,15 @@ from rest_framework.authtoken.views import obtain_auth_token
 from api import views
 from api import warehouse_data
 
+from rest_framework.routers import DefaultRouter
+from api.views import PromocionViewSet
+
+router = DefaultRouter()
+router.register(r'promociones', PromocionViewSet, basename='promociones')
+
 urlpatterns = [
+    
+    path('', include(router.urls)),
     
     # Autenticación JWT
     # path(
@@ -50,6 +58,12 @@ urlpatterns = [
         ),
     
     # api promociones
+    path(
+            route = 'precio_promocion/<str:product_id>/', 
+            view = views.precio_promocion, 
+            name = 'precio_promocion'
+        ),
+    
     path(
             route = 'precio_promocion/<str:product_id>/', 
             view = views.precio_promocion, 
