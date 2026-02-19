@@ -680,7 +680,7 @@ urlpatterns = [
 
     # FACTURAS ANULADAS
     path(
-        route='facturas-anuladas/lista', 
+        route='facturas-anuladas-lista', 
         view = views.lista_facturas_anualdas,
         name = 'lista_facturas_anualdas'
     ),

@@ -90,21 +90,24 @@
                                 <a class="btn btn-primary btn-sm" href="{% url 'factura_anulada_detalle' i.n_factura %}">
                                     <i class="bi bi-eye"></i>
                                 </a>
-                                <button 
-                                    class="
-                                        btn btn-warning btn-sm 
-                                        {% if not i.h_publico and i.nueva_factura %} 
-                                            disabled 
-                                        {% endif %}
-                                        "  
-                                    name="change-factura" 
-                                    data-bs-toggle="modal" 
-                                    data-bs-target="#changeFactura"
-                                    id="{{i.id}}"
-                                    onclick="cargar_id_factura(this.id)"
-                                >
-                                    F
-                                </button>
+                                {% if request.user.id == 1 or request.user.id == 19 or request.user.id == 28 %}
+                                    <button 
+                                        class="btn btn-warning btn-sm
+                                            {% if not i.h_publico and i.nueva_factura %}
+                                                disabled 
+                                            {% endif %}
+                                        "
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#changeFactura"
+                                        onclick="cargar_id_factura('{{i.id}}')"
+                                    >
+                                        F
+                                    </button>
+                                {% else %}
+                                    <button class="btn btn-secondary btn-sm disabled">
+                                        F
+                                    </button>
+                                {% endif %}
                             </div>
                         </td>
                     </tr>
@@ -167,7 +170,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="changeFacturaLabel">Reemplazar Picking y Factura</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" name="modal-close"></button>
+                <button type="button" id="buttonChangeFacturaClose" class="btn-close" data-bs-dismiss="modal" aria-label="Close" name="modal-close"></button>
             </div>
             <div class="modal-body">
 
