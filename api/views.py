@@ -1,9 +1,15 @@
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.viewsets import ReadOnlyModelViewSet
 
 # Models
 from datos.models import EmailApiLog
+from warehouse.models import Promocion
+
+# Serializers
+from api.serializers import PromocionSerializer
 
 # Email
 from django.core.mail import EmailMultiAlternatives
@@ -141,17 +147,42 @@ def reg_sanitario_correo_alerta_dias(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def precio_promocion(request, product_id):
-        
-    with connections['gimpromed_sql'].cursor() as cursor:
-        
-        cursor.execute(f"SELECT * FROM precios.promociones WHERE Ref = '{product_id}'")
-        columns = [col[0] for col in cursor.description]
-        promocion = [
-            dict(zip(columns, row))
-            for row in cursor.fetchall()
-        ] 
-        
-        return Response(promocion, status=200)
+
+    try:        
+        with connections['gimpromed_sql'].cursor() as cursor:
+            
+            cursor.execute(f"SELECT * FROM precios.promociones WHERE Ref = '{product_id}'")
+            columns = [col[0] for col in cursor.description]
+            promocion = [
+                dict(zip(columns, row))
+                for row in cursor.fetchall()
+            ] 
+            
+            return Response(promocion, status=200)
+    except Exception as e:
+        return Response({'detail':str(e)}, status=404)
+
+
+class PromocionViewSet(ReadOnlyModelViewSet):
+    """
+    ViewSet de solo lectura para promociones
+    - GET /promociones/        → lista
+    - GET /promociones/{ref}/  → detalle por ref
+    """
+
+    serializer_class = PromocionSerializer
+    permission_classes = [IsAuthenticated]
+
+    # clave: usar Ref en lugar de pk
+    lookup_field = 'ref'
+    lookup_url_kwarg = 'ref'
+
+    def get_queryset(self):
+        return (
+            Promocion.objects
+            .using('precios')
+            .all()
+        )
 
 
 #### API PRECIOS
