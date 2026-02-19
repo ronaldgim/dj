@@ -7,7 +7,6 @@ from datetime import date
 ## MODELO CLIENTES DE GIMPROMED SQL ##
 ######################################
 
-
 class Producto(models.Model):
     codigo = models.CharField(
         max_length=100,
@@ -105,7 +104,7 @@ class Producto(models.Model):
         managed = False
         verbose_name = 'Producto'
         verbose_name_plural = 'Productos'
-        app_label = 'warehouse'
+        app_label = 'gimpromed_sql'
 
     # SOLO LECTURA
     def save(self, *args, **kwargs):
@@ -190,7 +189,7 @@ class Cliente(models.Model):
         managed = False  # CLAVE: Django no crea ni migra la tabla
         verbose_name = 'Cliente'
         verbose_name_plural = 'Clientes'
-        app_label = 'warehouse'
+        app_label = 'gimpromed_sql'
 
     # SOLO LECTURA
     def save(self, *args, **kwargs):
@@ -267,7 +266,7 @@ class Reserva(models.Model):
         managed = False
         verbose_name = 'Reserva'
         verbose_name_plural = 'Reservas'
-        app_label = 'warehouse'
+        app_label = 'gimpromed_sql'
 
     # SOLO LECTURA
     def save(self, *args, **kwargs):
@@ -418,7 +417,7 @@ class CuentasCobrar(models.Model):
         db_table = 'cuentas_cobrar'
         verbose_name = 'Cuenta por cobrar'
         verbose_name_plural = "Cuentas por cobrar"
-        app_label = 'warehouse'
+        app_label = 'gimpromed_sql'
 
     # SOLO LECTURA
     def save(self, *args, **kwargs):
