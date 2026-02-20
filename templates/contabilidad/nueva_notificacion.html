@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}
+<title>Etiquetado por pedido</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'contabilidad/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+<h5 class="m-4 text-center"><strong>LISTADO DE NOTIFICACIONES</strong></h5>
+
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == 'success'%}
+        <div class="alert text-center alert-success" role="alert">
+            {{message}}
+        </div>
+        {% elif message.tags == 'error'%}
+        <div class="alert text-center alert-danger" role="alert">
+            {{message}}
+        </div>
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
+<form method="GET"> 
+    {% csrf_token %}
+    <div class="row">
+        <div class="input-group mb-2">
+            <label class="fw-bold col-2 mt-2">Selecciona un cliente:</label>
+            <div class="col-4">
+                <select class="form-select mt-2" id="filter-hos-select2" name="codigo_cliente" required>
+                    <option value="">-----------</option>
+                    {% for i in clientes %}
+                    <option value="{{i.codigo_cliente}}">{{i.nombre_cliente}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-auto ms-2">
+                <button class="btn btn-primary" type="submit">
+                    Agregar
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+
+<hr>
+
+{#{cliente_selected}#}
+
+<div class="card">
+    <div class="card-body">
+        {{correo_html}}
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#filter-hos-select2').select2();
+    })
+</script>
+{% endblock %}
