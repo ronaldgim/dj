@@ -84,16 +84,17 @@
                 <td class="text-right">{{ f.dias_vencido }}</td>
             </tr>
             {% endfor %}
+            <tr>
+                <td colspan="6" class="text-right total danger">
+                    Total facturas vencidas:
+                </td>
+                <td class="text-right total danger">
+                    $ {{ cartera_vencida }}
+                </td>
+                <td colspan="2"></td>
+            </tr>
         </tbody>
     </table>
-
-    <!--p class="total">
-        Total facturas vencidas: $ {{ total_vencidas }}
-    </p-->
-
-    <p class="total">
-        Total facturas vencidas: $ {{ cartera_vencida }}
-    </p>
 
     <!-- FACTURAS VIGENTES -->
     <h4>Facturas Vigentes</h4>
@@ -125,6 +126,26 @@
                 <td class="text-right">{{ f.dias_vigente }}</td>
             </tr>
             {% endfor %}
+            <tr>
+                <td colspan="6" class="text-right total">
+                    Total facturas vigentes
+                </td>
+                <td class="text-right total">
+                    $ {{ total_vigentes }}
+                </td>
+                <td colspan="2"></td>
+            </tr>
+
+            <!-- TOTAL CARTERA -->
+            <tr>
+                <td colspan="6" class="text-right total">
+                    TOTAL CARTERA
+                </td>
+                <td class="text-right total">
+                    $ {{ total_cartera }}
+                </td>
+                <td colspan="2"></td>
+            </tr>
         </tbody>
     </table>
 
