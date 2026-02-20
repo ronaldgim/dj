@@ -1,0 +1,67 @@
+{%extends 'base.html' %}
+
+{% block title %}
+<title>Etiquetado por pedido</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'contabilidad/topnavbar.html' %}
+{% endblock %}
+
+{% block body_2 %}
+<h5 class="m-4 text-center"><strong>LISTADO DE CUENTAS POR COBRAR</strong></h5>
+
+<div class="col-4">
+    <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+</div>
+
+<div class="card mt-2 mb-2">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col"># Factura</th>
+                        <th scope="col">Cliente</th>
+                        <th scope="col">F.Factura</th>
+                        <th scope="col">F.Vencimiento</th>
+                        <th scope="col">V.Pagado</th>
+                        <th scope="col">V.Saldo</th>
+                        <th scope="col">Balance</th>
+                        <th scope="col">Riesgo</th>
+                        <th scope="col">Dias Mora</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in cuentas_cobrar %}
+                    <tr>
+                        <td>{{i.numero_factura}}</td>
+                        <td>{{i.nombre_cliente}}</td>
+                        <td>{{i.fecha_factura}}</td>
+                        <td>{{i.fecha_vencimiento}}</td>
+                        <td>$ {{i.valor_total_pagado}}</td>
+                        <td>$ {{i.valor_total_saldo_a_cobrar}}</td>
+                        <td>$ {{i.balance}}</td>
+                        <td>{{i.riesgo}}</td>
+                        <td class="{{i.color_estado}}">{{i.dias_mora_real}}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!--filtro buscar-->
+<script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+{% endblock %}

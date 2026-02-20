@@ -1,0 +1,182 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Cartera de Cliente</title>
+</head>
+<body>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 14px;
+            color: #333;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 10px;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #000;
+            padding: 6px;
+            font-size: 12px;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .total {
+            font-weight: bold;
+        }
+    </style>
+
+    <p>Estimados Señores,</p>
+
+    <p><strong>{{ cliente_nombre }}</strong></p>
+
+    <p>
+        Reciba un cordial saludo de <strong>Gimpromed Cía. Ltda.</strong>
+    </p>
+
+    <p>
+        Por el presente nos permitimos informar que, de acuerdo con nuestros registros contables,
+        su cuenta presenta una cartera vencida de <strong>$ {{ cartera_vencida }}</strong> a la fecha.
+    </p>
+
+    <p>Para su referencia, a continuación, detallamos un desglose de la misma.</p>
+
+    <p>
+        Favor realizar la cancelación de las facturas pendientes antes de las fechas de vencimiento.
+        Si los pagos ya han sido realizados, favor desestimar este correo.
+    </p>
+
+    <!-- FACTURAS VENCIDAS -->
+    <h4>Facturas Vencidas</h4>
+    <table>
+        <thead>
+            <tr>
+                <th>N° Factura</th>
+                <th>Fecha Emisión</th>
+                <th>Valor Total</th>
+                <th>Pagado</th>
+                <th>Retención</th>
+                <th>Crédito</th>
+                <th>Saldo</th>
+                <th>Fecha Vencimiento</th>
+                <th>Días Vencido</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for f in facturas_vencidas %}
+            <tr>
+                <td>{{ f.numero }}</td>
+                <td>{{ f.fecha_emision }}</td>
+                <td class="text-right">$ {{ f.valor_total }}</td>
+                <td class="text-right">$ {{ f.pagado }}</td>
+                <td class="text-right">$ {{ f.retencion }}</td>
+                <td class="text-right">$ {{ f.credito }}</td>
+                <td class="text-right">$ {{ f.saldo }}</td>
+                <td>{{ f.fecha_vencimiento }}</td>
+                <td class="text-right">{{ f.dias_vencido }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <p class="total">
+        Total facturas vencidas: $ {{ total_vencidas }}
+    </p>
+
+    <!-- FACTURAS VIGENTES -->
+    <h4>Facturas Vigentes</h4>
+    <table>
+        <thead>
+            <tr>
+                <th>N° Factura</th>
+                <th>Fecha Emisión</th>
+                <th>Valor Total</th>
+                <th>Pagado</th>
+                <th>Retención</th>
+                <th>Crédito</th>
+                <th>Saldo</th>
+                <th>Fecha Vencimiento</th>
+                <th>Días Vigencia</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for f in facturas_vigentes %}
+            <tr>
+                <td>{{ f.numero }}</td>
+                <td>{{ f.fecha_emision }}</td>
+                <td class="text-right">$ {{ f.valor_total }}</td>
+                <td class="text-right">$ {{ f.pagado }}</td>
+                <td class="text-right">$ {{ f.retencion }}</td>
+                <td class="text-right">$ {{ f.credito }}</td>
+                <td class="text-right">$ {{ f.saldo }}</td>
+                <td>{{ f.fecha_vencimiento }}</td>
+                <td class="text-right">{{ f.dias_vigente }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <p class="total">
+        Total facturas vigentes: $ {{ total_vigentes }}
+    </p>
+
+    <!-- TOTAL CARTERA -->
+    <h3>TOTAL CARTERA: $ {{ total_cartera }}</h3>
+
+    <!-- RESUMEN -->
+    <h4>Resumen Cartera</h4>
+    <table>
+        <thead>
+            <tr>
+                <th>Vigente</th>
+                <th>1 - 30</th>
+                <th>31 - 60</th>
+                <th>61 - 90</th>
+                <th>91+</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="text-right">$ {{ resumen.vigente }}</td>
+                <td class="text-right">$ {{ resumen.rango_1_30 }}</td>
+                <td class="text-right">$ {{ resumen.rango_31_60 }}</td>
+                <td class="text-right">$ {{ resumen.rango_61_90 }}</td>
+                <td class="text-right">$ {{ resumen.rango_91 }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- FORMAS DE PAGO -->
+    <p>Para mayor comodidad, puede realizar el pago mediante los siguientes medios:</p>
+
+    <p>
+        <strong>Banco Pichincha</strong><br>
+        Cuenta Corriente # 3025602104
+    </p>
+
+    <p>
+        <strong>Banco Produbanco</strong><br>
+        Cuenta Corriente # 02-00506770-3
+    </p>
+
+    <!-- CONTACTO -->
+    <p>
+        En caso de tener alguna observación, favor contactarnos a:
+        <strong>dreyes@gimpromed.com</strong> o al
+        <strong>098 435 0774</strong>.
+    </p>
+
+    <p>
+        **** Esta notificación ha sido enviada automáticamente – Favor no responder ****
+    </p>
+
+</body>
+</html>

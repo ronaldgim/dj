@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block title %}
+<title>Etiquetado por pedido</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'contabilidad/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+<h5 class="m-4 text-center"><strong>LISTADO DE CLIENTES CON CHEQUE POSFECHADO</strong></h5>
+
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == 'success'%}
+        <div class="alert text-center alert-success" role="alert">
+            {{message}}
+        </div>
+        {% elif message.tags == 'error'%}
+        <div class="alert text-center alert-danger" role="alert">
+            {{message}}
+        </div>
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
+<form method="POST" action="{% url 'contabilidad_agregar_cliente_excluido' %}"> 
+    {% csrf_token %}
+    <div class="row">
+        <div class="input-group mb-2">
+            <label class="fw-bold col-2 mt-2">Selecciona un cliente:</label>
+            <div class="col-4">
+                <select class="form-select mt-2" id="filter-hos-select2" name="codigo_cliente" required>
+                    <option value="">-----------</option>
+                    {% for i in clientes %}
+                    <option value="{{i.codigo_cliente}}">{{i.nombre_cliente}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-auto ms-2">
+                <button class="btn btn-primary" type="submit">
+                    Agregar
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+
+<hr>
+
+<div class="col-4">
+    <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+</div>
+
+<div class="card mt-2 mb-2">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Cliente</th>
+                        <th scope="col">RUC</th>
+                        <th scope="col">Ciudad</th>
+                        <th scope="col">Tipo de Cliente</th>
+                        <!--th scope="col">Agregado en</th-->
+                        <th scope="col">Eliminar</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosbuscar">
+                    {% for i in clientes_excluidos %}
+                    <tr>
+                        <td>{{i.nombre_cliente}}  {{i.id}}</td>
+                        <td>{{i.identificacion_fiscal}}</td>
+                        <td>{{i.ciudad_principal}}</td>
+                        <td>{{i.client_type}}</td>
+                        <!--td>{{i.creado}}</td-->
+                        <td>
+
+
+                            <form method="POST" action="{% url 'contabilidad_eliminar_cliente_excluido' %}"> 
+                                {% csrf_token %}
+                                <input name="codigo_cliente" value="{{i.codigo_cliente}}" type="hidden" />
+                                <button class="btn btn-sm btn-danger" type="submit">
+                                    Eliminar
+                                </button>
+                            </form>
+
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $("#inputbuscar").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#pedidosbuscar tr").filter(function() {
+                $(this).toggle($(this).text()
+                .toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+
+    $(document).ready(function() {
+        $('#filter-hos-select2').select2();
+    })
+</script>
+{% endblock %}
