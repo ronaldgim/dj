@@ -104,7 +104,8 @@ class Producto(models.Model):
         managed = False
         verbose_name = 'Producto'
         verbose_name_plural = 'Productos'
-        app_label = 'gimpromed_sql'
+        # app_label = 'gimpromed_sql'
+        app_label = 'warehouse'
 
     # SOLO LECTURA
     def save(self, *args, **kwargs):
@@ -189,7 +190,8 @@ class Cliente(models.Model):
         managed = False  # CLAVE: Django no crea ni migra la tabla
         verbose_name = 'Cliente'
         verbose_name_plural = 'Clientes'
-        app_label = 'gimpromed_sql'
+        # app_label = 'gimpromed_sql'
+        app_label = 'warehouse'
 
     # SOLO LECTURA
     def save(self, *args, **kwargs):
@@ -266,7 +268,8 @@ class Reserva(models.Model):
         managed = False
         verbose_name = 'Reserva'
         verbose_name_plural = 'Reservas'
-        app_label = 'gimpromed_sql'
+        # app_label = 'gimpromed_sql'
+        app_label = 'warehouse'
 
     # SOLO LECTURA
     def save(self, *args, **kwargs):
@@ -417,7 +420,8 @@ class CuentasCobrar(models.Model):
         db_table = 'cuentas_cobrar'
         verbose_name = 'Cuenta por cobrar'
         verbose_name_plural = "Cuentas por cobrar"
-        app_label = 'gimpromed_sql'
+        # app_label = 'gimpromed_sql'
+        app_label = 'warehouse'
 
     # SOLO LECTURA
     def save(self, *args, **kwargs):
@@ -543,7 +547,8 @@ class Promocion(models.Model):
         db_table = 'promociones'
         verbose_name = 'Promoción'
         verbose_name_plural = 'Promociones'
-        app_label = 'precios'
+        # app_label = 'precios'
+        app_label = 'warehouse'
 
     def __str__(self):
         return f"{self.ref} - {self.detalle}"

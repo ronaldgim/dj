@@ -12,7 +12,7 @@
                 Cartera
             </a>
             <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                <li><a class="dropdown-item" href="{% url 'lista' %}">Cuentas por cobrar</a></li>
+                <li><a class="dropdown-item" href="{% url 'cuentas_por_cobrar' %}">Cuentas por cobrar</a></li>
             </ul>
             </li>
 
@@ -30,8 +30,8 @@
                 Notificaciones
             </a>
             <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                <li><a class="dropdown-item" href="{#% url 'items_list' %#}">Lista de notificaciones</a></li>
-                <li><a class="dropdown-item" href="{#% url 'anular_items_list' %#}">Nueva notificación</a></li>
+                <li><a class="dropdown-item" href="{% url 'lista_notificaciones' %}">Lista de notificaciones</a></li>
+                <li><a class="dropdown-item" href="{% url 'nueva_notificacion' %}">Nueva notificación</a></li>
             </ul>
             </li>
         </ul>

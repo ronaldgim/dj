@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block title %}
-<title>Etiquetado por pedido</title>
+<title>Clientes</title>
 {% endblock%}
 
 {% block navbar %}
@@ -70,7 +70,7 @@
                 <tbody id="pedidosbuscar">
                     {% for i in clientes_excluidos %}
                     <tr>
-                        <td>{{i.nombre_cliente}}  {{i.id}}</td>
+                        <td>{{i.nombre_cliente}}</td>
                         <td>{{i.identificacion_fiscal}}</td>
                         <td>{{i.ciudad_principal}}</td>
                         <td>{{i.client_type}}</td>

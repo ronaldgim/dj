@@ -7,9 +7,9 @@ from contabilidad import views
 urlpatterns = [
     
     path(
-        route = 'lista',
+        route = 'cuentas-por-cobrar',
         view = views.lista_cuentas_por_cobrar,
-        name = 'lista'
+        name = 'cuentas_por_cobrar'
     ),
     
     path(
@@ -28,5 +28,17 @@ urlpatterns = [
         route = 'contabilidad_eliminar_cliente_excluido',
         view = views.contabilidad_eliminar_cliente_excluido,
         name = 'contabilidad_eliminar_cliente_excluido'
+    ),
+    
+    path(
+        route = 'notificaciones',
+        view = views.lista_notificaciones,
+        name = 'lista_notificaciones'
+    ),
+    
+    path(
+        route = 'nueva-notificacion',
+        view = views.nueva_notificacion,
+        name = 'nueva_notificacion'
     ),
 ]
