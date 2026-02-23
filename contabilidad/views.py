@@ -1,15 +1,17 @@
 from django.shortcuts import render, redirect
 from warehouse.models import CuentasCobrar, Cliente
 from contabilidad.models import ClienteExcluido, NotificacionCartera
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_GET
 from django.contrib import messages
 from datetime import datetime
-from django.db.models.functions import Coalesce
-from django.db.models import Sum
-from django.db.models import Sum, Case, When, DecimalField, Value
+from django.http import JsonResponse
 from decimal import Decimal
 from django.template.loader import render_to_string
-
+from django.core.mail import EmailMultiAlternatives
+from django.conf import settings
+from contabilidad.forms import NotificacionCarteraForm
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
 
 # Create your views here.
 def lista_cuentas_por_cobrar(request):
@@ -101,7 +103,8 @@ def lista_notificaciones(request):
             'correos':i.correos,
             'errores':i.errores if i.errores else '-',
             'usuario': f'{i.usuario.first_name} {i.usuario.last_name}' if i.usuario else i.usuario_auto,
-            'fecha_hora': i.creado.strftime('%Y-%m-%d %H:%M')
+            'fecha_hora': i.creado.strftime('%Y-%m-%d %H:%M'),
+            # 'correo_text':i.correo_text
         })
     
     context = {
@@ -199,6 +202,7 @@ def cartera_vencida_por_cliente(codigo_cliente):
     }
 
 
+@require_GET
 def nueva_notificacion(request):
 
     # 1. Clientes excluidos (DB local)
@@ -230,10 +234,15 @@ def nueva_notificacion(request):
     if cli:
         
         correo_data = cartera_vencida_por_cliente(cli)
+        cliente = (
+            Cliente.objects
+            .using('gimpromed_sql')
+            .get(codigo_cliente=cli)
+        )
         
         # Agregar al context principal
         context.update({
-            # 'cliente_selected': cliente,
+            'cliente_selected': cliente,
             'correo_html': correo_data.get('correo_html'),
             **correo_data.get('email_context')
         })
@@ -241,5 +250,104 @@ def nueva_notificacion(request):
     return render(request, 'contabilidad/nueva_notificacion.html', context)
 
 
-def crear_correo_notificacion(codigo_cliente):
-    pass
+def obtener_lista_correos(correos_str, correos_extra=None):
+    """
+    Convierte un string de correos separados por coma en una lista válida,
+    limpia duplicados y agrega correos extra desde backend.
+    """
+
+    if not correos_str:
+        correos_str = ""
+
+    # Separar y limpiar
+    lista = [c.strip() for c in correos_str.split(",") if c.strip()]
+
+    # Agregar correos extra (backend)
+    if correos_extra:
+        lista.extend(correos_extra)
+
+    # Eliminar duplicados
+    lista = list(set(lista))
+
+    # Validar correos
+    correos_validos = []
+    correos_invalidos = []
+
+    for correo in lista:
+        try:
+            validate_email(correo)
+            correos_validos.append(correo)
+        except ValidationError:
+            correos_invalidos.append(correo)
+
+    if correos_invalidos:
+        raise ValidationError(f"Correos inválidos: {', '.join(correos_invalidos)}")
+
+    return correos_validos
+
+
+@require_POST
+def crear_notificacion(request):
+    if request.method == "POST":
+        form = NotificacionCarteraForm(request.POST)
+        
+        if form.is_valid():
+            notificacion = form.save(commit=False)
+            
+            # Asignar usuario desde backend (NO desde el form)
+            notificacion.usuario = request.user
+            
+            # Generar el correo en backend (NO confiar en hidden input)
+            codigo_cliente = form.cleaned_data['codigo_cliente']
+            notificacion.correo_text = cartera_vencida_por_cliente(codigo_cliente).get('correo_html')
+            
+            # # (opcional) usuario automático
+            # notificacion.usuario_auto = request.user.username
+            
+            # Correos
+            correos_input = form.cleaned_data['correos']
+            lista_correos = obtener_lista_correos(
+                correos_input,
+                # correos_extra=["erik.garces.11@gmail.com"]  # correo fijo
+            )
+            
+            notificacion.save()
+            
+            if notificacion.id:
+                
+                try:
+                    # CREAR CORREO
+                    correo = EmailMultiAlternatives(
+                        subject    = "Cartera vencida",
+                        from_email = settings.DEFAULT_FROM_EMAIL,
+                        to         = lista_correos,
+                        # cc         = ['dreyes@gimpromed.com']
+                    )
+                    correo.attach_alternative(notificacion.correo_text, "text/html")
+                    
+                    # ENVIAR
+                    correo.send(fail_silently=False)
+                    messages.success(request, 'Correo enviado correctamente !!!')
+                    return redirect('lista_notificaciones')
+                except Exception as e:
+                    notificacion.errores = str(e)
+                    notificacion.save()
+                    messages.error(request, f'Error al enviar el correo: {e}')
+                    
+                    return redirect('lista_notificaciones')
+    
+    return redirect('error_url')
+
+
+@require_GET
+def detalle_notificacion(request, id):
+    
+    notificacion = NotificacionCartera.objects.get(id=id)
+    cliente = Cliente.objects.using('gimpromed_sql').get(codigo_cliente=notificacion.codigo_cliente)
+    
+    context = {
+        'notificacion':notificacion,
+        'cliente':cliente
+    }
+    
+    return render(request, 'contabilidad/detalle_notificacion.html', context)

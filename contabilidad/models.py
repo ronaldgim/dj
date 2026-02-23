@@ -13,7 +13,7 @@ class ClienteExcluido(models.Model):
 
 class NotificacionCartera(models.Model):
     
-    codigo_cliente = models.CharField(max_length=20, unique=True)
+    codigo_cliente = models.CharField(max_length=20)
     correos        = models.TextField()
     errores        = models.TextField(blank=True)
     correo_text    = models.TextField()
