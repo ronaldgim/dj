@@ -87,7 +87,7 @@
 {% if correo_html %}
 <div class="card mb-4">
     <div class="card-body">
-        {{correo_html}}
+        {{correo_html | safe}}
     </div>
 </div>
 {% endif %}
