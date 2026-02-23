@@ -11,6 +11,12 @@
 {% block body %}
 <h5 class="m-4 text-center"><strong>LISTADO DE NOTIFICACIONES</strong></h5>
 
+<a href="{% url 'lista_notificaciones' %}" class="btn btn-primary mb-3">
+    Lista de notificaciones
+</a>
+
+<hr>
+
 {% if messages %}
     {% for message in messages %}
         {% if message.tags == 'success'%}
@@ -49,13 +55,42 @@
 
 <hr>
 
-{#{cliente_selected}#}
+{% comment %}
+<form method="POST" action="{% url 'crear_notificacion' %}" class="mt-2 mb-4">
+    {% csrf_token %}
+    
+    <input type="hidden" name="codigo_cliente" value="{{ cliente_selected.codigo_cliente }}" />
+    
+    <div class="row mb-2 align-items-center">
+        <label class="fw-bold col-2">Correos de cliente:</label>
 
+        <div class="col-10">
+            <input 
+                type="text" 
+                name="correos" 
+                value="{{ cliente_selected.email }}" 
+                class="form-control"
+                required
+            />
+        </div>
+    </div>
+    
+    <button type="submit" class="btn btn-success mt-2">
+        Enviar Correo
+    </button>
+</form>
+
+<hr>
+
+{% endcomment %}
+
+{% if correo_html %}
 <div class="card mb-4">
     <div class="card-body">
         {{correo_html}}
     </div>
 </div>
+{% endif %}
 
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
@@ -63,4 +98,23 @@
         $('#filter-hos-select2').select2();
     })
 </script>
+
+{% comment %} <script>
+    document.querySelector("form").addEventListener("submit", function(e) {
+        const input = document.querySelector("input[name='correos']");
+        const emails = input.value.split(",");
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        for (let email of emails) {
+            email = email.trim();
+            if (!emailRegex.test(email)) {
+                e.preventDefault();
+                alert("Correo inválido: " + email);
+                return;
+            }
+        }
+    });
+</script> {% endcomment %}
+
 {% endblock %}

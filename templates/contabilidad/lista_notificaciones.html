@@ -25,6 +25,11 @@
     {% endfor %}
 {% endif %}
 
+<a href="{% url 'nueva_notificacion' %}" class="btn btn-primary mb-3">
+    + Nueva Notificación
+</a>
+
+
 <div class="col-4">
     <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
 </div>
@@ -45,7 +50,7 @@
                     </tr>
                 </thead>
                 <tbody id="pedidosbuscar">
-                    {% for i in clientes_excluidos %}
+                    {% for i in notificaciones %}
                     <tr>
                         <td>{{i.cliente}}</td>
                         <td>{{i.ruc}}</td>
@@ -53,7 +58,11 @@
                         <td>{{i.usuario}}</td>
                         <td>{{i.correos}}</td>
                         <td>{{i.errores}}</td>
-                        <td>BTN</td>
+                        <td>
+                            <a href="{% url 'detalle_notificacion' i.id %}" class="btn btn-primary btn-sm">
+                                Detalle
+                            </a>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>

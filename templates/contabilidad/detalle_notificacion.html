@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}
+<title>Etiquetado por pedido</title>
+{% endblock%}
+
+{% block navbar %}
+{% include 'contabilidad/topnavbar.html' %}
+{% endblock %}
+
+{% block body %}
+<h5 class="m-4 text-center"><strong>NOTIFICACION A {{cliente.nombre_cliente}}</strong></h5>
+
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == 'success'%}
+        <div class="alert text-center alert-success" role="alert">
+            {{message}}
+        </div>
+        {% elif message.tags == 'error'%}
+        <div class="alert text-center alert-danger" role="alert">
+            {{message}}
+        </div>
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
+
+<h6><strong>Detalle de la notificación</strong></h6>
+<div class="card mb-4">
+    <div class="card-body">
+        <span class="fw-bold">Cliente:</span> {{cliente.nombre_cliente}} <br>
+        <span class="fw-bold">Correos:</span> {{notificacion.correos}} <br>
+        <span class="fw-bold">Enviado por:</span> {{notificacion.usuario.first_name}} {{notificacion.usuario.last_name}} <br>
+        <span class="fw-bold">Fecha y hora de envío:</span> {{notificacion.creado}} <br>
+        {% if notificacion.errores %}
+        <span class="fw-bold">Error:</span> {{notificacion.errores}}
+        {% endif %}
+    </div>
+</div>
+
+<h6><strong>Correo enviado:</strong></h6>
+<div class="card mb-4">
+    <div class="card-body">
+        {{notificacion.correo_text | safe}}
+    </div>
+</div>
+
+{% endblock %}

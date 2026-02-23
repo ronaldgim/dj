@@ -41,4 +41,16 @@ urlpatterns = [
         view = views.nueva_notificacion,
         name = 'nueva_notificacion'
     ),
+    
+    path(
+        route = 'crear-notificacion',
+        view = views.crear_notificacion,
+        name = 'crear_notificacion'
+    ),
+    
+    path(
+        route = 'detalle-notificacion/<int:id>',
+        view = views.detalle_notificacion,
+        name = 'detalle_notificacion'
+    ),
 ]
