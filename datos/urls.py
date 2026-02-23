@@ -101,7 +101,6 @@ urlpatterns = [
     ),
 
     # CRON ENDPOINTS
-    path('cron/tablas-criticas/', views.cron_tablas_criticas, name='cron_tablas_criticas'),
-    path('cron/tablas-moderadas/', views.cron_tablas_moderadas, name='cron_tablas_moderadas'),
+    path('cron/tablas-warehouse/', views.cron_tablas_warehouse, name='cron_tablas_warehouse'),
     path('cron/tablas-baja-frecuencia/', views.cron_tablas_baja_frecuencia, name='cron_tablas_baja_frecuencia'),
 ]

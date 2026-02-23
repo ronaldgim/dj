@@ -709,8 +709,8 @@ def admin_actualizar_warehouse_view(request):
 # CRON ENDPOINTS - Llamar con curl desde crontab
 # ============================================
 @csrf_exempt
-def cron_tablas_criticas(request):
-    """Cada 15 min: reservas, stock_lote, pedidos, mis_reservas, reservas_lote, reservas_lote_2"""
+def cron_tablas_warehouse(request):
+    """Cada 5 min: todas las tablas del warehouse"""
     resultados = []
     funciones = [
         ('reservas', api_actualizar_reservas_warehouse),
@@ -719,22 +719,6 @@ def cron_tablas_criticas(request):
         ('mis_reservas', api_actualizar_mis_reservas_etiquetado),
         ('reservas_lote', api_actualizar_reservas_lotes_warehouse),
         ('reservas_lote_2', api_actualizar_reservas_lotes_2_warehouse),
-    ]
-    for nombre, funcion in funciones:
-        try:
-            funcion()
-            resultados.append(f'{nombre}: ok')
-        except Exception as e:
-            resultados.append(f'{nombre}: error - {str(e)}')
-        time.sleep(3)
-    return JsonResponse({'status': 'ok', 'resultados': resultados})
-
-
-@csrf_exempt
-def cron_tablas_moderadas(request):
-    """Cada 30 min: facturas, productos_transito, proformas, etiquetado, error_lote, notificaciones"""
-    resultados = []
-    funciones = [
         ('facturas', api_actualizar_facturas_warehouse),
         ('productos_transito', api_actualizar_producto_transito_warehouse),
         ('proformas', api_actualizar_proformas_warehouse),
