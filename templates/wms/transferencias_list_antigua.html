@@ -34,15 +34,6 @@
 
 <div id="msg"></div>
 
-<form method="GET" class="d-flex gap-2 col-12 col-md-6">
-    <input class="form-control" type="text" name="search" placeholder="Buscar..." style="min-width: 200px;">
-    <button type="submit" class="btn btn-primary flex-shrink-0">Buscar</button>
-</form>
-
-<a href="{% url 'wms_transferencias_list' %}" class="btn btn-secondary mt-2 mb-2">
-    Limpiar búsqueda
-</a>
-
 <div class="card mb-2">
     <div class="card-body m-0 p-0">
         <div class="container table-responsive">
@@ -90,33 +81,6 @@
             </table>
         </div>
     </div>
-</div>
-
-<div class="mt-2 mb-4">
-    {% if is_paginated %}
-
-        <!-- Botón anterior -->
-        {% if page_obj.has_previous %}
-        <a class="btn btn-sm btn-outline-dark"
-            href="?page={{ page_obj.previous_page_number }}&transf_mba={{ request.GET.transf_mba }}">
-            <i class="bi bi-caret-left"></i>
-        </a>
-        {% endif %}
-
-        <!-- Página actual -->
-        <span class="pt-2 mt-4">
-        Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
-        </span>
-
-        <!-- Botón siguiente -->
-        {% if page_obj.has_next %}
-        <a class="btn btn-sm btn-outline-dark"
-            href="?page={{ page_obj.next_page_number }}&transf_mba={{ request.GET.transf_mba }}">
-            <i class="bi bi-caret-right"></i>
-        </a>
-        {% endif %}
-
-    {% endif %}
 </div>
 
 

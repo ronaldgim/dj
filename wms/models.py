@@ -235,6 +235,11 @@ class TransferenciaStatus(models.Model):
     
     def __str__(self):
         return self.estado
+    
+    @property
+    def enum(self):
+        return f'{self.id:05d}'
+
 
 class LiberacionCuarentena(models.Model):
     doc_id = models.CharField(max_length=255)
