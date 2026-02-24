@@ -363,9 +363,15 @@ urlpatterns = [
         name = 'wms_transferencia_pdf'
     ),
     
+    # path(
+    #     route='transferencias/list',
+    #     view = views.wms_transferencias_list,
+    #     name = 'wms_transferencias_list'
+    # ),
+    
     path(
-        route='transferencias/list',
-        view = views.wms_transferencias_list,
+        route='transferencias-list',
+        view = views.TransferenciaStatusListView.as_view(),
         name = 'wms_transferencias_list'
     ),
     

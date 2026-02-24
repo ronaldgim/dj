@@ -140,6 +140,10 @@ from datos.views import (
     frecuancia_ventas
     )
 
+from django.views.generic import ListView
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.utils.decorators import method_decorator
+
 """
     LISTAS DE INGRESOS
     - LISTA DE IMPORTACIONES
@@ -3718,44 +3722,70 @@ def wms_transferencia_input_ajax(request):
     })
 
 
-@login_required(login_url='login')
-@permisos(['BODEGA', 'OPERACIONES'], '/wms/home', 'ingresar a lista de transferencias')
-def wms_transferencias_list(request):
+# @login_required(login_url='login')
+# @permisos(['BODEGA', 'OPERACIONES'], '/wms/home', 'ingresar a lista de transferencias')
+# def wms_transferencias_list(request):
     
-    # transferencia_wms = (
-    #     Transferencia.objects
-    #     .filter(Q(bodega_salida='BCT') | Q(bodega_salida='CUC'))
-    #     .values('n_transferencia') 
-    #     .annotate(
-    #         estado=Subquery(
-    #             TransferenciaStatus.objects.filter(
-    #                 n_transferencia=OuterRef('n_transferencia')
-    #             )
-    #             #.order_by('-fecha_hora')  # si tienes fecha
-    #             .values('estado')[:1]
-    #         )
-    #     )
-    #     .order_by('-n_transferencia')
-    # ).distinct() # -> distinc fuera de queryset
+#     transferencias_wms = (
+#         TransferenciaStatus.objects.all()
+#         .annotate(
+#             fecha_hora = Subquery(
+#                 Transferencia.objects.filter(
+#                     n_transferencia = OuterRef('n_transferencia')
+#                 )
+#                 .values('fecha_hora')[:1]
+#             )
+#         )
+#         .order_by('-n_transferencia')
+#     )
     
-    transferencias_wms = (
-        TransferenciaStatus.objects.all()
-        .annotate(
-            fecha_hora = Subquery(
-                Transferencia.objects.filter(
-                    n_transferencia = OuterRef('n_transferencia')
+#     context = {
+#         'transf_wms': transferencias_wms 
+#     }
+
+#     return render(request, 'wms/transferencias_list_antigua.html', context)
+
+
+@method_decorator(
+    permisos(['BODEGA', 'OPERACIONES'], '/wms/home', 'ingresar a lista de transferencias'),
+    name='dispatch'
+)
+class TransferenciaStatusListView(LoginRequiredMixin, ListView):
+    template_name = 'wms/transferencias_list.html'
+    paginate_by = 10
+    context_object_name = 'transf_wms'
+    ordering = '-id'
+    login_url = 'login'
+    
+    def get_queryset(self):
+        queryset = (
+            TransferenciaStatus.objects.all()
+            .annotate(
+                fecha_hora = Subquery(
+                    Transferencia.objects.filter(
+                        n_transferencia = OuterRef('n_transferencia')
+                    )
+                    .values('fecha_hora')[:1]
                 )
-                .values('fecha_hora')[:1]
             )
         )
-        .order_by('-n_transferencia')
-    )
-    
-    context = {
-        'transf_wms': transferencias_wms #transf_wms
-    }
 
-    return render(request, 'wms/transferencias_list.html', context)
+        # búsqueda global
+        search = self.request.GET.get('search', '').strip()
+
+        if search:
+            q = (
+                Q(n_transferencia__icontains=search) |
+                Q(estado__icontains=search)
+            )
+
+            # si es número, incluir búsqueda por id
+            if search.isdigit():
+                q |= Q(id=int(search))
+
+            queryset = queryset.filter(q)
+
+        return queryset.order_by('-id')
 
 
 @login_required(login_url='login')
