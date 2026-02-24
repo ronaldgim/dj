@@ -32,7 +32,7 @@ from metro.models import Product, Inventario, TomaFisica, Kardex, Cotizacion
 from metro.forms import ProductForm, InventarioForm, TomaFisicaForm, KardexForm 
 
 # procesar archivo metro
-from metro.procesar_pedido_metro import ini #, mycursor, mycursor_web
+from metro.procesar_pedido_metro import ini, aplicar_estilos #, mycursor, mycursor_web
 
 
 ### PRODUCTOS

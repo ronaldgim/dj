@@ -1029,6 +1029,7 @@ def obtener_ventas_porcliente_warehouse(codigo_cliente, desde, hasta):
                 ON p.Codigo = vf.PRODUCT_ID
             WHERE vf.CODIGO_CLIENTE = %s
                 AND vf.FECHA BETWEEN %s AND %s
+            ORDER BY vf.FECHA DESC
         """
 
         with connections['gimpromed_sql'].cursor() as cursor:
