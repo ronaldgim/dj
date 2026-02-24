@@ -2,6 +2,7 @@
 import json
 import datetime
 import pandas as pd
+from xlsxwriter.utility import xl_col_to_name
 from decimal import Decimal, InvalidOperation
 from io import BytesIO
 from django.core.files.base import ContentFile
@@ -934,29 +935,136 @@ def upload_cotizacion(request):
 #         return Decimal('0')
 
 
-def guardar_dataframe_como_excel(cotizacion, dataframe):
-    """
-    Recibe un DataFrame y lo guarda como archivo Excel
-    en el campo archivo_procesado del modelo Cotizacion
-    """
+# def guardar_dataframe_como_excel(cotizacion, dataframe):
+#     """
+#     Recibe un DataFrame y lo guarda como archivo Excel
+#     en el campo archivo_procesado del modelo Cotizacion
+#     """
 
-    # 1 Crear Excel en memoria
+#     # 1 Crear Excel en memoria
+#     output = BytesIO()
+
+#     with pd.ExcelWriter(output, engine='openpyxl') as writer:
+#         dataframe.to_excel(
+#             writer,
+#             index=False,
+#             sheet_name='Procesado'
+#         )
+
+#     output.seek(0)
+
+#     # 2 Nombre del archivo
+#     fecha = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+#     filename = f"{cotizacion.codigo}_procesado_{fecha}.xlsx"
+
+#     # 3 Guardar en el FileField
+#     cotizacion.archivo_procesado.save(
+#         filename,
+#         ContentFile(output.read()),
+#         save=True
+#     )
+
+#     return cotizacion.archivo_procesado.url
+
+
+def guardar_dataframe_como_excel(cotizacion, dataframe):
+
     output = BytesIO()
 
-    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+    # 🔥 Cambiamos a xlsxwriter
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
         dataframe.to_excel(
             writer,
             index=False,
             sheet_name='Procesado'
         )
 
+        workbook = writer.book
+        worksheet = writer.sheets['Procesado']
+
+        # =============================
+        # 🎨 FORMATOS
+        # =============================
+        header_format = workbook.add_format({
+            'bold': True,
+            'border': 1,
+            'fg_color': '#D7E4BC'
+        })
+
+        yellow_format = workbook.add_format({'bg_color': '#FFEB9C'})
+        red_format = workbook.add_format({'bg_color': '#FFC7CE'})
+
+        # =============================
+        # 📊 HEADERS + WIDTH
+        # =============================
+        for col_num, column in enumerate(dataframe.columns):
+            worksheet.write(0, col_num, column, header_format)
+
+            column_width = max(
+                dataframe[column].astype(str).map(len).max(),
+                len(str(column))
+            )
+            worksheet.set_column(col_num, col_num, column_width + 2)
+
+        # =============================
+        # 🔍 COLUMNAS
+        # =============================
+        col_idx = {col: i for i, col in enumerate(dataframe.columns)}
+
+        col_reserva_metro = xl_col_to_name(col_idx['reserva_metro'])
+        col_reserva_gim = xl_col_to_name(col_idx['reserva_gim'])
+        col_cantidad = xl_col_to_name(col_idx['cantidad'])
+        col_disponible = xl_col_to_name(col_idx['disponible_ban'])
+
+        last_row = len(dataframe)
+
+        # =============================
+        # 🟡 reserva_metro != 0
+        # =============================
+        worksheet.conditional_format(
+            1, col_idx['reserva_metro'],
+            last_row, col_idx['reserva_metro'],
+            {
+                'type': 'formula',
+                'criteria': f'=${col_reserva_metro}2<>0',
+                'format': yellow_format
+            }
+        )
+
+        # =============================
+        # 🟡 reserva_gim != 0
+        # =============================
+        worksheet.conditional_format(
+            1, col_idx['reserva_gim'],
+            last_row, col_idx['reserva_gim'],
+            {
+                'type': 'formula',
+                'criteria': f'=${col_reserva_gim}2<>0',
+                'format': yellow_format
+            }
+        )
+
+        # =============================
+        # 🔴 cantidad > disponible_ban
+        # =============================
+        worksheet.conditional_format(
+            1, col_idx['disponible_ban'],
+            last_row, col_idx['disponible_ban'],
+            {
+                'type': 'formula',
+                'criteria': f'=${col_cantidad}2>${col_disponible}2',
+                'format': red_format
+            }
+        )
+
     output.seek(0)
 
-    # 2 Nombre del archivo
+    # =============================
+    # 💾 GUARDAR EN DJANGO
+    # =============================
     fecha = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"{cotizacion.codigo}_procesado_{fecha}.xlsx"
 
-    # 3 Guardar en el FileField
     cotizacion.archivo_procesado.save(
         filename,
         ContentFile(output.read()),

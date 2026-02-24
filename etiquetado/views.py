@@ -4187,7 +4187,7 @@ def send_transferencia(request):
             buffer.seek(0)
             excel_data = buffer.getvalue()            
             email = EmailMessage(
-                subject='TRANSFERENCIA CEREZOS-ANDAGOYA',
+                subject='TRANSFERENCIA CEREZOS -> ANDAGOYA',
                 body=f"""
 Transferencia de Cerezos-Andagoya.
 
