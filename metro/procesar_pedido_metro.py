@@ -323,6 +323,4 @@ def ini(archivo) -> pd.DataFrame:
         result_df['Total'], errors='coerce'
     ).sum()
     
-    #styled_df = result_df.style.apply(aplicar_estilos, axis=None)
-    #return styled_df    
     return result_df
