@@ -4,6 +4,11 @@ from django.db import models
 # Usuario
 from users.models import User
 
+# models datos
+from datos.models import Vehiculos
+
+# models warehouse
+from warehouse.models import Producto
 
 
 # Selects
@@ -224,11 +229,13 @@ class Transferencia(models.Model):
         
 class TransferenciaStatus(models.Model):
     
-    n_transferencia = models.CharField(verbose_name='Número de trasferencia', max_length=50, unique=True)
+    n_transferencia = models.CharField(verbose_name='Número de trasferencia', max_length=50, unique=True, blank=True, null=True)
     unidades_mba    = models.PositiveIntegerField(verbose_name='Unidades mba', default=0)
     unidades_wms    = models.PositiveIntegerField(verbose_name='Unidades wms', default=0)
     avance          = models.FloatField(verbose_name='Avance', default=0.0)
     estado          = models.CharField(verbose_name='Estado', max_length=20)
+    excel           = models.FileField(upload_to="transf_excel/", null=True, blank=True)
+    camion          = models.ForeignKey(Vehiculos, blank=True, null=True, on_delete=models.DO_NOTHING)
     creado          = models.DateTimeField(null=True, blank=True, auto_now_add=True)
     en_proceso      = models.DateTimeField(null=True, blank=True)
     finalizado      = models.DateTimeField(null=True, blank=True)
@@ -239,6 +246,46 @@ class TransferenciaStatus(models.Model):
     @property
     def enum(self):
         return f'{self.id:05d}'
+    
+    @property
+    def n_items(self):
+        productos = Transferencia.objects.filter(n_transferencia=self.n_transferencia)
+        if productos.exists():
+            return len(set(productos.values_list('product_id', flat=True)))
+        return '-'
+    
+    @property
+    def volumen(self):
+        transf = list(
+            Transferencia.objects.filter(
+                n_transferencia=self.n_transferencia
+            ).values('product_id', 'unidades')
+        )
+
+        if not transf:
+            return 0
+
+        product_ids = [t['product_id'] for t in transf]
+
+        productos = Producto.objects.using('gimpromed_sql').filter(
+            codigo__in=product_ids
+        ).values('codigo', 'unidad_empaque', 'volumen')
+
+        productos_dict = {p['codigo']: p for p in productos}
+
+        total_volumen = 0
+
+        for t in transf:
+            p = productos_dict.get(t['product_id'])
+
+            if not p or not p['unidad_empaque']:
+                continue
+
+            cartones = t['unidades'] / p['unidad_empaque']
+            volumen = cartones * (p['volumen'] / 1_000_000)
+            total_volumen += volumen
+
+        return round(total_volumen, 2)
 
 
 class LiberacionCuarentena(models.Model):

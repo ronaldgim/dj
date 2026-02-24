@@ -4209,6 +4209,14 @@ Nota: {nota}
             email.attach(nombre, excel_data, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
             email.send(fail_silently=False)
             
+            # TransferenciaStatus.objects.create(
+            #     n_transferencia = '-',
+            #     estado          = 'CREADO',
+            #     unidades_mba    = 0,
+            #     unidades_wms    = 0,
+            #     avance          = 0.0
+            # )
+            
             return JsonResponse({
                 'success':True
             })

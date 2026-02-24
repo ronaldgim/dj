@@ -51,7 +51,11 @@
                     <tr>
                         <th scope="col"># Transferencia WMS</th>
                         <th scope="col"># Transferencia MBA</th>
-                        <th scope="col">Fecha</th>
+                        <th scope="col">Análisis Trans</th>
+                        <th scope="col">Camión</th>
+                        <th scope="col"># Items</th>
+                        <th scope="col">Volumen</th>                        
+                        <th scope="col">Creado</th>
                         <th scope="col">Estado</th>
                         <th scope="col">Ver Transferencia</th>
                     </tr>
@@ -61,8 +65,24 @@
                     <tr>
                         <td>{{i.enum}}</td>
                         <td>{{i.n_transferencia}}</td>
-                        <td>{{i.fecha_hora}}</td>
-
+                        <td>
+                            {% if i.excel %}
+                            <a 
+                                href="{{i.excel.url}}" 
+                                target="_blank" 
+                                class="btn btn-success btn-sm"
+                                title="Descargar Excel"
+                            >
+                            <i class="bi bi-file-earmark-spreadsheet"></i>
+                            </a>
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                        <td>{{i.camion | default:"-"}}</td>
+                        <td class="text-end">{{i.n_items}}</td>
+                        <td class="text-end">{{i.volumen | floatformat:"2g"}} m<sup>3</sup></td>                        
+                        <td>{{i.fecha_hora | date:"Y-m-d H:i"}}</td>
                         <td>
                             {% if i.estado == 'CREADO' %}
                             <span class="badge bg-primary rounded-pill text-wrap fs-6">{{i.estado}}</span>
