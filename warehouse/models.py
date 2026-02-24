@@ -116,6 +116,13 @@ class Producto(models.Model):
 
     def __str__(self):
         return f"{self.codigo} - {self.nombre}"
+    
+    @property
+    def volumen_m3(self):
+        if not self.volumen:
+            return 0
+        
+        return self.volumen / 1_000_000
 
 
 class Cliente(models.Model):
