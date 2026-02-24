@@ -170,6 +170,27 @@ import pandas as pd
 from django.db import connections
 
 
+def aplicar_estilos(df):
+    estilos = pd.DataFrame("", index=df.index, columns=df.columns)
+
+    # Amarillo → reserva_metro != 0
+    check_reserva = pd.to_numeric(df["reserva_metro"], errors="coerce").fillna(0) != 0
+    estilos.loc[check_reserva, "reserva_metro"] = "background-color: #FFEB9C"
+
+    # Amarillo → reserva_gim != 0
+    check_reserva_gim = pd.to_numeric(df["reserva_gim"], errors="coerce").fillna(0) != 0
+    estilos.loc[check_reserva_gim, "reserva_gim"] = "background-color: #FFEB9C"
+
+    # Rojo → cantidad > disponible_ban
+    qty = pd.to_numeric(df["cantidad"], errors="coerce").fillna(0)
+    disp = pd.to_numeric(df["disponible_ban"], errors="coerce").fillna(0)
+
+    check_stock = qty > disp
+    estilos.loc[check_stock, "disponible_ban"] = "background-color: #FFC7CE"
+
+    return estilos
+
+
 def ini(archivo) -> pd.DataFrame:
     rows_out = []
 
@@ -301,5 +322,7 @@ def ini(archivo) -> pd.DataFrame:
     result_df.loc['TOTAL', 'Total'] = pd.to_numeric(
         result_df['Total'], errors='coerce'
     ).sum()
-
+    
+    #styled_df = result_df.style.apply(aplicar_estilos, axis=None)
+    #return styled_df    
     return result_df
