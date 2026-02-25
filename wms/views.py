@@ -3661,52 +3661,39 @@ def wms_transferencia_correo(n_transferencia):
 
 
 # Agregar transferencia para realizar picking de transferencia 
-# @login_required(login_url='login')
-# def wms_transferencia_input_ajax(request):
-def wms_transferencia_add_func(n_trasf, camion_id):
+def wms_transferencia_add_func(n_transf, camion_id=None, transf_id=None):
     
-    # n_trasf = request.POST['n_trasf']
-    # camion  = request.POST['camion_id']
-    trans_mba = transferencias_mba(n_trasf)
-    
-    if trans_mba.empty:
+    transf_mba = transferencias_mba(n_transf)
+
+    if transf_mba.empty:
         return {
                 'success':False,
-                'msg': f'La Transferencia {n_trasf} no existe !!!'
+                'msg': f'La Transferencia {n_transf} no existe !!!'
             }  
-        # return JsonResponse({
-        #     'msg':f'La Transferencia {n_trasf} no existe !!!',
-        #     'alert':'danger'
-        # })
     
-    if Transferencia.objects.filter(n_transferencia=n_trasf).exists():
+    if Transferencia.objects.filter(n_transferencia=n_transf).exists():
         return {
             'success':False,
-            'msg':f'La Transferencia {n_trasf} ya fue añadida anteriormente !!!',
+            'msg':f'La Transferencia {n_transf} ya fue añadida anteriormente !!!',
             }
-        # return JsonResponse({
-        #     'msg':f'La Transferencia {n_trasf} ya fue añadida anteriormente !!!',
-        #     'alert':'danger'
-        # })
 
-    trans_mba['f_cadu'] = trans_mba['f_cadu'].astype('str')
-    trans_mba['f_elab'] = trans_mba['f_elab'].astype('str')
+    transf_mba['f_cadu'] = transf_mba['f_cadu'].astype('str')
+    transf_mba['f_elab'] = transf_mba['f_elab'].astype('str')
     
-    trans_mba = de_dataframe_a_template(trans_mba)
+    transf_mba = de_dataframe_a_template(transf_mba)
 
     tr_list = []
-    for i in trans_mba:
+    for i in transf_mba:
         tr = Transferencia(
-            doc_gimp        = i['doc'],
-            n_transferencia = i['n_transferencia'],
-            product_id      = i['product_id'],
-            lote_id         = i['lote_id'],
+            doc_gimp          = i['doc'],
+            n_transferencia   = i['n_transferencia'],
+            product_id        = i['product_id'],
+            lote_id           = i['lote_id'],
             fecha_elaboracion = i['f_elab'],
-            fecha_caducidad = i['f_cadu'],
-            bodega_salida   = i['bodega_salida'],
-            unidades        = i['unidades'],
-            ubicacion       = i['ubicacion']
-            
+            fecha_caducidad   = i['f_cadu'],
+            bodega_salida     = i['bodega_salida'],
+            unidades          = i['unidades'],
+            ubicacion         = i['ubicacion']
         )
 
         tr_list.append(tr)
@@ -3715,21 +3702,22 @@ def wms_transferencia_add_func(n_trasf, camion_id):
     
     if len(tr_list) > 0 and tr.bodega_salida == 'BCT' or tr.bodega_salida == 'CUC':
         TransferenciaStatus.objects.create(
-            n_transferencia = n_trasf,
+            n_transferencia = n_transf,
             estado          = 'CREADO',
             unidades_mba    = 0,
             unidades_wms    = 0,
             avance          = 0.0,
-            camion          = Vehiculos.objects.get(id=camion_id)
+            camion          = Vehiculos.objects.get(id=camion_id) if camion_id else None
         )
     
-    # return JsonResponse({
-    #     'msg':f'La Transferencia {n_trasf} fue añadida exitosamente !!!',
-    #     'alert':'success'
-    # })
+    if transf_id:
+        tr_st = TransferenciaStatus.objects.get(id=transf_id)
+        tr_st.n_transferencia = n_transf
+        tr_st.save()
+        
     return {
         'success':True,
-        'msg': f'La Transferencia {n_trasf} fue añadida exitosamente !!!',
+        'msg': f'La Transferencia {n_transf} fue añadida exitosamente !!!',
     }
 
 
@@ -3737,10 +3725,10 @@ def wms_transferencia_add_func(n_trasf, camion_id):
 @login_required(login_url='login')
 def wms_agregar_transferencia(request):
     
-    n_trasf = request.POST['n_trasf']
+    n_transf = request.POST['n_transf']
     camion  = request.POST['camion']
     
-    tr = wms_transferencia_add_func(n_trasf, camion)
+    tr = wms_transferencia_add_func(n_transf = n_transf, camion_id=camion)
     
     if not tr.get('success', False):
         messages.error(request, tr.get('msg', ''))
@@ -3749,6 +3737,25 @@ def wms_agregar_transferencia(request):
         messages.error(request, tr.get('msg', ''))
     
     return redirect('wms_transferencias_list')
+
+
+@require_POST
+@login_required(login_url='login')
+def wms_actualizar_tranferencia_data_products(request):
+    
+    transf_id = request.POST['transf_id']
+    n_transf = request.POST['n_transf']
+    
+    tr = wms_transferencia_add_func(n_transf=n_transf, transf_id=transf_id)
+    
+    if not tr.get('success', False):
+        messages.error(request, tr.get('msg', ''))
+    
+    if tr.get('success', True):
+        messages.error(request, tr.get('msg', ''))
+    
+    return redirect('wms_transferencias_list')
+
 
 
 # @login_required(login_url='login')

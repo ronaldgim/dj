@@ -760,7 +760,11 @@ def cron_tablas_baja_frecuencia(request):
 ### UTILS
 def transferencias_mba(n_transf):
     
-    n_transf_str = f'{int(n_transf):010d}' 
+    try:
+        n_transf_str = f'{int(n_transf):010d}' 
+    except:
+        return pd.DataFrame()
+    
     n = 'A-' + n_transf_str + '-GIMPR' 
     
     data = api_mba_sql(
@@ -790,7 +794,6 @@ def transferencias_mba(n_transf):
         """
     )
     
-    print(data)
     if data['status'] == 200 and data['data']:
         
         transf_list = []
@@ -808,11 +811,10 @@ def transferencias_mba(n_transf):
                 }
             
             transf_list.append(row)
-        transf_df = pd.DataFrame(transf_list) ;print(transf_df)
+        transf_df = pd.DataFrame(transf_list) 
         transf_df['lote_id'] = transf_df['lote_id'].str.replace('.', '')
         transf_df = transf_df.groupby(by=['doc','n_transferencia','product_id','lote_id','f_elab','f_cadu','bodega_salida','ubicacion'])['unidades'].sum().reset_index()
         return transf_df
-    
     else:
         return pd.DataFrame()
 

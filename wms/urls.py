@@ -364,6 +364,12 @@ urlpatterns = [
     ),
     
     path(
+        route='wms-actualizar-tranferencia-data-products',
+        view = views.wms_actualizar_tranferencia_data_products,
+        name = 'wms_actualizar_tranferencia_data_products'
+    ),
+    
+    path(
         route='wms_transferencia_pdf/<str:n_transferencia>',
         view = views.wms_transferencia_pdf,
         name = 'wms_transferencia_pdf'
