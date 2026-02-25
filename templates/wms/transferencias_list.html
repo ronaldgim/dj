@@ -1,4 +1,4 @@
-{%extends 'base.html' %}
+{% extends 'base.html' %}
 
 {% block title %}
 <title>Trasferencias</title>
@@ -11,12 +11,6 @@
 {% block body %}
 
 <h5 class="m-4 fw-bold text-center">TRANSFERENCIAS</h5>
-
-<div class="input-group mb-3">
-    <input type="text" class="form-control" placeholder="Ingrese en número de trasferencia" id="n_trasf" required>
-    <button name="trasferencia" class="btn btn-primary" type="submit">Añadir Transferencia</button>
-</div>
-
 
 {% if messages %}
     {% for message in messages %}
@@ -33,6 +27,40 @@
 {% endif %}
 
 <div id="msg"></div>
+
+
+<button name="modal" data-bs-toggle="modal" data-bs-target="#staticBackdrop" class="btn btn-primary">
+    + Añadir Transferencia
+</button>
+
+{% comment %} <div class="row">
+    <div class="col-12 col-md-6">
+        <div class="d-flex gap-2">
+            <input 
+                type="text" 
+                class="form-control flex-grow-1" 
+                placeholder="Número de transferencia" 
+                id="n_trasf" 
+                required
+            >
+            <select>
+                <option value="" disabled selected>Seleecione vehículo</option>
+                {% for i in camiones %}
+                <option value="i.id">{{i.placa}}</option>
+                {% endfor %}
+            </select> 
+            <button 
+                name="transferencia" 
+                class="btn btn-primary text-nowrap" 
+                type="submit"
+            >
+                Añadir Transferencia
+            </button>
+        </div>
+    </div>
+</div> {% endcomment %}
+
+<hr>
 
 <form method="GET" class="d-flex gap-2 col-12 col-md-6">
     <input class="form-control" type="text" name="search" placeholder="Buscar..." style="min-width: 200px;">
@@ -118,7 +146,7 @@
         <!-- Botón anterior -->
         {% if page_obj.has_previous %}
         <a class="btn btn-sm btn-outline-dark"
-            href="?page={{ page_obj.previous_page_number }}&transf_mba={{ request.GET.transf_mba }}">
+            href="?page={{ page_obj.previous_page_number }}&search={{ request.GET.search }}">
             <i class="bi bi-caret-left"></i>
         </a>
         {% endif %}
@@ -131,7 +159,7 @@
         <!-- Botón siguiente -->
         {% if page_obj.has_next %}
         <a class="btn btn-sm btn-outline-dark"
-            href="?page={{ page_obj.next_page_number }}&transf_mba={{ request.GET.transf_mba }}">
+            href="?page={{ page_obj.next_page_number }}&search={{ request.GET.search }}">
             <i class="bi bi-caret-right"></i>
         </a>
         {% endif %}
@@ -140,17 +168,70 @@
 </div>
 
 
-<script>
+
+<!-- Modal -->
+<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+
+
+            <div class="modal-header mb-2">
+                <h5 class="modal-title fw-bold" id="staticBackdropLabel">Añadir Transferencia</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+            
+            <form method="POST" action="{% url 'wms_agregar_transferencia' %}" class="d-flex flex-wrap gap-2">
+                {% csrf_token %}
+
+                <input 
+                    type="text" 
+                    class="form-control flex-grow-1" 
+                    placeholder="Número de transferencia" 
+                    name="n_trasf" 
+                    required
+                >
+
+                <select name="camion" class="form-select" required style="min-width: 200px;">
+                    <option value="" disabled selected>Seleccione vehículo</option>
+                    {% for i in camiones %}
+                        <option value="{{ i.id }}">{{ i.placa }}</option>
+                    {% endfor %}
+                </select> 
+
+                <button 
+                    name="transferencia" 
+                    class="btn btn-primary text-nowrap" 
+                    type="submit"
+                >
+                    Añadir Transferencia
+                </button>
+            </form>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+{% comment %} <script>
 
     $("button[name='trasferencia']").click(function(){
         var n_trasf  = $("#n_trasf").val();
-
+        var camion_id = $("select").val();
+        console.log(n_trasf, camion_id);
         $.ajax({
             type:"POST",
             url:"{% url 'wms_transferencia_input_ajax' %}",
             data:{
                 'csrfmiddlewaretoken': '{{ csrf_token }}',
                 'n_trasf':n_trasf,
+                // 'camion_id':camion_id
             },
 
             success: function(response) {
@@ -175,6 +256,6 @@
             
         })
     })
-</script>
+</script> {% endcomment %}
 
 {% endblock %}

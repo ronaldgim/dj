@@ -24,7 +24,7 @@ from datetime import datetime
 from django.db import connections, transaction
 from django.db.models import Q, Sum, OuterRef, Subquery, F
 
-from datos.models import AdminActualizationWarehaouse
+from datos.models import Vehiculos
 from wms.models import (
     InventarioIngresoBodega, 
     Ubicacion, Movimiento, 
@@ -3661,28 +3661,34 @@ def wms_transferencia_correo(n_transferencia):
 
 
 # Agregar transferencia para realizar picking de transferencia 
-@login_required(login_url='login')
-def wms_transferencia_input_ajax(request):
+# @login_required(login_url='login')
+# def wms_transferencia_input_ajax(request):
+def wms_transferencia_add_func(n_trasf, camion_id):
     
-    n_trasf = request.POST['n_trasf']
-    
+    # n_trasf = request.POST['n_trasf']
+    # camion  = request.POST['camion_id']
     trans_mba = transferencias_mba(n_trasf)
     
     if trans_mba.empty:
-        return JsonResponse({
-            'msg':f'La Transferencia {n_trasf} no existe !!!',
-            'alert':'danger'
-        })
+        return {
+                'success':False,
+                'msg': f'La Transferencia {n_trasf} no existe !!!'
+            }  
+        # return JsonResponse({
+        #     'msg':f'La Transferencia {n_trasf} no existe !!!',
+        #     'alert':'danger'
+        # })
     
     if Transferencia.objects.filter(n_transferencia=n_trasf).exists():
-        return JsonResponse({
+        return {
+            'success':False,
             'msg':f'La Transferencia {n_trasf} ya fue añadida anteriormente !!!',
-            'alert':'danger'
-        })
+            }
+        # return JsonResponse({
+        #     'msg':f'La Transferencia {n_trasf} ya fue añadida anteriormente !!!',
+        #     'alert':'danger'
+        # })
 
-    # trans_mba['n_transferencia'] = n_trasf
-    # trans_mba['lote_id'] = trans_mba['lote_id'].str.replace('.','')
-    # trans_mba = trans_mba.groupby(by=['doc','n_transferencia','product_id','lote_id','f_elab','f_cadu','bodega_salida','UBICACION']).sum().reset_index()
     trans_mba['f_cadu'] = trans_mba['f_cadu'].astype('str')
     trans_mba['f_elab'] = trans_mba['f_elab'].astype('str')
     
@@ -3713,13 +3719,36 @@ def wms_transferencia_input_ajax(request):
             estado          = 'CREADO',
             unidades_mba    = 0,
             unidades_wms    = 0,
-            avance          = 0.0
+            avance          = 0.0,
+            camion          = Vehiculos.objects.get(id=camion_id)
         )
     
-    return JsonResponse({
-        'msg':f'La Transferencia {n_trasf} fue añadida exitosamente !!!',
-        'alert':'success'
-    })
+    # return JsonResponse({
+    #     'msg':f'La Transferencia {n_trasf} fue añadida exitosamente !!!',
+    #     'alert':'success'
+    # })
+    return {
+        'success':True,
+        'msg': f'La Transferencia {n_trasf} fue añadida exitosamente !!!',
+    }
+
+
+@require_POST
+@login_required(login_url='login')
+def wms_agregar_transferencia(request):
+    
+    n_trasf = request.POST['n_trasf']
+    camion  = request.POST['camion']
+    
+    tr = wms_transferencia_add_func(n_trasf, camion)
+    
+    if not tr.get('success', False):
+        messages.error(request, tr.get('msg', ''))
+    
+    if tr.get('success', True):
+        messages.error(request, tr.get('msg', ''))
+    
+    return redirect('wms_transferencias_list')
 
 
 # @login_required(login_url='login')
@@ -3786,6 +3815,11 @@ class TransferenciaStatusListView(LoginRequiredMixin, ListView):
             queryset = queryset.filter(q)
 
         return queryset.order_by('-id')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['camiones'] = Vehiculos.objects.filter(transportista='GIMPROMED')
+        return context
 
 
 @login_required(login_url='login')
