@@ -114,14 +114,13 @@
                                     </a>
                                 {% endif %}
                                 <button                                        
-                                    class="btn btn-warning btn-sm " 
+                                    class="btn btn-warning btn-sm {% if not i.n_transferencia == '-' %}disabled{% endif %}" 
                                     name="actualizar-btn"
                                     data-id="{{i.id}}"
                                     data-bs-toggle="modal" data-bs-target="#actualizarModal"
                                 >
                                     A
                                 </button>
-
                             </div>
                         </td>
                     </tr>
