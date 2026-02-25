@@ -33,33 +33,6 @@
     + Añadir Transferencia
 </button>
 
-{% comment %} <div class="row">
-    <div class="col-12 col-md-6">
-        <div class="d-flex gap-2">
-            <input 
-                type="text" 
-                class="form-control flex-grow-1" 
-                placeholder="Número de transferencia" 
-                id="n_trasf" 
-                required
-            >
-            <select>
-                <option value="" disabled selected>Seleecione vehículo</option>
-                {% for i in camiones %}
-                <option value="i.id">{{i.placa}}</option>
-                {% endfor %}
-            </select> 
-            <button 
-                name="transferencia" 
-                class="btn btn-primary text-nowrap" 
-                type="submit"
-            >
-                Añadir Transferencia
-            </button>
-        </div>
-    </div>
-</div> {% endcomment %}
-
 <hr>
 
 <form method="GET" class="d-flex gap-2 col-12 col-md-6">
@@ -123,14 +96,33 @@
                         </td>
 
                         <td>
-                            <a class="btn btn-primary btn-sm" href="{% url 'wms_transferencia_picking' i.n_transferencia %}">
-                                <i class="bi bi-truck"></i>
-                            </a>
-                            {% if request.user.userperfil.permiso_operaciones or request.user.userperfil.permiso_bodega %}
-                                <a class="btn btn-secondary btn-sm" href="{% url 'wms_transferencia_pdf' i.n_transferencia %}">
-                                    <i class="bi bi-printer"></i>
+                            <div class="btn-group" role="group">
+                                
+                                <a 
+                                    class="btn btn-primary btn-sm {% if i.n_transferencia == '-' %}disabled{% endif %}" 
+                                    href="{% url 'wms_transferencia_picking' i.n_transferencia %}"
+                                >
+                                    <i class="bi bi-truck"></i>
                                 </a>
-                            {% endif %}
+
+                                {% if request.user.userperfil.permiso_operaciones or request.user.userperfil.permiso_bodega %}
+                                    <a 
+                                        class="btn btn-secondary btn-sm {% if i.n_transferencia == '-' %}disabled{% endif %}" 
+                                        href="{% url 'wms_transferencia_pdf' i.n_transferencia %}"
+                                    >
+                                        <i class="bi bi-printer"></i>
+                                    </a>
+                                {% endif %}
+                                <button                                        
+                                    class="btn btn-warning btn-sm {% if not i.n_transferencia == '-' %}disabled{% endif %}" 
+                                    name="actualizar-btn"
+                                    data-id="{{i.id}}"
+                                    data-bs-toggle="modal" data-bs-target="#actualizarModal"
+                                >
+                                    A
+                                </button>
+
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
@@ -168,7 +160,6 @@
 </div>
 
 
-
 <!-- Modal -->
 <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-scrollable">
@@ -189,7 +180,7 @@
                     type="text" 
                     class="form-control flex-grow-1" 
                     placeholder="Número de transferencia" 
-                    name="n_trasf" 
+                    name="n_transf" 
                     required
                 >
 
@@ -218,44 +209,59 @@
 </div>
 
 
+<div class="modal fade" id="actualizarModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="actualizarModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header mb-2">
+                <h5 class="modal-title fw-bold" id="actualizarModalLabel">Actualizar Transferencia</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
 
-{% comment %} <script>
-
-    $("button[name='trasferencia']").click(function(){
-        var n_trasf  = $("#n_trasf").val();
-        var camion_id = $("select").val();
-        console.log(n_trasf, camion_id);
-        $.ajax({
-            type:"POST",
-            url:"{% url 'wms_transferencia_input_ajax' %}",
-            data:{
-                'csrfmiddlewaretoken': '{{ csrf_token }}',
-                'n_trasf':n_trasf,
-                // 'camion_id':camion_id
-            },
-
-            success: function(response) {
-                
-                //$('#msg').fadeIn().html(`<div class="text-center alert alert-${response.tipo}" role="alert"> ${response.msg} !!! </div>`).fadeOut(6000)
-                if (response.msg) {
-                    $('#msg').html(`<div class="text-center alert alert-${response.alert}" role="alert"> ${response.msg} !!! </div>`)
-                }
-                
-                setTimeout(function(){
-                    window.location.reload();
-                }, 2000)
-            },
+            <div class="modal-body">
             
-            error: function() {
-                //$('#msg').fadeIn().html('<div class="text-center alert alert-danger" role="alert"> Error !!! </div>').fadeOut(6000)
-                $('#msg').html('<div class="text-center alert alert-danger" role="alert"> Error !!! </div>')
-                //setTimeout(function(){
-                //    window.location.reload();
-                //},1000)
-            }
-            
-        })
-    })
-</script> {% endcomment %}
+            <form method="POST" action="{% url 'wms_actualizar_tranferencia_data_products' %}" class="d-flex flex-wrap gap-2">
+                {% csrf_token %}
+
+                <input
+                    type="hidden" 
+                    id="transf_id" 
+                    name="transf_id"
+                >
+
+                <input 
+                    type="text" 
+                    class="form-control flex-grow-1" 
+                    placeholder="Número de transferencia" 
+                    name="n_transf" 
+                    required
+                >
+
+                <button 
+                    name="transferencia" 
+                    class="btn btn-primary text-nowrap" 
+                    type="submit"
+                >
+                    Añadir Transferencia
+                </button>
+            </form>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    $(document).ready(function() {
+        $('button[name="actualizar-btn"]').click(function() {
+            var transferenciaId = $(this).data('id');
+            $('#transf_id').val(transferenciaId);
+        });
+    });
+
+</script>
 
 {% endblock %}
