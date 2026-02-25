@@ -1,5 +1,5 @@
 # DB
-from django.db import connections
+from django.db import connections, transaction
 
 # Time
 from datetime import datetime, date, timedelta
@@ -22,6 +22,9 @@ from django.forms.models import model_to_dict
 import pandas as pd
 import numpy as np
 
+# Files
+from django.core.files.base import ContentFile
+
 # Datos Models
 from datos.models import (
     Product, 
@@ -33,7 +36,12 @@ from datos.models import (
     ErrorLoteReporte,
     ErrorLoteV2
     )
-from wms.models import Transferencia, OrdenEmpaque, Existencias
+from wms.models import (
+    Transferencia, 
+    OrdenEmpaque, 
+    Existencias,
+    TransferenciaStatus
+    )
 from etiquetado.models import (
     Calculadora,
     PedidosEstadoEtiquetado,
@@ -4094,136 +4102,296 @@ def inventario_transferencia(request):
     return render(request, 'etiquetado/analisis_transferencia/inventario_transferencia_vue.html')
 
 
+def build_transferencia_dataframe(transferencia):
+    df = pd.DataFrame(transferencia)
+
+    if df.empty:
+        return df
+
+    df = df.sort_values(by=['location', 'product_id'])
+
+    df = df[
+        [
+            'product_id',
+            'Nombre',
+            'Marca',
+            'lote_id',
+            'fecha_caducidad',
+            'location',
+            'totalUnidades',
+            'calculoReserva',
+            'detalle'
+        ]
+    ]
+
+    # Vectorizado (MUCHO más rápido que apply)
+    df['calculoReserva'] = df['calculoReserva'].where(df['calculoReserva'] < 0, 0)
+    df['detalle'] = df['detalle'].where(df['calculoReserva'] < 0, '')
+
+    return df.rename(columns={
+        'product_id': 'Código',
+        'lote_id': 'Lote',
+        'fecha_caducidad': 'F.Caducidad',
+        'location': 'Bodega',
+        'totalUnidades': 'Unidades',
+        'calculoReserva': 'Reservas',
+        'detalle': 'Detalle Reservas'
+    })
+
+
+def generate_excel_buffer(df):
+    buffer = io.BytesIO()
+
+    columnas_amarillas = ['Código', 'Lote', 'Unidades']
+
+    with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+        df.to_excel(writer, sheet_name='Transferencia', index=False)
+
+        workbook = writer.book
+        worksheet = writer.sheets['Transferencia']
+
+        header_format = workbook.add_format({
+            'bold': True,
+            'border': 1,
+            'fg_color': '#D7E4BC'
+        })
+
+        yellow_header_format = workbook.add_format({
+            'bold': True,
+            'border': 1,
+            'fg_color': '#FFEB9C'
+        })
+
+        yellow_cell_format = workbook.add_format({
+            'fg_color': '#FFEB9C'
+        })
+
+        for col_num, column in enumerate(df.columns):
+            fmt = yellow_header_format if column in columnas_amarillas else header_format
+            worksheet.write(0, col_num, column, fmt)
+
+            max_len = max(df[column].astype(str).map(len).max(), len(column))
+            worksheet.set_column(col_num, col_num, max_len + 2)
+
+            if column in columnas_amarillas:
+                worksheet.conditional_format(
+                    1, col_num, len(df), col_num,
+                    {'type': 'no_blanks', 'format': yellow_cell_format}
+                )
+
+    buffer.seek(0)
+    return buffer
+
+
 @csrf_exempt
 def send_transferencia(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
 
-    if request.method == 'POST':
-        try:
-            post_data = json.loads(request.body)
-            transferencia = post_data.get('transferencia', [])
-            camion = post_data.get('camion', {})
-            # totales = post_data.get('totales', {})
-            nota = post_data.get('nota', '-')
-            
-            data = pd.DataFrame(transferencia).sort_values(by=['location', 'product_id'])
-            data = data[[
-                'product_id',
-                'Nombre',
-                'Marca',
-                'lote_id',
-                'fecha_caducidad',
-                'location',
-                'totalUnidades',
-                'calculoReserva',
-                'detalle'
-            ]]
-            
-            data['calculoReserva'] = data.apply(lambda x: x['calculoReserva'] if x['calculoReserva'] < 0 else 0, axis=1)
-            data['detalle'] = data.apply(lambda x: x['detalle'] if x['calculoReserva'] < 0 else '', axis=1)
-            
-            data = data.rename(columns={
-                'product_id':'Código',
-                'lote_id':'Lote',
-                'fecha_caducidad':'F.Caducidad',
-                'location':'Bodega',
-                'totalUnidades':'Unidades',
-                'calculoReserva':'Reservas',
-                'detalle':'Detalle Reservas'
-            })
-            
-            columnas_amarillas = ['Código', 'Lote', 'Unidades']
-            buffer = io.BytesIO()
-            with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
-                data.to_excel(writer, sheet_name='Transferencia', index=False)
-                workbook = writer.book
-                worksheet = writer.sheets['Transferencia']
-                
-                # Añadir formato para encabezados
-                header_format = workbook.add_format({
-                    'bold': True,
-                    'text_wrap': True,
-                    'valign': 'top',
-                    'border': 1,
-                    'fg_color': '#D7E4BC'  # Color verde claro para encabezados normales
-                })
-                
-                # Crear formato para encabezados de columnas amarillas
-                yellow_header_format = workbook.add_format({
-                    'bold': True,
-                    'text_wrap': True,
-                    'valign': 'top',
-                    'border': 1,
-                    'fg_color': '#FFEB9C'  # Color amarillo para encabezados especiales
-                })
-                
-                # Crear formato para celdas amarillas
-                yellow_cell_format = workbook.add_format({
-                    'fg_color': '#FFEB9C'  # Color amarillo para celdas
-                })
-                
-                # Aplicar formato a los encabezados y determinar índices de columnas amarillas
-                indices_columnas_amarillas = []
-                
-                for col_num, column in enumerate(data.columns):
-                    # Determinar si esta columna debe ser amarilla
-                    if column in columnas_amarillas:
-                        worksheet.write(0, col_num, column, yellow_header_format)
-                        indices_columnas_amarillas.append(col_num)
-                    else:
-                        worksheet.write(0, col_num, column, header_format)
-                    
-                    # Ajustar el ancho de la columna
-                    column_width = max(data[column].astype(str).map(len).max(), len(str(column)))
-                    worksheet.set_column(col_num, col_num, column_width + 2)
-                
-                # Aplicar formato amarillo a todas las celdas de las columnas seleccionadas
-                for col_index in indices_columnas_amarillas:
-                    # Aplicar formato a todas las filas de la columna (desde la fila 1 hasta la última)
-                    worksheet.conditional_format(1, col_index, len(data) - 1, col_index, {
-                        'type': 'no_blanks',
-                        'format': yellow_cell_format
-                    })
-            
-            buffer.seek(0)
-            excel_data = buffer.getvalue()            
-            email = EmailMessage(
-                subject='TRANSFERENCIA CEREZOS -> ANDAGOYA',
-                body=f"""
+    try:
+        data = json.loads(request.body)
+
+        transferencia = data.get('transferencia', [])
+        camion_placa = data.get('camion', {}).get('placa', '') 
+        nota = data.get('nota', '-')
+
+        # ✅ Validación mínima
+        if not transferencia:
+            return JsonResponse({'error': 'Transferencia vacía'}, status=400)
+
+        # 🔧 DataFrame
+        df = build_transferencia_dataframe(transferencia)
+        buffer = generate_excel_buffer(df)
+
+        with transaction.atomic():
+            camion = Vehiculos.objects.get(placa=camion_placa)
+
+            transf = TransferenciaStatus.objects.create(
+                n_transferencia='-',
+                estado='CREADO',
+                unidades_mba=0,
+                unidades_wms=0,
+                avance=0.0,
+                camion=camion
+            )
+
+            filename = f'TRANSF-WMS-{transf.enum}.xlsx'
+
+            transf.excel.save(
+                filename,
+                ContentFile(buffer.getvalue()),
+                save=True
+            )
+
+        # 📧 Email (CORRECTO)
+        email = EmailMessage(
+            subject=f'TRANSFERENCIA CEREZOS -> ANDAGOYA {transf.enum}',
+            body=f"""
 Transferencia de Cerezos-Andagoya.
 
-Camión: {camion['placa']}
+Camión: {camion.placa}
 Nota: {nota}
 
 *** Este mensaje es automático no responder ***
 """,
-                from_email=settings.EMAIL_HOST_USER,
-                to=[
-                    'dreyes@gimpromed.com',
-                    'ncastillo@gimpromed.com',
-                    'jgualotuna@gimpromed.com',
-                    'bcerezos@gimpromed.com',
-                    'egarces@gimpromed.com',
-                ]
-            )
-            nombre = f'Transferencia_{str(datetime.now())}.xlsx'
-            email.attach(nombre, excel_data, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-            email.send(fail_silently=False)
+            from_email=settings.EMAIL_HOST_USER,
+            to=[
+                'dreyes@gimpromed.com',
+                'ncastillo@gimpromed.com',
+                'jgualotuna@gimpromed.com',
+                'bcerezos@gimpromed.com',
+                'egarces@gimpromed.com',
+            ]
+        )
+
+        # ✅ Adjuntar archivo REAL (no URL)
+        email.attach(
+            filename,
+            buffer.getvalue(),
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+
+        email.send()
+
+        return JsonResponse({'success': True})
+
+    except Vehiculos.DoesNotExist:
+        return JsonResponse({'error': 'Vehículo no encontrado'}, status=404)
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+# @csrf_exempt
+# def send_transferencia(request):
+
+#     if request.method == 'POST':
+#         try:
+#             post_data = json.loads(request.body)
+#             transferencia = post_data.get('transferencia', [])
+#             camion = post_data.get('camion', {})
+#             # totales = post_data.get('totales', {})
+#             nota = post_data.get('nota', '-')
             
-            # TransferenciaStatus.objects.create(
-            #     n_transferencia = '-',
-            #     estado          = 'CREADO',
-            #     unidades_mba    = 0,
-            #     unidades_wms    = 0,
-            #     avance          = 0.0
-            # )
+#             data = pd.DataFrame(transferencia).sort_values(by=['location', 'product_id'])
+#             data = data[[
+#                 'product_id',
+#                 'Nombre',
+#                 'Marca',
+#                 'lote_id',
+#                 'fecha_caducidad',
+#                 'location',
+#                 'totalUnidades',
+#                 'calculoReserva',
+#                 'detalle'
+#             ]]
             
-            return JsonResponse({
-                'success':True
-            })
-        except Exception as e:
-            return JsonResponse({
-                'error':str(e)
-            })
+#             data['calculoReserva'] = data.apply(lambda x: x['calculoReserva'] if x['calculoReserva'] < 0 else 0, axis=1)
+#             data['detalle'] = data.apply(lambda x: x['detalle'] if x['calculoReserva'] < 0 else '', axis=1)
+            
+#             data = data.rename(columns={
+#                 'product_id':'Código',
+#                 'lote_id':'Lote',
+#                 'fecha_caducidad':'F.Caducidad',
+#                 'location':'Bodega',
+#                 'totalUnidades':'Unidades',
+#                 'calculoReserva':'Reservas',
+#                 'detalle':'Detalle Reservas'
+#             })
+            
+#             columnas_amarillas = ['Código', 'Lote', 'Unidades']
+#             buffer = io.BytesIO()
+#             with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+#                 data.to_excel(writer, sheet_name='Transferencia', index=False)
+#                 workbook = writer.book
+#                 worksheet = writer.sheets['Transferencia']
+                
+#                 # Añadir formato para encabezados
+#                 header_format = workbook.add_format({
+#                     'bold': True,
+#                     'text_wrap': True,
+#                     'valign': 'top',
+#                     'border': 1,
+#                     'fg_color': '#D7E4BC'  # Color verde claro para encabezados normales
+#                 })
+                
+#                 # Crear formato para encabezados de columnas amarillas
+#                 yellow_header_format = workbook.add_format({
+#                     'bold': True,
+#                     'text_wrap': True,
+#                     'valign': 'top',
+#                     'border': 1,
+#                     'fg_color': '#FFEB9C'  # Color amarillo para encabezados especiales
+#                 })
+                
+#                 # Crear formato para celdas amarillas
+#                 yellow_cell_format = workbook.add_format({
+#                     'fg_color': '#FFEB9C'  # Color amarillo para celdas
+#                 })
+                
+#                 # Aplicar formato a los encabezados y determinar índices de columnas amarillas
+#                 indices_columnas_amarillas = []
+                
+#                 for col_num, column in enumerate(data.columns):
+#                     # Determinar si esta columna debe ser amarilla
+#                     if column in columnas_amarillas:
+#                         worksheet.write(0, col_num, column, yellow_header_format)
+#                         indices_columnas_amarillas.append(col_num)
+#                     else:
+#                         worksheet.write(0, col_num, column, header_format)
+                    
+#                     # Ajustar el ancho de la columna
+#                     column_width = max(data[column].astype(str).map(len).max(), len(str(column)))
+#                     worksheet.set_column(col_num, col_num, column_width + 2)
+                
+#                 # Aplicar formato amarillo a todas las celdas de las columnas seleccionadas
+#                 for col_index in indices_columnas_amarillas:
+#                     # Aplicar formato a todas las filas de la columna (desde la fila 1 hasta la última)
+#                     worksheet.conditional_format(1, col_index, len(data) - 1, col_index, {
+#                         'type': 'no_blanks',
+#                         'format': yellow_cell_format
+#                     })
+            
+#             buffer.seek(0)
+#             excel_data = buffer.getvalue()            
+#             email = EmailMessage(
+#                 subject='TRANSFERENCIA CEREZOS -> ANDAGOYA',
+#                 body=f"""
+# Transferencia de Cerezos-Andagoya.
+
+# Camión: {camion['placa']}
+# Nota: {nota}
+
+# *** Este mensaje es automático no responder ***
+# """,
+#                 from_email=settings.EMAIL_HOST_USER,
+#                 to=[
+#                     'dreyes@gimpromed.com',
+#                     'ncastillo@gimpromed.com',
+#                     'jgualotuna@gimpromed.com',
+#                     'bcerezos@gimpromed.com',
+#                     'egarces@gimpromed.com',
+#                 ]
+#             )
+#             nombre = f'Transferencia_{str(datetime.now())}.xlsx'
+#             email.attach(nombre, excel_data, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+#             email.send(fail_silently=False)
+            
+#             # TransferenciaStatus.objects.create(
+#             #     n_transferencia = '-',
+#             #     estado          = 'CREADO',
+#             #     unidades_mba    = 0,
+#             #     unidades_wms    = 0,
+#             #     avance          = 0.0
+#             # )
+            
+#             return JsonResponse({
+#                 'success':True
+#             })
+#         except Exception as e:
+#             return JsonResponse({
+#                 'error':str(e)
+#             })
 
 
 def wms_andagoya_data_home():
