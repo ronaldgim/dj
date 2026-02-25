@@ -171,14 +171,12 @@ urlpatterns = [
         name = 'wms_ajuste_fecha_ajax'
     ),
     
-    
     # Lista de movimientos
     path(
-        route='movimientos/list',
-        view = views.wms_movimientos_list, #OK
+        route='movimientos',
+        view = views.WMSMovimientosListView.as_view(), #OK
         name = 'wms_movimientos_list'
     ),
-    
     
     ### PICKING
     # Listado de pedidos
@@ -374,12 +372,6 @@ urlpatterns = [
         view = views.wms_transferencia_pdf,
         name = 'wms_transferencia_pdf'
     ),
-    
-    # path(
-    #     route='transferencias/list',
-    #     view = views.wms_transferencias_list,
-    #     name = 'wms_transferencias_list'
-    # ),
     
     path(
         route='transferencias-list',

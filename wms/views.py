@@ -2005,63 +2005,60 @@ def wms_ajuste_fecha_ajax(request):
         })
 
 
+# # lista de movimientos
+# # url: '/movimientos'
+@method_decorator(
+    permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'], '/wms/home', 'ingresar a Movimientos'),
+    name='dispatch'
+)
+class WMSMovimientosListView(LoginRequiredMixin, ListView):
+    model = Movimiento
+    template_name = 'wms/movimientos_list.html'
+    context_object_name = 'mov'
+    paginate_by = 10
+    ordering = ['-fecha_hora', '-id']
+    login_url = 'login'
 
-# lista de movimientos
-# url: 'movimientos/list'
-@login_required(login_url='login')
-@permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'], '/wms/home', 'ingresar a Movimientos')
-def wms_movimientos_list(request): #OK
-    """ Lista de movimientos """
+    def get_queryset(self):
+        queryset = (
+            Movimiento.objects
+            .select_related('ubicacion', 'usuario')
+            .order_by('-fecha_hora', '-id')
+        )
 
-    mov = Movimiento.objects.all().order_by('-fecha_hora', '-id')
-    # mov = Movimiento.objects.select_related(
-    #     'ubicacion', 'usuario'
-    # ).order_by('-fecha_hora', '-id')
-    
-    paginator = Paginator(mov, 50)
-    page_number = request.GET.get('page')
-    
-    if page_number == None: page_number = 1
-    
-    mov = paginator.get_page(page_number)
-    
-    if request.method == 'POST':
-        
-        product_id = request.POST.get('product_id')
-        n_referencia = request.POST.get('n_referencia')
-        n_factura = request.POST.get('n_factura')
-        
-        filtro = {}
+        # Filtros
+        product_id = self.request.GET.get('product_id')
+        n_referencia = self.request.GET.get('n_referencia')
+        n_factura = self.request.GET.get('n_factura')
+
+        self.tipo = None
+        self.valor = None
+
         if product_id:
-            tipo = 'Código'
-            valor= product_id
-            filtro['product_id'] = product_id
+            queryset = queryset.filter(product_id=product_id)
+            self.tipo = 'Código'
+            self.valor = product_id
+
         elif n_referencia:
-            tipo = 'Referencia'
-            valor=n_referencia
-            filtro['n_referencia__icontains'] = n_referencia
+            queryset = queryset.filter(n_referencia__icontains=n_referencia)
+            self.tipo = 'Referencia'
+            self.valor = n_referencia
+
         elif n_factura:
-            tipo = 'Factura'
-            valor= n_factura
-            filtro['n_factura__icontains'] = n_factura
-        
-        mov = Movimiento.objects.filter(**filtro).order_by('-fecha_hora','-id')
-        
-        context = {
-            'mov':mov,
-            'len':len(mov),
-            'tipo':tipo,
-            'valor':valor
-        }
-        
-        return render(request, 'wms/movimientos_list.html', context)
-        
-    context = {
-        'mov':mov
-    }
+            queryset = queryset.filter(n_factura__icontains=n_factura)
+            self.tipo = 'Factura'
+            self.valor = n_factura
 
-    return render(request, 'wms/movimientos_list.html', context)
+        return queryset
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context['tipo'] = self.tipo
+        context['valor'] = self.valor
+        context['len'] = self.get_queryset().count()
+
+        return context
 
 
 ### PICKDING
@@ -3755,31 +3752,6 @@ def wms_actualizar_tranferencia_data_products(request):
         messages.error(request, tr.get('msg', ''))
     
     return redirect('wms_transferencias_list')
-
-
-
-# @login_required(login_url='login')
-# @permisos(['BODEGA', 'OPERACIONES'], '/wms/home', 'ingresar a lista de transferencias')
-# def wms_transferencias_list(request):
-    
-#     transferencias_wms = (
-#         TransferenciaStatus.objects.all()
-#         .annotate(
-#             fecha_hora = Subquery(
-#                 Transferencia.objects.filter(
-#                     n_transferencia = OuterRef('n_transferencia')
-#                 )
-#                 .values('fecha_hora')[:1]
-#             )
-#         )
-#         .order_by('-n_transferencia')
-#     )
-    
-#     context = {
-#         'transf_wms': transferencias_wms 
-#     }
-
-#     return render(request, 'wms/transferencias_list_antigua.html', context)
 
 
 @method_decorator(

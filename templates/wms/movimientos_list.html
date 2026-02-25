@@ -30,8 +30,7 @@
 
     <div class="card mt-2 mb-2">
         <div class="card-body mt-2 mb-2 p-0">
-            <form method="POST">
-                {% csrf_token %}
+            <form method="GET">
                 <div class="row">
                     <div class="col-4">
                         <label class="fw-bold">Código:</label>
@@ -49,7 +48,7 @@
                     </div>
                 </div>
 
-                <button class="btn btn-success mt-2">
+                <button class="btn btn-success mt-2" type="submit" name="buscar">
                     <i class="bi bi-search"></i> Buscar
                 </button>
                 
@@ -107,9 +106,16 @@
                             {{i.fecha_caducidad|date:'Y-m-d'}}
                         </td>
 
-                        <td>{{i.tipo}}</td>
+                        <td class="
+                        {% if i.tipo == 'Ingreso' %} 
+                            text-success 
+                        {% else %} 
+                            text-danger 
+                        {% endif %}"
+                        >
+                            {{i.tipo}}
+                        </td>
                         <td>{{i.estado}}</td>
-                        
                         <td>
                             {% if i.referencia == 'Picking' %}
                                 {{i.referencia}} <span>: {{i.n_referencia|slice:"-2"}}</span>
@@ -126,7 +132,7 @@
 
                         <td>{{i.factura_int}}</td>
 
-                        <td class="text-end">{{i.unidades|floatformat:"0g"}}</td>
+                        <td class="text-end">{{i.unidades_abs|floatformat:"0g"}}</td>
 
                         <td>{{i.usuario.first_name}} {{i.usuario.last_name}}</td>
 
@@ -140,36 +146,31 @@
     </div>
 </div>
 
-<div class="pagination mt-2 mb-2">
-    <span class="step-links">
-        {% if mov.has_previous %}
-            <a class="btn btn-outline-secondary btn-sm" href="?page=1">
-                <span aria-hidden="true"> &laquo; Primera </span>
+<div class="mt-2 mb-4 d-flex align-items-center gap-2 flex-wrap">
+    
+    {% if is_paginated %}
+
+        {% if page_obj.has_previous %}
+            <a class="btn btn-sm btn-outline-dark"
+                href="?{{ request.GET.urlencode }}&page={{ page_obj.previous_page_number }}">
+                <i class="bi bi-caret-left"></i>
             </a>
-            <a class="btn btn-outline-secondary btn-sm" href="?page={{ mov.previous_page_number }}">Anterior</a>
         {% endif %}
 
-        <!--span class="current btn btn-outline-primary btn-sm"-->
-        <span class="current btn btn-secondary btn-sm disabled">
-            Pagina {{ mov.number }} de {{ mov.paginator.num_pages }}
+        <span>
+            Página <strong>{{ page_obj.number }}</strong> de <strong>{{ page_obj.paginator.num_pages }}</strong>
         </span>
 
-        {% if mov.has_next %}
-            <a class="btn btn-outline-secondary btn-sm" href="?page={{ mov.next_page_number }}">Siguiente</a>
-            <a class="btn btn-outline-secondary btn-sm" href="?page={{ mov.paginator.num_pages }}">
-                <span aria-hidden="true"> Última &raquo; </span>
+        {% if page_obj.has_next %}
+            <a class="btn btn-sm btn-outline-dark"
+                href="?{{ request.GET.urlencode }}&page={{ page_obj.next_page_number }}">
+                <i class="bi bi-caret-right"></i>
             </a>
         {% endif %}
-    </span>
-</div>
 
-<script>
-    $(document).ready(function() {
-        $("button[name='buscar']").click(function(){
-            $("#buscar").toggle()
-        })
-    })
-</script>
+    {% endif %}
+
+</div>
 
 <!--filtro buscar-->
 <script>
