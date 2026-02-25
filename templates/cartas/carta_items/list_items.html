@@ -28,9 +28,13 @@
   <i class="bi bi-plus-circle"></i> Nueva Carta
 </a>
 
-<div class="col-4">
-  <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
-</div>
+<form method="GET" class="d-flex gap-2 col-12 col-md-6">
+    <input class="form-control" type="text" name="cliente" placeholder="Buscar por cliente..." style="min-width: 200px;">
+    <button type="submit" class="btn btn-primary flex-shrink-0">Buscar</button>
+</form>
+<a href="{% url 'items_list' %}" class="btn btn-secondary mt-2">
+    Limpiar búsqueda
+</a>
 
 <div class="card mt-2 mb-2">
   <div class="card-body mt-0 pt-0 mb-0 pb-0">
@@ -83,15 +87,30 @@
   </table>
   </div>
 </div>
-<script>
-  $(document).ready(function() {
-      $("#inputbuscar").on("keyup", function() {
-          var value = $(this).val().toLowerCase();
-          $("#pedidosbuscar tr").filter(function() {
-              $(this).toggle($(this).text()
-              .toLowerCase().indexOf(value) > -1)
-          });
-      });
-  });
-</script>
+<div class="mt-2 mb-4">
+    {% if is_paginated %}
+
+        <!-- Botón anterior -->
+        {% if page_obj.has_previous %}
+        <a class="btn btn-sm btn-outline-dark"
+            href="?page={{ page_obj.previous_page_number }}&cliente={{ request.GET.cliente }}">
+            <i class="bi bi-caret-left"></i>
+        </a>
+        {% endif %}
+
+        <!-- Página actual -->
+        <span class="pt-2 mt-4">
+        Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+        </span>
+
+        <!-- Botón siguiente -->
+        {% if page_obj.has_next %}
+        <a class="btn btn-sm btn-outline-dark"
+            href="?page={{ page_obj.next_page_number }}&cliente={{ request.GET.cliente }}">
+            <i class="bi bi-caret-right"></i>
+        </a>
+        {% endif %}
+
+    {% endif %}
+</div>
 {% endblock %}

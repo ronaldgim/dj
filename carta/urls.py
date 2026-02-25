@@ -19,7 +19,7 @@ urlpatterns = [
     ),
     
     path(
-        route='general/list',
+        route='general-list',
         view= views.CartaGeneralList.as_view(),
         name='general_list'
     ),
@@ -56,7 +56,7 @@ urlpatterns = [
     ),
     
     path(
-        route='procesos/list',
+        route='procesos-list',
         view= views.CartaProcesosList.as_view(),
         name='procesos_list'
     ),
@@ -93,7 +93,7 @@ urlpatterns = [
     ),
     
     path(
-        route='items/list',
+        route='items-list',
         view= views.CartaItemsList.as_view(),
         name='items_list'
     ),

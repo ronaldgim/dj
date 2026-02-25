@@ -144,11 +144,9 @@
             },
 
             success: function(response) {
-                console.log(response.ruc)
-                if (response.ruc) {
-                    console.log(response.ruc);
-                    $("input[name='ruc']").val(response.ruc.IDENTIFICACION_FISCAL);
-                    $("input[name='cliente']").val(response.ruc.NOMBRE_CLIENTE);
+                if (response.cliente) {
+                    $("input[name='ruc']").val(response.cliente.identificacion_fiscal);
+                    $("input[name='cliente']").val(response.cliente.nombre_cliente);
                 } else {
                     alert("Cliente no encontrado.")
                 }
