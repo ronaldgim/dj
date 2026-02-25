@@ -114,7 +114,7 @@
                                     </a>
                                 {% endif %}
                                 <button                                        
-                                    class="btn btn-warning btn-sm {% if not i.n_transferencia == '-' %}disabled{% endif %}" 
+                                    class="btn btn-warning btn-sm " 
                                     name="actualizar-btn"
                                     data-id="{{i.id}}"
                                     data-bs-toggle="modal" data-bs-target="#actualizarModal"
@@ -173,7 +173,7 @@
 
             <div class="modal-body">
             
-            <form method="POST" action="{% url 'wms_agregar_transferencia' %}" class="d-flex flex-wrap gap-2">
+            <form method="POST" action="{% url 'wms_agregar_transferencia' %}" class="d-flex flex-wrap gap-2" id="agregarForm">
                 {% csrf_token %}
 
                 <input 
@@ -191,18 +191,18 @@
                     {% endfor %}
                 </select> 
 
+            </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                 <button 
                     name="transferencia" 
                     class="btn btn-primary text-nowrap" 
                     type="submit"
+                    form="agregarForm"
                 >
                     Añadir Transferencia
                 </button>
-            </form>
-            </div>
-
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
             </div>
         </div>
     </div>
@@ -219,7 +219,7 @@
 
             <div class="modal-body">
             
-            <form method="POST" action="{% url 'wms_actualizar_tranferencia_data_products' %}" class="d-flex flex-wrap gap-2">
+            <form method="POST" action="{% url 'wms_actualizar_tranferencia_data_products' %}" class="d-flex flex-wrap gap-2" id="actualizarForm">
                 {% csrf_token %}
 
                 <input
@@ -236,18 +236,19 @@
                     required
                 >
 
-                <button 
-                    name="transferencia" 
-                    class="btn btn-primary text-nowrap" 
-                    type="submit"
-                >
-                    Añadir Transferencia
-                </button>
             </form>
             </div>
 
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button 
+                    name="transferencia" 
+                    class="btn btn-primary text-nowrap" 
+                    type="submit"
+                    form="actualizarForm"
+                >
+                    Actualizar Transferencia
+                </button>
             </div>
         </div>
     </div>
