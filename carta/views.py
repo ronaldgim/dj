@@ -3,6 +3,7 @@ from django.db import connections
 
 # Shortcuts
 from django.shortcuts import redirect, render
+from django.http import JsonResponse
 
 # Models
 from carta.models import (
@@ -24,6 +25,8 @@ from carta.forms import (
     AnularCartaProcesosForm,
     AnularCartaItemForm
     )
+
+from warehouse.models import Cliente
 
 # Generic View
 from django.views.generic.detail import DetailView
@@ -54,16 +57,6 @@ from datos.views import productos_odbc_and_django, de_dataframe_a_template
 import ast
 import pandas as pd
 
-# Clientes
-def tabla_clientes(ruc):
-    ''' Colusta de clientes por ruc a la base de datos '''
-    with connections['gimpromed_sql'].cursor() as cursor:
-        cursor.execute("SELECT * FROM clientes WHERE IDENTIFICACION_FISCAL = %s", [ruc])
-        columns = [col[0] for col in cursor.description]
-        clientes = [dict(zip(columns, row)) for row in cursor.fetchall()]
-
-    return clientes
-
 
 # Carta General
 @login_required(login_url='login')
@@ -80,17 +73,13 @@ def carta_general(request):
         'form':form,
     }
     
-    cliente = request.GET.get('buscar_cliente')
-    if cliente:        
-        ruc = str(cliente)                
-        cliente_dict = tabla_clientes(ruc) 
-        if cliente_dict:
-            identificacion_fiscal = cliente_dict[0].get('IDENTIFICACION_FISCAL')
-            nombre_cliente = cliente_dict[0].get('NOMBRE_CLIENTE')
-            
+    ruc = request.GET.get('buscar_cliente') 
+    if ruc:                
+        cliente = Cliente.objects.using('gimpromed_sql').filter(identificacion_fiscal=str(ruc))
+        if cliente:            
             context = {
-                'ruc':identificacion_fiscal, 
-                'nombre_cliente':nombre_cliente, 
+                'ruc': cliente.first().identificacion_fiscal,
+                'nombre_cliente': cliente.first().nombre_cliente, 
                 'form':form,
             }
         else:
@@ -131,11 +120,11 @@ class CartaGeneralPDF(PermissionRequiredMixin, LoginRequiredMixin, PdfMixin ,Det
 
 class CartaGeneralList(PermissionRequiredMixin, LoginRequiredMixin, ListView):
     ''' Lista de cartas generales creadas '''
-    model = CartaGeneral
-    queryset = CartaGeneral.objects.filter(anularcartageneral__isnull=True)
+    # model = CartaGeneral
+    # queryset = CartaGeneral.objects.filter(anularcartageneral__isnull=True)
     template_name = 'cartas/carta_general/list_general.html'
     ordering = ['-pk']
-
+    paginate_by = 10
     permission_required = 'carta.view_cartageneral'
 
     def handle_no_permission(self):
@@ -143,6 +132,29 @@ class CartaGeneralList(PermissionRequiredMixin, LoginRequiredMixin, ListView):
             raise PermissionDenied(self.get_permission_denied_message())
         messages.error(self.request, 'No tienes los permisos necesarios !!!')
         return HttpResponseRedirect(reverse_lazy('inicio'))
+
+    def get_queryset(self):
+        
+        queryset = (
+            CartaGeneral.objects
+            .select_related('usuario')
+            .filter(anularcartageneral__isnull=True) 
+        )
+        
+        cliente = self.request.GET.get('cliente', '').strip()
+        
+        if cliente:
+            
+            queryset = (
+                CartaGeneral.objects
+                .select_related('usuario')
+                .filter(
+                    anularcartageneral__isnull=True,
+                    cliente__icontains=cliente
+                )
+            )
+        
+        return queryset.order_by('-pk')
 
 
 @login_required(login_url='login')
@@ -207,79 +219,21 @@ class CartaGeneralAnuladaDetailView(PermissionRequiredMixin, LoginRequiredMixin,
         messages.error(self.request, 'No tienes los permisos necesarios !!!')
         return HttpResponseRedirect(reverse_lazy('general_list'))
 
-
-# # Carta Procesos
-# @login_required(login_url='login')
-# def carta_procesos(request):
-#     ''' Llenar campos de carga general y crear objeto '''
-#     form = CartaProcesosForm()
-    
-#     context = {
-#         'form':form,
-#     }
-    
-#     if request.user.has_perm('carta.add_cartaprocesos'):
-
-#         try:
-#             if request.method == 'GET':
-#                 ruc = request.GET['buscar_cliente']
-#                 ruc = str(ruc)
-                
-#                 cliente_dict = tabla_clientes(ruc)[0]
-#                 identificacion_fiscal = cliente_dict.get('IDENTIFICACION_FISCAL')
-#                 nombre_cliente = cliente_dict.get('NOMBRE_CLIENTE')
-#                 if identificacion_fiscal == '':
-#                     context = {
-#                         'error':'El Ruc no coincide con ningun cliente, por favor intente nuevamente!!!'
-#                     }
-#                 else:
-#                     context = {
-#                         'ruc':identificacion_fiscal, 
-#                         'nombre_cliente':nombre_cliente, 
-#                         'form':form,
-#                     }
-
-#             elif request.method == 'POST':
-                    
-#                 form = CartaProcesosForm(request.POST)
-                
-#                 if form.is_valid():
-#                     #form.save()
-#                     return redirect('procesos_list')
-#                 else:
-#                     messages.error(request, f'Error {form.errors} !!!')
-#             else:
-
-#                 context = {
-#                     'form':form,
-#                     'errors':form.errors                        
-#                 }
-        
-#         except Exception as e:
-#             print(e)
-#             messages.error(request, f'Error {e} !!!')
-#     else:
-#         messages.error(request, 'No tienes los permisos necesarios !!!')
-#         return HttpResponseRedirect('list')
-        
-#     return render(request, 'cartas/carta_procesos/new.html', context)
-
+from django.forms.models import model_to_dict
 # Función auxiliar para buscar cliente
-from django.http import JsonResponse
 def buscar_cliente_por_ruc_ajax(request):
     """
     Busca un cliente por su RUC y devuelve un diccionario con los datos.
     """
     ruc = request.POST.get('ruc')
-    
     try:
-        resultado = tabla_clientes(ruc)
+        resultado = Cliente.objects.using('gimpromed_sql').filter(identificacion_fiscal=str(ruc))  #tabla_clientes(ruc)
         if resultado:
-            return JsonResponse({'ruc':resultado[0]})  # Retorna el primer cliente encontrado
-        return None
+            return JsonResponse({'cliente': model_to_dict(resultado.first())})  # Retorna el primer cliente encontrado
+        return JsonResponse({'cliente':None})
     except Exception as e:
         print(f'Error al buscar cliente: {e}')
-        return None
+        return JsonResponse({'cliente':None})
     
 
 @login_required(login_url='login')
@@ -314,11 +268,12 @@ def carta_procesos(request):
 
 class CartaProcesosPDF(PermissionRequiredMixin, LoginRequiredMixin, PdfMixin ,DetailView):
     ''' Detail view o pdf view de carga general creada '''
-    model = CartaProcesos
+    # model = CartaProcesos
     template_name = 'cartas/carta_procesos/detail.html'
-
+    ordering = ['-pk']
+    paginate_by = 10
     permission_required = 'carta.add_cartaprocesos'
- 
+
     def handle_no_permission(self):
         if self.raise_exception:
             raise PermissionDenied(self.get_permission_denied_message())
@@ -328,18 +283,41 @@ class CartaProcesosPDF(PermissionRequiredMixin, LoginRequiredMixin, PdfMixin ,De
 
 class CartaProcesosList(PermissionRequiredMixin, LoginRequiredMixin, ListView):
     ''' Lista de cartas generales creadas '''
-    model = CartaProcesos
-    queryset = CartaProcesos.objects.filter(anularcartaprocesos__isnull=True)
+    # model = CartaProcesos
+    # queryset = CartaProcesos.objects.filter(anularcartaprocesos__isnull=True)
     template_name = 'cartas/carta_procesos/list_procesos.html'
     ordering = ['-pk']
-
+    paginate_by = 10
     permission_required = 'carta.view_cartaprocesos'
- 
+
     def handle_no_permission(self):
         if self.raise_exception:
             raise PermissionDenied(self.get_permission_denied_message())
         messages.error(self.request, 'No tienes los permisos necesarios !!!')
         return HttpResponseRedirect(reverse_lazy('procesos_list'))
+
+    def get_queryset(self):
+        
+        queryset = (
+            CartaProcesos.objects
+            .select_related('usuario')
+            .filter(anularcartaprocesos__isnull=True)
+        )
+        
+        cliente = self.request.GET.get('cliente', '').strip()
+        
+        if cliente:
+            
+            queryset = (
+                CartaProcesos.objects
+                .select_related('usuario')
+                .filter(
+                    anularcartaprocesos__isnull=True,
+                    cliente__icontains=cliente
+                )
+            )
+        
+        return queryset.order_by('-pk')
 
 
 @login_required(login_url='login')
@@ -480,11 +458,11 @@ class CartaItemsPDF(PermissionRequiredMixin, LoginRequiredMixin, PdfMixin ,Detai
 
 class CartaItemsList(PermissionRequiredMixin, LoginRequiredMixin, ListView):
     ''' Lista de cartas generales creadas '''
-    model = CartaItem
-    queryset = CartaItem.objects.filter(anularcartaitem__isnull=True)
+    # model = CartaItem
+    # queryset = CartaItem.objects.filter(anularcartaitem__isnull=True)
     template_name = 'cartas/carta_items/list_items.html'
     ordering = ['-pk']
-
+    paginate_by = 10
     permission_required = 'carta.view_cartaitem'
 
     def handle_no_permission(self):
@@ -492,6 +470,29 @@ class CartaItemsList(PermissionRequiredMixin, LoginRequiredMixin, ListView):
             raise PermissionDenied(self.get_permission_denied_message())
         messages.error(self.request, 'No tienes los permisos necesarios !!!')
         return HttpResponseRedirect(reverse_lazy('items_list'))
+
+    def get_queryset(self):
+        
+        queryset = (
+            CartaItem.objects
+            .select_related('usuario')
+            .filter(anularcartaitem__isnull=True)
+        )
+        
+        cliente = self.request.GET.get('cliente', '').strip()
+        
+        if cliente:
+            
+            queryset = (
+                CartaItem.objects
+                .select_related('usuario')
+                .filter(
+                    anularcartaitem__isnull=True,
+                    cliente__icontains=cliente
+                )
+            )
+        
+        return queryset.order_by('-pk')
 
 
 @login_required(login_url='login')
