@@ -351,10 +351,16 @@ urlpatterns = [
         name = 'wms_revision_transferencia'
     ),
     
+    # path(
+    #     route='transferencia/input/ajax',
+    #     view = views.wms_transferencia_input_ajax,
+    #     name = 'wms_transferencia_input_ajax'
+    # ),
+    
     path(
-        route='transferencia/input/ajax',
-        view = views.wms_transferencia_input_ajax,
-        name = 'wms_transferencia_input_ajax'
+        route='wms-agregar-transferencia',
+        view = views.wms_agregar_transferencia,
+        name = 'wms_agregar_transferencia'
     ),
     
     path(
