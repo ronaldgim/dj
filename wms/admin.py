@@ -119,7 +119,7 @@ class TransferenciaStatusAdmin(admin.ModelAdmin):
         'unidades_wms',
         'avance'
         )
-    list_filter = ('n_transferencia',)
+    list_filter = ('n_transferencia', 'estado')
     search_fields = ['estado', 'n_transferencia']
     
     
