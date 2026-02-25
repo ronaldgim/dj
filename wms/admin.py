@@ -90,29 +90,10 @@ class TransferenciaAdmin(admin.ModelAdmin):
         'unidades'
         )
     
-    list_filter = ('product_id',)
-    # list_display_links = []
-    search_fields = ['product_id',]
-    # orderin = []
-    
-    
-    
-@admin.register(LiberacionCuarentena)
-class TransferenciaAdmin(admin.ModelAdmin):
+    list_filter = ('n_transferencia',)
+    search_fields = ['product_id', 'n_transferencia', 'id']
 
-    list_display = (
-        'doc_id',
-        'product_id', 
-        'lote_id', 
-        'egreso_temp'
-        )
-    
-    # list_filter = ('product_id',)
-    # list_display_links = []
-    # search_fields = ['product_id',]
-    # orderin = []
-    
-    
+
 @admin.register(AjusteLiberacion)
 class AjusteLiberacionAdmin(admin.ModelAdmin):
 
@@ -138,6 +119,8 @@ class TransferenciaStatusAdmin(admin.ModelAdmin):
         'unidades_wms',
         'avance'
         )
+    list_filter = ('n_transferencia',)
+    search_fields = ['estado', 'n_transferencia']
     
     
 @admin.register(NotaEntrega)
