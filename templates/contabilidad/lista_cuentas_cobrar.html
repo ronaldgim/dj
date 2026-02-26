@@ -9,7 +9,7 @@
 {% endblock %}
 
 {% block body_2 %}
-<h5 class="m-4 text-center"><strong>LISTADO DE CUENTAS POR COBRAR</strong></h5>
+<h5 class="m-4 text-center fw-bold">LISTADO DE CUENTAS POR COBRAR</h5>
 
 <form method="GET"> 
     <div class="row">
@@ -28,7 +28,7 @@
 </form>
 
 {% if cliente %}
-    <h5 class="text-center fw-bold mt-4">{{ cliente.nombre_cliente }}</h5>
+    <h6 class="text-center fw-bold mt-4">{{ cliente.nombre_cliente }}</h6>
     <h6 class="text-center"> {{ cliente.identificacion_fiscal }} </h6>
 
     <a
