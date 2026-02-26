@@ -60,15 +60,15 @@ def lista_cuentas_por_cobrar(request):
     base_qs = (
         CuentasCobrar.objects
         .using('gimpromed_sql')
-        .only(
-            'codigo_cliente',
-            'nombre_cliente',
-            'fecha_vencimiento',
-            'valor_total_saldo_a_cobrar',
-            'valor_total_pagado',
-            'limite_credito',
-            'balance'
-        )
+        # .only(
+        #     'codigo_cliente',
+        #     'nombre_cliente',
+        #     'fecha_vencimiento',
+        #     'valor_total_saldo_a_cobrar',
+        #     'valor_total_pagado',
+        #     'limite_credito',
+        #     'balance'
+        # )
     )
 
     # Clientes únicos (para filtro)
@@ -80,7 +80,7 @@ def lista_cuentas_por_cobrar(request):
     )
 
     # Query principal
-    qs = base_qs.order_by('-fecha_vencimiento')
+    qs = base_qs.order_by('fecha_vencimiento')
 
     cliente = None
     if cli:

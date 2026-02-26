@@ -9,7 +9,7 @@
 {% endblock %}
 
 {% block body_2 %}
-<h5 class="m-4 text-center"><strong>LISTADO DE CUENTAS POR COBRAR</strong></h5>
+<h5 class="m-4 text-center fw-bold">LISTADO DE CUENTAS POR COBRAR</h5>
 
 <form method="GET"> 
     <div class="row">
@@ -28,7 +28,7 @@
 </form>
 
 {% if cliente %}
-    <h5 class="text-center fw-bold mt-4">{{ cliente.nombre_cliente }}</h5>
+    <h6 class="text-center fw-bold mt-4">{{ cliente.nombre_cliente }}</h6>
     <h6 class="text-center"> {{ cliente.identificacion_fiscal }} </h6>
 
     <a
@@ -144,7 +144,7 @@
                         <th scope="col">V.Saldo</th>
                         <th scope="col">V.Retención</th>
                         <th scope="col">Balance</th>
-                        <th scope="col">Riesgo</th>
+                        <!--th scope="col">Riesgo</th-->
                         <th scope="col">Dias Mora</th>
                     </tr>
                 </thead>
@@ -159,7 +159,7 @@
                         <td class="text-end">$ {{i.valor_total_saldo_a_cobrar | floatformat:"2g"}}</td>
                         <td class="text-end">$ {{i.valor_retencion | floatformat:"2g"}}</td>
                         <td class="text-end">$ {{i.balance | floatformat:"2g"}}</td>
-                        <td class="text-end">{{i.riesgo | floatformat:"2g"}}</td>
+                        <!--td>{{i.riesgo_crediticio}}</td-->
                         <td class="{{i.color_estado}} text-end">{{i.dias_mora_real | floatformat:"0g"}}</td>
                     </tr>
                     {% endfor %}
