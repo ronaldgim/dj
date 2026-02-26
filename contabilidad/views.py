@@ -114,7 +114,6 @@ def lista_notificaciones(request):
     return render(request, 'contabilidad/lista_notificaciones.html', context)
 
 
-
 def cartera_vencida_por_cliente(codigo_cliente):
     
     hoy = datetime.now().date()
@@ -132,6 +131,7 @@ def cartera_vencida_por_cliente(codigo_cliente):
     facturas_vigentes = []
     facturas_vencidas = []
 
+    # RESUMEN
     resumen = {
         'vigente': Decimal('0'),
         'rango_1_30': Decimal('0'),
@@ -140,27 +140,67 @@ def cartera_vencida_por_cliente(codigo_cliente):
         'rango_91': Decimal('0'),
     }
 
+    # TOTALES VENCIDAS
+    tot_vencidas = {
+        'valor': Decimal('0'),
+        'pagado': Decimal('0'),
+        'retencion': Decimal('0'),
+        'credito': Decimal('0'),
+        'saldo': Decimal('0'),
+    }
+
+    # TOTALES VIGENTES
+    tot_vigentes = {
+        'valor': Decimal('0'),
+        'pagado': Decimal('0'),
+        'retencion': Decimal('0'),
+        'credito': Decimal('0'),
+        'saldo': Decimal('0'),
+    }
+
     for f in facturas:
         dias = (hoy - f.fecha_vencimiento).days
+
+        valor = f.valor or Decimal('0')
+        pagado = f.valor_total_pagado or Decimal('0')
+        retencion = f.valor_retencion or Decimal('0')
+        credito = getattr(f, 'valor_credito', Decimal('0')) or Decimal('0')
         saldo = f.valor_total_saldo_a_cobrar or Decimal('0')
 
         item = {
             'numero': f.numero_factura,
             'fecha_emision': f.fecha_factura,
-            'valor':f.valor,
-            'pagado': f.valor_total_pagado,
+            'valor': valor,
+            'pagado': pagado,
+            'retencion': retencion,
+            'credito': credito,
             'saldo': saldo,
             'fecha_vencimiento': f.fecha_vencimiento,
-            'retencion':f.valor_retencion
         }
 
         if dias <= 0:
             item['dias_vigente'] = abs(dias)
             facturas_vigentes.append(item)
+
             resumen['vigente'] += saldo
+
+            # acumula vigentes
+            tot_vigentes['valor'] += valor
+            tot_vigentes['pagado'] += pagado
+            tot_vigentes['retencion'] += retencion
+            tot_vigentes['credito'] += credito
+            tot_vigentes['saldo'] += saldo
+
         else:
             item['dias_vencido'] = dias
             facturas_vencidas.append(item)
+
+            # acumula vencidas
+            tot_vencidas['valor'] += valor
+            tot_vencidas['pagado'] += pagado
+            tot_vencidas['retencion'] += retencion
+            tot_vencidas['credito'] += credito
+            tot_vencidas['saldo'] += saldo
 
             if dias <= 30:
                 resumen['rango_1_30'] += saldo
@@ -173,20 +213,20 @@ def cartera_vencida_por_cliente(codigo_cliente):
 
     totales = {
         'total_vigente': resumen['vigente'],
-        'total_vencido': (
-            resumen['rango_1_30']
-            + resumen['rango_31_60']
-            + resumen['rango_61_90']
-            + resumen['rango_91']
-        ),
+        'total_vencido': tot_vencidas['saldo'],
         'total_cartera': sum(resumen.values())
     }
 
     email_context = {
         'cliente_nombre': cliente.nombre_cliente,
         'cartera_vencida': totales['total_vencido'],
+
         'facturas_vencidas': facturas_vencidas,
         'facturas_vigentes': facturas_vigentes,
+
+        'tot_vencidas': tot_vencidas,
+        'tot_vigentes': tot_vigentes,
+
         'total_vigentes': totales['total_vigente'],
         'total_cartera': totales['total_cartera'],
         'resumen': resumen,
@@ -201,6 +241,94 @@ def cartera_vencida_por_cliente(codigo_cliente):
         'correo_html': correo_html,
         'email_context': email_context
     }
+
+
+# def cartera_vencida_por_cliente(codigo_cliente):
+    
+#     hoy = datetime.now().date()
+
+#     cliente = Cliente.objects.using('gimpromed_sql').get(
+#         codigo_cliente=codigo_cliente
+#     )
+
+#     facturas = list(
+#         CuentasCobrar.objects
+#         .using('gimpromed_sql')
+#         .filter(codigo_cliente=codigo_cliente)
+#     )
+
+#     facturas_vigentes = []
+#     facturas_vencidas = []
+
+#     resumen = {
+#         'vigente': Decimal('0'),
+#         'rango_1_30': Decimal('0'),
+#         'rango_31_60': Decimal('0'),
+#         'rango_61_90': Decimal('0'),
+#         'rango_91': Decimal('0'),
+#     }
+
+#     for f in facturas:
+#         dias = (hoy - f.fecha_vencimiento).days
+#         saldo = f.valor_total_saldo_a_cobrar or Decimal('0')
+
+#         item = {
+#             'numero': f.numero_factura,
+#             'fecha_emision': f.fecha_factura,
+#             'valor':f.valor,
+#             'pagado': f.valor_total_pagado,
+#             'saldo': saldo,
+#             'fecha_vencimiento': f.fecha_vencimiento,
+#             'retencion':f.valor_retencion
+#         }
+
+#         if dias <= 0:
+#             item['dias_vigente'] = abs(dias)
+#             facturas_vigentes.append(item)
+#             resumen['vigente'] += saldo
+#         else:
+#             item['dias_vencido'] = dias
+#             facturas_vencidas.append(item)
+
+#             if dias <= 30:
+#                 resumen['rango_1_30'] += saldo
+#             elif dias <= 60:
+#                 resumen['rango_31_60'] += saldo
+#             elif dias <= 90:
+#                 resumen['rango_61_90'] += saldo
+#             else:
+#                 resumen['rango_91'] += saldo
+
+#     totales = {
+#         'total_vigente': resumen['vigente'],
+#         'total_vencido': (
+#             resumen['rango_1_30']
+#             + resumen['rango_31_60']
+#             + resumen['rango_61_90']
+#             + resumen['rango_91']
+#         ),
+#         'total_cartera': sum(resumen.values())
+#     }
+
+#     email_context = {
+#         'cliente_nombre': cliente.nombre_cliente,
+#         'cartera_vencida': totales['total_vencido'],
+#         'facturas_vencidas': facturas_vencidas,
+#         'facturas_vigentes': facturas_vigentes,
+#         'total_vigentes': totales['total_vigente'],
+#         'total_cartera': totales['total_cartera'],
+#         'resumen': resumen,
+#     }
+
+#     correo_html = render_to_string(
+#         'emails/cuentas_cobrar.html',
+#         email_context
+#     )
+
+#     return {
+#         'correo_html': correo_html,
+#         'email_context': email_context
+#     }
 
 
 @require_GET
