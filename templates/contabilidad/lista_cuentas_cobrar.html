@@ -14,19 +14,14 @@
 <form method="GET"> 
     <div class="row">
         <div class="input-group mb-2">
-            <label class="fw-bold col-1">Filtrar por cliente:</label>
+            <!--label class="fw-bold col-1">Filtrar por cliente:</label-->
             <div class="col-4">
-                <select class="form-select mt-2" id="filter-hos-select2" name="codigo_cliente" required>
-                    <option value="">Todos</option>
+                <select onchange="this.form.submit()" class="form-select mt-2" id="filter-hos-select2" name="codigo_cliente" required>
+                    <option value="">Filtrar por cliente...</option>
                     {% for i in clientes %}
                     <option value="{{i.codigo_cliente}}">{{i.nombre_cliente}}</option>
                     {% endfor %}
                 </select>
-            </div>
-            <div class="col-auto ms-2 mt-2">
-                <button class="btn btn-primary" type="submit">
-                    Filtrar
-                </button>
             </div>
         </div>
     </div>
@@ -49,7 +44,7 @@
     <div class="col-md-2">
         <div class="card border-0" style="background-color: #2c9bfc1a;">
             <h5 class="card-header text-center fs-5 text-primary fw-bold border-0">
-                TOTAL CARTERA
+                Total Cartera
             </h5>
             <div class="card-body text-center">
                 <h4 class="text-primary fw-bold">
@@ -105,7 +100,7 @@
     <div class="col-md-2">
         <div class="card border-0" style="background-color: #1987541a;">
             <h5 class="card-header text-center fs-5 text-success fw-bold border-0">
-                Ticket Promedio
+                Factura Promedio
             </h5>
             <div class="card-body text-center">
                 <h4 class="fw-bold text-success">
@@ -185,5 +180,12 @@
             });
         });
     });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#filter-hos-select2').select2();
+    })
 </script>
 {% endblock %}
