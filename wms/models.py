@@ -239,6 +239,7 @@ class TransferenciaStatus(models.Model):
     excel           = models.FileField(upload_to="transf_excel/", null=True, blank=True)
     camion          = models.ForeignKey(Vehiculos, blank=True, null=True, on_delete=models.DO_NOTHING)
     creado          = models.DateTimeField(null=True, blank=True, auto_now_add=True)
+    ingresado       = models.DateTimeField(null=True, blank=True)
     en_proceso      = models.DateTimeField(null=True, blank=True)
     finalizado      = models.DateTimeField(null=True, blank=True)
     

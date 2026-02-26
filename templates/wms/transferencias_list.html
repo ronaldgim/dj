@@ -87,6 +87,8 @@
                         <td>
                             {% if i.estado == 'CREADO' %}
                             <span class="badge bg-primary rounded-pill text-wrap fs-6">{{i.estado}}</span>
+                            {% elif i.estado == 'INGRESADO' %}
+                            <span class="badge bg-info rounded-pill text-wrap fs-6">{{i.estado}}</span>
                             {% elif i.estado == 'EN PROCESO' %}
                             <span class="badge bg-warning rounded-pill text-wrap fs-6">{{i.estado}}</span>
                             <span class="badge bg-info rounded-pill text-wrap fs-6">{{i.avance}}%</span>
