@@ -11,6 +11,38 @@
 {% block body_2 %}
 <h5 class="m-4 text-center"><strong>LISTADO DE CUENTAS POR COBRAR</strong></h5>
 
+<form method="GET"> 
+    <div class="row">
+        <div class="input-group mb-2">
+            <label class="fw-bold col-1">Filtrar por cliente:</label>
+            <div class="col-4">
+                <select class="form-select mt-2" id="filter-hos-select2" name="codigo_cliente" required>
+                    <option value="">Todos</option>
+                    {% for i in clientes %}
+                    <option value="{{i.codigo_cliente}}">{{i.nombre_cliente}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-auto ms-2 mt-2">
+                <button class="btn btn-primary" type="submit">
+                    Filtrar
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+
+{% if cliente %}
+    <h5 class="text-center fw-bold mt-4">{{ cliente.nombre_cliente }}</h5>
+    <h6 class="text-center"> {{ cliente.identificacion_fiscal }} </h6>
+
+    <a
+        class="btn btn-secondary mb-3"
+        href="{% url 'cuentas_por_cobrar' %}" class="btn btn-success mb-3">
+        Limpiar filtro
+    </a>
+{% endif %}
+
 <div class="row g-3 mb-4">
 
     <!-- TOTAL CARTERA -->
@@ -100,7 +132,7 @@
 </div>
 
 <div class="col-4">
-    <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
+    <input id="inputbuscar" type="text" placeholder="Buscar..." class="form-control">
 </div>
 
 <div class="card mt-2 mb-2">
@@ -128,12 +160,12 @@
                         <td>{{i.nombre_cliente}}</td>
                         <td>{{i.fecha_factura | date:"Y-m-d"}}</td>
                         <td>{{i.fecha_vencimiento | date:"Y-m-d"}}</td>
-                        <td class="text-end">$ {{i.valor_total_pagado}}</td>
-                        <td class="text-end">$ {{i.valor_total_saldo_a_cobrar}}</td>
-                        <td class="text-end">$ {{i.valor_retencion}}</td>
-                        <td class="text-end">$ {{i.balance}}</td>
-                        <td class="text-end">{{i.riesgo}}</td>
-                        <td class="{{i.color_estado}} text-end">{{i.dias_mora_real}}</td>
+                        <td class="text-end">$ {{i.valor_total_pagado | floatformat:"2g"}}</td>
+                        <td class="text-end">$ {{i.valor_total_saldo_a_cobrar | floatformat:"2g"}}</td>
+                        <td class="text-end">$ {{i.valor_retencion | floatformat:"2g"}}</td>
+                        <td class="text-end">$ {{i.balance | floatformat:"2g"}}</td>
+                        <td class="text-end">{{i.riesgo | floatformat:"2g"}}</td>
+                        <td class="{{i.color_estado}} text-end">{{i.dias_mora_real | floatformat:"0g"}}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
