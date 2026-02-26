@@ -1385,69 +1385,158 @@ def wms_inventario(request): #OK
 #     """
 #     # wms_existencias_query_product_lote("10-160-24","3325224M")    
     
-#     existencias_qs = Existencias.objects.all().order_by(
-#         '-estado', 
-#         'product_id', 
-#         'fecha_caducidad', 
-#         'lote_id', 
-#         'ubicacion__bodega', 
-#         'ubicacion__nivel', 
-#         'unidades'
+#     # codigo = request.GET.get('codigo')
+    
+#     # existencias_qs = (
+#     #     Existencias.objects
+#     #     .select_related('ubicacion')
+#     #     .all()
+#     #     .order_by(
+#     #         '-estado', 
+#     #         'product_id', 
+#     #         'fecha_caducidad', 
+#     #         'lote_id', 
+#     #         'ubicacion__bodega', 
+#     #         'ubicacion__nivel', 
+#     #         'unidades'
+#     #     )
+#     # )
+    
+#     # if codigo:
+#     #     existencias_qs = existencias_qs.filter(product_id=codigo)
+    
+#     # product_ids = existencias_qs.values_list('product_id', flat=True).distinct()
+    
+#     # # 2. Traer productos desde DB externa
+#     # productos = (
+#     #     Producto.objects.using('gimpromed_sql')
+#     #     .filter(codigo__in=list(product_ids))
+#     #     .only('codigo', 'nombre', 'marca', 'unidad_empaque', 'volumen_m3', 'unidades_por_pallet')  # optimización
+#     # )
+
+#     # # 3. Crear diccionario eficiente
+#     # productos_dict = {p.codigo:p for p in productos}
+    
+#     # if codigo:
+#     #     existencias_qs = existencias_qs.filter(product_id=codigo)
+#     #     detalle = []
+#     #     for i in existencias_qs:
+#     #         prod = productos_dict.get(i.product_id)
+#     #         detalle.append({
+#     #             'codigo': i.product_id,
+#     #             'nombre': prod.nombre if prod else None,
+#     #             'marca': prod.marca if prod else None,
+#     #             'lote': i.lote_id,
+#     #             'fecha_caducidad': i.fecha_caducidad,
+#     #             'estado': i.estado,
+#     #             'cartones':round(i.unidades / prod.unidad_empaque, 2) if i.unidades and prod.unidad_empaque > 0 else 0,
+#     #             'volumen': (round(i.unidades / prod.unidad_empaque, 2) if i.unidades and prod.unidad_empaque > 0 else 0) * prod.volumen_m3,
+#     #             'pallets': i.unidades / prod.unidades_por_pallet
+#     #         })
+
+    
+    
+#     # # 4. Armar resultado
+#     # existencias_list = []
+#     # for i in existencias_qs:
+#     #     prod = productos_dict.get(i.product_id)
+#     #     existencias_list.append({
+#     #         'id': i.id,
+#     #         'codigo': i.product_id,
+#     #         'nombre': prod.nombre if prod else None,
+#     #         'marca': prod.marca if prod else None,
+#     #         'lote': i.lote_id,
+#     #         'fecha_caducidad': i.fecha_caducidad,
+#     #         'ubicacion': i.ubicacion.nombre_completo,
+#     #         'estado': i.estado,
+#     #         'unidades': i.unidades,
+#     #     })
+    
+    
+    
+    
+#     codigo = request.GET.get('codigo')
+
+#     existencias_qs = (
+#         Existencias.objects
+#         .select_related('ubicacion')
+#         .all()
+#         .order_by(
+#             '-estado',
+#             'product_id',
+#             'fecha_caducidad',
+#             'lote_id',
+#             'ubicacion__bodega',
+#             'ubicacion__nivel',
+#             'unidades'
+#         )
 #     )
 
+#     # filtrar antes de todo si hay código
+#     if codigo:
+#         existencias_qs = existencias_qs.filter(product_id=codigo)
+
+#     # Traer solo los product_id necesarios
 #     product_ids = existencias_qs.values_list('product_id', flat=True).distinct()
-    
-#     # 2. Traer productos desde DB externa
+
 #     productos = (
 #         Producto.objects.using('gimpromed_sql')
 #         .filter(codigo__in=list(product_ids))
-#         .only('codigo', 'nombre', 'marca')  # optimización
 #     )
-#     # print(productos)
-#     # 3. Crear diccionario eficiente
+
 #     productos_dict = {p.codigo:p for p in productos}
-    
-#     # 4. Armar resultado
+
+#     # DETALLE OPTIMIZADO
+#     detalle = []
+#     for i in existencias_qs:
+#         prod = productos_dict.get(i.product_id)
+
+#         if not prod:
+#             continue  # o maneja como quieras
+
+#         unidades = i.unidades or 0
+#         unidad_empaque = prod.unidad_empaque or 0
+#         volumen_m3 = prod.volumen_m3 or 0
+#         unidades_pallet = prod.unidades_por_pallet or 0
+
+#         # cálculos seguros
+#         cartones = round(unidades / unidad_empaque, 2) if unidad_empaque > 0 else 0
+#         volumen = cartones * volumen_m3
+#         pallets = (unidades / unidades_pallet) if unidades_pallet > 0 else 0
+
+#         detalle.append({
+#             'codigo': i.product_id,
+#             'nombre': prod.nombre,
+#             'marca': prod.marca,
+#             'lote': i.lote_id,
+#             'fecha_caducidad': i.fecha_caducidad,
+#             'estado': i.estado,
+#             'unidades':i.unidades,
+#             'cartones': cartones,
+#             'volumen': volumen,
+#             'pallets': pallets,
+#         })
+
+#     # LISTA GENERAL (reutiliza loop si quieres)
 #     existencias_list = [
 #         {
-#             'id': e.id,
-#             'product_id': e.product_id,
-#             # 'nombre': (prod := productos_dict.get(e.product_id)).nombre if prod else None,
-#             'nombre': prod.nombre if prod else None,
+#             'id': i.id,
+#             'codigo': i.product_id,
+#             'nombre': (prod := productos_dict.get(i.product_id)).nombre if prod else None,
 #             'marca': prod.marca if prod else None,
-#             'lote': e.lote_id,
-#             'fecha_caducidad': e.fecha_caducidad,
-#             'ubicacion': e.ubicacion,
-#             'estado': e.estado,
-#             'unidades': e.unidades,
+#             'lote': i.lote_id,
+#             'fecha_caducidad': i.fecha_caducidad,
+#             'ubicacion': i.ubicacion.nombre_completo if i.ubicacion else None,
+#             'estado': i.estado,
+#             'unidades': i.unidades,
 #         }
-#         for e in existencias_qs
+#         for i in existencias_qs
 #     ]
     
-#     print(existencias_list)
     
-#     # prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
-#     # productos = pd.DataFrame(Existencias.objects.all().values('product_id'))
-#     # productos = productos.merge(prod, on='product_id', how='left').sort_values('product_id')
-#     # productos = productos.drop_duplicates('product_id')
-#     # productos = de_dataframe_a_template(productos)
     
-#     # # Todos los productos 
-#     # inv = pd.DataFrame(Existencias.objects.all().values(
-#     #     'id',
-#     #     'product_id', 'lote_id', 'fecha_caducidad', 'unidades', 'fecha_hora',
-#     #     'ubicacion', 'ubicacion__bodega', 'ubicacion__pasillo', 'ubicacion__modulo', 'ubicacion__nivel',
-#     #     'estado'
-#     # ))
-#     # inv = inv.merge(prod, on='product_id', how='left')
-#     # inv['fecha_caducidad'] = pd.to_datetime(inv['fecha_caducidad'])
-#     # inv = inv.sort_values(
-#     #     by        = ['estado', 'product_id', 'fecha_caducidad', 'lote_id', 'ubicacion__bodega', 'ubicacion__nivel', 'unidades'],
-#     #     ascending = [False,    True,         True,              True,      True,                True,               True]    
-#     # )
-#     # inv['fecha_caducidad'] = inv['fecha_caducidad'].dt.strftime('%d-%m-%Y')
     
-#     # inv = de_dataframe_a_template(inv)
+    
     
 #     # if request.method == 'POST':
         
@@ -1545,8 +1634,11 @@ def wms_inventario(request): #OK
 #     #     return render(request, 'wms/inventario.html', context)
 
 #     context = {
-#         # 'productos':productos,
-#         'inv': existencias_list # inv,
+#         'productos':productos,
+#         'inv': existencias_list,
+        
+#         'codigo':codigo,
+#         'detalle':detalle
 #     }
     
 #     return render(request, 'wms/inventario.html', context)

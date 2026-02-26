@@ -4259,6 +4259,7 @@ Nota: {nota}
         return JsonResponse({'error': 'Vehículo no encontrado'}, status=404)
 
     except Exception as e:
+        print(e)
         return JsonResponse({'error': str(e)}, status=500)
 
 
