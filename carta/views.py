@@ -4,6 +4,7 @@ from django.db import connections
 # Shortcuts
 from django.shortcuts import redirect, render
 from django.http import JsonResponse
+from django.forms.models import model_to_dict
 
 # Models
 from carta.models import (
@@ -120,7 +121,7 @@ class CartaGeneralPDF(PermissionRequiredMixin, LoginRequiredMixin, PdfMixin ,Det
 
 class CartaGeneralList(PermissionRequiredMixin, LoginRequiredMixin, ListView):
     ''' Lista de cartas generales creadas '''
-    # model = CartaGeneral
+    model = CartaGeneral
     # queryset = CartaGeneral.objects.filter(anularcartageneral__isnull=True)
     template_name = 'cartas/carta_general/list_general.html'
     ordering = ['-pk']
@@ -219,7 +220,7 @@ class CartaGeneralAnuladaDetailView(PermissionRequiredMixin, LoginRequiredMixin,
         messages.error(self.request, 'No tienes los permisos necesarios !!!')
         return HttpResponseRedirect(reverse_lazy('general_list'))
 
-from django.forms.models import model_to_dict
+
 # Función auxiliar para buscar cliente
 def buscar_cliente_por_ruc_ajax(request):
     """
@@ -268,7 +269,7 @@ def carta_procesos(request):
 
 class CartaProcesosPDF(PermissionRequiredMixin, LoginRequiredMixin, PdfMixin ,DetailView):
     ''' Detail view o pdf view de carga general creada '''
-    # model = CartaProcesos
+    model = CartaProcesos
     template_name = 'cartas/carta_procesos/detail.html'
     ordering = ['-pk']
     paginate_by = 10
@@ -283,7 +284,7 @@ class CartaProcesosPDF(PermissionRequiredMixin, LoginRequiredMixin, PdfMixin ,De
 
 class CartaProcesosList(PermissionRequiredMixin, LoginRequiredMixin, ListView):
     ''' Lista de cartas generales creadas '''
-    # model = CartaProcesos
+    model = CartaProcesos
     # queryset = CartaProcesos.objects.filter(anularcartaprocesos__isnull=True)
     template_name = 'cartas/carta_procesos/list_procesos.html'
     ordering = ['-pk']
@@ -458,7 +459,7 @@ class CartaItemsPDF(PermissionRequiredMixin, LoginRequiredMixin, PdfMixin ,Detai
 
 class CartaItemsList(PermissionRequiredMixin, LoginRequiredMixin, ListView):
     ''' Lista de cartas generales creadas '''
-    # model = CartaItem
+    model = CartaItem
     # queryset = CartaItem.objects.filter(anularcartaitem__isnull=True)
     template_name = 'cartas/carta_items/list_items.html'
     ordering = ['-pk']
