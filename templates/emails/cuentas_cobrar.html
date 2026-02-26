@@ -162,11 +162,11 @@
     </table>
 
     <p class="total">
-        Total facturas vigentes: $ {{ total_vigentes }}
+        Total facturas vigentes: $ {{ total_vigentes | floatformat:"2g" }}
     </p>
 
     <!-- TOTAL CARTERA -->
-    <h3>TOTAL CARTERA: $ {{ total_cartera }}</h3>
+    <h5>TOTAL CARTERA: $ {{ total_cartera | floatformat:"2g" }}</h5>
 
     <!-- RESUMEN -->
     <h4>Resumen Cartera</h4>
