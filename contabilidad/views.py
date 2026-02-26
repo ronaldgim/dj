@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from warehouse.models import CuentasCobrar, Cliente
+from warehouse.models import CuentasCobrar, Cliente, VendedorMBA
 from contabilidad.models import ClienteExcluido, NotificacionCartera
 from django.views.decorators.http import require_POST, require_GET
 from django.contrib import messages
@@ -243,94 +243,6 @@ def cartera_vencida_por_cliente(codigo_cliente):
     }
 
 
-# def cartera_vencida_por_cliente(codigo_cliente):
-    
-#     hoy = datetime.now().date()
-
-#     cliente = Cliente.objects.using('gimpromed_sql').get(
-#         codigo_cliente=codigo_cliente
-#     )
-
-#     facturas = list(
-#         CuentasCobrar.objects
-#         .using('gimpromed_sql')
-#         .filter(codigo_cliente=codigo_cliente)
-#     )
-
-#     facturas_vigentes = []
-#     facturas_vencidas = []
-
-#     resumen = {
-#         'vigente': Decimal('0'),
-#         'rango_1_30': Decimal('0'),
-#         'rango_31_60': Decimal('0'),
-#         'rango_61_90': Decimal('0'),
-#         'rango_91': Decimal('0'),
-#     }
-
-#     for f in facturas:
-#         dias = (hoy - f.fecha_vencimiento).days
-#         saldo = f.valor_total_saldo_a_cobrar or Decimal('0')
-
-#         item = {
-#             'numero': f.numero_factura,
-#             'fecha_emision': f.fecha_factura,
-#             'valor':f.valor,
-#             'pagado': f.valor_total_pagado,
-#             'saldo': saldo,
-#             'fecha_vencimiento': f.fecha_vencimiento,
-#             'retencion':f.valor_retencion
-#         }
-
-#         if dias <= 0:
-#             item['dias_vigente'] = abs(dias)
-#             facturas_vigentes.append(item)
-#             resumen['vigente'] += saldo
-#         else:
-#             item['dias_vencido'] = dias
-#             facturas_vencidas.append(item)
-
-#             if dias <= 30:
-#                 resumen['rango_1_30'] += saldo
-#             elif dias <= 60:
-#                 resumen['rango_31_60'] += saldo
-#             elif dias <= 90:
-#                 resumen['rango_61_90'] += saldo
-#             else:
-#                 resumen['rango_91'] += saldo
-
-#     totales = {
-#         'total_vigente': resumen['vigente'],
-#         'total_vencido': (
-#             resumen['rango_1_30']
-#             + resumen['rango_31_60']
-#             + resumen['rango_61_90']
-#             + resumen['rango_91']
-#         ),
-#         'total_cartera': sum(resumen.values())
-#     }
-
-#     email_context = {
-#         'cliente_nombre': cliente.nombre_cliente,
-#         'cartera_vencida': totales['total_vencido'],
-#         'facturas_vencidas': facturas_vencidas,
-#         'facturas_vigentes': facturas_vigentes,
-#         'total_vigentes': totales['total_vigente'],
-#         'total_cartera': totales['total_cartera'],
-#         'resumen': resumen,
-#     }
-
-#     correo_html = render_to_string(
-#         'emails/cuentas_cobrar.html',
-#         email_context
-#     )
-
-#     return {
-#         'correo_html': correo_html,
-#         'email_context': email_context
-#     }
-
-
 @require_GET
 def nueva_notificacion(request):
 
@@ -369,9 +281,12 @@ def nueva_notificacion(request):
             .get(codigo_cliente=cli)
         )
         
+        vendedor = VendedorMBA.objects.using('gimpromed_sql').get(code=cliente.salesman)
+        
         # Agregar al context principal
         context.update({
             'cliente_selected': cliente,
+            'vendedor':vendedor,
             'correo_html': correo_data.get('correo_html'),
             **correo_data.get('email_context')
         })

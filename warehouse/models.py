@@ -526,6 +526,29 @@ class CuentasCobrar(models.Model):
         return self.valor_total_saldo_a_cobrar + self.valor_retencion
 
 
+class VendedorMBA(models.Model):
+    code = models.CharField(max_length=50, primary_key=True, db_column='CODE')
+    name = models.CharField(max_length=100, db_column='NAME')
+    email = models.CharField(max_length=100, db_column='EMAIL')
+
+    class Meta:
+        managed = False
+        db_table = 'vendedor'
+        verbose_name = 'Vendedor'
+        verbose_name_plural = "Vendedores"
+        app_label = 'warehouse'
+
+    def __str__(self):
+        return f"{self.code} - {self.name}"
+
+    # Bloquear escrituras
+    def save(self, *args, **kwargs):
+        raise NotImplementedError("Este modelo es solo lectura")
+
+    def delete(self, *args, **kwargs):
+        raise NotImplementedError("Este modelo es solo lectura")
+
+
 ################################
 ###### TABLAS DE PRECIOS #######
 ################################
