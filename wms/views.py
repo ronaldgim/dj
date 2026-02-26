@@ -1249,7 +1249,6 @@ def wms_inventario(request): #OK
         Suma de ingresos y egresos que dan el total de todo el inventario
     """
     # wms_existencias_query_product_lote("10-160-24","3325224M")    
-    wms_existencias_query_product_lote("LP16040","23072562")    
     
     prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
     productos = pd.DataFrame(Existencias.objects.all().values('product_id'))
