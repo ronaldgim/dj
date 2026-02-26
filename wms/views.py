@@ -3967,19 +3967,23 @@ def wms_transferencia_add_func(n_transf, camion_id=None, transf_id=None):
         
     Transferencia.objects.bulk_create(tr_list)
     
-    if len(tr_list) > 0 and tr.bodega_salida == 'BCT' or tr.bodega_salida == 'CUC':
-        TransferenciaStatus.objects.create(
-            n_transferencia = n_transf,
-            estado          = 'CREADO',
-            unidades_mba    = 0,
-            unidades_wms    = 0,
-            avance          = 0.0,
-            camion          = Vehiculos.objects.get(id=camion_id) if camion_id else None
-        )
+    if not transf_id:
+        if len(tr_list) > 0 and tr.bodega_salida == 'BCT' or tr.bodega_salida == 'CUC':
+            TransferenciaStatus.objects.create(
+                n_transferencia = n_transf,
+                estado          = 'CREADO',
+                unidades_mba    = 0,
+                unidades_wms    = 0,
+                avance          = 0.0,
+                ingresado       = datetime.now(),
+                camion          = Vehiculos.objects.get(id=camion_id) if camion_id else None
+            )
     
     if transf_id:
         tr_st = TransferenciaStatus.objects.get(id=transf_id)
+        tr_st.estado = 'INGRESADO',
         tr_st.n_transferencia = n_transf
+        tr_st.ingresado = datetime.now()
         tr_st.save()
         
     return {
@@ -4001,7 +4005,7 @@ def wms_agregar_transferencia(request):
         messages.error(request, tr.get('msg', ''))
     
     if tr.get('success', True):
-        messages.error(request, tr.get('msg', ''))
+        messages.success(request, tr.get('msg', ''))
     
     return redirect('wms_transferencias_list')
 
