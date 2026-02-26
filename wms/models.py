@@ -231,7 +231,7 @@ class Transferencia(models.Model):
         
 class TransferenciaStatus(models.Model):
     
-    n_transferencia = models.CharField(verbose_name='Número de trasferencia', max_length=50, unique=True, blank=True, null=True)
+    n_transferencia = models.CharField(verbose_name='Número de trasferencia', max_length=50, blank=True, null=True)
     unidades_mba    = models.PositiveIntegerField(verbose_name='Unidades mba', default=0)
     unidades_wms    = models.PositiveIntegerField(verbose_name='Unidades wms', default=0)
     avance          = models.FloatField(verbose_name='Avance', default=0.0)
