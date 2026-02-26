@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
 from warehouse.models import CuentasCobrar, Cliente, VendedorMBA
 from contabilidad.models import ClienteExcluido, NotificacionCartera
 from django.views.decorators.http import require_POST, require_GET
@@ -13,20 +14,31 @@ from contabilidad.forms import NotificacionCarteraForm
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 
-# Create your views here.
+# Services
+from contabilidad.services import CarteraKPIService
+
+
+@login_required(login_url='login')
 def lista_cuentas_por_cobrar(request):
-    cuentas_cobrar = (
+    qs = (
         CuentasCobrar.objects
-            .using('gimpromed_sql')
-            .all()
-            .order_by('fecha_vencimiento')
-        )
+        .using('gimpromed_sql')
+        .all()
+        .order_by('fecha_vencimiento')
+    )
+
+    kpi_service = CarteraKPIService(qs)
+    kpis = kpi_service.get_all_kpis()
+
     context = {
-        'cuentas_cobrar':cuentas_cobrar
+        'cuentas_cobrar': qs,
+        'kpis': kpis
     }
+
     return render(request, 'contabilidad/lista_cuentas_cobrar.html', context)
 
 
+@login_required(login_url='login')
 def lista_clientes_excluidos(request):
     
     clientes = Cliente.objects.using('gimpromed_sql').all()
@@ -50,6 +62,7 @@ def lista_clientes_excluidos(request):
     return render(request, 'contabilidad/lista_clientes_excluidos.html', context)
 
 
+@login_required(login_url='login')
 @require_POST
 def contabilidad_agregar_cliente_excluido(request):
     
@@ -68,6 +81,7 @@ def contabilidad_agregar_cliente_excluido(request):
         return redirect('clientes_excluidos')
 
 
+@login_required(login_url='login')
 @require_POST
 def contabilidad_eliminar_cliente_excluido(request):
     
@@ -86,6 +100,7 @@ def contabilidad_eliminar_cliente_excluido(request):
         return redirect('clientes_excluidos')
 
 
+@login_required(login_url='login')
 def lista_notificaciones(request):
     
     notificaciones = NotificacionCartera.objects.select_related('usuario').all()
@@ -243,6 +258,7 @@ def cartera_vencida_por_cliente(codigo_cliente):
     }
 
 
+@login_required(login_url='login')
 @require_GET
 def nueva_notificacion(request):
 
@@ -330,6 +346,7 @@ def obtener_lista_correos(correos_str, correos_extra=None):
     return correos_validos
 
 
+@login_required(login_url='login')
 @require_POST
 def crear_notificacion(request):
     if request.method == "POST":
@@ -383,6 +400,7 @@ def crear_notificacion(request):
     return redirect('error_url')
 
 
+@login_required(login_url='login')
 @require_GET
 def detalle_notificacion(request, id):
     
