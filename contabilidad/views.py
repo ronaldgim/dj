@@ -18,19 +18,82 @@ from django.core.exceptions import ValidationError
 from contabilidad.services import CarteraKPIService
 
 
+# @login_required(login_url='login')
+# def lista_cuentas_por_cobrar(request):
+    
+#     clientes = (
+#         CuentasCobrar.objects
+#         .using('gimpromed_sql')
+#         .all()
+#         .values_list('codigo_cliente', 'nombre_cliente')
+#     ).distinct().values()
+    
+#     cli = request.GET.get('codigo_cliente', None)
+    
+#     qs = (
+#         CuentasCobrar.objects
+#         .using('gimpromed_sql')
+#         .all()
+#         .order_by('-fecha_vencimiento')
+#     )
+
+#     if cli:
+#         qs = qs.filter(codigo_cliente=cli)
+
+#     kpi_service = CarteraKPIService(qs)
+#     kpis = kpi_service.get_all_kpis()
+
+#     context = {
+#         'clientes':clientes,
+#         'cuentas_cobrar': qs,
+#         'kpis': kpis
+#     }
+
+#     return render(request, 'contabilidad/lista_cuentas_cobrar.html', context)
+
+
 @login_required(login_url='login')
 def lista_cuentas_por_cobrar(request):
-    qs = (
+
+    cli = request.GET.get('codigo_cliente')
+
+    base_qs = (
         CuentasCobrar.objects
         .using('gimpromed_sql')
-        .all()
-        .order_by('fecha_vencimiento')
+        .only(
+            'codigo_cliente',
+            'nombre_cliente',
+            'fecha_vencimiento',
+            'valor_total_saldo_a_cobrar',
+            'valor_total_pagado',
+            'limite_credito',
+            'balance'
+        )
     )
 
+    # Clientes únicos (para filtro)
+    clientes = (
+        base_qs
+        .values('codigo_cliente', 'nombre_cliente')
+        .distinct()
+        .order_by('nombre_cliente')
+    )
+
+    # Query principal
+    qs = base_qs.order_by('-fecha_vencimiento')
+
+    cliente = None
+    if cli:
+        qs = qs.filter(codigo_cliente=cli)
+        cliente = Cliente.objects.using('gimpromed_sql').get(codigo_cliente=cli)
+
+    # KPIs
     kpi_service = CarteraKPIService(qs)
     kpis = kpi_service.get_all_kpis()
 
     context = {
+        'clientes': clientes,
+        'cliente':cliente,
         'cuentas_cobrar': qs,
         'kpis': kpis
     }
