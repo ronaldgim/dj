@@ -3759,6 +3759,7 @@ def wms_actualizar_tranferencia_data_products(request):
     name='dispatch'
 )
 class TransferenciaStatusListView(LoginRequiredMixin, ListView):
+    model = TransferenciaStatus
     template_name = 'wms/transferencias_list.html'
     paginate_by = 10
     context_object_name = 'transf_wms'
