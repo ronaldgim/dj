@@ -11,6 +11,94 @@
 {% block body_2 %}
 <h5 class="m-4 text-center"><strong>LISTADO DE CUENTAS POR COBRAR</strong></h5>
 
+<div class="row g-3 mb-4">
+
+    <!-- TOTAL CARTERA -->
+    <div class="col-md-2">
+        <div class="card border-0" style="background-color: #2c9bfc1a;">
+            <h5 class="card-header text-center fs-5 text-primary fw-bold border-0">
+                TOTAL CARTERA
+            </h5>
+            <div class="card-body text-center">
+                <h4 class="text-primary fw-bold">
+                    $ {{ kpis.total_cartera|floatformat:"2g" }}
+                </h4>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOTAL VENCIDO -->
+    <div class="col-md-2">
+        <div class="card border-0" style="background-color: #dc35451a;">
+            <h5 class="card-header text-center fs-5 text-danger fw-bold border-0">
+                Total Vencido
+            </h5>
+            <div class="card-body text-center">
+                <h4 class="text-danger fw-bold">
+                    $ {{ kpis.total_vencido|floatformat:"2g" }}
+                </h4>
+            </div>
+        </div>
+    </div>
+
+    <!-- % VENCIDO -->
+    <div class="col-md-2">
+        <div class="card border-0" style="background-color: #ffc1071a;">
+            <h5 class="card-header text-center fs-5 text-warning fw-bold border-0">
+                % Vencido
+            </h5>
+            <div class="card-body text-center">
+                <h4 class="text-warning fw-bold">
+                    {{ kpis.porcentaje_vencido }}%
+                </h4>
+            </div>
+        </div>
+    </div>
+
+    <!-- # FACTURAS -->
+    <div class="col-md-2">
+        <div class="card border-0" style="background-color: #0d6efd1a;">
+            <h5 class="card-header text-center fs-5 text-primary fw-bold border-0">
+                # Facturas
+            </h5>
+            <div class="card-body text-center">
+                <h4 class="fw-bold text-primary">
+                    {{ kpis.total_facturas }}
+                </h4>
+            </div>
+        </div>
+    </div>
+
+    <!-- TICKET PROMEDIO -->
+    <div class="col-md-2">
+        <div class="card border-0" style="background-color: #1987541a;">
+            <h5 class="card-header text-center fs-5 text-success fw-bold border-0">
+                Ticket Promedio
+            </h5>
+            <div class="card-body text-center">
+                <h4 class="fw-bold text-success">
+                    $ {{ kpis.ticket_promedio|floatformat:"2g" }}
+                </h4>
+            </div>
+        </div>
+    </div>
+
+    <!-- CLIENTES SOBRE LÍMITE -->
+    <div class="col-md-2">
+        <div class="card border-0" style="background-color: #2125291a;">
+            <h5 class="card-header text-center fs-5 text-dark fw-bold border-0">
+                Sobre Límite
+            </h5>
+            <div class="card-body text-center">
+                <h4 class="fw-bold text-dark">
+                    {{ kpis.clientes_sobre_limite }}
+                </h4>
+            </div>
+        </div>
+    </div>
+
+</div>
+
 <div class="col-4">
     <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
 </div>
@@ -38,14 +126,14 @@
                     <tr>
                         <td>{{i.numero_factura}}</td>
                         <td>{{i.nombre_cliente}}</td>
-                        <td>{{i.fecha_factura}}</td>
-                        <td>{{i.fecha_vencimiento}}</td>
-                        <td>$ {{i.valor_total_pagado}}</td>
-                        <td>$ {{i.valor_total_saldo_a_cobrar}}</td>
-                        <td>$ {{i.valor_retencion}}</td>
-                        <td>$ {{i.balance}}</td>
-                        <td>{{i.riesgo}}</td>
-                        <td class="{{i.color_estado}}">{{i.dias_mora_real}}</td>
+                        <td>{{i.fecha_factura | date:"Y-m-d"}}</td>
+                        <td>{{i.fecha_vencimiento | date:"Y-m-d"}}</td>
+                        <td class="text-end">$ {{i.valor_total_pagado}}</td>
+                        <td class="text-end">$ {{i.valor_total_saldo_a_cobrar}}</td>
+                        <td class="text-end">$ {{i.valor_retencion}}</td>
+                        <td class="text-end">$ {{i.balance}}</td>
+                        <td class="text-end">{{i.riesgo}}</td>
+                        <td class="{{i.color_estado}} text-end">{{i.dias_mora_real}}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
