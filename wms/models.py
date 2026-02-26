@@ -132,7 +132,9 @@ class Ubicacion(models.Model):
     
     @property
     def nombre_completo(self):
-        return f'{self.bodega}-{self.pasillo}-{self.modulo}-{self.nivel}'
+        if self.bodega == 'CN6':
+            return f'{self.bodega}-{self.pasillo}-{self.modulo}-{self.nivel}'
+        return f'{self.bodega}-{self.pasillo}-{self.modulo}'
 
 
 class Movimiento(models.Model):
