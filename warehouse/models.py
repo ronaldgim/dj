@@ -497,13 +497,13 @@ class CuentasCobrar(models.Model):
         dias = self.dias_mora_real
 
         if dias <= 0:
-            return "success"
+            return "fw-bold text-success"
         elif dias <= 30:
-            return "warning"
+            return "fw-bold text-warning"
         elif dias <= 60:
-            return "orange"
+            return "fw-bold text-info"
         else:
-            return "danger"
+            return "fw-bold text-danger"
 
     @property
     def saldo_pendiente(self):
