@@ -39,15 +39,14 @@
     </button>
 </div>
 
-
 <form method = 'GET'>
-    <select class="form-select" name="codigo" id="chosen-select-product" required>
+    <select onchange="this.form.submit()" class="form-select" name="codigo" id="chosen-select-product" required>
         <option selected value='0'>Seleccione un producto...</option>
         {% for i in productos %}
             <option value="{{i.codigo}}">{{i.codigo}} - {{i.nombre}} - {{i.marca}}</option>
         {% endfor %}
     </select>
-    <div class=text-end><button class="btn btn-sm btn-primary mt-2" type="submit"><i class="bi bi-search"></i> Buscar</button></div>
+    <!--div class=text-end><button class="btn btn-sm btn-primary mt-2" type="submit"><i class="bi bi-search"></i> Buscar</button></div-->
 </form>
 
 
