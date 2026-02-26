@@ -324,7 +324,14 @@ class CuentasCobrar(models.Model):
         blank=True,
         null=True
     )
-
+    
+    client_type = models.CharField(
+        max_length=255,
+        db_column='CLIENT_TYPE',
+        blank=True,
+        null=True
+    )
+    
     fecha_factura = models.DateField(
         db_column='FECHA_FACTURA',
         blank=True,
@@ -408,6 +415,12 @@ class CuentasCobrar(models.Model):
         blank=True,
         null=True
     )
+    
+    valor_retencion = models.IntegerField(
+        db_column='VALOR_RETENCION',
+        blank=True,
+        null=True
+    )
 
     dias_ven = models.IntegerField(
         db_column='DIAS_VEN',
@@ -427,7 +440,6 @@ class CuentasCobrar(models.Model):
         db_table = 'cuentas_cobrar'
         verbose_name = 'Cuenta por cobrar'
         verbose_name_plural = "Cuentas por cobrar"
-        # app_label = 'gimpromed_sql'
         app_label = 'warehouse'
 
     # SOLO LECTURA

@@ -143,6 +143,7 @@ from datos.views import (
 from django.views.generic import ListView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils.decorators import method_decorator
+from collections import defaultdict
 
 """
     LISTAS DE INGRESOS
@@ -1240,8 +1241,8 @@ def wms_btn_actualizar_todas_existencias(request):
 
 
 
-# Inventario - Lista de productos Existencias
-# url: wms/inventario
+# # Inventario - Lista de productos Existencias
+# # url: wms/inventario
 @login_required(login_url='login')
 @permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'], '/wms/home', 'ingrear a Inventario')
 def wms_inventario(request): #OK
@@ -1250,401 +1251,157 @@ def wms_inventario(request): #OK
     """
     # wms_existencias_query_product_lote("10-160-24","3325224M")    
     
-    prod = productos_odbc_and_django()[['product_id','Nombre','Marca']]
-    productos = pd.DataFrame(Existencias.objects.all().values('product_id'))
-    productos = productos.merge(prod, on='product_id', how='left').sort_values('product_id')
-    productos = productos.drop_duplicates('product_id')
-    productos = de_dataframe_a_template(productos)
-    
-    # Todos los productos 
-    inv = pd.DataFrame(Existencias.objects.all().values(
-        'id',
-        'product_id', 'lote_id', 'fecha_caducidad', 'unidades', 'fecha_hora',
-        'ubicacion', 'ubicacion__bodega', 'ubicacion__pasillo', 'ubicacion__modulo', 'ubicacion__nivel',
-        'estado'
-    ))
-    inv = inv.merge(prod, on='product_id', how='left')
-    inv['fecha_caducidad'] = pd.to_datetime(inv['fecha_caducidad'])
-    inv = inv.sort_values(
-        by        = ['estado', 'product_id', 'fecha_caducidad', 'lote_id', 'ubicacion__bodega', 'ubicacion__nivel', 'unidades'],
-        ascending = [False,    True,         True,              True,      True,                True,               True]    
-    )
-    inv['fecha_caducidad'] = inv['fecha_caducidad'].dt.strftime('%d-%m-%Y')
-    
-    inv = de_dataframe_a_template(inv)
-    
-    if request.method == 'POST':
-        
-        ex = Existencias.objects.filter(product_id=request.POST['codigo']).values('id',
-            'product_id', 'lote_id', 'fecha_caducidad', 'unidades', 'fecha_hora',
-            'ubicacion', 'ubicacion__bodega', 'ubicacion__pasillo', 'ubicacion__modulo', 'ubicacion__nivel',
-            'estado')
-        
-        inv = pd.DataFrame(ex).merge(prod, on='product_id', how='left')
-        inv['fecha_caducidad'] = pd.to_datetime(inv['fecha_caducidad'])
-        inv = inv.sort_values(
-            by        = ['estado', 'product_id', 'fecha_caducidad', 'lote_id', 'ubicacion__bodega', 'ubicacion__nivel', 'unidades'],
-            ascending = [False,    True,         True,              True,      True,                True,               True]    
-        )
-        inv['fecha_caducidad'] = inv['fecha_caducidad'].dt.strftime('%d-%m-%Y')
-        inv = de_dataframe_a_template(inv)
-        
-        # INV DETALLE
-        products = productos_odbc_and_django()[['product_id','Unidad_Empaque','UnidadesPorPallet','Volumen']]
-        
-        # inv_detalle = pd.DataFrame(ex).groupby(by=['estado','product_id','lote_id','fecha_caducidad']).sum().reset_index().sort_values(by='fecha_caducidad')
-        inv_detalle = pd.DataFrame(ex).groupby(by=['estado','product_id','lote_id','fecha_caducidad']).agg({'unidades':'sum'}).reset_index().sort_values(by='fecha_caducidad')
-        
-        inv_detalle = inv_detalle.merge(products, on='product_id', how='left')
-        inv_detalle['cartones'] = inv_detalle['unidades'] / inv_detalle['Unidad_Empaque']
-        inv_detalle['volumen']  = inv_detalle['cartones'] * (inv_detalle['Volumen'] / 1000000)
-        inv_detalle['pallets']  = inv_detalle['unidades'] / inv_detalle['UnidadesPorPallet'] 
-        inv_detalle['fecha_caducidad'] = pd.to_datetime(inv_detalle['fecha_caducidad']).dt.strftime('%d-%m-%Y')
-        inv_detalle = inv_detalle.replace(to_replace=np.inf, value=0)
-        
-        # INV ESTADO
-        inv_estado = pd.DataFrame(inv_detalle).groupby(by="estado").sum().sort_values(by='estado',ascending=False).reset_index()
-        
-        # TOTALES
-        total_unidades = inv_detalle['unidades'].sum()
-        total_cartones = inv_detalle['cartones'].sum()
-        total_volumen  = inv_detalle['volumen'].sum()
-        total_pallets  = inv_detalle['pallets'].sum()
-        
-        inv_detalle = de_dataframe_a_template(inv_detalle)
-        inv_estado = de_dataframe_a_template(inv_estado)
-        
-        en_despacho = (Movimiento.objects
-            .filter(product_id=request.POST['codigo'])
-            .filter(referencia='Picking')
-            .filter(estado_picking='En Despacho')
-            .values('product_id','lote_id','fecha_caducidad','estado_picking','unidades'))
-        
-        en_despacho_df = pd.DataFrame(en_despacho)
-        
-        if not en_despacho_df.empty:
-            en_despacho_df['unidades'] = en_despacho_df['unidades'] * -1
-            en_despacho_df = en_despacho_df.merge(products, on='product_id', how='left')
-            en_despacho_df['cartones'] = en_despacho_df['unidades'] / en_despacho_df['Unidad_Empaque']
-            en_despacho_df['volumen']  = en_despacho_df['cartones'] * (en_despacho_df['Volumen'] / 1000000)
-            en_despacho_df['pallets']  = en_despacho_df['unidades'] / en_despacho_df['UnidadesPorPallet'] 
-            en_despacho_df['fecha_caducidad'] = pd.to_datetime(en_despacho_df['fecha_caducidad']).dt.strftime('%d-%m-%Y')
-            en_despacho_df = en_despacho_df.replace(to_replace=np.inf, value=0)
-            
-            total_unidades_despacho = en_despacho_df['unidades'].sum()
-            total_cartones_despacho = en_despacho_df['cartones'].sum()
-            total_volumen_despacho  = en_despacho_df['volumen'].sum()
-            total_pallets_despacho  = en_despacho_df['pallets'].sum()
-            
-            en_despacho = de_dataframe_a_template(en_despacho_df)
-        else:
-            
-            total_unidades_despacho = 0
-            total_cartones_despacho = 0
-            total_volumen_despacho  = 0
-            total_pallets_despacho  = 0
-            
-            en_despacho = de_dataframe_a_template(en_despacho_df)
-        
-        context = {
-            'productos':productos,
-            'inv':inv,
-            
-            'codigo':request.POST['codigo'],
-            'inv_detalle':inv_detalle,
-            'inv_estado':inv_estado,
-            'en_despacho':en_despacho,
-            
-            'total_unidades':total_unidades,
-            'total_cartones':total_cartones,
-            'total_volumen':total_volumen,
-            'total_pallets':total_pallets,
-            
-            'total_unidades_despacho':total_unidades_despacho,
-            'total_cartones_despacho':total_cartones_despacho,
-            'total_volumen_despacho':total_volumen_despacho,
-            'total_pallets_despacho':total_pallets_despacho,
-        }
-    
-        return render(request, 'wms/inventario.html', context)
+    codigo = request.GET.get('codigo')
 
+    existencias_qs = (
+        Existencias.objects
+        .select_related('ubicacion')
+        .all()
+        .order_by(
+            '-estado',
+            'product_id',
+            'fecha_caducidad',
+            'lote_id',
+            'ubicacion__bodega',
+            'ubicacion__nivel',
+            'unidades'
+        )
+    )
+
+    # filtrar antes de todo si hay código
+    if codigo:
+        existencias_qs = existencias_qs.filter(product_id=codigo)
+
+    # Traer solo los product_id necesarios
+    product_ids = existencias_qs.values_list('product_id', flat=True).distinct()
+
+    productos = (
+        Producto.objects.using('gimpromed_sql')
+        .filter(codigo__in=list(product_ids))
+    )
+
+    productos_dict = {p.codigo:p for p in productos}
+
+    # DETALLE OPTIMIZADO
+    detalle_dict = defaultdict(lambda: {
+        'codigo': None,
+        'nombre': None,
+        'marca': None,
+        'lote': None,
+        'fecha_caducidad': None,
+        'estado': None,
+        'unidades': 0,
+        'cartones': 0,
+        'volumen': 0,
+        'pallets': 0,
+    })
+
+    for i in existencias_qs:
+        prod = productos_dict.get(i.product_id)
+        if not prod:
+            continue
+
+        key = (i.product_id, i.lote_id, i.fecha_caducidad, i.estado)
+
+        unidades = i.unidades or 0
+        unidad_empaque = prod.unidad_empaque or 0
+        volumen_m3 = prod.volumen_m3 or 0
+        unidades_pallet = prod.unidades_por_pallet or 0
+
+        # NO redondear aquí (evita error acumulado)
+        cartones = (unidades / unidad_empaque) if unidad_empaque > 0 else 0
+        volumen = cartones * volumen_m3
+        pallets = (unidades / unidades_pallet) if unidades_pallet > 0 else 0
+
+        # acumulación
+        d = detalle_dict[key]
+
+        d['codigo'] = i.product_id
+        d['nombre'] = prod.nombre
+        d['marca'] = prod.marca
+        d['lote'] = i.lote_id
+        d['fecha_caducidad'] = i.fecha_caducidad
+        d['estado'] = i.estado
+
+        d['unidades'] += unidades
+        d['cartones'] += cartones
+        d['volumen'] += volumen
+        d['pallets'] += pallets
+
+    detalle = []
+
+    for d in detalle_dict.values():
+        d['cartones'] = round(d['cartones'], 2)
+        d['volumen'] = round(d['volumen'], 4)
+        d['pallets'] = round(d['pallets'], 2)
+        detalle.append(d)
+    
+    
+    detalle_estado = defaultdict(lambda: {
+        'estado': None,
+        'unidades': 0,
+        'cartones': 0,
+        'volumen': 0,
+        'pallets': 0,
+    })
+
+    for i in existencias_qs:
+        prod = productos_dict.get(i.product_id)
+        if not prod:
+            continue
+
+        estado = i.estado
+
+        unidades = i.unidades or 0
+        unidad_empaque = prod.unidad_empaque or 0
+        volumen_m3 = prod.volumen_m3 or 0
+        unidades_pallet = prod.unidades_por_pallet or 0
+
+        cartones = round(unidades / unidad_empaque, 2) if unidad_empaque > 0 else 0
+        volumen = cartones * volumen_m3
+        pallets = (unidades / unidades_pallet) if unidades_pallet > 0 else 0
+
+        # acumulación
+        detalle_estado[estado]['estado'] = estado
+        detalle_estado[estado]['unidades'] += unidades
+        detalle_estado[estado]['cartones'] += cartones
+        detalle_estado[estado]['volumen'] += volumen
+        detalle_estado[estado]['pallets'] += pallets
+
+    # convertir a lista
+    estado = list(detalle_estado.values())
+
+    # LISTA GENERAL
+    existencias_list = [
+        {
+            'id': i.id,
+            'codigo': i.product_id,
+            'nombre': (prod := productos_dict.get(i.product_id)).nombre if prod else None,
+            'marca': prod.marca if prod else None,
+            'lote': i.lote_id,
+            'fecha_caducidad': i.fecha_caducidad,
+            'ubicacion': i.ubicacion.nombre_completo if i.ubicacion else None,
+            'estado': i.estado,
+            'unidades': i.unidades,
+        }
+        for i in existencias_qs
+    ]
+    
     context = {
-        'productos':productos,
-        'inv':inv,
+        'productos':Producto.objects.using('gimpromed_sql').all(),
+        'inv': existencias_list,
+        
+        'codigo':codigo,
+        'detalle':detalle,
+        'estado':estado,
+        
+        'total_unidades': sum(d['unidades'] for d in detalle),
+        'total_cartones': sum(d['cartones'] for d in detalle),
+        'total_volumen': sum(d['volumen'] for d in detalle),
+        'total_pallets': sum(d['pallets'] for d in detalle),
     }
     
     return render(request, 'wms/inventario.html', context)
-
-
-
-# @login_required(login_url='login')
-# @permisos(['ADMINISTRADOR','OPERACIONES','BODEGA'], '/wms/home', 'ingrear a Inventario')
-# def wms_inventario(request): #OK
-#     """ Inventario
-#         Suma de ingresos y egresos que dan el total de todo el inventario
-#     """
-#     # wms_existencias_query_product_lote("10-160-24","3325224M")    
-    
-#     # codigo = request.GET.get('codigo')
-    
-#     # existencias_qs = (
-#     #     Existencias.objects
-#     #     .select_related('ubicacion')
-#     #     .all()
-#     #     .order_by(
-#     #         '-estado', 
-#     #         'product_id', 
-#     #         'fecha_caducidad', 
-#     #         'lote_id', 
-#     #         'ubicacion__bodega', 
-#     #         'ubicacion__nivel', 
-#     #         'unidades'
-#     #     )
-#     # )
-    
-#     # if codigo:
-#     #     existencias_qs = existencias_qs.filter(product_id=codigo)
-    
-#     # product_ids = existencias_qs.values_list('product_id', flat=True).distinct()
-    
-#     # # 2. Traer productos desde DB externa
-#     # productos = (
-#     #     Producto.objects.using('gimpromed_sql')
-#     #     .filter(codigo__in=list(product_ids))
-#     #     .only('codigo', 'nombre', 'marca', 'unidad_empaque', 'volumen_m3', 'unidades_por_pallet')  # optimización
-#     # )
-
-#     # # 3. Crear diccionario eficiente
-#     # productos_dict = {p.codigo:p for p in productos}
-    
-#     # if codigo:
-#     #     existencias_qs = existencias_qs.filter(product_id=codigo)
-#     #     detalle = []
-#     #     for i in existencias_qs:
-#     #         prod = productos_dict.get(i.product_id)
-#     #         detalle.append({
-#     #             'codigo': i.product_id,
-#     #             'nombre': prod.nombre if prod else None,
-#     #             'marca': prod.marca if prod else None,
-#     #             'lote': i.lote_id,
-#     #             'fecha_caducidad': i.fecha_caducidad,
-#     #             'estado': i.estado,
-#     #             'cartones':round(i.unidades / prod.unidad_empaque, 2) if i.unidades and prod.unidad_empaque > 0 else 0,
-#     #             'volumen': (round(i.unidades / prod.unidad_empaque, 2) if i.unidades and prod.unidad_empaque > 0 else 0) * prod.volumen_m3,
-#     #             'pallets': i.unidades / prod.unidades_por_pallet
-#     #         })
-
-    
-    
-#     # # 4. Armar resultado
-#     # existencias_list = []
-#     # for i in existencias_qs:
-#     #     prod = productos_dict.get(i.product_id)
-#     #     existencias_list.append({
-#     #         'id': i.id,
-#     #         'codigo': i.product_id,
-#     #         'nombre': prod.nombre if prod else None,
-#     #         'marca': prod.marca if prod else None,
-#     #         'lote': i.lote_id,
-#     #         'fecha_caducidad': i.fecha_caducidad,
-#     #         'ubicacion': i.ubicacion.nombre_completo,
-#     #         'estado': i.estado,
-#     #         'unidades': i.unidades,
-#     #     })
-    
-    
-    
-    
-#     codigo = request.GET.get('codigo')
-
-#     existencias_qs = (
-#         Existencias.objects
-#         .select_related('ubicacion')
-#         .all()
-#         .order_by(
-#             '-estado',
-#             'product_id',
-#             'fecha_caducidad',
-#             'lote_id',
-#             'ubicacion__bodega',
-#             'ubicacion__nivel',
-#             'unidades'
-#         )
-#     )
-
-#     # filtrar antes de todo si hay código
-#     if codigo:
-#         existencias_qs = existencias_qs.filter(product_id=codigo)
-
-#     # Traer solo los product_id necesarios
-#     product_ids = existencias_qs.values_list('product_id', flat=True).distinct()
-
-#     productos = (
-#         Producto.objects.using('gimpromed_sql')
-#         .filter(codigo__in=list(product_ids))
-#     )
-
-#     productos_dict = {p.codigo:p for p in productos}
-
-#     # DETALLE OPTIMIZADO
-#     detalle = []
-#     for i in existencias_qs:
-#         prod = productos_dict.get(i.product_id)
-
-#         if not prod:
-#             continue  # o maneja como quieras
-
-#         unidades = i.unidades or 0
-#         unidad_empaque = prod.unidad_empaque or 0
-#         volumen_m3 = prod.volumen_m3 or 0
-#         unidades_pallet = prod.unidades_por_pallet or 0
-
-#         # cálculos seguros
-#         cartones = round(unidades / unidad_empaque, 2) if unidad_empaque > 0 else 0
-#         volumen = cartones * volumen_m3
-#         pallets = (unidades / unidades_pallet) if unidades_pallet > 0 else 0
-
-#         detalle.append({
-#             'codigo': i.product_id,
-#             'nombre': prod.nombre,
-#             'marca': prod.marca,
-#             'lote': i.lote_id,
-#             'fecha_caducidad': i.fecha_caducidad,
-#             'estado': i.estado,
-#             'unidades':i.unidades,
-#             'cartones': cartones,
-#             'volumen': volumen,
-#             'pallets': pallets,
-#         })
-
-#     # LISTA GENERAL (reutiliza loop si quieres)
-#     existencias_list = [
-#         {
-#             'id': i.id,
-#             'codigo': i.product_id,
-#             'nombre': (prod := productos_dict.get(i.product_id)).nombre if prod else None,
-#             'marca': prod.marca if prod else None,
-#             'lote': i.lote_id,
-#             'fecha_caducidad': i.fecha_caducidad,
-#             'ubicacion': i.ubicacion.nombre_completo if i.ubicacion else None,
-#             'estado': i.estado,
-#             'unidades': i.unidades,
-#         }
-#         for i in existencias_qs
-#     ]
-    
-    
-    
-    
-    
-    
-#     # if request.method == 'POST':
-        
-#     #     ex = Existencias.objects.filter(product_id=request.POST['codigo']).values('id',
-#     #         'product_id', 'lote_id', 'fecha_caducidad', 'unidades', 'fecha_hora',
-#     #         'ubicacion', 'ubicacion__bodega', 'ubicacion__pasillo', 'ubicacion__modulo', 'ubicacion__nivel',
-#     #         'estado')
-        
-#     #     inv = pd.DataFrame(ex).merge(prod, on='product_id', how='left')
-#     #     inv['fecha_caducidad'] = pd.to_datetime(inv['fecha_caducidad'])
-#     #     inv = inv.sort_values(
-#     #         by        = ['estado', 'product_id', 'fecha_caducidad', 'lote_id', 'ubicacion__bodega', 'ubicacion__nivel', 'unidades'],
-#     #         ascending = [False,    True,         True,              True,      True,                True,               True]    
-#     #     )
-#     #     inv['fecha_caducidad'] = inv['fecha_caducidad'].dt.strftime('%d-%m-%Y')
-#     #     inv = de_dataframe_a_template(inv)
-        
-#     #     # INV DETALLE
-#     #     products = productos_odbc_and_django()[['product_id','Unidad_Empaque','UnidadesPorPallet','Volumen']]
-        
-#     #     # inv_detalle = pd.DataFrame(ex).groupby(by=['estado','product_id','lote_id','fecha_caducidad']).sum().reset_index().sort_values(by='fecha_caducidad')
-#     #     inv_detalle = pd.DataFrame(ex).groupby(by=['estado','product_id','lote_id','fecha_caducidad']).agg({'unidades':'sum'}).reset_index().sort_values(by='fecha_caducidad')
-        
-#     #     inv_detalle = inv_detalle.merge(products, on='product_id', how='left')
-#     #     inv_detalle['cartones'] = inv_detalle['unidades'] / inv_detalle['Unidad_Empaque']
-#     #     inv_detalle['volumen']  = inv_detalle['cartones'] * (inv_detalle['Volumen'] / 1000000)
-#     #     inv_detalle['pallets']  = inv_detalle['unidades'] / inv_detalle['UnidadesPorPallet'] 
-#     #     inv_detalle['fecha_caducidad'] = pd.to_datetime(inv_detalle['fecha_caducidad']).dt.strftime('%d-%m-%Y')
-#     #     inv_detalle = inv_detalle.replace(to_replace=np.inf, value=0)
-        
-#     #     # INV ESTADO
-#     #     inv_estado = pd.DataFrame(inv_detalle).groupby(by="estado").sum().sort_values(by='estado',ascending=False).reset_index()
-        
-#     #     # TOTALES
-#     #     total_unidades = inv_detalle['unidades'].sum()
-#     #     total_cartones = inv_detalle['cartones'].sum()
-#     #     total_volumen  = inv_detalle['volumen'].sum()
-#     #     total_pallets  = inv_detalle['pallets'].sum()
-        
-#     #     inv_detalle = de_dataframe_a_template(inv_detalle)
-#     #     inv_estado = de_dataframe_a_template(inv_estado)
-        
-#     #     en_despacho = (Movimiento.objects
-#     #         .filter(product_id=request.POST['codigo'])
-#     #         .filter(referencia='Picking')
-#     #         .filter(estado_picking='En Despacho')
-#     #         .values('product_id','lote_id','fecha_caducidad','estado_picking','unidades'))
-        
-#     #     en_despacho_df = pd.DataFrame(en_despacho)
-        
-#     #     if not en_despacho_df.empty:
-#     #         en_despacho_df['unidades'] = en_despacho_df['unidades'] * -1
-#     #         en_despacho_df = en_despacho_df.merge(products, on='product_id', how='left')
-#     #         en_despacho_df['cartones'] = en_despacho_df['unidades'] / en_despacho_df['Unidad_Empaque']
-#     #         en_despacho_df['volumen']  = en_despacho_df['cartones'] * (en_despacho_df['Volumen'] / 1000000)
-#     #         en_despacho_df['pallets']  = en_despacho_df['unidades'] / en_despacho_df['UnidadesPorPallet'] 
-#     #         en_despacho_df['fecha_caducidad'] = pd.to_datetime(en_despacho_df['fecha_caducidad']).dt.strftime('%d-%m-%Y')
-#     #         en_despacho_df = en_despacho_df.replace(to_replace=np.inf, value=0)
-            
-#     #         total_unidades_despacho = en_despacho_df['unidades'].sum()
-#     #         total_cartones_despacho = en_despacho_df['cartones'].sum()
-#     #         total_volumen_despacho  = en_despacho_df['volumen'].sum()
-#     #         total_pallets_despacho  = en_despacho_df['pallets'].sum()
-            
-#     #         en_despacho = de_dataframe_a_template(en_despacho_df)
-#     #     else:
-            
-#     #         total_unidades_despacho = 0
-#     #         total_cartones_despacho = 0
-#     #         total_volumen_despacho  = 0
-#     #         total_pallets_despacho  = 0
-            
-#     #         en_despacho = de_dataframe_a_template(en_despacho_df)
-        
-#     #     context = {
-#     #         # 'productos':productos,
-#     #         'inv':inv,
-            
-#     #         'codigo':request.POST['codigo'],
-#     #         'inv_detalle':inv_detalle,
-#     #         'inv_estado':inv_estado,
-#     #         'en_despacho':en_despacho,
-            
-#     #         'total_unidades':total_unidades,
-#     #         'total_cartones':total_cartones,
-#     #         'total_volumen':total_volumen,
-#     #         'total_pallets':total_pallets,
-            
-#     #         'total_unidades_despacho':total_unidades_despacho,
-#     #         'total_cartones_despacho':total_cartones_despacho,
-#     #         'total_volumen_despacho':total_volumen_despacho,
-#     #         'total_pallets_despacho':total_pallets_despacho,
-#     #     }
-    
-#     #     return render(request, 'wms/inventario.html', context)
-
-#     context = {
-#         'productos':productos,
-#         'inv': existencias_list,
-        
-#         'codigo':codigo,
-#         'detalle':detalle
-#     }
-    
-#     return render(request, 'wms/inventario.html', context)
-
-
-
 
 
 """
