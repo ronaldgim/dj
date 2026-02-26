@@ -520,6 +520,10 @@ class CuentasCobrar(models.Model):
         if self.dias_mora_real > 30:
             return "Riesgo medio"
         return "Normal"
+    
+    @property
+    def valor(self):
+        return self.valor_total_saldo_a_cobrar + self.valor_retencion
 
 
 ################################

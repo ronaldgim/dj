@@ -44,7 +44,7 @@
 
     <p>
         Por el presente nos permitimos informar que, de acuerdo con nuestros registros contables,
-        su cuenta presenta una cartera vencida de <strong>$ {{ cartera_vencida }}</strong> a la fecha.
+        su cuenta presenta una cartera vencida de <strong style="color:red"> $ {{ cartera_vencida | floatformat:"2g" }}</strong> a la fecha.
     </p>
 
     <p>Para su referencia, a continuación, detallamos un desglose de la misma.</p>
@@ -56,42 +56,53 @@
 
     <!-- FACTURAS VENCIDAS -->
     <h4>Facturas Vencidas</h4>
-    <table>
+    <table id="facturas-vencidas">
         <thead>
             <tr>
                 <th>N° Factura</th>
-                <th>Fecha Emisión</th>
+                <th>Fecha</th>
                 <th>Valor Total</th>
                 <th>Pagado</th>
                 <th>Retención</th>
                 <th>Crédito</th>
                 <th>Saldo</th>
-                <th>Fecha Vencimiento</th>
+                <th>Vencimiento</th>
                 <th>Días Vencido</th>
             </tr>
         </thead>
         <tbody>
             {% for f in facturas_vencidas %}
-            <tr>
+            <tr class="factura">
                 <td>{{ f.numero }}</td>
-                <td>{{ f.fecha_emision }}</td>
-                <td class="text-right">$ {{ f.valor_total }}</td>
-                <td class="text-right">$ {{ f.pagado }}</td>
-                <td class="text-right">$ {{ f.retencion }}</td>
-                <td class="text-right">$ {{ f.credito }}</td>
-                <td class="text-right">$ {{ f.saldo }}</td>
-                <td>{{ f.fecha_vencimiento }}</td>
+                <td>{{ f.fecha_emision | date:"d-m-Y" }}</td>
+                <td class="text-right">$ {{ f.valor | floatformat:"2g" }}</td>
+                <td class="text-right">$ {{ f.pagado | floatformat:"2g" }}</td>
+                <td class="text-right">$ {{ f.retencion | floatformat:"2g" }}</td>
+                <td class="text-right">$ {{ f.credito | floatformat:"2g" }}</td>
+                <td class="text-right">$ {{ f.saldo | floatformat:"2g" }}</td>
+                <td>{{ f.fecha_vencimiento | date:"d-m-Y" }}</td>
                 <td class="text-right">{{ f.dias_vencido }}</td>
             </tr>
             {% endfor %}
             <tr>
-                <td colspan="6" class="text-right total danger">
+                <td colspan="2" class="text-right total">
                     Total facturas vencidas:
                 </td>
-                <td class="text-right total danger">
-                    $ {{ cartera_vencida }}
+                <td class="text-right total">
+                    $ {{ tot_vencidas.valor | floatformat:"2g" }}
                 </td>
-                <td colspan="2"></td>
+                <td class="text-right total">
+                    $ {{ tot_vencidas.pagado | floatformat:"2g" }}
+                </td>
+                <td class="text-right total">
+                    $ {{ tot_vencidas.retencion | floatformat:"2g" }}
+                </td>
+                <td class="text-right total">
+                    $ {{ tot_vencidas.credito | floatformat:"2g" }}
+                </td>
+                <td style="background-color:yellow" class="text-right total">
+                    $ {{ tot_vencidas.saldo | floatformat:"2g" }}
+                </td>
             </tr>
         </tbody>
     </table>
@@ -102,13 +113,13 @@
         <thead>
             <tr>
                 <th>N° Factura</th>
-                <th>Fecha Emisión</th>
+                <th>Fecha</th>
                 <th>Valor Total</th>
                 <th>Pagado</th>
                 <th>Retención</th>
                 <th>Crédito</th>
                 <th>Saldo</th>
-                <th>Fecha Vencimiento</th>
+                <th>Vencimiento</th>
                 <th>Días Vigencia</th>
             </tr>
         </thead>
@@ -116,36 +127,37 @@
             {% for f in facturas_vigentes %}
             <tr>
                 <td>{{ f.numero }}</td>
-                <td>{{ f.fecha_emision }}</td>
-                <td class="text-right">$ {{ f.valor_total }}</td>
-                <td class="text-right">$ {{ f.pagado }}</td>
-                <td class="text-right">$ {{ f.retencion }}</td>
-                <td class="text-right">$ {{ f.credito }}</td>
-                <td class="text-right">$ {{ f.saldo }}</td>
-                <td>{{ f.fecha_vencimiento }}</td>
+                <td>{{ f.fecha_emision | date:"d-m-Y" }}</td>
+                <td class="text-right">$ {{ f.valor | floatformat:"2g" }}</td>
+                <td class="text-right">$ {{ f.pagado | floatformat:"2g" }}</td>
+                <td class="text-right">$ {{ f.retencion | floatformat:"2g" }}</td>
+                <td class="text-right">$ {{ f.credito | floatformat:"2g" }}</td>
+                <td class="text-right">$ {{ f.saldo | floatformat:"2g" }}</td>
+                <td>{{ f.fecha_vencimiento | date:"d-m-Y" }}</td>
                 <td class="text-right">{{ f.dias_vigente }}</td>
             </tr>
             {% endfor %}
             <tr>
-                <td colspan="6" class="text-right total">
+                <td colspan="2" class="text-right total">
                     Total facturas vigentes
                 </td>
-                <td class="text-right total">
-                    $ {{ total_vigentes }}
+                <td class="text-right total danger">
+                    $ {{ tot_vigentes.valor | floatformat:"2g" }}
                 </td>
-                <td colspan="2"></td>
+                <td class="text-right total danger">
+                    $ {{ tot_vigentes.pagado | floatformat:"2g" }}
+                </td>
+                <td class="text-right total danger">
+                    $ {{ tot_vigentes.retencion | floatformat:"2g" }}
+                </td>
+                <td class="text-right total danger">
+                    $ {{ tot_vigentes.credito | floatformat:"2g" }}
+                </td>
+                <td class="text-right total danger">
+                    $ {{ tot_vigentes.saldo | floatformat:"2g" }}
+                </td>
             </tr>
 
-            <!-- TOTAL CARTERA -->
-            <tr>
-                <td colspan="6" class="text-right total">
-                    TOTAL CARTERA
-                </td>
-                <td class="text-right total">
-                    $ {{ total_cartera }}
-                </td>
-                <td colspan="2"></td>
-            </tr>
         </tbody>
     </table>
 
@@ -170,11 +182,11 @@
         </thead>
         <tbody>
             <tr>
-                <td class="text-right">$ {{ resumen.vigente }}</td>
-                <td class="text-right">$ {{ resumen.rango_1_30 }}</td>
-                <td class="text-right">$ {{ resumen.rango_31_60 }}</td>
-                <td class="text-right">$ {{ resumen.rango_61_90 }}</td>
-                <td class="text-right">$ {{ resumen.rango_91 }}</td>
+                <td class="text-right">$ {{ resumen.vigente | floatformat:"2g" }}</td>
+                <td class="text-right">$ {{ resumen.rango_1_30 | floatformat:"2g" }}</td>
+                <td class="text-right">$ {{ resumen.rango_31_60 | floatformat:"2g" }}</td>
+                <td class="text-right">$ {{ resumen.rango_61_90 | floatformat:"2g" }}</td>
+                <td class="text-right">$ {{ resumen.rango_91 | floatformat:"2g" }}</td>
             </tr>
         </tbody>
     </table>
@@ -194,14 +206,52 @@
 
     <!-- CONTACTO -->
     <p>
-        En caso de tener alguna observación, favor contactarnos a:
-        <strong>dreyes@gimpromed.com</strong> o al
-        <strong>098 435 0774</strong>.
+        En caso de tener alguna observación, favor contactarnos con <strong>Dayanne Reyes</strong> a: <br>
+        Email: <strong>dreyes@gimpromed.com</strong> <br>
+        Celular: <strong>098 435 0774</strong>.
     </p>
 
     <p>
         **** Esta notificación ha sido enviada automáticamente – Favor no responder ****
     </p>
+
+<script>
+function aplicarGradienteFactura(tablaId) {
+    const tabla = document.getElementById(tablaId);
+    if (!tabla) return;
+
+    // selector correcto
+    const filas = tabla.querySelectorAll("tbody tr.factura");
+    const total = filas.length;
+
+    filas.forEach((fila, index) => {
+        const ratio = index / (total - 1 || 1);
+
+        let r, g, b;
+
+        if (ratio < 0.5) {
+            // tomate → amarillo
+            const t = ratio / 0.5;
+
+            r = 255;
+            g = Math.round(99 + (255 - 99) * t);   // 99 → 255
+            b = Math.round(71 + (150 - 71) * t);   // suaviza azul (pastel)
+        } else {
+            // amarillo → blanco
+            const t = 0; 
+
+            r = 255;
+            g = 255;
+            // b = Math.round(150 + (255 - 150) * t); // 150 → 255
+            b = Math.round(150 + (255 - 150) * t); // 150 → 255
+        }
+
+        fila.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+    });
+}
+aplicarGradienteFactura("facturas-vencidas");
+
+</script>
 
 </body>
 </html>
