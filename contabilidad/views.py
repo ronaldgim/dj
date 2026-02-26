@@ -142,15 +142,16 @@ def cartera_vencida_por_cliente(codigo_cliente):
 
     for f in facturas:
         dias = (hoy - f.fecha_vencimiento).days
-        saldo = f.balance or Decimal('0')
+        saldo = f.valor_total_saldo_a_cobrar or Decimal('0')
 
         item = {
             'numero': f.numero_factura,
             'fecha_emision': f.fecha_factura,
-            'valor_total': f.valor_total_pagado,
+            'valor':f.valor,
             'pagado': f.valor_total_pagado,
             'saldo': saldo,
             'fecha_vencimiento': f.fecha_vencimiento,
+            'retencion':f.valor_retencion
         }
 
         if dias <= 0:
