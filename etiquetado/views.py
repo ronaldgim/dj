@@ -4195,11 +4195,11 @@ def send_transferencia(request):
         camion_placa = data.get('camion', {}).get('placa', '') 
         nota = data.get('nota', '-')
 
-        # ✅ Validación mínima
+        # Validación mínima
         if not transferencia:
             return JsonResponse({'error': 'Transferencia vacía'}, status=400)
 
-        # 🔧 DataFrame
+        # DataFrame
         df = build_transferencia_dataframe(transferencia)
         buffer = generate_excel_buffer(df)
 
@@ -4223,7 +4223,7 @@ def send_transferencia(request):
                 save=True
             )
 
-        # 📧 Email (CORRECTO)
+        # Email (CORRECTO)
         email = EmailMessage(
             subject=f'TRANSFERENCIA CEREZOS -> ANDAGOYA {transf.enum}',
             body=f"""
@@ -4244,7 +4244,7 @@ Nota: {nota}
             ]
         )
 
-        # ✅ Adjuntar archivo REAL (no URL)
+        # Adjuntar archivo REAL (no URL)
         email.attach(
             filename,
             buffer.getvalue(),
