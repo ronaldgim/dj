@@ -38,6 +38,8 @@ from django.contrib.auth.decorators import login_required
 # csrf
 from django.views.decorators.csrf import csrf_exempt
 
+from django.views.generic import ListView
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 # Clientes
 from datos.views import (
@@ -527,15 +529,28 @@ def formato_n_factura_input(factura):
 
 
 ### ANEXOS
-@login_required(login_url='login')
-def anexos_list(request):
-    
-    anexos = Anexo.objects.all().order_by('-id')   
-    context = {
-        'anexos':anexos
-    }
-    
-    return render(request, 'compras_publicas/anexos_list.html', context)
+class AnexosListView(LoginRequiredMixin, ListView):
+    model = Anexo
+    template_name = 'compras_publicas/anexos_list.html'
+    context_object_name = 'anexos'
+    paginate_by = 10
+    ordering = ['-fecha_hora', '-id']
+    login_url = 'login'
+
+    def get_queryset(self):
+        queryset = (
+            Anexo.objects
+            .select_related('usuario')
+            .order_by('-id')
+        )
+
+        # Filtros
+        cliente = self.request.GET.get('cliente')
+
+        if cliente:
+            queryset = queryset.filter(cliente__icontains=cliente)
+
+        return queryset
 
 
 @transaction.atomic
