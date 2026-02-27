@@ -3738,7 +3738,7 @@ def wms_transferencia_add_func(n_transf, camion_id=None, transf_id=None):
     
     if transf_id:
         tr_st = TransferenciaStatus.objects.get(id=transf_id)
-        tr_st.estado = 'INGRESADO',
+        tr_st.estado = 'INGRESADO'
         tr_st.n_transferencia = n_transf
         tr_st.ingresado = datetime.now()
         tr_st.save()
