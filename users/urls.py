@@ -30,6 +30,18 @@ urlpatterns = [
         route = 'list/',
         view  = views.users_list,
         name  = 'users_list'
-    )
+    ),
+    
+    path(
+        route = 'slack-users-list',
+        view  = views.UsuarioSlackListView.as_view(),
+        name  = 'slack_users_list'
+    ),
+    
+    path(
+        route = 'sync-slack-users',
+        view  = views.sync_slack_users,
+        name  = 'sync_slack_users'
+    ),
 ]
 

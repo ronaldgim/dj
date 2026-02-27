@@ -1,6 +1,3 @@
-# Render
-from django.shortcuts import render
-
 # Autentication
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -11,6 +8,18 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import logout
 from django.http import HttpResponseRedirect #JsonResponse
+
+# Render
+from django.shortcuts import render, redirect
+from django.views.decorators.http import require_POST
+from django.contrib import messages
+
+# DATOS
+from datos.models import UsuarioSlack
+from datos.slack_api import SlackUserSyncService
+
+# Views 
+from django.views.generic import ListView
 
 
 # Login View
@@ -40,3 +49,37 @@ def users_list(request):
         'permisos':permisos
     }
     return render(request, 'users/users_list.html', context)
+
+
+
+# SLACK USERS VIEWS
+class UsuarioSlackListView(ListView):
+    model = UsuarioSlack
+    template_name = 'users/usuarios_slack.html'
+    ordering = ['name']
+    context_object_name = 'users'
+
+
+@require_POST
+def sync_slack_users(request):
+    """
+    Endpoint para sincronizar usuarios de Slack manualmente.
+    """
+
+    service = SlackUserSyncService()
+
+    try:
+        result = service.sync_users()
+
+        messages.success(
+            request,
+            f"Usuarios sincronizados correctamente. "
+            f"Creados: {result['created']}, "
+            f"Actualizados: {result['updated']}, "
+            f"Desactivados: {result['deactivated']}"
+        )
+
+    except Exception as e:
+        messages.error(request, f"Error al sincronizar: {str(e)}")
+
+    return redirect('slack_users_list')
