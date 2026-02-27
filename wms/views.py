@@ -3603,9 +3603,12 @@ def wms_transferencias_estatus_transf(n_transf):
 
     transf_status.save()
     
-    # Enviar email solo si no se había finalizado antes
-    if transf_status.finalizado:
-        correo_finalizacion_picking(n_transferencia=n_transf)
+    # # Enviar email solo si no se había finalizado antes
+    try:
+        if TransferenciaStatus.objects.get(n_transferencia=n_transf).estado == 'FINALIZADO':
+            correo_finalizacion_picking(n_transferencia=n_transf)
+    except Exception as e:
+        print(str(e))
 
     return JsonResponse({
         'msg': {
