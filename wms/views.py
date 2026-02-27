@@ -3497,45 +3497,116 @@ def wms_revision_transferencia(request):
 
 
 
+# def wms_transferencias_estatus_transf(n_transf):
+    
+#     transf_mba = Transferencia.objects.filter(n_transferencia=n_transf)
+#     mba_total  = sum(transf_mba.values_list('unidades', flat=True))
+    
+#     transf_wms = Movimiento.objects.filter(referencia='Transferencia').filter(n_referencia=n_transf)
+#     wms_total  = sum(transf_wms.values_list('unidades', flat=True))*-1
+    
+#     avance_i = round(((wms_total / mba_total) * 100), 1)
+    
+#     if wms_total == 0 or wms_total == None:
+#         estado_i = 'CREADO'
+#     elif wms_total < mba_total:
+#         estado_i = 'EN PROCESO'
+#     elif mba_total == wms_total or wms_total > mba_total:
+#         estado_i = 'FINALIZADO'    
+
+#     transf_status = TransferenciaStatus.objects.get(n_transferencia=n_transf)
+#     transf_status.estado       = estado_i
+#     transf_status.unidades_mba = mba_total
+#     transf_status.unidades_wms = wms_total
+#     transf_status.avance       = avance_i
+    
+#     transf_status.save()
+    
+#     if transf_status.estado == 'EN PROCESO':
+#         transf_status.en_proceso = datetime.now()
+#         transf_status.save()
+    
+#     if transf_status.estado == 'FINALIZADO':
+#         # enviar email
+#         correo_finalizacion_picking(n_transferencia=n_transf)
+#         transf_status.finalizado = datetime.now()
+#         transf_status.save()
+        
+#     return JsonResponse({
+#         'msg':{
+#             'tipo':'success',
+#             'texto':f'✅ Transferencia {n_transf} actualizado !!!'
+#         }
+#     })
+
+
+
 def wms_transferencias_estatus_transf(n_transf):
     
-    transf_mba = Transferencia.objects.filter(n_transferencia=n_transf)
-    mba_total  = sum(transf_mba.values_list('unidades', flat=True))
-    
-    transf_wms = Movimiento.objects.filter(referencia='Transferencia').filter(n_referencia=n_transf)
-    wms_total  = sum(transf_wms.values_list('unidades', flat=True))*-1
-    
-    avance_i = round(((wms_total / mba_total) * 100), 1)
-    
-    if wms_total == 0 or wms_total == None:
-        estado_i = 'CREADO'
-    elif wms_total < mba_total:
-        estado_i = 'EN PROCESO'
-    elif mba_total == wms_total or wms_total > mba_total:
-        estado_i = 'FINALIZADO'    
+    # Totales usando agregación (más eficiente que sum + values_list)
+    mba_total = (
+        Transferencia.objects
+        .filter(n_transferencia=n_transf)
+        .aggregate(total=Sum('unidades'))['total'] or 0
+    )
 
+    wms_total = (
+        Movimiento.objects
+        .filter(referencia='Transferencia', n_referencia=n_transf)
+        .aggregate(total=Sum('unidades'))['total'] or 0
+    )
+
+    # Ajuste de signo
+    wms_total = wms_total * -1
+
+    # Evitar división por cero
+    if mba_total == 0:
+        avance_i = 0
+    else:
+        avance_i = round((wms_total / mba_total) * 100, 1)
+
+    # Determinar estado (sin considerar "CREADO")
+    if wms_total < mba_total:
+        estado_i = 'EN PROCESO'
+    else:
+        estado_i = 'FINALIZADO'
+
+    # Obtener registro
     transf_status = TransferenciaStatus.objects.get(n_transferencia=n_transf)
-    transf_status.estado       = estado_i
+
+    ahora = datetime.now()
+
+    # Detectar transición de estado
+    estado_anterior = transf_status.estado
+
+    transf_status.estado = estado_i
     transf_status.unidades_mba = mba_total
     transf_status.unidades_wms = wms_total
-    transf_status.avance       = avance_i
-    
+    transf_status.avance = avance_i
+
+    # Lógica de tiempos
+    if estado_i == 'EN PROCESO':
+        if not transf_status.en_proceso:
+            transf_status.en_proceso = ahora
+
+    elif estado_i == 'FINALIZADO':
+        # Caso especial: pasa directo de CREADO → FINALIZADO
+        if estado_anterior == 'CREADO' and not transf_status.en_proceso:
+            transf_status.en_proceso = ahora
+
+        if not transf_status.finalizado:
+            transf_status.finalizado = ahora
+
+        # Enviar email solo si no se había finalizado antes
+        if not transf_status.finalizado:
+            correo_finalizacion_picking(n_transferencia=n_transf)
+
     transf_status.save()
-    
-    if transf_status.estado == 'EN PROCESO':
-        transf_status.en_proceso = datetime.now()
-        transf_status.save()
-    
-    if transf_status.estado == 'FINALIZADO':
-        # enviar email
-        correo_finalizacion_picking(n_transferencia=n_transf)
-        transf_status.finalizado = datetime.now()
-        transf_status.save()
-        
+
     return JsonResponse({
-        'msg':{
-            'tipo':'success',
-            'texto':f'✅ Transferencia {n_transf} actualizado !!!'
+        'msg': {
+            'tipo': 'success',
+            'texto': f'✅ Transferencia {n_transf} actualizada !!!'
         }
     })
 
