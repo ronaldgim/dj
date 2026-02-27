@@ -55,14 +55,6 @@ class Marca(models.Model):
         return f'{self.marca} {self.description}'
 
 
-# class MarcaImportExcel(models.Model):
-    
-#     archivo = models.FileField(verbose_name='Archivo Marcas Excel', upload_to='marcas_excel_import')
-    
-#     def __str__(self):
-#         return str(self.archivo)
-
-
 class Vehiculos(models.Model):
     
     transportista = models.CharField(verbose_name='Trasportista', max_length=50 ,blank=True)
@@ -119,8 +111,8 @@ class StockConsulta(models.Model):
 
     def __str__(self):
         return self.product_id
-    
-    
+
+
 class EmailApiLog(models.Model):
     
     nombre      = models.CharField(max_length=50, blank=True, null=True)
@@ -373,3 +365,38 @@ class PickingEstadistica(models.Model):
             kwargs["update_fields"] = set(update_fields) | {"datos_completos"}
 
         super().save(*args, **kwargs)
+
+
+
+######## CONSUMO DE API DE SLACK #########
+## MODELOS PARA NOTIFICACIONES DE SLACK ##
+class UsuarioSlack(models.Model):
+    
+    id = models.CharField(max_length=20, primary_key=True, unique=True)
+    name = models.CharField(max_length=50)
+    real_name = models.CharField(max_length=100)
+    email = models.EmailField()
+
+    is_active = models.BooleanField(default=True)
+    last_sync = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return self.real_name
+
+# class NotificacionSlack(models.Model):
+    
+#     nombre = models.CharField(max_length=20)
+#     numero_envios = models.PositiveIntegerField(default=1)
+#     estado = models.CharField(max_length=20)
+#     creado = models.DateTimeField()
+
+
+# class NotificionUsuario(models.Model):
+#     pass
+
+# class UsuarioSlack(models.Model):
+    
+#     id = models.CharField(max_length=20, primary_key=True, unique=True)
+#     name = models.CharField(max_length=50)
+#     real_name = models.CharField(max_length=100)
+#     email = models.EmailField()
