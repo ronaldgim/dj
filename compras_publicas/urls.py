@@ -48,8 +48,8 @@ urlpatterns = [
     ## ANEXOS
     # lista de anexos
     path(
-        route='anexos/list', 
-        view = views.anexos_list, 
+        route='anexos-list', 
+        view = views.AnexosListView.as_view(), 
         name='anexos_list'
     ),
     
