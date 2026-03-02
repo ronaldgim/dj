@@ -2,6 +2,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from datetime import datetime
 
 # Personas
 PERSONAS_CHOICES = [
@@ -383,20 +384,92 @@ class UsuarioSlack(models.Model):
     def __str__(self):
         return self.real_name
 
-# class NotificacionSlack(models.Model):
+
+class NotificacionSlack(models.Model):
+
+    class TipoMsgSlack(models.TextChoices):
+        INFO = "INFO", "Info"
+        SUCCESS = "SUCCESS", "Success"
+        WARNING = "WARNING", "Warning"
+        ERROR = "ERROR", "Error"
+
+    # referencia al proceso (ej: TRANSFERENCIA)
+    proceso = models.CharField(max_length=50)
+    titulo = models.CharField(max_length=100)
+    mensaje = models.TextField()
+
+    tipo_msg = models.CharField(
+        max_length=20,
+        choices=TipoMsgSlack.choices
+    )
+
+    is_active = models.BooleanField(default=True)
+
+    usuarios = models.ManyToManyField(
+        "UsuarioSlack",
+        related_name="notificaciones"
+    )
+
+    creado = models.DateTimeField(auto_now_add=True)
+    actualizado = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.titulo} ({self.tipo_msg})"
     
-#     nombre = models.CharField(max_length=20)
-#     numero_envios = models.PositiveIntegerField(default=1)
-#     estado = models.CharField(max_length=20)
-#     creado = models.DateTimeField()
+    @property
+    def emails_usuarios(self):
+        return list(
+            self.usuarios.filter(is_active=True)
+            .exclude(email__isnull=True)
+            .exclude(email__exact="")
+            .values_list("email", flat=True)
+        )
 
 
-# class NotificionUsuario(models.Model):
-#     pass
+class NotificacionInstanceSlack(models.Model):
 
-# class UsuarioSlack(models.Model):
+    class Status(models.TextChoices):
+        PENDING   = "PENDING", "Pendiente"
+        SENT      = "SENT", "Enviado"
+        COMPLETED = "COMPLETED", "Completado"
+        FAILED    = "FAILED", "Fallido"
+
+    notificacion = models.ForeignKey(
+        NotificacionSlack,
+        on_delete=models.CASCADE,
+        related_name="instancias"
+    )
+
+    # id del registro externo (ej: TransferenciaStatus.id)
+    referencia_id = models.CharField(max_length=50)
+
+    payload = models.JSONField(blank=True, null=True)
+
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PENDING
+    )
+
+    envios = models.PositiveIntegerField(default=0)
+
+    last_sent_at = models.DateTimeField(null=True, blank=True)
+
+    creado = models.DateTimeField(auto_now_add=True)
+    actualizado = models.DateTimeField(auto_now=True)
+
+    def marcar_enviado(self):
+        now = datetime.now()
+
+        self.envios += 1
+        self.last_sent_at = now
+        self.status = self.Status.SENT
+        self.save()
+
+    def completar(self):
+        self.status = self.Status.COMPLETED
+        self.save()
+
+    def __str__(self):
+        return f"{self.proceso} - {self.referencia_id}"
     
-#     id = models.CharField(max_length=20, primary_key=True, unique=True)
-#     name = models.CharField(max_length=50)
-#     real_name = models.CharField(max_length=100)
-#     email = models.EmailField()

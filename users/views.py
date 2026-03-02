@@ -16,7 +16,8 @@ from django.contrib import messages
 
 # DATOS
 from datos.models import UsuarioSlack
-from datos.slack_api import SlackUserSyncService
+# from datos.slack_api import SlackUserSyncService
+from datos.slack_api import SlackService
 
 # Views 
 from django.views.generic import ListView
@@ -66,7 +67,7 @@ def sync_slack_users(request):
     Endpoint para sincronizar usuarios de Slack manualmente.
     """
 
-    service = SlackUserSyncService()
+    service = SlackService()
 
     try:
         result = service.sync_users()
