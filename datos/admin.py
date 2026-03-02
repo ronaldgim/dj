@@ -177,7 +177,6 @@ class NotificacionInstanceSlackAdmin(admin.ModelAdmin):
     list_display = (
         "id",
         "notificacion",
-        # "proceso",
         "referencia_id",
         "status_badge",
         "envios",
@@ -187,13 +186,11 @@ class NotificacionInstanceSlackAdmin(admin.ModelAdmin):
 
     list_filter = (
         "status",
-        # "proceso",
         "notificacion",
     )
 
     search_fields = (
         "referencia_id",
-        # "proceso",
     )
 
     readonly_fields = (
