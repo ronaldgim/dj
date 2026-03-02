@@ -65,7 +65,7 @@
 </div-->
 
 
-<form method="post" action="{% url 'wms_agregar_transferencia' %#">
+<form method="post" action="{% url 'wms_agregar_transferencia' %}">
     {% csrf_token %}
     <div class="input-group mb-3">
         <input type="text" class="form-control" placeholder="Ingrese en número de trasferencia" name="n_trasf" required>
