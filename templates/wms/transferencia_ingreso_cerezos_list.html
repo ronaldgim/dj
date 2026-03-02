@@ -59,10 +59,20 @@
 <div id="msg_ss"></div>
 
 
-<div class="input-group mb-3">
+<!--div class="input-group mb-3">
     <input type="text" class="form-control" placeholder="Ingrese en número de trasferencia" id="n_trasf" required>
     <button name="trasferencia" class="btn btn-primary" type="submit">Añadir Transferencia</button>
-</div>
+</div-->
+
+
+<form method="post" action="{% url 'wms_agregar_transferencia' %#">
+    {% csrf_token %}
+    <div class="input-group mb-3">
+        <input type="text" class="form-control" placeholder="Ingrese en número de trasferencia" name="n_trasf" required>
+        <button name="trasferencia" class="btn btn-primary" type="submit">Añadir Transferencia</button>
+    </div>
+</form>
+
 
 {% if factura.msg %}
     <div class="alert text-center alert-danger" role="alert">
@@ -100,7 +110,7 @@
 </div>
 
 
-<script>
+<!--script>
 
     $("button[name='trasferencia']").click(function(){
         
@@ -108,7 +118,7 @@
 
         $.ajax({
             type:"POST",
-            url:"{% url 'wms_transferencia_input_ajax' %}",
+            url:"{#% url 'wms_transferencia_input_ajax' %#}",
             data:{
                 'csrfmiddlewaretoken': '{{ csrf_token }}',
                 'n_trasf':n_trasf,
@@ -124,7 +134,7 @@
             
         })
     })
-</script>
+</script-->
 
 
 <script>
