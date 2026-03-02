@@ -177,42 +177,88 @@ class SlackService:
     # SEND GENERIC
     def send(
         self,
-        recipients: List[str],
-        message: str
+        recipients: List[str] | str,
+        message: str,
+        title: Optional[str] = None,
+        level: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> SlackSendResult:
 
         if not recipients:
             return SlackSendResult(False, 0, 0, ["No recipients"])
 
-        sent = 0
-        failed = 0
-        errors = []
+        # Normalizar recipients (string o lista)
+        if isinstance(recipients, str):
+            recipients_payload = recipients
+        else:
+            recipients_payload = list(set(recipients))  # evitar duplicados
 
-        for user_id in recipients:
-            try:
-                self.send_dm(user_id, message)
-                sent += 1
-            except SlackAPIException as e:
-                failed += 1
-                errors.append(f"{user_id}: {str(e)}")
+        payload = {
+            "recipients": recipients_payload,
+            "message": message,
+        }
 
-        return SlackSendResult(
-            success=sent > 0,
-            sent=sent,
-            failed=failed,
-            errors=errors
-        )
+        # Rich message (opcional)
+        if title:
+            payload["title"] = title
+
+        if level:
+            payload["type"] = level.lower()  # la API usa "error", "info", etc.
+
+        if metadata:
+            payload["additional_fields"] = metadata
+
+        try:
+            data = self._request("POST", "/send", payload)
+
+            # =========================
+            # RESPUESTA SIMPLE
+            # =========================
+            if "message" in data and "timestamp" in data:
+                return SlackSendResult(
+                    success=True,
+                    sent=1,
+                    failed=0,
+                    errors=[]
+                )
+
+            # =========================
+            # RESPUESTA MULTIPLE
+            # =========================
+            if "details" in data:
+                errors = [
+                    f"{d.get('email')}: {d.get('error')}"
+                    for d in data.get("details", [])
+                    if not d.get("success")
+                ]
+
+                return SlackSendResult(
+                    success=data.get("successful", 0) > 0,
+                    sent=data.get("successful", 0),
+                    failed=data.get("failed", 0),
+                    errors=errors
+                )
+
+            # fallback
+            return SlackSendResult(True, 1, 0, [])
+
+        except SlackAPIException as e:
+            return SlackSendResult(False, 0, 1, [str(e)])
 
     # HELPER ALTO NIVEL
     def send_simple(
         self,
-        recipients: List[str],
+        recipients: List[str] | str,
         title: str,
         body: str,
         metadata: Optional[Dict[str, Any]] = None,
         level: str = "INFO"
     ) -> SlackSendResult:
 
-        message = self.build_message(title, body, metadata, level)
-
-        return self.send(recipients, message)
+        return self.send(
+            recipients=recipients,
+            message=body,
+            title=title,
+            level=level,
+            metadata=metadata
+        )
