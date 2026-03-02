@@ -3831,9 +3831,6 @@ def wms_transferencia_add_func(n_transf, camion_id=None, transf_id=None):
 @login_required(login_url='login')
 def wms_agregar_transferencia(request):
     
-    # n_transf = request.POST['n_transf']
-    # camion  = request.POST['camion']
-    
     n_transf = request.POST.get('n_transf', None)
     camion  = request.POST.get('camion', None)
     
@@ -3845,6 +3842,8 @@ def wms_agregar_transferencia(request):
     if tr.get('success', True):
         messages.success(request, tr.get('msg', ''))
     
+    if camion is None:
+        return redirect('wms_transferencia_ingreso_cerezos_list')    
     return redirect('wms_transferencias_list')
 
 
