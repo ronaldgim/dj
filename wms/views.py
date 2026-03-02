@@ -3874,20 +3874,21 @@ def wms_notificacion_transferencia_pendiente(request):
     noti_list = NotificacionInstanceSlack.objects.filter(status='SENT')
     slack = SlackService()
     
-    for i in noti_list:
-        
-        # No se obtiene el numero de items hasta que se ingresa la transferencia
-        # n_items = TransferenciaStatus.objects.get(id=int(i.referencia_id)).n_items
+    if noti_list:
+        for i in noti_list:
+            
+            # No se obtiene el numero de items hasta que se ingresa la transferencia
+            # n_items = TransferenciaStatus.objects.get(id=int(i.referencia_id)).n_items
 
-        # Enviar cada 10 min con calculo        
-        ultimo_envio = i.last_sent_at
-        delta_tiempo = now - ultimo_envio
-        
-        if delta_tiempo.seconds > 600:
-            slack.send_from_instance(i)
-        
+            # Enviar cada 10 min con calculo        
+            ultimo_envio = i.last_sent_at
+            delta_tiempo = now - ultimo_envio
+            
+            if delta_tiempo.seconds > 600:
+                slack.send_from_instance(i)
+            
+        return JsonResponse({'success':True}, status=200)
     return JsonResponse({'success':True}, status=200)
-    
 
 
 @method_decorator(
