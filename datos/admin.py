@@ -1,9 +1,19 @@
 # Admin
 from django.contrib import admin
 
-# Model
-from datos.models import Product, Vehiculos, AdminActualizationWarehaouse, Marca, Reservas
+from django.utils.html import format_html
 
+# Model
+from datos.models import (
+    Product, 
+    Vehiculos, 
+    AdminActualizationWarehaouse, 
+    Marca, 
+    Reservas,
+    UsuarioSlack,
+    NotificacionSlack,
+    NotificacionInstanceSlack
+    )
 
 admin.site.site_header = 'GIM OPERACIONES'
 # admin.site.site_title = 'ADMINISTRAICÓN DE DB'
@@ -90,4 +100,149 @@ class VehiculosAdmin(admin.ModelAdmin):
         'usuario',
     )
     search_fields = ['unique_id', 'contrato_id', 'product_id']
-    
+
+
+# =========================
+# Usuario Slack
+# =========================
+@admin.register(UsuarioSlack)
+class UsuarioSlackAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "name",
+        "real_name",
+        "email",
+        "is_active",
+        "last_sync",
+    )
+    search_fields = ("id", "name", "real_name", "email")
+    list_filter = ("is_active",)
+    ordering = ("real_name",)
+    readonly_fields = ("last_sync",)
+
+    list_per_page = 25
+
+
+# =========================
+# Inline usuarios en notificación
+# =========================
+class UsuarioSlackInline(admin.TabularInline):
+    model = NotificacionSlack.usuarios.through
+    extra = 1
+
+
+# =========================
+# Notificación Slack
+# =========================
+@admin.register(NotificacionSlack)
+class NotificacionSlackAdmin(admin.ModelAdmin):
+    list_display = (
+        "proceso",
+        "titulo",
+        "tipo_msg",
+        "is_active",
+        "total_usuarios",
+        "creado",
+    )
+
+    list_filter = (
+        "tipo_msg",
+        "is_active",
+    )
+
+    search_fields = (
+        "titulo",
+        "mensaje",
+    )
+
+    filter_horizontal = ("usuarios",)
+
+    inlines = []  # si luego usas through personalizado, puedes usar inline
+
+    readonly_fields = ("creado", "actualizado")
+
+    list_per_page = 20
+
+    def total_usuarios(self, obj):
+        return obj.usuarios.count()
+
+    total_usuarios.short_description = "Usuarios"
+
+
+# =========================
+# Notificación Instance
+# =========================
+@admin.register(NotificacionInstanceSlack)
+class NotificacionInstanceSlackAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "notificacion",
+        # "proceso",
+        "referencia_id",
+        "status_badge",
+        "envios",
+        "last_sent_at",
+        "creado",
+    )
+
+    list_filter = (
+        "status",
+        # "proceso",
+        "notificacion",
+    )
+
+    search_fields = (
+        "referencia_id",
+        # "proceso",
+    )
+
+    readonly_fields = (
+        "creado",
+        "actualizado",
+        "last_sent_at",
+        "envios",
+    )
+
+    autocomplete_fields = ("notificacion",)
+
+    list_select_related = ("notificacion",)
+
+    list_per_page = 25
+
+    # =========================
+    # Badge visual de estado
+    # =========================
+    def status_badge(self, obj):
+        colors = {
+            "PENDING": "gray",
+            "SENT": "blue",
+            "COMPLETED": "green",
+            "FAILED": "red",
+        }
+
+        color = colors.get(obj.status, "black")
+
+        return format_html(
+            '<span style="color: white; background-color: {}; padding: 3px 8px; border-radius: 5px;">{}</span>',
+            color,
+            obj.status
+        )
+
+    status_badge.short_description = "Estado"
+
+    # =========================
+    # Acciones masivas
+    # =========================
+    actions = ["marcar_completado", "reintentar"]
+
+    def marcar_completado(self, request, queryset):
+        updated = queryset.update(status=NotificacionInstanceSlack.Status.COMPLETED)
+        self.message_user(request, f"{updated} registros marcados como completados")
+
+    marcar_completado.short_description = "Marcar como COMPLETED"
+
+    def reintentar(self, request, queryset):
+        updated = queryset.update(status=NotificacionInstanceSlack.Status.PENDING)
+        self.message_user(request, f"{updated} registros listos para reintento")
+
+    reintentar.short_description = "Reintentar (PENDING)"

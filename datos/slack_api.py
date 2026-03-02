@@ -1,9 +1,11 @@
 import requests
-from typing import List, Optional
-from django.conf import settings
-from django.db import transaction
+from typing import List, Optional, Dict, Any
 from dataclasses import dataclass
 from datetime import datetime
+
+from django.conf import settings
+from django.db import transaction
+
 from datos.models import UsuarioSlack
 
 # DTOs
@@ -14,13 +16,22 @@ class SlackUser:
     real_name: str
     email: str
 
+
+@dataclass
+class SlackSendResult:
+    success: bool
+    sent: int
+    failed: int
+    errors: List[str]
+
+
 # EXCEPCIÓN
 class SlackAPIException(Exception):
     pass
 
 
-# CLIENTE
-class SlackUserClient:
+# SERVICE UNIFICADO
+class SlackService:
 
     def __init__(self, base_url: Optional[str] = None, timeout: int = 10):
         self.base_url = base_url or getattr(
@@ -32,8 +43,8 @@ class SlackUserClient:
         self.headers = {
             "Content-Type": "application/json"
         }
-    
-    # MÉTODO BASE
+
+    # REQUEST BASE
     def _request(self, method: str, endpoint: str, payload=None):
         url = f"{self.base_url}{endpoint}"
 
@@ -60,15 +71,9 @@ class SlackUserClient:
         except requests.exceptions.RequestException as e:
             raise SlackAPIException(f"Error HTTP: {str(e)}")
 
-    # ENDPOINTS
+    # USERS
     def list_users(self) -> List[SlackUser]:
-        """
-        GET /users/list
-        """
-
         data = self._request("GET", "/users/list")
-
-        users = data.get("users", [])
 
         return [
             SlackUser(
@@ -77,20 +82,13 @@ class SlackUserClient:
                 real_name=user.get("real_name"),
                 email=user.get("email"),
             )
-            for user in users
+            for user in data.get("users", [])
         ]
 
     def get_user_by_email(self, email: str) -> Optional[SlackUser]:
-        """
-        POST /user/get-by-email
-        """
-
-        payload = {"email": email}
-
-        data = self._request("POST", "/user/get-by-email", payload)
+        data = self._request("POST", "/user/get-by-email", {"email": email})
 
         user = data.get("user")
-
         if not user:
             return None
 
@@ -101,17 +99,11 @@ class SlackUserClient:
             email=user.get("email"),
         )
 
-
-class SlackUserSyncService:
-
-    def __init__(self):
-        self.client = SlackUserClient()
-
+    # SYNC USERS (DB)
     @transaction.atomic
     def sync_users(self):
 
-        slack_users = self.client.list_users()
-
+        slack_users = self.list_users()
         now = datetime.now()
 
         slack_user_ids = set()
@@ -137,7 +129,6 @@ class SlackUserSyncService:
             else:
                 updated += 1
 
-        # Soft delete (muy importante)
         deactivated = UsuarioSlack.objects.exclude(
             id__in=slack_user_ids
         ).update(is_active=False)
@@ -148,3 +139,80 @@ class SlackUserSyncService:
             "deactivated": deactivated,
             "total_api": len(slack_users)
         }
+
+    # MESSAGE BUILDER
+    def build_message(
+        self,
+        title: str,
+        body: str,
+        metadata: Optional[Dict[str, Any]] = None,
+        level: str = "INFO"
+    ) -> str:
+
+        emoji_map = {
+            "INFO": "ℹ️",
+            "SUCCESS": "✅",
+            "WARNING": "⚠️",
+            "ERROR": "❌"
+        }
+
+        prefix = emoji_map.get(level, "")
+
+        message = f"{prefix} *{title}*\n{body}"
+
+        if metadata:
+            message += "\n\n"
+            for key, value in metadata.items():
+                message += f"*{key}:* {value}\n"
+
+        return message.strip()
+
+    # SEND DM
+    def send_dm(self, user_id: str, message: str):
+        return self._request("POST", "/send", {
+            "user_id": user_id,
+            "message": message
+        })
+        
+    # SEND GENERIC
+    def send(
+        self,
+        recipients: List[str],
+        message: str
+    ) -> SlackSendResult:
+
+        if not recipients:
+            return SlackSendResult(False, 0, 0, ["No recipients"])
+
+        sent = 0
+        failed = 0
+        errors = []
+
+        for user_id in recipients:
+            try:
+                self.send_dm(user_id, message)
+                sent += 1
+            except SlackAPIException as e:
+                failed += 1
+                errors.append(f"{user_id}: {str(e)}")
+
+        return SlackSendResult(
+            success=sent > 0,
+            sent=sent,
+            failed=failed,
+            errors=errors
+        )
+
+    # HELPER ALTO NIVEL
+    def send_simple(
+        self,
+        recipients: List[str],
+        title: str,
+        body: str,
+        metadata: Optional[Dict[str, Any]] = None,
+        level: str = "INFO"
+    ) -> SlackSendResult:
+
+        message = self.build_message(title, body, metadata, level)
+
+        return self.send(recipients, message)
