@@ -3845,6 +3845,8 @@ def wms_agregar_transferencia(request):
     if tr.get('success', True):
         messages.success(request, tr.get('msg', ''))
     
+    if camion is None:
+        return redirect('wms_transferencia_ingreso_cerezos_list')    
     return redirect('wms_transferencias_list')
 
 
