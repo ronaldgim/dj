@@ -368,6 +368,13 @@ urlpatterns = [
     ),
     
     path(
+        # route='wms-notificacion-transferencia-pendiente',
+        route='notificacion-transferencia-pendiente',
+        view = views.wms_notificacion_transferencia_pendiente,
+        name = 'wms_notificacion_transferencia_pendiente'
+    ),
+    
+    path(
         route='wms_transferencia_pdf/<str:n_transferencia>',
         view = views.wms_transferencia_pdf,
         name = 'wms_transferencia_pdf'

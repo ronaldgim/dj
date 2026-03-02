@@ -6,7 +6,7 @@ from datetime import datetime
 from django.conf import settings
 from django.db import transaction
 
-from datos.models import UsuarioSlack
+from datos.models import UsuarioSlack, NotificacionInstanceSlack, NotificacionSlack
 
 # DTOs
 @dataclass
@@ -262,3 +262,59 @@ class SlackService:
             level=level,
             metadata=metadata
         )
+        
+    def send_from_instance(
+        self, 
+        instance: NotificacionInstanceSlack,     
+    ) -> SlackSendResult:
+        
+        try:
+            payload = instance.payload
+
+            result = self.send(
+                recipients=payload.get("recipients"),
+                message=payload.get("message"),
+                title=payload.get("title"),
+                level=payload.get("type"),
+                metadata=payload.get("additional_fields"),
+            )
+            
+            instance.marcar_enviado()
+
+            return result
+        except Exception as e:
+            instance.failed(err=str(e))
+            return None
+
+
+### utils
+def noti_creacion_transferencia(n_transf_wms: str):
+    noti = NotificacionSlack.objects.get(proceso='transf_pendiente')
+
+    # Obtener correos desde relación M2M
+    recipients = list(
+        noti.usuarios.values_list('email', flat=True)
+    )
+
+    payload = {
+        "recipients": recipients,
+        "title": noti.titulo,
+        "message": noti.mensaje,
+        "type": noti.tipo_msg,
+        "additional_fields": {
+            "Proceso": "Transferencia",
+            "# Transferencia WMS": n_transf_wms
+        }
+    }
+
+    noti_instance = NotificacionInstanceSlack.objects.create(
+        notificacion=noti,
+        referencia_id=n_transf_wms,
+        payload=payload,
+        last_sent_at = datetime.now(),
+        envios=0
+    )
+
+    return noti_instance
+
+

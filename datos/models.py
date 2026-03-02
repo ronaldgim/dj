@@ -429,10 +429,10 @@ class NotificacionSlack(models.Model):
 class NotificacionInstanceSlack(models.Model):
 
     class Status(models.TextChoices):
-        PENDING   = "PENDING", "Pendiente"
-        SENT      = "SENT", "Enviado"
-        COMPLETED = "COMPLETED", "Completado"
-        FAILED    = "FAILED", "Fallido"
+        PENDING   = "PENDING", "Pendiente"     # CREADO REGISTRO
+        SENT      = "SENT", "Enviado"          # PRIMER ENVIOS DE SLACK Y POSTERIORES
+        COMPLETED = "COMPLETED", "Completado"  # INGRESADO NUMERO DE MBA
+        FAILED    = "FAILED", "Fallido"        # ERROR   
 
     notificacion = models.ForeignKey(
         NotificacionSlack,
@@ -454,22 +454,27 @@ class NotificacionInstanceSlack(models.Model):
     envios = models.PositiveIntegerField(default=0)
 
     last_sent_at = models.DateTimeField(null=True, blank=True)
+    error = models.CharField(max_length=255, blank=True, null=True)
 
     creado = models.DateTimeField(auto_now_add=True)
     actualizado = models.DateTimeField(auto_now=True)
 
     def marcar_enviado(self):
-        now = datetime.now()
 
         self.envios += 1
-        self.last_sent_at = now
+        self.last_sent_at = datetime.now()
         self.status = self.Status.SENT
         self.save()
 
-    def completar(self):
+    def ingresado(self):
         self.status = self.Status.COMPLETED
+        self.last_sent_at = datetime.now()
+        self.save()
+    
+    def failed(self, err):
+        self.status = self.Status.FAILED
+        self.error = err
         self.save()
 
     def __str__(self):
-        return f"{self.proceso} - {self.referencia_id}"
-    
+        return f"{self.notificacion.proceso} - {self.referencia_id}"

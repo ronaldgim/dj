@@ -24,7 +24,7 @@ from datetime import datetime
 from django.db import connections, transaction
 from django.db.models import Q, Sum, OuterRef, Subquery, F
 
-from datos.models import Vehiculos
+from datos.models import Vehiculos, NotificacionInstanceSlack
 from wms.models import (
     InventarioIngresoBodega, 
     Ubicacion, Movimiento, 
@@ -144,6 +144,8 @@ from django.views.generic import ListView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils.decorators import method_decorator
 from collections import defaultdict
+from datos.slack_api import SlackService
+
 
 """
     LISTAS DE INGRESOS
@@ -3860,9 +3862,32 @@ def wms_actualizar_tranferencia_data_products(request):
         messages.error(request, tr.get('msg', ''))
     
     if tr.get('success', True):
+        transf_status = TransferenciaStatus.objects.get(id=transf_id)
+        NotificacionInstanceSlack.objects.get(referencia_id=transf_status.enum).ingresado()
         messages.error(request, tr.get('msg', ''))
     
     return redirect('wms_transferencias_list')
+
+
+def wms_notificacion_transferencia_pendiente(request):
+    now = datetime.now()
+    noti_list = NotificacionInstanceSlack.objects.filter(status='SENT')
+    slack = SlackService()
+    
+    for i in noti_list:
+        
+        # No se obtiene el numero de items hasta que se ingresa la transferencia
+        # n_items = TransferenciaStatus.objects.get(id=int(i.referencia_id)).n_items
+
+        # Enviar cada 10 min con calculo        
+        ultimo_envio = i.last_sent_at
+        delta_tiempo = now - ultimo_envio
+        
+        if delta_tiempo.seconds > 600:
+            slack.send_from_instance(i)
+        
+    return JsonResponse({'success':True}, status=200)
+    
 
 
 @method_decorator(

@@ -34,7 +34,9 @@ from datos.models import (
     AdminActualizationWarehaouse,
     ErrorLoteDetalle,
     ErrorLoteReporte,
-    ErrorLoteV2
+    ErrorLoteV2,
+    NotificacionSlack,
+    NotificacionInstanceSlack
     )
 from wms.models import (
     Transferencia, 
@@ -166,6 +168,9 @@ from api_mba.tablas_warehouse import (
     api_actualizar_imp_transito_warehouse
     )
 
+
+# SLACK SERVICE
+from datos.slack_api import SlackService, noti_creacion_transferencia
 
 def lista_pedidos_agregar_dashboard_publico():
 
@@ -4252,6 +4257,11 @@ Nota: {nota}
         )
 
         email.send()
+        
+        # Slack service
+        noti_transf = noti_creacion_transferencia(transf.enum)
+        slack = SlackService()
+        slack.send_from_instance(noti_transf)
 
         return JsonResponse({'success': True})
 
