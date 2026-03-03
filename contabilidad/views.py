@@ -166,7 +166,7 @@ def contabilidad_eliminar_cliente_excluido(request):
 @login_required(login_url='login')
 def lista_notificaciones(request):
     
-    notificaciones = NotificacionCartera.objects.select_related('usuario').all()
+    notificaciones = NotificacionCartera.objects.select_related('usuario').all().order_by('-id')
     lista_clientes = list(notificaciones.values_list('codigo_cliente', flat=True))
     clientes = Cliente.objects.using('gimpromed_sql').filter(codigo_cliente__in=lista_clientes)
     clientes_dict = {c.codigo_cliente:c for c in clientes}
@@ -176,6 +176,7 @@ def lista_notificaciones(request):
         cli = clientes_dict.get(i.codigo_cliente)
         notificaciones_data.append({
             'id':i.id,
+            'enum':i.enum,
             'cliente':cli.nombre_cliente,
             'ruc':cli.identificacion_fiscal,
             'correos':i.correos,
@@ -211,7 +212,6 @@ def cartera_vencida_por_cliente(codigo_cliente):
     facturas_vigentes = []
     facturas_vencidas = []
 
-    # RESUMEN
     resumen = {
         'vigente': Decimal('0'),
         'rango_1_30': Decimal('0'),
@@ -220,7 +220,6 @@ def cartera_vencida_por_cliente(codigo_cliente):
         'rango_91': Decimal('0'),
     }
 
-    # TOTALES VENCIDAS
     tot_vencidas = {
         'valor': Decimal('0'),
         'pagado': Decimal('0'),
@@ -229,7 +228,6 @@ def cartera_vencida_por_cliente(codigo_cliente):
         'saldo': Decimal('0'),
     }
 
-    # TOTALES VIGENTES
     tot_vigentes = {
         'valor': Decimal('0'),
         'pagado': Decimal('0'),
@@ -238,6 +236,9 @@ def cartera_vencida_por_cliente(codigo_cliente):
         'saldo': Decimal('0'),
     }
 
+    # ==============================
+    # LOOP PRINCIPAL
+    # ==============================
     for f in facturas:
         dias = (hoy - f.fecha_vencimiento).days
 
@@ -264,7 +265,6 @@ def cartera_vencida_por_cliente(codigo_cliente):
 
             resumen['vigente'] += saldo
 
-            # acumula vigentes
             tot_vigentes['valor'] += valor
             tot_vigentes['pagado'] += pagado
             tot_vigentes['retencion'] += retencion
@@ -275,7 +275,6 @@ def cartera_vencida_por_cliente(codigo_cliente):
             item['dias_vencido'] = dias
             facturas_vencidas.append(item)
 
-            # acumula vencidas
             tot_vencidas['valor'] += valor
             tot_vencidas['pagado'] += pagado
             tot_vencidas['retencion'] += retencion
@@ -291,6 +290,29 @@ def cartera_vencida_por_cliente(codigo_cliente):
             else:
                 resumen['rango_91'] += saldo
 
+    # ORDENAR (IMPORTANTE)
+    facturas_vencidas.sort(key=lambda x: x['dias_vencido'], reverse=True)
+
+    #  GRADIENTE (AQUÍ VA)
+    total = len(facturas_vencidas) or 1
+
+    for index, item in enumerate(facturas_vencidas):
+        ratio = index / (total - 1 or 1)
+
+        if ratio < 0.5:
+            t = ratio / 0.5
+            r = 255
+            g = int(99 + (255 - 99) * t)
+            b = int(71 + (150 - 71) * t)
+        else:
+            t = (ratio - 0.5) / 0.5
+            r = 255
+            g = 255
+            b = int(150 + (255 - 150) * t)
+
+        item['bg_color'] = f"rgb({r},{g},{b})"
+
+    # TOTALES
     totales = {
         'total_vigente': resumen['vigente'],
         'total_vencido': tot_vencidas['saldo'],
@@ -362,12 +384,13 @@ def nueva_notificacion(request):
             .get(codigo_cliente=cli)
         )
         
-        vendedor = VendedorMBA.objects.using('gimpromed_sql').get(code=cliente.salesman)
+        asesor = VendedorMBA.objects.using('gimpromed_sql').filter(code=cliente.salesman).first()
         
         # Agregar al context principal
         context.update({
             'cliente_selected': cliente,
-            'vendedor':vendedor,
+            'asesor':asesor,
+            'dep_financiero':'dreyes@gimpromed.com',
             'correo_html': correo_data.get('correo_html'),
             **correo_data.get('email_context')
         })
@@ -414,7 +437,21 @@ def obtener_lista_correos(correos_str, correos_extra=None):
 @login_required(login_url='login')
 @require_POST
 def crear_notificacion(request):
-    if request.method == "POST":
+    
+    try:
+        
+        asesor_email = request.POST.get('asesor_email')
+        dep_financiero_email = request.POST.get('dep_financiero_email')
+
+        emails_cc = []
+        if asesor_email and asesor_email != 'info@gimpromed.com':
+            emails_cc.append(asesor_email)
+        if dep_financiero_email:
+            emails_cc.append(dep_financiero_email)
+
+        # eliminar duplicados (por si acaso)
+        emails_cc = list(set(emails_cc))
+        
         form = NotificacionCarteraForm(request.POST)
         
         if form.is_valid():
@@ -427,15 +464,12 @@ def crear_notificacion(request):
             codigo_cliente = form.cleaned_data['codigo_cliente']
             notificacion.correo_text = cartera_vencida_por_cliente(codigo_cliente).get('correo_html')
             
-            # # (opcional) usuario automático
+            # (opcional) usuario automático
             # notificacion.usuario_auto = request.user.username
             
             # Correos
-            correos_input = form.cleaned_data['correos']
-            lista_correos = obtener_lista_correos(
-                correos_input,
-                # correos_extra=["erik.garces.11@gmail.com"]  # correo fijo
-            )
+            correos_input = form.cleaned_data['correos']            
+            lista_correos_cliente = obtener_lista_correos(correos_input)
             
             notificacion.save()
             
@@ -446,8 +480,8 @@ def crear_notificacion(request):
                     correo = EmailMultiAlternatives(
                         subject    = "Cartera vencida",
                         from_email = settings.DEFAULT_FROM_EMAIL,
-                        to         = lista_correos,
-                        # cc         = ['dreyes@gimpromed.com']
+                        to         = lista_correos_cliente,
+                        cc         = emails_cc
                     )
                     correo.attach_alternative(notificacion.correo_text, "text/html")
                     
@@ -459,10 +493,12 @@ def crear_notificacion(request):
                     notificacion.errores = str(e)
                     notificacion.save()
                     messages.error(request, f'Error al enviar el correo: {e}')
-                    
                     return redirect('lista_notificaciones')
-    
-    return redirect('error_url')
+        
+        return redirect('nueva_notificacion')
+    except Exception as e:
+        messages.error(request, str(e))
+        return redirect('nueva_notificacion')
 
 
 @login_required(login_url='login')

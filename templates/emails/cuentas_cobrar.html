@@ -15,8 +15,8 @@
         table {
             border-collapse: collapse;
             width: 100%;
-            margin-top: 10px;
-            margin-bottom: 20px;
+            margin-top: 5px;
+            margin-bottom: 5px;
         }
         th, td {
             border: 1px solid #000;
@@ -72,7 +72,7 @@
         </thead>
         <tbody>
             {% for f in facturas_vencidas %}
-            <tr class="factura">
+            <tr class="factura" style="background-color: {{ f.bg_color }};">
                 <td>{{ f.numero }}</td>
                 <td>{{ f.fecha_emision | date:"d-m-Y" }}</td>
                 <td class="text-right">$ {{ f.valor | floatformat:"2g" }}</td>
@@ -214,44 +214,5 @@
     <p>
         **** Esta notificación ha sido enviada automáticamente – Favor no responder ****
     </p>
-
-<script>
-function aplicarGradienteFactura(tablaId) {
-    const tabla = document.getElementById(tablaId);
-    if (!tabla) return;
-
-    // selector correcto
-    const filas = tabla.querySelectorAll("tbody tr.factura");
-    const total = filas.length;
-
-    filas.forEach((fila, index) => {
-        const ratio = index / (total - 1 || 1);
-
-        let r, g, b;
-
-        if (ratio < 0.5) {
-            // tomate → amarillo
-            const t = ratio / 0.5;
-
-            r = 255;
-            g = Math.round(99 + (255 - 99) * t);   // 99 → 255
-            b = Math.round(71 + (150 - 71) * t);   // suaviza azul (pastel)
-        } else {
-            // amarillo → blanco
-            const t = 0; 
-
-            r = 255;
-            g = 255;
-            // b = Math.round(150 + (255 - 150) * t); // 150 → 255
-            b = Math.round(150 + (255 - 150) * t); // 150 → 255
-        }
-
-        fila.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
-    });
-}
-aplicarGradienteFactura("facturas-vencidas");
-
-</script>
-
 </body>
 </html>
