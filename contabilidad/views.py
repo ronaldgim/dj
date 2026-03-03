@@ -196,8 +196,10 @@ def cartera_vencida_por_cliente(codigo_cliente):
     
     hoy = datetime.now().date()
 
-    cliente = Cliente.objects.using('gimpromed_sql').get(
-        codigo_cliente=codigo_cliente
+    cliente = (
+        Cliente.objects
+        .using('gimpromed_sql')
+        .get(codigo_cliente=codigo_cliente)
     )
 
     facturas = list(
@@ -239,10 +241,10 @@ def cartera_vencida_por_cliente(codigo_cliente):
     for f in facturas:
         dias = (hoy - f.fecha_vencimiento).days
 
-        valor = f.valor or Decimal('0')
+        valor = f.valor_factura or Decimal('0')
         pagado = f.valor_total_pagado or Decimal('0')
         retencion = f.valor_retencion or Decimal('0')
-        credito = getattr(f, 'valor_credito', Decimal('0')) or Decimal('0')
+        credito = getattr(f, 'valor_total_descuento', Decimal('0')) or Decimal('0')
         saldo = f.valor_total_saldo_a_cobrar or Decimal('0')
 
         item = {

@@ -421,6 +421,18 @@ class CuentasCobrar(models.Model):
         blank=True,
         null=True
     )
+    
+    valor_factura = models.IntegerField(
+        db_column='VALOR_FACTURA',
+        blank=True,
+        null=True
+    )
+    
+    valor_total_descuento = models.IntegerField(
+        db_column='VALOR_TOTAL_DESCUENTO',
+        blank=True,
+        null=True
+    )
 
     dias_ven = models.IntegerField(
         db_column='DIAS_VEN',
@@ -520,10 +532,6 @@ class CuentasCobrar(models.Model):
         if self.dias_mora_real > 30:
             return "Riesgo medio"
         return "Normal"
-    
-    @property
-    def valor(self):
-        return self.valor_total_saldo_a_cobrar + self.valor_retencion
 
 
 class VendedorMBA(models.Model):
