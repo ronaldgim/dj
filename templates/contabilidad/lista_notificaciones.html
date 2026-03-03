@@ -40,10 +40,11 @@
             <table class="table">
                 <thead>
                     <tr>
+                        <th scope="col">#</th>
                         <th scope="col">Cliente</th>
                         <th scope="col">RUC</th>
                         <th scope="col">Envio notificación</th>
-                        <th scope="col">Usuario</th>
+                        <th scope="col">Enviado por</th>
                         <th scope="col">Correo(s)</th>
                         <th scope="col">Errores</th>
                         <th scope="col">Detalle</th>
@@ -52,6 +53,7 @@
                 <tbody id="pedidosbuscar">
                     {% for i in notificaciones %}
                     <tr>
+                        <td>{{i.enum}}</td>
                         <td>{{i.cliente}}</td>
                         <td>{{i.ruc}}</td>
                         <td>{{i.fecha_hora}}</td>

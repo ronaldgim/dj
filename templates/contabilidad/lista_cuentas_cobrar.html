@@ -140,11 +140,10 @@
                         <th scope="col">Cliente</th>
                         <th scope="col">F.Factura</th>
                         <th scope="col">F.Vencimiento</th>
+                        <th scope="col">V.Factura</th>
+                        <th scope="col">V.Retención</th>
                         <th scope="col">V.Pagado</th>
                         <th scope="col">V.Saldo</th>
-                        <th scope="col">V.Retención</th>
-                        <th scope="col">Balance</th>
-                        <!--th scope="col">Riesgo</th-->
                         <th scope="col">Dias Mora</th>
                     </tr>
                 </thead>
@@ -155,11 +154,10 @@
                         <td>{{i.nombre_cliente}}</td>
                         <td>{{i.fecha_factura | date:"Y-m-d"}}</td>
                         <td>{{i.fecha_vencimiento | date:"Y-m-d"}}</td>
+                        <td class="text-end">$ {{i.valor_factura | floatformat:"2g"}}</td>
+                        <td class="text-end">$ {{i.valor_retencion | floatformat:"2g"}}</td>
                         <td class="text-end">$ {{i.valor_total_pagado | floatformat:"2g"}}</td>
                         <td class="text-end">$ {{i.valor_total_saldo_a_cobrar | floatformat:"2g"}}</td>
-                        <td class="text-end">$ {{i.valor_retencion | floatformat:"2g"}}</td>
-                        <td class="text-end">$ {{i.balance | floatformat:"2g"}}</td>
-                        <!--td>{{i.riesgo_crediticio}}</td-->
                         <td class="{{i.color_estado}} text-end">{{i.dias_mora_real | floatformat:"0g"}}</td>
                     </tr>
                     {% endfor %}

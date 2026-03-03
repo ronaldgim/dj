@@ -52,24 +52,45 @@
     </div>
 </form>
 
+{% if cliente_selected.codigo_cliente %}
 <hr>
-
 <div class="card pb-0 mb-4">
     <div class="card-body pb-0">
-        <p><strong>ASESOR:</strong> {{ vendedor.name }} - {{ vendedor.email}}</p>
-        
-        {#% comment %#}
-        <p><strong>DEP. FINANCIERO:</strong> DAYANNE REYES - {{ vendedor.email}}</p>
-        <!--form method="POST" action="{#% url 'crear_notificacion' %#}" class="mt-2 mb-4"-->
-        <form method="GET" action="{#% url 'crear_notificacion' %#}" class="mt-2 mb-4">
+
+        <form method="POST" action="{% url 'crear_notificacion' %}" class="mt-2 mb-4">
             {% csrf_token %}
-            
             <input type="hidden" name="codigo_cliente" value="{{ cliente_selected.codigo_cliente }}" />
+            <div class="row mb-2 align-items-center">
+                <label class="fw-bold col-3 {% if asesor.name == 'OFICINA' %} text-danger {% endif %}">ASEOR - {{ asesor.name }}</label>
+                <div class="col-6">
+                    <input 
+                        type="text" 
+                        name="asesor_email" 
+                        value="{{ asesor.email }}" 
+                        class="form-control {% if asesor.name == 'OFICINA' %} text-danger {% endif %}"
+                        required
+                        readonly
+                    />
+                </div>
+            </div>
             
             <div class="row mb-2 align-items-center">
-                <label class="fw-bold col-2">Correos de cliente:</label>
-
-                <div class="col-10">
+                <label class="fw-bold col-3">DEP. FINANCIERO - DAYANNE REYES</label>
+                <div class="col-6">
+                    <input 
+                        type="text" 
+                        name="dep_financiero_email" 
+                        value="{{ dep_financiero}}" 
+                        class="form-control"
+                        required
+                        readonly
+                    />
+                </div>
+            </div>
+            
+            <div class="row mb-2 align-items-center">
+                <label class="fw-bold col-3">CORREOS DE CLIENTE:</label>
+                <div class="col-6">
                     <input 
                         type="text" 
                         name="correos" 
@@ -80,15 +101,14 @@
                 </div>
             </div>
             
-            <!--button type="submit" class="btn btn-success mt-2 disabled">
+            <button type="submit" class="btn btn-success mt-2">
                 Enviar Correo
-            </button-->
+            </button>
         </form>
-        {#% endcomment %#}
-
     </div>
 </div>
 <hr>
+{% endif %}
 
 {% if correo_html %}
 <div class="card mb-4">

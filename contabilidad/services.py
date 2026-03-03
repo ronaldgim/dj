@@ -7,13 +7,13 @@ from decimal import Decimal
 class CarteraKPIService:
 
     def __init__(self, queryset):
-        self.qs = queryset
+        self.qs  = queryset
         self.hoy = date.today()
 
     def base_annotations(self):
         return self.qs.annotate(
-            saldo=Coalesce('valor_total_saldo_a_cobrar', Decimal(0)),
-            vencida=Q(fecha_vencimiento__lt=self.hoy)
+            saldo   = Coalesce('valor_total_saldo_a_cobrar', Decimal(0)),
+            vencida = Q(fecha_vencimiento__lt=self.hoy)
         )
 
     def resumen_general(self):
@@ -44,31 +44,31 @@ class CarteraKPIService:
 
         return data
 
-    def envejecimiento(self):
-        qs = self.base_annotations()
+    # def envejecimiento(self):
+    #     qs = self.base_annotations()
 
-        return qs.aggregate(
-            mora_1_30=Coalesce(Sum(
-                'saldo',
-                filter= Q(fecha_vencimiento__lt=self.hoy) &
-                        Q(fecha_vencimiento__gte=self.hoy.replace(day=1))
-            ), Decimal(0)),
+    #     return qs.aggregate(
+    #         mora_1_30=Coalesce(Sum(
+    #             'saldo',
+    #             filter= Q(fecha_vencimiento__lt=self.hoy) &
+    #                     Q(fecha_vencimiento__gte=self.hoy.replace(day=1))
+    #         ), Decimal(0)),
 
-            mora_31_60=Coalesce(Sum(
-                'saldo',
-                filter=Q(fecha_vencimiento__lt=self.hoy)
-            ), Decimal(0)),
+    #         mora_31_60=Coalesce(Sum(
+    #             'saldo',
+    #             filter=Q(fecha_vencimiento__lt=self.hoy)
+    #         ), Decimal(0)),
 
-            mora_61_90=Coalesce(Sum(
-                'saldo',
-                filter=Q(fecha_vencimiento__lt=self.hoy)
-            ), Decimal(0)),
+    #         mora_61_90=Coalesce(Sum(
+    #             'saldo',
+    #             filter=Q(fecha_vencimiento__lt=self.hoy)
+    #         ), Decimal(0)),
 
-            mora_90_plus=Coalesce(Sum(
-                'saldo',
-                filter=Q(fecha_vencimiento__lt=self.hoy)
-            ), Decimal(0)),
-        )
+    #         mora_90_plus=Coalesce(Sum(
+    #             'saldo',
+    #             filter=Q(fecha_vencimiento__lt=self.hoy)
+    #         ), Decimal(0)),
+    #     )
 
     def riesgo(self):
         qs = self.base_annotations()
@@ -112,6 +112,7 @@ class CarteraKPIService:
     def get_all_kpis(self):
         return {
             **self.resumen_general(),
+            # **self.envejecimiento(),
             **self.riesgo(),
             **self.credito(),
         }

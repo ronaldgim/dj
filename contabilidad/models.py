@@ -24,3 +24,8 @@ class NotificacionCartera(models.Model):
     
     def __str__(self):
         return self.codigo_cliente
+    
+    @property
+    def enum(self):
+        total_registros = NotificacionCartera.objects.filter(id__lte=self.id).count()
+        return f'{total_registros:03d}'
