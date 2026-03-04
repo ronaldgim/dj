@@ -2315,6 +2315,7 @@ def picking_dashboard_calculo_data(bodega):
     b = bodegas_map.get(bodega, bodega)
 
     reservas = estado_pedidos_dashboard_fun(bodega)
+    reservas = pd.DataFrame(reservas)
 
     # Validar DataFrame vacío desde el inicio
     if reservas is None or reservas.empty:
@@ -2389,7 +2390,7 @@ def picking_dashboard_calculo_data(bodega):
     pedidos_mas3_n = int(conteo.get('mas3', 0))
 
     # Preparar salida
-    reservas['FECHA_PEDIDO'] = reservas['FECHA_PEDIDO'].astype(str)
+    reservas['FECHA_PEDIDO'] = reservas['FECHA_PEDIDO'].astype('str')
     reservas = de_dataframe_a_template(reservas)
 
     return {
