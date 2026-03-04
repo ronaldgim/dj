@@ -14,7 +14,7 @@
         }
         table {
             border-collapse: collapse;
-            width: 100%;
+            /*/width: 100%;*/
             margin-top: 5px;
             margin-bottom: 5px;
         }
@@ -24,19 +24,17 @@
             font-size: 12px;
         }
         th {
-            background-color: #f2f2f2;
+            background-color: #03268f;
+            color: #fff;
         }
         .text-right {
             text-align: right;
         }
-        .total {
-            font-weight: bold;
-        }
     </style>
 
-    <p>Estimados Señores,</p>
-
-    <p><strong>{{ cliente_nombre }}</strong></p>
+    <p><strong>Estimados Señores,</strong><br>
+        <strong>{{ cliente_nombre }}</strong>
+    </p>
 
     <p>
         Reciba un cordial saludo de <strong>Gimpromed Cía. Ltda.</strong>
@@ -44,7 +42,7 @@
 
     <p>
         Por el presente nos permitimos informar que, de acuerdo con nuestros registros contables,
-        su cuenta presenta una cartera vencida de <strong style="color:red"> $ {{ cartera_vencida | floatformat:"2g" }}</strong> a la fecha.
+        su cuenta presenta una cartera vencida de <strong> $ {{ cartera_vencida | floatformat:"2g" }}</strong> a la fecha.
     </p>
 
     <p>Para su referencia, a continuación, detallamos un desglose de la misma.</p>
@@ -75,33 +73,53 @@
             <tr class="factura" style="background-color: {{ f.bg_color }};">
                 <td>{{ f.numero }}</td>
                 <td>{{ f.fecha_emision | date:"d-m-Y" }}</td>
-                <td class="text-right">$ {{ f.valor | floatformat:"2g" }}</td>
-                <td class="text-right">$ {{ f.pagado | floatformat:"2g" }}</td>
-                <td class="text-right">$ {{ f.retencion | floatformat:"2g" }}</td>
-                <td class="text-right">$ {{ f.credito | floatformat:"2g" }}</td>
-                <td class="text-right">$ {{ f.saldo | floatformat:"2g" }}</td>
+                <td class="text-right">
+                    {% if f.valor > 0 %}
+                        $ {{ f.valor | floatformat:"2g" }}
+                    {% endif %}
+                </td>
+                <td class="text-right">
+                    {% if f.pagado > 0 %}
+                        $ {{ f.pagado | floatformat:"2g" }}
+                    {% endif %}
+                </td>
+                <td class="text-right">
+                    {% if f.retencion > 0 %}
+                        $ {{ f.retencion | floatformat:"2g" }}
+                    {% endif %}
+                </td>
+                <td class="text-right">
+                    {% if f.credito > 0 %}
+                        $ {{ f.credito | floatformat:"2g" }}
+                    {% endif %}
+                </td>
+                <td class="text-right">
+                    {% if f.saldo > 0 %}
+                        $ {{ f.saldo | floatformat:"2g" }}
+                    {% endif %}
+                </td>
                 <td>{{ f.fecha_vencimiento | date:"d-m-Y" }}</td>
                 <td class="text-right">{{ f.dias_vencido }}</td>
             </tr>
             {% endfor %}
             <tr>
-                <td colspan="2" class="text-right total">
-                    Total facturas vencidas:
+                <td colspan="6" class="text-right" style="color:red">
+                    <strong>Total facturas vencidas:</strong>
                 </td>
-                <td class="text-right total">
+                <!--td class="text-right">
                     $ {{ tot_vencidas.valor | floatformat:"2g" }}
                 </td>
-                <td class="text-right total">
+                <td class="text-right">
                     $ {{ tot_vencidas.pagado | floatformat:"2g" }}
                 </td>
-                <td class="text-right total">
+                <td class="text-right">
                     $ {{ tot_vencidas.retencion | floatformat:"2g" }}
                 </td>
-                <td class="text-right total">
+                <td class="text-right">
                     $ {{ tot_vencidas.credito | floatformat:"2g" }}
-                </td>
-                <td style="background-color:yellow" class="text-right total">
-                    $ {{ tot_vencidas.saldo | floatformat:"2g" }}
+                </td-->
+                <td style="color:red" class="text-right">
+                    <strong>$ {{ tot_vencidas.saldo | floatformat:"2g" }}</strong>
                 </td>
             </tr>
         </tbody>
@@ -128,45 +146,76 @@
             <tr>
                 <td>{{ f.numero }}</td>
                 <td>{{ f.fecha_emision | date:"d-m-Y" }}</td>
-                <td class="text-right">$ {{ f.valor | floatformat:"2g" }}</td>
-                <td class="text-right">$ {{ f.pagado | floatformat:"2g" }}</td>
-                <td class="text-right">$ {{ f.retencion | floatformat:"2g" }}</td>
-                <td class="text-right">$ {{ f.credito | floatformat:"2g" }}</td>
-                <td class="text-right">$ {{ f.saldo | floatformat:"2g" }}</td>
+                <td class="text-right">
+                    {% if f.valor > 0 %}
+                        $ {{ f.valor | floatformat:"2g" }}
+                    {% endif %}
+                </td>
+                <td class="text-right">
+                    {% if f.pagado > 0 %}
+                        $ {{ f.pagado | floatformat:"2g" }}
+                    {% endif %}
+                </td>
+                <td class="text-right">
+                    {% if f.retencion > 0 %}
+                        $ {{ f.retencion | floatformat:"2g" }}
+                    {% endif %}
+                </td>
+                <td class="text-right">
+                    {% if f.credito > 0 %}
+                        $ {{ f.credito | floatformat:"2g" }}
+                    {% endif %}
+                </td>
+                <td class="text-right">
+                    {% if f.saldo > 0 %}
+                        $ {{ f.saldo | floatformat:"2g" }}
+                    {% endif %}
+                </td>
                 <td>{{ f.fecha_vencimiento | date:"d-m-Y" }}</td>
                 <td class="text-right">{{ f.dias_vigente }}</td>
             </tr>
             {% endfor %}
             <tr>
-                <td colspan="2" class="text-right total">
-                    Total facturas vigentes
+                <td colspan="6" class="text-right">
+                    <strong>Total facturas vigentes</strong>
                 </td>
-                <td class="text-right total danger">
-                    $ {{ tot_vigentes.valor | floatformat:"2g" }}
+                <!--td class="text-right">
+                    {% if tot_vigentes.valor > 0 %}
+                        $ {{ tot_vigentes.valor | floatformat:"2g" }}
+                    {% endif %}
                 </td>
-                <td class="text-right total danger">
-                    $ {{ tot_vigentes.pagado | floatformat:"2g" }}
+                <td class="text-right">
+                    {% if tot_vigentes.pagado > 0 %}
+                        $ {{ tot_vigentes.pagado | floatformat:"2g" }}
+                    {% endif %}
                 </td>
-                <td class="text-right total danger">
-                    $ {{ tot_vigentes.retencion | floatformat:"2g" }}
+                <td class="text-right">
+                    {% if tot_vigentes.retencion > 0 %}
+                        $ {{ tot_vigentes.retencion | floatformat:"2g" }}
+                    {% endif %}
                 </td>
-                <td class="text-right total danger">
-                    $ {{ tot_vigentes.credito | floatformat:"2g" }}
-                </td>
-                <td class="text-right total danger">
-                    $ {{ tot_vigentes.saldo | floatformat:"2g" }}
+                <td class="text-right">
+                    {% if tot_vigentes.credito > 0 %}
+                        $ {{ tot_vigentes.credito | floatformat:"2g" }}
+                    {% endif %}
+                </td-->
+                <td class="text-right">
+                    {% if tot_vigentes.saldo > 0 %}
+                        <strong>$ {{ tot_vigentes.saldo | floatformat:"2g" }}</strong>
+                    {% endif %}
                 </td>
             </tr>
-
+            <tr>
+                <td colspan="6" class="text-right">
+                    <strong>Total cartera</strong>
+                </td>
+                <td class="text-right">
+                    {% if total_cartera > 0 %}
+                        <strong>$ {{ total_cartera | floatformat:"2g" }}</strong>
+                    {% endif %}
+                </td>
         </tbody>
     </table>
-
-    <p class="total">
-        Total facturas vigentes: $ {{ total_vigentes | floatformat:"2g" }}
-    </p>
-
-    <!-- TOTAL CARTERA -->
-    <h5>TOTAL CARTERA: $ {{ total_cartera | floatformat:"2g" }}</h5>
 
     <!-- RESUMEN -->
     <h4>Resumen Cartera</h4>
@@ -182,11 +231,31 @@
         </thead>
         <tbody>
             <tr>
-                <td class="text-right">$ {{ resumen.vigente | floatformat:"2g" }}</td>
-                <td class="text-right">$ {{ resumen.rango_1_30 | floatformat:"2g" }}</td>
-                <td class="text-right">$ {{ resumen.rango_31_60 | floatformat:"2g" }}</td>
-                <td class="text-right">$ {{ resumen.rango_61_90 | floatformat:"2g" }}</td>
-                <td class="text-right">$ {{ resumen.rango_91 | floatformat:"2g" }}</td>
+                <td class="text-right">
+                    {% if resumen.vigente > 0 %}
+                        $ {{ resumen.vigente | floatformat:"2g" }}
+                    {% endif %}
+                </td>
+                <td class="text-right">
+                    {% if resumen.rango_1_30 > 0 %}
+                        $ {{ resumen.rango_1_30 | floatformat:"2g" }}
+                    {% endif %}
+                </td>
+                <td class="text-right">
+                    {% if resumen.rango_31_60 > 0 %}
+                        $ {{ resumen.rango_31_60 | floatformat:"2g" }}
+                    {% endif %}
+                </td>
+                <td class="text-right">
+                    {% if resumen.rango_61_90 > 0 %}
+                        $ {{ resumen.rango_61_90 | floatformat:"2g" }}
+                    {% endif %}
+                </td>
+                <td class="text-right">
+                    {% if resumen.rango_91 > 0 %}
+                        $ {{ resumen.rango_91 | floatformat:"2g" }}
+                    {% endif %}
+                </td>
             </tr>
         </tbody>
     </table>
