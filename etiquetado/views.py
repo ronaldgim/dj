@@ -2,7 +2,7 @@
 from django.db import connections, transaction
 
 # Time
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, time
 
 # Shorcuts
 from django.shortcuts import render, redirect
@@ -2225,58 +2225,187 @@ def estado_pedidos_dashboard_fun(bodega):
     return reservas
 
 
-def picking_dashboard_json_response(request, bodega):
+# def picking_dashboard_json_response(request, bodega):
 
-    if bodega == 'BAN':
-        b = 'ANDAGOYA'
-    elif bodega == 'BCT':
-        b = 'CEREZOS'
+#     if bodega == 'BAN':
+#         b = 'ANDAGOYA'
+#     elif bodega == 'BCT':
+#         b = 'CEREZOS'
+
+#     reservas = estado_pedidos_dashboard_fun(bodega)
+    
+#     # STOCK FALTANTE POR CONTRATO
+#     contratos = list(reservas['CONTRATO_ID'].unique())
+#     sto = stock_faltante_contrato(contratos, bodega)
+    
+#     if not sto.empty:
+#         reservas = reservas.merge(sto, on='CONTRATO_ID', how='left')
+    
+#     # Fistrado por fecha
+#     hoy = date.today()
+
+#     # Reserva de hoy a 2 meses
+#     meses_2 = hoy - timedelta(days=30)
+#     reservas = reservas[reservas['FECHA_PEDIDO']>meses_2]
+
+#     # Numero de pedidos
+#     pedidos_hoy = reservas[reservas['FECHA_PEDIDO']==hoy]
+#     pedidos_hoy_n = len(pedidos_hoy)
+
+#     ayer = hoy - timedelta(days=1)
+#     pedidos_ayer = reservas[reservas['FECHA_PEDIDO']==ayer]
+#     pedidos_ayer_n = len(pedidos_ayer)
+
+#     pedidos_mas3 = reservas[reservas['FECHA_PEDIDO']<ayer]#[['CONTRATO_ID','FECHA_PEDIDO']];print(pedidos_mas3)
+#     pedidos_mas3_n = len(pedidos_mas3)
+
+#     # Definir columna de dia para añadir color
+#     if len(reservas) > 0:
+#         reservas['fecha_estado'] = reservas.apply(lambda x: 'hoy' if x['FECHA_PEDIDO']==hoy else 'ayer' if x['FECHA_PEDIDO']==ayer else 'mas3' if x['FECHA_PEDIDO']<ayer else 'mas3', axis=1)
+
+#     # Config
+#     reservas['FECHA_PEDIDO'] = reservas['FECHA_PEDIDO'].astype(str)
+#     reservas = de_dataframe_a_template(reservas)
+
+#     context = {
+#         'reservas':reservas,
+#         'hoy':pedidos_hoy_n,
+#         'ayer':pedidos_ayer_n,
+#         'mas3':pedidos_mas3_n,
+#         'bodega':b
+#     }
+    
+#     return JsonResponse(context, safe=False)
+#     #return render(request, 'dashboards/dashboard.html', context)
+
+
+def calcular_horas_laborales(row, inicio_horario=8, fin_horario=18):
+    start = row['fecha_hora_pedido']
+    end = datetime.now()
+
+    if pd.isna(start):
+        return 0
+
+    total_hours = 0
+    current = start
+
+    while current.date() <= end.date():
+        inicio_dia = datetime.combine(current.date(), time(inicio_horario, 0))
+        fin_dia = datetime.combine(current.date(), time(fin_horario, 0))
+
+        # definir rango válido del día
+        inicio_real = max(current, inicio_dia)
+        fin_real = min(end, fin_dia)
+
+        if inicio_real < fin_real:
+            total_hours += (fin_real - inicio_real).total_seconds() / 3600
+
+        current = datetime.combine(current.date() + timedelta(days=1), time(0, 0))
+
+    return int(total_hours)
+
+
+def picking_dashboard_calculo_data(bodega):
+
+    # Mapeo más limpio
+    bodegas_map = {
+        'BAN': 'ANDAGOYA',
+        'BCT': 'CEREZOS'
+    }
+    b = bodegas_map.get(bodega, bodega)
 
     reservas = estado_pedidos_dashboard_fun(bodega)
-    
-    # STOCK FALTANTE POR CONTRATO
-    contratos = list(reservas['CONTRATO_ID'].unique())
-    sto = stock_faltante_contrato(contratos, bodega)
-    
-    if not sto.empty:
-        reservas = reservas.merge(sto, on='CONTRATO_ID', how='left')
-    
-    # Fistrado por fecha
-    hoy = date.today()
 
-    # Reserva de hoy a 2 meses
-    meses_2 = hoy - timedelta(days=30)
-    reservas = reservas[reservas['FECHA_PEDIDO']>meses_2]
+    # Validar DataFrame vacío desde el inicio
+    if reservas is None or reservas.empty:
+        return JsonResponse({
+            'reservas': [],
+            'hoy': 0,
+            'ayer': 0,
+            'mas3': 0,
+            'bodega': b
+        }, safe=False)
 
-    # Numero de pedidos
-    pedidos_hoy = reservas[reservas['FECHA_PEDIDO']==hoy]
-    pedidos_hoy_n = len(pedidos_hoy)
+    # Normalizar columnas críticas
+    reservas['CONTRATO_ID'] = reservas['CONTRATO_ID'].fillna('')
+    reservas['FECHA_PEDIDO'] = pd.to_datetime(reservas['FECHA_PEDIDO'], errors='coerce')
+    reservas['HORA_LLEGADA'] = reservas['HORA_LLEGADA'].fillna('00:00:00')
 
-    ayer = hoy - timedelta(days=1)
-    pedidos_ayer = reservas[reservas['FECHA_PEDIDO']==ayer]
-    pedidos_ayer_n = len(pedidos_ayer)
+    # STOCK FALTANTE
+    contratos = reservas['CONTRATO_ID'].dropna().unique().tolist()
+    if contratos:
+        sto = stock_faltante_contrato(contratos, bodega)
+        if sto is not None and not sto.empty:
+            reservas = reservas.merge(sto, on='CONTRATO_ID', how='left')
 
-    pedidos_mas3 = reservas[reservas['FECHA_PEDIDO']<ayer]#[['CONTRATO_ID','FECHA_PEDIDO']];print(pedidos_mas3)
-    pedidos_mas3_n = len(pedidos_mas3)
+    # Filtro de fecha (últimos 30 días)
+    hoy = pd.to_datetime(date.today())
+    hace_30_dias = hoy - pd.Timedelta(days=30)
 
-    # Definir columna de dia para añadir color
-    if len(reservas) > 0:
-        reservas['fecha_estado'] = reservas.apply(lambda x: 'hoy' if x['FECHA_PEDIDO']==hoy else 'ayer' if x['FECHA_PEDIDO']==ayer else 'mas3' if x['FECHA_PEDIDO']<ayer else 'mas3', axis=1)
+    reservas = reservas[reservas['FECHA_PEDIDO'] > hace_30_dias]
 
-    # Config
+    # Si quedó vacío después del filtro
+    if reservas.empty:
+        return JsonResponse({
+            'reservas': [],
+            'hoy': 0,
+            'ayer': 0,
+            'mas3': 0,
+            'bodega': b
+        }, safe=False)
+
+    # Crear datetime combinado seguro
+    reservas['fecha_hora_pedido'] = pd.to_datetime(
+        reservas['FECHA_PEDIDO'].astype(str) + ' ' + reservas['HORA_LLEGADA'].astype(str),
+        errors='coerce'
+    )
+
+    # Eliminar filas inválidas
+    reservas = reservas.dropna(subset=['fecha_hora_pedido'])
+
+    # Calcular horas laborales (si falla → 0)
+    reservas['horas_de_pedido'] = reservas.apply(
+        lambda x: calcular_horas_laborales(x) if pd.notnull(x['fecha_hora_pedido']) else 0,
+        axis=1
+    )
+
+    reservas['horas_de_pedido'] = reservas['horas_de_pedido'].fillna(0)
+
+    # Clasificación vectorizada (MUCHO más rápida)
+    condiciones = [
+        reservas['horas_de_pedido'] <= 6,
+        reservas['horas_de_pedido'] < 9
+    ]
+
+    opciones = ['hoy', 'ayer']
+
+    reservas['fecha_estado'] = np.select(condiciones, opciones, default='mas3')
+
+    # KPIs
+    conteo = reservas['fecha_estado'].value_counts()
+
+    pedidos_hoy_n = int(conteo.get('hoy', 0))
+    pedidos_ayer_n = int(conteo.get('ayer', 0))
+    pedidos_mas3_n = int(conteo.get('mas3', 0))
+
+    # Preparar salida
     reservas['FECHA_PEDIDO'] = reservas['FECHA_PEDIDO'].astype(str)
     reservas = de_dataframe_a_template(reservas)
 
-    context = {
-        'reservas':reservas,
-        'hoy':pedidos_hoy_n,
-        'ayer':pedidos_ayer_n,
-        'mas3':pedidos_mas3_n,
-        'bodega':b
+    return {
+        'reservas': reservas,
+        'hoy': pedidos_hoy_n,
+        'ayer': pedidos_ayer_n,
+        'mas3': pedidos_mas3_n,
+        'bodega': b
     }
-    
+
+
+def picking_dashboard_json_response(request, bodega):
+
+    context = picking_dashboard_calculo_data(bodega)
+
     return JsonResponse(context, safe=False)
-    #return render(request, 'dashboards/dashboard.html', context)
 
 
 def picking_dashboard(request, bodega):
@@ -2584,47 +2713,111 @@ def dashboard_completo(request):
     return render(request, 'dashboards/dashboard_completo.html', context)
 
 
+# def dashboard_completo_json_response(request):
+    
+#     # PEDIDOS CEREZOS
+#     pedidos_cerezos = estado_pedidos_dashboard_fun('BCT')
+#     contratos_pedidos = list(pedidos_cerezos['CONTRATO_ID'].unique())
+#     sto_pedidos = stock_faltante_contrato(contratos_pedidos, 'BCT')
+    
+#     if not sto_pedidos.empty:
+#         pedidos_cerezos = pedidos_cerezos.merge(sto_pedidos, on='CONTRATO_ID', how='left')
+
+#     # Filtrado por fecha
+#     hoy = date.today()
+#     ayer = hoy - timedelta(days=1)
+#     meses_2 = hoy - timedelta(days=30)
+
+#     pedidos_cerezos = pedidos_cerezos[pedidos_cerezos['FECHA_PEDIDO']>meses_2]
+
+#     pedidos_cerezos_hoy = len(pedidos_cerezos[pedidos_cerezos['FECHA_PEDIDO']==hoy])
+#     pedidos_cerezos_ayer = len(pedidos_cerezos[pedidos_cerezos['FECHA_PEDIDO']==ayer])
+#     pedidos_cerezos_mas3 = len(pedidos_cerezos[pedidos_cerezos['FECHA_PEDIDO']<ayer])
+
+#     if len(pedidos_cerezos) > 0:
+#         pedidos_cerezos['fecha_estado'] = pedidos_cerezos.apply(lambda x: 'hoy' if x['FECHA_PEDIDO']==hoy else 'ayer' if x['FECHA_PEDIDO']==ayer else 'mas3' if x['FECHA_PEDIDO']<ayer else 'mas3', axis=1)
+
+#     pedidos_cerezos['FECHA_PEDIDO'] = pedidos_cerezos['FECHA_PEDIDO'].astype(str)
+#     pedidos_cerezos = de_dataframe_a_template(pedidos_cerezos)
+
+#     # ETIQUETADO STOCK
+#     etiquetado = etiquetado_fun() 
+#     urgente = 0.75
+#     correcto = 2
+#     n_urgente = len(etiquetado[etiquetado['Meses']<urgente])
+#     amarillo = etiquetado[etiquetado['Meses']>=urgente]
+#     amarillo = amarillo[amarillo['Meses']<correcto]
+#     n_pronto = len(amarillo)
+
+#     etiquetado = de_dataframe_a_template(etiquetado)
+
+#     # ETIQUETADO PUBLICO
+#     publico = publico_dashboard_fun()
+#     publico = publico[publico['estado']!='FINALIZADO']
+#     contratos_publicos = list(publico['CONTRATO_ID'].unique())
+#     sto_publico = stock_faltante_contrato(contratos_publicos, 'BCT') 
+    
+#     if not sto_publico.empty:
+#         publico = publico.merge(sto_publico, on='CONTRATO_ID', how='left')
+    
+#     pedidos_temporales = pedidos_temporales_fun().dropna(axis=1, how='all')
+    
+#     if not publico.empty and not pedidos_temporales.empty:
+#         publico = pd.concat([publico, pedidos_temporales])
+#         publico['fecha_entrega'] = publico['fecha_entrega'].astype('str')
+#         publico = publico.sort_values(by='fecha_entrega')
+#     else:
+#         publico = publico       
+    
+#     publicos_n = len(publico)
+#     publico = de_dataframe_a_template(publico)
+    
+#     context = {
+#         # CONFIG
+#         'urgente':urgente,
+#         'correcto':correcto,
+        
+#         # PEDIDOS CEREZOS
+#         'pedidos_cerezos':pedidos_cerezos,
+#         'pedidos_cerezos_hoy':pedidos_cerezos_hoy,
+#         'pedidos_cerezos_ayer':pedidos_cerezos_ayer,
+#         'pedidos_cerezos_mas3':pedidos_cerezos_mas3,
+
+#         # ETIQUETADO STOCK
+#         'etiquetado':etiquetado,
+#         'n_urgente':n_urgente,
+#         'n_pronto':n_pronto,
+
+#         # PUBLICO
+#         'publico':publico,
+#         'n_publico':publicos_n
+#     }
+    
+#     return JsonResponse(context)
+
+
 def dashboard_completo_json_response(request):
     
     # PEDIDOS CEREZOS
-    pedidos_cerezos = estado_pedidos_dashboard_fun('BCT')
-    contratos_pedidos = list(pedidos_cerezos['CONTRATO_ID'].unique())
-    sto_pedidos = stock_faltante_contrato(contratos_pedidos, 'BCT')
+    pedidos_cerezos = picking_dashboard_calculo_data('BCT')
     
-    if not sto_pedidos.empty:
-        pedidos_cerezos = pedidos_cerezos.merge(sto_pedidos, on='CONTRATO_ID', how='left')
-
-    # Filtrado por fecha
-    hoy = date.today()
-    ayer = hoy - timedelta(days=1)
-    meses_2 = hoy - timedelta(days=30)
-
-    pedidos_cerezos = pedidos_cerezos[pedidos_cerezos['FECHA_PEDIDO']>meses_2]
-
-    pedidos_cerezos_hoy = len(pedidos_cerezos[pedidos_cerezos['FECHA_PEDIDO']==hoy])
-    pedidos_cerezos_ayer = len(pedidos_cerezos[pedidos_cerezos['FECHA_PEDIDO']==ayer])
-    pedidos_cerezos_mas3 = len(pedidos_cerezos[pedidos_cerezos['FECHA_PEDIDO']<ayer])
-
-    if len(pedidos_cerezos) > 0:
-        pedidos_cerezos['fecha_estado'] = pedidos_cerezos.apply(lambda x: 'hoy' if x['FECHA_PEDIDO']==hoy else 'ayer' if x['FECHA_PEDIDO']==ayer else 'mas3' if x['FECHA_PEDIDO']<ayer else 'mas3', axis=1)
-
-    pedidos_cerezos['FECHA_PEDIDO'] = pedidos_cerezos['FECHA_PEDIDO'].astype(str)
-    pedidos_cerezos = de_dataframe_a_template(pedidos_cerezos)
-
     # ETIQUETADO STOCK
     etiquetado = etiquetado_fun() 
     urgente = 0.75
     correcto = 2
-    n_urgente = len(etiquetado[etiquetado['Meses']<urgente])
-    amarillo = etiquetado[etiquetado['Meses']>=urgente]
-    amarillo = amarillo[amarillo['Meses']<correcto]
+
+    n_urgente = len(etiquetado[etiquetado['Meses'] < urgente])
+
+    amarillo = etiquetado[etiquetado['Meses'] >= urgente]
+    amarillo = amarillo[amarillo['Meses'] < correcto]
     n_pronto = len(amarillo)
 
     etiquetado = de_dataframe_a_template(etiquetado)
 
     # ETIQUETADO PUBLICO
     publico = publico_dashboard_fun()
-    publico = publico[publico['estado']!='FINALIZADO']
+    publico = publico[publico['estado'] != 'FINALIZADO']
+
     contratos_publicos = list(publico['CONTRATO_ID'].unique())
     sto_publico = stock_faltante_contrato(contratos_publicos, 'BCT') 
     
@@ -2637,31 +2830,29 @@ def dashboard_completo_json_response(request):
         publico = pd.concat([publico, pedidos_temporales])
         publico['fecha_entrega'] = publico['fecha_entrega'].astype('str')
         publico = publico.sort_values(by='fecha_entrega')
-    else:
-        publico = publico       
     
     publicos_n = len(publico)
     publico = de_dataframe_a_template(publico)
     
     context = {
         # CONFIG
-        'urgente':urgente,
-        'correcto':correcto,
+        'urgente': urgente,
+        'correcto': correcto,
         
         # PEDIDOS CEREZOS
-        'pedidos_cerezos':pedidos_cerezos,
-        'pedidos_cerezos_hoy':pedidos_cerezos_hoy,
-        'pedidos_cerezos_ayer':pedidos_cerezos_ayer,
-        'pedidos_cerezos_mas3':pedidos_cerezos_mas3,
+        'pedidos_cerezos': pedidos_cerezos.get('reservas'),
+        'pedidos_cerezos_hoy': pedidos_cerezos.get('hoy'),
+        'pedidos_cerezos_ayer': pedidos_cerezos.get('ayer'),
+        'pedidos_cerezos_mas3': pedidos_cerezos.get('mas3'),
 
         # ETIQUETADO STOCK
-        'etiquetado':etiquetado,
-        'n_urgente':n_urgente,
-        'n_pronto':n_pronto,
+        'etiquetado': etiquetado,
+        'n_urgente': n_urgente,
+        'n_pronto': n_pronto,
 
         # PUBLICO
-        'publico':publico,
-        'n_publico':publicos_n
+        'publico': publico,
+        'n_publico': publicos_n
     }
     
     return JsonResponse(context)
