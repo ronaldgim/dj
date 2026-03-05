@@ -86,7 +86,6 @@ def lista_clientes_excluidos(request):
         Cliente.objects
         .using('gimpromed_sql')
         .filter(codigo_cliente__in=clientes_excluidos_list)
-        .order_by('-id')
     )
     
     context = {
