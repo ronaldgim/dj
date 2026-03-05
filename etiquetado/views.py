@@ -2319,13 +2319,13 @@ def picking_dashboard_calculo_data(bodega):
 
     # Validar DataFrame vacío desde el inicio
     if reservas is None or reservas.empty:
-        return JsonResponse({
+        return {
             'reservas': [],
             'hoy': 0,
             'ayer': 0,
             'mas3': 0,
             'bodega': b
-        }, safe=False)
+        }
 
     # Normalizar columnas críticas
     reservas['CONTRATO_ID'] = reservas['CONTRATO_ID'].fillna('')
