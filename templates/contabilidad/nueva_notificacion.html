@@ -55,9 +55,8 @@
 {% if cliente_selected.codigo_cliente %}
 <hr>
 <div class="card pb-0 mb-4">
-    <div class="card-body pb-0">
-
-        <form method="POST" action="{% url 'crear_notificacion' %}" class="mt-2 mb-4">
+    <div class="card-body pb-2">
+        <form method="POST" id="form-send-email" action="{% url 'crear_notificacion' %}" class="mt-2 mb-4">
             {% csrf_token %}
             <input type="hidden" name="codigo_cliente" value="{{ cliente_selected.codigo_cliente }}" />
             <div class="row mb-2 align-items-center">
@@ -94,17 +93,22 @@
                     <input 
                         type="text" 
                         name="correos" 
+                        id="correos-input"
                         value="{{ cliente_selected.email }}" 
                         class="form-control"
+                        placeholder="ej: cliente@email.com, cliente2@email.com"
                         required
                     />
+                    <small class="text-muted">
+                        Puedes ingresar varios correos separados por coma.
+                    </small>
                 </div>
             </div>
-            
-            <button type="submit" class="btn btn-success mt-2">
-                Enviar Correo
-            </button>
         </form>
+
+        <button id="btn-enviar-correo" class="btn btn-success mt-2">
+            Enviar Correo
+        </button>
     </div>
 </div>
 <hr>
@@ -125,22 +129,48 @@
     })
 </script>
 
-{% comment %} <script>
-    document.querySelector("form").addEventListener("submit", function(e) {
-        const input = document.querySelector("input[name='correos']");
-        const emails = input.value.split(",");
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const btnEnviar = document.getElementById("btn-enviar-correo");
 
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        btnEnviar.addEventListener("click", function () {
+            const inputCorreos = document.getElementById("correos-input");
+            const correosInput = inputCorreos.value.trim();
 
-        for (let email of emails) {
-            email = email.trim();
-            if (!emailRegex.test(email)) {
-                e.preventDefault();
-                alert("Correo inválido: " + email);
+            if (!correosInput) {
+                alert("Por favor, ingresa al menos un correo de cliente.");
+                inputCorreos.focus();
                 return;
             }
-        }
+
+            // Separar por coma o punto y coma
+            const correosList = correosInput
+                .split(/[,;]+/)
+                .map(email => email.trim())
+                .filter(email => email !== "");
+
+            const correosInvalidos = correosList.filter(email => !validarFormatoCorreo(email));
+
+            if (correosInvalidos.length > 0) {
+                alert(`Los siguientes correos no son válidos:\n\n${correosInvalidos.join("\n")}`);
+                return;
+            }
+
+            if (!confirm("¿Estás seguro de que deseas enviar el correo?")) {
+                return;
+            }
+
+            const form = document.getElementById("form-send-email");
+            if (form) {
+                form.submit();
+            }
+        });
     });
-</script> {% endcomment %}
+
+    function validarFormatoCorreo(email) {
+        const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return regex.test(email);
+    }
+</script>
 
 {% endblock %}

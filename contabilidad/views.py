@@ -439,6 +439,10 @@ def obtener_lista_correos(correos_str, correos_extra=None):
 def crear_notificacion(request):
     
     try:
+        correos_input_post = request.POST.get('correos')
+        if not correos_input_post:
+            messages.error(request, 'Correo de cliente son requeridos !!!')
+            return redirect('nueva_notificacion')
         
         asesor_email = request.POST.get('asesor_email')
         dep_financiero_email = request.POST.get('dep_financiero_email')
@@ -489,6 +493,7 @@ def crear_notificacion(request):
                     correo.send(fail_silently=False)
                     messages.success(request, 'Correo enviado correctamente !!!')
                     return redirect('lista_notificaciones')
+                
                 except Exception as e:
                     notificacion.errores = str(e)
                     notificacion.save()
