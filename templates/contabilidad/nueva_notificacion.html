@@ -54,6 +54,13 @@
 
 {% if cliente_selected.codigo_cliente %}
 <hr>
+<!-- Spinner -->
+<div class="justify-content-center align-items-center my-4" id="spinner" style="display:none;">
+    <div class="spinner-border text-primary" role="status"></div>
+    <div class="ms-2 text-primary fw-bold">
+        Enviando correo, por favor espera...
+    </div>
+</div>
 <div class="card pb-0 mb-4">
     <div class="card-body pb-2">
         <form method="POST" id="form-send-email" action="{% url 'crear_notificacion' %}" class="mt-2 mb-4">
@@ -159,6 +166,8 @@
             if (!confirm("¿Estás seguro de que deseas enviar el correo?")) {
                 return;
             }
+
+            document.getElementById("spinner").style.display = "flex";
 
             const form = document.getElementById("form-send-email");
             if (form) {
