@@ -367,6 +367,7 @@ def nueva_notificacion(request):
         Cliente.objects
         .using('gimpromed_sql')
         .filter(codigo_cliente__in=cuentas_cobrar_clientes)
+        .order_by('nombre_cliente')
     )
 
     cli = request.GET.get('codigo_cliente')
