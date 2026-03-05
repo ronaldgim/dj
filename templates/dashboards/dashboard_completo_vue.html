@@ -20,7 +20,7 @@
     }
     
     .table-responsive-pedidos {
-        height: 452px;
+        height: 475px;
         overflow-y: scroll;
     }
 
@@ -113,6 +113,9 @@
                                 <th>OP</th>
                             </thead>
                             <tbody style="font-size: small;">
+                                <tr v-if="pedidosCerezosData.length == 0">
+                                    <td colspan="5" class="text-center text-muted">No hay pedidos pendientes</td>
+                                </tr>
                                 <tr v-for="(i, index) in pedidosCerezosData" :key="index">
                                     {% verbatim %}
                                     <td :style="{backgroundColor: obtenerColorFondoNumeroPedido(i.fecha_estado)}">

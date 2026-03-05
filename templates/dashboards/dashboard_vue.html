@@ -68,6 +68,9 @@
                         </thead>
                         
                         <tbody style="font-size: small;">
+                            <tr v-if="reservasData.length == 0">
+                                <td colspan="8" class="text-center text-muted">No hay pedidos pendientes</td>
+                            </tr>
                             <tr v-for="i in reservasData">
                                 {% verbatim %}
                                 <th :style="{backgroundColor: obtenerColorFondoNumeroPedido(i.fecha_estado)}">
