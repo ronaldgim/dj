@@ -18,40 +18,6 @@ from django.core.exceptions import ValidationError
 from contabilidad.services import CarteraKPIService
 
 
-# @login_required(login_url='login')
-# def lista_cuentas_por_cobrar(request):
-    
-#     clientes = (
-#         CuentasCobrar.objects
-#         .using('gimpromed_sql')
-#         .all()
-#         .values_list('codigo_cliente', 'nombre_cliente')
-#     ).distinct().values()
-    
-#     cli = request.GET.get('codigo_cliente', None)
-    
-#     qs = (
-#         CuentasCobrar.objects
-#         .using('gimpromed_sql')
-#         .all()
-#         .order_by('-fecha_vencimiento')
-#     )
-
-#     if cli:
-#         qs = qs.filter(codigo_cliente=cli)
-
-#     kpi_service = CarteraKPIService(qs)
-#     kpis = kpi_service.get_all_kpis()
-
-#     context = {
-#         'clientes':clientes,
-#         'cuentas_cobrar': qs,
-#         'kpis': kpis
-#     }
-
-#     return render(request, 'contabilidad/lista_cuentas_cobrar.html', context)
-
-
 @login_required(login_url='login')
 def lista_cuentas_por_cobrar(request):
 
@@ -104,7 +70,12 @@ def lista_cuentas_por_cobrar(request):
 @login_required(login_url='login')
 def lista_clientes_excluidos(request):
     
-    clientes = Cliente.objects.using('gimpromed_sql').all()
+    clientes = (
+        Cliente.objects
+        .using('gimpromed_sql')
+        .all()
+        .order_by('nombre_cliente')
+    )
     
     clientes_excluidos_list = list(
         ClienteExcluido.objects
@@ -115,6 +86,7 @@ def lista_clientes_excluidos(request):
         Cliente.objects
         .using('gimpromed_sql')
         .filter(codigo_cliente__in=clientes_excluidos_list)
+        .order_by('-id')
     )
     
     context = {
