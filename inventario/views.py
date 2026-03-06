@@ -6,6 +6,9 @@ from django.db import connections
 from django.db.models import Sum, F, Value, Q
 from django.db.models.functions import Concat
 
+# Generic views
+from django.views.generic.list import ListView
+
 # Pandas
 import pandas as pd
 import numpy as np
@@ -51,6 +54,7 @@ from datetime import datetime, date, timedelta
 
 # Login required
 from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 # Shorcuts
 from django.shortcuts import redirect
@@ -2957,9 +2961,42 @@ def anular_arqueo_creado(request):
 
 
 # Lista de arqueos creados
-def arqueos_list(request):
+class ArqueosListView(LoginRequiredMixin, ListView):
+    model = ArqueosCreados
+    template_name = 'inventario/arqueos/lista.html'
+    context_object_name = 'arqueos'
+    paginate_by = 10
+    ordering = ['-arqueo', 'ware_code']
+    login_url = 'login'
+    
+    def get_queryset(self):
+        queryset = (
+            ArqueosCreados.objects
+            .select_related('arqueo', 'usuario')
+            .all()
+            .order_by('-arqueo', 'ware_code')
+        )
+        
+        search = self.request.GET.get('search', '').strip()
+        if search:
+            q = (
+                Q(arqueo_enum__icontains=search) |
+                Q(ware_code__icontains=search) |
+                Q(descripcion__icontains=search) |
+                Q(estado__icontains=search) | 
+                Q(arqueo__usuario__username__icontains=search) |
+                Q(arqueo__usuario__first_name__icontains=search) |
+                Q(arqueo__usuario__last_name__icontains=search) |
+                Q(usuario__first_name__icontains=search) |
+                Q(usuario__last_name__icontains=search)
+            )
+            
+            queryset = queryset.filter(q)
+            
+        return queryset
 
-    arqueos_creados = ArqueosCreados.objects.all().order_by('-arqueo','ware_code')
+
+def reporte_arqueos(request):
     
     if request.method=='POST':
         d = request.POST['desde']
@@ -3034,12 +3071,6 @@ def arqueos_list(request):
         df.to_excel(response, index=False)
         
         return response
-        
-    context = {
-        'arqueos':arqueos_creados
-    }
-
-    return render(request, 'inventario/arqueos/lista.html', context)
 
 
 # Lista de arqueos por crear

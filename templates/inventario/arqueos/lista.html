@@ -23,7 +23,7 @@
 
 <div class="card mt-2 mb-2" id="form" style="display:none">
     <div class="card-body">
-    <form method="POST">
+    <form method="POST" action="{% url 'reporte_arqueos' %}">
         {% csrf_token %}
         <div class="row mb-2">
             <div class="col-3">
@@ -42,9 +42,14 @@
     </div>
 </div>
 
-<div class="col-4 mt-2">
-    <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
-</div>
+<form method="GET" class="d-flex gap-2 col-12 col-md-6 mt-2">
+    <input class="form-control" type="text" name="search" placeholder="Buscar..." style="min-width: 200px;">
+    <button type="submit" class="btn btn-primary flex-shrink-0">Buscar</button>
+</form>
+
+<a href="{% url 'arqueos_list' %}" class="btn btn-secondary mt-2 mb-2">
+    Limpiar búsqueda
+</a>
 
 <div class="card mt-2 mb-2">
     <div class="card-body m-0 p-0">
@@ -115,11 +120,32 @@
     </div>
 </div>
 
-<script type="text/javascript">
-    function actualizar(){location.reload(true);}
-    //Función para actualizar cada 30 min = 1,800,000 milisegundos
-    setInterval("actualizar()",300000); // 5 min
-</script>
+<div class="mt-2 mb-4">
+    {% if is_paginated %}
+
+        <!-- Botón anterior -->
+        {% if page_obj.has_previous %}
+        <a class="btn btn-sm btn-outline-dark"
+            href="?page={{ page_obj.previous_page_number }}&search={{ request.GET.search }}">
+            <i class="bi bi-caret-left"></i>
+        </a>
+        {% endif %}
+
+        <!-- Página actual -->
+        <span class="pt-2 mt-4">
+        Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+        </span>
+
+        <!-- Botón siguiente -->
+        {% if page_obj.has_next %}
+        <a class="btn btn-sm btn-outline-dark"
+            href="?page={{ page_obj.next_page_number }}&search={{ request.GET.search }}">
+            <i class="bi bi-caret-right"></i>
+        </a>
+        {% endif %}
+
+    {% endif %}
+</div>
 
 
 

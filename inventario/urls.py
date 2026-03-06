@@ -343,12 +343,17 @@ urlpatterns = [
             view = views.arqueos_por_bodega,
             name = 'arqueos_por_bodega'
         ),
-    
+
+    path(
+            route='arqueos-list',
+            view = views.ArqueosListView.as_view(),
+            name = 'arqueos_list'
+        ),
     
     path(
-            route='arqueos/list',
-            view = views.arqueos_list,
-            name = 'arqueos_list'
+            route='reporte-arqueos',
+            view = views.reporte_arqueos,
+            name = 'reporte_arqueos'
         ),
 
     # Lista de arqueos pendientes por crear
