@@ -128,7 +128,7 @@
                                 <div class="btn-group" role="group" aria-label="Basic example">
                                     <button 
                                         name="edit-form-btn"
-                                        class="btn btn-sm {% if i.confirmado %} btn-primary {% else %} btn-secondary {% endif %} edit-product-btn {#% if i.confirmado or request.user.id != 12 %} disabled {% endif %#}"
+                                        class="btn btn-sm {% if i.confirmado %} btn-primary {% else %} btn-secondary {% endif %} edit-product-btn"
                                         data-product-id="{{ i.id }}" 
                                         data-product-name="Editar: {{ i.product.codigo_gim }}"
                                     >
@@ -237,9 +237,6 @@
                                 <button type="submit" name="action" value="guardar" class="btn btn-primary">
                                     Guardar
                                 </button>
-                                <!--button type="submit" name="action" value="confirmado" class="btn btn-success">
-                                    Confirmar
-                                </button-->
                                 <button type="reset" onclick="resetForm()" class="btn btn-secondary" data-bs-dismiss="modal">
                                     Cancelar
                                 </button>

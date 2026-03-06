@@ -599,7 +599,7 @@ def metro_movimiento_edit(request, id):
         form = KardexForm(request.POST, request.FILES, instance=product, user=request.user) 
         if request.POST.get('confirmado', False) == 'true':
             
-            if request.user.username != 'CARCOSH' and request.user.username != 'admin':
+            if request.user.username != 'CARCOSH' and request.user.username != 'admin' and request.user.username != 'jgualotuna':
             # if request.user.username != 'egarces' and request.user.username != 'admin':  
                 return JsonResponse({
                     'success': False,
