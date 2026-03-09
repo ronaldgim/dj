@@ -434,18 +434,18 @@ class CuentasCobrar(models.Model):
         null=True
     )
 
-    dias_ven = models.IntegerField(
-        db_column='DIAS_VEN',
-        blank=True,
-        null=True
-    )
+    # dias_ven = models.IntegerField(
+    #     db_column='DIAS_VEN',
+    #     blank=True,
+    #     null=True
+    # )
 
-    categoria_mora = models.CharField(
-        max_length=90,
-        db_column='CATEGORIA_MORA',
-        blank=True,
-        null=True
-    )
+    # categoria_mora = models.CharField(
+    #     max_length=90,
+    #     db_column='CATEGORIA_MORA',
+    #     blank=True,
+    #     null=True
+    # )
 
     class Meta:
         managed = False

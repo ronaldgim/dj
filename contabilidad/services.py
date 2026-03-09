@@ -1,6 +1,6 @@
 from django.db.models import Sum, Count, Avg, Q, F, DecimalField
 from django.db.models.functions import Coalesce
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 
 
@@ -74,20 +74,29 @@ class CarteraKPIService:
         qs = self.base_annotations()
 
         return qs.aggregate(
-            cartera_mayor_30=Coalesce(Sum(
-                'saldo',
-                filter=Q(dias_ven__gt=30)
-            ), Decimal(0)),
+            cartera_mayor_30=Coalesce(
+                Sum(
+                    "valor_total_saldo_a_cobrar",
+                    filter=Q(fecha_vencimiento__lt=self.hoy - timedelta(days=30))
+                ),
+                Decimal(0)
+            ),
 
-            cartera_mayor_60=Coalesce(Sum(
-                'saldo',
-                filter=Q(dias_ven__gt=60)
-            ), Decimal(0)),
+            cartera_mayor_60=Coalesce(
+                Sum(
+                    "valor_total_saldo_a_cobrar",
+                    filter=Q(fecha_vencimiento__lt=self.hoy - timedelta(days=60))
+                ),
+                Decimal(0)
+            ),
 
-            cartera_mayor_90=Coalesce(Sum(
-                'saldo',
-                filter=Q(dias_ven__gt=90)
-            ), Decimal(0)),
+            cartera_mayor_90=Coalesce(
+                Sum(
+                    "valor_total_saldo_a_cobrar",
+                    filter=Q(fecha_vencimiento__lt=self.hoy - timedelta(days=90))
+                ),
+                Decimal(0)
+            ),
         )
 
     def credito(self):

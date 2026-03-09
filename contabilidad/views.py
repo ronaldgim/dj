@@ -22,19 +22,11 @@ from contabilidad.services import CarteraKPIService
 def lista_cuentas_por_cobrar(request):
 
     cli = request.GET.get('codigo_cliente')
-
+    
     base_qs = (
         CuentasCobrar.objects
         .using('gimpromed_sql')
-        # .only(
-        #     'codigo_cliente',
-        #     'nombre_cliente',
-        #     'fecha_vencimiento',
-        #     'valor_total_saldo_a_cobrar',
-        #     'valor_total_pagado',
-        #     'limite_credito',
-        #     'balance'
-        # )
+        .all()
     )
 
     # Clientes únicos (para filtro)
