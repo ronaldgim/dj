@@ -574,82 +574,192 @@ def metro_kardex(request, product_id):
     return render(request, 'metro/kardex.html', context)
 
 
-@csrf_exempt
+# @csrf_exempt
+# @login_required(login_url='login')
+# def metro_movimiento_edit(request, id):
+#     """
+#     Vista para manejar la edición de productos en un modal.
+#     GET: Devuelve el formulario HTML para mostrar en el modal
+#     POST: Procesa el formulario enviado y devuelve respuesta JSON
+#     """
+#     # Obtener el producto o devolver 404 si no existe
+#     product = get_object_or_404(Kardex, id=id)
+#     kardex = Kardex.objects.filter(product__id=product.product.id)
+#     form = KardexForm(instance=product, user=request.user)
+    
+#     if request.method == 'POST':
+        
+#         if product.confirmado:
+#             return JsonResponse({
+#                 'success': False,
+#                 'message': 'El producto ya fue confirmado anteriormente !!!',
+#             })
+        
+#         # Procesar el formulario enviado        
+#         form = KardexForm(request.POST, request.FILES, instance=product, user=request.user) 
+#         if request.POST.get('confirmado', False) == 'true':
+            
+#             if request.user.username != 'CARCOSH' and request.user.username != 'admin' and request.user.username != 'jgualotuna':
+#             # if request.user.username != 'egarces' and request.user.username != 'admin':  
+#                 return JsonResponse({
+#                     'success': False,
+#                     'message': 'Solo el usuario Carlos Arcos puede editar esta información !!!',
+#                 })
+        
+#             campos_requeridos = ['description', 'cantidad', 'nota_entrega', 'fecha_nota', 'movimiento_mba', 'fecha_mba']
+            
+#             campos_llenos = []
+#             for i in campos_requeridos:
+#                 valor = request.POST.get(i, '').strip()
+#                 if valor:
+#                     campos_llenos.append(True)
+#                 else:
+#                     campos_llenos.append(False)
+            
+#             doc = True if product.documento or request.POST.get('documento', '') else False 
+#             campos_llenos.append(doc)
+#             if not all(campos_llenos):
+#                 return JsonResponse({
+#                     'success': False,
+#                     'message': 'Para confirmar llene todos los campos !!!',
+#                 })
+        
+#         if form.is_valid():
+#             tipo = request.POST.get('tipo', '')
+#             cantidad_val = int(request.POST.get('cantidad', 0))
+#             cantidad = -cantidad_val if tipo == 'Decremento' else cantidad_val
+#             if product.saldo + cantidad < 0:
+#                 messages.error(request, 'El movimiento no se puede registrar ya que el saldo seria negativo !!!')
+#                 return HttpResponseRedirect(f'/metro/kardex/{product.product.id}')
+#             else:
+#                 form.save()
+#                 enviar_correo_kardex(kardex)
+#                 messages.success(request, 'Movimiento editado correctamente !!!')
+#                 return JsonResponse({
+#                     'success': True,
+#                     'message': 'Movimiento editado correctamente !!!',
+#                 })
+#         else:
+#             # Devolver errores si el formulario no es válido
+#             errors = form.get_formatted_errors() if hasattr(form, 'get_formatted_errors') else str(form.errors)
+#             return JsonResponse({
+#                 'success': False,
+#                 'errors': errors
+#             }, status=400)
+    
+#     return JsonResponse({
+#         'success':True,
+#         'form':form.as_p()
+#     })
+
+
 @login_required(login_url='login')
 def metro_movimiento_edit(request, id):
     """
-    Vista para manejar la edición de productos en un modal.
-    GET: Devuelve el formulario HTML para mostrar en el modal
-    POST: Procesa el formulario enviado y devuelve respuesta JSON
+    Editar movimiento de kardex desde modal.
+    GET  -> devuelve el formulario
+    POST -> procesa el formulario
     """
-    # Obtener el producto o devolver 404 si no existe
+
     product = get_object_or_404(Kardex, id=id)
-    kardex = Kardex.objects.filter(product__id=product.product.id)
-    form = KardexForm(instance=product, user=request.user)
-    
-    if request.method == 'POST':
-        
+    kardex = Kardex.objects.filter(product_id=product.product.id)
+
+    # Usuarios autorizados para confirmar
+    USERS_CAN_CONFIRM = {"CARCOSH", "admin", "jgualotuna"}
+
+    if request.method == "POST":
+
         if product.confirmado:
             return JsonResponse({
-                'success': False,
-                'message': 'El producto ya fue confirmado anteriormente !!!',
+                "success": False,
+                "message": "El producto ya fue confirmado anteriormente !!!",
             })
-        
-        # Procesar el formulario enviado        
-        form = KardexForm(request.POST, request.FILES, instance=product, user=request.user) 
-        if request.POST.get('confirmado', False) == 'true':
-            
-            if request.user.username != 'CARCOSH' and request.user.username != 'admin' and request.user.username != 'jgualotuna':
-            # if request.user.username != 'egarces' and request.user.username != 'admin':  
+
+        form = KardexForm(
+            request.POST,
+            request.FILES,
+            instance=product,
+            user=request.user
+        )
+
+        confirmar = request.POST.get("confirmado") == "true"
+
+        # Validación de confirmación
+        if confirmar:
+
+            if request.user.username not in USERS_CAN_CONFIRM:
                 return JsonResponse({
-                    'success': False,
-                    'message': 'Solo el usuario Carlos Arcos puede editar esta información !!!',
+                    "success": False,
+                    "message": "Solo usuarios autorizados pueden confirmar este movimiento",
                 })
-        
-            campos_requeridos = ['description', 'cantidad', 'nota_entrega', 'fecha_nota', 'movimiento_mba', 'fecha_mba']
-            
-            campos_llenos = []
-            for i in campos_requeridos:
-                valor = request.POST.get(i, '').strip()
-                if valor:
-                    campos_llenos.append(True)
-                else:
-                    campos_llenos.append(False)
-            
-            doc = True if product.documento or request.POST.get('documento', '') else False 
-            campos_llenos.append(doc)
-            if not all(campos_llenos):
+
+            campos_requeridos = [
+                "description",
+                "cantidad",
+                "nota_entrega",
+                "fecha_nota",
+                "movimiento_mba",
+                "fecha_mba",
+            ]
+
+            campos_validos = all(
+                request.POST.get(campo, "").strip()
+                for campo in campos_requeridos
+            )
+
+            documento_ok = bool(product.documento or request.POST.get("documento"))
+
+            if not (campos_validos and documento_ok):
                 return JsonResponse({
-                    'success': False,
-                    'message': 'Para confirmar llene todos los campos !!!',
+                    "success": False,
+                    "message": "Para confirmar llene todos los campos !!!",
                 })
-        
+
+        # Validación formulario
         if form.is_valid():
-            tipo = request.POST.get('tipo', '')
-            cantidad_val = int(request.POST.get('cantidad', 0))
-            cantidad = -cantidad_val if tipo == 'Decremento' else cantidad_val
+
+            tipo = request.POST.get("tipo")
+            cantidad_val = int(request.POST.get("cantidad", 0))
+
+            cantidad = -cantidad_val if tipo == "Decremento" else cantidad_val
+
             if product.saldo + cantidad < 0:
-                messages.error(request, 'El movimiento no se puede registrar ya que el saldo seria negativo !!!')
-                return HttpResponseRedirect(f'/metro/kardex/{product.product.id}')
-            else:
-                form.save()
-                enviar_correo_kardex(kardex)
-                messages.success(request, 'Movimiento editado correctamente !!!')
-                return JsonResponse({
-                    'success': True,
-                    'message': 'Movimiento editado correctamente !!!',
-                })
-        else:
-            # Devolver errores si el formulario no es válido
-            errors = form.get_formatted_errors() if hasattr(form, 'get_formatted_errors') else str(form.errors)
+                messages.error(
+                    request,
+                    "El movimiento no se puede registrar ya que el saldo sería negativo !!!"
+                )
+                return HttpResponseRedirect(
+                    f"/metro/kardex/{product.product.id}"
+                )
+
+            form.save()
+
+            enviar_correo_kardex(kardex)
+
+            messages.success(request, "Movimiento editado correctamente !!!")
+
             return JsonResponse({
-                'success': False,
-                'errors': errors
-            }, status=400)
+                "success": True,
+                "message": "Movimiento editado correctamente !!!",
+            })
+
+        errors = (
+            form.get_formatted_errors()
+            if hasattr(form, "get_formatted_errors")
+            else form.errors
+        )
+
+        return JsonResponse({
+            "success": False,
+            "errors": errors
+        }, status=400)
     
+    # GET
+    form = KardexForm(instance=product, user=request.user)
+
     return JsonResponse({
-        'success':True,
-        'form':form.as_p()
+        "success": True,
+        "form": form.as_p()
     })
 
 
