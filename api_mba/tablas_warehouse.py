@@ -136,21 +136,22 @@ def api_actualizar_clientes_warehouse():
         clientes_mba = api_query_clientes_mba()
 
         if clientes_mba["status"] == 200:
-            
+
             data = [tuple(i.values()) for i in clientes_mba['data']]
-            
-            #with transaction.atomic():
-            
-            # Borrar datos de tabla clientes
-            delete_data_warehouse('clientes')
-            
-            # Insertar datos de tabla clientes
-            insert_data_warehouse('clientes', data)
-            
-            admin_warehouse_timestamp(tabla='clientes', actualizar_datetime=True, mensaje='API- Actualizado correctamente')
-            
+
+            if data:
+                # Borrar datos de tabla clientes
+                delete_data_warehouse('clientes')
+
+                # Insertar datos de tabla clientes
+                insert_data_warehouse('clientes', data)
+
+                admin_warehouse_timestamp(tabla='clientes', actualizar_datetime=True, mensaje='API- Actualizado correctamente')
+            else:
+                admin_warehouse_timestamp(tabla='clientes', actualizar_datetime=False, mensaje='API- Status 200 pero sin datos, no se borra tabla')
+
         else:
-            
+
             admin_warehouse_timestamp(tabla='clientes', actualizar_datetime=False, mensaje=f'API- Error api: status {clientes_mba["status"]}')
 
     except Exception as e:
@@ -250,17 +251,19 @@ def api_actualizar_facturas_warehouse():
                 
                 data.append(row)
         
-            #with transaction.atomic():
-            # Borrar datos de tabla facturas
-            delete_data_warehouse('facturas')
-            
-            # Insertar datos de tabla facturas
-            insert_data_warehouse('facturas', data)
-    
-            admin_warehouse_timestamp('facturas', actualizar_datetime=True, mensaje='Actualizado correctamente')
-                
+            if data:
+                # Borrar datos de tabla facturas
+                delete_data_warehouse('facturas')
+
+                # Insertar datos de tabla facturas
+                insert_data_warehouse('facturas', data)
+
+                admin_warehouse_timestamp('facturas', actualizar_datetime=True, mensaje='Actualizado correctamente')
+            else:
+                admin_warehouse_timestamp(tabla='facturas', actualizar_datetime=False, mensaje='API- Status 200 pero sin datos, no se borra tabla')
+
         else:
-            
+
             admin_warehouse_timestamp(tabla='facturas', actualizar_datetime=False, mensaje=f'Error api: status {facturas_mba["status"]}')
     
     except Exception as e:
@@ -348,18 +351,20 @@ def api_actualizar_imp_llegadas_warehouse():
             ]]
             
             data = imp_llegadas.values.tolist()
-            
-            #with transaction.atomic():
-            # Borrar datos de tabla imp_llegadas
-            delete_data_warehouse('imp_llegadas')
-            
-            # Insertar datos de tabla imp_llegadas
-            insert_data_warehouse('imp_llegadas', data)
-            
-            admin_warehouse_timestamp('imp_llegadas', actualizar_datetime=True, mensaje='Actualizado correctamente')
-        
+
+            if data:
+                # Borrar datos de tabla imp_llegadas
+                delete_data_warehouse('imp_llegadas')
+
+                # Insertar datos de tabla imp_llegadas
+                insert_data_warehouse('imp_llegadas', data)
+
+                admin_warehouse_timestamp('imp_llegadas', actualizar_datetime=True, mensaje='Actualizado correctamente')
+            else:
+                admin_warehouse_timestamp(tabla='imp_llegadas', actualizar_datetime=False, mensaje='API- Status 200 pero sin datos, no se borra tabla')
+
         else:
-            
+
             admin_warehouse_timestamp(tabla='imp_llegadas', actualizar_datetime=False, mensaje=f"""Error api imp_llegadas: status {imp_llegadas_mba['status']}\nError api proveedor: status{proveedor_mba['status']}""")
             
     except Exception as e:
@@ -420,17 +425,19 @@ def api_actualizar_imp_transito_warehouse():
                 data.append(row)
                 
                 
-            #with transaction.atomic():
-            # Borrar datos de tabla imp_transito
-            delete_data_warehouse('imp_transito')
-            
-            # # Insertar datos de tabla imp_transito
-            insert_data_warehouse('imp_transito', data)
-            
-            admin_warehouse_timestamp(tabla='imp_transito', actualizar_datetime=True, mensaje='Actualizado correctamente')
-    
+            if data:
+                # Borrar datos de tabla imp_transito
+                delete_data_warehouse('imp_transito')
+
+                # Insertar datos de tabla imp_transito
+                insert_data_warehouse('imp_transito', data)
+
+                admin_warehouse_timestamp(tabla='imp_transito', actualizar_datetime=True, mensaje='Actualizado correctamente')
+            else:
+                admin_warehouse_timestamp(tabla='imp_transito', actualizar_datetime=False, mensaje='API- Status 200 pero sin datos, no se borra tabla')
+
         else:
-        
+
             admin_warehouse_timestamp(tabla='imp_transito', actualizar_datetime=False, mensaje=f'Error api: status {imp_transito_mba["status"]}')
     
     except Exception as e:
@@ -484,17 +491,19 @@ def api_actualizar_pedidos_warehouse():
                 
                 data.append(row)
                 
-            #while transaction.atomic():
-            # Borrar datos de tabla stock_lote
-            delete_data_warehouse('pedidos')
-            
-            # Insertar datos de tabla stock_lote
-            insert_data_warehouse('pedidos', data)
-            
-            admin_warehouse_timestamp(tabla='pedidos', actualizar_datetime=True, mensaje='Actualizado correctamente')
-            
+            if data:
+                # Borrar datos de tabla pedidos
+                delete_data_warehouse('pedidos')
+
+                # Insertar datos de tabla pedidos
+                insert_data_warehouse('pedidos', data)
+
+                admin_warehouse_timestamp(tabla='pedidos', actualizar_datetime=True, mensaje='Actualizado correctamente')
+            else:
+                admin_warehouse_timestamp(tabla='pedidos', actualizar_datetime=False, mensaje='API- Status 200 pero sin datos, no se borra tabla')
+
         else:
-            
+
             admin_warehouse_timestamp(tabla='pedidos', actualizar_datetime=False, mensaje=f'Error api: status {data_api["status"]}')
             
     except Exception as e:
@@ -585,17 +594,19 @@ def api_actualizar_productos_warehouse():
                 
                 data.append(row)
             
-            #with transaction.atomic():
-            # Borrar datos de tabla productos
-            delete_data_warehouse('productos')
-            
-            # Insertar datos de tabla productos
-            insert_data_warehouse('productos', data)
-            
-            admin_warehouse_timestamp(tabla='productos', actualizar_datetime=True, mensaje='Actualizado correctamente')
+            if data:
+                # Borrar datos de tabla productos
+                delete_data_warehouse('productos')
+
+                # Insertar datos de tabla productos
+                insert_data_warehouse('productos', data)
+
+                admin_warehouse_timestamp(tabla='productos', actualizar_datetime=True, mensaje='Actualizado correctamente')
+            else:
+                admin_warehouse_timestamp(tabla='productos', actualizar_datetime=False, mensaje='API- Status 200 pero sin datos, no se borra tabla')
 
         else:
-        
+
             admin_warehouse_timestamp(tabla='productos', actualizar_datetime=False, mensaje=f'Error api: status {productos_mba["status"]}')
     
     except Exception as e:
@@ -661,17 +672,19 @@ def api_actualizar_producto_transito_warehouse():
                 
                 data.append(row)
                 
-            #with transaction.atomic():
-            # Borrar datos de tabla clientes
-            delete_data_warehouse('productos_transito')
-            
-            # Insertar datos de tabla clientes
-            insert_data_warehouse('productos_transito', data)
-            
-            admin_warehouse_timestamp(tabla='productos_transito', actualizar_datetime=True, mensaje='Actualizado correctamente')
-    
+            if data:
+                # Borrar datos de tabla productos_transito
+                delete_data_warehouse('productos_transito')
+
+                # Insertar datos de tabla productos_transito
+                insert_data_warehouse('productos_transito', data)
+
+                admin_warehouse_timestamp(tabla='productos_transito', actualizar_datetime=True, mensaje='Actualizado correctamente')
+            else:
+                admin_warehouse_timestamp(tabla='productos_transito', actualizar_datetime=False, mensaje='API- Status 200 pero sin datos, no se borra tabla')
+
         else:
-        
+
             admin_warehouse_timestamp(tabla='productos_transito', actualizar_datetime=False, mensaje=f'Error api: status {productos_transito_mba["status"]}')
     
     except Exception as e:
@@ -742,17 +755,19 @@ def api_actualizar_proformas_warehouse():
                 data.append(row)
             
             
-            #with transaction.atomic():
-            # Borrar datos de tabla proformas
-            delete_data_warehouse('proformas')
-            
-            # Insertar datos de tabla proformas
-            insert_data_warehouse('proformas', data)
-            
-            admin_warehouse_timestamp(tabla='proformas', actualizar_datetime=True, mensaje='Actualizado correctamente')
-        
+            if data:
+                # Borrar datos de tabla proformas
+                delete_data_warehouse('proformas')
+
+                # Insertar datos de tabla proformas
+                insert_data_warehouse('proformas', data)
+
+                admin_warehouse_timestamp(tabla='proformas', actualizar_datetime=True, mensaje='Actualizado correctamente')
+            else:
+                admin_warehouse_timestamp(tabla='proformas', actualizar_datetime=False, mensaje='API- Status 200 pero sin datos, no se borra tabla')
+
         else:
-            
+
             admin_warehouse_timestamp(tabla='proformas', actualizar_datetime=False, mensaje=f'Error api: status {proformas_mba["status"]}')
         
     except Exception as e:
@@ -874,17 +889,19 @@ def api_actualizar_reservas_warehouse():
                     
                     data.append(row)
             
-            # with transaction.atomic():
-            # Borrar datos de tabla reservas
-            delete_data_warehouse('reservas')
-            
-            # Insertar datos de tabla reservas
-            insert_data_warehouse('reservas', data)
-            
-            admin_warehouse_timestamp(tabla='reservas', actualizar_datetime=True, mensaje='Actualizado correctamente')
+            if data:
+                # Borrar datos de tabla reservas
+                delete_data_warehouse('reservas')
+
+                # Insertar datos de tabla reservas
+                insert_data_warehouse('reservas', data)
+
+                admin_warehouse_timestamp(tabla='reservas', actualizar_datetime=True, mensaje='Actualizado correctamente')
+            else:
+                admin_warehouse_timestamp(tabla='reservas', actualizar_datetime=False, mensaje='API- Status 200 pero sin datos, no se borra tabla')
 
         else:
-        
+
             admin_warehouse_timestamp(tabla='reservas', actualizar_datetime=False, mensaje=f'Error api: status {reservas_mba["status"]}')
 
     except Exception as e:
@@ -966,17 +983,19 @@ def api_actualizar_reservas_lotes_warehouse():
                 )
                 
                 data.append(row)
-            #with transaction.atomic():
-            # Borrar datos de tabla reservas_lote
-            delete_data_warehouse('reservas_lote')
-            
-            # Insertar datos de tabla reservas_lote
-            insert_data_warehouse('reservas_lote', data)
-            
-            admin_warehouse_timestamp(tabla='reservas_lote', actualizar_datetime=True, mensaje='API - Actualizado correctamente')
+            if data:
+                # Borrar datos de tabla reservas_lote
+                delete_data_warehouse('reservas_lote')
+
+                # Insertar datos de tabla reservas_lote
+                insert_data_warehouse('reservas_lote', data)
+
+                admin_warehouse_timestamp(tabla='reservas_lote', actualizar_datetime=True, mensaje='API - Actualizado correctamente')
+            else:
+                admin_warehouse_timestamp(tabla='reservas_lote', actualizar_datetime=False, mensaje='API- Status 200 pero sin datos, no se borra tabla')
 
         else:
-        
+
             admin_warehouse_timestamp(tabla='reservas_lote', actualizar_datetime=False, mensaje=f'API - Error api: status {reservas_lotes_mba["status"]}')
         
     except Exception as e:
@@ -1116,14 +1135,16 @@ def api_actualizar_reservas_lotes_2_warehouse():
                 
                 data.append(row)
             
-            #with transaction.atomic():
-            # Borrar datos de tabla reservas_lote
-            delete_data_warehouse('reservas_lote_2')
-            
-            # Insertar datos de tabla reservas_lote
-            insert_data_warehouse('reservas_lote_2', data)
-            
-            admin_warehouse_timestamp(tabla='reservas_lote_2', actualizar_datetime=True, mensaje='Actualizado correctamente')
+            if data:
+                # Borrar datos de tabla reservas_lote_2
+                delete_data_warehouse('reservas_lote_2')
+
+                # Insertar datos de tabla reservas_lote_2
+                insert_data_warehouse('reservas_lote_2', data)
+
+                admin_warehouse_timestamp(tabla='reservas_lote_2', actualizar_datetime=True, mensaje='Actualizado correctamente')
+            else:
+                admin_warehouse_timestamp(tabla='reservas_lote_2', actualizar_datetime=False, mensaje='API- Status 200 pero sin datos, no se borra tabla')
         else:
             admin_warehouse_timestamp(tabla='reservas_lote_2', actualizar_datetime=False, mensaje=f'Error api: status {reservas_lotes_2_mba["status"]}')
     except Exception as e:
@@ -1200,16 +1221,19 @@ def api_actualizar_stock_lote_warehouse():
                     available
                 )
                 data.append(t)
-            # Borrar datos de tabla clientes
-            delete_data_warehouse('stock_lote')
-            
-            # Insertar datos de tabla clientes
-            insert_data_warehouse('stock_lote', data)
-            
-            admin_warehouse_timestamp(tabla='stock_lote', actualizar_datetime=True, mensaje='API - Actualizado correctamente')
-    
+            if data:
+                # Borrar datos de tabla stock_lote
+                delete_data_warehouse('stock_lote')
+
+                # Insertar datos de tabla stock_lote
+                insert_data_warehouse('stock_lote', data)
+
+                admin_warehouse_timestamp(tabla='stock_lote', actualizar_datetime=True, mensaje='API - Actualizado correctamente')
+            else:
+                admin_warehouse_timestamp(tabla='stock_lote', actualizar_datetime=False, mensaje='API- Status 200 pero sin datos, no se borra tabla')
+
         else:
-            admin_warehouse_timestamp(tabla='stock_lote', actualizar_datetime=True, mensaje='API NO TRAE DATOS')
+            admin_warehouse_timestamp(tabla='stock_lote', actualizar_datetime=False, mensaje='API NO TRAE DATOS')
     
     except Exception as e:
         

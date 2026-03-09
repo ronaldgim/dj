@@ -709,7 +709,59 @@ def admin_actualizar_warehouse_view(request):
     return render(request, 'datos/admin_actualizar_warehouse.html')
 
 
-### UTILS 
+# ============================================
+# CRON ENDPOINTS - Llamar con curl desde crontab
+# ============================================
+@csrf_exempt
+def cron_tablas_warehouse(request):
+    """Cada 5 min: todas las tablas del warehouse"""
+    resultados = []
+    funciones = [
+        ('reservas', api_actualizar_reservas_warehouse),
+        ('stock_lote', api_actualizar_stock_lote_warehouse),
+        ('pedidos', api_actualizar_pedidos_warehouse),
+        ('mis_reservas', api_actualizar_mis_reservas_etiquetado),
+        ('reservas_lote', api_actualizar_reservas_lotes_warehouse),
+        ('reservas_lote_2', api_actualizar_reservas_lotes_2_warehouse),
+        ('facturas', api_actualizar_facturas_warehouse),
+        ('productos_transito', api_actualizar_producto_transito_warehouse),
+        ('proformas', api_actualizar_proformas_warehouse),
+        ('etiquetado_stock', actualizar_datos_etiquetado_fun),
+        ('error_lote', actualizar_data_error_lote),
+        ('error_lote_v2', actualizar_data_error_lote_v2),
+        ('notificaciones', notificaciones_email_whatsapp),
+    ]
+    for nombre, funcion in funciones:
+        try:
+            funcion()
+            resultados.append(f'{nombre}: ok')
+        except Exception as e:
+            resultados.append(f'{nombre}: error - {str(e)}')
+        time.sleep(3)
+    return JsonResponse({'status': 'ok', 'resultados': resultados})
+
+
+@csrf_exempt
+def cron_tablas_baja_frecuencia(request):
+    """Cada 1 hora: clientes, productos, imp_llegadas, imp_transito"""
+    resultados = []
+    funciones = [
+        ('clientes', api_actualizar_clientes_warehouse),
+        ('productos', api_actualizar_productos_warehouse),
+        ('imp_llegadas', api_actualizar_imp_llegadas_warehouse),
+        ('imp_transito', api_actualizar_imp_transito_warehouse),
+    ]
+    for nombre, funcion in funciones:
+        try:
+            funcion()
+            resultados.append(f'{nombre}: ok')
+        except Exception as e:
+            resultados.append(f'{nombre}: error - {str(e)}')
+        time.sleep(3)
+    return JsonResponse({'status': 'ok', 'resultados': resultados})
+
+
+### UTILS
 def transferencias_mba(n_transf):
     
     try:
