@@ -100,4 +100,7 @@ urlpatterns = [
         name='registros_estadopicking_year_month',
     ),
 
+    # CRON ENDPOINTS
+    path('cron/tablas-warehouse/', views.cron_tablas_warehouse, name='cron_tablas_warehouse'),
+    path('cron/tablas-baja-frecuencia/', views.cron_tablas_baja_frecuencia, name='cron_tablas_baja_frecuencia'),
 ]
