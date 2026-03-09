@@ -1629,8 +1629,6 @@ def api_actualizar_cuentas_cobrar_warehouse():
                     valor_retencion,
                     valor_factura,
                     valor_total_descuento,
-                    0,
-                    '-'
                 )
                 
                 data.append(row)
