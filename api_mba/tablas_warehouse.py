@@ -1635,13 +1635,15 @@ def api_actualizar_cuentas_cobrar_warehouse():
                 
                 data.append(row)
             
-            # Borrar tabla
-            delete_data_warehouse('cuentas_cobrar')
+            if data:
             
-            # Insertar actualización
-            insert_data_warehouse('cuentas_cobrar', data)
-            
-            admin_warehouse_timestamp(tabla='cuentas_cobrar', actualizar_datetime=True, mensaje='API - Actualizado correctamente')
+                # Borrar tabla
+                delete_data_warehouse('cuentas_cobrar')
+                
+                # Insertar actualización
+                insert_data_warehouse('cuentas_cobrar', data)
+                
+                admin_warehouse_timestamp(tabla='cuentas_cobrar', actualizar_datetime=True, mensaje='API - Actualizado correctamente')
         
         else:
             
