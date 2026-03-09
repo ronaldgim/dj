@@ -34,6 +34,16 @@
     <input id="inputbuscar" type="text" placeholder="Buscar" class="form-control">
 </div>
 
+<div class="text-end">
+    <div class="d-inline-block bg-light p-2 rounded">
+        <span class="fw-bold">Ultima actualización: </span>
+        {{actualizacion|date:"Y-m-d H:i"}} <!-- Variable para mostrar la fecha de actualización -->
+        <button class="btn btn-link" id="btnActualizar" onclick="actualizarCuentasCobrar()">
+            <i class="bi bi-arrow-clockwise"></i>
+        </button>
+    </div>
+</div>
+
 <div class="card mt-2 mb-2">
     <div class="card-body">
         <div class="table-responsive">
@@ -85,4 +95,41 @@
         });
     });
 </script>
+
+<script>
+    async function actualizarCuentasCobrar() {
+
+        const btn = document.getElementById("btnActualizar");
+
+        btn.disabled = true;
+        btn.innerText = "Actualizando...";
+
+        try {
+
+            const response = await fetch("/datos/stocklote", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    table_name: "cuentas_cobrar"
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(response.statusText);
+            }
+
+            location.reload();
+
+        } catch (error) {
+
+            console.error(error);
+            btn.disabled = false;
+            btn.innerText = error.message;
+
+        }
+    }
+</script>
+
 {% endblock %}

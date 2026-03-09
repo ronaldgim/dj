@@ -966,7 +966,6 @@ def api_actualizar_reservas_lotes_warehouse():
                 )
                 
                 data.append(row)
-            print(data[:5])
             #with transaction.atomic():
             # Borrar datos de tabla reservas_lote
             delete_data_warehouse('reservas_lote')
@@ -1523,3 +1522,107 @@ GIMPROMED Cia. Ltda.\n
 #     if prueba["status"] == 200:
 #         # print(pd.DataFrame.from_records(prueba['data']))
 #         print(pd.DataFrame(prueba['data'])) 
+
+CUENTAS_COBRAR = """
+    SELECT 
+        CLNT_Factura_Principal.CODIGO_FACTURA, 
+        CLNT_Factura_Principal.NUMERO_FACTURA, 
+        CLNT_Factura_Principal.CODIGO_CLIENTE, 
+        CLNT_Ficha_Principal.IDENTIFICACION_FISCAL, 
+        CLNT_Ficha_Principal.NOMBRE_CLIENTE,
+        CLNT_Ficha_Principal.CLIENT_TYPE, 
+        CLNT_Factura_Principal.FECHA_FACTURA, 
+        CLNT_Factura_Principal.FECHA_VENCIMIENTO, 
+        CLNT_Factura_Principal.VALOR_TOTAL_PAGADO, 
+        CLNT_Factura_Principal.VALOR_TOTAL_SALDO_A_COBRAR, 
+        CLNT_Ficha_Principal.BALANCE, 
+        CLNT_Ficha_Principal.EN_ESTATUS_NO_VENTA_B, 
+        CLNT_Ficha_Principal.LIMITE_CREDITO, 
+        CLNT_Ficha_Principal.PriceList, 
+        CLNT_Ficha_Principal.SALESMAN, 
+        CLNT_Ficha_Principal.RIESGO, 
+        CLNT_Ficha_Principal.TERMINOS_DE_PAGO_ALFA_NUM, 
+        CLNT_Ficha_Principal.TERMINOS_DE_PAGO_DIAS, 
+        CLNT_Factura_Principal.VALOR_RETENCION, 
+        CLNT_Factura_Principal.VALOR_FACTURA, 
+        CLNT_Factura_Principal.VALOR_TOTAL_DESCUENTO 
+    FROM 
+        CLNT_Factura_Principal CLNT_Factura_Principal, 
+        CLNT_Ficha_Principal CLNT_Ficha_Principal 
+    WHERE 
+        CLNT_Ficha_Principal.CODIGO_CLIENTE = CLNT_Factura_Principal.CODIGO_CLIENTE AND 
+        ((CLNT_Factura_Principal.ANULADA=FALSE) AND (CLNT_Factura_Principal.VALOR_TOTAL_SALDO_A_COBRAR>0)) 
+    ORDER BY CLNT_Factura_Principal.VALOR_TOTAL_SALDO_A_COBRAR DESC
+"""
+def api_actualizar_cuentas_cobrar_warehouse():
+    try :
+        cuentas_cobrar = api_mba_sql(CUENTAS_COBRAR)
+        if cuentas_cobrar["status"] == 200 and cuentas_cobrar["data"]:
+            # print(cuentas_cobrar["data"])
+            data = []
+            for i in cuentas_cobrar["data"]:
+                codigo_factura = i["CODIGO_FACTURA"]
+                numero_factura = i["NUMERO_FACTURA"]
+                codigo_cliente = i["CODIGO_CLIENTE"]
+                identificacion_fiscal = i["IDENTIFICACION_FISCAL"]
+                nombre_cliente = i["NOMBRE_CLIENTE"]
+                client_type = i["CLIENT_TYPE"]
+                fecha_factura = datetime.strptime(i['FECHA_FACTURA'][:10], '%d/%m/%Y')
+                fecha_vencimiento = datetime.strptime(i['FECHA_VENCIMIENTO'][:10], '%d/%m/%Y')
+                valor_total_pagado = i["VALOR_TOTAL_PAGADO"]
+                valor_total_saldo_a_cobrar = i["VALOR_TOTAL_SALDO_A_COBRAR"]
+                balance = i["BALANCE"]
+                en_estatus_no_venta_b = True if i["EN_ESTATUS_NO_VENTA_B"] == 'true' else False
+                limite_credito = i["LIMITE_CREDITO"]
+                pricelist = i["PRICELIST"]
+                salesman = i["SALESMAN"]
+                riesgo = i["RIESGO"]
+                termino_de_pago_alfa_num = i["TERMINOS_DE_PAGO_ALFA_NUM"]
+                terminos_de_pago_dias = i["TERMINOS_DE_PAGO_DIAS"]
+                valor_retencion = i["VALOR_RETENCION"]
+                valor_factura = i["VALOR_FACTURA"]
+                valor_total_descuento = i["VALOR_TOTAL_DESCUENTO"]
+                
+                row = (
+                    codigo_factura,
+                    numero_factura,
+                    codigo_cliente,
+                    identificacion_fiscal,
+                    nombre_cliente,
+                    client_type,
+                    fecha_factura,
+                    fecha_vencimiento,
+                    valor_total_pagado,
+                    valor_total_saldo_a_cobrar,
+                    balance,
+                    en_estatus_no_venta_b,
+                    limite_credito,
+                    pricelist,
+                    salesman,
+                    riesgo,
+                    termino_de_pago_alfa_num,
+                    terminos_de_pago_dias,
+                    valor_retencion,
+                    valor_factura,
+                    valor_total_descuento,
+                    0,
+                    '-'
+                )
+                
+                data.append(row)
+            
+            # Borrar tabla
+            delete_data_warehouse('cuentas_cobrar')
+            
+            # Insertar actualización
+            insert_data_warehouse('cuentas_cobrar', data)
+            
+            admin_warehouse_timestamp(tabla='cuentas_cobrar', actualizar_datetime=True, mensaje='API - Actualizado correctamente')
+        
+        else:
+            
+            admin_warehouse_timestamp(tabla='cuentas_cobrar', actualizar_datetime=False, mensaje=f'API - Error api: status {cuentas_cobrar["status"]}')
+    
+    except Exception as e:
+        
+        admin_warehouse_timestamp(tabla='cuentas_cobrar', actualizar_datetime=False, mensaje=f'API - Error exception: {e}')

@@ -17,12 +17,14 @@ from django.core.exceptions import ValidationError
 # Services
 from contabilidad.services import CarteraKPIService
 
+# models
+from datos.models import AdminActualizationWarehaouse
 
 @login_required(login_url='login')
 def lista_cuentas_por_cobrar(request):
 
     cli = request.GET.get('codigo_cliente')
-    
+
     base_qs = (
         CuentasCobrar.objects
         .using('gimpromed_sql')
@@ -129,9 +131,25 @@ def contabilidad_eliminar_cliente_excluido(request):
 @login_required(login_url='login')
 def lista_notificaciones(request):
     
-    notificaciones = NotificacionCartera.objects.select_related('usuario').all().order_by('-id')
+    actualizacion = (
+        AdminActualizationWarehaouse.objects
+        .get(table_name='cuentas_cobrar')
+        .datetime
+    )
+    notificaciones = (
+        NotificacionCartera.objects
+        .select_related('usuario')
+        .all()
+        .order_by('-id')
+    )
+    
     lista_clientes = list(notificaciones.values_list('codigo_cliente', flat=True))
-    clientes = Cliente.objects.using('gimpromed_sql').filter(codigo_cliente__in=lista_clientes)
+    clientes = (
+        Cliente.objects
+        .using('gimpromed_sql')
+        .filter(codigo_cliente__in=lista_clientes)
+    )
+    
     clientes_dict = {c.codigo_cliente:c for c in clientes}
     
     notificaciones_data = []
@@ -150,7 +168,8 @@ def lista_notificaciones(request):
         })
     
     context = {
-        'notificaciones':notificaciones_data
+        'notificaciones':notificaciones_data,
+        'actualizacion':actualizacion
     }
     
     return render(request, 'contabilidad/lista_notificaciones.html', context)
