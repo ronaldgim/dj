@@ -78,7 +78,9 @@ from api_mba.tablas_warehouse import (
     api_actualizar_reservas_lotes_2_warehouse, # 11
     api_actualizar_stock_lote_warehouse,       # 12
     api_actualizar_mis_reservas_etiquetado,
-    notificaciones_email_whatsapp
+    notificaciones_email_whatsapp,
+    
+    api_actualizar_cuentas_cobrar_warehouse
     )
 
 
@@ -670,6 +672,8 @@ def stock_lote(request):
                 actualizar_data_error_lote_v2()    
             elif table_name == 'notificaciones':
                 notificaciones_email_whatsapp()
+            elif table_name == 'cuentas_cobrar':
+                api_actualizar_cuentas_cobrar_warehouse()
 
     #return render(request, 'datos/stock_lote.html', {})
     return render(request, 'datos/stock_lote.html', context)
