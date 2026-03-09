@@ -653,6 +653,7 @@ def metro_kardex(request, product_id):
 #     })
 
 
+@csrf_exempt
 @login_required(login_url='login')
 def metro_movimiento_edit(request, id):
     """
@@ -734,7 +735,7 @@ def metro_movimiento_edit(request, id):
 
             form.save()
 
-            enviar_correo_kardex(kardex)
+            # enviar_correo_kardex(kardex)
 
             messages.success(request, "Movimiento editado correctamente !!!")
 

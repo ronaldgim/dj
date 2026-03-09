@@ -209,7 +209,7 @@ class Kardex(models.Model):
     fecha_nota    = models.DateField()
     
     movimiento_mba = models.CharField(max_length=20)
-    fecha_mba     = models.DateField()
+    # fecha_mba     = models.DateField()
     
     cantidad      = models.IntegerField()
     
@@ -217,7 +217,7 @@ class Kardex(models.Model):
     fecha_nota     = models.DateField(blank=True, null=True)      ### KATY LLENO --AMARILLO
     
     movimiento_mba = models.CharField(max_length=20, blank=True)  ### CARLITOS --LLENO FALSO
-    fecha_mba      = models.DateField(blank=True, null=True)      ### CARLITOS -- LENO FALSO
+    fecha_mba      = models.DateField(blank=True, null=True)      ### CARLITOS --LLENO FALSO
     documento     = models.FileField(upload_to='metro_kardex', null=True, blank=True)
     observaciones = models.TextField(blank=True)
     

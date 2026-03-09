@@ -346,7 +346,7 @@ class KardexForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
-        super(KardexForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         # Marcar campos requeridos para Bootstrap
         for field_name, field in self.fields.items():
@@ -368,3 +368,14 @@ class KardexForm(forms.ModelForm):
         if cantidad == 0:
             raise forms.ValidationError("La cantidad no puede ser cero.")
         return cantidad
+    
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+
+        if self.user:
+            instance.usuario = self.user   # asignar usuario del request
+
+        if commit:
+            instance.save()
+
+        return instance
