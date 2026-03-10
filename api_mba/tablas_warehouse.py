@@ -5,7 +5,7 @@ from api_mba.mba import api_mba_sql #, api_mba_sql_pedidos
 import pyodbc
 
 # BD Connection
-from django.db import connections #, transaction
+from django.db import connections, transaction
 from django.db.models import Q
 
 # Send mail
@@ -1268,11 +1268,155 @@ def odbc_actualizar_stock_lote_warehouse():
 
 
 ### 14 ACTUALIZAR RESERVAS MODELO DE ETIQUETADO
-def api_actualizar_mis_reservas_etiquetado():
+# def api_actualizar_mis_reservas_etiquetado():
     
-    try:    
-        reservas_mba = api_mba_sql(
-        """
+#     try:    
+#         reservas_mba = api_mba_sql(
+#         """
+#         SELECT 
+#             CLNT_Pedidos_Principal.FECHA_PEDIDO, 
+#             CLNT_Pedidos_Principal.CONTRATO_ID, 
+#             CLNT_Ficha_Principal.CODIGO_CLIENTE, 
+#             CLNT_Ficha_Principal.NOMBRE_CLIENTE, 
+#             CLNT_Pedidos_Detalle.PRODUCT_ID, 
+#             CLNT_Pedidos_Detalle.PRODUCT_NAME, 
+#             CLNT_Pedidos_Detalle.QUANTITY, 
+#             CLNT_Pedidos_Detalle.Despachados, 
+#             CLNT_Pedidos_Principal.WARE_CODE, 
+#             CLNT_Pedidos_Principal.CONFIRMED, 
+#             CLNT_Pedidos_Principal.HORA_LLEGADA, 
+#             CLNT_Pedidos_Principal.MEMO, 
+#             CLNT_Pedidos_Detalle.UNIQUE_ID 
+#         FROM 
+#             CLNT_Ficha_Principal CLNT_Ficha_Principal, 
+#             CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, 
+#             CLNT_Pedidos_Principal CLNT_Pedidos_Principal 
+#         WHERE 
+#             CLNT_Pedidos_Principal.CONTRATO_ID_CORP = CLNT_Pedidos_Detalle.CONTRATO_ID_CORP AND 
+#             CLNT_Ficha_Principal.CODIGO_CLIENTE = CLNT_Pedidos_Principal.CLIENT_ID AND 
+#             CLNT_Pedidos_Detalle.Despachados=0 AND 
+#             ((CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND 
+#             (CLNT_Pedidos_Detalle.TIPO_DOCUMENTO='PE') AND 
+#             (CLNT_Pedidos_Detalle.PRODUCT_ID<>'MANTEN')) ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID DESC
+#         """
+#         )
+        
+#         if  reservas_mba["status"] == 200:
+        
+#             for i in reservas_mba['data']:
+                
+#                 if i['PRODUCT_ID'] == 'ETIQUE' or i['PRODUCT_ID'] == 'MANTEN' or i['PRODUCT_ID'] == 'TRANS':
+#                     continue
+#                 else:
+#                     contrato_id = str(i['CONTRATO_ID'])
+#                     codigo_cliente = i['CODIGO_CLIENTE']
+#                     product_id = i['PRODUCT_ID']
+#                     quantity = i['QUANTITY']
+#                     ware_code = i['WARE_CODE']
+#                     confirmed = 0 if i['CONFIRMED'] == 'false' else 1  
+#                     fecha_pedido = datetime.strptime(i['FECHA_PEDIDO'][:10], '%d/%m/%Y').date()
+#                     hora_llegada = datetime.strptime(i['HORA_LLEGADA'], '%H:%M:%S').time()
+
+#                     # s_n_c = i['SEC_NAME_CLIENTE']
+#                     s_n_c = i['MEMO']
+                    
+#                     if s_n_c.startswith('P'):
+#                         sec_name_cliente = 'PUBLICO'
+#                     elif s_n_c.startswith('R'):
+#                         sec_name_cliente = 'RESERVA'
+#                     else:
+#                         # sec_name_cliente = i['SEC_NAME_CLIENTE']
+#                         sec_name_cliente = i['MEMO']
+                        
+
+#                     unique_id = i['UNIQUE_ID']
+
+#                     # Buscar el registro existente
+#                     row = Reservas.objects.filter(unique_id=unique_id)
+
+#                     if row.exists():
+#                         # El registro existe, verificar si necesita actualización                        
+#                         reserva_existente = row.first()
+                        
+#                         if reserva_existente.product_id is None or reserva_existente.product_id == '':
+#                             row.delete()
+                        
+#                         # if  reserva_existente.quantity == 0:
+#                         #     row.delete()
+                            
+#                         # Campos que siempre se pueden actualizar
+#                         campos_actualizables = {
+#                             'contrato_id': contrato_id,
+#                             'codigo_cliente': codigo_cliente,
+#                             'product_id': product_id,
+#                             'ware_code': ware_code,
+#                             'confirmed': confirmed,
+#                             'fecha_pedido': fecha_pedido,
+#                             'hora_llegada': hora_llegada,
+#                             'sec_name_cliente': sec_name_cliente,
+#                         }
+                        
+#                         # Si alterado es False, también actualizar quantity y usuario
+#                         if not reserva_existente.alterado:
+#                             campos_actualizables['quantity'] = quantity
+#                             # campos_actualizables['usuario'] = None  # o el usuario actual si lo tienes
+                        
+#                         # Verificar si hay cambios comparando campo por campo
+#                         hay_cambios = False
+#                         for campo, nuevo_valor in campos_actualizables.items():
+#                             valor_actual = getattr(reserva_existente, campo)
+#                             if valor_actual != nuevo_valor:
+#                                 hay_cambios = True
+#                                 break
+                        
+#                         # Solo actualizar si hay cambios
+#                         if hay_cambios:
+#                             for campo, nuevo_valor in campos_actualizables.items():
+#                                 setattr(reserva_existente, campo, nuevo_valor)
+#                             reserva_existente.save()
+#                             # print(f"Actualizada reserva con unique_id: {unique_id}")
+                        
+#                     else:
+#                         # El registro no existe, crear uno nuevo
+#                         # nueva_reserva = Reservas.objects.create(
+                            
+#                         if product_id:
+#                             Reservas.objects.create(
+#                                 contrato_id=contrato_id,
+#                                 codigo_cliente=codigo_cliente,
+#                                 product_id=product_id,
+#                                 quantity=quantity,
+#                                 ware_code=ware_code,
+#                                 confirmed=confirmed,
+#                                 fecha_pedido=fecha_pedido,
+#                                 hora_llegada=hora_llegada,
+#                                 sec_name_cliente=sec_name_cliente,
+#                                 unique_id=unique_id,
+#                                 alterado=False
+#                                 # usuario se puede asignar aquí si tienes el usuario actual
+#                             )
+                        
+                        
+#                         # Add delete
+#                         Reservas.objects.filter(quantity=0).delete()
+                        
+#                         # Actualización automatica
+#                         admin_warehouse_timestamp(tabla='mis_reservas', actualizar_datetime=True, mensaje='Actualizado correctamente')
+                        
+#         else:
+#             admin_warehouse_timestamp(tabla='mis_reservas', actualizar_datetime=False, mensaje=f'Error api: status {reservas_mba["status"]}')
+#             return False
+#         return True
+        
+#     except Exception as e:
+#         admin_warehouse_timestamp(tabla='mis_reservas', actualizar_datetime=False, mensaje=f'Error exception: {e}')
+#         return False
+
+
+def api_actualizar_mis_reservas_etiquetado():
+
+    try:
+        reservas_mba = api_mba_sql(""" 
         SELECT 
             CLNT_Pedidos_Principal.FECHA_PEDIDO, 
             CLNT_Pedidos_Principal.CONTRATO_ID, 
@@ -1297,119 +1441,146 @@ def api_actualizar_mis_reservas_etiquetado():
             CLNT_Pedidos_Detalle.Despachados=0 AND 
             ((CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND 
             (CLNT_Pedidos_Detalle.TIPO_DOCUMENTO='PE') AND 
-            (CLNT_Pedidos_Detalle.PRODUCT_ID<>'MANTEN')) ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID DESC
-        """
-        )
-        
-        if  reservas_mba["status"] == 200:
-        
-            for i in reservas_mba['data']:
-                
-                if i['PRODUCT_ID'] == 'ETIQUE' or i['PRODUCT_ID'] == 'MANTEN' or i['PRODUCT_ID'] == 'TRANS':
-                    continue
-                else:
-                    contrato_id = str(i['CONTRATO_ID'])
-                    codigo_cliente = i['CODIGO_CLIENTE']
-                    product_id = i['PRODUCT_ID']
-                    quantity = i['QUANTITY']
-                    ware_code = i['WARE_CODE']
-                    confirmed = 0 if i['CONFIRMED'] == 'false' else 1  
-                    fecha_pedido = datetime.strptime(i['FECHA_PEDIDO'][:10], '%d/%m/%Y').date()
-                    hora_llegada = datetime.strptime(i['HORA_LLEGADA'], '%H:%M:%S').time()
+            (CLNT_Pedidos_Detalle.PRODUCT_ID<>'MANTEN')) 
+        ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID DESC
+        """)
 
-                    # s_n_c = i['SEC_NAME_CLIENTE']
-                    s_n_c = i['MEMO']
-                    
-                    if s_n_c.startswith('P'):
-                        sec_name_cliente = 'PUBLICO'
-                    elif s_n_c.startswith('R'):
-                        sec_name_cliente = 'RESERVA'
-                    else:
-                        # sec_name_cliente = i['SEC_NAME_CLIENTE']
-                        sec_name_cliente = i['MEMO']
-                        
-
-                    unique_id = i['UNIQUE_ID']
-
-                    # Buscar el registro existente
-                    row = Reservas.objects.filter(unique_id=unique_id)
-
-                    if row.exists():
-                        # El registro existe, verificar si necesita actualización                        
-                        reserva_existente = row.first()
-                        
-                        if reserva_existente.product_id is None or reserva_existente.product_id == '':
-                            row.delete()
-                        
-                        # if  reserva_existente.quantity == 0:
-                        #     row.delete()
-                            
-                        # Campos que siempre se pueden actualizar
-                        campos_actualizables = {
-                            'contrato_id': contrato_id,
-                            'codigo_cliente': codigo_cliente,
-                            'product_id': product_id,
-                            'ware_code': ware_code,
-                            'confirmed': confirmed,
-                            'fecha_pedido': fecha_pedido,
-                            'hora_llegada': hora_llegada,
-                            'sec_name_cliente': sec_name_cliente,
-                        }
-                        
-                        # Si alterado es False, también actualizar quantity y usuario
-                        if not reserva_existente.alterado:
-                            campos_actualizables['quantity'] = quantity
-                            # campos_actualizables['usuario'] = None  # o el usuario actual si lo tienes
-                        
-                        # Verificar si hay cambios comparando campo por campo
-                        hay_cambios = False
-                        for campo, nuevo_valor in campos_actualizables.items():
-                            valor_actual = getattr(reserva_existente, campo)
-                            if valor_actual != nuevo_valor:
-                                hay_cambios = True
-                                break
-                        
-                        # Solo actualizar si hay cambios
-                        if hay_cambios:
-                            for campo, nuevo_valor in campos_actualizables.items():
-                                setattr(reserva_existente, campo, nuevo_valor)
-                            reserva_existente.save()
-                            # print(f"Actualizada reserva con unique_id: {unique_id}")
-                        
-                    else:
-                        # El registro no existe, crear uno nuevo
-                        # nueva_reserva = Reservas.objects.create(
-                            
-                        if product_id:
-                            Reservas.objects.create(
-                                contrato_id=contrato_id,
-                                codigo_cliente=codigo_cliente,
-                                product_id=product_id,
-                                quantity=quantity,
-                                ware_code=ware_code,
-                                confirmed=confirmed,
-                                fecha_pedido=fecha_pedido,
-                                hora_llegada=hora_llegada,
-                                sec_name_cliente=sec_name_cliente,
-                                unique_id=unique_id,
-                                alterado=False
-                                # usuario se puede asignar aquí si tienes el usuario actual
-                            )
-                        
-                        
-                        # Add delete
-                        Reservas.objects.filter(quantity=0).delete()
-                        
-                        # Actualización automatica
-                        admin_warehouse_timestamp(tabla='mis_reservas', actualizar_datetime=True, mensaje='Actualizado correctamente')
-                        
-        else:
-            admin_warehouse_timestamp(tabla='mis_reservas', actualizar_datetime=False, mensaje=f'Error api: status {reservas_mba["status"]}')
+        if reservas_mba["status"] != 200:
+            admin_warehouse_timestamp(
+                tabla='mis_reservas',
+                actualizar_datetime=False,
+                mensaje=f'Error api: status {reservas_mba["status"]}'
+            )
             return False
+
+        data_api = reservas_mba["data"]
+
+        # -----------------------------
+        # unique_ids que vienen de la API
+        # -----------------------------
+        api_unique_ids = set()
+
+        # registros existentes en memoria
+        reservas_db = {
+            r.unique_id: r for r in Reservas.objects.all()
+        }
+
+        with transaction.atomic():
+
+            for i in data_api:
+
+                if i['PRODUCT_ID'] in ['ETIQUE', 'MANTEN', 'TRANS']:
+                    continue
+
+                unique_id = i['UNIQUE_ID']
+                api_unique_ids.add(unique_id)
+
+                contrato_id = str(i['CONTRATO_ID'])
+                codigo_cliente = i['CODIGO_CLIENTE']
+                product_id = i['PRODUCT_ID']
+                quantity = i['QUANTITY']
+                ware_code = i['WARE_CODE']
+                confirmed = 0 if i['CONFIRMED'] == 'false' else 1
+
+                fecha_pedido = datetime.strptime(
+                    i['FECHA_PEDIDO'][:10], '%d/%m/%Y'
+                ).date()
+
+                hora_llegada = datetime.strptime(
+                    i['HORA_LLEGADA'], '%H:%M:%S'
+                ).time()
+
+                s_n_c = i['MEMO']
+
+                if s_n_c.startswith('P'):
+                    sec_name_cliente = 'PUBLICO'
+                elif s_n_c.startswith('R'):
+                    sec_name_cliente = 'RESERVA'
+                else:
+                    sec_name_cliente = s_n_c
+
+                reserva = reservas_db.get(unique_id)
+
+                # --------------------------------
+                # UPDATE
+                # --------------------------------
+                if reserva:
+
+                    if reserva.product_id in [None, '']:
+                        reserva.delete()
+                        continue
+
+                    # NO modificar si fue alterado manualmente
+                    if reserva.alterado:
+                        continue
+
+                    cambios = False
+
+                    campos = {
+                        "contrato_id": contrato_id,
+                        "codigo_cliente": codigo_cliente,
+                        "product_id": product_id,
+                        "quantity": quantity,
+                        "ware_code": ware_code,
+                        "confirmed": confirmed,
+                        "fecha_pedido": fecha_pedido,
+                        "hora_llegada": hora_llegada,
+                        "sec_name_cliente": sec_name_cliente,
+                    }
+
+                    for campo, valor in campos.items():
+                        if getattr(reserva, campo) != valor:
+                            setattr(reserva, campo, valor)
+                            cambios = True
+
+                    if cambios:
+                        reserva.save()
+
+                # --------------------------------
+                # CREATE
+                # --------------------------------
+                else:
+
+                    if product_id:
+
+                        Reservas.objects.create(
+                            contrato_id=contrato_id,
+                            codigo_cliente=codigo_cliente,
+                            product_id=product_id,
+                            quantity=quantity,
+                            ware_code=ware_code,
+                            confirmed=confirmed,
+                            fecha_pedido=fecha_pedido,
+                            hora_llegada=hora_llegada,
+                            sec_name_cliente=sec_name_cliente,
+                            unique_id=unique_id,
+                            alterado=False
+                        )
+
+            # --------------------------------
+            # DELETE registros que ya no están en API
+            # --------------------------------
+            Reservas.objects.exclude(unique_id__in=api_unique_ids).delete()
+
+            # eliminar quantity 0
+            Reservas.objects.filter(quantity=0).delete()
+
+        admin_warehouse_timestamp(
+            tabla='mis_reservas',
+            actualizar_datetime=True,
+            mensaje='Actualizado correctamente'
+        )
+
         return True
-        
+
     except Exception as e:
-        admin_warehouse_timestamp(tabla='mis_reservas', actualizar_datetime=False, mensaje=f'Error exception: {e}')
+
+        admin_warehouse_timestamp(
+            tabla='mis_reservas',
+            actualizar_datetime=False,
+            mensaje=f'Error exception: {e}'
+        )
+
         return False
 
 
