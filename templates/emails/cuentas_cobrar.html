@@ -34,6 +34,9 @@
         .text-right {
             text-align: right;
         }
+        .text-filled {
+            color: #03268f;
+        }
     </style>
 
     <p>
@@ -76,7 +79,7 @@
         </thead>
         <tbody>
             {% for f in facturas_vencidas %}
-            <tr class="factura" style="background-color: {{ f.bg_color }};">
+            <tr class="factura" style="background-color: #FFB0A1"> <!--style="background-color: {{ f.bg_color }};"--> 
                 <td class="text-right">{{ f.numero }}</td>
                 <td class="text-right">{{ f.fecha_emision | date:"d-m-Y" }}</td>
                 <td class="text-right">
@@ -196,11 +199,13 @@
     <table>
         <thead>
             <tr>
-                <th style="width:100px">Vigente</th>
-                <th style="width:100px">1 - 30</th>
-                <th style="width:100px">31 - 60</th>
-                <th style="width:100px">61 - 90</th>
-                <th style="width:100px">  91+  </th>
+                <th style="min-width:70px; white-space:nowrap;">Vigente</th>
+                <th style="min-width:70px; white-space:nowrap;">1 - 30</th>
+                <th style="min-width:70px; white-space:nowrap;">31 - 60</th>
+                <th style="min-width:70px; white-space:nowrap;">61 - 90</th>
+                <th style="min-width:70px; white-space:nowrap;">
+                    <span class="text-filled">...</span>91+<span class="text-filled">...</span>
+                </th>
             </tr>
         </thead>
         <tbody>
@@ -238,22 +243,25 @@
     <p>Para mayor comodidad, puede realizar el pago mediante los siguientes medios:</p>
 
     <p>
-        <strong>Banco Pichincha</strong><br>
+        <strong><u>Banco Pichincha</u></strong><br>
         Cuenta Corriente # 3025602104
     </p>
 
     <p>
-        <strong>Banco Produbanco</strong><br>
+        <strong><u>Banco Produbanco</u></strong><br>
         Cuenta Corriente # 02-00506770-3
     </p>
 
     <!-- CONTACTO -->
     <p>
-        En caso de tener alguna observación, favor contactarnos con <strong>Dayanne Reyes</strong> a: <br>
-        Email: <strong>dreyes@gimpromed.com</strong> <br>
-        Celular: <strong>098 435 0774</strong>.
+        En caso de tener alguna observación, favor contactarnos a <u>dreyes@gimpromed.com</u> o a su vez al número de
+        celular 098 435 0774 para proceder con la validación y actualización de nuestros registros.
     </p>
 
+    <p>
+        <strong>Atentamente,</strong>
+        <br>
+        <strong>Gimpromed Cía. Ltda.</strong>
     <p>
         **** Esta notificación ha sido enviada automáticamente – Favor no responder ****
     </p>
