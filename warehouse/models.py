@@ -433,20 +433,7 @@ class CuentasCobrar(models.Model):
         blank=True,
         null=True
     )
-
-    # dias_ven = models.IntegerField(
-    #     db_column='DIAS_VEN',
-    #     blank=True,
-    #     null=True
-    # )
-
-    # categoria_mora = models.CharField(
-    #     max_length=90,
-    #     db_column='CATEGORIA_MORA',
-    #     blank=True,
-    #     null=True
-    # )
-
+    
     class Meta:
         managed = False
         db_table = 'cuentas_cobrar'
@@ -555,6 +542,50 @@ class VendedorMBA(models.Model):
 
     def delete(self, *args, **kwargs):
         raise NotImplementedError("Este modelo es solo lectura")
+
+
+class AnalisisABC(models.Model):
+
+    product_id = models.CharField(
+        max_length=100,
+        primary_key=True,
+        db_column='Product_id'
+    )
+
+    total = models.FloatField(
+        db_column='Total',
+        blank=True,
+        null=True
+    )
+
+    f_relativa = models.FloatField(
+        db_column='F_relativa',
+        blank=True,
+        null=True
+    )
+
+    f_acumulada = models.FloatField(
+        db_column='F_acumulada',
+        blank=True,
+        null=True
+    )
+
+    class Meta:
+        managed = False
+        db_table = 'analisis_abc'
+        verbose_name = 'Análisis ABC'
+        verbose_name_plural = 'Análisis ABC'
+        app_label = 'warehouse'
+
+    # Solo lectura
+    def save(self, *args, **kwargs):
+        raise NotImplementedError("Este modelo es de solo lectura")
+
+    def delete(self, *args, **kwargs):
+        raise NotImplementedError("Este modelo es de solo lectura")
+
+    def __str__(self):
+        return f"{self.product_id}"
 
 
 ################################
