@@ -99,22 +99,6 @@
 
                         <td>
                             <div class="btn-group" role="group">
-                                
-                                <a 
-                                    class="btn btn-primary btn-sm {% if i.n_transferencia == '-' %}disabled{% endif %}" 
-                                    href="{% url 'wms_transferencia_picking' i.n_transferencia %}"
-                                >
-                                    <i class="bi bi-truck"></i>
-                                </a>
-
-                                {% if request.user.userperfil.permiso_operaciones or request.user.userperfil.permiso_bodega %}
-                                    <a 
-                                        class="btn btn-secondary btn-sm {% if i.n_transferencia == '-' %}disabled{% endif %}" 
-                                        href="{% url 'wms_transferencia_pdf' i.n_transferencia %}"
-                                    >
-                                        <i class="bi bi-printer"></i>
-                                    </a>
-                                {% endif %}
                                 <button                                        
                                     class="btn btn-warning btn-sm {% if not i.n_transferencia == '-' %}disabled{% endif %}" 
                                     name="actualizar-btn"
@@ -123,6 +107,20 @@
                                 >
                                     A
                                 </button>
+                                <a 
+                                    class="btn btn-primary btn-sm {% if i.n_transferencia == '-' %}disabled{% endif %}" 
+                                    href="{% url 'wms_transferencia_picking' i.n_transferencia %}"
+                                >
+                                    <i class="bi bi-truck"></i>
+                                </a>
+                                {% if request.user.userperfil.permiso_operaciones or request.user.userperfil.permiso_bodega %}
+                                    <a 
+                                        class="btn btn-secondary btn-sm {% if i.n_transferencia == '-' %}disabled{% endif %}" 
+                                        href="{% url 'wms_transferencia_pdf' i.n_transferencia %}"
+                                    >
+                                        <i class="bi bi-printer"></i>
+                                    </a>
+                                {% endif %}
                             </div>
                         </td>
                     </tr>

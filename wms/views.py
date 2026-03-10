@@ -18,7 +18,7 @@ from django.http import HttpResponse,JsonResponse, HttpResponseRedirect
 import json
 
 # Datetime
-from datetime import datetime
+from datetime import datetime, time
 
 # DB
 from django.db import connections, transaction
@@ -3870,7 +3870,19 @@ def wms_actualizar_tranferencia_data_products(request):
 
 
 def wms_notificacion_transferencia_pendiente(request):
-    now = datetime.now()
+    
+    now = datetime.now().time()
+    
+    hora_inicio = time(7, 0)
+    hora_fin    = time(18, 0)
+    
+    if not (hora_inicio >= now or now <= hora_fin):
+        # print('Fuera de horario')
+        return JsonResponse({
+            "success":True,
+            "msg":"Fuera de horario"
+        })
+    
     noti_list = NotificacionInstanceSlack.objects.filter(status='SENT')
     slack = SlackService()
     
@@ -3879,7 +3891,6 @@ def wms_notificacion_transferencia_pendiente(request):
             
             # No se obtiene el numero de items hasta que se ingresa la transferencia
             # n_items = TransferenciaStatus.objects.get(id=int(i.referencia_id)).n_items
-
             # Enviar cada 10 min con calculo        
             ultimo_envio = i.last_sent_at
             delta_tiempo = now - ultimo_envio

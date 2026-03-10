@@ -2374,7 +2374,7 @@ def picking_dashboard_calculo_data(bodega):
 
     # Clasificación vectorizada (MUCHO más rápida)
     condiciones = [
-        reservas['horas_de_pedido'] <= 6,
+        reservas['horas_de_pedido'] <= 5,
         reservas['horas_de_pedido'] < 9
     ]
 
