@@ -2143,6 +2143,7 @@ def wms_listado_pedidos(request): #OK
         estado = estado_map.get(f'{r['contrato_id']}.0')
         datos_pedidos.append({
             'contrato_id': f'{r['contrato_id']}.0',
+            'contrato_id_display':r['contrato_id'],
             'cliente': clientes.get(r['codigo_cliente']),
             'bodega': 'Cerezos', #if r['ware_code'] == 'BCT' else 'Andagoya',
             'fecha_hora': f"{r['fecha_pedido']} - {r['hora_llegada']}",
