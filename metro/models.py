@@ -264,7 +264,7 @@ class Kardex(models.Model):
 
 class Cotizacion(models.Model):
     
-    codigo = models.CharField(max_length=50, unique=True)
+    codigo = models.CharField(max_length=50, unique=False)
     descripcion = models.CharField(max_length=255, blank=True)
 
     archivo_origen = models.FileField(
