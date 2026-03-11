@@ -1412,38 +1412,60 @@ def odbc_actualizar_stock_lote_warehouse():
 #         admin_warehouse_timestamp(tabla='mis_reservas', actualizar_datetime=False, mensaje=f'Error exception: {e}')
 #         return False
 
+MIS_RESERVAS_QUERY ="""
+    SELECT 
+        CLNT_Pedidos_Principal.FECHA_PEDIDO, 
+        CLNT_Pedidos_Principal.CONTRATO_ID, 
+        CLNT_Ficha_Principal.CODIGO_CLIENTE, 
+        CLNT_Ficha_Principal.NOMBRE_CLIENTE, 
+        CLNT_Pedidos_Detalle.PRODUCT_ID, 
+        CLNT_Pedidos_Detalle.PRODUCT_NAME, 
+        CLNT_Pedidos_Detalle.QUANTITY, 
+        CLNT_Pedidos_Detalle.Despachados, 
+        CLNT_Pedidos_Principal.WARE_CODE, 
+        CLNT_Pedidos_Principal.CONFIRMED, 
+        CLNT_Pedidos_Principal.HORA_LLEGADA, 
+        CLNT_Pedidos_Principal.MEMO, 
+        CLNT_Pedidos_Detalle.UNIQUE_ID 
+    FROM 
+        CLNT_Ficha_Principal CLNT_Ficha_Principal, 
+        CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, 
+        CLNT_Pedidos_Principal CLNT_Pedidos_Principal 
+    WHERE 
+        CLNT_Pedidos_Principal.CONTRATO_ID_CORP = CLNT_Pedidos_Detalle.CONTRATO_ID_CORP AND 
+        CLNT_Ficha_Principal.CODIGO_CLIENTE = CLNT_Pedidos_Principal.CLIENT_ID AND 
+        CLNT_Pedidos_Detalle.Despachados=0 AND 
+        ((CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND 
+        (CLNT_Pedidos_Detalle.TIPO_DOCUMENTO='PE') AND 
+        (CLNT_Pedidos_Detalle.PRODUCT_ID<>'MANTEN')) 
+    ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID DESC
+"""
+from django.db.models import Max, Count
+def limpiar_duplicados_reservas():
+    """
+    Mantiene solo el registro más reciente por unique_id
+    """
+    duplicados = (
+        Reservas.objects
+        .values('unique_id')
+        .annotate(max_creado=Max('creado'), total=Count('id'))
+        .filter(total__gt=1)
+    )
+
+    for d in duplicados:
+        Reservas.objects.filter(
+            unique_id=d['unique_id']
+        ).exclude(
+            creado=d['max_creado']
+        ).delete()
+
 
 def api_actualizar_mis_reservas_etiquetado():
-
+    # limpiar_duplicados_reservas()
+    # return False
     try:
-        reservas_mba = api_mba_sql(""" 
-        SELECT 
-            CLNT_Pedidos_Principal.FECHA_PEDIDO, 
-            CLNT_Pedidos_Principal.CONTRATO_ID, 
-            CLNT_Ficha_Principal.CODIGO_CLIENTE, 
-            CLNT_Ficha_Principal.NOMBRE_CLIENTE, 
-            CLNT_Pedidos_Detalle.PRODUCT_ID, 
-            CLNT_Pedidos_Detalle.PRODUCT_NAME, 
-            CLNT_Pedidos_Detalle.QUANTITY, 
-            CLNT_Pedidos_Detalle.Despachados, 
-            CLNT_Pedidos_Principal.WARE_CODE, 
-            CLNT_Pedidos_Principal.CONFIRMED, 
-            CLNT_Pedidos_Principal.HORA_LLEGADA, 
-            CLNT_Pedidos_Principal.MEMO, 
-            CLNT_Pedidos_Detalle.UNIQUE_ID 
-        FROM 
-            CLNT_Ficha_Principal CLNT_Ficha_Principal, 
-            CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, 
-            CLNT_Pedidos_Principal CLNT_Pedidos_Principal 
-        WHERE 
-            CLNT_Pedidos_Principal.CONTRATO_ID_CORP = CLNT_Pedidos_Detalle.CONTRATO_ID_CORP AND 
-            CLNT_Ficha_Principal.CODIGO_CLIENTE = CLNT_Pedidos_Principal.CLIENT_ID AND 
-            CLNT_Pedidos_Detalle.Despachados=0 AND 
-            ((CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND 
-            (CLNT_Pedidos_Detalle.TIPO_DOCUMENTO='PE') AND 
-            (CLNT_Pedidos_Detalle.PRODUCT_ID<>'MANTEN')) 
-        ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID DESC
-        """)
+        
+        reservas_mba = api_mba_sql(MIS_RESERVAS_QUERY)
 
         if reservas_mba["status"] != 200:
             admin_warehouse_timestamp(
@@ -1455,122 +1477,126 @@ def api_actualizar_mis_reservas_etiquetado():
 
         data_api = reservas_mba["data"]
 
-        # -----------------------------
-        # unique_ids que vienen de la API
-        # -----------------------------
-        api_unique_ids = set()
+        if not data_api:
+            return True
 
-        # registros existentes en memoria
+        api_unique_ids = set()
+        nuevos = []
+        actualizar = []
+
+        # traer solo los registros existentes relevantes
+        unique_ids_api = [i["UNIQUE_ID"] for i in data_api]
+
         reservas_db = {
-            r.unique_id: r for r in Reservas.objects.all()
+            r.unique_id: r
+            for r in Reservas.objects.filter(unique_id__in=unique_ids_api)
         }
+
+        existing_ids = set(reservas_db.keys())
+
+        for i in data_api:
+
+            if i['PRODUCT_ID'] in ['ETIQUE', 'MANTEN', 'TRANS']:
+                continue
+
+            unique_id = i['UNIQUE_ID']
+            api_unique_ids.add(unique_id)
+
+            contrato_id = str(i['CONTRATO_ID'])
+            codigo_cliente = i['CODIGO_CLIENTE']
+            product_id = i['PRODUCT_ID']
+            quantity = i['QUANTITY']
+            ware_code = i['WARE_CODE']
+            confirmed = 0 if i['CONFIRMED'] == 'false' else 1
+
+            fecha_pedido = datetime.strptime(
+                i['FECHA_PEDIDO'][:10], '%d/%m/%Y'
+            ).date()
+
+            hora_llegada = datetime.strptime(
+                i['HORA_LLEGADA'], '%H:%M:%S'
+            ).time()
+
+            s_n_c = i['MEMO']
+
+            if s_n_c.startswith('P'):
+                sec_name_cliente = 'PUBLICO'
+            elif s_n_c.startswith('R'):
+                sec_name_cliente = 'RESERVA'
+            else:
+                sec_name_cliente = s_n_c
+
+            if unique_id in existing_ids:
+
+                reserva = reservas_db[unique_id]
+
+                if reserva.alterado:
+                    continue
+
+                reserva.contrato_id = contrato_id
+                reserva.codigo_cliente = codigo_cliente
+                reserva.product_id = product_id
+                reserva.quantity = quantity
+                reserva.ware_code = ware_code
+                reserva.confirmed = confirmed
+                reserva.fecha_pedido = fecha_pedido
+                reserva.hora_llegada = hora_llegada
+                reserva.sec_name_cliente = sec_name_cliente
+                reserva.activo = True
+
+                actualizar.append(reserva)
+
+            else:
+
+                nuevos.append(
+                    Reservas(
+                        contrato_id=contrato_id,
+                        codigo_cliente=codigo_cliente,
+                        product_id=product_id,
+                        quantity=quantity,
+                        ware_code=ware_code,
+                        confirmed=confirmed,
+                        fecha_pedido=fecha_pedido,
+                        hora_llegada=hora_llegada,
+                        sec_name_cliente=sec_name_cliente,
+                        unique_id=unique_id,
+                        alterado=False,
+                        activo=True
+                    )
+                )
 
         with transaction.atomic():
 
-            for i in data_api:
+            if nuevos:
+                Reservas.objects.bulk_create(nuevos, batch_size=1000)
 
-                if i['PRODUCT_ID'] in ['ETIQUE', 'MANTEN', 'TRANS']:
-                    continue
+            if actualizar:
+                Reservas.objects.bulk_update(
+                    actualizar,
+                    [
+                        "contrato_id",
+                        "codigo_cliente",
+                        "product_id",
+                        "quantity",
+                        "ware_code",
+                        "confirmed",
+                        "fecha_pedido",
+                        "hora_llegada",
+                        "sec_name_cliente",
+                        "activo"
+                    ],
+                    batch_size=1000
+                )
 
-                unique_id = i['UNIQUE_ID']
-                api_unique_ids.add(unique_id)
-
-                contrato_id = str(i['CONTRATO_ID'])
-                codigo_cliente = i['CODIGO_CLIENTE']
-                product_id = i['PRODUCT_ID']
-                quantity = i['QUANTITY']
-                ware_code = i['WARE_CODE']
-                confirmed = 0 if i['CONFIRMED'] == 'false' else 1
-
-                fecha_pedido = datetime.strptime(
-                    i['FECHA_PEDIDO'][:10], '%d/%m/%Y'
-                ).date()
-
-                hora_llegada = datetime.strptime(
-                    i['HORA_LLEGADA'], '%H:%M:%S'
-                ).time()
-
-                s_n_c = i['MEMO']
-
-                if s_n_c.startswith('P'):
-                    sec_name_cliente = 'PUBLICO'
-                elif s_n_c.startswith('R'):
-                    sec_name_cliente = 'RESERVA'
-                else:
-                    sec_name_cliente = s_n_c
-
-                reserva = reservas_db.get(unique_id)
-
-                # --------------------------------
-                # UPDATE
-                # --------------------------------
-                if reserva:
-
-                    if reserva.product_id in [None, '']:
-                        reserva.delete()
-                        continue
-
-                    # NO modificar si fue alterado manualmente
-                    if reserva.alterado:
-                        continue
-
-                    cambios = False
-
-                    campos = {
-                        "contrato_id": contrato_id,
-                        "codigo_cliente": codigo_cliente,
-                        "product_id": product_id,
-                        "quantity": quantity,
-                        "ware_code": ware_code,
-                        "confirmed": confirmed,
-                        "fecha_pedido": fecha_pedido,
-                        "hora_llegada": hora_llegada,
-                        "sec_name_cliente": sec_name_cliente,
-                    }
-
-                    for campo, valor in campos.items():
-                        if getattr(reserva, campo) != valor:
-                            setattr(reserva, campo, valor)
-                            cambios = True
-
-                    if cambios:
-                        reserva.save()
-
-                # --------------------------------
-                # CREATE
-                # --------------------------------
-                else:
-
-                    if product_id:
-
-                        Reservas.objects.create(
-                            contrato_id=contrato_id,
-                            codigo_cliente=codigo_cliente,
-                            product_id=product_id,
-                            quantity=quantity,
-                            ware_code=ware_code,
-                            confirmed=confirmed,
-                            fecha_pedido=fecha_pedido,
-                            hora_llegada=hora_llegada,
-                            sec_name_cliente=sec_name_cliente,
-                            unique_id=unique_id,
-                            alterado=False
-                        )
-
-            # --------------------------------
-            # DELETE registros que ya no están en API
-            # --------------------------------
-            Reservas.objects.exclude(unique_id__in=api_unique_ids).delete()
-
-            # eliminar quantity 0
-            Reservas.objects.filter(quantity=0).delete()
+            # marcar como inactivos los que ya no vienen en API
+            Reservas.objects.exclude(unique_id__in=api_unique_ids).update(activo=False)
 
         admin_warehouse_timestamp(
             tabla='mis_reservas',
             actualizar_datetime=True,
             mensaje='Actualizado correctamente'
         )
-
+        limpiar_duplicados_reservas()
         return True
 
     except Exception as e:

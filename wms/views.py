@@ -4917,7 +4917,6 @@ def wms_anulacion_picking_list(request):
 
     # Construcción segura
     anuladas_list = []
-
     for i in anuladas:
         estado_anulado = estados_dict.get(i.picking_anulado)
         estado_nuevo = estados_dict.get(i.picking_nuevo)

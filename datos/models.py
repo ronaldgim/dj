@@ -140,8 +140,9 @@ class AdminActualizationWarehaouse(models.Model):
 
 
 class Reservas(models.Model):
-    
-    contrato_id      = models.CharField(max_length=20, blank=True)
+
+    contrato_id      = models.CharField(max_length=20, blank=True)   
+    unique_id        = models.BigIntegerField(unique=True, db_index=True)
     codigo_cliente   = models.CharField(max_length=20, blank=True)
     product_id       = models.CharField(max_length=30, blank=True)
     quantity         = models.IntegerField(default=0)
@@ -149,13 +150,19 @@ class Reservas(models.Model):
     confirmed        = models.IntegerField(default=0)
     fecha_pedido     = models.DateField(null=True)
     hora_llegada     = models.TimeField(null=True)
-    #sec_name_cliente = models.CharField(max_length=255, blank=True)
     sec_name_cliente = models.TextField(blank=True)
-    unique_id        = models.BigIntegerField(blank=True, null=True)
     alterado         = models.BooleanField(default=False)
-    creado           = models.DateField(auto_now_add=True)
-    actualizado      = models.DateField(auto_now=True)
+    activo           = models.BooleanField(default=True)
+    creado           = models.DateTimeField(auto_now_add=True)
+    actualizado      = models.DateTimeField(auto_now=True)
     usuario          = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=["unique_id"]),
+            models.Index(fields=["activo"]),
+            models.Index(fields=["creado"]),
+        ]
     
     def __str__(self):
         return f"unique_id: {self.unique_id} - contrato_id: {self.contrato_id}"
