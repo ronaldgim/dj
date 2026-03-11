@@ -1757,7 +1757,8 @@ def api_actualizar_cuentas_cobrar_warehouse():
             data = []
             for i in cuentas_cobrar["data"]:
                 codigo_factura = i["CODIGO_FACTURA"]
-                numero_factura = i["NUMERO_FACTURA"]
+                # numero_factura = i["NUMERO_FACTURA"]
+                numero_factura = str(int(float(i["NUMERO_FACTURA"])))
                 codigo_cliente = i["CODIGO_CLIENTE"]
                 identificacion_fiscal = i["IDENTIFICACION_FISCAL"]
                 nombre_cliente = i["NOMBRE_CLIENTE"]
