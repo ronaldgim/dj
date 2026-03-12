@@ -79,7 +79,7 @@
         </thead>
         <tbody>
             {% for f in facturas_vencidas %}
-            <tr class="factura" style="background-color: #FFB0A1"> <!--style="background-color: {{ f.bg_color }};"--> 
+            <tr class="factura" style="background-color: {{ f.bg_color }};"> 
                 <td class="text-right">{{ f.numero }}</td>
                 <td class="text-right">{{ f.fecha_emision | date:"d-m-Y" }}</td>
                 <td class="text-right">
@@ -215,22 +215,22 @@
                         $ {{ resumen.vigente | floatformat:"2g" }}
                     {% endif %}
                 </td>
-                <td class="text-right" {% if resumen.rango_1_30 > 0 %} style="background-color: #FFB0A1;" {% endif %}>
+                <td class="text-right" {% if resumen.rango_1_30 > 0 %} style="background-color: rgb(255,180,160);" {% endif %}>
                     {% if resumen.rango_1_30 > 0 %}
                         $ {{ resumen.rango_1_30 | floatformat:"2g" }}
                     {% endif %}
                 </td>
-                <td class="text-right" {% if resumen.rango_31_60 > 0 %} style="background-color: #FFB0A1;" {% endif %}>
+                <td class="text-right" {% if resumen.rango_31_60 > 0 %} style="background-color: rgb(255,197,180);" {% endif %}>
                     {% if resumen.rango_31_60 > 0 %}
                         $ {{ resumen.rango_31_60 | floatformat:"2g" }}
                     {% endif %}
                 </td>
-                <td class="text-right" {% if resumen.rango_61_90 > 0 %} style="background-color: #FFB0A1;" {% endif %}>
+                <td class="text-right" {% if resumen.rango_61_90 > 0 %} style="background-color: rgb(255,213,200);" {% endif %}>
                     {% if resumen.rango_61_90 > 0 %}
                         $ {{ resumen.rango_61_90 | floatformat:"2g" }}
                     {% endif %}
                 </td>
-                <td class="text-right" {% if resumen.rango_91 > 0 %} style="background-color: #FFB0A1;" {% endif %}>
+                <td class="text-right" {% if resumen.rango_91 > 0 %} style="background-color: rgb(255,230,220);" {% endif %}>
                     {% if resumen.rango_91 > 0 %}
                         $ {{ resumen.rango_91 | floatformat:"2g" }}
                     {% endif %}

@@ -275,20 +275,21 @@ def cartera_vencida_por_cliente(codigo_cliente):
     # ORDENAR (IMPORTANTE)
     facturas_vencidas.sort(key=lambda x: x['dias_vencido'], reverse=True)
 
-    # #  GRADIENTE (AQUÍ VA)
-    # total = len(facturas_vencidas) or 1
+    #  GRADIENTE (AQUÍ VA)
+    total = len(facturas_vencidas) or 1
     
-    # start = (255, 150, 130)  # rojo pastel
-    # end   = (255, 255, 200)  # amarillo pastel
-    # for index, item in enumerate(facturas_vencidas):
+    start = (255, 180, 160)  # tomate pastel
+    end   = (255, 230, 220)  # tomate pastel más tenue
 
-    #     ratio = index / (total - 1 or 1)
+    for index, item in enumerate(facturas_vencidas):
 
-    #     r = int(start[0] + (end[0] - start[0]) * ratio)
-    #     g = int(start[1] + (end[1] - start[1]) * ratio)
-    #     b = int(start[2] + (end[2] - start[2]) * ratio)
+        ratio = index / (total - 1 or 1)
 
-    #     item['bg_color'] = f"rgb({r},{g},{b})"
+        r = int(start[0] + (end[0] - start[0]) * ratio)
+        g = int(start[1] + (end[1] - start[1]) * ratio)
+        b = int(start[2] + (end[2] - start[2]) * ratio)
+
+        item['bg_color'] = f"rgb({r},{g},{b})"
 
     # TOTALES
     totales = {
