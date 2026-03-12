@@ -255,6 +255,9 @@
                                 <th>ESTADO</th>
                             </thead>
                             <tbody style="font-size: small;">
+                                <tr v-if="publicoData.length == 0">
+                                    <td colspan="5" class="text-center text-muted">No hay pedidos pendientes</td>
+                                </tr>
                                 <tr v-for="(i, index) in publicoData" :key="index" :style="{backgroundColor: obtenerColorPedidoTemporal(i.TIPO_PEDIDO)}">
                                     {% verbatim %}
                                     <td>
