@@ -6,7 +6,7 @@ import pyodbc
 
 # BD Connection
 from django.db import connections, transaction
-from django.db.models import Q
+from django.db.models import Q, Count, Max
 
 # Send mail
 from django.core.mail import send_mail
@@ -776,66 +776,40 @@ def api_actualizar_proformas_warehouse():
 
 
 ### 9 ACTUALIZAR RESERVAS WAREHOUSE
+RESERVAS_QUERY ="""
+    SELECT 
+        CLNT_Pedidos_Principal.FECHA_PEDIDO, 
+        CLNT_Pedidos_Principal.CONTRATO_ID, 
+        CLNT_Ficha_Principal.CODIGO_CLIENTE, 
+        CLNT_Ficha_Principal.NOMBRE_CLIENTE, 
+        CLNT_Pedidos_Detalle.PRODUCT_ID, 
+        CLNT_Pedidos_Detalle.PRODUCT_NAME, 
+        CLNT_Pedidos_Detalle.QUANTITY, 
+        CLNT_Pedidos_Detalle.Despachados, 
+        CLNT_Pedidos_Principal.WARE_CODE, 
+        CLNT_Pedidos_Principal.CONFIRMED, 
+        CLNT_Pedidos_Principal.HORA_LLEGADA, 
+        CLNT_Pedidos_Principal.MEMO, 
+        CLNT_Pedidos_Detalle.UNIQUE_ID 
+    FROM 
+        CLNT_Ficha_Principal CLNT_Ficha_Principal, 
+        CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, 
+        CLNT_Pedidos_Principal CLNT_Pedidos_Principal 
+    WHERE 
+        CLNT_Pedidos_Principal.CONTRATO_ID_CORP = CLNT_Pedidos_Detalle.CONTRATO_ID_CORP AND 
+        CLNT_Ficha_Principal.CODIGO_CLIENTE = CLNT_Pedidos_Principal.CLIENT_ID AND 
+        CLNT_Pedidos_Detalle.Despachados=0 AND 
+        ((CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND 
+        (CLNT_Pedidos_Detalle.TIPO_DOCUMENTO='PE') AND 
+        (CLNT_Pedidos_Detalle.PRODUCT_ID<>'MANTEN')) 
+    ORDER BY 
+        CLNT_Pedidos_Principal.CONTRATO_ID DESC
+"""
+
 def api_actualizar_reservas_warehouse():
     
     try:    
-        reservas_mba = api_mba_sql(
-        # """
-        # SELECT 
-        #     CLNT_Pedidos_Principal.FECHA_PEDIDO, 
-        #     CLNT_Pedidos_Principal.CONTRATO_ID, 
-        #     CLNT_Ficha_Principal.CODIGO_CLIENTE, 
-        #     CLNT_Ficha_Principal.NOMBRE_CLIENTE,
-        #     CLNT_Pedidos_Detalle.PRODUCT_ID, 
-        #     CLNT_Pedidos_Detalle.PRODUCT_NAME, 
-        #     CLNT_Pedidos_Detalle.QUANTITY, 
-        #     CLNT_Pedidos_Detalle.Despachados, 
-        #     CLNT_Pedidos_Principal.WARE_CODE, 
-        #     CLNT_Pedidos_Principal.CONFIRMED,
-        #     CLNT_Pedidos_Principal.HORA_LLEGADA, 
-        #     CLNT_Pedidos_Principal.SEC_NAME_CLIENTE, 
-        #     CLNT_Pedidos_Detalle.UNIQUE_ID
-        # FROM 
-        #     CLNT_Ficha_Principal CLNT_Ficha_Principal, 
-        #     CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, 
-        #     CLNT_Pedidos_Principal CLNT_Pedidos_Principal
-        # WHERE 
-        #     CLNT_Pedidos_Principal.CONTRATO_ID_CORP = CLNT_Pedidos_Detalle.CONTRATO_ID_CORP AND 
-        #     CLNT_Ficha_Principal.CODIGO_CLIENTE = CLNT_Pedidos_Principal.CLIENT_ID AND 
-        #     CLNT_Pedidos_Detalle.Despachados=0 AND 
-        #     ((CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND (CLNT_Pedidos_Detalle.TIPO_DOCUMENTO='PE') AND 
-        #     (CLNT_Pedidos_Detalle.PRODUCT_ID<>'MANTEN')) ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID DESC
-        # """
-        
-        """
-        SELECT 
-            CLNT_Pedidos_Principal.FECHA_PEDIDO, 
-            CLNT_Pedidos_Principal.CONTRATO_ID, 
-            CLNT_Ficha_Principal.CODIGO_CLIENTE, 
-            CLNT_Ficha_Principal.NOMBRE_CLIENTE, 
-            CLNT_Pedidos_Detalle.PRODUCT_ID, 
-            CLNT_Pedidos_Detalle.PRODUCT_NAME, 
-            CLNT_Pedidos_Detalle.QUANTITY, 
-            CLNT_Pedidos_Detalle.Despachados, 
-            CLNT_Pedidos_Principal.WARE_CODE, 
-            CLNT_Pedidos_Principal.CONFIRMED, 
-            CLNT_Pedidos_Principal.HORA_LLEGADA, 
-            CLNT_Pedidos_Principal.MEMO, 
-            CLNT_Pedidos_Detalle.UNIQUE_ID 
-        FROM 
-            CLNT_Ficha_Principal CLNT_Ficha_Principal, 
-            CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, 
-            CLNT_Pedidos_Principal CLNT_Pedidos_Principal 
-        WHERE 
-            CLNT_Pedidos_Principal.CONTRATO_ID_CORP = CLNT_Pedidos_Detalle.CONTRATO_ID_CORP AND 
-            CLNT_Ficha_Principal.CODIGO_CLIENTE = CLNT_Pedidos_Principal.CLIENT_ID AND 
-            CLNT_Pedidos_Detalle.Despachados=0 AND 
-            ((CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND 
-            (CLNT_Pedidos_Detalle.TIPO_DOCUMENTO='PE') AND 
-            (CLNT_Pedidos_Detalle.PRODUCT_ID<>'MANTEN')) ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID DESC
-        """
-        )
-        
+        reservas_mba = api_mba_sql(RESERVAS_QUERY)
         
         if  reservas_mba["status"] == 200:
             
@@ -1412,35 +1386,8 @@ def odbc_actualizar_stock_lote_warehouse():
 #         admin_warehouse_timestamp(tabla='mis_reservas', actualizar_datetime=False, mensaje=f'Error exception: {e}')
 #         return False
 
-MIS_RESERVAS_QUERY ="""
-    SELECT 
-        CLNT_Pedidos_Principal.FECHA_PEDIDO, 
-        CLNT_Pedidos_Principal.CONTRATO_ID, 
-        CLNT_Ficha_Principal.CODIGO_CLIENTE, 
-        CLNT_Ficha_Principal.NOMBRE_CLIENTE, 
-        CLNT_Pedidos_Detalle.PRODUCT_ID, 
-        CLNT_Pedidos_Detalle.PRODUCT_NAME, 
-        CLNT_Pedidos_Detalle.QUANTITY, 
-        CLNT_Pedidos_Detalle.Despachados, 
-        CLNT_Pedidos_Principal.WARE_CODE, 
-        CLNT_Pedidos_Principal.CONFIRMED, 
-        CLNT_Pedidos_Principal.HORA_LLEGADA, 
-        CLNT_Pedidos_Principal.MEMO, 
-        CLNT_Pedidos_Detalle.UNIQUE_ID 
-    FROM 
-        CLNT_Ficha_Principal CLNT_Ficha_Principal, 
-        CLNT_Pedidos_Detalle CLNT_Pedidos_Detalle, 
-        CLNT_Pedidos_Principal CLNT_Pedidos_Principal 
-    WHERE 
-        CLNT_Pedidos_Principal.CONTRATO_ID_CORP = CLNT_Pedidos_Detalle.CONTRATO_ID_CORP AND 
-        CLNT_Ficha_Principal.CODIGO_CLIENTE = CLNT_Pedidos_Principal.CLIENT_ID AND 
-        CLNT_Pedidos_Detalle.Despachados=0 AND 
-        ((CLNT_Pedidos_Principal.PEDIDO_CERRADO=false) AND 
-        (CLNT_Pedidos_Detalle.TIPO_DOCUMENTO='PE') AND 
-        (CLNT_Pedidos_Detalle.PRODUCT_ID<>'MANTEN')) 
-    ORDER BY CLNT_Pedidos_Principal.CONTRATO_ID DESC
-"""
-from django.db.models import Max, Count
+
+
 def limpiar_duplicados_reservas():
     """
     Mantiene solo el registro más reciente por unique_id
@@ -1465,7 +1412,7 @@ def api_actualizar_mis_reservas_etiquetado():
     # return False
     try:
         
-        reservas_mba = api_mba_sql(MIS_RESERVAS_QUERY)
+        reservas_mba = api_mba_sql(RESERVAS_QUERY)
 
         if reservas_mba["status"] != 200:
             admin_warehouse_timestamp(
