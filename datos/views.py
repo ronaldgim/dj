@@ -1473,11 +1473,7 @@ def stock_faltante_contrato(contratos, bodega):
 
         cont.append(i)
         n_items.append(f"({len(items)})")
-
-        if dis:
-            disp.append('NOT')
-        else:
-            disp.append('OK')
+        disp.append('NOT' if dis else 'OK')
 
     sto = pd.DataFrame({
         'CONTRATO_ID': cont,
