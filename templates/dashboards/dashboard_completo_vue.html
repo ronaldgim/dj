@@ -117,14 +117,15 @@
                                 </tr>
                                 <tr v-for="(i, index) in pedidosCerezosData" :key="index">
                                     {% verbatim %}
-                                    <td :style="{backgroundColor: obtenerColorFondoNumeroPedido(i.fecha_estado)}">
-                                        <a :href="'/etiquetado/pedidos/' + i.CONTRATO_ID" class="fs-6" target="_blank">{{i.contrato_id}}</a>
-                                        <i v-if="i.DISP" style="color:red;" class="bi bi-file-earmark-x-fill"></i>
+                                    <th :style="{backgroundColor: obtenerColorFondoNumeroPedido(i.fecha_estado)}">
+                                        <a :href="'/etiquetado/pedidos/' + i.CONTRATO_ID" target="_blank">{{i.contrato_id}}</a>
+                                        {{i.ITEMS|safe}}
+                                        <i v-if="i.DISP === 'NOT'" style="color:red;" class="bi bi-file-earmark-x-fill"></i>
                                         <i v-if="i.CONFIRMED" class="bi bi-check2"></i>
                                         <i v-if="i.NUM_PRINT == 0" style="color:grey;" class="bi bi-printer-fill"></i>
                                         <br>
                                         {{i.NOMBRE_CLIENTE}}
-                                    </td>
+                                    </th>
                                     <td>{{i.FECHA_PEDIDO}} {{i.HORA_LLEGADA}}</td>
                                     <td>{{i.CIUDAD_PRINCIPAL}}</td>
                                     <td>
@@ -254,6 +255,9 @@
                                 <th>ESTADO</th>
                             </thead>
                             <tbody style="font-size: small;">
+                                <tr v-if="publicoData.length == 0">
+                                    <td colspan="5" class="text-center text-muted">No hay pedidos pendientes</td>
+                                </tr>
                                 <tr v-for="(i, index) in publicoData" :key="index" :style="{backgroundColor: obtenerColorPedidoTemporal(i.TIPO_PEDIDO)}">
                                     {% verbatim %}
                                     <td>

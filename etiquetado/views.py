@@ -2279,7 +2279,7 @@ def estado_pedidos_dashboard_fun(bodega):
 #     #return render(request, 'dashboards/dashboard.html', context)
 
 
-def calcular_horas_laborales(row, inicio_horario=8, fin_horario=18):
+def calcular_horas_laborales(row, inicio_horario=8, fin_horario=17):
     start = row['fecha_hora_pedido']
     end = datetime.now()
 
@@ -2403,10 +2403,15 @@ def picking_dashboard_calculo_data(bodega):
 
 
 def picking_dashboard_json_response(request, bodega):
-
-    context = picking_dashboard_calculo_data(bodega)
-
-    return JsonResponse(context, safe=False)
+    try:
+        context = picking_dashboard_calculo_data(bodega)
+        return JsonResponse(context, safe=False)
+    except Exception as e:
+        print(e)
+        return JsonResponse({
+            "success":False,
+            "msg":str(e)
+        })
 
 
 def picking_dashboard(request, bodega):
