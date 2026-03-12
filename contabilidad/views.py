@@ -467,7 +467,7 @@ def crear_notificacion(request):
                         subject    = f"SOLICITUD DE PAGO / CARTERA VENCIDA / {cliente.nombre_cliente}",
                         from_email = settings.DEFAULT_FROM_EMAIL,
                         to         = lista_correos_cliente,
-                        # cc         = emails_cc
+                        cc         = emails_cc
                     )
                     correo.attach_alternative(notificacion.correo_text, "text/html")
                     
