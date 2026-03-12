@@ -1454,29 +1454,6 @@ def tramaco_function_ajax(request):
 
 
 # Alerta de stock faltante por contrato
-# def stock_faltante_contrato(contratos, bodega):
-#     cont = []
-#     disp = []
-#     for i in contratos:
-#         res = pedido_por_cliente(i)[['PRODUCT_ID','QUANTITY']]
-#         items = list(res['PRODUCT_ID'].unique())
-#         stock = stock_disponible(bodega, items)
-        
-#         res = res.merge(stock, on='PRODUCT_ID', how='left').fillna(0)        
-#         res['disp'] = res.apply(lambda x: 'OK' if x['stock_disp']>x['QUANTITY'] else 'NOT', axis=1)
-#         res = res[res['PRODUCT_ID']!='MANTEN']
-
-#         dis = 'NOT' in list(res['disp'])
-        
-#         if dis:
-#             cont.append(i)
-#             disp.append('NOT')
-    
-#     sto = pd.DataFrame()
-#     sto['CONTRATO_ID'] = cont
-#     sto['DISP'] = disp
-#     return sto
-
 def stock_faltante_contrato(contratos, bodega):
     cont = []
     disp = []
@@ -1509,7 +1486,6 @@ def stock_faltante_contrato(contratos, bodega):
     })
 
     return sto
-
 
 
 # Función para quitar puntos de un str
