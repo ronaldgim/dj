@@ -1454,34 +1454,61 @@ def tramaco_function_ajax(request):
 
 
 # Alerta de stock faltante por contrato
+# def stock_faltante_contrato(contratos, bodega):
+#     cont = []
+#     disp = []
+#     for i in contratos:
+#         res = pedido_por_cliente(i)[['PRODUCT_ID','QUANTITY']]
+#         items = list(res['PRODUCT_ID'].unique())
+#         stock = stock_disponible(bodega, items)
+        
+#         res = res.merge(stock, on='PRODUCT_ID', how='left').fillna(0)        
+#         res['disp'] = res.apply(lambda x: 'OK' if x['stock_disp']>x['QUANTITY'] else 'NOT', axis=1)
+#         res = res[res['PRODUCT_ID']!='MANTEN']
+
+#         dis = 'NOT' in list(res['disp'])
+        
+#         if dis:
+#             cont.append(i)
+#             disp.append('NOT')
+    
+#     sto = pd.DataFrame()
+#     sto['CONTRATO_ID'] = cont
+#     sto['DISP'] = disp
+#     return sto
+
 def stock_faltante_contrato(contratos, bodega):
     cont = []
     disp = []
+    n_items = []
+
     for i in contratos:
         res = pedido_por_cliente(i)[['PRODUCT_ID','QUANTITY']]
-        items = list(res['PRODUCT_ID'].unique())
-        
-        
+        res = res[res['PRODUCT_ID'] != 'MANTEN']
+        items = res['PRODUCT_ID'].unique()
+
         stock = stock_disponible(bodega, items)
-        
-        
-        res = res.merge(stock, on='PRODUCT_ID', how='left').fillna(0)        
-        res['disp'] = res.apply(lambda x: 'OK' if x['stock_disp']>x['QUANTITY'] else 'NOT', axis=1)
-        res = res[res['PRODUCT_ID']!='MANTEN']
+        res = res.merge(stock, on='PRODUCT_ID', how='left').fillna(0)
 
-        dis = 'NOT' in list(res['disp'])
-        
+        # vectorizado
+        res['disp'] = (res['stock_disp'] > res['QUANTITY']).map({True:'OK', False:'NOT'})
+        dis = (res['disp'] == 'NOT').any()
+
+        cont.append(i)
+        n_items.append(f"({len(items)})")
+
         if dis:
-            cont.append(i)
             disp.append('NOT')
-    
-    sto = pd.DataFrame()
-    sto['CONTRATO_ID'] = cont
-    sto['DISP'] = disp
-    
+        else:
+            disp.append('OK')
+
+    sto = pd.DataFrame({
+        'CONTRATO_ID': cont,
+        'DISP': disp,
+        'ITEMS': n_items
+    })
+
     return sto
-
-
 
 
 
